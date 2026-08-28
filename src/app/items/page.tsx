@@ -37,20 +37,21 @@ export default async function ItemsPage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-12 sm:px-10 sm:py-16">
-        <div className="flex items-baseline gap-6">
-          <h1 className="font-sans text-base text-plate-dim">품목</h1>
-          <span className="lit font-mono text-4xl font-medium tabular-nums">
+        {/* 계측창. 이 월드에서 수치는 유리 아래에서 읽힌다. */}
+        <div className="slot flex items-center justify-between gap-6 px-5 py-5 sm:px-7">
+          <h1 className="font-sans text-xl text-plate sm:text-2xl">품목</h1>
+          <span className="lit font-mono text-4xl font-medium tabular-nums sm:text-5xl">
             {items.length}
           </span>
         </div>
 
         {items.length === 0 ? (
-          <p className="mt-16 max-w-md border-t border-seam pt-8 font-sans leading-relaxed text-plate-dim">
+          <p className="mt-12 max-w-md border-t border-seam pt-8 font-sans leading-relaxed text-plate-dim">
             등록된 품목이 없습니다. 품목이 등록되면 이 자리에 재고와 함께
             표시됩니다.
           </p>
         ) : (
-          <ul className="mt-10">
+          <ul className="mt-12">
             {items.map((item, index) => (
               <li
                 key={item.id}
