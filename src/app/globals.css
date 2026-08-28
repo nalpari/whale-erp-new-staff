@@ -1,26 +1,111 @@
 @import "tailwindcss";
 
+/*
+  계근대(weighbridge) 월드.
+  색은 역할로만 쓴다: 앰버는 측정된 수치, 초록은 조작, 붉은색은 경보.
+  이 규칙이 깨지면 숫자가 화면의 주인공이 아니게 된다.
+*/
+@theme {
+  --color-panel: #0d0f10;
+  --color-recess: #191d1f;
+  --color-seam: #2b3033;
+  --color-plate: #d9d6ce;
+  --color-plate-dim: #949892;
+  --color-amber: #ffaa00;
+  --color-amber-off: #5b4715;
+  --color-start: #24c46a;
+  --color-alarm: #ff5b4a;
+
+  --font-sans: var(--font-plate), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-mono: var(--font-gauge), ui-monospace, "SFMono-Regular", monospace;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* 이 콘솔은 다크 하나로 고정한다. 폼 컨트롤과 스크롤바도 같이 어두워진다. */
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-panel);
+  color: var(--color-plate);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 브라우저가 기본값으로 그려 주는 표면들도 이 월드에 맞춘다. */
+::selection {
+  background: var(--color-amber);
+  color: var(--color-panel);
+}
+
+:where(input, textarea) {
+  caret-color: var(--color-start);
+}
+
+:where(a, button, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-start);
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-color: var(--color-seam) var(--color-panel);
+  scrollbar-width: thin;
+}
+
+/* 자동완성이 흰 배경을 칠해 함몰면을 무너뜨리는 것을 막는다. */
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-plate);
+  -webkit-box-shadow: 0 0 0 100px var(--color-recess) inset;
+  caret-color: var(--color-start);
+}
+
+/* 함몰 슬롯: 위쪽 안쪽 그림자 + 아래 헤어라인. */
+.slot {
+  background: var(--color-recess);
+  border-bottom: 1px solid var(--color-seam);
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.55);
+}
+
+/* 계측값. 발광은 장식이 아니라 이 월드의 재질이다. */
+.lit {
+  color: var(--color-amber);
+  text-shadow: 0 0 28px rgb(255 170 0 / 0.22);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* 이 빌드의 유일한 연출: 목록이 뜨면 수치가 순서대로 켜진다. */
+  .lit {
+    animation: power-on 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes power-on {
+    0% {
+      color: var(--color-amber-off);
+      text-shadow: none;
+    }
+    45% {
+      color: #ffd06a;
+      text-shadow: 0 0 34px rgb(255 170 0 / 0.4);
+    }
+    100% {
+      color: var(--color-amber);
+      text-shadow: 0 0 28px rgb(255 170 0 / 0.22);
+    }
+  }
+
+  .settle {
+    animation: settle 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes settle {
+    from {
+      opacity: 0.55;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 }

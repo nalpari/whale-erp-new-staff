@@ -1,0 +1,17 @@
+coil-yard.webp
+
+생성물이다. 촬영본이 아니다.
+- 도구: higgsfield MCP, 모델 nano_banana_pro (nano_banana_2 로 실행됨), 2026-08-28
+- job: 73391e6e-f7ae-42ca-8e31-e6b97079e25a
+- 비율 4:3, 2000x1493 로 축소 후 cwebp q82
+- 프롬프트: "Documentary photograph, no text anywhere, no logos, no people: stacked coils
+  of hot-rolled steel in a mill storage yard, seen slightly from the side so the coil eyes
+  recede in a row. Blue-grey mill scale surface with faint oxide bloom, tight steel banding
+  straps across each coil, concrete floor, high roof structure blurred in the background.
+  Even cool overhead industrial light, no lens flare, no dramatic rim light, restrained
+  contrast, slightly desaturated cold palette of anthracite, steel blue and dust grey.
+  Sharp focus on the nearest coil, shallow falloff behind. Editorial industrial
+  photography, medium format look."
+
+실제 창고나 실제 재고를 찍은 사진이 아니므로, 특정 현장이나 실적을 가리키는
+용도로 쓰지 말 것.
