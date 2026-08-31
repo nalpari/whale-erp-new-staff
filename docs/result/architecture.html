@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whale ERP API 호출 아키텍처</title>
+<meta name="description" content="whale-erp-staff 가 whale-erp-api 를 호출하는 전체 구조. 현재 구현된 로그인·품목 예제를 기준으로.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<style>
+:root{
+  --paper:#F1F4F3; --surface:#FFFFFF; --sunken:#E5EAE8;
+  --line:#DBE2DF; --line-soft:#EAEFED;
+  --ink:#0F1A1A; --ink-2:#4A5A57; --ink-3:#5B6A66;
+  --accent:#0B6A5F; --accent-tint:#DBEBE7; --accent-press:#084F47;
+  --seal:#C4362A; --seal-ink:#A82C22; --seal-tint:#F8E4E1;
+  --caution:#9C6206; --caution-ink:#845205; --caution-tint:#FAEEDA;
+  --r-card:14px;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,system-ui,'Apple SD Gothic Neo',sans-serif;
+  font-size:16px;line-height:1.65;letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent-tint);color:var(--accent-press)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+html{scrollbar-color:#B9C5C2 var(--paper);scrollbar-width:thin}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:var(--paper)}
+::-webkit-scrollbar-thumb{background:#B9C5C2;border-radius:99px;border:3px solid var(--paper)}
+::-webkit-scrollbar-thumb:hover{background:var(--ink-3)}
+a{color:var(--accent);text-underline-offset:3px;text-decoration-thickness:1px}
+h1,h2,h3{margin:0;letter-spacing:-.025em;line-height:1.25;text-wrap:balance}
+p{margin:0}
+
+.doc{max-width:1080px;margin:0 auto;padding:0 32px}
+.band{padding:72px 0;border-top:1px solid var(--line)}
+.h2{font-size:31px;font-weight:800;margin-bottom:12px}
+.h3{font-size:18px;font-weight:700;margin:36px 0 10px}
+.lede{font-size:17px;color:var(--ink-2);max-width:66ch;line-height:1.68}
+.p{max-width:70ch;color:var(--ink-2);margin-top:14px}
+.p strong{color:var(--ink);font-weight:700}
+.note{font-size:13.5px;color:var(--ink-3);line-height:1.6;max-width:70ch}
+code{font-family:var(--mono);font-size:.87em;background:var(--sunken);padding:1.5px 5px;border-radius:5px;letter-spacing:0}
+
+/* 머리말 */
+.top{padding:76px 0 0}
+.title{font-size:clamp(38px,5.2vw,62px);font-weight:800;letter-spacing:-.035em;line-height:1.05}
+.title .thin{display:block;font-weight:400;color:var(--ink-2)}
+.meta{margin-top:34px;padding-top:20px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:40px}
+.meta dt{font-size:12px;font-weight:600;color:var(--ink-3);margin-bottom:4px}
+.meta dd{margin:0;font-size:14.5px;font-weight:600}
+.meta dd span{font-family:var(--mono);font-size:13px;letter-spacing:0}
+
+/* 그림 */
+figure{margin:34px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:26px 26px 20px;overflow:hidden}
+figure svg{display:block;width:100%;max-width:100%;height:auto;color:var(--ink)}
+figcaption{margin-top:18px;padding-top:16px;border-top:1px solid var(--line-soft);font-size:13.5px;color:var(--ink-2);line-height:1.6;max-width:74ch}
+figcaption b{color:var(--ink);font-weight:700}
+
+/* 표 */
+.tbl{width:100%;border-collapse:collapse;margin-top:20px;font-size:14.5px}
+.tbl th{text-align:left;font-size:12px;font-weight:700;color:var(--ink-3);padding:0 14px 8px 0;border-bottom:1px solid var(--line)}
+.tbl td{padding:13px 14px 13px 0;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--ink-2)}
+.tbl td:first-child{color:var(--ink);font-weight:600}
+.tbl td code{background:none;padding:0;color:var(--ink)}
+.wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+.tag{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.tag.on{background:var(--accent-tint);color:var(--accent-press)}
+.tag.off{background:var(--sunken);color:var(--ink-3)}
+.tag.gap{background:var(--seal-tint);color:var(--seal-ink)}
+
+/* 코드 */
+pre{margin:16px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.7;letter-spacing:0;color:var(--ink)}
+pre .c{color:var(--ink-3)}
+pre .k{color:var(--accent);font-weight:600}
+pre b{color:var(--seal-ink);font-weight:700}
+.src{font-family:var(--mono);font-size:12px;color:var(--ink-3);letter-spacing:0;margin-top:8px;display:block}
+
+/* 짚어두는 상자 */
+.call{margin-top:24px;border-radius:var(--r-card);padding:18px 20px;font-size:14.5px;line-height:1.62;max-width:76ch}
+.call b{display:block;font-weight:700;margin-bottom:4px}
+.call.gap{background:var(--seal-tint);color:var(--seal-ink)}
+.call.gap b{color:#7E1F17}
+.call.warn{background:var(--caution-tint);color:var(--caution-ink)}
+.call.warn b{color:#6E4404}
+.call.info{background:var(--accent-tint);color:var(--accent-press)}
+
+ul{margin:14px 0 0;padding-left:20px;color:var(--ink-2);max-width:72ch}
+li{margin-bottom:8px}
+li::marker{color:var(--ink-3)}
+
+@media (max-width:760px){
+  .doc{padding:0 20px}
+  .band{padding:52px 0}
+  .h2{font-size:26px}
+  .meta{gap:24px}
+  figure{padding:16px 14px 14px}
+}
+</style>
+</head>
+<body>
+
+<header class="doc top">
+  <h1 class="title">API 호출 아키텍처<span class="thin">whale-erp-staff</span></h1>
+  <p class="lede" style="margin-top:28px">
+    이 콘솔은 데이터를 직접 갖지 않는다. 화면에 뜨는 모든 값은 <code>whale-erp-api</code> 가 준 것이고,
+    그 호출은 전부 Next.js 서버 안에서 일어난다. 브라우저는 API 주소도 액세스 토큰도 보지 못한다.
+    아래는 현재 동작하는 로그인과 품목 목록을 기준으로 그 구조를 정리한 것이다.
+  </p>
+  <dl class="meta">
+    <div><dt>프런트</dt><dd>Next.js 16.3.3 · React 19.2.8</dd></div>
+    <div><dt>백엔드</dt><dd>whale-erp-api (NestJS) · <span>:8000</span></dd></div>
+    <div><dt>호출 지점</dt><dd><span>src/lib/api.ts</span></dd></div>
+    <div><dt>기준</dt><dd>구현된 코드 · 2026-08-31</dd></div>
+  </dl>
+</header>
+
+<!-- ══ 1. 신뢰 경계 ══════════════════════════════════════════ -->
+<section class="band doc">
+  <h2 class="h2">경계가 먼저다</h2>
+  <p class="p">
+    이 구조의 출발점은 보안 취향이 아니라 제약이다. <strong>whale-erp-api 에는 CORS 설정이 없다.</strong>
+    그래서 브라우저가 API 를 직접 부르는 경로는 애초에 막혀 있고, 남은 선택지는 Next.js 서버가 대신 부르는 것뿐이다.
+    그 결과 액세스 토큰과 <code>API_BASE_URL</code> 이 브라우저로 내려갈 이유가 사라졌다.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 920 292" role="img" aria-label="브라우저는 httpOnly 세션 쿠키만 쥐고, 액세스 토큰과 API 주소는 Next.js 서버 구역을 벗어나지 않는다. 브라우저에서 API 로 가는 직접 호출은 CORS 미설정으로 막혀 있다.">
+      <defs>
+        <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z" fill="currentColor"/></marker>
+        <marker id="a1r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z" fill="#C4362A"/></marker>
+      </defs>
+      <path d="M105,84 C105,22 795,22 795,84" fill="none" stroke="#C4362A" stroke-width="1.5" stroke-dasharray="6 5" marker-end="url(#a1r)" opacity=".85"/>
+      <g stroke="#C4362A" stroke-width="2.4" stroke-linecap="round"><line x1="443" y1="30" x2="457" y2="44"/><line x1="457" y1="30" x2="443" y2="44"/></g>
+      <text x="450" y="18" font-size="12.5" text-anchor="middle" fill="#A82C22" font-weight="600">CORS 미설정 · 브라우저 직접 호출 불가</text>
+
+      <rect x="20" y="84" width="170" height="100" rx="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <text x="105" y="112" font-size="14" font-weight="700" text-anchor="middle" fill="currentColor">브라우저</text>
+      <rect x="38" y="126" width="134" height="42" rx="7" fill="currentColor" opacity=".07"/>
+      <text x="105" y="144" font-size="12" text-anchor="middle" fill="currentColor">session 쿠키</text>
+      <text x="105" y="160" font-size="11" text-anchor="middle" fill="currentColor" opacity=".65">httpOnly · 읽기 불가</text>
+
+      <rect x="290" y="66" width="300" height="136" rx="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <text x="440" y="56" font-size="14" font-weight="700" text-anchor="middle" fill="currentColor">Next.js 서버</text>
+      <rect x="306" y="82" width="268" height="44" rx="7" fill="currentColor" opacity=".07"/>
+      <text x="440" y="101" font-size="12.5" text-anchor="middle" fill="currentColor">서버 컴포넌트 · 서버 액션</text>
+      <text x="440" y="117" font-size="11" text-anchor="middle" fill="currentColor" opacity=".65">items/page.tsx · login/actions.ts</text>
+      <rect x="306" y="138" width="268" height="44" rx="7" fill="#0B6A5F" opacity=".1"/>
+      <text x="440" y="157" font-size="12.5" text-anchor="middle" fill="#084F47" font-weight="700">lib/api.ts</text>
+      <text x="440" y="173" font-size="11" text-anchor="middle" fill="#084F47" opacity=".8">API_BASE_URL · 액세스 토큰</text>
+
+      <rect x="690" y="84" width="210" height="72" rx="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <text x="795" y="112" font-size="13.5" font-weight="700" text-anchor="middle" fill="currentColor">whale-erp-api</text>
+      <text x="795" y="129" font-size="11" text-anchor="middle" fill="currentColor" opacity=".65">NestJS · :8000</text>
+      <rect x="690" y="174" width="210" height="42" rx="10" fill="currentColor" opacity=".07"/>
+      <text x="795" y="200" font-size="12.5" text-anchor="middle" fill="currentColor">PostgreSQL</text>
+      <line x1="795" y1="156" x2="795" y2="172" stroke="currentColor" stroke-width="1.3" marker-end="url(#a1)"/>
+
+      <line x1="192" y1="104" x2="286" y2="104" stroke="currentColor" stroke-width="1.5" marker-end="url(#a1)"/>
+      <text x="239" y="96" font-size="11.5" text-anchor="middle" fill="currentColor">요청 + 쿠키</text>
+      <line x1="286" y1="136" x2="192" y2="136" stroke="currentColor" stroke-width="1.5" marker-end="url(#a1)"/>
+      <text x="239" y="152" font-size="11.5" text-anchor="middle" fill="currentColor">HTML · RSC</text>
+
+      <line x1="592" y1="104" x2="686" y2="104" stroke="#0B6A5F" stroke-width="2" marker-end="url(#a1)" style="color:#0B6A5F"/>
+      <text x="639" y="96" font-size="11.5" text-anchor="middle" fill="#084F47" font-weight="600">Bearer</text>
+      <line x1="686" y1="136" x2="592" y2="136" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a1)"/>
+      <text x="639" y="152" font-size="11.5" text-anchor="middle" fill="currentColor">JSON</text>
+
+      <g stroke="currentColor" stroke-width="1" stroke-dasharray="4 4" opacity=".45"><line x1="240" y1="234" x2="240" y2="256"/><line x1="640" y1="234" x2="640" y2="256"/></g>
+      <text x="105" y="276" font-size="11.5" text-anchor="middle" fill="currentColor" opacity=".7">신뢰하지 않는 구역</text>
+      <text x="440" y="276" font-size="11.5" text-anchor="middle" fill="#084F47" font-weight="600">비밀이 사는 곳</text>
+      <text x="795" y="276" font-size="11.5" text-anchor="middle" fill="currentColor" opacity=".7">내부 서비스</text>
+    </svg>
+    <figcaption>
+      <b>토큰은 가운데 구역을 벗어나지 않는다.</b> 브라우저가 쥐는 것은 <code>httpOnly</code> 쿠키 하나뿐이라
+      페이지 스크립트가 토큰을 읽을 수 없다. 위쪽 점선은 존재하지 않는 경로다. CORS 가 열리더라도 이 화살표를
+      되살리면 토큰이 브라우저로 내려가야 하므로, 막혀 있다는 사실이 지금 구조를 지탱하고 있다.
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ══ 2. 두 경로 ════════════════════════════════════════════ -->
+<section class="band doc">
+  <h2 class="h2">호출은 두 갈래뿐이다</h2>
+  <p class="p">
+    화면이 API 를 부르는 방법은 두 가지고, 새 기능도 이 둘 중 하나에 들어간다.
+    <strong>읽기는 서버 컴포넌트가</strong> 렌더 중에 부르고, <strong>쓰기는 서버 액션이</strong> 폼 제출을 받아서 부른다.
+    둘 다 <code>lib/api.ts</code> 를 지나므로 인증과 오류 처리를 한 곳에서 끝낸다.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 920 478" role="img" aria-label="읽기 경로에서는 서버 컴포넌트가 렌더 중 API를 부르고 브라우저는 렌더된 결과만 받는다. 쓰기 경로에서는 브라우저 폼이 서버 액션을 호출하고, 서버가 API 응답을 받은 뒤에 쿠키를 구워 리다이렉트한다.">
+      <defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z" fill="currentColor"/></marker></defs>
+      <text x="90" y="24" font-size="13" font-weight="700" text-anchor="middle" fill="currentColor">브라우저</text>
+      <text x="450" y="24" font-size="13" font-weight="700" text-anchor="middle" fill="currentColor">Next.js 서버</text>
+      <text x="810" y="24" font-size="13" font-weight="700" text-anchor="middle" fill="currentColor">whale-erp-api</text>
+      <g stroke="currentColor" stroke-width="1" stroke-dasharray="4 5" opacity=".35"><line x1="90" y1="38" x2="90" y2="462"/><line x1="450" y1="38" x2="450" y2="462"/><line x1="810" y1="38" x2="810" y2="462"/></g>
+      <rect x="14" y="52" width="892" height="190" rx="10" fill="currentColor" opacity=".035"/>
+      <text x="30" y="74" font-size="13" font-weight="800" fill="#084F47">읽기 · 서버 컴포넌트</text>
+      <text x="202" y="74" font-size="11.5" fill="currentColor" opacity=".7">품목 목록</text>
+      <line x1="90" y1="100" x2="444" y2="100" stroke="currentColor" stroke-width="1.5" marker-end="url(#a2)"/>
+      <text x="267" y="92" font-size="11.5" text-anchor="middle" fill="currentColor">GET /items 페이지 요청 + 쿠키</text>
+      <rect x="330" y="112" width="240" height="34" rx="7" fill="#0B6A5F" opacity=".11"/>
+      <text x="450" y="134" font-size="12" text-anchor="middle" fill="#084F47" font-weight="700">getSession() → listItems()</text>
+      <line x1="450" y1="168" x2="804" y2="168" stroke="#0B6A5F" stroke-width="2" marker-end="url(#a2)" style="color:#0B6A5F"/>
+      <text x="627" y="160" font-size="11.5" text-anchor="middle" fill="#084F47" font-weight="600">GET /items?take=50 · Bearer</text>
+      <line x1="810" y1="192" x2="456" y2="192" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a2)"/>
+      <text x="633" y="208" font-size="11.5" text-anchor="middle" fill="currentColor">200 Item[]</text>
+      <line x1="444" y1="226" x2="96" y2="226" stroke="currentColor" stroke-width="1.5" marker-end="url(#a2)"/>
+      <text x="270" y="218" font-size="11.5" text-anchor="middle" fill="currentColor">렌더된 HTML · 데이터 아님</text>
+      <rect x="14" y="262" width="892" height="200" rx="10" fill="currentColor" opacity=".035"/>
+      <text x="30" y="284" font-size="13" font-weight="800" fill="#084F47">쓰기 · 서버 액션</text>
+      <text x="176" y="284" font-size="11.5" fill="currentColor" opacity=".7">로그인</text>
+      <line x1="90" y1="310" x2="444" y2="310" stroke="currentColor" stroke-width="1.5" marker-end="url(#a2)"/>
+      <text x="267" y="302" font-size="11.5" text-anchor="middle" fill="currentColor">POST 서버 액션 (loginAction)</text>
+      <rect x="330" y="322" width="240" height="34" rx="7" fill="#0B6A5F" opacity=".11"/>
+      <text x="450" y="344" font-size="12" text-anchor="middle" fill="#084F47" font-weight="700">login(email, password)</text>
+      <line x1="450" y1="378" x2="804" y2="378" stroke="#0B6A5F" stroke-width="2" marker-end="url(#a2)" style="color:#0B6A5F"/>
+      <text x="627" y="370" font-size="11.5" text-anchor="middle" fill="#084F47" font-weight="600">POST /auth/staff/login</text>
+      <line x1="810" y1="402" x2="456" y2="402" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a2)"/>
+      <text x="633" y="418" font-size="11.5" text-anchor="middle" fill="currentColor">accessToken · user</text>
+      <line x1="444" y1="436" x2="96" y2="436" stroke="currentColor" stroke-width="1.5" marker-end="url(#a2)"/>
+      <text x="270" y="428" font-size="11.5" text-anchor="middle" fill="currentColor">Set-Cookie + redirect('/items')</text>
+    </svg>
+    <figcaption>
+      <b>차이는 브라우저가 무엇을 받느냐다.</b> 읽기에서 브라우저는 <code>Item[]</code> 를 한 번도 보지 못하고
+      이미 렌더된 결과만 받는다. 쓰기에서만 브라우저가 흐름을 시작하고, 쿠키를 굽는 일은 그래도 서버에서 일어난다.
+      쿠키를 굽는 지점이 서버 액션 안이라는 것이 중요하다. 서버 컴포넌트는 렌더 중에 쿠키를 쓸 수 없다.
+    </figcaption>
+  </figure>
+
+  <h3 class="h3">읽기: 세션 확인이 첫 줄이다</h3>
+<pre><span class="c">// src/app/items/page.tsx</span>
+<span class="k">export default async function</span> ItemsPage() {
+  <span class="k">const</span> session = <span class="k">await</span> getSession();
+  <span class="k">if</span> (!session) redirect(<span class="c">"/login"</span>);
+
+  <span class="k">try</span> { items = <span class="k">await</span> listItems(); }
+  <span class="k">catch</span> (error) {
+    <span class="c">// 액세스 토큰이 15분을 넘겨 만료되면 401 이다. 다시 로그인시킨다.</span>
+    <span class="k">if</span> (error <span class="k">instanceof</span> ApiError &amp;&amp; error.status === <b>401</b>) redirect(<span class="c">"/login"</span>);
+    <span class="k">throw</span> error;
+  }</pre>
+  <span class="src">src/app/items/page.tsx:5-16</span>
+  <p class="p">
+    401 을 만나면 화면에 오류를 띄우지 않고 로그인으로 되돌린다. 이 콘솔에서 401 은 예외 상황이 아니라
+    <strong>15분마다 정상적으로 도달하는 상태</strong>라서 그렇다. 그 밖의 오류는 삼키지 않고 그대로 올린다.
+  </p>
+
+  <h3 class="h3">쓰기: 실패의 종류를 나눈다</h3>
+<pre><span class="c">// src/app/login/actions.ts</span>
+<span class="k">catch</span> (error) {
+  <span class="k">if</span> (error <span class="k">instanceof</span> ApiError) <span class="k">return</span> { error: error.message, email };
+  <span class="k">if</span> (error <span class="k">instanceof</span> TypeError) <span class="k">return</span> { error: <span class="c">"API 서버에 연결하지 못했습니다"</span>, email };
+  <span class="k">throw</span> error;              <span class="c">// 환경 변수 누락 같은 설정 문제는 감추지 않는다</span>
+}
+redirect(<span class="c">"/items"</span>);        <span class="c">// try 밖. redirect 는 내부적으로 예외를 던진다</span></pre>
+  <span class="src">src/app/login/actions.ts:21-32</span>
+  <p class="p">
+    세 갈래다. <code>ApiError</code> 는 사용자가 고칠 수 있는 문제(비밀번호), <code>TypeError</code> 는
+    API 가 떠 있지 않은 문제, 나머지는 개발자가 봐야 할 문제다. 마지막 것을 화면에 예쁘게 감싸지 않는 것이
+    이 코드의 판단이다. <code>redirect</code> 를 <code>try</code> 밖에 둔 이유도 같다. 안에 두면 catch 가 삼킨다.
+  </p>
+</section>
+
+<!-- ══ 3. lib/api.ts ═════════════════════════════════════════ -->
+<section class="band doc">
+  <h2 class="h2">호출 지점이 하나인 이유</h2>
+  <p class="p">
+    모든 호출이 <code>src/lib/api.ts</code> 의 <code>request()</code> 를 지난다.
+    화면마다 <code>fetch</code> 를 흩어 놓지 않았기 때문에 아래 네 가지를 한 번만 처리하면 된다.
+  </p>
+
+  <div class="wrap">
+  <table class="tbl">
+    <thead><tr><th>규칙</th><th>코드</th><th>없으면 생기는 일</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>주소를 호출 시점에 읽는다</td>
+        <td><code>function baseUrl()</code> 안에서 <code>process.env</code> 접근</td>
+        <td><code>.env.production</code> 이 비어 있어 빌드 시점에 읽으면 <code>undefined</code> 가 굳는다. 값은 배포 환경이 주입한다.</td>
+      </tr>
+      <tr>
+        <td>빈 값에서 즉시 멈춘다</td>
+        <td><code>if (!url) throw</code></td>
+        <td><code>fetch("undefined/items")</code> 로 번져 원인을 찾기 어려운 오류가 된다.</td>
+      </tr>
+      <tr>
+        <td>캐시하지 않는다</td>
+        <td><code>cache: "no-store"</code></td>
+        <td>사용자마다 다른 응답이라 캐시하면 남의 데이터가 보인다.</td>
+      </tr>
+      <tr>
+        <td>Nest 오류를 한 모양으로 만든다</td>
+        <td><code>ApiError(status, message)</code></td>
+        <td>검증 실패 시 <code>message</code> 가 배열로 와서 화면마다 다르게 깨진다. 배열이면 <code>join(", ")</code>.</td>
+      </tr>
+      <tr>
+        <td>204 를 파싱하지 않는다</td>
+        <td><code>status === 204 ? undefined : json()</code></td>
+        <td>본문 없는 로그아웃 응답에서 <code>json()</code> 이 터진다.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="call info">
+    <b>토큰을 붙이는 일은 호출부가 한다</b>
+    <code>request()</code> 자체는 인증을 모른다. <code>listItems()</code> 와 <code>logout()</code> 이
+    <code>getSession()</code> 으로 토큰을 꺼내 <code>Authorization</code> 헤더를 만든다.
+    덕분에 로그인처럼 토큰이 없는 호출도 같은 함수를 쓴다.
+  </div>
+</section>
+
+<!-- ══ 4. 세션 수명 ══════════════════════════════════════════ -->
+<section class="band doc">
+  <h2 class="h2">세션은 15분 뒤 절벽을 만난다</h2>
+  <p class="p">
+    쿠키 <code>maxAge</code> 를 액세스 토큰 수명과 같은 900초로 맞춰 놓았다. 그래서 쿠키가 살아 있는 동안은
+    토큰도 살아 있고, 둘이 거의 같이 죽는다. <strong>리프레시 토큰은 받아 놓고 버린다.</strong>
+    회전이 구현되지 않았으므로 15분마다 다시 로그인한다.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 900 278" role="img" aria-label="세션은 로그인으로 시작해 15분 뒤 만료되고 로그인 화면으로 돌아간다. 만료에서 세션으로 되돌리는 리프레시 토큰 회전 경로는 아직 구현되어 있지 않다.">
+      <defs>
+        <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z" fill="currentColor"/></marker>
+        <marker id="a3r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z" fill="#C4362A"/></marker>
+      </defs>
+      <path d="M784,106 L784,74 Q784,62 772,62 L512,62 Q500,62 500,74 L500,102" fill="none" stroke="#C4362A" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#a3r)"/>
+      <text x="642" y="32" font-size="12.5" text-anchor="middle" fill="#A82C22" font-weight="700">POST /auth/refresh</text>
+      <text x="642" y="48" font-size="11.5" text-anchor="middle" fill="#A82C22">미구현 · 리프레시 토큰은 받고 버린다</text>
+
+      <rect x="40" y="108" width="152" height="56" rx="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <text x="116" y="142" font-size="14" font-weight="700" text-anchor="middle" fill="currentColor">비로그인</text>
+      <rect x="356" y="108" width="188" height="56" rx="10" fill="#0B6A5F" opacity=".11"/>
+      <rect x="356" y="108" width="188" height="56" rx="10" fill="none" stroke="#0B6A5F" stroke-width="1.8"/>
+      <text x="450" y="134" font-size="14" font-weight="700" text-anchor="middle" fill="#084F47">세션 있음</text>
+      <text x="450" y="152" font-size="11.5" text-anchor="middle" fill="#084F47" opacity=".8">최대 15분</text>
+      <rect x="708" y="108" width="152" height="56" rx="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <text x="784" y="142" font-size="14" font-weight="700" text-anchor="middle" fill="currentColor">만료</text>
+
+      <line x1="194" y1="140" x2="350" y2="140" stroke="currentColor" stroke-width="1.5" marker-end="url(#a3)"/>
+      <text x="272" y="116" font-size="11.5" text-anchor="middle" fill="currentColor">POST /auth/staff/login</text>
+      <text x="272" y="130" font-size="11" text-anchor="middle" fill="currentColor" opacity=".7">Set-Cookie maxAge=900</text>
+      <line x1="546" y1="140" x2="702" y2="140" stroke="currentColor" stroke-width="1.5" marker-end="url(#a3)"/>
+      <text x="624" y="116" font-size="11.5" text-anchor="middle" fill="currentColor">15분 경과</text>
+      <text x="624" y="130" font-size="11" text-anchor="middle" fill="currentColor" opacity=".7">API 가 401 을 준다</text>
+
+      <path d="M450,166 L450,200 Q450,212 438,212 L152,212 Q140,212 140,200 L140,168" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#a3)"/>
+      <text x="295" y="205" font-size="11.5" text-anchor="middle" fill="currentColor">로그아웃 · 쿠키 삭제 + POST /auth/logout</text>
+      <path d="M784,166 L784,244 Q784,256 772,256 L102,256 Q90,256 90,244 L90,168" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#a3)"/>
+      <text x="440" y="272" font-size="11.5" text-anchor="middle" fill="currentColor">redirect('/login') · 화면이 스스로 되돌린다</text>
+    </svg>
+    <figcaption>
+      <b>붉은 점선이 지금 없는 유일한 홉이다.</b> 이것을 채우려면 <code>refreshToken</code> 도 쿠키에 넣고
+      401 일 때 회전시켜야 하는데, 그 과정에서 쿠키를 다시 구워야 한다. 서버 컴포넌트는 렌더 중 쿠키를 쓸 수 없으므로
+      회전은 미들웨어나 라우트 핸들러로 가야 한다. 즉 이 한 홉을 채우는 일은 새 실행 지점을 하나 도입하는 결정이다.
+    </figcaption>
+  </figure>
+
+  <div class="call warn">
+    <b>15분은 화면 설계에도 영향을 준다</b>
+    작성 중인 폼을 들고 있다가 만료되면 입력이 사라진다. 지금 구현된 화면은 읽기 전용이라 문제가 드러나지 않지만,
+    직원 앱의 계약서 날인이나 TO-DO 처리처럼 쓰기가 들어오면 회전 없이는 곤란해진다.
+  </div>
+</section>
+
+<!-- ══ 5. API 표 ═════════════════════════════════════════════ -->
+<section class="band doc">
+  <h2 class="h2">지금 쓰는 엔드포인트</h2>
+  <p class="p">
+    코드에서 실제로 호출하는 것은 넷이다. 나머지는 API 에 있으나 화면이 아직 부르지 않거나, 아직 없다.
+  </p>
+  <div class="wrap">
+  <table class="tbl">
+    <thead><tr><th>엔드포인트</th><th>부르는 곳</th><th>인증</th><th>상태</th></tr></thead>
+    <tbody>
+      <tr><td><code>POST /auth/staff/login</code></td><td><code>login()</code> ← loginAction</td><td>없음</td><td><span class="tag on">호출 중</span></td></tr>
+      <tr><td><code>POST /auth/logout</code></td><td><code>logout()</code> ← logoutAction</td><td>Bearer</td><td><span class="tag on">호출 중</span></td></tr>
+      <tr><td><code>GET /items?take=50</code></td><td><code>listItems()</code> ← ItemsPage</td><td>Bearer</td><td><span class="tag on">호출 중</span></td></tr>
+      <tr><td><code>POST /auth/refresh</code></td><td>없음</td><td>refreshToken</td><td><span class="tag gap">미사용</span></td></tr>
+      <tr><td>품목 등록 · 수정 · 삭제</td><td>없음</td><td>Bearer</td><td><span class="tag off">API 는 있음 · 화면 없음</span></td></tr>
+      <tr><td>재고 이동 기록</td><td>없음</td><td>Bearer</td><td><span class="tag off">API 는 있음 · 화면 없음</span></td></tr>
+      <tr><td>총 건수 조회</td><td>없음</td><td>-</td><td><span class="tag gap">API 없음</span></td></tr>
+      <tr><td>직원 회원가입</td><td>없음</td><td>-</td><td><span class="tag gap">API 없음 · 계정은 운영자가 발급</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note" style="margin-top:16px">
+    <code>take</code> 는 API 가 최대 200 까지 받는다. 총 건수 API 가 없어서 품목 화면의 숫자는
+    받아온 배열 길이(<code>items.length</code>)이며, 200 을 넘는 순간 실제 총계와 어긋난다.
+  </p>
+</section>
+
+<!-- ══ 6. 직원 앱으로 확장 ═══════════════════════════════════ -->
+<section class="band doc">
+  <h2 class="h2">직원 앱을 얹을 때 깨지는 곳</h2>
+  <p class="p">
+    지금 구조는 <strong>브라우저 하나에 직원 하나</strong>를 전제한다. 세션 쿠키가 곧 신원이기 때문이다.
+    직원 모바일 앱은 이 전제를 그대로 만족하므로 위 구조를 그대로 확장하면 된다.
+    문제는 <a href="../design/whale-erp-staff-app.html">디자인 시안</a>의 매장 출퇴근 등록 앱이다.
+    한 단말을 여러 직원이 번갈아 쓰므로 전제가 깨진다.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 900 280" role="img" aria-label="직원 모바일 앱은 브라우저 하나에 직원 하나여서 세션 쿠키가 그대로 신원이 된다. 매장 공용 단말은 한 단말을 여러 직원이 쓰므로 쿠키만으로 신원을 정할 수 없고, 단말 세션과 요청별 직원 식별로 나뉘어야 한다.">
+      <defs>
+        <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,1 L9,5 L0,9 z" fill="currentColor"/>
+        </marker>
+        <marker id="a4r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,1 L9,5 L0,9 z" fill="#C4362A"/>
+        </marker>
+      </defs>
+
+      <!-- 왼쪽: 지금 -->
+      <text x="30" y="26" font-size="13" font-weight="800" fill="#084F47">직원 모바일 앱 · 그대로 된다</text>
+      <rect x="30" y="44" width="390" height="130" rx="10" fill="#0B6A5F" opacity=".06"/>
+
+      <rect x="54" y="80" width="104" height="46" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <text x="106" y="108" font-size="12.5" text-anchor="middle" fill="currentColor">기기 1대</text>
+
+      <line x1="160" y1="103" x2="212" y2="103" stroke="currentColor" stroke-width="1.5" marker-end="url(#a4)"/>
+
+      <rect x="216" y="80" width="112" height="46" rx="8" fill="currentColor" opacity=".08"/>
+      <text x="272" y="100" font-size="11.5" text-anchor="middle" fill="currentColor">session 쿠키</text>
+      <text x="272" y="116" font-size="11" text-anchor="middle" fill="currentColor" opacity=".65">직원 A</text>
+
+      <line x1="330" y1="103" x2="366" y2="103" stroke="currentColor" stroke-width="1.5" marker-end="url(#a4)"/>
+      <circle cx="386" cy="96" r="9" fill="currentColor" opacity=".55"/>
+      <path d="M374,118 a12,12 0 0 1 24,0" fill="currentColor" opacity=".55"/>
+      <text x="225" y="156" font-size="12" text-anchor="middle" fill="#084F47" font-weight="700">1 : 1 : 1 · 쿠키가 곧 신원</text>
+
+      <!-- 오른쪽: 매장 단말 -->
+      <text x="480" y="26" font-size="13" font-weight="800" fill="#A82C22">매장 공용 단말 · 어긋난다</text>
+      <rect x="480" y="44" width="390" height="130" rx="10" fill="#C4362A" opacity=".05"/>
+
+      <rect x="504" y="80" width="104" height="46" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <text x="556" y="108" font-size="12.5" text-anchor="middle" fill="currentColor">단말 1대</text>
+
+      <line x1="610" y1="103" x2="662" y2="103" stroke="currentColor" stroke-width="1.5" marker-end="url(#a4)"/>
+
+      <rect x="666" y="80" width="112" height="46" rx="8" fill="#C4362A" opacity=".12"/>
+      <text x="722" y="100" font-size="11.5" text-anchor="middle" fill="#A82C22">session 쿠키</text>
+      <text x="722" y="116" font-size="11" text-anchor="middle" fill="#A82C22" font-weight="700">누구?</text>
+
+      <line x1="780" y1="103" x2="812" y2="103" stroke="#C4362A" stroke-width="1.5" marker-end="url(#a4r)"/>
+      <g fill="#C4362A" opacity=".6">
+        <circle cx="830" cy="82" r="7"/><path d="M820,100 a10,10 0 0 1 20,0" />
+        <circle cx="852" cy="82" r="7"/><path d="M842,100 a10,10 0 0 1 20,0" />
+        <circle cx="830" cy="112" r="7"/><path d="M820,130 a10,10 0 0 1 20,0" />
+      </g>
+      <text x="675" y="156" font-size="12" text-anchor="middle" fill="#A82C22" font-weight="700">1 : 1 : N · 쿠키로 신원을 정할 수 없다</text>
+
+      <!-- 해법 -->
+      <line x1="30" y1="196" x2="870" y2="196" stroke="currentColor" stroke-width="1" opacity=".2"/>
+      <text x="30" y="222" font-size="12.5" font-weight="700" fill="currentColor">단말에 필요한 모양</text>
+      <rect x="176" y="206" width="196" height="34" rx="8" fill="currentColor" opacity=".08"/>
+      <text x="274" y="228" font-size="11.5" text-anchor="middle" fill="currentColor">단말 세션 (매장 식별)</text>
+      <text x="390" y="228" font-size="14" text-anchor="middle" fill="currentColor" opacity=".6">+</text>
+      <rect x="408" y="206" width="252" height="34" rx="8" fill="#0B6A5F" opacity=".12"/>
+      <text x="534" y="228" font-size="11.5" text-anchor="middle" fill="#084F47" font-weight="600">요청마다 직원 식별값 (QR · 사번)</text>
+    </svg>
+    <figcaption>
+      <b>단말은 신원을 기억하면 안 된다.</b> 직원 A 가 출근을 찍고 자리를 뜬 뒤 직원 B 가 오는 것이 정상 흐름이므로,
+      단말이 쥐는 것은 매장 자격이고 직원은 출퇴근 요청마다 새로 식별되어야 한다.
+      기능명세서가 식별 방식(QR · 바코드 · 매장 PC)을 아직 확정하지 않은 상태라 이 부분은 모양만 정해 두고 비워 둔다.
+    </figcaption>
+  </figure>
+
+  <h3 class="h3">화면과 호출의 대응</h3>
+  <p class="note" style="margin-bottom:4px">
+    아래 엔드포인트는 <strong>아직 API 에 없다.</strong> 시안의 화면이 무엇을 요구하는지 정리한 것이며, 이름은 제안이다.
+  </p>
+  <div class="wrap">
+  <table class="tbl">
+    <thead><tr><th>화면</th><th>필요한 호출</th><th>경로</th></tr></thead>
+    <tbody>
+      <tr><td>홈 · 오늘/이번 주 근무</td><td><code>GET /staff/me/shifts?from&amp;to</code></td><td>읽기 · 서버 컴포넌트</td></tr>
+      <tr><td>근무스케줄</td><td><code>GET /staff/me/shifts</code> (주 단위)</td><td>읽기 · 서버 컴포넌트</td></tr>
+      <tr><td>출퇴근 현황</td><td><code>GET /staff/me/attendances</code></td><td>읽기 · 서버 컴포넌트</td></tr>
+      <tr><td>급여명세서</td><td><code>GET /staff/me/payslips</code> · 발송된 것만</td><td>읽기 · 서버 컴포넌트</td></tr>
+      <tr><td>근로계약서 목록 · 상세</td><td><code>GET /staff/me/contracts</code></td><td>읽기 · 서버 컴포넌트</td></tr>
+      <tr><td>날인 · 거부</td><td><code>POST /staff/me/contracts/:id/sign</code></td><td>쓰기 · 서버 액션</td></tr>
+      <tr><td>TO-DO 완료 처리</td><td><code>PATCH /staff/me/todos/:id</code></td><td>쓰기 · 서버 액션</td></tr>
+      <tr><td>연락처 수정</td><td><code>PATCH /staff/me/contact</code></td><td>쓰기 · 서버 액션</td></tr>
+      <tr><td>매장 출퇴근 등록</td><td><code>POST /attendances</code> · 단말 자격 + 직원 식별값</td><td>쓰기 · 별도 인증</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="call gap">
+    <b>근무지 전환은 조회 범위를 바꾼다</b>
+    시안의 근무지 칩은 화면 필터가 아니라 <strong>질의 범위</strong>다. 여러 근무지에 연결된 직원의 모든 조회에
+    근무지 식별자가 따라붙어야 하므로, 선택값을 어디에 두느냐(URL 세그먼트 · 검색 파라미터 · 쿠키)를
+    화면을 짜기 전에 정해야 한다. 서버 컴포넌트가 읽어야 하는 값이라 클라이언트 상태로는 부족하다.
+  </div>
+</section>
+
+<!-- ══ 7. 정리 ═══════════════════════════════════════════════ -->
+<section class="band doc" style="padding-bottom:110px">
+  <h2 class="h2">먼저 결정할 것</h2>
+  <ul>
+    <li><strong>리프레시 회전.</strong> 쓰기 화면이 들어오기 전에 채워야 한다. 미들웨어와 라우트 핸들러 중 어디에 둘지가 실제 결정이다.</li>
+    <li><strong>매장 단말 인증.</strong> 단말 자격을 어떻게 발급하고 폐기할지. 직원 식별 방식(QR · 바코드 · 매장 PC)이 확정되어야 이어서 정할 수 있다.</li>
+    <li><strong>근무지 범위를 어디에 둘지.</strong> URL 에 두면 공유와 새로고침에 강하고, 쿠키에 두면 화면이 단순해진다. 서버 컴포넌트가 읽는다는 조건은 같다.</li>
+    <li><strong>총 건수 API.</strong> 페이지네이션이 필요한 목록(출퇴근 기록, 급여명세서)이 생기면 <code>take/skip</code> 만으로는 부족하다.</li>
+  </ul>
+  <p class="note" style="margin-top:40px">
+    Whale ERP 직원 콘솔 · API 호출 아키텍처 · 2026년 8월 31일 ·
+    구현된 코드(<code>src/lib/api.ts</code>, <code>src/app/login</code>, <code>src/app/items</code>)와
+    <code>PRODUCT.md</code> 기준. 미구현 항목은 표에 표시했다.
+  </p>
+</section>
+
+</body>
+</html>
