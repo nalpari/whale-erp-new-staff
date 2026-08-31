@@ -20,8 +20,11 @@ concept의 `sources[].resource`에 들어 있으면 해당 concept 본문을 고
 
 | 플랫폼 | 루트 |
 |---|---|
-| Windows | `C:\workspace\.whale-erp-worktrees\` |
-| macOS / Linux | `~/.whale-erp-worktrees/` |
+| Windows | `C:\workspace\.whale-erp-worktrees\<프로젝트>\` |
+| macOS / Linux | `~/.whale-erp-worktrees/<프로젝트>/` |
+
+`<프로젝트>` 는 저장소 디렉터리 이름이다 (이 저장소는 `whale-erp-staff`). 세 저장소가
+같은 루트를 쓰므로 한 단계 나눠 이름이 섞이지 않게 한다.
 
 워크트리 이름은 세계 관광 명소 이름(소문자, 영문)으로, 그 워크트리에서 만드는
 브랜치 이름은 포켓몬 이름(소문자, 영문)으로 짓는다. `git worktree list` 와
@@ -29,8 +32,9 @@ concept의 `sources[].resource`에 들어 있으면 해당 concept 본문을 고
 기준으로 분기한다 (현재 체크아웃된 브랜치가 아니라).
 
 ```bash
-git worktree add ~/.whale-erp-worktrees/machupicchu -b pikachu main
-cp .env* ~/.whale-erp-worktrees/machupicchu/ 2>/dev/null   # Windows: copy .env* <루트>\machupicchu\
+git worktree add ~/.whale-erp-worktrees/whale-erp-staff/machupicchu -b pikachu main
+cp .env* ~/.whale-erp-worktrees/whale-erp-staff/machupicchu/ 2>/dev/null
+# Windows: copy .env* <루트>\whale-erp-staff\machupicchu\
 ```
 
 `.env`, `.env.develop`, `.env.production` 등은 git 이 관리하지 않아 새 워크트리에
