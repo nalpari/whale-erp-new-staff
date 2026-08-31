@@ -2,12 +2,12 @@
 type: Application
 title: Whale ERP Staff
 description: Next.js 16 App Router staff console for Whale ERP.
-resource: https://github.com/nalpari/whale-erp-staff
+resource: https://github.com/nalpari/whale-erp-new-staff
 tags: [erp, staff, nextjs]
 sources:
   - { id: package-json, resource: ../package.json, title: Dependency manifest }
   - { id: app-dir, resource: ../src/app, title: App Router entry }
-generated: { by: claude-code/opus-5, at: 2026-08-28T08:05:00Z }
+generated: { by: claude-code/opus-5, at: 2026-08-31T00:00:00Z }
 ---
 
 # Stack
