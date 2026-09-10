@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>로그인 · 직원 앱 · WHALE ERP</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Gowun+Batang:wght@400;700&display=swap"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+    <link rel="stylesheet" href="../assets/staff.css" />
+    <script src="../assets/app.js" defer></script>
+  </head>
+  <body data-area="app" data-screen="login">
+    <!-- 직원 앱 · 로그인
+         이 화면에는 원래 근거가 될 명세가 없었다. 직원 앱 명세 8건이 전부
+         "로그인되어 있어야 한다"를 전제로만 쓰고 로그인 자체를 다루지 않았다.
+         2026-09-10 에 manyfast 에 기능 F-WBHYLR(앱 접속과 계정 유지)를 세우고
+         명세 두 건(S-PHHICH 로그인과 접속 유지, S-WSPEYJ 비밀번호 재설정)을
+         새로 썼다. 같은 날 질문 일곱 건에 모두 답이 달려 규칙이 확정됐다.
+
+         확정 : 휴대전화 번호로 로그인 · 접속 30일 유지 · 5회 실패 시 일정 시간
+         잠금 후 자동 해제 · 생체 인증 1차 제외 · 로그아웃은 내 정보 맨 아래 ·
+         재설정은 본인 문자 인증과 관리자 초기화 두 경로 · 링크 1시간 만료.
+
+         근거 : S-PHHICH · S-WSPEYJ · S-YWYTJY · S-PIXATL -->
+    <a class="skip" href="#main">본문으로 건너뛰기</a>
+
+    <div class="doc" id="main">
+      <header class="dochead">
+        <p class="dochead__kicker">직원 앱 · 로그인 · /login</p>
+        <h1>로그인</h1>
+        <p>
+          앱을 켤 때마다 지나는 관문이다. 매일 출퇴근을 찍는 직원에게는
+          <strong>가장 자주 마주치는 화면</strong>인데 manyfast 에 이 화면을 다루는 명세가 없었다.
+          목업을 만들면서 기능과 명세를 새로 세웠고, 열어 두었던 일곱 가지에 모두 답이 달려
+          <strong>이 화면의 규칙은 확정</strong>이다.
+        </p>
+        <nav class="docnav">
+          <a href="../index.html">← 목업 허브</a>
+          <a href="join.html">진입·가입</a>
+          <a href="contract.html">근로계약</a>
+          <a href="home.html">홈</a>
+          <a href="attendance.html">출퇴근 등록</a>
+          <a href="attendance-history.html">출퇴근 현황</a>
+          <a href="work.html">근무 정보</a>
+          <a href="pay.html">급여</a>
+          <a href="notify.html">알림</a>
+          <a href="me.html">내 정보</a>
+        </nav>
+      </header>
+
+      <div class="stage">
+        <!-- ══ 폰 ══════════════════════════════════════════════════ -->
+        <div class="stage__phone">
+          <div class="phone" data-state="login">
+            <div class="sbar">
+              <span data-clock>08:41</span>
+              <span class="sbar__ic">
+                <i class="ph-fill ph-cell-signal-full"></i>
+                <i class="ph-fill ph-wifi-high"></i>
+                <i class="ph-fill ph-battery-high"></i>
+              </span>
+            </div>
+
+            <!-- ── 앱 시작 ──────────────────────────────────────── -->
+            <div class="view view--center" data-when="splash">
+              <div class="grow"></div>
+              <div class="stack stack-10" style="align-items: center">
+                <i class="ph-fill ph-clock-user" style="font-size: 44px; color: var(--pen)"></i>
+                <p class="h-xl">WHALE</p>
+                <p class="lab">직원 근무 앱</p>
+              </div>
+              <div class="grow"></div>
+              <p class="tiny">저장된 로그인을 확인하는 중입니다</p>
+            </div>
+
+            <!-- ── 로그인 · 실패 ────────────────────────────────── -->
+            <div class="view" data-when="login fail">
+              <div style="height: 22px"></div>
+              <div class="stack stack-6">
+                <p class="h-xl">다시 오셨네요</p>
+                <p class="p">근무 정보와 출퇴근을 확인하려면 로그인하세요.</p>
+              </div>
+
+              <div class="stack stack-14" style="margin-top: 10px">
+                <div class="field">
+                  <label class="field__lab" for="lg-id">휴대전화 번호</label>
+                  <input
+                    class="input input--mono"
+                    id="lg-id"
+                    type="tel"
+                    value="010-2481-5521"
+                    data-unless="fail"
+                  />
+                  <input
+                    class="input input--mono input--err"
+                    type="tel"
+                    value="010-2481-5521"
+                    data-when="fail"
+                    aria-label="휴대전화 번호"
+                  />
+                  <p class="field__help" data-unless="fail">가입할 때 본인인증한 번호입니다</p>
+                </div>
+
+                <div class="field">
+                  <label class="field__lab" for="lg-pw">비밀번호</label>
+                  <input class="input" id="lg-pw" type="password" value="••••••••" />
+                  <p class="field__err" data-when="fail">
+                    <i class="ph-fill ph-warning-circle"></i>번호나 비밀번호가 맞지 않습니다
+                  </p>
+                </div>
+              </div>
+
+              <div class="card card--sunken" data-when="fail">
+                <div class="line">
+                  <i class="ph ph-info" style="color: var(--ink-3); font-size: 17px"></i>
+                  <p class="tiny grow">
+                    <b class="num">5</b>회 틀리면 일정 시간 잠깁니다. 남은 횟수
+                    <b class="num">3</b>회.
+                  </p>
+                </div>
+              </div>
+
+              <div class="note" data-unless="fail">
+                <i class="ph ph-shield-check"></i>
+                <div>한 번 로그인하면 <strong>30일</strong> 동안 다시 묻지 않습니다.</div>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 잠김 ─────────────────────────────────────────── -->
+            <div class="view" data-when="locked">
+              <div style="height: 22px"></div>
+              <div class="stack stack-6">
+                <p class="h-xl">잠시 잠겼습니다</p>
+                <p class="p">
+                  비밀번호를 다섯 번 틀려 계정이 잠겼습니다. 일정 시간이 지나면
+                  <strong>자동으로 풀립니다.</strong>
+                </p>
+              </div>
+
+              <div class="card card--amber">
+                <div class="line">
+                  <i class="ph-fill ph-lock-simple" style="color: var(--amber); font-size: 18px"></i>
+                  <div class="grow">
+                    <p class="h-md" style="color: #6f4608">남은 시간</p>
+                    <p class="num num--lg" style="color: var(--amber); margin-top: 2px">04:12</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="note note--pen">
+                <i class="ph ph-lightbulb"></i>
+                <div>
+                  기다리기 어려우면 <strong>비밀번호를 다시 정하면</strong> 바로 들어올 수 있습니다.
+                </div>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 비밀번호 재설정 요청 ─────────────────────────── -->
+            <div class="view" data-when="forgot">
+              <div style="height: 22px"></div>
+              <div class="stack stack-6">
+                <p class="h-xl">비밀번호를 다시 정합니다</p>
+                <p class="p">
+                  가입할 때 본인인증한 번호로 재설정 링크를 보냅니다. 관리자를 거치지 않아도
+                  됩니다.
+                </p>
+              </div>
+
+              <div class="field" style="margin-top: 6px">
+                <label class="field__lab" for="fg-id">휴대전화 번호</label>
+                <input class="input input--mono" id="fg-id" type="tel" value="010-2481-5521" />
+                <p class="field__help">등록된 번호와 같아야 링크가 갑니다</p>
+              </div>
+
+              <div class="note">
+                <i class="ph ph-clock-countdown"></i>
+                <div>링크는 <strong>1시간</strong> 뒤 만료되고 한 번만 쓸 수 있습니다.</div>
+              </div>
+
+              <div class="card card--sunken">
+                <p class="lab">번호가 바뀌었다면</p>
+                <p class="p--sm" style="margin-top: 6px">
+                  등록된 번호를 쓸 수 없으면 관리자에게 알려 주세요. 관리자가 초기화를 요청하는
+                  경로도 있습니다.
+                </p>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 링크 발송됨 ──────────────────────────────────── -->
+            <div class="view view--center" data-when="reset">
+              <div style="display: grid; place-items: center">
+                <i class="ph-fill ph-chat-circle-text" style="font-size: 42px; color: var(--pen)"></i>
+              </div>
+              <div class="stack stack-6">
+                <p class="h-xl">문자를 보냈습니다</p>
+                <p class="p">
+                  <span class="num">010-2481-••••</span> 로 재설정 링크를 보냈습니다. 링크를 열어 새
+                  비밀번호를 정하세요.
+                </p>
+              </div>
+              <div class="card card--sunken" style="width: 100%">
+                <div class="line">
+                  <i class="ph ph-timer" style="color: var(--ink-3); font-size: 17px"></i>
+                  <p class="tiny grow" style="text-align: left">
+                    1시간 뒤 만료됩니다. 새 비밀번호를 정하면 다른 기기의 로그인도 모두 끊깁니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── 세션 만료 ────────────────────────────────────── -->
+            <div class="view" data-when="expired">
+              <div style="height: 22px"></div>
+              <div class="stack stack-6">
+                <p class="h-xl">로그인이 만료되었습니다</p>
+                <p class="p">마지막 접속으로부터 30일이 지나 다시 로그인해야 합니다.</p>
+              </div>
+
+              <div class="card card--amber">
+                <div class="line">
+                  <i class="ph-fill ph-clock-countdown" style="color: var(--amber); font-size: 18px"></i>
+                  <div class="grow">
+                    <p class="h-md" style="color: #6f4608">출근을 찍으려던 중이었습니다</p>
+                    <p class="tiny" style="color: var(--amber)">로그인하면 하던 자리로 돌아갑니다</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field" style="margin-top: 4px">
+                <label class="field__lab" for="ex-pw">비밀번호</label>
+                <input class="input" id="ex-pw" type="password" value="••••••••" />
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 하단 버튼 ────────────────────────────────────── -->
+            <div class="dock" data-when="login fail">
+              <button class="btn" data-go="splash" data-toast="로그인했습니다">
+                <i class="ph-fill ph-sign-in"></i>로그인
+              </button>
+              <button class="btn btn--quiet" data-go="forgot">비밀번호를 잊으셨나요</button>
+            </div>
+
+            <div class="dock" data-when="locked">
+              <button class="btn" data-go="forgot">비밀번호 다시 정하기</button>
+              <button class="btn btn--quiet" data-go="login">기다렸다 다시 시도</button>
+            </div>
+
+            <div class="dock" data-when="forgot">
+              <button class="btn" data-go="reset" data-toast="재설정 링크를 보냈습니다">
+                <i class="ph-fill ph-paper-plane-tilt"></i>재설정 링크 받기
+              </button>
+              <button class="btn btn--quiet" data-go="login">로그인으로 돌아가기</button>
+            </div>
+
+            <div class="dock" data-when="reset">
+              <button class="btn btn--ghost" data-go="login">로그인으로 돌아가기</button>
+            </div>
+
+            <div class="dock" data-when="expired">
+              <button class="btn" data-go="splash" data-toast="다시 로그인했습니다">
+                <i class="ph-fill ph-sign-in"></i>로그인
+              </button>
+            </div>
+
+            <div class="dock" data-when="splash">
+              <a class="btn btn--ghost" href="home.html">홈으로 들어가기</a>
+            </div>
+
+            <!-- ── 시트 ─────────────────────────────────────────── -->
+            <div class="sheet" data-sheet-id="logout" hidden>
+              <div class="sheet__grab"></div>
+              <p class="h-lg">로그아웃할까요</p>
+              <p class="p--sm">
+                다시 들어오려면 휴대전화 번호와 비밀번호가 필요합니다. 출퇴근을 찍어야 할 때
+                번거로울 수 있습니다.
+              </p>
+              <div class="btnrow">
+                <button class="btn btn--ghost" data-sheet-close>그대로 두기</button>
+                <button class="btn btn--seal" data-sheet-close data-go="login">로그아웃</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ 해설 ═══════════════════════════════════════════════ -->
+        <div class="stage__side">
+          <div class="switcher">
+            <div class="switcher__head">
+              <p class="lab">상태 바꾸기</p>
+              <span class="switcher__hint">숫자키 1–7</span>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-state="login" aria-pressed="true">
+                <span class="sw-b__k">1</span>
+                <span><span class="sw-b__t">로그인</span> <span class="sw-b__d">· 평상시</span></span>
+              </button>
+              <button class="sw-b" data-state="fail">
+                <span class="sw-b__k">2</span>
+                <span
+                  ><span class="sw-b__t">실패</span> <span class="sw-b__d">· 남은 횟수 안내</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="locked">
+                <span class="sw-b__k">3</span>
+                <span
+                  ><span class="sw-b__t">잠김</span>
+                  <span class="sw-b__d">· 5회 실패 · 자동 해제</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="forgot">
+                <span class="sw-b__k">4</span>
+                <span
+                  ><span class="sw-b__t">비밀번호 재설정</span>
+                  <span class="sw-b__d">· 본인 문자 인증</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="reset">
+                <span class="sw-b__k">5</span>
+                <span
+                  ><span class="sw-b__t">링크 발송됨</span> <span class="sw-b__d">· 1시간 만료</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="expired">
+                <span class="sw-b__k">6</span>
+                <span
+                  ><span class="sw-b__t">세션 만료</span> <span class="sw-b__d">· 30일 지남</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="splash">
+                <span class="sw-b__k">7</span>
+                <span><span class="sw-b__t">앱 시작</span> <span class="sw-b__d">· 자동 로그인</span></span>
+              </button>
+            </div>
+            <div class="switcher__head" style="border-top: 1px solid var(--rule); border-bottom: none">
+              <p class="lab">시트 열기</p>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-sheet="logout">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">로그아웃</span>
+                  <span class="sw-b__d">· 내 정보 맨 아래에 둔다</span></span
+                >
+              </button>
+            </div>
+          </div>
+
+          <div class="note note--pen" style="margin-top: 20px">
+            <i class="ph-fill ph-file-plus"></i>
+            <div>
+              <strong>이 화면을 위해 명세를 새로 썼고 규칙이 확정됐다.</strong> 직원 앱 명세 여덟
+              건이 전부 "로그인되어 있어야 한다"를 전제로만 쓰고 로그인 자체를 다루지 않아,
+              <code>R-SXOPEA</code> 아래에 기능 <code>F-WBHYLR</code> 과 명세
+              <code>S-PHHICH</code>·<code>S-WSPEYJ</code> 를 세웠다. 열어 두었던 일곱 가지에 모두
+              답이 달렸다.
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">이 화면이 하는 일</h2>
+          <p class="p">
+            직원이 앱을 켤 때 지나는 관문이다. 가입은 평생 한 번이지만 로그인은 매일이라,
+            진입·가입 화면에 딸린 곁가지로 두지 않고 따로 세웠다.
+          </p>
+          <p class="p" style="margin-top: 10px">
+            아이디는 <strong>본인인증한 휴대전화 번호</strong>다. 이 앱에서 사람을 가리는 열쇠가 그
+            번호이고, 초대 연결도 소속 확인도 그것으로 판정한다. 현장 직원에게 업무용 이메일이 없는
+            경우도 많다. 한 번 들어오면 <strong>30일</strong> 동안 다시 묻지 않아, 매장 앞에서
+            비밀번호를 치느라 출근이 늦어지는 일은 없다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">막다른 길이 사라졌다</h2>
+          <p class="p">
+            처음 그렸을 때는 비밀번호를 잊으면 직원이 할 수 있는 일이 없었다. 명세가 정한 유일한
+            경로가 관리자에게 초기화를 요청하는 것이라, 관리자가 자고 있으면 직원도 기다려야 했다.
+            아침 일찍 여는 매장에서 출근을 못 찍으면 그대로 급여 분쟁이 된다.
+          </p>
+          <p class="p" style="margin-top: 10px">
+            이제 <strong>본인이 문자 인증으로 직접 재설정</strong>할 수 있다. 관리자 초기화 경로도
+            그대로 남아 있어 번호가 바뀌어 문자를 못 받는 경우를 받아 준다. 계정이 잠겼을 때도
+            기다리는 것 말고 <strong>비밀번호를 다시 정해 바로 들어오는</strong> 길을 뒀다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">정해진 것</h2>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">LOGIN-1</span>
+              <span class="gap__t">무엇으로 로그인하는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 휴대전화</span>
+              <span class="gap__ref">S-PHHICH</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt is-picked">
+                <div class="gap__label">A · 휴대전화 번호</div>
+                <p>
+                  본인인증한 번호가 이미 사람을 가리는 열쇠다. 초대 연결과 소속 확인이 그 번호로
+                  판정된다. 현장 직원에게 업무용 이메일이 없는 경우가 많다.
+                </p>
+              </div>
+              <div class="gap__opt is-dropped">
+                <div class="gap__label">B · 이메일</div>
+                <p>
+                  관리자 웹과 방식이 같아지지만, 번호를 바꾸면 로그인 아이디와 매칭 키가 따로 놀게
+                  된다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">LOGIN-2</span>
+              <span class="gap__t">직원이 스스로 비밀번호를 찾을 수 있는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 두 경로</span>
+              <span class="gap__ref">S-WSPEYJ</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                <b>본인 문자 인증과 관리자 초기화를 모두 제공한다.</b> 본인인증된 번호가 이미 있으니
+                문자 인증만으로 바로 재설정할 수 있어 새벽이나 주말에도 막히지 않는다. 번호가 바뀌어
+                문자를 못 받는 경우를 위해 관리자 초기화 경로를 남겼다.
+              </p>
+              <p>재설정이 끝나면 다른 기기의 로그인도 모두 끊긴다.</p>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">LOGIN-3</span>
+              <span class="gap__t">로그인을 얼마나 유지하는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 30일</span>
+              <span class="gap__ref">S-PHHICH</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                마지막 접속으로부터 <b>30일</b> 유지하고 그 뒤에는 다시 로그인한다. 매일 출퇴근을
+                찍는 앱이라 짧으면 쓸 수 없고, 무한정 열어 두면 폰을 잃어버렸을 때 근무·급여 정보가
+                그대로 노출된다.
+              </p>
+              <p>만료되어 튕겨도 보던 화면을 기억해 다시 로그인한 뒤 그 자리로 돌아간다.</p>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">LOGIN-4</span>
+              <span class="gap__t">지문·얼굴로 열 것인가</span>
+              <span class="gap__st gap__st--fixed">확정 · 1차 제외</span>
+              <span class="gap__ref">S-PHHICH</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                1차 범위에서는 제공하지 않는다. 접속을 30일 유지하므로 매번 인증할 일이 드물고,
+                생체 인증은 실패했을 때의 대체 경로까지 함께 설계해야 한다.
+              </p>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">LOGIN-5</span>
+              <span class="gap__t">몇 번 틀리면 잠글 것인가</span>
+              <span class="gap__st gap__st--fixed">확정 · 5회</span>
+              <span class="gap__ref">S-PHHICH</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                <b>5회 틀리면 일정 시간 잠그고 그 시간이 지나면 자동으로 풀린다.</b> 관리자를 거쳐야
+                풀리는 방식이 아니라서 막다른 길이 생기지 않는다. 잠긴 동안에도 비밀번호를 다시
+                정하면 바로 들어올 수 있다.
+              </p>
+              <p>실패 안내는 번호와 비밀번호 중 어느 쪽이 틀렸는지 구분해 알려 주지 않는다.</p>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">LOGIN-6</span>
+              <span class="gap__t">로그아웃을 어디에 두는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 내 정보</span>
+              <span class="gap__ref">S-PHHICH</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                <b>내 정보 화면 맨 아래</b>에 둔다. 자주 누를 것이 아니고 실수로 눌리면 곤란해서
+                가장 아래가 맞다. <a href="me.html">내 정보 화면</a>에 반영했다.
+              </p>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
+          <ul class="pol">
+            <li>
+              <span class="pol__src">S-PHHICH</span>
+              <span
+                >본인인증한 휴대전화 번호와 비밀번호로 로그인한다. 접속은 마지막 접속으로부터 30일
+                유지한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-PHHICH</span>
+              <span
+                >5회 틀리면 일정 시간 잠그고 자동으로 풀린다. 실패 안내는 어느 값이 틀렸는지 구분해
+                주지 않는다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-PHHICH</span>
+              <span
+                >1차 범위에서는 지문·얼굴 인증을 제공하지 않는다. 로그아웃은 내 정보 맨 아래에
+                둔다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-WSPEYJ</span>
+              <span
+                >재설정은 본인 문자 인증과 관리자 초기화 두 경로로 시작한다. 링크는 한 번만 쓰고
+                1시간 뒤 만료된다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-WSPEYJ</span>
+              <span>재설정이 끝나면 기존 접속을 모두 끊어 다른 기기에서도 다시 로그인하게 한다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-YWYTJY</span>
+              <span>인증된 번호만 초대 연결과 소속 확인의 매칭 키로 쓴다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-PIXATL</span>
+              <span>관리자는 새 비밀번호를 정하지 못하고 초기화를 요청할 수만 있다.</span>
+            </li>
+          </ul>
+
+          <footer class="docfoot">
+            직원 앱 목업 · 로그인 · 2026년 9월 10일 · 상태 7개 · 시트 1개 · 쟁점 6건 모두 확정 ·
+            F-WBHYLR
+          </footer>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

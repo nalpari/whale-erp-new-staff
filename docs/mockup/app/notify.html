@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>알림 · 직원 앱 · WHALE ERP</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Gowun+Batang:wght@400;700&display=swap"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+    <link rel="stylesheet" href="../assets/staff.css" />
+    <script src="../assets/app.js" defer></script>
+  </head>
+  <body data-area="app" data-screen="notify">
+    <!-- 직원 앱 · 알림
+         알림 유형은 넷뿐이다 — 근로계약서 발송, 근무스케줄 주요 변경, TO-DO 배정,
+         급여명세서 발송(S-AYBNWF). 근로계약서·급여명세서는 수신을 끌 수 없고, 끈
+         유형의 알림도 알림함에는 남는다(S-SIGZJQ). 알림을 눌러 관련 화면으로
+         이동하면 자동으로 읽음 처리된다 — 관리자 웹 알림함(S-GDUNIT)은 항목별
+         읽음 버튼 없이 "모두 읽음"만 두는데, 직원 알림함은 항목별로도 읽음을
+         바꿀 수 있다(S-IMFWJT). 두 알림함이 일부러 다르게 동작한다는 뜻이라
+         해설에 이 대비를 적었다.
+
+         TO-DO 배정 알림만 근무시간 외에는 다음 근무일 아침까지 보류된다. 그
+         기준 시각을 무엇으로 볼지는 명세가 노무사·법무 검토 대상으로 남겨
+         뒀다 — NOTI-1.
+
+         이 파일은 화면 하나다. 오른쪽 목록으로 상태를 바꾸거나 폰 안의 버튼을
+         직접 눌러 본다. 숫자키 1~4 로도 넘어간다.
+
+         근거 : S-IMFWJT · S-SIGZJQ · S-AYBNWF -->
+    <a class="skip" href="#main">본문으로 건너뛰기</a>
+
+    <div class="doc" id="main">
+      <header class="dochead">
+        <p class="dochead__kicker">직원 앱 · 알림 · /notify</p>
+        <h1>알림</h1>
+        <p>
+          직원에게 발송된 알림을 모아 보는 화면이다. 알림 유형은 근로계약서 발송·근무스케줄 주요
+          변경·TO-DO 배정·급여명세서 발송 넷뿐이다. 알림을 누르면 관련 화면으로 이동하며
+          <strong>자동으로 읽음 처리</strong>된다. 근로계약서와 급여명세서 알림은 수신을 끌 수 없고,
+          꺼 둔 유형의 알림도 알림함에는 그대로 남는다.
+        </p>
+        <nav class="docnav">
+          <a href="../index.html">← 목업 허브</a>
+          <a href="login.html">로그인</a>
+          <a href="attendance.html">출퇴근 등록</a>
+          <a href="attendance-history.html">출퇴근 현황</a>
+          <a href="home.html">홈</a>
+          <a href="join.html">진입·가입</a>
+          <a href="contract.html">근로계약</a>
+          <a href="work.html">근무 정보</a>
+          <a href="pay.html">급여</a>
+          <a href="me.html">내 정보</a>
+        </nav>
+      </header>
+
+      <div class="stage">
+        <!-- ══ 폰 ══════════════════════════════════════════════════ -->
+        <div class="stage__phone">
+          <div class="phone" data-state="inbox">
+            <div class="sbar">
+              <span data-clock>08:52</span>
+              <span class="sbar__ic">
+                <i class="ph-fill ph-cell-signal-full"></i>
+                <i class="ph-fill ph-wifi-high"></i>
+                <i class="ph-fill ph-battery-high"></i>
+              </span>
+            </div>
+
+            <div class="abar">
+              <a class="abar__back" href="home.html" data-when="inbox inbox-empty gone"
+                ><i class="ph ph-caret-left"></i
+              ></a>
+              <button
+                class="abar__back"
+                data-go="inbox"
+                data-when="settings"
+                style="background: none; border: none; padding: 0; cursor: pointer; color: inherit"
+              >
+                <i class="ph ph-caret-left"></i>
+              </button>
+              <span class="abar__title" data-when="inbox inbox-empty gone">알림</span>
+              <span class="abar__title" data-when="settings">알림 설정</span>
+              <button
+                class="abar__end"
+                data-go="settings"
+                data-when="inbox inbox-empty"
+                style="background: none; border: none; padding: 0; cursor: pointer; font: inherit"
+              >
+                <i class="ph ph-gear-six"></i>
+              </button>
+            </div>
+
+            <!-- ── 알림함 ───────────────────────────────────────── -->
+            <div class="view" data-when="inbox">
+              <div class="scroll">
+                <div class="rows">
+                  <a
+                    class="row row--top"
+                    href="contract.html"
+                    style="text-decoration: none; color: inherit; position: relative"
+                  >
+                    <span class="dot" style="background: var(--pen); margin-top: 6px"></span>
+                    <i class="ph-fill ph-file-text" style="font-size: 19px; color: var(--pen)"></i>
+                    <div class="row__main">
+                      <p class="row__title">근로계약서가 도착했습니다</p>
+                      <p class="row__sub">웨일카페 강남역점 · 2026년 9월 근로계약서 · 날인 대기</p>
+                    </div>
+                    <div class="row__end">
+                      <span class="tiny">4분 전</span>
+                    </div>
+                  </a>
+
+                  <a
+                    class="row row--top"
+                    href="work.html"
+                    style="text-decoration: none; color: inherit; position: relative"
+                  >
+                    <span class="dot" style="background: var(--pen); margin-top: 6px"></span>
+                    <i class="ph-fill ph-calendar-check" style="font-size: 19px; color: var(--pen)"></i>
+                    <div class="row__main">
+                      <p class="row__title">이번 주 근무스케줄이 바뀌었습니다</p>
+                      <p class="row__sub">9/12(토) 근무가 13:00–22:00으로 바뀌었습니다</p>
+                    </div>
+                    <div class="row__end">
+                      <span class="tiny">1시간 전</span>
+                    </div>
+                  </a>
+
+                  <a
+                    class="row row--top"
+                    href="home.html"
+                    style="text-decoration: none; color: inherit; position: relative"
+                  >
+                    <span class="dot" style="background: var(--pen); margin-top: 6px"></span>
+                    <i class="ph-fill ph-list-checks" style="font-size: 19px; color: var(--ink-2)"></i>
+                    <div class="row__main">
+                      <p class="row__title">TO-DO가 배정되었습니다 · 긴급</p>
+                      <p class="row__sub">환불 요청 처리 · 지금 바로</p>
+                    </div>
+                    <div class="row__end">
+                      <span class="tiny">3시간 전</span>
+                    </div>
+                  </a>
+
+                  <div class="row row--top" style="opacity: 0.7">
+                    <i class="ph ph-list-checks" style="font-size: 19px; color: var(--ink-4)"></i>
+                    <div class="row__main">
+                      <p class="row__title" style="color: var(--ink-3)">TO-DO가 배정되었습니다</p>
+                      <p class="row__sub">유통기한 라벨 점검 · 발송 보류 · 내일 아침 발송 예정</p>
+                    </div>
+                    <div class="row__end">
+                      <span class="tiny">어제 23:40</span>
+                    </div>
+                  </div>
+
+                  <div class="row row--top" style="opacity: 0.7">
+                    <i class="ph ph-receipt" style="font-size: 19px; color: var(--ink-4)"></i>
+                    <div class="row__main">
+                      <p class="row__title" style="color: var(--ink-3)">급여명세서가 도착했습니다</p>
+                      <p class="row__sub">2026년 8월분 · 읽음</p>
+                    </div>
+                    <div class="row__end">
+                      <span class="tiny">3일 전</span>
+                    </div>
+                  </div>
+
+                  <div class="row row--top" style="opacity: 0.7">
+                    <i class="ph ph-calendar-check" style="font-size: 19px; color: var(--ink-4)"></i>
+                    <div class="row__main">
+                      <p class="row__title" style="color: var(--ink-3)">근무스케줄이 바뀌었습니다</p>
+                      <p class="row__sub">9/9(수) 근무가 휴무로 바뀌었습니다 · 읽음</p>
+                    </div>
+                    <div class="row__end">
+                      <span class="tiny">4일 전</span>
+                    </div>
+                  </div>
+
+                  <div class="row row--top" style="opacity: 0.7">
+                    <i class="ph ph-file-text" style="font-size: 19px; color: var(--ink-4)"></i>
+                    <div class="row__main">
+                      <p class="row__title" style="color: var(--ink-3)">근로계약서가 도착했습니다</p>
+                      <p class="row__sub">2026년 8월 근로계약서 · 날인 완료 · 읽음</p>
+                    </div>
+                    <div class="row__end">
+                      <span class="tiny">1개월 전</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── 알림함 비어 있음 ─────────────────────────────── -->
+            <div class="view" data-when="inbox-empty">
+              <div class="empty">
+                <i class="ph ph-bell-slash"></i>
+                <p class="h-md">확인할 알림이 없습니다</p>
+                <p class="p--sm" style="max-width: 240px">
+                  근로계약서, 근무스케줄 변경, TO-DO 배정, 급여명세서가 도착하면 여기에 표시됩니다.
+                </p>
+              </div>
+            </div>
+
+            <!-- ── 알림 수신 설정 ───────────────────────────────── -->
+            <div class="view" data-when="settings">
+              <p class="p--sm" style="margin: 0 0 4px">
+                유형별로 받을 알림을 고릅니다. 꺼 둔 유형도 알림함에서는 확인할 수 있습니다.
+              </p>
+              <div class="scroll">
+                <div class="rows">
+                  <div class="row">
+                    <div class="row__main">
+                      <p class="row__title">근로계약서 발송</p>
+                      <p class="row__sub">항상 켜져 있습니다 · 계약 확인은 놓치면 안 됩니다</p>
+                    </div>
+                    <div class="sw is-on is-lock" data-tick></div>
+                  </div>
+                  <div class="row">
+                    <div class="row__main">
+                      <p class="row__title">근무스케줄 주요 변경</p>
+                      <p class="row__sub">근무 시간이나 근무일이 바뀌면 알립니다</p>
+                    </div>
+                    <div class="sw is-on" data-tick></div>
+                  </div>
+                  <div class="row">
+                    <div class="row__main">
+                      <p class="row__title">TO-DO 배정</p>
+                      <p class="row__sub">근무시간 외에 배정되면 다음 근무일 아침까지 보류합니다</p>
+                    </div>
+                    <div class="sw is-on" data-tick></div>
+                  </div>
+                  <div class="row">
+                    <div class="row__main">
+                      <p class="row__title">급여명세서 발송</p>
+                      <p class="row__sub">항상 켜져 있습니다 · 급여 확인은 놓치면 안 됩니다</p>
+                    </div>
+                    <div class="sw is-on is-lock" data-tick></div>
+                  </div>
+                </div>
+              </div>
+              <div class="note" style="margin-top: 6px">
+                <i class="ph ph-info"></i>
+                <div>
+                  기본 채널은 앱 푸시입니다. 근로계약서처럼 놓치면 안 되는 알림은 푸시가 닿지 않으면
+                  카카오 알림톡으로 대신 보냅니다.
+                </div>
+              </div>
+            </div>
+
+            <!-- ── 알림을 눌렀지만 관련 데이터가 없을 때 ────────── -->
+            <div class="view view--center" data-when="gone">
+              <div class="empty">
+                <i class="ph ph-link-break"></i>
+                <p class="h-md">이 알림과 연결된 화면을 열 수 없습니다</p>
+                <p class="p--sm" style="max-width: 260px">
+                  관련 항목이 삭제되었거나 더 이상 접근할 수 없습니다. 알림 자체는 계속 알림함에
+                  남아 있습니다.
+                </p>
+                <button class="btn btn--ghost" data-go="inbox" style="width: auto; padding: 0 20px">
+                  알림함으로 돌아가기
+                </button>
+              </div>
+            </div>
+
+            <!-- ── 탭바 ─────────────────────────────────────────── -->
+            <div class="tabs" data-unless="settings gone">
+              <a class="tab" href="home.html"><i class="ph ph-house"></i>홈</a>
+              <a class="tab" href="work.html"><i class="ph ph-calendar-check"></i>근무</a>
+              <a class="tab is-on" href="notify.html"><i class="ph-fill ph-bell"></i>알림</a>
+              <a class="tab" href="me.html"><i class="ph ph-user-circle"></i>내 정보</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ 해설 ═══════════════════════════════════════════════ -->
+        <div class="stage__side">
+          <div class="switcher">
+            <div class="switcher__head">
+              <p class="lab">상태 바꾸기</p>
+              <span class="switcher__hint">숫자키 1–4</span>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-state="inbox" aria-pressed="true">
+                <span class="sw-b__k">1</span>
+                <span><span class="sw-b__t">알림함</span> <span class="sw-b__d">· 미확인 3건</span></span>
+              </button>
+              <button class="sw-b" data-state="inbox-empty">
+                <span class="sw-b__k">2</span>
+                <span><span class="sw-b__t">알림 없음</span> <span class="sw-b__d">· 빈 상태</span></span>
+              </button>
+              <button class="sw-b" data-state="settings">
+                <span class="sw-b__k">3</span>
+                <span><span class="sw-b__t">수신 설정</span> <span class="sw-b__d">· 유형별 토글</span></span>
+              </button>
+              <button class="sw-b" data-state="gone">
+                <span class="sw-b__k">4</span>
+                <span
+                  ><span class="sw-b__t">연결 끊김</span>
+                  <span class="sw-b__d">· 데이터 삭제·접근 불가</span></span
+                >
+              </button>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 30px 0 10px">이 화면이 하는 일</h2>
+          <p class="p">
+            직원에게 오는 알림은 근로계약서 발송, 근무스케줄 주요 변경, TO-DO 배정, 급여명세서 발송
+            넷뿐이다. 다른 유형은 만들지 않는다. 미확인은 왼쪽에 파란 점, 놓치면 안 되는 긴급
+            TO-DO는 빨간 점으로 구분하고, 읽은 알림은 옅게 가라앉힌다. 알림을 누르면 관련 화면으로
+            이동하면서 그 알림을 자동으로 읽음 처리한다 — 따로 읽음 버튼을 누를 필요가 없다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">관리자 알림함과 반대로 움직인다</h2>
+          <p class="p">
+            관리자 웹의 운영 알림함(S-GDUNIT)은 줄마다 읽음 버튼을 두지 않고 "모두 읽음" 한 동작만
+            제공한다. 반면 직원 알림함은 알림 하나하나에 읽음 상태를 확인하고 바꿀 수 있는 동작을
+            둔다(S-IMFWJT). 관리자는 알림이 많고 업무 처리 자체가 상태를 대신 말해 주지만, 직원은
+            알림 자체가 곧 확인해야 할 일이라 한 건씩 다루는 편이 맞다고 봤다. 두 알림함이 같은
+            구조를 쓰지만 일부러 다르게 움직이는 지점이다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">정할 것</h2>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">NOTI-1</span>
+              <span class="gap__t">근무시간 외 발송 보류의 기준 시각</span>
+              <span class="gap__st gap__st--review">노무사 검토</span>
+              <span class="gap__ref">S-AYBNWF</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                TO-DO 배정 알림은 근무시간 외에 발생하면 다음 근무일 아침까지 보류한다. 문제는
+                "근무시간"과 "다음 근무일 아침"을 무엇으로 볼지다 — 배정 대상 직원 개인의 근무스케줄
+                기준인지, 매장 영업시간 기준인지, "아침"이 몇 시인지도 정해야 한다.
+              </p>
+              <ul>
+                <li>개인 근무스케줄이 없는 날(휴무·연차)에 배정되면 그다음 근무일까지 미룰지</li>
+                <li>
+                  <b>확정 전 노무사 또는 법무 검토를 거친다</b> — 근무시간 외 통지를 업무 지시로 볼
+                  여지가 있어 이 화면의 "보류" 자체가 그 결과에 따라 바뀔 수 있다
+                </li>
+                <li>첫 후보 — 개인 근무스케줄 기준, 다음 근무일 09:00</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">NOTI-2</span>
+              <span class="gap__t">카카오 알림톡으로 대체하는 기준</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-AYBNWF</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt">
+                <div class="gap__label">A · 유형으로 판단</div>
+                <p>
+                  근로계약서·급여명세서처럼 놓치면 안 되는 유형은 항상 앱 푸시와 카카오 알림톡을
+                  같이 보낸다. 판단이 단순하다.
+                </p>
+              </div>
+              <div class="gap__opt is-picked">
+                <div class="gap__label">B · 도달 실패로 판단 · 이 화면</div>
+                <p>
+                  기본은 앱 푸시만 보내고, 놓치면 안 되는 유형에서 푸시가 닿지 않았을 때만 알림톡으로
+                  대체한다. 발송 비용이 늘 필요는 없다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">NOTI-3</span>
+              <span class="gap__t">알림함 보관 기간을 둘 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                지금은 기간 제한 없이 계속 쌓인다. 계약서·급여명세서 알림은 분쟁 근거로도 쓰일 수
+                있어 길게 남기는 편이 안전하지만, TO-DO 처럼 그때그때 처리하는 알림까지 무기한
+                쌓아 둘 필요가 있는지는 다르게 볼 수 있다.
+              </p>
+              <ul>
+                <li>유형별로 보관 기간을 달리할지, 전체를 한 기준으로 통일할지</li>
+                <li>출퇴근 개인정보가 3년 보존 후 파기되는 것과 같은 기준을 따를지</li>
+              </ul>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
+          <ul class="pol">
+            <li>
+              <span class="pol__src">S-AYBNWF</span>
+              <span
+                >알림 유형은 <strong>근로계약서 발송, 근무스케줄 주요 변경, TO-DO 배정, 급여명세서
+                발송</strong> 넷으로 한정한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-AYBNWF</span>
+              <span
+                >근로계약서·급여명세서·근무스케줄 변경 알림은 시간과 관계없이 즉시 발송한다.
+                <strong>TO-DO 배정 알림만</strong> 근무시간 외에는 다음 근무일 아침까지 보류하며,
+                긴급 표시된 TO-DO는 예외로 즉시 발송한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-AYBNWF</span>
+              <span
+                >채널은 <strong>앱 푸시가 기본</strong>이고, 놓치면 안 되는 알림은 푸시가 닿지 않을
+                때 카카오 알림톡으로 대체 발송한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-AYBNWF</span>
+              <span>발송에 실패해도 원본 업무의 처리 결과는 유지하고, 알림 데이터는 알림함에 남긴다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-SIGZJQ</span>
+              <span
+                ><strong>근로계약서와 급여명세서 알림은 수신을 끌 수 없다.</strong> 설정 화면에서
+                토글을 잠그고 그 이유를 함께 보여준다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-SIGZJQ</span>
+              <span>수신을 끈 유형의 알림도 알림 데이터는 생성되어 알림함에서 확인할 수 있다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-IMFWJT</span>
+              <span
+                >알림을 선택해 관련 화면으로 이동하면 그 알림을
+                <strong>자동으로 읽음 처리</strong>한다. 직원은 본인에게 발송된 알림만 본다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-GDUNIT</span>
+              <span
+                >관리자 웹 알림함은 줄마다 읽음 버튼을 두지 않고 <strong>모두 읽음</strong>만
+                제공한다 — 직원 알림함과 다르게 동작하는 지점이다.</span
+              >
+            </li>
+          </ul>
+
+          <footer class="docfoot">
+            직원 앱 목업 · 알림 · 2026년 9월 10일 · 상태 4개 · 쟁점 3건
+          </footer>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

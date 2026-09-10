@@ -1,3 +1,54 @@
 {
-  "buildPath": "comp"
+  "buildPath": "comp",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "codex-grid-background",
+        "value": "*",
+        "files": [
+          "docs/mockup/assets/staff.css"
+        ],
+        "createdAt": "2026-09-10T04:13:35.470Z",
+        "reason": "geo 클래스는 매장 위치와 지오펜스를 그리는 지도 표면이다. 규칙이 map/measurement surface를 예외로 명시한 경우에 해당한다."
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "docs/mockup/app/pay.html"
+        ],
+        "createdAt": "2026-09-10T04:52:40.875Z",
+        "reason": "폰 목업이라 인라인 font-size 대부분이 Phosphor 아이콘 크기이고 글자 크기가 아니다. 지적 지점은 아이콘(18px)과 병렬 관계인 주 이동 컨트롤이며, 본문 위계는 토큰(h-xl 25 / h-lg 19 / h-md 15 / tiny 12)으로 잡혀 있다. Playwright 스크린샷으로 홈·급여·근무 정보 화면을 직접 확인해 위계가 뚜렷함을 검증했다."
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "docs/mockup/app/work.html"
+        ],
+        "createdAt": "2026-09-10T04:52:40.907Z",
+        "reason": "폰 목업이라 인라인 font-size 대부분이 Phosphor 아이콘 크기이고 글자 크기가 아니다. 지적 지점은 아이콘(18px)과 병렬 관계인 주 이동 컨트롤이며, 본문 위계는 토큰(h-xl 25 / h-lg 19 / h-md 15 / tiny 12)으로 잡혀 있다. Playwright 스크린샷으로 홈·급여·근무 정보 화면을 직접 확인해 위계가 뚜렷함을 검증했다."
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "docs/mockup/app/attendance-history.html"
+        ],
+        "createdAt": "2026-09-10T04:52:40.939Z",
+        "reason": "폰 목업이라 인라인 font-size 대부분이 Phosphor 아이콘 크기이고 글자 크기가 아니다. 지적 지점은 아이콘(18px)과 병렬 관계인 주 이동 컨트롤이며, 본문 위계는 토큰(h-xl 25 / h-lg 19 / h-md 15 / tiny 12)으로 잡혀 있다. Playwright 스크린샷으로 홈·급여·근무 정보 화면을 직접 확인해 위계가 뚜렷함을 검증했다."
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "docs/mockup/app/home.html"
+        ],
+        "createdAt": "2026-09-10T04:52:40.971Z",
+        "reason": "폰 목업이라 인라인 font-size 대부분이 Phosphor 아이콘 크기이고 글자 크기가 아니다. 지적 지점은 아이콘(18px)과 병렬 관계인 주 이동 컨트롤이며, 본문 위계는 토큰(h-xl 25 / h-lg 19 / h-md 15 / tiny 12)으로 잡혀 있다. Playwright 스크린샷으로 홈·급여·근무 정보 화면을 직접 확인해 위계가 뚜렷함을 검증했다."
+      }
+    ]
+  }
 }

@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>홈 · 직원 앱 · WHALE ERP</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Gowun+Batang:wght@400;700&display=swap"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+    <link rel="stylesheet" href="../assets/staff.css" />
+    <script src="../assets/app.js" defer></script>
+  </head>
+  <body data-area="app" data-screen="home">
+    <!-- 직원 앱 · 홈
+         앱을 열면 가장 먼저 보는 화면이다. 오늘 근무와 이번 주 근무를 먼저 보여주고
+         그 아래 처리할 일(계약서 날인, TO-DO, 알림)을 둔다 — 조회 순서는 명세가
+         못박았지만(S-EWVMGC), 그 위에 무엇을 더 얹을지는 아직 열려 있다 — HOME-1.
+
+         상태 5개 중 held 와 empty 를 구분한 게 이 화면의 핵심이다. held 는 가입은
+         했지만 번호 불일치로 소속 연결이 관리자 승인을 기다리는 중이라 계약서와
+         근무 정보를 아예 보여주지 않는다(S-VZBTHL). empty 는 연결까지 끝났지만
+         아직 아무 근무도 배정되지 않은, 완전히 다른 상태다.
+
+         공지사항과 FAQ는 여기 없다 — 직원 앱 노출 대상이 아니다.
+
+         이 파일은 화면 하나다. 오른쪽 목록으로 상태를 바꾸거나 폰 안의 버튼을
+         직접 눌러 본다. 숫자키 1~5 로도 넘어간다.
+
+         근거 : S-EWVMGC · S-IMFWJT · S-VZBTHL -->
+    <a class="skip" href="#main">본문으로 건너뛰기</a>
+
+    <div class="doc" id="main">
+      <header class="dochead">
+        <p class="dochead__kicker">직원 앱 · 홈 · /home</p>
+        <h1>홈</h1>
+        <p>
+          직원이 앱을 열면 가장 먼저 만나는 화면이다. 오늘 근무와 이번 주 근무를 먼저 보여주고,
+          계약서 날인 대기·TO-DO·미확인 알림 같은 <strong>처리할 일</strong>은 그 아래에 둔다. 여러
+          근무지에 연결된 직원은 최근에 고른 근무지를 기본으로 보고 상단에서 바꿀 수 있다. 다른
+          직원의 정보나 관리자용 편집 기능은 이 화면에 없다.
+        </p>
+        <nav class="docnav">
+          <a href="../index.html">← 목업 허브</a>
+          <a href="login.html">로그인</a>
+          <a href="attendance.html">출퇴근 등록</a>
+          <a href="attendance-history.html">출퇴근 현황</a>
+          <a href="join.html">진입·가입</a>
+          <a href="contract.html">근로계약</a>
+          <a href="work.html">근무 정보</a>
+          <a href="pay.html">급여</a>
+          <a href="notify.html">알림</a>
+          <a href="me.html">내 정보</a>
+        </nav>
+      </header>
+
+      <div class="stage">
+        <!-- ══ 폰 ══════════════════════════════════════════════════ -->
+        <div class="stage__phone">
+          <div class="phone" data-state="today">
+            <div class="sbar">
+              <span data-clock>08:52</span>
+              <span class="sbar__ic">
+                <i class="ph-fill ph-cell-signal-full"></i>
+                <i class="ph-fill ph-wifi-high"></i>
+                <i class="ph-fill ph-battery-high"></i>
+              </span>
+            </div>
+
+            <div class="abar">
+              <button
+                data-sheet="store"
+                data-when="today todo off"
+                style="
+                  background: none;
+                  border: none;
+                  padding: 0;
+                  display: flex;
+                  align-items: center;
+                  gap: 4px;
+                  cursor: pointer;
+                  font: inherit;
+                  color: inherit;
+                "
+              >
+                <span class="abar__title">웨일카페 강남역점</span>
+                <i class="ph ph-caret-down" style="font-size: 13px; color: var(--ink-3)"></i>
+              </button>
+              <span class="abar__title" data-when="empty">웨일카페 홍대점</span>
+              <span class="abar__title" data-when="held">웨일카페 스태프</span>
+              <a class="abar__end" href="notify.html" data-unless="held empty">
+                <i class="ph ph-bell" style="font-size: 20px"></i>
+                <span class="badge badge--seal" data-when="todo" style="margin-left: 2px">3</span>
+              </a>
+            </div>
+
+            <!-- ── 오늘 근무가 있는 평상시 ──────────────────────── -->
+            <div class="view" data-when="today">
+              <!-- 정보를 불러오는 동안 각 카드 자리에는 스켈레톤 UI가 먼저 표시된다.
+                   여기서는 로딩이 끝난 뒤 모습만 그린다. -->
+              <div class="scroll">
+                <div class="stack stack-14">
+                  <div class="card card--pen">
+                    <div class="line">
+                      <div class="grow">
+                        <p class="lab">오늘 근무</p>
+                        <p class="num num--md" style="margin-top: 4px">09:00 – 18:00</p>
+                      </div>
+                      <span class="badge push">휴게 60분</span>
+                    </div>
+                    <a class="btn" href="attendance.html" style="margin-top: 12px; text-decoration: none">
+                      <i class="ph-fill ph-sign-in"></i>출근하기
+                    </a>
+                  </div>
+
+                  <div class="card">
+                    <div class="line">
+                      <p class="lab">이번 주 근무</p>
+                      <span class="push tiny">9/7 (월) – 9/13 (일)</span>
+                    </div>
+                    <div class="week" style="margin-top: 10px">
+                      <div class="day is-work">
+                        <p class="day__d">월</p>
+                        <p class="day__n">7</p>
+                        <p class="day__t">09–18</p>
+                      </div>
+                      <div class="day is-work">
+                        <p class="day__d">화</p>
+                        <p class="day__n">8</p>
+                        <p class="day__t">09–18</p>
+                      </div>
+                      <div class="day is-off">
+                        <p class="day__d">수</p>
+                        <p class="day__n">9</p>
+                      </div>
+                      <div class="day is-work is-today">
+                        <p class="day__d">목</p>
+                        <p class="day__n">10</p>
+                        <p class="day__t">09–18</p>
+                      </div>
+                      <div class="day is-work">
+                        <p class="day__d">금</p>
+                        <p class="day__n">11</p>
+                        <p class="day__t">13–22</p>
+                      </div>
+                      <div class="day is-off">
+                        <p class="day__d">토</p>
+                        <p class="day__n">12</p>
+                      </div>
+                      <div class="day is-work">
+                        <p class="day__d">일</p>
+                        <p class="day__n">13</p>
+                        <p class="day__t">10–19</p>
+                      </div>
+                    </div>
+                    <p class="tiny" style="margin-top: 8px">
+                      이번 주는 월요일부터 일요일까지, 한국 표준시 기준입니다
+                    </p>
+                  </div>
+
+                  <div class="card">
+                    <p class="lab">TO-DO · 1건</p>
+                    <div class="rows" style="margin-top: 4px">
+                      <div class="row">
+                        <button class="check__box" data-tick></button>
+                        <div class="row__main">
+                          <p class="row__title">유통기한 라벨 점검</p>
+                          <p class="row__sub">오늘 20:00까지</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="card">
+                    <p class="lab">근무 정보</p>
+                    <div class="rows" style="margin-top: 4px">
+                      <a class="row" href="work.html" style="text-decoration: none; color: inherit">
+                        <i class="ph ph-calendar-check" style="font-size: 18px; color: var(--ink-3)"></i>
+                        <div class="row__main">
+                          <p class="row__title">근무스케줄</p>
+                          <p class="row__sub">이번 달 근무 12일</p>
+                        </div>
+                        <i class="ph ph-caret-right row__chev"></i>
+                      </a>
+                      <a
+                        class="row"
+                        href="attendance-history.html"
+                        style="text-decoration: none; color: inherit"
+                      >
+                        <i
+                          class="ph ph-clock-counter-clockwise"
+                          style="font-size: 18px; color: var(--ink-3)"
+                        ></i>
+                        <div class="row__main">
+                          <p class="row__title">출퇴근 현황</p>
+                          <p class="row__sub">이번 달 출근 9회 · 지각 0회</p>
+                        </div>
+                        <i class="ph ph-caret-right row__chev"></i>
+                      </a>
+                      <a class="row" href="pay.html" style="text-decoration: none; color: inherit">
+                        <i class="ph ph-receipt" style="font-size: 18px; color: var(--ink-3)"></i>
+                        <div class="row__main">
+                          <p class="row__title">급여명세서</p>
+                          <p class="row__sub">2026년 8월분 발송됨</p>
+                        </div>
+                        <i class="ph ph-caret-right row__chev"></i>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── 처리할 일이 쌓인 상태 ────────────────────────── -->
+            <div class="view" data-when="todo">
+              <div class="scroll">
+                <div class="stack stack-14">
+                  <div class="card card--pen">
+                    <div class="line">
+                      <div class="grow">
+                        <p class="lab">오늘 근무</p>
+                        <p class="num num--md" style="margin-top: 4px">13:00 – 22:00</p>
+                      </div>
+                      <span class="badge push">휴게 60분</span>
+                    </div>
+                    <a class="btn" href="attendance.html" style="margin-top: 12px; text-decoration: none">
+                      <i class="ph-fill ph-sign-in"></i>출근하기
+                    </a>
+                  </div>
+
+                  <div class="card">
+                    <div class="line">
+                      <p class="lab">이번 주 근무</p>
+                      <span class="push tiny">9/7 (월) – 9/13 (일)</span>
+                    </div>
+                    <div class="week" style="margin-top: 10px">
+                      <div class="day is-work">
+                        <p class="day__d">월</p>
+                        <p class="day__n">7</p>
+                        <p class="day__t">09–18</p>
+                      </div>
+                      <div class="day is-work">
+                        <p class="day__d">화</p>
+                        <p class="day__n">8</p>
+                        <p class="day__t">09–18</p>
+                      </div>
+                      <div class="day is-off">
+                        <p class="day__d">수</p>
+                        <p class="day__n">9</p>
+                      </div>
+                      <div class="day is-work is-today">
+                        <p class="day__d">목</p>
+                        <p class="day__n">10</p>
+                        <p class="day__t">13–22</p>
+                      </div>
+                      <div class="day is-work">
+                        <p class="day__d">금</p>
+                        <p class="day__n">11</p>
+                        <p class="day__t">13–22</p>
+                      </div>
+                      <div class="day is-off">
+                        <p class="day__d">토</p>
+                        <p class="day__n">12</p>
+                      </div>
+                      <div class="day is-work">
+                        <p class="day__d">일</p>
+                        <p class="day__n">13</p>
+                        <p class="day__t">10–19</p>
+                      </div>
+                    </div>
+                    <p class="tiny" style="margin-top: 8px">
+                      이번 주는 월요일부터 일요일까지, 한국 표준시 기준입니다
+                    </p>
+                  </div>
+
+                  <a class="card card--amber" href="contract.html" style="text-decoration: none">
+                    <div class="line">
+                      <i class="ph-fill ph-file-dashed" style="color: var(--amber); font-size: 19px"></i>
+                      <div class="grow">
+                        <p class="h-md" style="color: #6f4608">근로계약서 1건 대기</p>
+                        <p class="tiny" style="color: var(--amber)">남은 기한 26일</p>
+                      </div>
+                      <i class="ph ph-caret-right" style="color: var(--amber)"></i>
+                    </div>
+                  </a>
+
+                  <div class="card">
+                    <p class="lab">TO-DO · 2건</p>
+                    <div class="rows" style="margin-top: 4px">
+                      <div class="row">
+                        <button class="check__box" data-tick></button>
+                        <div class="row__main">
+                          <p class="row__title">환불 요청 처리</p>
+                          <p class="row__sub">지금 바로</p>
+                        </div>
+                        <span class="badge badge--seal">긴급</span>
+                      </div>
+                      <div class="row">
+                        <i class="ph-fill ph-check-circle" style="color: var(--ok); font-size: 20px"></i>
+                        <div class="row__main">
+                          <p class="row__title" style="text-decoration: line-through; color: var(--ink-3)">
+                            마감 정산표 작성
+                          </p>
+                          <p class="row__sub">완료 · 이수민님이 09:12에 처리</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <a class="card card--sunken" href="notify.html" style="text-decoration: none; color: inherit">
+                    <div class="line">
+                      <i class="ph-fill ph-bell" style="color: var(--ink-2); font-size: 18px"></i>
+                      <p class="p--sm grow" style="margin: 0">미확인 알림 3건이 있습니다</p>
+                      <i class="ph ph-caret-right" style="color: var(--ink-3)"></i>
+                    </div>
+                  </a>
+
+                  <div class="card">
+                    <p class="lab">근무 정보</p>
+                    <div class="rows" style="margin-top: 4px">
+                      <a class="row" href="work.html" style="text-decoration: none; color: inherit">
+                        <i class="ph ph-calendar-check" style="font-size: 18px; color: var(--ink-3)"></i>
+                        <div class="row__main">
+                          <p class="row__title">근무스케줄</p>
+                          <p class="row__sub">이번 달 근무 12일</p>
+                        </div>
+                        <i class="ph ph-caret-right row__chev"></i>
+                      </a>
+                      <a
+                        class="row"
+                        href="attendance-history.html"
+                        style="text-decoration: none; color: inherit"
+                      >
+                        <i
+                          class="ph ph-clock-counter-clockwise"
+                          style="font-size: 18px; color: var(--ink-3)"
+                        ></i>
+                        <div class="row__main">
+                          <p class="row__title">출퇴근 현황</p>
+                          <p class="row__sub">이번 달 출근 9회 · 지각 0회</p>
+                        </div>
+                        <i class="ph ph-caret-right row__chev"></i>
+                      </a>
+                      <a class="row" href="pay.html" style="text-decoration: none; color: inherit">
+                        <i class="ph ph-receipt" style="font-size: 18px; color: var(--ink-3)"></i>
+                        <div class="row__main">
+                          <p class="row__title">급여명세서</p>
+                          <p class="row__sub">2026년 8월분 발송됨</p>
+                        </div>
+                        <i class="ph ph-caret-right row__chev"></i>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── 오늘 근무가 없는 날 ──────────────────────────── -->
+            <div class="view" data-when="off">
+              <div class="scroll">
+                <div class="stack stack-14">
+                  <div class="card card--sunken">
+                    <div class="line">
+                      <i class="ph ph-moon" style="font-size: 18px; color: var(--ink-3)"></i>
+                      <div class="grow">
+                        <p class="h-md">오늘은 근무가 없는 날입니다</p>
+                        <p class="tiny">이번 주 다른 근무일은 아래에서 확인하세요</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="card">
+                    <div class="line">
+                      <p class="lab">이번 주 근무</p>
+                      <span class="push tiny">9/7 (월) – 9/13 (일)</span>
+                    </div>
+                    <div class="week" style="margin-top: 10px">
+                      <div class="day is-work">
+                        <p class="day__d">월</p>
+                        <p class="day__n">7</p>
+                        <p class="day__t">09–18</p>
+                      </div>
+                      <div class="day is-work">
+                        <p class="day__d">화</p>
+                        <p class="day__n">8</p>
+                        <p class="day__t">09–18</p>
+                      </div>
+                      <div class="day is-off">
+                        <p class="day__d">수</p>
+                        <p class="day__n">9</p>
+                      </div>
+                      <div class="day is-off is-today">
+                        <p class="day__d">목</p>
+                        <p class="day__n">10</p>
+                      </div>
+                      <div class="day is-work">
+                        <p class="day__d">금</p>
+                        <p class="day__n">11</p>
+                        <p class="day__t">13–22</p>
+                      </div>
+                      <div class="day is-off">
+                        <p class="day__d">토</p>
+                        <p class="day__n">12</p>
+                      </div>
+                      <div class="day is-work">
+                        <p class="day__d">일</p>
+                        <p class="day__n">13</p>
+                        <p class="day__t">10–19</p>
+                      </div>
+                    </div>
+                    <p class="tiny" style="margin-top: 8px">
+                      이번 주는 월요일부터 일요일까지, 한국 표준시 기준입니다
+                    </p>
+                  </div>
+
+                  <div class="card card--sunken" style="text-align: center; padding: 18px 14px">
+                    <p class="tiny">오늘은 처리할 TO-DO가 없습니다</p>
+                  </div>
+
+                  <div class="card">
+                    <p class="lab">근무 정보</p>
+                    <div class="rows" style="margin-top: 4px">
+                      <a class="row" href="work.html" style="text-decoration: none; color: inherit">
+                        <i class="ph ph-calendar-check" style="font-size: 18px; color: var(--ink-3)"></i>
+                        <div class="row__main">
+                          <p class="row__title">근무스케줄</p>
+                          <p class="row__sub">이번 달 근무 12일</p>
+                        </div>
+                        <i class="ph ph-caret-right row__chev"></i>
+                      </a>
+                      <a
+                        class="row"
+                        href="attendance-history.html"
+                        style="text-decoration: none; color: inherit"
+                      >
+                        <i
+                          class="ph ph-clock-counter-clockwise"
+                          style="font-size: 18px; color: var(--ink-3)"
+                        ></i>
+                        <div class="row__main">
+                          <p class="row__title">출퇴근 현황</p>
+                          <p class="row__sub">이번 달 출근 9회 · 지각 0회</p>
+                        </div>
+                        <i class="ph ph-caret-right row__chev"></i>
+                      </a>
+                      <a class="row" href="pay.html" style="text-decoration: none; color: inherit">
+                        <i class="ph ph-receipt" style="font-size: 18px; color: var(--ink-3)"></i>
+                        <div class="row__main">
+                          <p class="row__title">급여명세서</p>
+                          <p class="row__sub">2026년 8월분 발송됨</p>
+                        </div>
+                        <i class="ph ph-caret-right row__chev"></i>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── 연결 보류 계정 ───────────────────────────────── -->
+            <div class="view view--center" data-when="held">
+              <div class="empty">
+                <i class="ph ph-hourglass-medium"></i>
+                <p class="h-md">관리자가 소속 연결을 확인하고 있습니다</p>
+                <p class="p--sm" style="max-width: 260px">
+                  가입할 때 인증한 번호가 등록된 연락처와 달라 자동으로 연결되지 않았습니다. 담당
+                  관리자가 연락해 확인한 뒤 연결을 승인합니다.
+                </p>
+                <p class="tiny">연결이 승인되기 전에는 근로계약서와 근무 정보가 표시되지 않습니다</p>
+              </div>
+            </div>
+
+            <!-- ── 가입 직후, 아무 정보도 없는 상태 ─────────────── -->
+            <div class="view view--center" data-when="empty">
+              <div class="empty">
+                <i class="ph ph-tray"></i>
+                <p class="h-md">아직 쌓인 근무 정보가 없습니다</p>
+                <p class="p--sm" style="max-width: 260px">
+                  웨일카페 홍대점과 연결되었습니다. 관리자가 근무스케줄을 등록하면 이 화면에 오늘
+                  근무와 이번 주 근무가 표시됩니다.
+                </p>
+              </div>
+            </div>
+
+            <!-- ── 탭바 ─────────────────────────────────────────── -->
+            <div class="tabs">
+              <a class="tab is-on" href="home.html"><i class="ph-fill ph-house"></i>홈</a>
+              <a class="tab" href="work.html"><i class="ph ph-calendar-check"></i>근무</a>
+              <a class="tab" href="notify.html">
+                <span style="position: relative; display: inline-flex">
+                  <i class="ph ph-bell"></i>
+                  <span
+                    class="dot"
+                    data-when="todo"
+                    style="position: absolute; top: -1px; right: -3px; background: var(--seal)"
+                  ></span>
+                </span>
+                알림
+              </a>
+              <a class="tab" href="me.html"><i class="ph ph-user-circle"></i>내 정보</a>
+            </div>
+
+            <!-- ── 시트 ─────────────────────────────────────────── -->
+            <div class="sheet" data-sheet-id="store" hidden>
+              <div class="sheet__grab"></div>
+              <p class="h-lg">근무지 고르기</p>
+              <p class="p--sm">최근에 고른 근무지가 기본으로 표시됩니다.</p>
+              <div class="rows">
+                <div class="row">
+                  <i class="ph-fill ph-check-circle" style="color: var(--pen); font-size: 19px"></i>
+                  <div class="row__main">
+                    <p class="row__title">웨일카페 강남역점</p>
+                    <p class="row__sub">최근 선택</p>
+                  </div>
+                </div>
+                <div
+                  class="row"
+                  data-sheet-close
+                  data-toast="웨일카페 홍대점으로 전환했습니다"
+                  style="cursor: pointer"
+                >
+                  <i class="ph ph-circle" style="color: var(--ink-4); font-size: 19px"></i>
+                  <div class="row__main"><p class="row__title">웨일카페 홍대점</p></div>
+                </div>
+                <div
+                  class="row"
+                  data-sheet-close
+                  data-toast="웨일베이커리 합정점으로 전환했습니다"
+                  style="cursor: pointer"
+                >
+                  <i class="ph ph-circle" style="color: var(--ink-4); font-size: 19px"></i>
+                  <div class="row__main"><p class="row__title">웨일베이커리 합정점</p></div>
+                </div>
+              </div>
+              <button class="btn btn--ghost" data-sheet-close>닫기</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ 해설 ═══════════════════════════════════════════════ -->
+        <div class="stage__side">
+          <div class="switcher">
+            <div class="switcher__head">
+              <p class="lab">상태 바꾸기</p>
+              <span class="switcher__hint">숫자키 1–5</span>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-state="today" aria-pressed="true">
+                <span class="sw-b__k">1</span>
+                <span><span class="sw-b__t">평상시</span> <span class="sw-b__d">· 오늘 근무 있음</span></span>
+              </button>
+              <button class="sw-b" data-state="todo">
+                <span class="sw-b__k">2</span>
+                <span
+                  ><span class="sw-b__t">처리할 일 쌓임</span>
+                  <span class="sw-b__d">· 계약·TO-DO·알림</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="off">
+                <span class="sw-b__k">3</span>
+                <span><span class="sw-b__t">오늘 휴무</span> <span class="sw-b__d">· 근무 없음</span></span>
+              </button>
+              <button class="sw-b" data-state="held">
+                <span class="sw-b__k">4</span>
+                <span
+                  ><span class="sw-b__t">연결 보류</span> <span class="sw-b__d">· 관리자 확인 중</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="empty">
+                <span class="sw-b__k">5</span>
+                <span><span class="sw-b__t">가입 직후</span> <span class="sw-b__d">· 정보 없음</span></span>
+              </button>
+            </div>
+            <div class="switcher__head" style="border-top: 1px solid var(--rule); border-bottom: none">
+              <p class="lab">시트 열기</p>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-sheet="store">
+                <span class="sw-b__k">·</span>
+                <span><span class="sw-b__t">근무지 고르기</span> <span class="sw-b__d">· 근무지 전환</span></span>
+              </button>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 30px 0 10px">이 화면이 하는 일</h2>
+          <p class="p">
+            매일 여는 화면이라 순서가 흔들리면 안 된다. 오늘 근무와 이번 주 근무를 맨 위에 고정하고,
+            계약서 날인 대기·TO-DO·미확인 알림 같은 처리할 일은 그 아래 카드와 배지로만 존재를
+            알린다. TO-DO 는 이 화면에서 바로 완료 처리하지만, 근무스케줄·출퇴근 현황·급여명세서는
+            요약만 보여주고 자세히 보려면 각 화면으로 넘어간다.
+          </p>
+          <p class="p" style="margin-top: 10px">
+            다른 직원의 근무 정보나 관리자용 편집 기능은 이 화면 어디에도 없다. 공지사항과 FAQ 도
+            직원 앱 노출 대상이 아니라 홈에 넣지 않았다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">연결 보류와 가입 직후는 다르다</h2>
+          <p class="p">
+            둘 다 화면이 텅 비어 보이지만 이유가 다르다. <strong>연결 보류</strong>는 가입 때 인증한
+            번호와 등록된 연락처가 달라 관리자 승인을 기다리는 중이라, 승인 전까지는 근로계약서와
+            근무 정보를 아예 보여주지 않는다(S-VZBTHL). <strong>가입 직후</strong>는 연결까지 끝났지만
+            아직 관리자가 근무를 배정하지 않은 것뿐이라 곧 채워질 화면이라는 인상을 준다. 두 상태를
+            같은 빈 화면으로 뭉뚱그리면 직원이 스스로 무엇을 기다리는지 알기 어렵다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">정할 것</h2>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">HOME-1</span>
+              <span class="gap__t">홈 맨 위에 무엇을 놓을 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-EWVMGC</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt">
+                <div class="gap__label">A · 처리할 일 먼저</div>
+                <p>
+                  계약서 날인 대기나 긴급 TO-DO가 있으면 그것부터 보여준다. 놓치면 안 되는 일이 눈에
+                  먼저 띈다.
+                </p>
+              </div>
+              <div class="gap__opt is-picked">
+                <div class="gap__label">B · 오늘·이번 주 먼저 · 이 화면</div>
+                <p>
+                  명세가 정한 조회 순서를 그대로 따른다. 처리할 일은 그 아래 배지와 카드로 존재만
+                  알린다. 매일 같은 자리를 봐야 하는 화면이라 순서가 흔들리면 찾는 시간이 늘어난다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">HOME-2</span>
+              <span class="gap__t">근무지 전환을 어디에 둘 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-EWVMGC</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt">
+                <div class="gap__label">A · 근무 화면에서만</div>
+                <p>
+                  근무스케줄·출퇴근 현황을 보는 화면에서만 근무지를 바꾼다. 홈은 항상 최근 선택만
+                  보여준다.
+                </p>
+              </div>
+              <div class="gap__opt is-picked">
+                <div class="gap__label">B · 홈 상단 · 이 화면</div>
+                <p>
+                  홈 맨 위 근무지 이름을 눌러 바로 바꾼다. 대시보드 전체가 그 근무지 기준이라 상단에서
+                  바꾸는 편이 자연스럽다. 근무 화면에도 같은 진입점을 둔다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">HOME-3</span>
+              <span class="gap__t">출퇴근 등록 진입점을 홈 어디에 둘 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-EFQGSP</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt is-picked">
+                <div class="gap__label">A · 오늘 근무 카드 안 · 이 화면</div>
+                <p>홈을 열자마자 오늘 근무 카드에서 바로 출근을 누른다. 근무 탭을 거치지 않는다.</p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">B · 근무 탭에서만</div>
+                <p>홈은 상태만 보여주고 등록은 근무 탭 안에서만 한다. 진입점이 하나로 줄어든다.</p>
+              </div>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
+          <ul class="pol">
+            <li>
+              <span class="pol__src">S-EWVMGC</span>
+              <span
+                >오늘 근무와 이번 주 근무 요약을 먼저 조회하고, 선택한 근무지의 근무스케줄·출퇴근
+                현황·급여명세서·TO-DO는 그다음이다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-EWVMGC</span>
+              <span
+                >이번 주는 <strong>월요일부터 일요일까지</strong>, 한국 표준시를 기준으로
+                계산한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-EWVMGC</span>
+              <span>급여명세서는 <strong>관리자가 발송한 것만</strong> 대시보드에 표시한다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-EWVMGC</span>
+              <span
+                >공유 TO-DO는 대상 전원에게 보이며, 한 명이 완료하면 나머지에게는
+                <strong>수행자와 완료 시각</strong>이 함께 표시된다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-EWVMGC</span>
+              <span
+                >TO-DO 완료 처리 요청이 진행 중이면 추가 요청을 막고, 반복해서 바뀌면 마지막으로
+                성공한 상태만 저장한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-EWVMGC</span>
+              <span>다른 직원의 정보와 관리자용 편집 기능은 대시보드 어디에도 두지 않는다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-IMFWJT</span>
+              <span>앱 홈에는 <strong>미확인 알림 건수</strong>를 표시하는 알림 진입점을 둔다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-VZBTHL</span>
+              <span
+                >연결이 보류된 동안에는 계약서를 발송하지 않는다. 관리자가 연결을 승인해야 근로계약서와
+                근무 정보가 열린다.</span
+              >
+            </li>
+          </ul>
+
+          <footer class="docfoot">
+            직원 앱 목업 · 홈 · 2026년 9월 10일 · 상태 5개 · 시트 1개 · 쟁점 3건
+          </footer>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

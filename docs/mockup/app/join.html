@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>진입·가입 · 직원 앱 · WHALE ERP</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Gowun+Batang:wght@400;700&display=swap"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+    <link rel="stylesheet" href="../assets/staff.css" />
+    <script src="../assets/app.js" defer></script>
+  </head>
+  <body data-area="app" data-screen="join">
+    <!-- 직원 앱 · 진입·가입
+         초대 확인부터 계정 등록·본인인증·연결까지 한 화면에 아홉 상태로 그렸다.
+         정상 경로는 invite → signup → verify → linked 다. 번호가 어긋나는
+         경우(held)는 오른쪽 상태 목록만이 아니라 verify 화면 안에서도 갈 수
+         있게 버튼을 따로 뒀다.
+
+         인적사항(주소 등)은 이번에 관리자 화면에서 빠지고 가입 중 직원이
+         직접 적는 것으로 확정됐다 — signup 화면에 그대로 반영했다. 어느
+         단계에서 받을지(본인인증 전/후)는 아직 열려 있다 — JOIN-4.
+
+         소속 추가 확인(addsite)은 수락하기 전까지 초대한 사업자·점포와
+         고용 형태만 보여주고 기존 계정 정보를 노출하지 않는다. 이 개인정보
+         경계가 이 화면의 핵심이다.
+
+         근거 : S-RFOEAG · S-VZBTHL -->
+    <a class="skip" href="#main">본문으로 건너뛰기</a>
+
+    <div class="doc" id="main">
+      <header class="dochead">
+        <p class="dochead__kicker">직원 앱 · 진입·가입 · /join</p>
+        <h1>진입·가입</h1>
+        <p>
+          초대 링크를 열어 계정을 만들고 본인인증을 마치면 직원 레코드에 자동으로 연결된다. 이
+          화면은 연결의 성공보다 <strong>실패 경로가 더 중요하다</strong> — 번호가 어긋나거나,
+          링크가 만료됐거나, 이미 가입을 마친 사람이 같은 링크를 다시 열 때 무엇을 보여줄지가 이
+          화면이 하는 일의 대부분이다.
+        </p>
+        <nav class="docnav">
+          <a href="../index.html">← 목업 허브</a>
+          <a href="login.html">로그인</a>
+          <a href="attendance.html">출퇴근 등록</a>
+          <a href="attendance-history.html">출퇴근 현황</a>
+          <a href="home.html">홈</a>
+          <a href="contract.html">근로계약</a>
+          <a href="work.html">근무 정보</a>
+          <a href="pay.html">급여</a>
+          <a href="notify.html">알림</a>
+          <a href="me.html">내 정보</a>
+        </nav>
+      </header>
+
+      <div class="stage">
+        <!-- ══ 폰 ══════════════════════════════════════════════════ -->
+        <div class="stage__phone">
+          <div class="phone" data-state="invite">
+            <div class="sbar">
+              <span data-clock>08:52</span>
+              <span class="sbar__ic">
+                <i class="ph-fill ph-cell-signal-full"></i>
+                <i class="ph-fill ph-wifi-high"></i>
+                <i class="ph-fill ph-battery-high"></i>
+              </span>
+            </div>
+
+            <div class="abar" data-when="addsite addsite-done">
+              <a class="abar__back" href="home.html"><i class="ph ph-caret-left"></i></a>
+              <span class="abar__title" data-when="addsite">소속 추가 확인</span>
+              <span class="abar__title" data-when="addsite-done">소속 추가 완료</span>
+            </div>
+
+            <!-- ── 1 · 초대 확인 ────────────────────────────────── -->
+            <div class="view" data-when="invite">
+              <div class="center stack-8" style="padding: 6px 0 2px">
+                <i class="ph-fill ph-envelope-open" style="font-size: 30px; color: var(--pen)"></i>
+                <p class="h-xl">초대를 확인해 주세요</p>
+                <p class="p">웨일카페 강남역점에서 함께 일하자고 초대를 보냈습니다.</p>
+              </div>
+
+              <div class="card card--pen">
+                <div class="rows">
+                  <div class="row">
+                    <i class="ph-fill ph-storefront" style="color: var(--pen); font-size: 18px"></i>
+                    <div class="row__main">
+                      <p class="row__title">웨일카페 · 강남역점</p>
+                      <p class="row__sub">서울 강남구 테헤란로 1길</p>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <i class="ph-fill ph-briefcase" style="color: var(--pen); font-size: 18px"></i>
+                    <div class="row__main">
+                      <p class="row__title">고용 형태</p>
+                      <p class="row__sub">아르바이트 · 시급제</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="note">
+                <i class="ph ph-info"></i>
+                <div>
+                  이 초대는 <strong>2026년 9월 3일 발송</strong>되어 <strong>10월 3일까지</strong>
+                  (30일간) 유효합니다.
+                </div>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 2 · 계정 등록 ────────────────────────────────── -->
+            <div class="view" data-when="signup">
+              <p class="lab">2 / 4 · 계정 등록</p>
+              <div class="steps">
+                <div class="steps__i is-done"></div>
+                <div class="steps__i is-on"></div>
+                <div class="steps__i"></div>
+                <div class="steps__i"></div>
+              </div>
+
+              <p class="h-lg" style="margin-top: 4px">계정을 등록해 주세요</p>
+              <p class="p--sm">웨일카페 강남역점 근무를 위한 계정입니다.</p>
+
+              <div class="field">
+                <label class="field__lab">이메일<span class="req">*</span></label>
+                <input class="input" type="email" value="minseo.kim@gmail.com" />
+              </div>
+              <div class="field">
+                <label class="field__lab">비밀번호<span class="req">*</span></label>
+                <input class="input" type="password" value="whalecafe25" />
+              </div>
+
+              <hr class="hr" />
+
+              <div class="note note--pen">
+                <i class="ph-fill ph-file-text"></i>
+                <div>
+                  <strong>인적사항은 이제 여기서 직접 입력합니다.</strong> 근로계약서에 들어갈 주소
+                  항목이 관리자 작성 화면에서 빠지고, 가입하는 직원이 적는 것으로 바뀌었습니다.
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="field__lab">주소<span class="req">*</span></label>
+                <input class="input" value="서울 마포구 양화로 12" />
+              </div>
+              <div class="field">
+                <input class="input" placeholder="상세주소" value="3층 302호" />
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 3 · 본인인증 ─────────────────────────────────── -->
+            <div class="view" data-when="verify">
+              <p class="lab">3 / 4 · 본인인증</p>
+              <div class="steps">
+                <div class="steps__i is-done"></div>
+                <div class="steps__i is-done"></div>
+                <div class="steps__i is-on"></div>
+                <div class="steps__i"></div>
+              </div>
+
+              <p class="h-lg" style="margin-top: 4px">본인인증을 해 주세요</p>
+              <p class="p--sm">
+                이름과 생년월일은 이 인증으로 확정되며, 이후에는 직원이 직접 고칠 수 없습니다.
+              </p>
+
+              <div class="field">
+                <label class="field__lab">휴대전화 번호<span class="req">*</span></label>
+                <input class="input input--mono" value="010-9284-5521" />
+              </div>
+              <button class="btn btn--ghost btn--sm" style="align-self: flex-start">
+                인증번호 받기
+              </button>
+
+              <div class="field">
+                <label class="field__lab">인증번호<span class="req">*</span></label>
+                <input class="input input--mono" value="284955" />
+              </div>
+              <p class="tiny">인증번호는 3분 안에 입력해 주세요.</p>
+
+              <div class="grow"></div>
+
+              <div class="card card--sunken">
+                <p class="p--sm">
+                  인증된 번호는 초대에 등록된 번호와 자동으로 비교됩니다. 같으면 바로 연결되고,
+                  다르면 계정만 만들어지고 관리자 확인을 기다립니다.
+                </p>
+              </div>
+            </div>
+
+            <!-- ── 4 · 연결 완료 ────────────────────────────────── -->
+            <div class="view view--center" data-when="linked">
+              <div style="display: grid; place-items: center">
+                <div class="seal">가입<br />완료</div>
+              </div>
+              <div class="stack stack-6">
+                <p class="h-lg">웨일카페 강남역점과 연결되었습니다</p>
+                <p class="p">초대 토큰과 본인인증 번호가 모두 일치해 자동으로 연결됐습니다.</p>
+              </div>
+              <div class="card card--sunken" style="text-align: left; width: 100%">
+                <div class="rows">
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">이름</span>
+                    <span class="push num" style="font-size: 13px">김민서</span>
+                  </div>
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px"
+                      >생년월일</span
+                    >
+                    <span class="push num" style="font-size: 13px">1998.04.12</span>
+                  </div>
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">소속</span>
+                    <span class="push num" style="font-size: 13px">웨일카페 강남역점</span>
+                  </div>
+                </div>
+              </div>
+              <p class="tiny">이름과 생년월일은 본인인증으로 확정되어 이후에는 고칠 수 없습니다.</p>
+              <div class="card card--pen" style="text-align: left; width: 100%">
+                <div class="line">
+                  <i class="ph-fill ph-file-text" style="color: var(--pen); font-size: 18px"></i>
+                  <div class="grow">
+                    <p class="h-md">근로계약서가 자동 발송되었습니다</p>
+                    <p class="tiny" style="color: var(--pen)">날인 대기 · 지금 확인할 수 있습니다</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── 5 · 연결 보류 ────────────────────────────────── -->
+            <div class="view" data-when="held">
+              <div class="center stack-8" style="padding: 10px 0 2px">
+                <i class="ph-fill ph-hourglass" style="font-size: 30px; color: var(--amber)"></i>
+                <p class="h-lg">계정을 만들었습니다</p>
+                <p class="p">
+                  본인인증 번호가 초대에 등록된 번호와 달라 자동으로 연결하지 못했습니다.
+                </p>
+              </div>
+
+              <div class="note note--amber">
+                <i class="ph-fill ph-warning"></i>
+                <div>
+                  관리자가 확인한 뒤 연결합니다. 연결되면 근로계약서가 그때 자동으로 발송됩니다.
+                </div>
+              </div>
+
+              <div class="card card--sunken">
+                <p class="lab">지금 할 수 있는 일</p>
+                <p class="p--sm" style="margin-top: 6px">
+                  가입을 요청한 관리자에게 등록해 둔 번호가 맞는지 다시 확인해 달라고 알려 주세요.
+                  연결되면 홈에서 바로 알 수 있습니다.
+                </p>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 6 · 소속 추가 확인 ───────────────────────────── -->
+            <div class="view" data-when="addsite">
+              <div class="center stack-8" style="padding: 4px 0 2px">
+                <i class="ph-fill ph-bell-ringing" style="font-size: 28px; color: var(--pen)"></i>
+                <p class="h-lg">새 소속 추가 요청</p>
+                <p class="p">웨일카페 홍대점에서 함께 일해 달라고 요청했습니다.</p>
+              </div>
+
+              <div class="card card--pen">
+                <div class="rows">
+                  <div class="row">
+                    <i class="ph-fill ph-storefront" style="color: var(--pen); font-size: 18px"></i>
+                    <div class="row__main">
+                      <p class="row__title">웨일카페 · 홍대점</p>
+                      <p class="row__sub">서울 마포구 양화로</p>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <i class="ph-fill ph-briefcase" style="color: var(--pen); font-size: 18px"></i>
+                    <div class="row__main">
+                      <p class="row__title">고용 형태</p>
+                      <p class="row__sub">파트타임 · 주 20시간</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="note">
+                <i class="ph ph-shield-check"></i>
+                <div>
+                  수락하면 <strong>이름·생년월일·연락처만</strong> 새 소속에 복사됩니다. 다른
+                  소속의 계약·급여·출퇴근 기록은 넘어가지 않습니다.
+                </div>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 7 · 소속 추가 완료 ───────────────────────────── -->
+            <div class="view view--center" data-when="addsite-done">
+              <div style="display: grid; place-items: center">
+                <div class="seal">연결<br />완료</div>
+              </div>
+              <div class="stack stack-6">
+                <p class="h-lg">웨일카페 홍대점 소속이 추가되었습니다</p>
+                <p class="p">
+                  기존 계정은 그대로이고, 본인인증 정보만 이 소속의 새 레코드에 연결됐습니다.
+                </p>
+              </div>
+              <div class="card card--sunken" style="text-align: left; width: 100%">
+                <div class="rows">
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">넘어간 것</span>
+                    <span class="push num" style="font-size: 13px">이름 · 생년월일 · 연락처</span>
+                  </div>
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px"
+                      >넘어가지 않은 것</span
+                    >
+                    <span class="push num" style="font-size: 13px">계약 · 급여 · 출퇴근</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── 8 · 초대 만료 ────────────────────────────────── -->
+            <div class="view" data-when="expired">
+              <div class="center stack-8" style="padding: 28px 0 2px">
+                <i class="ph ph-clock-countdown" style="font-size: 30px; color: var(--ink-4)"></i>
+                <p class="h-lg">초대가 만료되었습니다</p>
+                <p class="p">
+                  이 초대는 2026년 8월 4일에 발송되어 30일이 지나 더 이상 사용할 수 없습니다.
+                </p>
+              </div>
+
+              <div class="note">
+                <i class="ph ph-info"></i>
+                <div>가입 초대와 재초대는 <strong>발송일로부터 30일</strong> 유효합니다.</div>
+              </div>
+
+              <div class="card card--sunken">
+                <p class="lab">이제 할 일</p>
+                <p class="p--sm" style="margin-top: 6px">
+                  가입을 요청한 관리자에게 다시 초대해 달라고 알려 주세요. 근로계약 초안은 그대로
+                  남아 있어 재초대만 하면 이어서 진행됩니다.
+                </p>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 9 · 로그인 ───────────────────────────────────── -->
+            <div class="view" data-when="login">
+              <div class="center stack-8" style="padding: 10px 0 4px">
+                <i class="ph-fill ph-check-circle" style="font-size: 28px; color: var(--ok)"></i>
+                <p class="h-lg">이미 가입을 마친 초대입니다</p>
+                <p class="p">로그인하면 이어서 확인할 수 있습니다.</p>
+              </div>
+
+              <div class="field">
+                <label class="field__lab">이메일</label>
+                <input class="input" value="minseo.kim@gmail.com" />
+              </div>
+              <div class="field">
+                <label class="field__lab">비밀번호</label>
+                <input class="input" type="password" value="whalecafe25" />
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 하단 버튼 ────────────────────────────────────── -->
+            <div class="dock" data-when="invite">
+              <button class="btn" data-go="signup">
+                <i class="ph-fill ph-arrow-right"></i>시작하기
+              </button>
+            </div>
+
+            <div class="dock" data-when="signup">
+              <button class="btn" data-go="verify">다음</button>
+            </div>
+
+            <div class="dock" data-when="verify">
+              <button class="btn" data-go="linked" data-toast="본인인증을 완료했습니다">
+                <i class="ph-fill ph-shield-check"></i>인증 확인
+              </button>
+              <button
+                class="btn btn--quiet"
+                data-go="held"
+                data-toast="계정을 만들고 확인 요청을 보냈습니다"
+              >
+                번호가 초대 대상과 다르면?
+              </button>
+            </div>
+
+            <div class="dock" data-when="linked">
+              <a class="btn" href="contract.html"><i class="ph-fill ph-file-text"></i>계약서 보러 가기</a>
+              <a class="btn btn--quiet" href="home.html">홈으로</a>
+            </div>
+
+            <div class="dock" data-when="held">
+              <a class="btn btn--ghost" href="home.html">홈으로</a>
+            </div>
+
+            <div class="dock" data-when="addsite">
+              <div class="btnrow">
+                <button class="btn btn--ghost" data-sheet="reject">거절</button>
+                <button class="btn" data-go="addsite-done" data-toast="소속을 추가했습니다">
+                  수락
+                </button>
+              </div>
+            </div>
+
+            <div class="dock" data-when="addsite-done">
+              <a class="btn" href="home.html">홈으로</a>
+            </div>
+
+            <div class="dock" data-when="expired">
+              <p class="tiny center" style="padding: 6px 0">
+                관리자가 다시 초대해야 이어서 진행할 수 있습니다.
+              </p>
+            </div>
+
+            <div class="dock" data-when="login">
+              <a class="btn" href="home.html">로그인</a>
+            </div>
+
+            <!-- ── 시트 ─────────────────────────────────────────── -->
+            <div class="sheet" data-sheet-id="reject" hidden>
+              <div class="sheet__grab"></div>
+              <p class="h-lg">소속 추가를 거절하시겠어요?</p>
+              <p class="p--sm">거절해도 기존 소속과 계정에는 영향이 없습니다.</p>
+              <div class="field">
+                <label class="field__lab"
+                  >거절 사유 <span class="tiny" style="font-weight: 400">(선택)</span></label
+                >
+                <input class="input" placeholder="예: 다른 곳에서 일하고 있어요" />
+              </div>
+              <div class="btnrow">
+                <button class="btn btn--ghost" data-sheet-close>취소</button>
+                <button class="btn btn--seal" data-sheet-close data-toast="확인을 거절했습니다">
+                  거절하기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ 해설 ═══════════════════════════════════════════════ -->
+        <div class="stage__side">
+          <div class="switcher">
+            <div class="switcher__head">
+              <p class="lab">상태 바꾸기</p>
+              <span class="switcher__hint">숫자키 1–9</span>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-state="invite" aria-pressed="true">
+                <span class="sw-b__k">1</span>
+                <span><span class="sw-b__t">초대 확인</span> <span class="sw-b__d">· 시작 전</span></span>
+              </button>
+              <button class="sw-b" data-state="signup">
+                <span class="sw-b__k">2</span>
+                <span
+                  ><span class="sw-b__t">계정 등록</span>
+                  <span class="sw-b__d">· 이메일·비밀번호·주소</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="verify">
+                <span class="sw-b__k">3</span>
+                <span><span class="sw-b__t">본인인증</span> <span class="sw-b__d">· 번호 확인</span></span>
+              </button>
+              <button class="sw-b" data-state="linked">
+                <span class="sw-b__k">4</span>
+                <span
+                  ><span class="sw-b__t">연결 완료</span>
+                  <span class="sw-b__d">· 계약서 자동발송</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="held">
+                <span class="sw-b__k">5</span>
+                <span
+                  ><span class="sw-b__t">연결 보류</span>
+                  <span class="sw-b__d">· 번호 불일치</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="addsite">
+                <span class="sw-b__k">6</span>
+                <span
+                  ><span class="sw-b__t">소속 추가 확인</span>
+                  <span class="sw-b__d">· 수락 전</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="addsite-done">
+                <span class="sw-b__k">7</span>
+                <span
+                  ><span class="sw-b__t">소속 추가 완료</span>
+                  <span class="sw-b__d">· 수락 후</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="expired">
+                <span class="sw-b__k">8</span>
+                <span
+                  ><span class="sw-b__t">초대 만료</span> <span class="sw-b__d">· 30일 경과</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="login">
+                <span class="sw-b__k">9</span>
+                <span
+                  ><span class="sw-b__t">로그인</span>
+                  <span class="sw-b__d">· 가입 완료된 초대</span></span
+                >
+              </button>
+            </div>
+            <div class="switcher__head" style="border-top: 1px solid var(--rule); border-bottom: none">
+              <p class="lab">시트 열기</p>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-sheet="reject">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">소속 추가 거절</span>
+                  <span class="sw-b__d">· 사유 입력(선택)</span></span
+                >
+              </button>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 30px 0 10px">이 화면이 하는 일</h2>
+          <p class="p">
+            초대 링크를 여는 순간부터 시작한다. 계정을 등록하고 본인인증을 마치면 시스템이 초대
+            토큰과 인증된 번호를 맞춰 보고, <strong>둘 다 맞을 때만</strong> 자동으로 직원 레코드에
+            연결한다. 연결되면 근로계약서가 관리자 개입 없이 바로 나간다 — 그래서 발송 여부는
+            계약서 화면이 아니라 이 화면에서 결정된다.
+          </p>
+          <p class="p" style="margin-top: 10px">
+            이미 계정이 있는 사람은 이 경로를 타지 않는다. 다른 점포에서 새로 부른 것뿐이므로
+            소속 추가 확인만 뜨고, 가입을 이미 마친 초대를 다시 열면 로그인 화면이 대신 뜬다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">개인정보는 수락 전과 후 모두 선을 긋는다</h2>
+          <p class="p">
+            소속 추가 확인은 수락하기 전까지 상대가 어느 계정인지 알려 주지 않는다. 보이는 건
+            초대한 사업자·점포와 고용 형태뿐이다. 수락해도 넘어가는 건 본인인증으로 확정된
+            이름·생년월일·연락처뿐이고, 다른 데서 어떤 계약을 맺었고 얼마를 받았고 언제
+            출근했는지는 이 점포로 옮겨지지 않는다. 관리자 쪽도 마찬가지다 — 소속 확인 대상
+            계정의 실명과 다른 소속은 관리자도 볼 수 없다. <strong>두 화면이 같은 선을 지킨다.</strong>
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">인적사항, 이제는 직원이 적는다</h2>
+          <p class="p">
+            근로계약서에 들어갈 주소는 더 이상 관리자가 적지 않는다. 최근에 확정된 사항으로,
+            관리자는 근로계약 초안에서 이 항목을 받지 않고 가입하는 직원이 직접 적는다. 다만 그
+            입력을 본인인증 전에 받을지 후에 받을지는 아직 정하지 않았다 — 아래 JOIN-4.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">정할 것</h2>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">JOIN-1</span>
+              <span class="gap__t">자동 연결 조건</span>
+              <span class="gap__st gap__st--fixed">확정 · 토큰+번호 이중 일치</span>
+              <span class="gap__ref">S-VZBTHL · S-RFOEAG</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                초대 토큰과 본인인증 휴대전화번호가 <b>둘 다</b> 맞아야 자동으로 연결된다. 토큰만
+                맞고 번호가 다르면(가족 폰으로 인증했거나 번호가 바뀐 경우) 계정만 만들고 관리자
+                확인을 기다린다.
+              </p>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">JOIN-2</span>
+              <span class="gap__t">초대 유효기간</span>
+              <span class="gap__st gap__st--fixed">확정 · 30일</span>
+              <span class="gap__ref">S-VZBTHL</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                가입 초대와 재초대는 발송일로부터 30일이 지나면 만료된다. 만료돼도 미가입
+                레코드와 계약 초안은 그대로 남아, 재초대는 새 초대 객체로 만들되 같은 초안을 그대로
+                쓴다.
+              </p>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">JOIN-3</span>
+              <span class="gap__t">연결 보류 화면에서 직원에게 무엇까지 알릴 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-VZBTHL</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt is-picked">
+                <div class="gap__label">A · 최소 안내 · 이 화면</div>
+                <p>번호가 맞지 않아 보류됐다는 사실과 관리자가 확인 중이라는 것만 알린다. 무엇이 왜 다른지는 말하지 않는다.</p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">B · 힌트 제공</div>
+                <p>
+                  인증한 번호의 끝자리 정도는 보여줘 스스로 원인을 짐작하게 한다. 관리자 웹은 이미
+                  "끝자리와 사유만, 실명·다른 소속은 비노출"로 정해졌다. 직원 쪽도 같은 선을 따를지
+                  정해야 한다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">JOIN-4</span>
+              <span class="gap__t">인적사항을 어느 단계에서 받을 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-RFOEAG</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt is-picked">
+                <div class="gap__label">A · 계정 등록과 함께 · 이 화면</div>
+                <p>
+                  이메일·비밀번호를 넣는 김에 주소까지 받는다. 한 화면에서 끝나지만 본인인증 전에
+                  받은 주소가 그 사람 것인지 아직 확인되지 않은 채로 저장된다.
+                </p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">B · 본인인증 통과 후</div>
+                <p>
+                  연결이 확정된 뒤 별도 화면으로 받는다. 신원이 확인된 사람의 주소만 저장되지만
+                  화면이 하나 늘고, 연결 보류로 빠지면 이 입력을 언제 시킬지도 함께 정해야 한다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">JOIN-5</span>
+              <span class="gap__t">소속 추가를 거절할 때 사유를 받을 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-RFOEAG</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                명세는 거절 사유를 저장한다고만 되어 있고, 입력을 필수로 할지 선택으로 둘지 아예
+                항목만 고르게 할지는 정해지지 않았다. 이 화면은 <b>선택 입력</b>으로 시안을 그렸다.
+              </p>
+              <ul>
+                <li>필수로 하면 거절이 무거워지고, 아예 안 받으면 관리자가 원인을 알 길이 없다</li>
+                <li>자유 텍스트 대신 사유 항목을 몇 개 고르게 하는 방법도 있다</li>
+              </ul>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
+          <ul class="pol">
+            <li>
+              <span class="pol__src">S-VZBTHL</span>
+              <span
+                >모든 초대는 발송일로부터 <strong>30일</strong> 유효하며 만료 후 재발송은 새 초대
+                객체로 만든다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-VZBTHL</span>
+              <span>가입 연결은 초대 토큰과 본인인증 휴대전화번호가 모두 일치할 때만 자동으로 수행한다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-RFOEAG</span>
+              <span>시스템은 가입 과정에서 계약서에 필요한 직원 입력 인적사항(주소 등)을 받는다.</span>
+            </li>
+            <li>
+              <span class="pol__src">F-LDJAQF</span>
+              <span
+                >내 정보에서는 연락처·주소·비밀번호만 관리한다. <strong>이름과 생년월일은
+                본인인증으로 확정</strong>되어 여기 없다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-VZBTHL</span>
+              <span
+                >소속 추가 확인 대기 중인 레코드는 확인 대기 중임만 표시하고, 계정의 실명과 다른
+                소속은 표시하지 않는다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-RFOEAG</span>
+              <span
+                >소속 확인을 수락하면 본인인증 정보(실명, 생년월일, 연락처)만 새 레코드로
+                복사하고, 다른 소속의 정보는 옮기지 않는다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-RFOEAG</span>
+              <span>직원이 이미 가입을 완료한 초대를 다시 열면 시스템은 로그인 화면으로 안내한다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-VZBTHL</span>
+              <span
+                >연결이 보류된 동안에는 계약서를 발송하지 않으며, 관리자가 승인하면 보류 중이던
+                초안을 그대로 발송한다.</span
+              >
+            </li>
+          </ul>
+
+          <footer class="docfoot">
+            직원 앱 목업 · 진입·가입 · 2026년 9월 10일 · 상태 9개 · 시트 1개 · 쟁점 5건
+          </footer>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

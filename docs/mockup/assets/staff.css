@@ -1,0 +1,1768 @@
+@charset "utf-8";
+/* ═══════════════════════════════════════════════════════════════════
+   WHALE ERP 직원 앱 목업 — 디자인 토큰과 공통 컴포넌트
+
+   컨셉 : 타임카드.
+   출퇴근의 원형은 종이 카드에 시각을 찍는 것이다. 이 앱이 다루는 것은
+   전부 그 카드에 적히는 것들이다 — 언제 왔고, 언제 갔고, 얼마를 받고,
+   무엇에 도장을 찍었는가. 그래서 표면은 종이, 시각과 금액은 모노스페이스,
+   계약서는 명조체, 날인과 거부에만 인주색을 쓴다.
+
+   현장 직원이 밝은 매장 조명 아래 서서 한 손으로 쓴다. 대비를 낮추지 않고
+   글자를 줄이지 않는다.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── 토큰 ────────────────────────────────────────────────────────── */
+:root {
+  /* 표면 — 종이에서 시작한다 */
+  --paper: #f4f1ea;
+  --card: #fffdf8;
+  --card-2: #faf7f0;
+  --sunken: #e8e3d8;
+  --rule: #ddd6c7; /* 괘선 */
+  --rule-soft: #ebe6da;
+
+  /* 잉크 — 검정이 아니라 먹 */
+  --ink: #16191c;
+  --ink-2: #4e5560;
+  --ink-3: #767d88;
+  --ink-4: #a3a8b0;
+
+  /* 기입색 — 확정된 기록, 주된 동작 */
+  --pen: #1f3f7a;
+  --pen-press: #16305e;
+  --pen-tint: #e3eaf6;
+  --pen-tint-2: #c3d3ea;
+
+  /* 인주 — 날인, 거부, 오류. 장식 금지 */
+  --seal: #b3352a;
+  --seal-ink: #932a21;
+  --seal-tint: #f7e5e2;
+
+  /* 주의 — 미계약 출근, 지각, 확인 필요 */
+  --amber: #a86a12;
+  --amber-tint: #fbf0dc;
+
+  /* 확인 — 완료된 것 */
+  --ok: #1f6b4a;
+  --ok-tint: #e0efe7;
+
+  /* 활자 */
+  --sans: "Pretendard Variable", Pretendard, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+  --serif: "Gowun Batang", "Nanum Myeongjo", serif;
+
+  /* 폰 */
+  --phone-w: 360px;
+  --phone-h: 760px;
+  --radius: 10px;
+  --radius-lg: 16px;
+
+  /* 그림자 — 종이가 종이 위에 놓인 정도 */
+  --lift-1: 0 1px 2px rgb(22 25 28 / 0.06), 0 1px 1px rgb(22 25 28 / 0.04);
+  --lift-2: 0 2px 6px rgb(22 25 28 / 0.07), 0 1px 2px rgb(22 25 28 / 0.05);
+  --lift-3: 0 12px 32px rgb(22 25 28 / 0.13), 0 2px 8px rgb(22 25 28 / 0.08);
+}
+
+/* ── 바탕 ────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* 상태 전환으로 감추는 요소가 flex 를 이기게 한다 */
+[hidden] {
+  display: none !important;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--paper);
+  /* 종이 결. 아주 약하게. */
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgb(22 25 28 / 0.008) 3px,
+      rgb(22 25 28 / 0.008) 4px
+    );
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--pen);
+  outline-offset: 2px;
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+}
+.skip:focus {
+  left: 12px;
+  top: 12px;
+  z-index: 99;
+  padding: 8px 14px;
+  background: var(--ink);
+  color: var(--card);
+  border-radius: 6px;
+}
+
+/* ── 목업 문서 뼈대 (폰 바깥) ─────────────────────────────────── */
+.doc {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+}
+
+.dochead {
+  padding: 44px 0 28px;
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: 36px;
+}
+
+.dochead__kicker {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  margin: 0 0 10px;
+}
+
+.dochead h1 {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0 0 12px;
+}
+
+.dochead p {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--ink-2);
+}
+
+.docnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 20px;
+}
+
+.docnav a {
+  font-size: 13px;
+  padding: 5px 11px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink-2);
+  text-decoration: none;
+}
+
+.docnav a:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.docsec {
+  margin: 0 0 56px;
+  scroll-margin-top: 20px;
+}
+
+.docsec__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 22px;
+}
+
+.docsec__num {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-4);
+}
+
+.docsec h2 {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.docsec__note {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.doclead {
+  max-width: 68ch;
+  color: var(--ink-2);
+  margin: 0 0 24px;
+}
+
+/* ── 폰 프레임 ───────────────────────────────────────────────────── */
+.rack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.unit {
+  width: var(--phone-w);
+}
+
+.unit__cap {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.unit__id {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--card);
+  background: var(--ink);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.unit__name {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.unit__src {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-4);
+}
+
+.unit__desc {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin: 10px 0 0;
+}
+
+.phone {
+  position: relative;
+  width: var(--phone-w);
+  height: var(--phone-h);
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--lift-3);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.phone--short {
+  height: 560px;
+}
+.phone--tall {
+  height: 880px;
+}
+
+/* 상태바 */
+.sbar {
+  flex: none;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-2);
+  background: var(--card);
+}
+
+.sbar__ic {
+  display: flex;
+  gap: 4px;
+  font-size: 12px;
+}
+
+/* 앱바 */
+.abar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 12px;
+  background: var(--card);
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.abar__back {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+  color: var(--ink-2);
+  margin-left: -4px;
+}
+
+.abar__title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.abar__end {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink-2);
+  font-size: 19px;
+}
+
+/* 본문 */
+.view {
+  flex: 1;
+  overflow: hidden;
+  padding: 16px;
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.view--flush {
+  padding: 0;
+}
+.view--sunken {
+  background: var(--card-2);
+}
+.view--center {
+  justify-content: center;
+  text-align: center;
+  gap: 18px;
+}
+
+/* 하단 액션 */
+.dock {
+  flex: none;
+  padding: 12px 16px 18px;
+  background: var(--card);
+  border-top: 1px solid var(--rule-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 탭바 */
+.tabs {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--card);
+  border-top: 1px solid var(--rule);
+  padding-bottom: 6px;
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 0 5px;
+  font-size: 11px;
+  color: var(--ink-4);
+}
+
+.tab i {
+  font-size: 21px;
+}
+.tab.is-on {
+  color: var(--pen);
+  font-weight: 700;
+}
+
+/* ── 타이포 (폰 안) ─────────────────────────────────────────────── */
+.h-xl {
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.28;
+  margin: 0;
+}
+
+.h-lg {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+
+.h-md {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.62;
+}
+
+.p--sm {
+  font-size: 13px;
+}
+
+.muted {
+  color: var(--ink-3);
+}
+.tiny {
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.55;
+}
+
+/* 라벨 — 카드 위 작은 머리표.
+   한글은 자간을 벌리면 단어가 흩어진다. 모노의 성격은 굵기와 크기로 내고
+   자간은 거의 주지 않는다. */
+.lab {
+  /* 모노로 두면 한글 사이 공백까지 모노 폭으로 벌어진다. 성격은 크기와 굵기로. */
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink-3);
+  margin: 0;
+}
+
+/* 시각과 금액은 언제나 모노 */
+.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.num--xl {
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+/* 숫자에 붙는 한글 단위 — 숫자보다 작고 조용하게 */
+.u {
+  font-family: var(--sans);
+  font-size: 0.46em;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink-2);
+  margin: 0 0.34em 0 0.06em;
+}
+
+.u:last-child {
+  margin-right: 0;
+}
+
+.num--lg {
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.num--md {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* 계약서 본문은 명조 */
+.doc-serif {
+  font-family: var(--serif);
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: var(--ink);
+}
+
+/* ── 카드와 목록 ────────────────────────────────────────────────── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.card--sunken {
+  background: var(--card-2);
+  border-color: var(--rule-soft);
+}
+.card--flat {
+  border: none;
+  padding: 0;
+}
+.card--seal {
+  border-color: var(--seal);
+  background: var(--seal-tint);
+}
+.card--amber {
+  border-color: #e2c48a;
+  background: var(--amber-tint);
+}
+.card--pen {
+  border-color: var(--pen-tint-2);
+  background: var(--pen-tint);
+}
+.card--ok {
+  border-color: #a9cdba;
+  background: var(--ok-tint);
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.card__head .lab {
+  margin-right: auto;
+}
+
+/* 괘선 목록 — 타임카드의 줄 */
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row--top {
+  align-items: flex-start;
+}
+
+.row__main {
+  min-width: 0;
+  flex: 1;
+}
+
+.row__title {
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row__sub {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  margin: 2px 0 0;
+}
+
+.row__end {
+  flex: none;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.row__chev {
+  flex: none;
+  color: var(--ink-4);
+  font-size: 16px;
+}
+
+/* 리스트를 스크롤 영역으로.
+   실제로 스크롤돼야 한다 — 클리핑만 하면 넘친 내용이 소리 없이 사라진다.
+   폰 목업이라 스크롤막대는 감춘다. */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 0 -16px;
+  padding: 0 16px;
+  position: relative;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── 배지 ──────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  background: var(--card-2);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.badge--pen {
+  border-color: var(--pen-tint-2);
+  background: var(--pen-tint);
+  color: var(--pen);
+}
+.badge--seal {
+  border-color: #e4b3ac;
+  background: var(--seal-tint);
+  color: var(--seal-ink);
+}
+.badge--amber {
+  border-color: #e2c48a;
+  background: var(--amber-tint);
+  color: var(--amber);
+}
+.badge--ok {
+  border-color: #a9cdba;
+  background: var(--ok-tint);
+  color: var(--ok);
+}
+.badge--solid {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--card);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+/* ── 버튼 ──────────────────────────────────────────────────────── */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 50px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-family: var(--sans);
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  background: var(--pen);
+  color: #fff;
+  cursor: pointer;
+  /* <a> 로 만든 버튼에 밑줄이 남지 않게 */
+  text-decoration: none;
+}
+
+.btn i {
+  font-size: 19px;
+}
+
+.btn--ghost {
+  background: var(--card);
+  border-color: var(--rule);
+  color: var(--ink);
+}
+
+.btn--seal {
+  background: var(--seal);
+}
+
+.btn--quiet {
+  background: transparent;
+  color: var(--ink-2);
+  min-height: 42px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.btn--sm {
+  min-height: 38px;
+  font-size: 13.5px;
+  width: auto;
+  padding: 0 14px;
+}
+
+.btn[disabled],
+.btn.is-off {
+  background: var(--sunken);
+  color: var(--ink-4);
+  border-color: transparent;
+  cursor: not-allowed;
+}
+
+.btnrow {
+  display: flex;
+  gap: 8px;
+}
+
+.btnrow .btn {
+  flex: 1;
+}
+
+/* ── 폼 ────────────────────────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field__lab {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.field__lab .req {
+  color: var(--seal);
+  margin-left: 2px;
+}
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 13px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--card);
+  font-family: var(--sans);
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.input::placeholder {
+  color: var(--ink-4);
+}
+
+.input--mono {
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+}
+
+.input--ro {
+  background: var(--sunken);
+  color: var(--ink-2);
+  border-color: transparent;
+}
+
+.input--err {
+  border-color: var(--seal);
+  background: var(--seal-tint);
+}
+
+.field__help {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin: 0;
+}
+
+.field__err {
+  font-size: 12px;
+  color: var(--seal-ink);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+
+.check__box {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--rule);
+  border-radius: 5px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  color: transparent;
+  margin-top: 1px;
+}
+
+.check__box.is-on {
+  background: var(--pen);
+  border-color: var(--pen);
+  color: #fff;
+}
+
+/* 토글 */
+.sw {
+  flex: none;
+  width: 42px;
+  height: 25px;
+  border-radius: 999px;
+  background: var(--sunken);
+  position: relative;
+  transition: background 0.15s;
+}
+
+.sw::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--lift-1);
+  transition: transform 0.15s;
+}
+
+.sw.is-on {
+  background: var(--pen);
+}
+.sw.is-on::after {
+  transform: translateX(17px);
+}
+.sw.is-lock {
+  background: var(--pen-tint-2);
+}
+.sw.is-lock::after {
+  transform: translateX(17px);
+}
+
+/* ── 안내 띠 ───────────────────────────────────────────────────── */
+.note {
+  display: flex;
+  gap: 9px;
+  padding: 11px 12px;
+  border-radius: 8px;
+  background: var(--card-2);
+  border: 1px solid var(--rule-soft);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.note i {
+  flex: none;
+  font-size: 16px;
+  margin-top: 1px;
+  color: var(--ink-3);
+}
+
+.note--amber {
+  background: var(--amber-tint);
+  border-color: #e2c48a;
+  color: #6f4608;
+}
+.note--amber i {
+  color: var(--amber);
+}
+
+.note--seal {
+  background: var(--seal-tint);
+  border-color: #e4b3ac;
+  color: #7d2219;
+}
+.note--seal i {
+  color: var(--seal);
+}
+
+.note--pen {
+  background: var(--pen-tint);
+  border-color: var(--pen-tint-2);
+  color: #17325f;
+}
+.note--pen i {
+  color: var(--pen);
+}
+
+.note strong {
+  font-weight: 700;
+}
+
+/* ── 시간 레일 ─────────────────────────────────────────────────────
+   하루를 가로 막대로 그린다. 예정은 옅은 틀, 실제는 채운 칠.
+   출퇴근 현황과 근무스케줄이 같은 눈금을 쓴다.            */
+.rail {
+  position: relative;
+  height: 34px;
+  background: var(--sunken);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.rail__plan {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border: 1.5px dashed var(--ink-4);
+  border-radius: 5px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgb(22 25 28 / 0.04) 4px,
+    rgb(22 25 28 / 0.04) 8px
+  );
+}
+
+.rail__real {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  border-radius: 4px;
+  background: var(--pen);
+}
+
+.rail__real--late {
+  background: var(--amber);
+}
+/* 아직 열려 있는 기록 — 끝을 잘라내지 않고 흐리며 끝낸다 */
+.rail__real--open {
+  background: var(--pen);
+  -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 82%, transparent 100%);
+}
+
+.rail__tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgb(22 25 28 / 0.09);
+}
+
+.railscale {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-4);
+  margin-top: 3px;
+}
+
+/* ── 주간 격자 ─────────────────────────────────────────────────── */
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.day {
+  border: 1px solid var(--rule-soft);
+  border-radius: 7px;
+  padding: 7px 3px;
+  text-align: center;
+  background: var(--card);
+  min-height: 66px;
+}
+
+.day__d {
+  font-size: 10.5px;
+  color: var(--ink-3);
+  margin-bottom: 3px;
+}
+
+.day__n {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.day__t {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--pen);
+  margin-top: 4px;
+  line-height: 1.3;
+}
+
+.day.is-off {
+  background: var(--card-2);
+}
+.day.is-off .day__n {
+  color: var(--ink-4);
+}
+
+.day.is-today {
+  border-color: var(--ink);
+  border-width: 1.5px;
+}
+
+.day.is-work {
+  background: var(--pen-tint);
+  border-color: var(--pen-tint-2);
+}
+
+/* ── 명세서 표 ─────────────────────────────────────────────────── */
+.pay {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.pay th,
+.pay td {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  text-align: left;
+}
+
+.pay td:last-child,
+.pay th:last-child {
+  text-align: right;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.pay thead th {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  color: var(--ink-3);
+  font-weight: 500;
+  border-bottom-color: var(--rule);
+}
+
+.pay tfoot td {
+  border-bottom: none;
+  border-top: 2px solid var(--ink);
+  padding-top: 11px;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.pay .sub {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+/* ── 도장 ──────────────────────────────────────────────────────── */
+.seal {
+  width: 74px;
+  height: 74px;
+  border: 2.5px solid var(--seal);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--seal);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  line-height: 1.25;
+  text-align: center;
+  transform: rotate(-8deg);
+  opacity: 0.86;
+}
+
+/* ── 단계 표시 ─────────────────────────────────────────────────── */
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.steps__i {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--sunken);
+}
+
+.steps__i.is-on {
+  background: var(--pen);
+}
+.steps__i.is-done {
+  background: var(--pen-tint-2);
+}
+
+/* ── 빈 상태 ───────────────────────────────────────────────────── */
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  padding: 24px;
+}
+
+.empty i {
+  font-size: 36px;
+  color: var(--ink-4);
+}
+
+/* ── 토스트 ────────────────────────────────────────────────────── */
+.toast {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 88px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 9px;
+  background: var(--ink);
+  color: var(--card);
+  font-size: 13.5px;
+  font-weight: 500;
+  box-shadow: var(--lift-2);
+  z-index: 5;
+}
+
+.toast i {
+  font-size: 17px;
+}
+
+/* ── 시트 ──────────────────────────────────────────────────────── */
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--card);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  padding: 8px 16px 20px;
+  box-shadow: 0 -8px 28px rgb(22 25 28 / 0.16);
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sheet__grab {
+  width: 34px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--sunken);
+  margin: 2px auto 6px;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: rgb(22 25 28 / 0.36);
+  z-index: 5;
+}
+
+/* ── 지도 (출퇴근 위치 확인) ───────────────────────────────────── */
+.geo {
+  position: relative;
+  height: 170px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #e9e5da;
+  background-image:
+    linear-gradient(rgb(22 25 28 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(22 25 28 / 0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+  border: 1px solid var(--rule);
+}
+
+.geo__fence {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 130px;
+  height: 130px;
+  transform: translate(-50%, -50%);
+  border: 1.5px dashed var(--pen);
+  border-radius: 50%;
+  background: rgb(31 63 122 / 0.09);
+}
+
+.geo__fence--out {
+  border-color: var(--amber);
+  background: rgb(168 106 18 / 0.09);
+}
+
+.geo__store {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  color: var(--pen);
+}
+
+.geo__me {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--pen);
+  border: 2.5px solid var(--card);
+  box-shadow: 0 0 0 5px rgb(31 63 122 / 0.2);
+}
+
+.geo__me--out {
+  background: var(--amber);
+  box-shadow: 0 0 0 5px rgb(168 106 18 / 0.2);
+}
+
+.geo__me--vague {
+  background: var(--ink-4);
+  box-shadow: 0 0 0 26px rgb(118 125 136 / 0.18);
+}
+
+.geo__cap {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: rgb(255 253 248 / 0.94);
+  color: var(--ink-2);
+  border: 1px solid var(--rule);
+}
+
+/* ── 목업 문서용 표 ─────────────────────────────────────────────── */
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.tbl th,
+.tbl td {
+  padding: 10px 13px;
+  text-align: left;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+.tbl thead th {
+  background: var(--card-2);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  color: var(--ink-3);
+  font-weight: 500;
+  border-bottom: 1px solid var(--rule);
+}
+
+.tbl tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tbl code {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--pen);
+  background: var(--pen-tint);
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.tbl .n {
+  text-align: right;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 쟁점 — 정할 것이 앞으로 나오고 정해진 것은 뒤로 물러난다.
+   미정은 흰 카드로 또렷하게, 확정은 배경을 눌러 가라앉힌다. */
+.issue {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--card);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--lift-1);
+}
+
+.issue--fixed {
+  background: var(--card-2);
+  border-color: var(--rule-soft);
+  box-shadow: none;
+}
+
+.issue__head {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin-bottom: 6px;
+}
+
+.issue__id {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
+  background: var(--sunken);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.issue--fixed .issue__id {
+  background: var(--card);
+  color: var(--ink-3);
+}
+
+.issue__t {
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: -0.015em;
+}
+
+.issue__st {
+  margin-left: auto;
+}
+
+.issue p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+.issue ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+
+.issue li {
+  margin-bottom: 3px;
+}
+
+/* 정책 목록 */
+.pol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.pol li {
+  display: flex;
+  gap: 12px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.pol li:last-child {
+  border-bottom: none;
+}
+
+.pol__src {
+  flex: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-4);
+  width: 78px;
+  padding-top: 2px;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.docfoot {
+  margin-top: 60px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+/* ── 무대 ──────────────────────────────────────────────────────────
+   왼쪽에 실제로 눌리는 폰 하나, 오른쪽에 그 화면을 읽는 자리.
+   폰은 따라 내려오고 해설은 스크롤된다.                        */
+.stage {
+  display: grid;
+  grid-template-columns: var(--phone-w) minmax(0, 1fr);
+  gap: 44px;
+  align-items: start;
+}
+
+.stage__phone {
+  position: sticky;
+  top: 24px;
+}
+
+.stage__side {
+  min-width: 0;
+  padding-top: 4px;
+}
+
+/* 상태 바꾸기 — 이 화면이 가진 상태를 직접 눌러 본다 */
+.switcher {
+  margin-top: 16px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.switcher__head {
+  padding: 9px 12px;
+  background: var(--card-2);
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.switcher__head .lab {
+  margin: 0;
+}
+
+.switcher__hint {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--ink-4);
+}
+
+.switcher__body {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sw-b {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  font-family: var(--sans);
+  font-size: 13.5px;
+  color: var(--ink-2);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sw-b:hover {
+  background: var(--card-2);
+}
+
+.sw-b__k {
+  flex: none;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-4);
+  width: 22px;
+}
+
+.sw-b__t {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.sw-b__d {
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+
+.sw-b[aria-pressed="true"] {
+  background: var(--pen-tint);
+}
+
+.sw-b[aria-pressed="true"] .sw-b__k,
+.sw-b[aria-pressed="true"] .sw-b__t {
+  color: var(--pen);
+}
+
+/* 화면 안 설명 툴팁 앵커 */
+.tip {
+  position: relative;
+  border-bottom: 1px dotted var(--ink-4);
+  cursor: help;
+}
+
+/* ── 쟁점 블록 (화면 옆에 붙는 형태) ─────────────────────────────
+   front 목업의 gap 블록과 같은 역할. 두 안을 나란히 놓고
+   고른 쪽을 표시한다.                                         */
+.gap {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--card);
+  margin: 14px 0;
+  overflow: hidden;
+  box-shadow: var(--lift-1);
+}
+
+.gap.is-decided {
+  background: var(--card-2);
+  box-shadow: none;
+  border-color: var(--rule-soft);
+}
+
+.gap__head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding: 10px 13px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.gap__no {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--ink-2);
+  background: var(--sunken);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.gap.is-decided .gap__no {
+  background: var(--card);
+}
+
+.gap__t {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.015em;
+}
+
+.gap__ref {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-4);
+}
+
+.gap__opts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.gap__opt {
+  padding: 12px 13px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  border-right: 1px solid var(--rule-soft);
+}
+
+.gap__opt:last-child {
+  border-right: none;
+}
+
+.gap__opt p {
+  margin: 5px 0 0;
+}
+
+.gap__label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  color: var(--ink-4);
+}
+
+.gap__opt.is-picked {
+  background: var(--pen-tint);
+}
+
+.gap__opt.is-picked .gap__label {
+  color: var(--pen);
+  font-weight: 600;
+}
+
+.gap__opt.is-dropped {
+  opacity: 0.62;
+}
+
+.gap__one {
+  padding: 12px 13px;
+  font-size: 13px;
+  line-height: 1.62;
+  color: var(--ink-2);
+}
+
+.gap__one p {
+  margin: 0 0 7px;
+}
+
+.gap__one p:last-child {
+  margin-bottom: 0;
+}
+
+.gap__one ul {
+  margin: 6px 0 0;
+  padding-left: 17px;
+}
+
+.gap__one li {
+  margin-bottom: 3px;
+}
+
+.gap__st {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.gap__st--open {
+  background: var(--amber-tint);
+  color: var(--amber);
+  border: 1px solid #e2c48a;
+}
+
+.gap__st--fixed {
+  background: var(--ok-tint);
+  color: var(--ok);
+  border: 1px solid #a9cdba;
+}
+
+/* 밖에서 확인받아야 끝나는 것 — 회의에서 고를 수 없는 층위라
+   미정·확정과 다른 무게로 표시한다. */
+.gap__st--review {
+  background: var(--ink);
+  color: var(--card);
+  border: 1px solid var(--ink);
+}
+
+@media (max-width: 900px) {
+  .stage {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .stage__phone {
+    position: static;
+  }
+  .gap__opts {
+    grid-template-columns: 1fr;
+  }
+  .gap__opt {
+    border-right: none;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+}
+
+/* ── 유틸 ──────────────────────────────────────────────────────── */
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+.stack-4 {
+  gap: 4px;
+}
+.stack-6 {
+  gap: 6px;
+}
+.stack-8 {
+  gap: 8px;
+}
+.stack-10 {
+  gap: 10px;
+}
+.stack-14 {
+  gap: 14px;
+}
+.stack-18 {
+  gap: 18px;
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.line--between {
+  justify-content: space-between;
+}
+.push {
+  margin-left: auto;
+}
+.grow {
+  flex: 1;
+}
+.center {
+  text-align: center;
+}
+.hr {
+  height: 1px;
+  background: var(--rule-soft);
+  border: none;
+  margin: 0;
+}
+.hr--strong {
+  background: var(--rule);
+}
+
+@media (max-width: 760px) {
+  .doc {
+    padding: 0 16px 60px;
+  }
+  .dochead h1 {
+    font-size: 26px;
+  }
+  .rack {
+    gap: 24px;
+  }
+}

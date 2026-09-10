@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>출퇴근 등록 · 직원 앱 · WHALE ERP</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Gowun+Batang:wght@400;700&display=swap"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+    <link rel="stylesheet" href="../assets/staff.css" />
+    <script src="../assets/app.js" defer></script>
+  </head>
+  <body data-area="app" data-screen="attendance">
+    <!-- 직원 앱 · 출퇴근 등록
+         1차는 GPS 판정으로 확정(재영 2026-09-10). 매장용 등록 기기는 만들지 않고
+         등록이 직원 앱 안으로 들어왔다. 2차에 기기등록·QR 을 얹을 때 판정 근거만
+         갈아 끼우면 되도록 위치 확인 영역을 따로 뒀다 — ATT-1.
+
+         이 파일은 화면 하나다. 오른쪽 목록으로 상태를 바꾸거나 폰 안의 버튼을
+         직접 눌러 본다. 숫자키 1~8 로도 넘어간다.
+
+         근거 : S-EFQGSP · R-CHVHQH -->
+    <a class="skip" href="#main">본문으로 건너뛰기</a>
+
+    <div class="doc" id="main">
+      <header class="dochead">
+        <p class="dochead__kicker">직원 앱 · 출퇴근 · /attendance</p>
+        <h1>출퇴근 등록</h1>
+        <p>
+          직원이 매장에 도착해 자기 폰으로 출근을 찍고, 갈 때 퇴근을 찍는다. 매장에 왔다는 사실은
+          GPS 로 판정한다. 이 화면은 성공보다 <strong>실패 경로가 더 중요하다</strong> — 위치가 안
+          잡히거나, 권한이 없거나, 이미 찍혀 있거나, 계약이 아직 없는 일이 현장에서는 매일 생긴다.
+        </p>
+        <nav class="docnav">
+          <a href="../index.html">← 목업 허브</a>
+          <a href="login.html">로그인</a>
+          <a href="attendance-history.html">출퇴근 현황</a>
+          <a href="home.html">홈</a>
+          <a href="join.html">진입·가입</a>
+          <a href="contract.html">근로계약</a>
+          <a href="work.html">근무 정보</a>
+          <a href="pay.html">급여</a>
+          <a href="notify.html">알림</a>
+          <a href="me.html">내 정보</a>
+        </nav>
+      </header>
+
+      <div class="stage">
+        <!-- ══ 폰 ══════════════════════════════════════════════════ -->
+        <div class="stage__phone">
+          <div class="phone" data-state="ready">
+            <div class="sbar">
+              <span data-clock>08:52</span>
+              <span class="sbar__ic">
+                <i class="ph-fill ph-cell-signal-full" data-unless="vague"></i>
+                <i class="ph-fill ph-cell-signal-medium" data-when="vague"></i>
+                <i class="ph-fill ph-wifi-high"></i>
+                <i class="ph-fill ph-battery-high"></i>
+              </span>
+            </div>
+
+            <div class="abar" data-unless="done">
+              <a class="abar__back" href="home.html"><i class="ph ph-caret-left"></i></a>
+              <span class="abar__title">출퇴근</span>
+              <a class="abar__end" href="attendance-history.html"
+                ><i class="ph ph-clock-counter-clockwise"></i
+              ></a>
+            </div>
+
+            <!-- ── 매장 안 · 출근 전 ────────────────────────────── -->
+            <div class="view" data-when="ready">
+              <div class="geo">
+                <div class="geo__fence"></div>
+                <i class="ph-fill ph-storefront geo__store"></i>
+                <div class="geo__me" style="left: 54%; top: 57%"></div>
+                <span class="geo__cap">오차 ±12m · 매장까지 18m</span>
+              </div>
+
+              <div class="card card--pen">
+                <div class="line">
+                  <i class="ph-fill ph-map-pin" style="color: var(--pen); font-size: 18px"></i>
+                  <div class="grow">
+                    <p class="h-md">웨일카페 강남역점</p>
+                    <p class="tiny" style="color: var(--pen)">매장 범위 안에 있습니다</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <p class="lab">오늘 예정 근무</p>
+                <div class="line" style="margin-top: 7px">
+                  <span class="num num--md">09:00 – 18:00</span>
+                  <span class="badge push">휴게 60분</span>
+                </div>
+              </div>
+
+              <div class="grow"></div>
+
+              <div class="center stack stack-4">
+                <p class="lab">현재 시각</p>
+                <p class="num num--xl" data-clock>08:52</p>
+                <p class="tiny">기록 시각은 서버가 요청을 받은 때로 정해집니다</p>
+              </div>
+            </div>
+
+            <!-- ── 근무 중 ──────────────────────────────────────── -->
+            <div class="view" data-when="working">
+              <div class="card card--ok">
+                <div class="line">
+                  <i class="ph-fill ph-check-circle" style="color: var(--ok); font-size: 18px"></i>
+                  <div class="grow">
+                    <p class="h-md">근무 중</p>
+                    <p class="tiny" style="color: var(--ok)">09:02에 출근했습니다</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <p class="lab">오늘</p>
+                <div class="rail" style="margin-top: 9px">
+                  <div class="rail__plan" style="left: 0%; right: 4%"></div>
+                  <div class="rail__real rail__real--open" style="left: 2%; right: 26%"></div>
+                  <div class="rail__tick" style="left: 33%"></div>
+                  <div class="rail__tick" style="left: 66%"></div>
+                </div>
+                <div class="railscale">
+                  <span>09:00</span><span>12:00</span><span>15:00</span><span>18:00</span>
+                </div>
+                <p class="tiny" style="margin-top: 8px">점선은 예정, 채운 칠은 실제 기록입니다</p>
+              </div>
+
+              <div class="grow"></div>
+
+              <div class="center stack stack-4">
+                <p class="lab">근무 경과</p>
+                <p class="num num--xl">6<span class="u">시간</span>41<span class="u">분</span></p>
+                <p class="tiny">현재 시각 <span data-clock>15:43</span></p>
+              </div>
+            </div>
+
+            <!-- ── 퇴근 완료 ────────────────────────────────────── -->
+            <div class="view view--center" data-when="done">
+              <div style="display: grid; place-items: center">
+                <div class="seal">퇴근<br />완료</div>
+              </div>
+              <div class="stack stack-6">
+                <p class="lab">퇴근 기록</p>
+                <p class="num num--xl" data-clock>18:04</p>
+              </div>
+              <div class="card card--sunken" style="text-align: left; width: 100%">
+                <div class="rows">
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">근무지</span>
+                    <span class="push num" style="font-size: 13px">웨일카페 강남역점</span>
+                  </div>
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">출근</span>
+                    <span class="push num" style="font-size: 13px">09:02</span>
+                  </div>
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">근무 시간</span>
+                    <span class="push num" style="font-size: 13px">9시간 02분</span>
+                  </div>
+                </div>
+              </div>
+              <p class="tiny">기록이 저장되었습니다. 관리자 화면에서 바로 확인할 수 있습니다.</p>
+            </div>
+
+            <!-- ── 매장 범위 밖 ─────────────────────────────────── -->
+            <div class="view" data-when="far">
+              <div class="geo">
+                <div class="geo__fence geo__fence--out"></div>
+                <i class="ph-fill ph-storefront geo__store" style="color: var(--ink-3)"></i>
+                <div class="geo__me geo__me--out" style="left: 78%; top: 26%"></div>
+                <span class="geo__cap">오차 ±14m · 매장까지 240m</span>
+              </div>
+
+              <div class="note note--amber">
+                <i class="ph-fill ph-warning"></i>
+                <div>
+                  <strong>매장에서 240m 떨어져 있습니다.</strong><br />
+                  매장 안이나 바로 앞에서 다시 시도해 주세요.
+                </div>
+              </div>
+
+              <div class="card">
+                <p class="lab">근무지</p>
+                <p class="h-md" style="margin-top: 6px">웨일카페 강남역점</p>
+                <p class="tiny" style="margin-top: 3px">서울 강남구 테헤란로 1길</p>
+              </div>
+
+              <div class="grow"></div>
+
+              <div class="center stack stack-4">
+                <p class="lab">현재 시각</p>
+                <p class="num num--xl" style="color: var(--ink-4)" data-clock>08:47</p>
+              </div>
+            </div>
+
+            <!-- ── 위치 권한 없음 ───────────────────────────────── -->
+            <div class="view" data-when="denied">
+              <div class="geo" style="display: grid; place-items: center; background-image: none">
+                <div class="center stack stack-8" style="padding: 20px">
+                  <i class="ph ph-map-pin-slash" style="font-size: 30px; color: var(--ink-4)"></i>
+                  <p class="tiny">위치를 확인할 수 없습니다</p>
+                </div>
+              </div>
+
+              <div class="note note--seal">
+                <i class="ph-fill ph-prohibit"></i>
+                <div>
+                  <strong>위치 권한이 꺼져 있습니다.</strong><br />
+                  출퇴근은 매장에 있는지를 위치로 확인합니다. 설정에서 위치 접근을 허용해 주세요.
+                </div>
+              </div>
+
+              <div class="card card--sunken">
+                <p class="lab">권한이 필요한 이유</p>
+                <p class="p--sm" style="margin-top: 6px">
+                  매장에 있는지를 위치로만 확인하기 때문에, 권한이 없으면 출퇴근을 등록할 수
+                  없습니다. 설정에서 위치 접근을 허용한 뒤 다시 시도해 주세요.
+                </p>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 위치 흐림 ────────────────────────────────────── -->
+            <div class="view" data-when="vague">
+              <div class="geo">
+                <div class="geo__fence"></div>
+                <i class="ph-fill ph-storefront geo__store"></i>
+                <div class="geo__me geo__me--vague" style="left: 50%; top: 50%"></div>
+                <span class="geo__cap">오차 ±180m</span>
+              </div>
+
+              <div class="note note--amber">
+                <i class="ph-fill ph-crosshair"></i>
+                <div>
+                  <strong>위치가 흐릿합니다.</strong><br />
+                  지하나 건물 안에서는 오차가 커집니다. 오차가 매장 범위보다 넓어 매장 안인지
+                  확인하지 못했습니다.
+                </div>
+              </div>
+
+              <div class="card card--amber">
+                <div class="line">
+                  <i class="ph-fill ph-flag" style="color: var(--amber); font-size: 17px"></i>
+                  <p class="p--sm grow" style="color: #6f4608">
+                    그대로 등록하면 <strong>확인 필요</strong>로 표시되어 관리자가 검토합니다.
+                  </p>
+                </div>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 근무지 여럿 ──────────────────────────────────── -->
+            <div class="view" data-when="multi">
+              <div class="geo">
+                <div class="geo__fence"></div>
+                <i class="ph-fill ph-storefront geo__store"></i>
+                <div class="geo__me" style="left: 47%; top: 53%"></div>
+                <span class="geo__cap">오차 ±9m · 매장까지 6m</span>
+              </div>
+
+              <div class="card card--pen">
+                <div class="line">
+                  <i class="ph-fill ph-map-pin" style="color: var(--pen); font-size: 18px"></i>
+                  <div class="grow">
+                    <p class="h-md">웨일카페 홍대점</p>
+                    <p class="tiny" style="color: var(--pen)">가장 가까운 근무지로 골랐습니다</p>
+                  </div>
+                  <button class="btn btn--sm btn--ghost" data-sheet="pick">변경</button>
+                </div>
+              </div>
+
+              <div class="card card--sunken">
+                <p class="lab">내 근무지 3곳</p>
+                <div class="rows" style="margin-top: 4px">
+                  <div class="row" style="padding: 8px 0">
+                    <i class="ph-fill ph-check-circle" style="color: var(--pen); font-size: 16px"></i>
+                    <span class="row__title" style="font-size: 13.5px">웨일카페 홍대점</span>
+                    <span class="push num tiny">6m</span>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <i class="ph ph-circle" style="color: var(--ink-4); font-size: 16px"></i>
+                    <span class="row__title" style="font-size: 13.5px; color: var(--ink-3)"
+                      >웨일베이커리 합정점</span
+                    >
+                    <span class="push num tiny">1.4km</span>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <i class="ph ph-circle" style="color: var(--ink-4); font-size: 16px"></i>
+                    <span class="row__title" style="font-size: 13.5px; color: var(--ink-3)"
+                      >웨일카페 강남역점</span
+                    >
+                    <span class="push num tiny">7.2km</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grow"></div>
+
+              <div class="center stack stack-4">
+                <p class="lab">현재 시각</p>
+                <p class="num num--xl" data-clock>13:58</p>
+              </div>
+            </div>
+
+            <!-- ── 하단 버튼 ────────────────────────────────────── -->
+            <div class="dock" data-unless="done">
+              <button class="btn" data-when="ready" data-go="working" data-toast="출근을 등록했습니다">
+                <i class="ph-fill ph-sign-in"></i>출근하기
+              </button>
+              <button class="btn btn--quiet" data-when="ready" data-sheet="dup">
+                이미 출근한 상태로 눌러 보기
+              </button>
+
+              <button
+                class="btn btn--ghost"
+                data-when="working"
+                data-go="done"
+                data-toast="퇴근을 등록했습니다"
+              >
+                <i class="ph-fill ph-sign-out"></i>퇴근하기
+              </button>
+
+              <button class="btn is-off" data-when="far"><i class="ph-fill ph-sign-in"></i>출근하기</button>
+              <button class="btn btn--quiet" data-when="far" data-go="ready" data-toast="매장 범위 안입니다">
+                위치 다시 확인
+              </button>
+
+              <button class="btn" data-when="denied" data-go="ready" data-toast="위치 권한을 켰습니다">
+                <i class="ph-fill ph-gear"></i>설정 열기
+              </button>
+
+              <button class="btn btn--ghost" data-when="vague" data-go="ready" data-toast="위치를 다시 잡았습니다">
+                다시 확인
+              </button>
+              <button
+                class="btn btn--quiet"
+                data-when="vague"
+                data-go="working"
+                data-toast="확인 필요로 등록했습니다"
+              >
+                확인 필요로 등록하기
+              </button>
+
+              <button class="btn" data-when="multi" data-go="working" data-toast="홍대점으로 출근했습니다">
+                <i class="ph-fill ph-sign-in"></i>출근하기
+              </button>
+            </div>
+
+            <div class="dock" data-when="done">
+              <a class="btn btn--ghost" href="home.html">홈으로</a>
+            </div>
+
+            <!-- ── 시트 ─────────────────────────────────────────── -->
+            <div class="sheet" data-sheet-id="dup" hidden>
+              <div class="sheet__grab"></div>
+              <div class="line">
+                <i class="ph-fill ph-warning-circle" style="color: var(--seal); font-size: 21px"></i>
+                <p class="h-lg">이미 출근해 있습니다</p>
+              </div>
+              <p class="p--sm">
+                오늘 09:02에 웨일카페 강남역점으로 출근한 기록이 열려 있습니다. 퇴근을 먼저 등록해
+                주세요.
+              </p>
+              <div class="card card--sunken">
+                <div class="line">
+                  <span class="lab">열린 출근</span>
+                  <span class="push num num--md">09:02</span>
+                </div>
+              </div>
+              <div class="btnrow">
+                <button class="btn btn--ghost" data-sheet-close>닫기</button>
+                <button class="btn" data-sheet-close data-go="working">퇴근하러 가기</button>
+              </div>
+            </div>
+
+            <div class="sheet" data-sheet-id="nopunch" hidden>
+              <div class="sheet__grab"></div>
+              <div class="line">
+                <i class="ph-fill ph-warning-circle" style="color: var(--seal); font-size: 21px"></i>
+                <p class="h-lg">출근 기록이 없습니다</p>
+              </div>
+              <p class="p--sm">
+                퇴근은 열려 있는 출근 기록이 있어야 등록할 수 있습니다. 오늘 출근을 찍지 않았다면
+                관리자에게 알려 주세요.
+              </p>
+              <div class="note">
+                <i class="ph ph-info"></i>
+                <div>관리자는 최근 3개월 안의 기록을 수정할 수 있습니다.</div>
+              </div>
+              <div class="btnrow">
+                <button class="btn btn--ghost" data-sheet-close>닫기</button>
+                <button class="btn" data-sheet-close data-toast="관리자에게 알렸습니다">
+                  관리자에게 알리기
+                </button>
+              </div>
+            </div>
+
+            <div class="sheet" data-sheet-id="nocontract" hidden>
+              <div class="sheet__grab"></div>
+              <div class="line">
+                <i class="ph-fill ph-file-dashed" style="color: var(--amber); font-size: 21px"></i>
+                <p class="h-lg">아직 계약서를 날인하지 않았습니다</p>
+              </div>
+              <p class="p--sm">
+                계약이 없어도 출퇴근은 등록할 수 있습니다. 다만 급여명세서를 만들 때 계약이 있어야
+                하니 계약서를 먼저 확인해 주세요.
+              </p>
+              <a class="card card--amber" href="contract.html" style="text-decoration: none">
+                <div class="line">
+                  <div class="grow">
+                    <p class="h-md" style="color: #6f4608">근로계약서 1건 대기</p>
+                    <p class="tiny" style="color: var(--amber)">남은 기한 26일</p>
+                  </div>
+                  <i class="ph ph-caret-right" style="color: var(--amber)"></i>
+                </div>
+              </a>
+              <div class="btnrow">
+                <button
+                  class="btn btn--ghost"
+                  data-sheet-close
+                  data-go="working"
+                  data-toast="출근을 등록했습니다"
+                >
+                  그대로 출근
+                </button>
+                <a class="btn" href="contract.html">계약서 보기</a>
+              </div>
+            </div>
+
+            <div class="sheet" data-sheet-id="pick" hidden>
+              <div class="sheet__grab"></div>
+              <p class="h-lg">근무지 고르기</p>
+              <p class="p--sm">가까운 순서로 보여 줍니다. 자동 판정이 틀렸으면 직접 고르세요.</p>
+              <div class="rows">
+                <div class="row">
+                  <i class="ph-fill ph-check-circle" style="color: var(--pen); font-size: 19px"></i>
+                  <div class="row__main">
+                    <p class="row__title">웨일카페 홍대점</p>
+                    <p class="row__sub">서울 마포구 양화로</p>
+                  </div>
+                  <span class="num tiny">6m</span>
+                </div>
+                <div class="row">
+                  <i class="ph ph-circle" style="color: var(--ink-4); font-size: 19px"></i>
+                  <div class="row__main">
+                    <p class="row__title">웨일베이커리 합정점</p>
+                    <p class="row__sub">서울 마포구 독막로</p>
+                  </div>
+                  <span class="num tiny">1.4km</span>
+                </div>
+                <div class="row">
+                  <i class="ph ph-circle" style="color: var(--ink-4); font-size: 19px"></i>
+                  <div class="row__main">
+                    <p class="row__title">웨일카페 강남역점</p>
+                    <p class="row__sub">서울 강남구 테헤란로</p>
+                  </div>
+                  <span class="num tiny">7.2km</span>
+                </div>
+              </div>
+              <button class="btn" data-sheet-close>고르기</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ 해설 ═══════════════════════════════════════════════ -->
+        <div class="stage__side">
+          <div class="switcher">
+            <div class="switcher__head">
+              <p class="lab">상태 바꾸기</p>
+              <span class="switcher__hint">숫자키 1–8</span>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-state="ready" aria-pressed="true">
+                <span class="sw-b__k">1</span>
+                <span><span class="sw-b__t">매장 안</span> <span class="sw-b__d">· 출근 가능</span></span>
+              </button>
+              <button class="sw-b" data-state="working">
+                <span class="sw-b__k">2</span>
+                <span><span class="sw-b__t">근무 중</span> <span class="sw-b__d">· 퇴근 가능</span></span>
+              </button>
+              <button class="sw-b" data-state="done">
+                <span class="sw-b__k">3</span>
+                <span><span class="sw-b__t">퇴근 완료</span> <span class="sw-b__d">· 기록 확정</span></span>
+              </button>
+              <button class="sw-b" data-state="far">
+                <span class="sw-b__k">4</span>
+                <span
+                  ><span class="sw-b__t">매장 범위 밖</span> <span class="sw-b__d">· 240m</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="denied">
+                <span class="sw-b__k">5</span>
+                <span
+                  ><span class="sw-b__t">위치 권한 없음</span> <span class="sw-b__d">· 등록 불가</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="vague">
+                <span class="sw-b__k">6</span>
+                <span
+                  ><span class="sw-b__t">위치 흐림</span> <span class="sw-b__d">· 오차 ±180m</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="multi">
+                <span class="sw-b__k">7</span>
+                <span
+                  ><span class="sw-b__t">근무지 여럿</span> <span class="sw-b__d">· 자동 판정</span></span
+                >
+              </button>
+            </div>
+            <div class="switcher__head" style="border-top: 1px solid var(--rule); border-bottom: none">
+              <p class="lab">시트 열기</p>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-sheet="dup">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">이미 출근함</span>
+                  <span class="sw-b__d">· 열린 출근이 있을 때</span></span
+                >
+              </button>
+              <button class="sw-b" data-sheet="nopunch">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">출근 기록 없음</span>
+                  <span class="sw-b__d">· 퇴근만 찍을 때</span></span
+                >
+              </button>
+              <button class="sw-b" data-sheet="nocontract">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">계약 미체결</span>
+                  <span class="sw-b__d">· 경고 후 등록 허용</span></span
+                >
+              </button>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 30px 0 10px">이 화면이 하는 일</h2>
+          <p class="p">
+            매장 범위 안에 들어오면 큰 버튼 하나만 남는다. 출근 전에는 출근, 근무 중에는 퇴근이다.
+            한 손으로 서서 누르는 화면이라 버튼은 아래 절반에 두고 위쪽은 확인용으로만 쓴다. 퇴근은
+            되돌릴 수 없어 채운 버튼 대신 테두리 버튼을 썼다.
+          </p>
+          <p class="p" style="margin-top: 10px">
+            성공 화면에만 인주 도장을 쓴다. 계약 날인과 같은 표시라 <strong>확정되었다</strong>는
+            감각을 두 화면이 공유한다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">어디까지 막고 어디부터 통과시키는가</h2>
+          <p class="p">
+            출근을 못 하면 그대로 급여 문제가 되지만, 우회로를 열수록 위치로 판정하는 의미가
+            옅어진다. 그 선이 이번에 정해졌다. <strong>직원이 스스로 풀 수 있는 것은 막고, 스스로
+            풀 수 없는 것은 통과시킨다.</strong>
+          </p>
+          <p class="p" style="margin-top: 10px">
+            위치 권한은 직원이 설정에서 바로 켤 수 있으므로 막는다. 범위 밖도 매장으로 가면 되니
+            막는다. 다만 버튼을 지우지 않고 꺼 두었다. 사라지면 무엇을 해야 할지 모르지만 꺼져
+            있으면 왜 못 누르는지를 위에서 읽게 된다. 반면 <strong>지하 매장의 위치 오차는 직원이
+            어찌할 수 없어</strong> 확인 필요 꼬리표를 달아 통과시키고 관리자가 검토한다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">정해진 것</h2>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">ATT-1</span>
+              <span class="gap__t">현장 확인 방식</span>
+              <span class="gap__st gap__st--fixed">확정 · GPS</span>
+              <span class="gap__ref">R-CHVHQH · S-EFQGSP</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt is-dropped">
+                <div class="gap__label">A · 문서 원안</div>
+                <p>
+                  매장에 <b>전용 등록 기기</b>를 두고 QR·바코드·매장 PC 중 하나로 식별. 기기 구입과
+                  설치·관리가 점포 수만큼 늘고, 식별 방식이 미정이라 최대 리스크로 남아 있었다.
+                </p>
+              </div>
+              <div class="gap__opt is-picked">
+                <div class="gap__label">B · 1차 확정 · 이 화면</div>
+                <p>
+                  등록을 <b>직원 앱 안으로</b> 들이고 GPS 로 판정. 기기가 사라지고 앱이 하나로 준다.
+                  2차에 기기등록·QR 을 얹을 때 판정 근거만 갈아 끼운다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">ATT-2</span>
+              <span class="gap__t">근무지 반경을 얼마로 볼 것인가</span>
+              <span class="gap__st gap__st--fixed">확정 · 100m</span>
+              <span class="gap__ref">S-EFQGSP</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                <b>전체 공통 100m 를 기본값으로 하고 지하·실내 매장은 관리자가 더 넓게 조정한다.</b>
+                좁히면 매장 안에서 출근이 안 되고 넓히면 길 건너에서도 찍힌다. 실내에서는 위성
+                신호가 약해 오차가 수십 미터까지 벌어지므로 예외를 열어 두었다.
+              </p>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">ATT-3</span>
+              <span class="gap__t">위치 권한을 거부하면</span>
+              <span class="gap__st gap__st--fixed">확정 · 등록 불가</span>
+              <span class="gap__ref">S-EFQGSP</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt is-dropped">
+                <div class="gap__label">A · 우회로 · 처음 안</div>
+                <p>
+                  관리자에게 알려 대신 등록받는다. 급여 분쟁은 줄지만 GPS 로 판정하는 의미가
+                  옅어진다.
+                </p>
+              </div>
+              <div class="gap__opt is-picked">
+                <div class="gap__label">B · 등록 불가 · 확정</div>
+                <p>
+                  <b>등록을 막고 권한을 켜도록 안내하기만 한다.</b> 우회로를 열지 않아 판정이
+                  뚫리지 않는다. 권한은 직원이 설정에서 바로 켤 수 있다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">ATT-4</span>
+              <span class="gap__t">오차가 반경보다 클 때</span>
+              <span class="gap__st gap__st--fixed">확정 · 꼬리표</span>
+              <span class="gap__ref">S-EFQGSP</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                <b>등록은 받되 확인 필요로 표시해 관리자가 검토한다.</b> 거부하면 지하 매장에서
+                아무도 출근을 못 찍는다. 관리자는 이미 최근 3개월 기록을 고칠 권한이 있어 사후
+                보정 경로가 있다.
+              </p>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">ATT-5</span>
+              <span class="gap__t">좌표를 저장할 것인가</span>
+              <span class="gap__st gap__st--fixed">확정 · 저장 안 함</span>
+              <span class="gap__st gap__st--review">법무 검토</span>
+              <span class="gap__ref">S-EFQGSP</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                <b>위치 좌표 자체는 저장하지 않고 판정 결과와 오차 범위만 남긴다.</b> 개인정보
+                부담이 크게 줄고, 어디 있었는지가 아니라 매장에 있었는지만 기록에 남는다.
+              </p>
+              <p>
+                <b>동의는 직원이 처음 출퇴근을 등록하려 할 때 받는다.</b> 가입 단계에서 미리 받으면
+                왜 필요한지 모르는 채 동의하게 된다. 위치정보 수집에 따르는 별도 동의와 이용내역
+                통지 의무는 여전히 법무 검토 대상이다.
+              </p>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">ATT-6</span>
+              <span class="gap__t">근무지가 여럿일 때 누가 고르는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 자동</span>
+              <span class="gap__ref">S-EFQGSP</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                <b>가장 가까운 근무지를 자동으로 고르고 직원이 바꿀 수 있게 한다.</b> 거리를 함께
+                보여 주므로 자동 판정이 틀렸을 때 직원이 알아챈다.
+              </p>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">ATT-7</span>
+              <span class="gap__t">모바일 목록을 어떻게 넘길 것인가</span>
+              <span class="gap__st gap__st--fixed">확정 · 기간 + 더 보기</span>
+              <span class="gap__ref">앱 전체 · R-SXOPEA</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                <b>기간이 있는 목록은 주 또는 월 단위로 끊고, 기간 개념이 없는 목록만 20건씩 더
+                보기로 이어 붙인다.</b> 근무스케줄·출퇴근 현황·급여명세서가 앞쪽이고, 알림과 계약
+                이력이 뒤쪽이다. 모바일에서는 페이지 번호도 건수 선택도 쓰지 않는다.
+              </p>
+              <p>
+                관리자 웹은 페이지 번호에 20·50·100 을 고르는 방식인데, 그렇게 정한 진짜 이유는
+                <b>상세를 봤다가 목록의 같은 자리로 돌아와야 하기 때문</b>이다. 모바일도 그 요구만
+                지키면 된다. 상세에서 돌아오면 보던 위치와 이미 불러온 분량을 그대로 유지한다.
+              </p>
+              <p>
+                직원 앱 목록은 자기 것만이라 짧다. 급여명세서는 달마다 하나라 3년치가 서른여섯
+                건이고, 알림과 TO-DO 도 본인 것뿐이다. 더 보기 스무 건이면 대부분 한두 번에 끝나
+                건수를 고르게 할 이유가 없다.
+              </p>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
+          <ul class="pol">
+            <li>
+              <span class="pol__src">S-EFQGSP</span>
+              <span
+                >기록 시각은 기기 시각이 아니라 <strong>서버가 요청을 받은 시각</strong>으로
+                확정한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-EFQGSP</span>
+              <span
+                >열린 출근 기록이 있으면 추가 출근을 거부한다. 대응하는 출근이 없으면 퇴근을
+                거부한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-EFQGSP</span>
+              <span>근로계약이 체결되지 않은 직원도 경고를 확인한 뒤 등록할 수 있다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-EFQGSP</span>
+              <span>직원은 시간 제한 없이 등록한다. 예정 근무가 없어도 막지 않는다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-EITCPC</span>
+              <span
+                >직원은 본인 기록만 조회한다. <strong>수정은 관리자 웹에서만</strong> 하고 직원은
+                고칠 수 없다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-DOVWAR</span>
+              <span
+                >출퇴근 기록은 급여명세서의 지급 항목 계산에 쓰인다. 연장은 1일 8시간 또는 1주 40시간
+                초과분으로 판정한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">R-CHVHQH</span>
+              <span>출퇴근 개인정보는 생성일로부터 <strong>3년</strong> 보존 후 파기한다.</span>
+            </li>
+          </ul>
+
+          <div class="note note--seal" style="margin-top: 16px">
+            <i class="ph-fill ph-arrows-clockwise"></i>
+            <div>
+              <strong>GPS 확정으로 manyfast 문서를 고쳐야 한다.</strong> 기기 정의에서 매장용 등록
+              앱을 2차로 미루고, 출퇴근 등록 운영 요구사항과 매장 출퇴근 기록 기능, 출근·퇴근 기록
+              명세의 식별 방식을 GPS 로 바꾼다. 직원 앱 제외 범위의 "매장 현장 출퇴근 입력은
+              제공하지 않는다"도 지운다. 유저플로우의 등록기 구간도 다시 그린다. 회의에서 쟁점이
+              확정된 뒤 한 번에 고치는 편이 낫다.
+            </div>
+          </div>
+
+          <footer class="docfoot">
+            직원 앱 목업 · 출퇴근 등록 · 2026년 9월 10일 · 상태 7개 · 시트 4개 · 쟁점 7건 모두 확정
+          </footer>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

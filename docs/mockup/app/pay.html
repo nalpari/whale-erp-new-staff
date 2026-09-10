@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>급여명세서 · 직원 앱 · WHALE ERP</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Gowun+Batang:wght@400;700&display=swap"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+    <link rel="stylesheet" href="../assets/staff.css" />
+    <script src="../assets/app.js" defer></script>
+  </head>
+  <body data-area="app" data-screen="pay">
+    <!-- 직원 앱 · 급여명세서
+         관리자가 확정해 발송한 명세서만 보인다. 직원은 조회만 하고, 급여
+         지급(입금) 자체는 이 시스템이 하지 않는다 — 화면 어디에도 "입금됨"을
+         쓰지 않는다.
+
+         지급 항목(기본급·주휴수당·연장수당)은 근로계약과 출퇴근 기록으로
+         시스템이 계산하고, 공제 항목(4대보험·소득세·지방소득세)은 요율이
+         해마다 바뀌어 관리자가 직접 입력한다. 확정 취소는 발송 후에도 되므로
+         이미 본 명세서가 조용히 바뀔 수 있다 — resent 상태가 그 경우다.
+
+         이 파일은 화면 하나다. 오른쪽 목록으로 상태를 바꾸거나 폰 안의 버튼을
+         직접 눌러 본다. 숫자키 1~4 로도 넘어간다.
+
+         근거 : S-DOVWAR -->
+    <a class="skip" href="#main">본문으로 건너뛰기</a>
+
+    <div class="doc" id="main">
+      <header class="dochead">
+        <p class="dochead__kicker">직원 앱 · 급여 · /pay</p>
+        <h1>급여명세서</h1>
+        <p>
+          직원은 관리자가 확정해 발송한 명세서만 조회한다. 지급 항목은 근로계약과 출퇴근 기록으로
+          계산되고 공제 항목은 관리자가 직접 채운다. <strong>확정 취소는 발송 후에도 가능</strong>해
+          이미 본 명세서가 바뀔 수 있다 — 그 순간을 어떻게 보여줄지가 이 화면의 핵심이다.
+        </p>
+        <nav class="docnav">
+          <a href="../index.html">← 목업 허브</a>
+          <a href="login.html">로그인</a>
+          <a href="attendance.html">출퇴근 등록</a>
+          <a href="attendance-history.html">출퇴근 현황</a>
+          <a href="home.html">홈</a>
+          <a href="join.html">진입·가입</a>
+          <a href="contract.html">근로계약</a>
+          <a href="work.html">근무 정보</a>
+          <a href="notify.html">알림</a>
+          <a href="me.html">내 정보</a>
+        </nav>
+      </header>
+
+      <div class="stage">
+        <!-- ══ 폰 ══════════════════════════════════════════════════ -->
+        <div class="stage__phone">
+          <div class="phone phone--tall" data-state="list">
+            <div class="sbar">
+              <span data-clock>09:14</span>
+              <span class="sbar__ic">
+                <i class="ph-fill ph-cell-signal-full"></i>
+                <i class="ph-fill ph-wifi-high"></i>
+                <i class="ph-fill ph-battery-high"></i>
+              </span>
+            </div>
+
+            <!-- ── 앱바 ─────────────────────────────────────────── -->
+            <div class="abar" data-when="list empty">
+              <a class="abar__back" href="home.html"><i class="ph ph-caret-left"></i></a>
+              <span class="abar__title">급여</span>
+              <button
+                class="abar__end"
+                data-sheet="about"
+                style="background: none; border: none; padding: 0; cursor: pointer"
+              >
+                <i class="ph ph-info"></i>
+              </button>
+            </div>
+
+            <div class="abar" data-when="detail resent">
+              <button
+                class="abar__back"
+                data-go="list"
+                style="background: none; border: none; padding: 0; cursor: pointer; margin-left: -4px"
+              >
+                <i class="ph ph-caret-left"></i>
+              </button>
+              <span class="abar__title">급여명세서</span>
+            </div>
+
+            <!-- ── 목록 ─────────────────────────────────────────── -->
+            <div class="view" data-when="list">
+              <div class="card card--pen" data-go="detail" style="cursor: pointer">
+                <div class="line">
+                  <i class="ph-fill ph-file-text" style="color: var(--pen); font-size: 18px"></i>
+                  <div class="grow">
+                    <p class="h-md">2026년 8월 급여명세서</p>
+                    <p class="tiny" style="color: var(--pen)">9월 10일 발송 · 실지급액 1,645,320원</p>
+                  </div>
+                  <i class="ph ph-caret-right" style="color: var(--pen)"></i>
+                </div>
+              </div>
+
+              <div class="card">
+                <p class="lab">지난 명세서</p>
+                <div class="scroll" style="margin-top: 4px">
+                  <div class="rows">
+                    <div class="row" data-go="resent" style="cursor: pointer">
+                      <div class="row__main">
+                        <p class="row__title">2026년 7월</p>
+                        <p class="row__sub">8월 3일 발송 · 8월 20일 다시 보냄</p>
+                      </div>
+                      <div class="row__end">
+                        <span class="num" style="font-size: 13.5px">1,620,440원</span>
+                        <span class="badge badge--amber">다시 보냄</span>
+                      </div>
+                    </div>
+                    <div class="row" data-go="detail" style="cursor: pointer">
+                      <div class="row__main">
+                        <p class="row__title">2026년 6월</p>
+                        <p class="row__sub">7월 3일 발송</p>
+                      </div>
+                      <div class="row__end">
+                        <span class="num" style="font-size: 13.5px">1,589,730원</span>
+                        <span class="badge badge--ok">발송 완료</span>
+                      </div>
+                    </div>
+                    <div class="row" data-go="detail" style="cursor: pointer">
+                      <div class="row__main">
+                        <p class="row__title">2026년 5월</p>
+                        <p class="row__sub">6월 3일 발송</p>
+                      </div>
+                      <div class="row__end">
+                        <span class="num" style="font-size: 13.5px">1,602,150원</span>
+                        <span class="badge badge--ok">발송 완료</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grow"></div>
+
+              <p class="tiny">
+                명세서는 이메일로도 발송됩니다. 이 화면에서는 퇴직 전까지 조회할 수 있습니다.
+              </p>
+            </div>
+
+            <!-- ── 상세 · 2026년 8월 ────────────────────────────── -->
+            <div class="view" data-when="detail">
+              <div class="card card--sunken">
+                <div class="line line--between">
+                  <div>
+                    <p class="lab">급여 기간</p>
+                    <p class="h-md" style="margin-top: 4px">2026년 8월 1일 – 8월 31일</p>
+                  </div>
+                  <span class="badge badge--ok">발송 완료</span>
+                </div>
+                <p class="tiny" style="margin-top: 8px">웨일카페 강남역점 · 파트타임 · 9월 10일 발송</p>
+              </div>
+
+              <div class="scroll" style="overflow-y: auto">
+                <table class="pay">
+                  <thead>
+                    <tr>
+                      <th>지급 항목</th>
+                      <th>금액</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>기본급<br /><span class="sub">132.5시간 × 10,500원</span></td>
+                      <td class="num">1,391,250</td>
+                    </tr>
+                    <tr>
+                      <td>주휴수당<br /><span class="sub">주 15시간 이상 근무 · 4주</span></td>
+                      <td class="num">208,950</td>
+                    </tr>
+                    <tr>
+                      <td>연장수당<br /><span class="sub">연장 3.0시간 × 10,500원 × 1.5배</span></td>
+                      <td class="num">47,250</td>
+                    </tr>
+                    <tr>
+                      <td>고정 수당<br /><span class="sub">식대</span></td>
+                      <td class="num">100,000</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>지급 합계</td>
+                      <td class="num">1,747,450</td>
+                    </tr>
+                  </tfoot>
+                </table>
+
+                <table class="pay" style="margin-top: 16px">
+                  <thead>
+                    <tr>
+                      <th>공제 항목</th>
+                      <th>금액</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>4대보험</td>
+                      <td class="num">78,660</td>
+                    </tr>
+                    <tr>
+                      <td>소득세</td>
+                      <td class="num">21,340</td>
+                    </tr>
+                    <tr>
+                      <td>지방소득세</td>
+                      <td class="num">2,130</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>공제 합계</td>
+                      <td class="num">102,130</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              <div class="card card--pen">
+                <div class="line line--between">
+                  <p class="h-md" style="color: #17325f">실지급액</p>
+                  <p class="num num--lg" style="color: var(--pen)">1,645,320<span class="u">원</span></p>
+                </div>
+              </div>
+
+              <p class="tiny">
+                급여 지급은 이 화면에서 처리하지 않습니다. 실제 지급은 회사의 지급 절차를 따릅니다.
+              </p>
+            </div>
+
+            <!-- ── 다시 보낸 명세서 · 2026년 7월 ────────────────── -->
+            <div class="view" data-when="resent">
+              <div class="note note--amber">
+                <i class="ph-fill ph-arrows-clockwise"></i>
+                <div>
+                  <strong>이 명세서는 다시 발송되었습니다.</strong><br />
+                  8월 3일 처음 발송된 뒤 출퇴근 기록이 정정되어 8월 20일 다시 보냈습니다.
+                </div>
+              </div>
+
+              <div class="card card--sunken">
+                <div class="line line--between">
+                  <div>
+                    <p class="lab">급여 기간</p>
+                    <p class="h-md" style="margin-top: 4px">2026년 7월 1일 – 7월 31일</p>
+                  </div>
+                  <span class="badge badge--amber">다시 보냄</span>
+                </div>
+                <p class="tiny" style="margin-top: 8px">웨일카페 강남역점 · 파트타임 · 8월 20일 다시 발송</p>
+              </div>
+
+              <div class="card card--pen">
+                <p class="lab" style="color: var(--pen)">처음 보낸 것과 달라진 부분</p>
+                <div class="rows" style="margin-top: 2px">
+                  <div class="row">
+                    <span class="row__title" style="font-size: 13.5px">연장수당</span>
+                    <span class="push tiny" style="text-decoration: line-through">86,625원</span>
+                    <i class="ph ph-arrow-right" style="color: var(--pen); font-size: 13px"></i>
+                    <span class="num" style="font-size: 13.5px; color: var(--pen)">47,250원</span>
+                  </div>
+                  <div class="row">
+                    <span class="row__title" style="font-size: 13.5px">실지급액</span>
+                    <span class="push tiny" style="text-decoration: line-through">1,659,815원</span>
+                    <i class="ph ph-arrow-right" style="color: var(--pen); font-size: 13px"></i>
+                    <span class="num" style="font-size: 13.5px; color: var(--pen)">1,620,440원</span>
+                  </div>
+                </div>
+                <p class="tiny" style="margin-top: 6px; color: var(--pen)">
+                  출퇴근 기록이 정정되며 연장 시간이 5.5시간에서 3.0시간으로 바뀌었습니다.
+                </p>
+              </div>
+
+              <div class="scroll" style="overflow-y: auto">
+                <table class="pay">
+                  <thead>
+                    <tr>
+                      <th>지급 항목</th>
+                      <th>금액</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>기본급<br /><span class="sub">130.0시간 × 10,500원</span></td>
+                      <td class="num">1,365,000</td>
+                    </tr>
+                    <tr>
+                      <td>주휴수당<br /><span class="sub">주 15시간 이상 근무 · 4주</span></td>
+                      <td class="num">208,950</td>
+                    </tr>
+                    <tr>
+                      <td>연장수당<br /><span class="sub">연장 3.0시간 × 10,500원 × 1.5배 · 정정됨</span></td>
+                      <td class="num">47,250</td>
+                    </tr>
+                    <tr>
+                      <td>고정 수당<br /><span class="sub">식대</span></td>
+                      <td class="num">100,000</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>지급 합계</td>
+                      <td class="num">1,721,200</td>
+                    </tr>
+                  </tfoot>
+                </table>
+
+                <table class="pay" style="margin-top: 16px">
+                  <thead>
+                    <tr>
+                      <th>공제 항목</th>
+                      <th>금액</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>4대보험</td>
+                      <td class="num">77,700</td>
+                    </tr>
+                    <tr>
+                      <td>소득세</td>
+                      <td class="num">20,970</td>
+                    </tr>
+                    <tr>
+                      <td>지방소득세</td>
+                      <td class="num">2,090</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>공제 합계</td>
+                      <td class="num">100,760</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              <div class="card card--pen">
+                <div class="line line--between">
+                  <p class="h-md" style="color: #17325f">실지급액</p>
+                  <p class="num num--lg" style="color: var(--pen)">1,620,440<span class="u">원</span></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── 빈 상태 ──────────────────────────────────────── -->
+            <div class="view" data-when="empty">
+              <div class="empty">
+                <i class="ph ph-file-dashed"></i>
+                <p class="h-md">아직 받은 명세서가 없습니다</p>
+                <p class="p--sm" style="max-width: 230px">
+                  급여명세서는 관리자가 확정해 발송한 뒤에만 이 화면에 나타납니다.
+                </p>
+              </div>
+            </div>
+
+            <!-- ── 시트 ─────────────────────────────────────────── -->
+            <div class="sheet" data-sheet-id="about" hidden>
+              <div class="sheet__grab"></div>
+              <p class="h-lg">급여명세서는 이렇게 만들어집니다</p>
+              <p class="p--sm">
+                기본급·주휴수당·연장수당은 근로계약과 출퇴근 기록으로 시스템이 계산하고 관리자가
+                확인합니다. 4대보험·소득세·지방소득세는 요율이 해마다 바뀌어 시스템이 계산하지 않고
+                관리자가 직접 입력합니다.
+              </p>
+              <div class="note">
+                <i class="ph ph-info"></i>
+                <div>
+                  급여 지급(입금)은 이 앱이 처리하지 않습니다. 명세서 데이터는 생성일로부터 3년간
+                  보관됩니다.
+                </div>
+              </div>
+              <button class="btn" data-sheet-close>닫기</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ 해설 ═══════════════════════════════════════════════ -->
+        <div class="stage__side">
+          <div class="switcher">
+            <div class="switcher__head">
+              <p class="lab">상태 바꾸기</p>
+              <span class="switcher__hint">숫자키 1–4</span>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-state="list" aria-pressed="true">
+                <span class="sw-b__k">1</span>
+                <span><span class="sw-b__t">목록</span> <span class="sw-b__d">· 기본 화면</span></span>
+              </button>
+              <button class="sw-b" data-state="detail">
+                <span class="sw-b__k">2</span>
+                <span><span class="sw-b__t">상세</span> <span class="sw-b__d">· 지급·공제·실지급액</span></span>
+              </button>
+              <button class="sw-b" data-state="resent">
+                <span class="sw-b__k">3</span>
+                <span
+                  ><span class="sw-b__t">다시 보낸 명세서</span>
+                  <span class="sw-b__d">· 확정 취소 후 정정</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="empty">
+                <span class="sw-b__k">4</span>
+                <span><span class="sw-b__t">빈 상태</span> <span class="sw-b__d">· 발송된 것 없음</span></span>
+              </button>
+            </div>
+            <div class="switcher__head" style="border-top: 1px solid var(--rule); border-bottom: none">
+              <p class="lab">시트 열기</p>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-sheet="about">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">급여명세서 안내</span>
+                  <span class="sw-b__d">· 계산 주체 설명</span></span
+                >
+              </button>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 30px 0 10px">이 화면이 하는 일</h2>
+          <p class="p">
+            직원은 급여명세서를 만들지도, 고치지도 못한다. 관리자가 확정해 보낸 것만 그대로 보여
+            준다. 그래서 표는 타임카드처럼 계산 과정이 드러나야 한다 — 기본급 아래 몇 시간을 얼마로
+            계산했는지 작은 글씨로 붙이고, 공제 세 줄은 관리자가 입력한 값이라는 것을 굳이 구분하지
+            않는다. 어차피 직원이 손댈 수 없는 숫자이기 때문이다.
+          </p>
+          <p class="p" style="margin-top: 10px">
+            <strong>이 화면에 "입금"이라는 말은 없다.</strong> 명세서를 만들고 보내는 일과 돈을
+            보내는 일은 다른 일이고, 이 시스템은 앞의 것만 한다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">가산이 적용되지 않는 계약이면</h2>
+          <p class="p">
+            상시근로자 5인 미만 사업장은 근로계약의 가산 적용 여부에 따라 연장·야간 가산을 계산하지
+            않는다. 이 경우 연장수당 줄은 0원이 아니라 계산 대상이 아니라는 것을 그대로 보여 준다.
+          </p>
+          <div class="card card--sunken" style="margin-top: 8px">
+            <table class="pay">
+              <tbody>
+                <tr>
+                  <td>
+                    연장수당<br /><span class="sub">상시근로자 5인 미만 사업장 · 가산 미적용 계약</span>
+                  </td>
+                  <td>해당 없음</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">정할 것</h2>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">PAY-1</span>
+              <span class="gap__t">확정 취소로 명세서가 바뀌면 어떻게 알리는가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-DOVWAR</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt">
+                <div class="gap__label">A · 조용히 갱신</div>
+                <p>다시 보내면 그냥 최신 값으로 덮는다. 이미 본 금액이 말없이 바뀌어 분쟁이 된다.</p>
+              </div>
+              <div class="gap__opt is-picked">
+                <div class="gap__label">B · 변경 배지 + 비교 · 이 화면</div>
+                <p>
+                  목록에 <b>다시 보냄</b> 배지를 달고, 상세에서 이전 금액과 나란히 보여 준다. 표시
+                  비용은 늘지만 이의 제기의 근거가 남는다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">PAY-2</span>
+              <span class="gap__t">명세서를 파일로 내려받게 할 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                이메일로 이미 발송되므로 앱 안에 다운로드가 꼭 필요한지부터가 쟁점이다. 필요하다면
+                PDF 형식, 서식(회사 도장·서명 포함 여부)도 함께 정해야 한다.
+              </p>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">PAY-3</span>
+              <span class="gap__t">연장수당 계산 근거를 어디까지 펼쳐 보이는가</span>
+              <span class="gap__st gap__st--open">미정</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt is-picked">
+                <div class="gap__label">A · 요약 한 줄 · 이 화면</div>
+                <p>"3.0시간 × 10,500원 × 1.5배"처럼 계산식만 보여 준다. 짧지만 어느 날 기록에서 나온
+                연장인지는 알 수 없다.</p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">B · 출퇴근 기록 연결</div>
+                <p>연장이 발생한 날짜별 출퇴근 기록까지 펼쳐 보인다. 신뢰는 높아지지만 화면이 무거워지고 출퇴근 현황 화면과 중복된다.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">PAY-4</span>
+              <span class="gap__t">퇴직 후 조회를 언제 막는가</span>
+              <span class="gap__st gap__st--open">미정</span>
+            </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">PAY-5</span>
+              <span class="gap__t">주휴·연장 계산식과 가산율</span>
+              <span class="gap__st gap__st--review">노무사 검토</span>
+              <span class="gap__ref">S-DOVWAR</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                지급 항목 중 기본급·주휴수당·연장수당은 시스템이 계산해 채운다. 그 계산식이 맞는지는
+                <b>회의에서 고를 수 있는 것이 아니라 노무사가 확인해야 하는 것</b>이다. 명세도
+                "주휴·연장 계산식과 가산율은 확정 전에 노무사 검토를 거친다"고 남겨 두었다.
+              </p>
+              <ul>
+                <li>주 15시간 이상 근무를 주휴 대상으로 보는 판정이 맞는가</li>
+                <li>연장을 1일 8시간 또는 1주 40시간 초과분으로 보는 기준이 맞는가</li>
+                <li>가산율과 야간 근로의 취급, 그리고 5인 미만 사업장 미적용 처리가 맞는가</li>
+              </ul>
+              <p>
+                이 화면의 금액은 그 계산식이 맞다는 전제로 그린 예시다. 검토에서 식이 바뀌면
+                <b>금액은 달라져도 화면 구조는 그대로</b>다.
+              </p>
+            </div>
+          </div>
+            <div class="gap__one">
+              <p>
+                직원은 퇴직 전까지 조회한다고만 정해져 있다. 퇴직 처리와 동시에 즉시 막을지, 문의
+                응대를 위해 짧은 유예 기간을 둘지가 남아 있다. 데이터 자체는 생성일로부터 3년 보존
+                된다.
+              </p>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
+          <ul class="pol">
+            <li>
+              <span class="pol__src">S-DOVWAR</span>
+              <span
+                >기본급·주휴수당·연장수당은 근로계약과 출퇴근 기록으로 <strong>시스템이 계산</strong
+                >하고 관리자가 확인·수정한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-DOVWAR</span>
+              <span
+                >4대보험·소득세·지방소득세는 요율이 매년 바뀌어 <strong>관리자가 직접 입력</strong
+                >한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-DOVWAR</span>
+              <span>주 15시간 이상 근무한 직원을 주휴수당 대상으로 판정한다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-DOVWAR</span>
+              <span
+                >연장근로는 1일 8시간 또는 1주 40시간 초과분으로 판정하며, 가산 적용 여부는 근로계약을
+                따른다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-DOVWAR</span>
+              <span>확정된 명세서의 <strong>확정 취소는 발송 후에도 허용</strong>한다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-DOVWAR</span>
+              <span>급여 지급 실행은 이 시스템의 범위에 포함하지 않는다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-DOVWAR</span>
+              <span>직원은 앱에서 <strong>퇴직 전까지</strong> 발송된 명세서를 조회한다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-DOVWAR</span>
+              <span>급여명세서 데이터는 생성일로부터 <strong>3년</strong> 보존한다.</span>
+            </li>
+          </ul>
+
+          <footer class="docfoot">
+            직원 앱 목업 · 급여명세서 · 2026년 9월 10일 · 상태 4개 · 시트 1개 · 쟁점 4건
+          </footer>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

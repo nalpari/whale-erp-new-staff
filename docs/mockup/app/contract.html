@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>근로계약 · 직원 앱 · WHALE ERP</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Gowun+Batang:wght@400;700&display=swap"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+    <link rel="stylesheet" href="../assets/staff.css" />
+    <script src="../assets/app.js" defer></script>
+  </head>
+  <body data-area="app" data-screen="contract">
+    <!-- 직원 앱 · 근로계약
+         날인과 거부는 되돌릴 수 없는 확정이다. 그래서 이 화면의 중심은 버튼이
+         아니라 계약서 본문이다 — 명조체로 그려 종이 계약서에 가깝게 두고,
+         읽었다는 확신이 선 다음에야 아래 버튼에 닿게 했다.
+
+         계약서 원본을 화면에 직접 그릴지, PDF 를 띄울지, 밖으로 열지는 정하지
+         못했다 — CON-1. 이 목업은 우선 화면에 직접 그리는 쪽으로 만들었다.
+         전자서명 방식도 명세가 범위 밖에 뒀으므로 지문·필기 서명 같은 구체적
+         동작은 그리지 않았다 — CON-2.
+
+         근거 : S-RFOEAG · S-XDBBDP · S-OIILIW -->
+    <a class="skip" href="#main">본문으로 건너뛰기</a>
+
+    <div class="doc" id="main">
+      <header class="dochead">
+        <p class="dochead__kicker">직원 앱 · 근로계약 · /contract</p>
+        <h1>근로계약</h1>
+        <p>
+          관리자가 보낸 근로계약서를 직원이 읽고 날인하거나 거부하는 화면이다.
+          <strong>날인과 거부 모두 되돌릴 수 없는 확정</strong>이라 — 날인한 뒤에는 관리자 요청이
+          있어야만 바뀌고, 거부한 뒤에는 관리자가 다시 보내야만 처리할 수 있다. 그래서 계약
+          내용을 다 읽었는지가 버튼을 누르는 것보다 중요하다.
+        </p>
+        <nav class="docnav">
+          <a href="../index.html">← 목업 허브</a>
+          <a href="login.html">로그인</a>
+          <a href="attendance.html">출퇴근 등록</a>
+          <a href="attendance-history.html">출퇴근 현황</a>
+          <a href="home.html">홈</a>
+          <a href="join.html">진입·가입</a>
+          <a href="work.html">근무 정보</a>
+          <a href="pay.html">급여</a>
+          <a href="notify.html">알림</a>
+          <a href="me.html">내 정보</a>
+        </nav>
+      </header>
+
+      <div class="stage">
+        <!-- ══ 폰 ══════════════════════════════════════════════════ -->
+        <div class="stage__phone">
+          <div class="phone" data-state="list">
+            <div class="sbar">
+              <span data-clock>09:20</span>
+              <span class="sbar__ic">
+                <i class="ph-fill ph-cell-signal-full"></i>
+                <i class="ph-fill ph-wifi-high"></i>
+                <i class="ph-fill ph-battery-high"></i>
+              </span>
+            </div>
+
+            <div class="abar" data-unless="signed rejected">
+              <a class="abar__back" href="home.html" data-when="list empty"
+                ><i class="ph ph-caret-left"></i
+              ></a>
+              <button
+                class="abar__back"
+                data-when="detail signing readonly expired"
+                data-go-back
+                style="background: none; border: none; padding: 0; cursor: pointer"
+              >
+                <i class="ph ph-caret-left"></i>
+              </button>
+              <span class="abar__title">근로계약</span>
+            </div>
+
+            <!-- ── 목록 ─────────────────────────────────────────── -->
+            <div class="view" data-when="list">
+              <div class="card card--flat" style="padding: 0">
+                <div class="rows">
+                  <div class="row" data-go="detail" role="button" tabindex="0" style="cursor: pointer">
+                    <div class="row__main">
+                      <p class="row__title">웨일카페 강남역점 · 파트타이머</p>
+                      <p class="row__sub" style="color: var(--amber)">날인 기한 2026-09-12 · D-2</p>
+                    </div>
+                    <div class="row__end"><span class="badge badge--amber">서명 대기</span></div>
+                    <i class="ph ph-caret-right row__chev"></i>
+                  </div>
+
+                  <div class="row" data-go="readonly" role="button" tabindex="0" style="cursor: pointer">
+                    <div class="row__main">
+                      <p class="row__title">웨일카페 홍대점 · 정직원</p>
+                      <p class="row__sub">날인 2026-08-23</p>
+                    </div>
+                    <div class="row__end"><span class="badge badge--ok">체결 완료</span></div>
+                    <i class="ph ph-caret-right row__chev"></i>
+                  </div>
+
+                  <div class="row" data-go="rejected" role="button" tabindex="0" style="cursor: pointer">
+                    <div class="row__main">
+                      <p class="row__title">웨일카페 강남역점 · 파트타이머</p>
+                      <p class="row__sub">거부 2026-06-25</p>
+                    </div>
+                    <div class="row__end"><span class="badge badge--seal">거부</span></div>
+                    <i class="ph ph-caret-right row__chev"></i>
+                  </div>
+
+                  <div class="row" data-go="expired" role="button" tabindex="0" style="cursor: pointer">
+                    <div class="row__main">
+                      <p class="row__title">웨일카페 홍대점 · 파트타이머</p>
+                      <p class="row__sub">기한 2026-07-31 지남</p>
+                    </div>
+                    <div class="row__end"><span class="badge badge--seal">만료</span></div>
+                    <i class="ph ph-caret-right row__chev"></i>
+                  </div>
+
+                  <div class="row" data-go="readonly" role="button" tabindex="0" style="cursor: pointer">
+                    <div class="row__main">
+                      <p class="row__title">웨일카페 강남역점 · 정직원</p>
+                      <p class="row__sub">2025-03-01 ~ 2026-08-31</p>
+                    </div>
+                    <div class="row__end"><span class="badge">종료</span></div>
+                    <i class="ph ph-caret-right row__chev"></i>
+                  </div>
+                </div>
+              </div>
+              <p class="tiny">
+                날인 기한은 발송일로부터 30일입니다. 기한이 얼마 남지 않은 계약은 강조색으로
+                표시합니다.
+              </p>
+            </div>
+
+            <!-- ── 상세 · 서명 대기 ─────────────────────────────── -->
+            <div class="view" data-when="detail">
+              <div class="card card--amber">
+                <div class="line">
+                  <i class="ph-fill ph-file-text" style="color: var(--amber); font-size: 18px"></i>
+                  <div class="grow">
+                    <p class="h-md">웨일카페 강남역점 · 파트타이머</p>
+                    <p class="tiny" style="color: var(--amber)">날인 기한 2026-09-12 · 남은 기한 2일</p>
+                  </div>
+                  <span class="badge badge--amber">서명 대기</span>
+                </div>
+              </div>
+
+              <div class="scroll">
+                <div class="card">
+                  <p class="lab">근로계약서 · 파트타이머용</p>
+                  <div class="doc-serif" style="margin-top: 8px">
+                    <p>
+                      <strong>제1조(근로계약기간)</strong> 2026년 9월 15일부터 2027년 3월 14일까지로
+                      한다.
+                    </p>
+                    <p>
+                      <strong>제2조(근무장소 및 업무)</strong> 웨일카페 강남역점에서 매장 판매 및 음료
+                      제조 업무를 담당한다.
+                    </p>
+                    <p>
+                      <strong>제3조(근로시간)</strong> 주 15시간, 수·금·토요일 10:00~15:00(휴게 30분
+                      포함)을 근무일로 하며, 세부 근무일정은 근무표에 따라 정한다.
+                    </p>
+                    <p>
+                      <strong>제4조(임금)</strong> 시급 10,320원으로 하며, 임금은 매월 10일 본인 명의
+                      계좌로 지급한다. 주휴수당은 관련 법령에 따라 별도 지급한다.
+                    </p>
+                    <p>
+                      <strong>제5조(연장·야간근로수당)</strong> 이 사업장은 상시근로자 5인 이상으로,
+                      연장·야간근로에 대해 통상임금의 50%를 가산하여 지급한다.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <p class="tiny">
+                연장·야간 가산 적용 여부는 사업장 규모에 따라 다릅니다. 상시근로자 5인 미만
+                사업장은 미적용을 선택할 수 있고, 이 값에 따라 급여명세서의 연장수당 계산이
+                갈립니다.
+              </p>
+
+              <div class="card card--sunken">
+                <p class="lab">본인인증으로 확인된 정보</p>
+                <div class="rows" style="margin-top: 4px">
+                  <div class="row" style="padding: 8px 0">
+                    <span class="row__title" style="font-size: 13.5px">성명</span>
+                    <span class="push num" style="font-size: 13px">김민서</span>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <span class="row__title" style="font-size: 13.5px">생년월일</span>
+                    <span class="push num" style="font-size: 13px">1999-04-12</span>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <span class="row__title" style="font-size: 13.5px">휴대전화</span>
+                    <span class="push num" style="font-size: 13px">010-****-5521</span>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <span class="row__title" style="font-size: 13.5px">주소</span>
+                    <span class="push" style="font-size: 12.5px; color: var(--ink-2)"
+                      >서울 강남구 역삼로 12 (가입 시 입력)</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <p class="tiny">날인 또는 거부하면 담당 관리자에게 이메일과 운영 알림함 알림이 함께 생성됩니다.</p>
+            </div>
+
+            <!-- ── 처리 중 ──────────────────────────────────────── -->
+            <div class="view view--center" data-when="signing">
+              <i class="ph ph-hourglass-medium" style="font-size: 34px; color: var(--ink-4)"></i>
+              <div class="stack stack-6">
+                <p class="h-lg">요청을 처리하는 중입니다</p>
+                <p class="p--sm">
+                  처리가 끝날 때까지 화면을 벗어나지 마세요. 처리하는 동안 날인과 거부 버튼은
+                  눌리지 않습니다.
+                </p>
+              </div>
+              <div class="card card--sunken" style="text-align: left; width: 100%">
+                <div class="line">
+                  <span class="lab">대상 계약</span>
+                  <span class="push num" style="font-size: 13px">웨일카페 강남역점 · 파트타이머</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── 날인 완료 ────────────────────────────────────── -->
+            <div class="view view--center" data-when="signed">
+              <div style="display: grid; place-items: center">
+                <div class="seal">날인<br />완료</div>
+              </div>
+              <div class="stack stack-6">
+                <p class="lab">날인 기록</p>
+                <p class="num num--xl" data-clock>14:07</p>
+              </div>
+              <div class="card card--sunken" style="text-align: left; width: 100%">
+                <div class="rows">
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">근무지</span>
+                    <span class="push num" style="font-size: 13px">웨일카페 강남역점</span>
+                  </div>
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">고용 형태</span>
+                    <span class="push num" style="font-size: 13px">파트타이머</span>
+                  </div>
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">계약 기간</span>
+                    <span class="push num" style="font-size: 13px">2026-09-15 ~ 2027-03-14</span>
+                  </div>
+                </div>
+              </div>
+              <p class="tiny">
+                담당 관리자에게 이메일과 운영 알림함 알림이 함께 생성됩니다. 계약 내용을 바꾸려면
+                관리자에게 재발송을 요청해야 합니다.
+              </p>
+            </div>
+
+            <!-- ── 다시 보기 · 읽기 전용 ────────────────────────── -->
+            <div class="view" data-when="readonly">
+              <div class="note note--pen">
+                <i class="ph-fill ph-lock-simple"></i>
+                <div>
+                  <strong>이미 처리가 끝난 계약서입니다.</strong><br />
+                  다시 날인하거나 거부할 수 없습니다. 계약 내용을 바꾸려면 관리자가 새 계약을
+                  발송해야 합니다.
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="line">
+                  <div class="grow">
+                    <p class="h-md">웨일카페 홍대점 · 정직원</p>
+                    <p class="tiny">날인 2026-08-23 · 발송 2026-08-01</p>
+                  </div>
+                  <span class="badge badge--ok">체결 완료</span>
+                </div>
+              </div>
+
+              <div class="scroll">
+                <div class="card">
+                  <p class="lab">근로계약서 · 정직원용</p>
+                  <div class="doc-serif" style="margin-top: 8px">
+                    <p>
+                      <strong>제1조(근로계약기간)</strong> 2026년 3월 1일부터 기간의 정함이 없는
+                      것으로 한다.
+                    </p>
+                    <p>
+                      <strong>제2조(근무장소 및 업무)</strong> 웨일카페 홍대점에서 매장 운영 및
+                      재고관리 업무를 담당한다.
+                    </p>
+                    <p>
+                      <strong>제3조(근로시간)</strong> 주 5일, 1일 8시간(09:00~18:00, 휴게 60분)을
+                      근무일로 한다.
+                    </p>
+                    <p>
+                      <strong>제4조(임금)</strong> 월급 2,400,000원으로 하며, 매월 25일 본인 명의
+                      계좌로 지급한다.
+                    </p>
+                    <p>
+                      <strong>제5조(연장·야간근로수당)</strong> 이 사업장은 상시근로자 5인 이상으로,
+                      연장·야간근로에 대해 통상임금의 50%를 가산하여 지급한다.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── 거부 완료 ────────────────────────────────────── -->
+            <div class="view view--center" data-when="rejected">
+              <div style="display: grid; place-items: center">
+                <div class="seal">거부<br />완료</div>
+              </div>
+              <div class="stack stack-6">
+                <p class="lab">거부 처리</p>
+                <p class="num num--xl" data-clock>14:11</p>
+              </div>
+              <div class="card card--sunken" style="text-align: left; width: 100%">
+                <p class="lab">거부 사유</p>
+                <p class="p--sm" style="margin-top: 6px">
+                  근무 요일이 채용 공고 내용과 달라 다시 확인을 요청합니다.
+                </p>
+              </div>
+              <p class="tiny">
+                담당 관리자에게 이메일과 운영 알림함 알림이 함께 생성됩니다. 관리자가 계약서를
+                다시 보내야 새로 처리할 수 있습니다.
+              </p>
+            </div>
+
+            <!-- ── 빈 상태 ──────────────────────────────────────── -->
+            <div class="view" data-when="empty">
+              <div class="empty">
+                <i class="ph ph-file-dashed"></i>
+                <p class="h-md">받은 근로계약서가 없습니다</p>
+                <p class="p--sm" style="color: var(--ink-3)">
+                  계약서가 발송되면 이 화면과 알림함에서 확인할 수 있습니다.<br />
+                  계약서를 받지 못했다면 담당 관리자에게 문의해 주세요.
+                </p>
+              </div>
+            </div>
+
+            <!-- ── 만료 ─────────────────────────────────────────── -->
+            <div class="view" data-when="expired">
+              <div class="note note--amber">
+                <i class="ph-fill ph-clock-countdown"></i>
+                <div>
+                  <strong>날인 기한이 지나 계약이 만료되었습니다.</strong><br />
+                  발송일로부터 30일 안에 날인해야 합니다.
+                </div>
+              </div>
+              <div class="card">
+                <div class="line">
+                  <i class="ph-fill ph-file-x" style="color: var(--ink-4); font-size: 18px"></i>
+                  <div class="grow">
+                    <p class="h-md">웨일카페 홍대점 · 파트타이머</p>
+                    <p class="tiny">발송 2026-07-01 · 기한 2026-07-31</p>
+                  </div>
+                  <span class="badge badge--seal">만료</span>
+                </div>
+              </div>
+              <div class="card card--sunken">
+                <p class="p--sm">
+                  다시 처리하려면 관리자가 계약서를 재발송해야 합니다. 재발송되면 새 날인 기한을
+                  알림으로 안내받습니다.
+                </p>
+              </div>
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 하단 버튼 ────────────────────────────────────── -->
+            <div class="dock" data-unless="list signed rejected">
+              <button
+                class="btn"
+                data-when="detail"
+                data-go="signed"
+                data-toast="날인을 등록했습니다"
+              >
+                <i class="ph-fill ph-seal-check"></i>날인하기
+              </button>
+              <button class="btn btn--ghost" data-when="detail" data-sheet="reject">거부하기</button>
+
+              <button class="btn is-off" data-when="signing"><i class="ph-fill ph-seal-check"></i>날인하기</button>
+              <button class="btn btn--ghost is-off" data-when="signing">거부하기</button>
+
+              <button class="btn btn--ghost" data-when="readonly" data-go="list">목록으로</button>
+              <button class="btn btn--ghost" data-when="expired" data-go="list">목록으로</button>
+              <button
+                class="btn btn--quiet"
+                data-when="empty"
+                data-toast="관리자에게 문의를 보냈습니다"
+              >
+                관리자에게 문의하기
+              </button>
+            </div>
+
+            <div class="dock" data-when="signed rejected">
+              <a class="btn btn--ghost" href="home.html">홈으로</a>
+            </div>
+
+            <!-- ── 시트 ─────────────────────────────────────────── -->
+            <div class="sheet" data-sheet-id="reject" hidden>
+              <div class="sheet__grab"></div>
+              <div class="line">
+                <i class="ph-fill ph-x-circle" style="color: var(--seal); font-size: 21px"></i>
+                <p class="h-lg">근로계약서 거부</p>
+              </div>
+              <p class="p--sm">
+                거부하면 이 계약은 거부 상태로 확정됩니다. 다시 처리하려면 관리자가 계약서를
+                재발송해야 합니다.
+              </p>
+              <div class="field">
+                <p class="field__lab">
+                  거부 사유 <span style="color: var(--ink-4); font-weight: 500">(선택)</span>
+                </p>
+                <textarea
+                  class="input"
+                  rows="3"
+                  style="min-height: 76px; padding: 10px 13px; resize: vertical"
+                  placeholder="예: 근무 요일이 안내받은 내용과 다릅니다"
+                ></textarea>
+                <p class="field__help">사유를 남기면 관리자가 재발송 여부를 판단하는 데 참고합니다.</p>
+              </div>
+              <div class="btnrow">
+                <button class="btn btn--ghost" data-sheet-close>닫기</button>
+                <button
+                  class="btn btn--seal"
+                  data-sheet-close
+                  data-go="rejected"
+                  data-toast="거부를 등록했습니다"
+                >
+                  거부 확정
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ 해설 ═══════════════════════════════════════════════ -->
+        <div class="stage__side">
+          <div class="switcher">
+            <div class="switcher__head">
+              <p class="lab">상태 바꾸기</p>
+              <span class="switcher__hint">숫자키 1–8</span>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-state="list" aria-pressed="true">
+                <span class="sw-b__k">1</span>
+                <span><span class="sw-b__t">목록</span> <span class="sw-b__d">· 처리할 것과 지난 것</span></span>
+              </button>
+              <button class="sw-b" data-state="detail">
+                <span class="sw-b__k">2</span>
+                <span><span class="sw-b__t">상세</span> <span class="sw-b__d">· 서명 대기</span></span>
+              </button>
+              <button class="sw-b" data-state="signing">
+                <span class="sw-b__k">3</span>
+                <span><span class="sw-b__t">처리 중</span> <span class="sw-b__d">· 버튼 비활성</span></span>
+              </button>
+              <button class="sw-b" data-state="signed">
+                <span class="sw-b__k">4</span>
+                <span><span class="sw-b__t">날인 완료</span> <span class="sw-b__d">· 확정</span></span>
+              </button>
+              <button class="sw-b" data-state="readonly">
+                <span class="sw-b__k">5</span>
+                <span><span class="sw-b__t">다시 보기</span> <span class="sw-b__d">· 읽기 전용</span></span>
+              </button>
+              <button class="sw-b" data-state="rejected">
+                <span class="sw-b__k">6</span>
+                <span><span class="sw-b__t">거부 완료</span> <span class="sw-b__d">· 재발송 대기</span></span>
+              </button>
+              <button class="sw-b" data-state="empty">
+                <span class="sw-b__k">7</span>
+                <span><span class="sw-b__t">빈 상태</span> <span class="sw-b__d">· 계약 없음</span></span>
+              </button>
+              <button class="sw-b" data-state="expired">
+                <span class="sw-b__k">8</span>
+                <span><span class="sw-b__t">만료</span> <span class="sw-b__d">· 기한 지남</span></span>
+              </button>
+            </div>
+            <div class="switcher__head" style="border-top: 1px solid var(--rule); border-bottom: none">
+              <p class="lab">시트 열기</p>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-sheet="reject">
+                <span class="sw-b__k">·</span>
+                <span><span class="sw-b__t">거부 사유</span> <span class="sw-b__d">· 선택 입력</span></span>
+              </button>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 30px 0 10px">이 화면이 하는 일</h2>
+          <p class="p">
+            목록에는 처리해야 할 것과 지난 것이 섞여 있다. 서명 대기만 강조색 배지를 쓰고 나머지
+            네 상태(체결 완료·거부·만료·종료)는 지난 일이라 옅게 둔다. 거부와 만료는 둘 다
+            <b>인주색 배지</b>를 쓴다 — 이 앱에서 인주는 날인·거부·오류를 함께 가리키는 색이고,
+            기한을 넘긴 것도 그 오류에 든다. 종료만 중립색이다. 자연스럽게 끝난 것이지 실패가
+            아니기 때문이다.
+          </p>
+          <p class="p" style="margin-top: 10px">
+            상세 화면의 중심은 <b>명조체 계약서 본문</b>이다. 근무지·고용 형태·계약 기간·근무
+            조건·급여 조건, 그리고 최근에 추가된 연장·야간 가산 적용 여부까지 조항으로 넣었다.
+            그 아래에 본인인증으로 확인된 정보를 따로 얹어, 계약서에 적힌 값이 관리자가 쓴 것과
+            본인이 확인한 것으로 나뉜다는 걸 보여준다. 날인·거부 버튼은 늘 맨 아래, 본문을 다
+            지나야 닿는 자리에 뒀다.
+          </p>
+          <p class="p" style="margin-top: 10px">
+            여섯 상태 중 <b>발송 대기</b>는 이 화면에 나오지 않는다. 가입이나 소속 확인이 끝나기
+            전에는 계약서가 아직 이 직원에게 뜨지 않기 때문이다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">정할 것</h2>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">CON-1</span>
+              <span class="gap__t">계약서 원본을 어떻게 보여줄 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-RFOEAG</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt is-picked">
+                <div class="gap__label">A · 화면에 직접 그림 · 이 화면</div>
+                <p>
+                  계약 조항을 명조체 텍스트로 앱 화면에 바로 그린다. 로딩이 빠르고 날인·거부
+                  버튼과 한 화면에서 자연스럽게 이어지지만, 서식이 있는 실제 계약서 원본과는
+                  다르게 보인다.
+                </p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">B · 내장 PDF 뷰어</div>
+                <p>
+                  관리자가 만든 계약서 원본을 그대로 보여준다. 서식은 정확하지만 모바일 PDF 뷰어
+                  구현과 성능 부담이 붙는다.
+                </p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">C · 외부로 열기</div>
+                <p>
+                  파일 앱이나 브라우저로 넘겨 연다. 구현은 가장 가볍지만 앱을 벗어나 날인 흐름이
+                  끊긴다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">CON-2</span>
+              <span class="gap__t">날인을 어떤 동작으로 받을 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-OIILIW</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt is-picked">
+                <div class="gap__label">A · 버튼 한 번 · 이 화면</div>
+                <p>
+                  내용을 확인했다는 전제로 버튼 하나로 날인을 확정한다. 명세가 전자서명 방식의
+                  세부 기술을 범위 밖에 둬, 이 화면은 지문·필기 서명 같은 구체적 동작을 그리지
+                  않는다.
+                </p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">B · 필기 서명</div>
+                <p>
+                  손가락으로 서명란에 그려 넣는다. 종이 계약과 닮은 감각을 주지만 구현이 늘고
+                  위조 방지 효과는 제한적이다.
+                </p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">C · 별도 확인 절차</div>
+                <p>
+                  비밀번호 재입력이나 문자 인증을 한 번 더 거친다. 본인 확인은 강해지지만 이미
+                  본인인증을 마친 뒤라 중복이라는 반론이 있다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">CON-3</span>
+              <span class="gap__t">거부 사유를 선택으로 둘 것인가 필수로 둘 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-RFOEAG · S-XDBBDP</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt is-picked">
+                <div class="gap__label">A · 선택 · 이 화면</div>
+                <p>
+                  명세가 사유를 "선택적으로 입력할 수 있다"고 정해, 사유 없이도 거부를 확정한다.
+                  입력 장벽이 낮다.
+                </p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">B · 필수</div>
+                <p>
+                  관리자가 재발송 여부를 판단하려면 사유가 있어야 한다는 요구가 있다. 명세를
+                  넘어서는 선택이라 별도 확인이 필요하다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">CON-4</span>
+              <span class="gap__t">기한 임박을 언제부터 알릴 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                이 화면은 남은 기한이 이틀일 때부터 강조색을 썼다. 목록 배지와 상세 화면의 안내
+                문구, 그리고 별도 알림 발송 중 어디부터 강조를 줄지는 정해지지 않았다.
+              </p>
+              <ul>
+                <li>첫 후보 — 남은 기한 7일 이내부터 화면 강조, 3일 이내부터 알림 발송</li>
+                <li>계약서 발송 알림과 별개로 임박 알림을 또 보낼지도 함께 정한다</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">CON-5</span>
+              <span class="gap__t">날인 기한과 상태 체계</span>
+              <span class="gap__st gap__st--fixed">확정 · 30일 · 6단계</span>
+              <span class="gap__ref">S-XDBBDP</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                날인 기한은 발송일로부터 <b>30일</b>로 고정돼 있고, 계약 상태는 발송 대기·서명
+                대기·체결 완료·거부·만료·종료 <b>여섯 단계</b>로만 관리한다. 처리 결과도 날인 또는
+                거부 <b>둘 중 하나</b>로만 확정되며, 날인한 뒤에는 관리자 요청이 있어야만 바뀐다.
+                이 화면은 이 값들을 그대로 따른다.
+              </p>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
+          <ul class="pol">
+            <li>
+              <span class="pol__src">S-XDBBDP</span>
+              <span
+                >근로계약 상태는 발송 대기, 서명 대기, 체결 완료, 거부, 만료, 종료 여섯 가지로
+                관리한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-XDBBDP</span>
+              <span>날인 기한은 발송일로부터 30일이며, 기한이 지나면 만료로 전환한다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-RFOEAG</span>
+              <span
+                >근로계약서 처리 결과는 날인 또는 거부 중 하나로 확정한다. 날인한 뒤에는
+                <strong>관리자 요청이 있는 경우에만</strong> 바뀐다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-RFOEAG</span>
+              <span>거부한 뒤에는 관리자가 계약서를 재발송한 경우에만 다시 처리할 수 있다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-RFOEAG</span>
+              <span>계약서 처리 요청이 진행되는 동안 날인과 거부 버튼을 비활성화한다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-RFOEAG</span>
+              <span
+                >날인 또는 거부가 완료되면 담당 관리자에게 <strong>이메일과 운영 알림함 알림</strong>이
+                함께 생성된다. 처리 완료된 계약서는 읽기 전용으로 표시하고 재처리를 막는다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-OIILIW</span>
+              <span
+                >계약서 데이터는 관리자 입력분(이름·근무지·고용 형태·계약 조건), 본인인증분(실명·생년월일·휴대전화),
+                직원 입력분(주소 등)을 구분해 저장한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-OIILIW</span>
+              <span
+                >연장·야간 가산 적용 여부는 계약 조건에 포함하며, 상시근로자 5인 미만 사업장은
+                미적용을 선택할 수 있다. 이 값에 따라 급여명세서의 연장수당 계산이 갈린다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-OIILIW</span>
+              <span>근로계약은 정직원용과 파트타이머용으로 구분한다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-OIILIW</span>
+              <span>가입 또는 소속 확인이 끝나지 않은 직원에게는 계약서를 발송하지 않는다.</span>
+            </li>
+          </ul>
+
+          <footer class="docfoot">
+            직원 앱 목업 · 근로계약 · 2026년 9월 10일 · 상태 8개 · 시트 1개 · 쟁점 5건
+          </footer>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

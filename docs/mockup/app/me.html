@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>내 정보 · 직원 앱 · WHALE ERP</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Gowun+Batang:wght@400;700&display=swap"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+    <link rel="stylesheet" href="../assets/staff.css" />
+    <script src="../assets/app.js" defer></script>
+  </head>
+  <body data-area="app" data-screen="me">
+    <!-- 직원 앱 · 내 정보
+         이름·생년월일은 본인인증으로 확정된 값이라 직원도 못 고친다. 소속
+         근무지·고용 형태도 근로계약으로만 바뀐다 — 직원이 고칠 수 있는 건
+         휴대폰 번호·이메일·주소·비밀번호뿐이다.
+
+         휴대폰 번호를 바꾸려면 새 번호로 본인인증을 다시 거쳐야 반영된다.
+         그 번호가 초대 연결과 소속 확인의 매칭 키이기 때문이다. 주소는 이미
+         쓴 계약서에는 반영되지 않고 다음 계약부터 적용된다 — 이 안내를 빼면
+         안 된다.
+
+         reset 상태는 관리자가 비밀번호 초기화를 요청했을 때 온다. 관리자는
+         새 비밀번호를 정하지 못하고, 본인인증된 휴대전화로 간 재설정 링크로
+         직원이 직접 정한다. 최근에 확정된 사항이라 이 상태를 제대로 그린다.
+
+         이 파일은 화면 하나다. 오른쪽 목록으로 상태를 바꾸거나 폰 안의 버튼을
+         직접 눌러 본다. 숫자키 1~7 로도 넘어간다.
+
+         근거 : S-YWYTJY -->
+    <a class="skip" href="#main">본문으로 건너뛰기</a>
+
+    <div class="doc" id="main">
+      <header class="dochead">
+        <p class="dochead__kicker">직원 앱 · 내 정보 · /me</p>
+        <h1>내 정보</h1>
+        <p>
+          본인인증으로 확정된 이름·생년월일과 근로계약으로만 바뀌는 소속·고용 형태는 읽기 전용으로
+          둔다. 직원이 직접 고치는 건 <strong>연락처와 비밀번호</strong>뿐이고, 그중 휴대폰 번호는
+          바꿀 때마다 본인인증을 한 번 더 거친다.
+        </p>
+        <nav class="docnav">
+          <a href="../index.html">← 목업 허브</a>
+          <a href="login.html">로그인</a>
+          <a href="attendance.html">출퇴근 등록</a>
+          <a href="attendance-history.html">출퇴근 현황</a>
+          <a href="home.html">홈</a>
+          <a href="join.html">진입·가입</a>
+          <a href="contract.html">근로계약</a>
+          <a href="work.html">근무 정보</a>
+          <a href="pay.html">급여</a>
+          <a href="notify.html">알림</a>
+        </nav>
+      </header>
+
+      <div class="stage">
+        <!-- ══ 폰 ══════════════════════════════════════════════════ -->
+        <div class="stage__phone">
+          <div class="phone" data-state="view">
+            <div class="sbar">
+              <span data-clock>09:14</span>
+              <span class="sbar__ic">
+                <i class="ph-fill ph-cell-signal-full"></i>
+                <i class="ph-fill ph-wifi-high"></i>
+                <i class="ph-fill ph-battery-high"></i>
+              </span>
+            </div>
+
+            <!-- ── 앱바 ─────────────────────────────────────────── -->
+            <div class="abar" data-when="view">
+              <span class="abar__title">내 정보</span>
+              <button
+                class="abar__end"
+                data-sheet="history"
+                style="background: none; border: none; padding: 0; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--ink-2)"
+              >
+                변경 이력
+              </button>
+            </div>
+
+            <div class="abar" data-when="phone">
+              <button
+                class="abar__back"
+                data-go="view"
+                style="background: none; border: none; padding: 0; cursor: pointer"
+              >
+                <i class="ph ph-caret-left"></i>
+              </button>
+              <span class="abar__title">휴대폰 번호 변경</span>
+            </div>
+
+            <div class="abar" data-when="phone-done phone-taken">
+              <button
+                class="abar__back"
+                data-go="view"
+                style="background: none; border: none; padding: 0; cursor: pointer"
+              >
+                <i class="ph ph-caret-left"></i>
+              </button>
+              <span class="abar__title">휴대폰 번호 변경</span>
+            </div>
+
+            <div class="abar" data-when="password">
+              <button
+                class="abar__back"
+                data-go="view"
+                style="background: none; border: none; padding: 0; cursor: pointer"
+              >
+                <i class="ph ph-caret-left"></i>
+              </button>
+              <span class="abar__title">비밀번호 변경</span>
+            </div>
+
+            <div class="abar" data-when="sites">
+              <button
+                class="abar__back"
+                data-go="view"
+                style="background: none; border: none; padding: 0; cursor: pointer"
+              >
+                <i class="ph ph-caret-left"></i>
+              </button>
+              <span class="abar__title">소속 근무지</span>
+            </div>
+
+            <!-- ── 내 정보 (기본) ───────────────────────────────── -->
+            <div class="view" data-when="view">
+              <div class="scroll" style="overflow-y: auto">
+                <div class="stack stack-14">
+                  <div class="card">
+                    <p class="lab">기본 정보</p>
+                    <div class="stack stack-10" style="margin-top: 8px">
+                      <div class="field">
+                        <label class="field__lab">이름</label>
+                        <input class="input input--ro" value="이하은" disabled />
+                      </div>
+                      <div class="field">
+                        <label class="field__lab">생년월일</label>
+                        <input class="input input--ro num" value="1998-04-12" disabled />
+                      </div>
+                      <div class="field">
+                        <label class="field__lab">입사일</label>
+                        <input class="input input--ro num" value="2025-11-03" disabled />
+                      </div>
+                    </div>
+                    <p class="tiny" style="margin-top: 8px">
+                      이름과 생년월일은 본인인증으로 확정된 값이라 앱에서 고칠 수 없습니다.
+                    </p>
+                  </div>
+
+                  <div class="card card--sunken" data-go="sites" style="cursor: pointer">
+                    <div class="line">
+                      <div class="grow">
+                        <p class="lab">소속 근무지</p>
+                        <p class="h-md" style="margin-top: 4px">웨일카페 강남역점 외 1곳</p>
+                      </div>
+                      <span class="badge">파트타임</span>
+                      <i class="ph ph-caret-right" style="color: var(--ink-4)"></i>
+                    </div>
+                  </div>
+                  <p class="tiny" style="margin-top: -8px">
+                    소속 근무지와 고용 형태는 근로계약으로만 바뀝니다.
+                  </p>
+
+                  <div class="card">
+                    <p class="lab">연락처</p>
+                    <div class="stack stack-10" style="margin-top: 8px">
+                      <div class="field">
+                        <label class="field__lab">휴대폰 번호</label>
+                        <div class="line">
+                          <input
+                            class="input input--ro num"
+                            style="flex: 1"
+                            value="010-4821-7736"
+                            disabled
+                          />
+                          <button class="btn btn--sm btn--ghost" data-go="phone">번호 변경</button>
+                        </div>
+                        <p class="field__help">번호를 바꾸려면 새 번호로 본인인증을 다시 거칩니다.</p>
+                      </div>
+                      <div class="field">
+                        <label class="field__lab">이메일</label>
+                        <input class="input" type="email" value="haeun.lee@gmail.com" />
+                      </div>
+                      <div class="field">
+                        <label class="field__lab">주소</label>
+                        <input class="input" value="서울 마포구 양화로 12" />
+                        <p class="field__help">
+                          주소를 바꾸면 지금 계약서에는 반영되지 않고 다음에 새로 쓰는 계약부터
+                          적용됩니다.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      class="btn"
+                      style="margin-top: 12px"
+                      data-toast="변경사항을 저장했습니다"
+                    >
+                      변경사항 저장
+                    </button>
+                  </div>
+
+                  <div class="card">
+                    <div class="line">
+                      <i class="ph-fill ph-lock-key" style="color: var(--ink-3); font-size: 18px"></i>
+                      <div class="grow">
+                        <p class="h-md">비밀번호</p>
+                        <p class="tiny">마지막 변경 2026년 6월 2일</p>
+                      </div>
+                      <button class="btn btn--sm btn--ghost" data-go="password">변경</button>
+                    </div>
+                  </div>
+
+                  <!-- 로그아웃은 내 정보 맨 아래에 둔다 — S-PHHICH 확정.
+                       자주 누를 것이 아니고 실수로 눌리면 곤란해서 가장 아래다. -->
+                  <hr class="hr" style="margin: 4px 0" />
+                  <button class="btn btn--quiet" data-sheet="logout">
+                    <i class="ph ph-sign-out"></i>로그아웃
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── 휴대폰 번호 변경 ─────────────────────────────── -->
+            <div class="view" data-when="phone">
+              <div class="card card--sunken">
+                <p class="lab">현재 번호</p>
+                <p class="num num--md" style="margin-top: 4px">010-4821-7736</p>
+              </div>
+              <div class="field">
+                <label class="field__lab">새 번호</label>
+                <input class="input input--mono" type="tel" value="010-9938-2015" />
+              </div>
+              <div class="field">
+                <label class="field__lab">인증번호</label>
+                <div class="line">
+                  <input class="input input--mono" style="flex: 1" value="482913" />
+                  <button class="btn btn--sm btn--ghost" data-toast="인증번호를 다시 보냈습니다">
+                    재전송
+                  </button>
+                </div>
+              </div>
+              <div class="note note--pen">
+                <i class="ph ph-info"></i>
+                <div>
+                  본인인증에 성공해야 번호가 바뀝니다. 인증된 번호만 초대 연결과 소속 확인의 매칭
+                  키로 쓰입니다.
+                </div>
+              </div>
+              <div class="grow"></div>
+            </div>
+
+            <div class="dock" data-when="phone">
+              <button class="btn" data-go="phone-done" data-toast="번호를 변경했습니다">인증 확인</button>
+              <button class="btn btn--quiet" data-go="phone-taken">
+                이미 인증된 번호로 시도해 보기
+              </button>
+              <button class="btn btn--ghost" data-go="view">취소</button>
+            </div>
+
+            <!-- ── 번호 변경 완료 ───────────────────────────────── -->
+            <div class="view view--center" data-when="phone-done">
+              <div style="display: grid; place-items: center">
+                <div class="seal">인증<br />완료</div>
+              </div>
+              <div class="stack stack-6">
+                <p class="lab">변경된 번호</p>
+                <p class="num num--lg">010-9938-2015</p>
+              </div>
+              <p class="tiny">이 번호가 앞으로 본인 확인과 알림에 쓰입니다.</p>
+            </div>
+
+            <div class="dock" data-when="phone-done">
+              <button class="btn btn--ghost" data-go="view">내 정보로 돌아가기</button>
+            </div>
+
+            <!-- ── 이미 인증된 번호 ─────────────────────────────── -->
+            <div class="view" data-when="phone-taken">
+              <div class="note note--seal">
+                <i class="ph-fill ph-prohibit"></i>
+                <div>
+                  <strong>이미 다른 계정에 인증된 번호입니다.</strong><br />
+                  본인 명의라면 그 계정에서 먼저 번호를 해지한 뒤 다시 시도해 주세요.
+                </div>
+              </div>
+              <div class="card card--sunken">
+                <p class="lab">시도한 번호</p>
+                <p class="num num--md" style="margin-top: 4px">010-7788-3210</p>
+              </div>
+              <p class="tiny">기존 번호 010-4821-7736 은 그대로 유지됩니다.</p>
+              <div class="grow"></div>
+            </div>
+
+            <div class="dock" data-when="phone-taken">
+              <button class="btn" data-go="phone">다른 번호로 다시 시도</button>
+              <button class="btn btn--ghost" data-go="view">취소</button>
+            </div>
+
+            <!-- ── 비밀번호 변경 ────────────────────────────────── -->
+            <div class="view" data-when="password">
+              <div class="field">
+                <label class="field__lab">현재 비밀번호</label>
+                <input class="input" type="password" value="********" />
+              </div>
+              <div class="field">
+                <label class="field__lab">새 비밀번호</label>
+                <input class="input" type="password" placeholder="영문·숫자·특수문자 조합 8자 이상" />
+                <p class="field__help">영문, 숫자, 특수문자를 조합해 8자 이상으로 정합니다.</p>
+              </div>
+              <div class="field">
+                <label class="field__lab">새 비밀번호 확인</label>
+                <input class="input" type="password" />
+              </div>
+              <div class="grow"></div>
+            </div>
+
+            <div class="dock" data-when="password">
+              <button class="btn" data-go="view" data-toast="비밀번호를 변경했습니다">변경하기</button>
+              <button class="btn btn--ghost" data-go="view">취소</button>
+            </div>
+
+            <!-- ── 관리자가 보낸 재설정 링크 ────────────────────── -->
+            <div class="view" data-when="reset">
+              <div class="card card--amber">
+                <div class="line">
+                  <i class="ph-fill ph-link-simple" style="color: var(--amber); font-size: 18px"></i>
+                  <div class="grow">
+                    <p class="h-md" style="color: #6f4608">관리자가 보낸 재설정 링크</p>
+                    <p class="tiny" style="color: var(--amber)">남은 시간 14:59 · 010-****-7736 로 받음</p>
+                  </div>
+                </div>
+              </div>
+              <p class="p--sm">
+                현재 비밀번호는 확인하지 않습니다. 본인인증된 휴대전화로 온 링크이기 때문입니다. 새
+                비밀번호를 바로 정합니다.
+              </p>
+              <div class="field">
+                <label class="field__lab">새 비밀번호</label>
+                <input class="input" type="password" placeholder="영문·숫자·특수문자 조합 8자 이상" />
+              </div>
+              <div class="field">
+                <label class="field__lab">새 비밀번호 확인</label>
+                <input class="input" type="password" />
+              </div>
+              <div class="note">
+                <i class="ph ph-info"></i>
+                <div>링크는 발급 후 일정 시간이 지나면 만료됩니다. 만료되면 관리자에게 재발급을 요청해 주세요.</div>
+              </div>
+              <div class="grow"></div>
+            </div>
+
+            <div class="dock" data-when="reset">
+              <button class="btn" data-go="view" data-toast="비밀번호를 새로 정했습니다">비밀번호 정하기</button>
+            </div>
+
+            <!-- ── 소속 근무지 ──────────────────────────────────── -->
+            <div class="view" data-when="sites">
+              <div class="scroll">
+                <div class="rows">
+                  <div class="row row--top">
+                    <i class="ph-fill ph-storefront" style="color: var(--pen); font-size: 18px; margin-top: 2px"></i>
+                    <div class="row__main">
+                      <p class="row__title">웨일카페 강남역점</p>
+                      <p class="row__sub">파트타임 · 2025년 11월 3일부터</p>
+                    </div>
+                    <span class="badge badge--pen">근무 중</span>
+                  </div>
+                  <div class="row row--top">
+                    <i class="ph-fill ph-storefront" style="color: var(--pen); font-size: 18px; margin-top: 2px"></i>
+                    <div class="row__main">
+                      <p class="row__title">웨일카페 홍대점</p>
+                      <p class="row__sub">파트타임 · 2026년 3월 16일부터</p>
+                    </div>
+                    <span class="badge badge--pen">근무 중</span>
+                  </div>
+                </div>
+              </div>
+              <p class="tiny">
+                소속과 고용 형태는 근로계약이 새로 체결되어야 바뀝니다. 여기서는 고칠 수 없습니다.
+              </p>
+            </div>
+
+            <!-- ── 탭바 (내 정보가 루트 화면일 때만) ─────────────── -->
+            <div class="tabs" data-when="view">
+              <a class="tab" href="home.html"><i class="ph ph-house"></i>홈</a>
+              <a class="tab" href="work.html"><i class="ph ph-calendar-check"></i>근무</a>
+              <a class="tab" href="notify.html"><i class="ph ph-bell"></i>알림</a>
+              <a class="tab is-on" href="me.html"><i class="ph-fill ph-user"></i>내 정보</a>
+            </div>
+
+            <!-- ── 시트 ─────────────────────────────────────────── -->
+            <div class="sheet" data-sheet-id="history" hidden>
+              <div class="sheet__grab"></div>
+              <p class="h-lg">변경 이력</p>
+              <p class="p--sm">
+                연락처·주소·비밀번호를 바꾼 기록입니다. 비밀번호는 바뀐 사실만 남고 값은 남지
+                않습니다.
+              </p>
+              <div class="rows">
+                <div class="row row--top">
+                  <div class="row__main">
+                    <p class="row__title">이메일 변경</p>
+                    <p class="row__sub">haeun98@gmail.com → haeun.lee@gmail.com</p>
+                  </div>
+                  <span class="tiny push">2026-07-02</span>
+                </div>
+                <div class="row row--top">
+                  <div class="row__main">
+                    <p class="row__title">휴대폰 번호 변경</p>
+                    <p class="row__sub">010-2231-9944 → 010-4821-7736</p>
+                  </div>
+                  <span class="tiny push">2026-05-14</span>
+                </div>
+                <div class="row row--top">
+                  <div class="row__main">
+                    <p class="row__title">비밀번호 변경</p>
+                    <p class="row__sub">본인이 직접 변경</p>
+                  </div>
+                  <span class="tiny push">2026-06-02</span>
+                </div>
+                <div class="row row--top">
+                  <div class="row__main">
+                    <p class="row__title">주소 변경</p>
+                    <p class="row__sub">서울 마포구 동교로 5 → 서울 마포구 양화로 12</p>
+                  </div>
+                  <span class="tiny push">2026-04-18</span>
+                </div>
+              </div>
+              <button class="btn" data-sheet-close>닫기</button>
+            </div>
+            <div class="sheet" data-sheet-id="logout" hidden>
+              <div class="sheet__grab"></div>
+              <p class="h-lg">로그아웃할까요</p>
+              <p class="p--sm">
+                다시 들어오려면 휴대전화 번호와 비밀번호가 필요합니다. 출퇴근을 찍어야 할 때
+                번거로울 수 있습니다.
+              </p>
+              <div class="btnrow">
+                <button class="btn btn--ghost" data-sheet-close>그대로 두기</button>
+                <a class="btn btn--seal" href="login.html">로그아웃</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ 해설 ═══════════════════════════════════════════════ -->
+        <div class="stage__side">
+          <div class="switcher">
+            <div class="switcher__head">
+              <p class="lab">상태 바꾸기</p>
+              <span class="switcher__hint">숫자키 1–7</span>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-state="view" aria-pressed="true">
+                <span class="sw-b__k">1</span>
+                <span><span class="sw-b__t">내 정보</span> <span class="sw-b__d">· 기본 화면</span></span>
+              </button>
+              <button class="sw-b" data-state="phone">
+                <span class="sw-b__k">2</span>
+                <span
+                  ><span class="sw-b__t">번호 변경</span> <span class="sw-b__d">· 본인인증 재실행</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="phone-done">
+                <span class="sw-b__k">3</span>
+                <span><span class="sw-b__t">번호 변경 완료</span> <span class="sw-b__d">· 성공</span></span>
+              </button>
+              <button class="sw-b" data-state="phone-taken">
+                <span class="sw-b__k">4</span>
+                <span
+                  ><span class="sw-b__t">이미 인증된 번호</span> <span class="sw-b__d">· 막힘</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="password">
+                <span class="sw-b__k">5</span>
+                <span><span class="sw-b__t">비밀번호 변경</span> <span class="sw-b__d">· 본인이 직접</span></span>
+              </button>
+              <button class="sw-b" data-state="reset">
+                <span class="sw-b__k">6</span>
+                <span
+                  ><span class="sw-b__t">관리자 재설정 링크</span>
+                  <span class="sw-b__d">· 현재 비밀번호 안 물음</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="sites">
+                <span class="sw-b__k">7</span>
+                <span><span class="sw-b__t">소속 근무지</span> <span class="sw-b__d">· 조회만</span></span>
+              </button>
+            </div>
+            <div class="switcher__head" style="border-top: 1px solid var(--rule); border-bottom: none">
+              <p class="lab">시트 열기</p>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-sheet="history">
+                <span class="sw-b__k">·</span>
+                <span><span class="sw-b__t">변경 이력</span> <span class="sw-b__d">· 항목·일시·전후</span></span>
+              </button>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 30px 0 10px">이 화면이 하는 일</h2>
+          <p class="p">
+            직원이 고칠 수 있는 건 딱 넷 — 휴대폰 번호, 이메일, 주소, 비밀번호다. 이름과 생년월일은
+            본인인증으로 확정됐고, 소속과 고용 형태는 근로계약이 정하니 여기서는 회색 배경의 읽기
+            전용 칸으로만 둔다. 손댈 수 없는 것과 손댈 수 있는 것을 한 화면에서 시각적으로 나눈다.
+          </p>
+          <p class="p" style="margin-top: 10px">
+            휴대폰 번호는 이메일·주소와 다르게 취급한다. 그냥 입력칸이 아니라
+            <strong>번호 변경 버튼을 눌러 별도 흐름</strong>으로 들어가는 이유는, 저장만으로 끝나지
+            않고 새 번호로 본인인증을 다시 통과해야 반영되기 때문이다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">관리자는 대신 고치지 못한다</h2>
+          <p class="p">
+            관리자는 직원의 연락처·주소·비밀번호를 조회만 하고 대신 고칠 수 없다. 유일한 예외가
+            비밀번호 초기화 요청이고, 그마저도 관리자가 새 비밀번호를 정하지 못한다. 본인인증된
+            휴대전화로 재설정 링크가 가고 직원이 직접 정한다 — <code>reset</code> 상태가 그 화면이다.
+            가입을 안 마쳤거나 인증된 번호가 없는 직원에게는 초기화 대신 재초대로 처리한다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">정할 것</h2>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">ME-1</span>
+              <span class="gap__t">재설정 링크 유효 시간</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-YWYTJY</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                명세는 "일정 시간이 지나면 만료된다"고만 정해, 정확한 값이 비어 있다. 이 화면은
+                15분으로 시연했다.
+              </p>
+              <ul>
+                <li>짧으면(예: 5분) 확인이 늦은 직원이 다시 요청해야 하고, 길면(예: 1시간) 분실·재사용 위험이 커진다</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">ME-2</span>
+              <span class="gap__t">주소를 어떤 형식으로 받는가</span>
+              <span class="gap__st gap__st--open">미정</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt is-picked">
+                <div class="gap__label">A · 자유 입력 · 이 화면</div>
+                <p>한 줄 텍스트로 받는다. 구현이 가장 쉽지만 오타·형식 불일치가 남는다.</p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">B · 우편번호 검색 연동</div>
+                <p>외부 우편번호 서비스를 붙여 도로명 주소를 표준화한다. 신뢰는 높아지지만 외부 연동이 하나 늘어난다.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">ME-3</span>
+              <span class="gap__t">이메일도 인증을 거치는가</span>
+              <span class="gap__st gap__st--open">미정</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                휴대폰 번호는 본인인증이 매칭 키라 재인증이 필수다. 이메일은 명세에 인증 절차가 없어
+                이 화면은 바로 저장되는 값으로 그렸다. 이메일도 인증 발송지로 쓰인다면 재검토가
+                필요하다.
+              </p>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
+          <ul class="pol">
+            <li>
+              <span class="pol__src">S-YWYTJY</span>
+              <span
+                >이름과 생년월일은 본인인증으로 확정된 값이라 <strong>직원이 수정할 수 없다</strong
+                >.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-YWYTJY</span>
+              <span>소속 근무지와 고용 형태는 근로계약으로만 바뀐다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-YWYTJY</span>
+              <span
+                >휴대폰 번호를 바꾸려면 새 번호로 <strong>본인인증을 다시</strong> 수행해야 하며,
+                인증된 번호만 초대 연결과 소속 확인의 매칭 키로 쓴다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-YWYTJY</span>
+              <span>주소 등 계약서 기재사항의 변경은 이미 체결된 계약서에 반영하지 않고 다음 계약부터 적용한다.</span>
+            </li>
+            <li>
+              <span class="pol__src">S-YWYTJY</span>
+              <span
+                >관리자는 직원의 연락처·주소·비밀번호를 대신 수정할 수 없다. 예외로 비밀번호
+                초기화를 요청할 수 있으나, 새 비밀번호는 재설정 링크를 받은 <strong>직원 본인</strong
+                >이 정한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-YWYTJY</span>
+              <span>연락처·주소·비밀번호 변경 이력은 계약·급여 데이터와 같은 보존 기간을 따른다.</span>
+            </li>
+          </ul>
+
+          <footer class="docfoot">
+            직원 앱 목업 · 내 정보 · 2026년 9월 10일 · 상태 7개 · 시트 1개 · 쟁점 3건
+          </footer>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
