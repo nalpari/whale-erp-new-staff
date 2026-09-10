@@ -317,12 +317,38 @@
               </div>
               <div class="field">
                 <label class="field__lab">새 비밀번호</label>
-                <input class="input" type="password" placeholder="영문·숫자·특수문자 조합 8자 이상" />
-                <p class="field__help">영문, 숫자, 특수문자를 조합해 8자 이상으로 정합니다.</p>
+                <input class="input" type="password" value="••••••••••" />
               </div>
               <div class="field">
                 <label class="field__lab">새 비밀번호 확인</label>
-                <input class="input" type="password" />
+                <input class="input" type="password" value="••••••••••" />
+              </div>
+
+              <div class="card card--sunken">
+                <p class="lab">비밀번호 조건</p>
+                <div class="rows" style="margin-top: 2px">
+                  <div class="row" style="padding: 6px 0">
+                    <i class="ph-fill ph-check-circle" style="color: var(--ok); font-size: 15px"></i>
+                    <span class="row__title" style="font-size: 12.5px; font-weight: 500"
+                      >영문 대소문자·숫자·기호 중 <b>세 가지</b>를 섞었습니다</span
+                    >
+                  </div>
+                  <div class="row" style="padding: 6px 0">
+                    <i class="ph-fill ph-check-circle" style="color: var(--ok); font-size: 15px"></i>
+                    <span class="row__title" style="font-size: 12.5px; font-weight: 500"
+                      >8자 이상 20자 이하</span
+                    >
+                  </div>
+                  <div class="row" style="padding: 6px 0">
+                    <i class="ph ph-circle" style="color: var(--ink-4); font-size: 15px"></i>
+                    <span class="row__title" style="font-size: 12.5px; color: var(--ink-3)"
+                      >이메일 아이디와 겹치지 않기</span
+                    >
+                  </div>
+                </div>
+                <p class="tiny" style="margin-top: 7px">
+                  두 가지만 섞으면 10자 이상이어야 합니다.
+                </p>
               </div>
               <div class="grow"></div>
             </div>
@@ -615,17 +641,46 @@
             </div>
           </div>
 
-          <div class="gap">
+          <div class="gap is-decided">
             <div class="gap__head">
               <span class="gap__no">ME-3</span>
               <span class="gap__t">이메일도 인증을 거치는가</span>
-              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__st gap__st--fixed">확정 · 새 이메일 인증</span>
+              <span class="gap__ref">S-YWYTJY</span>
             </div>
             <div class="gap__one">
               <p>
-                휴대폰 번호는 본인인증이 매칭 키라 재인증이 필수다. 이메일은 명세에 인증 절차가 없어
-                이 화면은 바로 저장되는 값으로 그렸다. 이메일도 인증 발송지로 쓰인다면 재검토가
-                필요하다.
+                이메일이 <b>로그인 아이디</b>가 되면서 답이 정해졌다. 연락처 항목처럼 바로 고치지
+                못하고, <b>새 이메일로 인증번호를 받아 일치를 확인한 뒤에만</b> 바뀐다. 비밀번호를
+                잊었을 때 인증번호가 가는 곳이라 받을 수 있는 주소인지 확인해야 한다.
+              </p>
+              <p>휴대폰 번호는 여전히 본인인증을 다시 거친다. 초대 연결의 매칭 키이기 때문이다.</p>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">ME-4</span>
+              <span class="gap__t">비밀번호 작성 규칙</span>
+              <span class="gap__st gap__st--fixed">확정</span>
+              <span class="gap__ref">S-YWYTJY</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                문서에 규칙이 없어 서로를 가리키는 순환 참조만 있었다. 접속 기능은 내 정보를,
+                재설정은 일반 변경을 가리켰고 어디에도 실체가 없었다. 이번에 여기에 세웠다.
+              </p>
+              <ul>
+                <li>영문 대소문자·숫자·기호 중 <b>세 가지</b>를 섞으면 8자 이상, 두 가지면 10자 이상</li>
+                <li>최대 <b>20자</b></li>
+                <li>이메일 아이디와 같거나 그 앞부분을 그대로 쓴 값은 받지 않음</li>
+                <li>쓰던 비밀번호 재사용은 막지 않음</li>
+                <li>주기적 변경은 강제하지 않고 오래된 경우 권유만</li>
+              </ul>
+              <p>
+                복잡도 하한은 개인정보 안전성 확보조치 기준을 따랐다. 근로계약과 급여를 다루므로 그
+                아래로는 갈 수 없다. 이 규칙은 <b>가입, 내 정보 변경, 재설정, 관리자 초기화 뒤의
+                변경에 모두 같이</b> 적용한다.
               </p>
             </div>
           </div>
