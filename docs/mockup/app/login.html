@@ -23,11 +23,19 @@
          "로그인되어 있어야 한다"를 전제로만 쓰고 로그인 자체를 다루지 않았다.
          2026-09-10 에 manyfast 에 기능 F-WBHYLR(앱 접속과 계정 유지)를 세우고
          명세 두 건(S-PHHICH 로그인과 접속 유지, S-WSPEYJ 비밀번호 재설정)을
-         새로 썼다. 같은 날 질문 일곱 건에 모두 답이 달려 규칙이 확정됐다.
+         새로 썼다.
 
-         확정 : 휴대전화 번호로 로그인 · 접속 30일 유지 · 5회 실패 시 일정 시간
-         잠금 후 자동 해제 · 생체 인증 1차 제외 · 로그아웃은 내 정보 맨 아래 ·
-         재설정은 본인 문자 인증과 관리자 초기화 두 경로 · 링크 1시간 만료.
+         같은 날 재설정 방식을 링크에서 이메일 핀으로 바꿨다. 링크는 누르는
+         순간 앱이냐 웹이냐를 정해야 하는데, 로그인을 못 하는 사람에게 보내는
+         것이라 앱 안에 열 자리가 없었다. 핀은 앱 안에서 입력하므로 그 분기가
+         사라진다.
+
+         확정 : 이메일 아이디로 로그인 · 접속 30일 유지 · 로그인 5회 실패 시
+         일정 시간 잠금 후 자동 해제 · 생체 인증 1차 제외 · 로그아웃은 내 정보
+         맨 아래 · 재설정은 이메일 핀(본인)과 임시 비밀번호 발송(관리자) 두
+         경로 · 핀 6자리 숫자+영문 · 핀 10분 만료 · 핀 5회 실패 시 쿨다운
+         1·3·5분 3회까지 · 유효시간과 쿨다운 중 먼저 걸리는 쪽 적용 ·
+         비밀번호가 새로 정해지면 잠금도 함께 풀린다.
 
          근거 : S-PHHICH · S-WSPEYJ · S-YWYTJY · S-PIXATL -->
     <a class="skip" href="#main">본문으로 건너뛰기</a>
@@ -39,8 +47,8 @@
         <p>
           앱을 켤 때마다 지나는 관문이다. 매일 출퇴근을 찍는 직원에게는
           <strong>가장 자주 마주치는 화면</strong>인데 manyfast 에 이 화면을 다루는 명세가 없었다.
-          목업을 만들면서 기능과 명세를 새로 세웠고, 열어 두었던 일곱 가지에 모두 답이 달려
-          <strong>이 화면의 규칙은 확정</strong>이다.
+          목업을 만들면서 기능과 명세를 새로 세웠고, 비밀번호를 잊었을 때의 경로는
+          <strong>이메일로 받은 핀을 앱에서 입력하는 방식</strong>으로 확정했다.
         </p>
         <nav class="docnav">
           <a href="../index.html">← 목업 허브</a>
@@ -83,37 +91,37 @@
 
             <!-- ── 로그인 · 실패 ────────────────────────────────── -->
             <div class="view" data-when="login fail">
-              <div style="height: 22px"></div>
+              <div style="height: 20px"></div>
               <div class="stack stack-6">
                 <p class="h-xl">다시 오셨네요</p>
                 <p class="p">근무 정보와 출퇴근을 확인하려면 로그인하세요.</p>
               </div>
 
-              <div class="stack stack-14" style="margin-top: 10px">
+              <div class="stack stack-14" style="margin-top: 8px">
                 <div class="field">
-                  <label class="field__lab" for="lg-id">휴대전화 번호</label>
+                  <label class="field__lab" for="lg-id">이메일</label>
                   <input
-                    class="input input--mono"
+                    class="input"
                     id="lg-id"
-                    type="tel"
-                    value="010-2481-5521"
+                    type="email"
+                    value="haeun.lee@gmail.com"
                     data-unless="fail"
                   />
                   <input
-                    class="input input--mono input--err"
-                    type="tel"
-                    value="010-2481-5521"
+                    class="input input--err"
+                    type="email"
+                    value="haeun.lee@gmail.com"
                     data-when="fail"
-                    aria-label="휴대전화 번호"
+                    aria-label="이메일"
                   />
-                  <p class="field__help" data-unless="fail">가입할 때 본인인증한 번호입니다</p>
+                  <p class="field__help" data-unless="fail">가입할 때 정한 아이디입니다</p>
                 </div>
 
                 <div class="field">
                   <label class="field__lab" for="lg-pw">비밀번호</label>
                   <input class="input" id="lg-pw" type="password" value="••••••••" />
                   <p class="field__err" data-when="fail">
-                    <i class="ph-fill ph-warning-circle"></i>번호나 비밀번호가 맞지 않습니다
+                    <i class="ph-fill ph-warning-circle"></i>이메일이나 비밀번호가 맞지 않습니다
                   </p>
                 </div>
               </div>
@@ -136,9 +144,9 @@
               <div class="grow"></div>
             </div>
 
-            <!-- ── 잠김 ─────────────────────────────────────────── -->
+            <!-- ── 로그인 잠김 ──────────────────────────────────── -->
             <div class="view" data-when="locked">
-              <div style="height: 22px"></div>
+              <div style="height: 20px"></div>
               <div class="stack stack-6">
                 <p class="h-xl">잠시 잠겼습니다</p>
                 <p class="p">
@@ -161,70 +169,214 @@
                 <i class="ph ph-lightbulb"></i>
                 <div>
                   기다리기 어려우면 <strong>비밀번호를 다시 정하면</strong> 바로 들어올 수 있습니다.
+                  새로 정하면 잠금도 함께 풀립니다.
                 </div>
               </div>
 
               <div class="grow"></div>
             </div>
 
-            <!-- ── 비밀번호 재설정 요청 ─────────────────────────── -->
+            <!-- ── 비밀번호 찾기 · 이메일 입력 ──────────────────── -->
             <div class="view" data-when="forgot">
-              <div style="height: 22px"></div>
+              <div style="height: 20px"></div>
               <div class="stack stack-6">
                 <p class="h-xl">비밀번호를 다시 정합니다</p>
                 <p class="p">
-                  가입할 때 본인인증한 번호로 재설정 링크를 보냅니다. 관리자를 거치지 않아도
-                  됩니다.
+                  가입할 때 정한 이메일로 <strong>인증번호</strong>를 보냅니다. 관리자를 거치지
+                  않아도 됩니다.
                 </p>
               </div>
 
               <div class="field" style="margin-top: 6px">
-                <label class="field__lab" for="fg-id">휴대전화 번호</label>
-                <input class="input input--mono" id="fg-id" type="tel" value="010-2481-5521" />
-                <p class="field__help">등록된 번호와 같아야 링크가 갑니다</p>
+                <label class="field__lab" for="fg-id">이메일</label>
+                <input class="input" id="fg-id" type="email" value="haeun.lee@gmail.com" />
+                <p class="field__help">가입할 때 정한 아이디를 넣어 주세요</p>
               </div>
 
               <div class="note">
                 <i class="ph ph-clock-countdown"></i>
-                <div>링크는 <strong>1시간</strong> 뒤 만료되고 한 번만 쓸 수 있습니다.</div>
+                <div>인증번호는 <strong>10분</strong> 동안 쓸 수 있습니다.</div>
               </div>
 
               <div class="card card--sunken">
-                <p class="lab">번호가 바뀌었다면</p>
+                <p class="lab">이메일을 쓸 수 없다면</p>
                 <p class="p--sm" style="margin-top: 6px">
-                  등록된 번호를 쓸 수 없으면 관리자에게 알려 주세요. 관리자가 초기화를 요청하는
-                  경로도 있습니다.
+                  관리자에게 알리면 관리자가 초기화를 요청합니다. 그때도 새 비밀번호는 이메일로
+                  갑니다.
                 </p>
               </div>
 
               <div class="grow"></div>
             </div>
 
-            <!-- ── 링크 발송됨 ──────────────────────────────────── -->
-            <div class="view view--center" data-when="reset">
-              <div style="display: grid; place-items: center">
-                <i class="ph-fill ph-chat-circle-text" style="font-size: 42px; color: var(--pen)"></i>
-              </div>
+            <!-- ── 핀 입력 ──────────────────────────────────────── -->
+            <div class="view" data-when="pin">
+              <div style="height: 20px"></div>
               <div class="stack stack-6">
-                <p class="h-xl">문자를 보냈습니다</p>
+                <p class="h-xl">인증번호를 넣어 주세요</p>
                 <p class="p">
-                  <span class="num">010-2481-••••</span> 로 재설정 링크를 보냈습니다. 링크를 열어 새
-                  비밀번호를 정하세요.
+                  <span class="num">haeun****@gmail.com</span> 으로 여섯 자리를 보냈습니다.
                 </p>
               </div>
-              <div class="card card--sunken" style="width: 100%">
+
+              <div class="field" style="margin-top: 8px">
+                <label class="field__lab" for="pin-in">인증번호</label>
+                <input
+                  class="input input--pin"
+                  id="pin-in"
+                  value="4B7K2M"
+                />
+              </div>
+
+              <div class="line line--between">
+                <span class="line" style="gap: 5px">
+                  <i class="ph ph-timer" style="color: var(--pen); font-size: 15px"></i>
+                  <span class="tiny" style="color: var(--pen)">남은 시간 <b class="num">09:41</b></span>
+                </span>
+                <span class="tiny">남은 시도 <b class="num">5</b>회</span>
+              </div>
+
+              <div class="note">
+                <i class="ph ph-envelope-simple"></i>
+                <div>메일이 오지 않으면 스팸함을 확인해 주세요. 1분 뒤 다시 받을 수 있습니다.</div>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 핀 쿨다운 ────────────────────────────────────── -->
+            <div class="view" data-when="cool">
+              <div style="height: 20px"></div>
+              <div class="stack stack-6">
+                <p class="h-xl">잠시 기다려 주세요</p>
+                <p class="p">인증번호를 다섯 번 틀렸습니다. 잠시 뒤 다시 넣을 수 있습니다.</p>
+              </div>
+
+              <div class="card card--amber">
                 <div class="line">
-                  <i class="ph ph-timer" style="color: var(--ink-3); font-size: 17px"></i>
-                  <p class="tiny grow" style="text-align: left">
-                    1시간 뒤 만료됩니다. 새 비밀번호를 정하면 다른 기기의 로그인도 모두 끊깁니다.
-                  </p>
+                  <i class="ph-fill ph-hourglass-high" style="color: var(--amber); font-size: 18px"></i>
+                  <div class="grow">
+                    <p class="h-md" style="color: #6f4608">다시 넣을 수 있을 때까지</p>
+                    <p class="num num--lg" style="color: var(--amber); margin-top: 2px">00:47</p>
+                  </div>
                 </div>
               </div>
+
+              <div class="card card--sunken">
+                <p class="lab">대기 시간이 늘어납니다</p>
+                <div class="rows" style="margin-top: 4px">
+                  <div class="row" style="padding: 8px 0">
+                    <i class="ph-fill ph-check-circle" style="color: var(--amber); font-size: 15px"></i>
+                    <span class="row__title" style="font-size: 13px">첫 번째</span>
+                    <span class="push num tiny">1분</span>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <i class="ph ph-circle" style="color: var(--ink-4); font-size: 15px"></i>
+                    <span class="row__title" style="font-size: 13px; color: var(--ink-3)">두 번째</span>
+                    <span class="push num tiny">3분</span>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <i class="ph ph-circle" style="color: var(--ink-4); font-size: 15px"></i>
+                    <span class="row__title" style="font-size: 13px; color: var(--ink-3)">세 번째</span>
+                    <span class="push num tiny">5분</span>
+                  </div>
+                </div>
+                <p class="tiny" style="margin-top: 8px">
+                  세 번을 넘기면 기다리지 않고 인증번호를 다시 받습니다.
+                </p>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 핀 만료 ──────────────────────────────────────── -->
+            <div class="view" data-when="pin-out">
+              <div style="height: 20px"></div>
+              <div class="stack stack-6">
+                <p class="h-xl">인증번호가 만료되었습니다</p>
+                <p class="p">보낸 지 10분이 지났습니다. 다시 받아 주세요.</p>
+              </div>
+
+              <div class="note note--amber">
+                <i class="ph-fill ph-info"></i>
+                <div>
+                  기다리는 시간이 남아 있어도 <strong>10분이 지나면 만료</strong>됩니다. 둘 중 먼저
+                  걸리는 쪽을 따릅니다.
+                </div>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 새 비밀번호 설정 ─────────────────────────────── -->
+            <div class="view" data-when="newpw">
+              <div style="height: 20px"></div>
+              <div class="stack stack-6">
+                <p class="h-xl">새 비밀번호를 정해 주세요</p>
+                <p class="p">현재 비밀번호는 묻지 않습니다. 인증번호로 본인을 확인했습니다.</p>
+              </div>
+
+              <div class="stack stack-14" style="margin-top: 8px">
+                <div class="field">
+                  <label class="field__lab" for="np1">새 비밀번호</label>
+                  <input class="input" id="np1" type="password" value="••••••••••" />
+                  <p class="field__help">영문·숫자·기호를 섞어 8자 이상</p>
+                </div>
+                <div class="field">
+                  <label class="field__lab" for="np2">새 비밀번호 확인</label>
+                  <input class="input" id="np2" type="password" value="••••••••••" />
+                </div>
+              </div>
+
+              <div class="note note--pen">
+                <i class="ph ph-info"></i>
+                <div>
+                  새로 정하면 <strong>다른 기기의 로그인이 모두 끊기고</strong> 잠금도 함께 풀립니다.
+                </div>
+              </div>
+
+              <div class="grow"></div>
+              <p class="tiny center">이 단계는 10분 안에 마쳐 주세요</p>
+            </div>
+
+            <!-- ── 관리자 초기화 · 임시 비밀번호 ────────────────── -->
+            <div class="view" data-when="temp">
+              <div style="height: 20px"></div>
+              <div class="stack stack-6">
+                <p class="h-xl">비밀번호를 바꿔 주세요</p>
+                <p class="p">
+                  관리자가 초기화한 비밀번호로 들어왔습니다. 안전을 위해 지금 새로 정해야 합니다.
+                </p>
+              </div>
+
+              <div class="card card--amber">
+                <div class="line">
+                  <i class="ph-fill ph-key" style="color: var(--amber); font-size: 18px"></i>
+                  <div class="grow">
+                    <p class="p--sm" style="color: #6f4608">
+                      받은 비밀번호는 <b>24시간</b>만 쓸 수 있습니다. 관리자는 이 값을 알지 못합니다.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="stack stack-14" style="margin-top: 4px">
+                <div class="field">
+                  <label class="field__lab" for="tp1">새 비밀번호</label>
+                  <input class="input" id="tp1" type="password" value="••••••••••" />
+                </div>
+                <div class="field">
+                  <label class="field__lab" for="tp2">새 비밀번호 확인</label>
+                  <input class="input" id="tp2" type="password" value="••••••••••" />
+                </div>
+              </div>
+
+              <div class="grow"></div>
             </div>
 
             <!-- ── 세션 만료 ────────────────────────────────────── -->
             <div class="view" data-when="expired">
-              <div style="height: 22px"></div>
+              <div style="height: 20px"></div>
               <div class="stack stack-6">
                 <p class="h-xl">로그인이 만료되었습니다</p>
                 <p class="p">마지막 접속으로부터 30일이 지나 다시 로그인해야 합니다.</p>
@@ -262,14 +414,41 @@
             </div>
 
             <div class="dock" data-when="forgot">
-              <button class="btn" data-go="reset" data-toast="재설정 링크를 보냈습니다">
-                <i class="ph-fill ph-paper-plane-tilt"></i>재설정 링크 받기
+              <button class="btn" data-go="pin" data-toast="인증번호를 보냈습니다">
+                <i class="ph-fill ph-paper-plane-tilt"></i>인증번호 받기
               </button>
               <button class="btn btn--quiet" data-go="login">로그인으로 돌아가기</button>
             </div>
 
-            <div class="dock" data-when="reset">
-              <button class="btn btn--ghost" data-go="login">로그인으로 돌아가기</button>
+            <div class="dock" data-when="pin">
+              <button class="btn" data-go="newpw" data-toast="확인되었습니다">확인</button>
+              <button class="btn btn--quiet is-off">다시 받기 · 47초 뒤</button>
+            </div>
+
+            <div class="dock" data-when="cool">
+              <button class="btn is-off">확인</button>
+              <button class="btn btn--quiet" data-go="pin" data-toast="인증번호를 다시 보냈습니다">
+                인증번호 다시 받기
+              </button>
+            </div>
+
+            <div class="dock" data-when="pin-out">
+              <button class="btn" data-go="pin" data-toast="인증번호를 다시 보냈습니다">
+                인증번호 다시 받기
+              </button>
+              <button class="btn btn--quiet" data-go="login">로그인으로 돌아가기</button>
+            </div>
+
+            <div class="dock" data-when="newpw">
+              <button class="btn" data-go="login" data-toast="비밀번호를 바꿨습니다. 다시 로그인해 주세요">
+                비밀번호 정하기
+              </button>
+            </div>
+
+            <div class="dock" data-when="temp">
+              <button class="btn" data-go="splash" data-toast="비밀번호를 바꿨습니다">
+                비밀번호 정하고 시작하기
+              </button>
             </div>
 
             <div class="dock" data-when="expired">
@@ -287,8 +466,8 @@
               <div class="sheet__grab"></div>
               <p class="h-lg">로그아웃할까요</p>
               <p class="p--sm">
-                다시 들어오려면 휴대전화 번호와 비밀번호가 필요합니다. 출퇴근을 찍어야 할 때
-                번거로울 수 있습니다.
+                다시 들어오려면 이메일과 비밀번호가 필요합니다. 출퇴근을 찍어야 할 때 번거로울 수
+                있습니다.
               </p>
               <div class="btnrow">
                 <button class="btn btn--ghost" data-sheet-close>그대로 두기</button>
@@ -303,7 +482,7 @@
           <div class="switcher">
             <div class="switcher__head">
               <p class="lab">상태 바꾸기</p>
-              <span class="switcher__hint">숫자키 1–7</span>
+              <span class="switcher__hint">숫자키 1–9</span>
             </div>
             <div class="switcher__body">
               <button class="sw-b" data-state="login" aria-pressed="true">
@@ -312,45 +491,70 @@
               </button>
               <button class="sw-b" data-state="fail">
                 <span class="sw-b__k">2</span>
-                <span
-                  ><span class="sw-b__t">실패</span> <span class="sw-b__d">· 남은 횟수 안내</span></span
-                >
+                <span><span class="sw-b__t">로그인 실패</span> <span class="sw-b__d">· 남은 횟수</span></span>
               </button>
               <button class="sw-b" data-state="locked">
                 <span class="sw-b__k">3</span>
                 <span
-                  ><span class="sw-b__t">잠김</span>
-                  <span class="sw-b__d">· 5회 실패 · 자동 해제</span></span
+                  ><span class="sw-b__t">계정 잠김</span> <span class="sw-b__d">· 5회 실패</span></span
                 >
               </button>
               <button class="sw-b" data-state="forgot">
                 <span class="sw-b__k">4</span>
                 <span
-                  ><span class="sw-b__t">비밀번호 재설정</span>
-                  <span class="sw-b__d">· 본인 문자 인증</span></span
+                  ><span class="sw-b__t">비밀번호 찾기</span>
+                  <span class="sw-b__d">· 이메일 입력</span></span
                 >
               </button>
-              <button class="sw-b" data-state="reset">
+              <button class="sw-b" data-state="pin">
                 <span class="sw-b__k">5</span>
                 <span
-                  ><span class="sw-b__t">링크 발송됨</span> <span class="sw-b__d">· 1시간 만료</span></span
+                  ><span class="sw-b__t">인증번호 입력</span>
+                  <span class="sw-b__d">· 10분 · 5회</span></span
                 >
               </button>
-              <button class="sw-b" data-state="expired">
+              <button class="sw-b" data-state="cool">
                 <span class="sw-b__k">6</span>
+                <span
+                  ><span class="sw-b__t">인증번호 쿨다운</span>
+                  <span class="sw-b__d">· 1·3·5분</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="pin-out">
+                <span class="sw-b__k">7</span>
+                <span
+                  ><span class="sw-b__t">인증번호 만료</span> <span class="sw-b__d">· 10분 지남</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="newpw">
+                <span class="sw-b__k">8</span>
+                <span
+                  ><span class="sw-b__t">새 비밀번호 설정</span>
+                  <span class="sw-b__d">· 본인 재설정</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="temp">
+                <span class="sw-b__k">9</span>
+                <span
+                  ><span class="sw-b__t">관리자 초기화 직후</span>
+                  <span class="sw-b__d">· 변경 강제</span></span
+                >
+              </button>
+            </div>
+            <div class="switcher__head" style="border-top: 1px solid var(--rule); border-bottom: none">
+              <p class="lab">그 밖에</p>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-state="expired">
+                <span class="sw-b__k">·</span>
                 <span
                   ><span class="sw-b__t">세션 만료</span> <span class="sw-b__d">· 30일 지남</span></span
                 >
               </button>
               <button class="sw-b" data-state="splash">
-                <span class="sw-b__k">7</span>
+                <span class="sw-b__k">·</span>
                 <span><span class="sw-b__t">앱 시작</span> <span class="sw-b__d">· 자동 로그인</span></span>
               </button>
-            </div>
-            <div class="switcher__head" style="border-top: 1px solid var(--rule); border-bottom: none">
-              <p class="lab">시트 열기</p>
-            </div>
-            <div class="switcher__body">
               <button class="sw-b" data-sheet="logout">
                 <span class="sw-b__k">·</span>
                 <span
@@ -364,36 +568,41 @@
           <div class="note note--pen" style="margin-top: 20px">
             <i class="ph-fill ph-file-plus"></i>
             <div>
-              <strong>이 화면을 위해 명세를 새로 썼고 규칙이 확정됐다.</strong> 직원 앱 명세 여덟
-              건이 전부 "로그인되어 있어야 한다"를 전제로만 쓰고 로그인 자체를 다루지 않아,
+              <strong>이 화면을 위해 명세를 새로 썼다.</strong> 직원 앱 명세 여덟 건이 전부
+              "로그인되어 있어야 한다"를 전제로만 쓰고 로그인 자체를 다루지 않아,
               <code>R-SXOPEA</code> 아래에 기능 <code>F-WBHYLR</code> 과 명세
-              <code>S-PHHICH</code>·<code>S-WSPEYJ</code> 를 세웠다. 열어 두었던 일곱 가지에 모두
-              답이 달렸다.
+              <code>S-PHHICH</code>·<code>S-WSPEYJ</code> 를 세웠다.
             </div>
           </div>
 
-          <h2 class="h-lg" style="margin: 26px 0 10px">이 화면이 하는 일</h2>
+          <h2 class="h-lg" style="margin: 26px 0 10px">아이디는 이메일이다</h2>
           <p class="p">
-            직원이 앱을 켤 때 지나는 관문이다. 가입은 평생 한 번이지만 로그인은 매일이라,
-            진입·가입 화면에 딸린 곁가지로 두지 않고 따로 세웠다.
+            가입할 때 정한 이메일이 로그인 아이디다. 본인인증한 휴대전화 번호는 아이디가 아니라
+            <strong>초대 연결과 소속 확인의 매칭 키</strong>로만 쓴다. 두 값이 하는 일이 다르다.
           </p>
           <p class="p" style="margin-top: 10px">
-            아이디는 <strong>본인인증한 휴대전화 번호</strong>다. 이 앱에서 사람을 가리는 열쇠가 그
-            번호이고, 초대 연결도 소속 확인도 그것으로 판정한다. 현장 직원에게 업무용 이메일이 없는
-            경우도 많다. 한 번 들어오면 <strong>30일</strong> 동안 다시 묻지 않아, 매장 앞에서
-            비밀번호를 치느라 출근이 늦어지는 일은 없다.
+            한 번 들어오면 <strong>30일</strong> 동안 다시 묻지 않는다. 매일 출퇴근을 찍는 앱이라
+            매장 앞에서 비밀번호를 치느라 출근이 늦어지면 안 된다.
           </p>
 
-          <h2 class="h-lg" style="margin: 26px 0 10px">막다른 길이 사라졌다</h2>
+          <h2 class="h-lg" style="margin: 26px 0 10px">링크가 아니라 핀으로 바꾼 이유</h2>
           <p class="p">
-            처음 그렸을 때는 비밀번호를 잊으면 직원이 할 수 있는 일이 없었다. 명세가 정한 유일한
-            경로가 관리자에게 초기화를 요청하는 것이라, 관리자가 자고 있으면 직원도 기다려야 했다.
-            아침 일찍 여는 매장에서 출근을 못 찍으면 그대로 급여 분쟁이 된다.
+            처음에는 문자로 재설정 링크를 보내는 방식이었다. 그런데 링크는 누르는 순간
+            <strong>앱에서 열지 웹에서 열지를 정해야 한다.</strong> 비밀번호를 잊은 사람은 앱이
+            로그인 화면에 멈춰 있으니 앱 안에 그 화면을 둘 자리가 없었다. 내 정보 화면에 넣어
+            두었더니 로그인해야 들어가는 자리에 로그인 못 하는 사람을 보내는 모순이 생겼다.
           </p>
           <p class="p" style="margin-top: 10px">
-            이제 <strong>본인이 문자 인증으로 직접 재설정</strong>할 수 있다. 관리자 초기화 경로도
-            그대로 남아 있어 번호가 바뀌어 문자를 못 받는 경우를 받아 준다. 계정이 잠겼을 때도
-            기다리는 것 말고 <strong>비밀번호를 다시 정해 바로 들어오는</strong> 길을 뒀다.
+            핀은 앱 안에서 입력하므로 그 분기가 사라진다. 메일 클라이언트가 링크를 미리 열어
+            1회용 토큰을 태워버리는 사고도 없고, 사용자가 흐름을 벗어나지 않는다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">막다른 길을 만들지 않는다</h2>
+          <p class="p">
+            핀에는 유효시간과 시도 횟수, 쿨다운이 겹쳐 있어 자칫 사용자가 갇힌다. 그래서 어느
+            화면에서도 빠져나갈 길을 하나 남겼다. 쿨다운 중에는 <strong>기다리는 대신 다시
+            받기</strong>가 있고, 만료됐으면 <strong>다시 받기</strong>가 있다. 계정이 잠겼을 때도
+            기다리는 것 말고 <strong>비밀번호를 다시 정해 바로 들어오는</strong> 길이 있다.
           </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">정해진 것</h2>
@@ -402,22 +611,22 @@
             <div class="gap__head">
               <span class="gap__no">LOGIN-1</span>
               <span class="gap__t">무엇으로 로그인하는가</span>
-              <span class="gap__st gap__st--fixed">확정 · 휴대전화</span>
+              <span class="gap__st gap__st--fixed">확정 · 이메일</span>
               <span class="gap__ref">S-PHHICH</span>
             </div>
             <div class="gap__opts">
               <div class="gap__opt is-picked">
-                <div class="gap__label">A · 휴대전화 번호</div>
+                <div class="gap__label">A · 이메일 아이디</div>
                 <p>
-                  본인인증한 번호가 이미 사람을 가리는 열쇠다. 초대 연결과 소속 확인이 그 번호로
-                  판정된다. 현장 직원에게 업무용 이메일이 없는 경우가 많다.
+                  가입 단계에서 직원이 정한다. 비밀번호를 잊었을 때 핀을 받는 곳과 같아서 흐름이
+                  하나로 이어진다.
                 </p>
               </div>
               <div class="gap__opt is-dropped">
-                <div class="gap__label">B · 이메일</div>
+                <div class="gap__label">B · 휴대전화 번호</div>
                 <p>
-                  관리자 웹과 방식이 같아지지만, 번호를 바꾸면 로그인 아이디와 매칭 키가 따로 놀게
-                  된다.
+                  본인인증 값이라 도달이 확실하지만, 번호를 바꾸면 아이디와 매칭 키가 함께 움직여
+                  얽힌다.
                 </p>
               </div>
             </div>
@@ -426,72 +635,107 @@
           <div class="gap is-decided">
             <div class="gap__head">
               <span class="gap__no">LOGIN-2</span>
-              <span class="gap__t">직원이 스스로 비밀번호를 찾을 수 있는가</span>
-              <span class="gap__st gap__st--fixed">확정 · 두 경로</span>
+              <span class="gap__t">비밀번호를 잊으면 어떻게 찾는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 이메일 핀</span>
               <span class="gap__ref">S-WSPEYJ</span>
             </div>
-            <div class="gap__one">
-              <p>
-                <b>본인 문자 인증과 관리자 초기화를 모두 제공한다.</b> 본인인증된 번호가 이미 있으니
-                문자 인증만으로 바로 재설정할 수 있어 새벽이나 주말에도 막히지 않는다. 번호가 바뀌어
-                문자를 못 받는 경우를 위해 관리자 초기화 경로를 남겼다.
-              </p>
-              <p>재설정이 끝나면 다른 기기의 로그인도 모두 끊긴다.</p>
+            <div class="gap__opts">
+              <div class="gap__opt is-dropped">
+                <div class="gap__label">A · 문자 재설정 링크</div>
+                <p>
+                  본인인증한 휴대전화로 링크를 보낸다. 도달은 확실하지만 링크를 앱에서 열지 웹에서
+                  열지를 정해야 하고, 로그인 못 하는 사람에게 앱 안의 자리가 없다.
+                </p>
+              </div>
+              <div class="gap__opt is-picked">
+                <div class="gap__label">B · 이메일 핀 · 이 화면</div>
+                <p>
+                  아이디 이메일로 <b>여섯 자리 인증번호</b>를 보내고 앱에서 입력받는다. 열고 닫는
+                  분기가 없다. 관리자 초기화는 핀 없이 임시 비밀번호를 이메일로 보내는 보조 경로로
+                  남았다.
+                </p>
+              </div>
             </div>
           </div>
 
           <div class="gap is-decided">
             <div class="gap__head">
               <span class="gap__no">LOGIN-3</span>
-              <span class="gap__t">로그인을 얼마나 유지하는가</span>
-              <span class="gap__st gap__st--fixed">확정 · 30일</span>
-              <span class="gap__ref">S-PHHICH</span>
+              <span class="gap__t">핀을 얼마나 쓰고 몇 번 틀릴 수 있는가</span>
+              <span class="gap__st gap__st--fixed">확정</span>
+              <span class="gap__ref">S-WSPEYJ</span>
             </div>
             <div class="gap__one">
               <p>
-                마지막 접속으로부터 <b>30일</b> 유지하고 그 뒤에는 다시 로그인한다. 매일 출퇴근을
-                찍는 앱이라 짧으면 쓸 수 없고, 무한정 열어 두면 폰을 잃어버렸을 때 근무·급여 정보가
-                그대로 노출된다.
+                <b>여섯 자리 숫자와 영문자</b>를 섞어 발급하고 <b>10분</b> 동안 쓸 수 있다. 입력은
+                <b>5회</b>까지 시도할 수 있고, 넘기면 <b>1분·3분·5분</b> 순서로 기다린다. 기다리는
+                단계는 <b>세 번</b>까지만 인정하고 그 뒤에는 다시 받아야 한다.
               </p>
-              <p>만료되어 튕겨도 보던 화면을 기억해 다시 로그인한 뒤 그 자리로 돌아간다.</p>
+              <p>
+                유효시간과 기다림 횟수는 각각 따로 세며 <b>먼저 걸리는 쪽</b>을 적용한다. 기다릴
+                차례가 남아 있어도 10분이 지나면 만료다. 실제로는 대개 두 번째 쿨다운에서 만료가
+                먼저 온다.
+              </p>
             </div>
           </div>
 
           <div class="gap is-decided">
             <div class="gap__head">
               <span class="gap__no">LOGIN-4</span>
-              <span class="gap__t">지문·얼굴로 열 것인가</span>
-              <span class="gap__st gap__st--fixed">확정 · 1차 제외</span>
+              <span class="gap__t">로그인을 얼마나 유지하는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 30일</span>
               <span class="gap__ref">S-PHHICH</span>
             </div>
             <div class="gap__one">
               <p>
-                1차 범위에서는 제공하지 않는다. 접속을 30일 유지하므로 매번 인증할 일이 드물고,
-                생체 인증은 실패했을 때의 대체 경로까지 함께 설계해야 한다.
+                마지막 접속으로부터 <b>30일</b> 유지한다. 짧으면 출퇴근 앱으로 쓸 수 없고, 무한정
+                열어 두면 폰을 잃어버렸을 때 근무·급여 정보가 그대로 노출된다. 만료되어 튕겨도
+                보던 화면을 기억해 다시 로그인한 뒤 그 자리로 돌아간다.
               </p>
+              <p>1차 범위에서 지문·얼굴 인증은 제공하지 않는다.</p>
             </div>
           </div>
 
           <div class="gap is-decided">
             <div class="gap__head">
               <span class="gap__no">LOGIN-5</span>
-              <span class="gap__t">몇 번 틀리면 잠글 것인가</span>
+              <span class="gap__t">로그인을 몇 번 틀리면 잠그는가</span>
               <span class="gap__st gap__st--fixed">확정 · 5회</span>
               <span class="gap__ref">S-PHHICH</span>
             </div>
             <div class="gap__one">
               <p>
                 <b>5회 틀리면 일정 시간 잠그고 그 시간이 지나면 자동으로 풀린다.</b> 관리자를 거쳐야
-                풀리는 방식이 아니라서 막다른 길이 생기지 않는다. 잠긴 동안에도 비밀번호를 다시
-                정하면 바로 들어올 수 있다.
+                풀리는 방식이 아니라서 막다른 길이 생기지 않는다.
               </p>
-              <p>실패 안내는 번호와 비밀번호 중 어느 쪽이 틀렸는지 구분해 알려 주지 않는다.</p>
+              <p>
+                <b>비밀번호를 새로 정하면 잠금과 실패 횟수가 함께 지워진다.</b> 잠금을 푸는 길이
+                기다리는 것과 다시 정하는 것 두 가지다. 실패 안내는 이메일과 비밀번호 중 어느 쪽이
+                틀렸는지 구분해 주지 않는다.
+              </p>
             </div>
           </div>
 
           <div class="gap is-decided">
             <div class="gap__head">
               <span class="gap__no">LOGIN-6</span>
+              <span class="gap__t">관리자 초기화는 어떻게 동작하는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 임시 비밀번호</span>
+              <span class="gap__ref">S-WSPEYJ · S-PIXATL</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                관리자가 초기화를 요청하면 <b>시스템이 만든 비밀번호가 직원 이메일로</b> 간다.
+                관리자는 그 값을 정하지도 보지도 못한다. 받은 비밀번호는 <b>24시간</b> 유효하고,
+                그것으로 로그인한 직원은 <b>바로 새 비밀번호를 정해야</b> 한다.
+              </p>
+              <p>기본 경로는 직원이 스스로 이메일 핀으로 재설정하는 것이고 이쪽은 보조다.</p>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">LOGIN-7</span>
               <span class="gap__t">로그아웃을 어디에 두는가</span>
               <span class="gap__st gap__st--fixed">확정 · 내 정보</span>
               <span class="gap__ref">S-PHHICH</span>
@@ -504,43 +748,76 @@
             </div>
           </div>
 
+          <h2 class="h-lg" style="margin: 26px 0 10px">아직 열려 있는 것</h2>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">LOGIN-8</span>
+              <span class="gap__t">이메일을 못 받는 직원은 어떻게 하는가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-PIXATL</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                본인 핀도 관리자 초기화도 <b>둘 다 이메일로 간다.</b> 폰에 메일 앱을 설정하지 않은
+                직원이나 가입할 때 이메일을 잘못 적은 직원은 두 경로가 함께 막힌다.
+              </p>
+              <p>
+                관리자 웹 쪽에서 <b>이메일 아이디 변경 요청</b>을 두는 안이 올라가 있다. 관리자가
+                요청하면 직원의 본인인증 휴대전화로 문자 인증번호가 가고, 직원이 앱에서 그것을 넣고
+                새 이메일을 정하는 방식이다. 휴대전화는 이미 매칭 키로 쓰이니 새 수단을 만들지
+                않는다.
+              </p>
+            </div>
+          </div>
+
           <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
           <ul class="pol">
             <li>
               <span class="pol__src">S-PHHICH</span>
               <span
-                >본인인증한 휴대전화 번호와 비밀번호로 로그인한다. 접속은 마지막 접속으로부터 30일
-                유지한다.</span
+                >가입할 때 정한 이메일 아이디와 비밀번호로 로그인한다. 접속은 마지막 접속으로부터
+                30일 유지한다.</span
               >
             </li>
             <li>
               <span class="pol__src">S-PHHICH</span>
               <span
-                >5회 틀리면 일정 시간 잠그고 자동으로 풀린다. 실패 안내는 어느 값이 틀렸는지 구분해
-                주지 않는다.</span
-              >
-            </li>
-            <li>
-              <span class="pol__src">S-PHHICH</span>
-              <span
-                >1차 범위에서는 지문·얼굴 인증을 제공하지 않는다. 로그아웃은 내 정보 맨 아래에
-                둔다.</span
+                >5회 틀리면 일정 시간 잠그고 자동으로 풀린다. 비밀번호가 새로 정해지면 잠금과 실패
+                횟수를 지운다.</span
               >
             </li>
             <li>
               <span class="pol__src">S-WSPEYJ</span>
               <span
-                >재설정은 본인 문자 인증과 관리자 초기화 두 경로로 시작한다. 링크는 한 번만 쓰고
-                1시간 뒤 만료된다.</span
+                >핀은 숫자와 영문자를 섞은 여섯 자리로 발급하고 10분이 지나면 만료된다. 입력은 5회까지
+                시도할 수 있다.</span
               >
             </li>
             <li>
               <span class="pol__src">S-WSPEYJ</span>
-              <span>재설정이 끝나면 기존 접속을 모두 끊어 다른 기기에서도 다시 로그인하게 한다.</span>
+              <span
+                >쿨다운은 1분·3분·5분으로 늘어나고 세 번까지만 인정한다. 유효시간과 쿨다운 상한은
+                따로 재며 먼저 걸리는 쪽을 적용한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-WSPEYJ</span>
+              <span
+                >관리자 초기화는 핀을 거치지 않고 시스템이 만든 비밀번호를 이메일로 보낸다. 그
+                비밀번호는 24시간 유효하고 로그인 직후 새 비밀번호를 정해야 한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-WSPEYJ</span>
+              <span>재설정이 끝나면 기존 접속을 모두 끊고 잠금도 함께 지운다.</span>
             </li>
             <li>
               <span class="pol__src">S-YWYTJY</span>
-              <span>인증된 번호만 초대 연결과 소속 확인의 매칭 키로 쓴다.</span>
+              <span
+                >이메일은 로그인 아이디라 바로 고치지 못하고, 새 이메일로 핀을 받아 확인한 뒤에만
+                바꾼다.</span
+              >
             </li>
             <li>
               <span class="pol__src">S-PIXATL</span>
@@ -549,7 +826,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 앱 목업 · 로그인 · 2026년 9월 10일 · 상태 7개 · 시트 1개 · 쟁점 6건 모두 확정 ·
+            직원 앱 목업 · 로그인 · 2026년 9월 10일 · 상태 11개 · 시트 1개 · 쟁점 8건 중 7건 확정 ·
             F-WBHYLR
           </footer>
         </div>

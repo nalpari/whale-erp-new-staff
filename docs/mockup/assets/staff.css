@@ -793,6 +793,17 @@ body {
   background: var(--seal-tint);
 }
 
+/* 인증번호 입력 — 영문과 숫자만 들어오므로 자간을 벌려 한 자씩 읽히게 한다.
+   한글에는 이 값을 쓰지 않는다. */
+.input--pin {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-align: center;
+  min-height: 58px;
+}
+
 .field__help {
   font-size: 12px;
   color: var(--ink-3);

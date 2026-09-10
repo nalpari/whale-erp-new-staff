@@ -186,8 +186,14 @@
                         <p class="field__help">번호를 바꾸려면 새 번호로 본인인증을 다시 거칩니다.</p>
                       </div>
                       <div class="field">
-                        <label class="field__lab">이메일</label>
-                        <input class="input" type="email" value="haeun.lee@gmail.com" />
+                        <label class="field__lab">이메일 · 로그인 아이디</label>
+                        <div class="line" style="gap: 6px">
+                          <input class="input input--ro grow" type="email" value="haeun.lee@gmail.com" readonly />
+                          <button class="btn btn--sm btn--ghost" data-go="email">변경</button>
+                        </div>
+                        <p class="field__help">
+                          로그인할 때 쓰는 아이디라 새 이메일로 인증번호를 받아 확인한 뒤에 바뀝니다.
+                        </p>
                       </div>
                       <div class="field">
                         <label class="field__lab">주소</label>
@@ -326,38 +332,77 @@
               <button class="btn btn--ghost" data-go="view">취소</button>
             </div>
 
-            <!-- ── 관리자가 보낸 재설정 링크 ────────────────────── -->
-            <div class="view" data-when="reset">
-              <div class="card card--amber">
+            <!-- ── 이메일 아이디 변경 ───────────────────────────── -->
+            <div class="view" data-when="email">
+              <div class="stack stack-6">
+                <p class="h-lg">이메일을 바꾸면 아이디가 바뀝니다</p>
+                <p class="p--sm">
+                  새 이메일로 인증번호를 보냅니다. 확인이 끝나면 다음 로그인부터 새 이메일을
+                  씁니다.
+                </p>
+              </div>
+
+              <div class="card card--sunken">
                 <div class="line">
-                  <i class="ph-fill ph-link-simple" style="color: var(--amber); font-size: 18px"></i>
-                  <div class="grow">
-                    <p class="h-md" style="color: #6f4608">관리자가 보낸 재설정 링크</p>
-                    <p class="tiny" style="color: var(--amber)">남은 시간 14:59 · 010-****-7736 로 받음</p>
-                  </div>
+                  <span class="lab">지금 아이디</span>
+                  <span class="push num" style="font-size: 13px">haeun.lee@gmail.com</span>
                 </div>
               </div>
-              <p class="p--sm">
-                현재 비밀번호는 확인하지 않습니다. 본인인증된 휴대전화로 온 링크이기 때문입니다. 새
-                비밀번호를 바로 정합니다.
-              </p>
+
               <div class="field">
-                <label class="field__lab">새 비밀번호</label>
-                <input class="input" type="password" placeholder="영문·숫자·특수문자 조합 8자 이상" />
+                <label class="field__lab">새 이메일</label>
+                <input class="input" type="email" placeholder="새로 쓸 이메일" />
               </div>
-              <div class="field">
-                <label class="field__lab">새 비밀번호 확인</label>
-                <input class="input" type="password" />
+
+              <div class="note note--amber">
+                <i class="ph-fill ph-warning"></i>
+                <div>
+                  비밀번호를 잊었을 때 인증번호가 이 주소로 갑니다. <strong>받을 수 있는
+                  주소</strong>인지 확인해 주세요.
+                </div>
               </div>
-              <div class="note">
-                <i class="ph ph-info"></i>
-                <div>링크는 발급 후 일정 시간이 지나면 만료됩니다. 만료되면 관리자에게 재발급을 요청해 주세요.</div>
-              </div>
+
               <div class="grow"></div>
             </div>
 
-            <div class="dock" data-when="reset">
-              <button class="btn" data-go="view" data-toast="비밀번호를 새로 정했습니다">비밀번호 정하기</button>
+            <!-- ── 이메일 인증번호 입력 ─────────────────────────── -->
+            <div class="view" data-when="email-pin">
+              <div class="stack stack-6">
+                <p class="h-lg">새 이메일로 보낸 번호를 넣어 주세요</p>
+                <p class="p--sm"><span class="num">haeun.new****@gmail.com</span> 으로 보냈습니다.</p>
+              </div>
+
+              <div class="field">
+                <label class="field__lab">인증번호</label>
+                <input
+                  class="input input--pin"
+                  value="9T4X1P"
+                />
+              </div>
+
+              <div class="line line--between">
+                <span class="tiny" style="color: var(--pen)">남은 시간 <b class="num">09:12</b></span>
+                <span class="tiny">남은 시도 <b class="num">5</b>회</span>
+              </div>
+
+              <div class="note">
+                <i class="ph ph-info"></i>
+                <div>확인이 끝날 때까지 아이디는 그대로 이전 이메일입니다.</div>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <div class="dock" data-when="email">
+              <button class="btn" data-go="email-pin" data-toast="새 이메일로 인증번호를 보냈습니다">
+                인증번호 받기
+              </button>
+              <button class="btn btn--quiet" data-go="view">그대로 두기</button>
+            </div>
+
+            <div class="dock" data-when="email-pin">
+              <button class="btn" data-go="view" data-toast="아이디를 새 이메일로 바꿨습니다">확인</button>
+              <button class="btn btn--quiet" data-go="email">이메일 다시 입력</button>
             </div>
 
             <!-- ── 소속 근무지 ──────────────────────────────────── -->
@@ -482,11 +527,18 @@
                 <span class="sw-b__k">5</span>
                 <span><span class="sw-b__t">비밀번호 변경</span> <span class="sw-b__d">· 본인이 직접</span></span>
               </button>
-              <button class="sw-b" data-state="reset">
+              <button class="sw-b" data-state="email">
                 <span class="sw-b__k">6</span>
                 <span
-                  ><span class="sw-b__t">관리자 재설정 링크</span>
-                  <span class="sw-b__d">· 현재 비밀번호 안 물음</span></span
+                  ><span class="sw-b__t">이메일 변경</span>
+                  <span class="sw-b__d">· 아이디가 바뀐다</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="email-pin">
+                <span class="sw-b__k">7</span>
+                <span
+                  ><span class="sw-b__t">새 이메일 인증</span>
+                  <span class="sw-b__d">· 10분 · 5회</span></span
                 >
               </button>
               <button class="sw-b" data-state="sites">
