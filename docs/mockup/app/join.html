@@ -32,6 +32,11 @@
          고용 형태만 보여주고 기존 계정 정보를 노출하지 않는다. 이 개인정보
          경계가 이 화면의 핵심이다.
 
+         수락은 소속 연결까지이고 근무 조건 합의는 계약서 날인이다. 명세의
+         '연결 또는 수락이 완료되면 자동 발송된 근로계약서를 조회할 수 있게
+         한다' 가 두 경로에 같이 걸리므로, 소속 추가 완료도 신규 가입처럼
+         계약서로 이어진다.
+
          근거 : S-RFOEAG · S-VZBTHL -->
     <a class="skip" href="#main">본문으로 건너뛰기</a>
 
@@ -333,6 +338,14 @@
                 </div>
               </div>
 
+              <div class="note note--pen">
+                <i class="ph ph-file-text"></i>
+                <div>
+                  <strong>여기서 수락하는 것은 소속 연결까지입니다.</strong> 시급·근무 시간대를
+                  포함한 근무 조건은 수락한 뒤 도착하는 근로계약서에서 확인하고 날인합니다.
+                </div>
+              </div>
+
               <div class="grow"></div>
             </div>
 
@@ -359,6 +372,14 @@
                     >
                     <span class="push num" style="font-size: 13px">계약 · 급여 · 출퇴근</span>
                   </div>
+                </div>
+              </div>
+
+              <div class="note note--pen" style="text-align: left">
+                <i class="ph-fill ph-file-text"></i>
+                <div>
+                  이 소속의 <strong>근로계약서가 발송되었습니다.</strong> 날인해야 근무가
+                  시작됩니다.
                 </div>
               </div>
             </div>
@@ -452,7 +473,8 @@
             </div>
 
             <div class="dock" data-when="addsite-done">
-              <a class="btn" href="home.html">홈으로</a>
+              <a class="btn" href="contract.html"><i class="ph-fill ph-file-text"></i>계약서 보러 가기</a>
+              <a class="btn btn--quiet" href="home.html">홈으로</a>
             </div>
 
             <div class="dock" data-when="expired">
