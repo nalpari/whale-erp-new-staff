@@ -1,0 +1,317 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "로그인과 계정 유지 — 잠금과 재설정까지",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "happy",
+        "label": "들어오고 머무르기",
+        "focus": [
+          "login",
+          "auth",
+          "session"
+        ],
+        "note": "이메일과 비밀번호로 들어온다. 마지막 접속으로부터 30일이 지나면 다시 로그인한다."
+      },
+      {
+        "id": "locked",
+        "label": "다섯 번 틀렸을 때",
+        "focus": [
+          "auth",
+          "locked",
+          "forgot",
+          "newpw"
+        ],
+        "note": "잠금을 푸는 길이 두 가지다. 기다려서 자동으로 풀리거나, 비밀번호를 다시 정해 바로 들어온다."
+      },
+      {
+        "id": "reset",
+        "label": "비밀번호를 잊었을 때",
+        "focus": [
+          "forgot",
+          "mailpin",
+          "pinin",
+          "cool",
+          "newpw"
+        ],
+        "note": "이메일로 인증번호를 받는다. 10분 안에 넣어야 하고 다섯 번 틀리면 쿨다운이 붙는다."
+      }
+    ],
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "앱 화면"
+        },
+        "security": {
+          "label": "판정 · 예외"
+        },
+        "messagebus": {
+          "label": "이메일 발송"
+        },
+        "database": {
+          "label": "기록"
+        },
+        "external": {
+          "label": "관리자 웹"
+        }
+      }
+    },
+    "viewBox": [
+      1030,
+      660
+    ]
+  },
+  "lanes": [
+    {
+      "id": "mail",
+      "label": "이메일 · 관리자"
+    },
+    {
+      "id": "app",
+      "label": "직원 앱 화면"
+    },
+    {
+      "id": "sys",
+      "label": "시스템"
+    },
+    {
+      "id": "exc",
+      "label": "잠금 · 쿨다운",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "p-in",
+      "label": "로그인",
+      "fromCol": 0,
+      "toCol": 1,
+      "variant": "emphasis"
+    },
+    {
+      "id": "p-pin",
+      "label": "인증번호",
+      "fromCol": 2,
+      "toCol": 3
+    },
+    {
+      "id": "p-new",
+      "label": "다시 정하기",
+      "fromCol": 4,
+      "toCol": 5
+    }
+  ],
+  "groups": [
+    {
+      "id": "g-cool",
+      "label": "1 · 3 · 5분 세 번까지",
+      "lane": "exc",
+      "fromCol": 3,
+      "toCol": 3,
+      "variant": "security"
+    },
+    {
+      "id": "g-mail",
+      "label": "LOGIN-8 · 메일을 못 받는 직원은 미정",
+      "lane": "mail",
+      "fromCol": 3,
+      "toCol": 3,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": [
+    "login",
+    "auth",
+    "session"
+  ],
+  "nodes": [
+    {
+      "id": "reset",
+      "lane": "mail",
+      "col": 0,
+      "type": "external",
+      "label": "관리자 초기화",
+      "width": 150
+    },
+    {
+      "id": "login",
+      "lane": "app",
+      "col": 0,
+      "type": "frontend",
+      "label": "로그인",
+      "sublabel": "이메일이 아이디",
+      "width": 145
+    },
+    {
+      "id": "auth",
+      "lane": "sys",
+      "col": 1,
+      "type": "security",
+      "label": "인증 판정",
+      "sublabel": "다섯 번까지 재시도",
+      "width": 160,
+      "tag": "LOGIN-5"
+    },
+    {
+      "id": "forgot",
+      "lane": "app",
+      "col": 2,
+      "type": "frontend",
+      "label": "비밀번호 찾기",
+      "sublabel": "이메일 입력",
+      "width": 145
+    },
+    {
+      "id": "locked",
+      "lane": "exc",
+      "col": 1,
+      "type": "security",
+      "label": "계정 잠금",
+      "sublabel": "기다리면 자동 해제",
+      "width": 160
+    },
+    {
+      "id": "mailpin",
+      "lane": "mail",
+      "col": 3,
+      "type": "messagebus",
+      "label": "인증번호 메일",
+      "sublabel": "10분 유효",
+      "width": 145
+    },
+    {
+      "id": "pinin",
+      "lane": "app",
+      "col": 3,
+      "type": "frontend",
+      "label": "인증번호 입력",
+      "sublabel": "다섯 번까지",
+      "width": 145
+    },
+    {
+      "id": "cool",
+      "lane": "exc",
+      "col": 3,
+      "type": "security",
+      "label": "재시도 쿨다운",
+      "sublabel": "1·3·5분 뒤 재시도",
+      "width": 155
+    },
+    {
+      "id": "newpw",
+      "lane": "app",
+      "col": 4,
+      "type": "frontend",
+      "label": "새 비밀번호",
+      "sublabel": "잠금도 풀림",
+      "width": 140
+    },
+    {
+      "id": "session",
+      "lane": "sys",
+      "col": 5,
+      "type": "database",
+      "label": "접속 유지",
+      "sublabel": "마지막 접속 30일",
+      "width": 155,
+      "tag": "LOGIN-4"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-reset-login",
+      "from": "reset",
+      "to": "login",
+      "label": "임시 비밀번호 · 24시간",
+      "role": "branch"
+    },
+    {
+      "id": "e-login-auth",
+      "from": "login",
+      "to": "auth",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-auth-session",
+      "from": "auth",
+      "to": "session",
+      "label": "일치",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-auth-locked",
+      "from": "auth",
+      "to": "locked",
+      "label": "다섯 번 실패",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "e-auth-newpw",
+      "from": "auth",
+      "to": "newpw",
+      "label": "임시 비밀번호",
+      "role": "branch"
+    },
+    {
+      "id": "e-login-forgot",
+      "from": "login",
+      "to": "forgot",
+      "label": "비밀번호를 잊음",
+      "role": "branch"
+    },
+    {
+      "id": "e-forgot-mailpin",
+      "from": "forgot",
+      "to": "mailpin",
+      "role": "branch"
+    },
+    {
+      "id": "e-mailpin-pinin",
+      "from": "mailpin",
+      "to": "pinin",
+      "role": "branch"
+    },
+    {
+      "id": "e-pinin-newpw",
+      "from": "pinin",
+      "to": "newpw",
+      "label": "일치",
+      "role": "branch"
+    },
+    {
+      "id": "e-pinin-cool",
+      "from": "pinin",
+      "to": "cool",
+      "label": "다섯 번 실패",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "e-newpw-session",
+      "from": "newpw",
+      "to": "session",
+      "label": "다시 로그인",
+      "variant": "default",
+      "role": "branch"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "확정된 결정",
+      "items": [
+        "아이디는 이메일 · 실패 5회면 잠금 · 인증번호는 10분에 5회, 쿨다운은 1·3·5분 세 번까지 · 비밀번호를 새로 정하면 잠금과 실패 횟수가 함께 지워진다"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "여기서 하지 않는 것",
+      "items": [
+        "관리자 초기화는 관리자 웹의 동작이라 요청만 그렸다 · 비밀번호 작성 규칙은 내 정보 화면에 적었다 · 메일을 못 받는 직원의 길(LOGIN-8)은 미정"
+      ]
+    }
+  ]
+}
