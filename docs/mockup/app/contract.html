@@ -96,6 +96,15 @@
                     <i class="ph ph-caret-right row__chev"></i>
                   </div>
 
+                  <div class="row" data-go="detail" role="button" tabindex="0" style="cursor: pointer">
+                    <div class="row__main">
+                      <p class="row__title">웨일카페 홍대점 · 파트타이머</p>
+                      <p class="row__sub" style="color: var(--amber)">날인 기한 2026-10-11 · D-30</p>
+                    </div>
+                    <div class="row__end"><span class="badge badge--amber">서명 대기</span></div>
+                    <i class="ph ph-caret-right row__chev"></i>
+                  </div>
+
                   <div class="row" data-go="readonly" role="button" tabindex="0" style="cursor: pointer">
                     <div class="row__main">
                       <p class="row__title">웨일카페 홍대점 · 정직원</p>
@@ -134,8 +143,8 @@
                 </div>
               </div>
               <p class="tiny">
-                날인 기한은 발송일로부터 30일입니다. 기한이 얼마 남지 않은 계약은 강조색으로
-                표시합니다.
+                날인 기한은 발송일로부터 30일입니다. 서명 대기를 위로 올리고 그중 기한이 급한
+                것을 먼저 보여줍니다.
               </p>
             </div>
 
@@ -510,6 +519,13 @@
           <p class="p" style="margin-top: 10px">
             여섯 상태 중 <b>발송 대기</b>는 이 화면에 나오지 않는다. 가입이나 소속 확인이 끝나기
             전에는 계약서가 아직 이 직원에게 뜨지 않기 때문이다.
+          </p>
+          <p class="p" style="margin-top: 10px">
+            <b>소속이 여럿이면 서명 대기도 여럿이 된다.</b> 목록의 모든 행이 점포 이름으로
+            시작하고, 정렬은 서명 대기를 위로 올린 다음 기한이 급한 순이다. 다만 방금 추가된
+            소속의 계약서는 기한이 30일 남아 서명 대기 중에서도 아래로 밀린다. 그래서 가입
+            완료와 소속 추가 완료 화면은 이 목록을 거치지 않고 <b>그 계약서 상세로 바로</b>
+            보낸다. 홈의 대기 카드도 1건일 때는 상세로 직행한다.
           </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">목록을 넘기는 방식</h2>

@@ -14,6 +14,7 @@
      data-sheet-close          시트를 닫는다
      data-clock                실시간 시계 (상태바)
      data-tick                 누르면 켜지고 꺼지는 스위치·체크
+     …#상태이름               주소 끝에 붙이면 그 상태로 시작한다
    ──────────────────────────────────────────────────────────────── */
 (function () {
   "use strict";
@@ -178,6 +179,14 @@
   /* ── 시작 ──────────────────────────────────────────────────── */
 
   document.addEventListener("DOMContentLoaded", function () {
+    /* contract.html#detail 처럼 다른 화면에서 특정 상태로 바로 들어올 수 있게 */
+    var want = location.hash.slice(1);
+    var first = document.querySelector(".phone");
+    if (/^[\w-]+$/.test(want) && first && first.querySelector('[data-when~="' + want + '"]')) {
+      /* 원래 시작 상태를 쌓아 둬야 직행해서 들어와도 뒤로가기가 산다 */
+      history.push(first.dataset.state);
+      first.dataset.state = want;
+    }
     document.querySelectorAll(".phone").forEach(apply);
     document.querySelectorAll("[data-sheet-id]").forEach(function (el) {
       el.hidden = true;
