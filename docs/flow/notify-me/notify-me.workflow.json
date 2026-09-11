@@ -1,0 +1,284 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "알림과 내 정보 — 받는 것과 고치는 것",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "noti",
+        "label": "알림이 오면",
+        "focus": [
+          "notify",
+          "inbox",
+          "jump"
+        ],
+        "note": "알림은 계약·급여·스케줄에서 나온다. 알림함에서 누르면 그 화면으로 바로 간다."
+      },
+      {
+        "id": "me",
+        "label": "내 정보를 고치기",
+        "focus": [
+          "home",
+          "me",
+          "change",
+          "verify",
+          "fail"
+        ],
+        "note": "고칠 수 있는 것은 연락처와 비밀번호뿐이다. 휴대폰 번호와 이메일은 인증을 통과해야 바뀐다."
+      },
+      {
+        "id": "locked",
+        "label": "고칠 수 없는 값",
+        "focus": [
+          "me",
+          "readonly",
+          "out"
+        ],
+        "note": "이름과 생년월일은 본인인증이 정하고 소속과 고용 형태는 근로계약이 정한다. 앱에서는 볼 뿐이다."
+      }
+    ],
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "앱 화면"
+        },
+        "security": {
+          "label": "판정 · 예외"
+        },
+        "messagebus": {
+          "label": "알림 발송"
+        },
+        "database": {
+          "label": "기록"
+        }
+      }
+    },
+    "viewBox": [
+      1084,
+      652
+    ]
+  },
+  "lanes": [
+    {
+      "id": "noti",
+      "label": "알림"
+    },
+    {
+      "id": "app",
+      "label": "직원 앱 화면"
+    },
+    {
+      "id": "sys",
+      "label": "시스템"
+    },
+    {
+      "id": "exc",
+      "label": "막히는 경우",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "p-in",
+      "label": "들어가기",
+      "fromCol": 0,
+      "toCol": 1,
+      "variant": "emphasis"
+    },
+    {
+      "id": "p-edit",
+      "label": "고치기",
+      "fromCol": 2,
+      "toCol": 3
+    }
+  ],
+  "groups": [
+    {
+      "id": "g-inbox",
+      "label": "ATT-7 · 스무 건씩 더 보기",
+      "lane": "noti",
+      "fromCol": 1,
+      "toCol": 1,
+      "variant": "dashed"
+    },
+    {
+      "id": "g-verify",
+      "label": "인증된 번호만 매칭 키로 쓴다",
+      "lane": "sys",
+      "fromCol": 3,
+      "toCol": 3,
+      "variant": "security"
+    }
+  ],
+  "mainPath": [
+    "home",
+    "me",
+    "change",
+    "verify"
+  ],
+  "nodes": [
+    {
+      "id": "notify",
+      "lane": "noti",
+      "col": 0,
+      "type": "messagebus",
+      "label": "알림 발송",
+      "sublabel": "계약 · 급여 · 근무",
+      "width": 160
+    },
+    {
+      "id": "inbox",
+      "lane": "noti",
+      "col": 1,
+      "type": "frontend",
+      "label": "알림함",
+      "sublabel": "쌓이는 목록",
+      "width": 145
+    },
+    {
+      "id": "jump",
+      "lane": "noti",
+      "col": 2,
+      "type": "frontend",
+      "label": "그 화면으로",
+      "sublabel": "눌러서 바로",
+      "width": 150
+    },
+    {
+      "id": "home",
+      "lane": "app",
+      "col": 0,
+      "type": "frontend",
+      "label": "홈",
+      "sublabel": "탭으로 오간다",
+      "width": 140
+    },
+    {
+      "id": "me",
+      "lane": "app",
+      "col": 1,
+      "type": "frontend",
+      "label": "내 정보",
+      "sublabel": "고칠 것만 열림",
+      "width": 150
+    },
+    {
+      "id": "change",
+      "lane": "app",
+      "col": 2,
+      "type": "frontend",
+      "label": "내 것 고치기",
+      "sublabel": "연락처 · 비밀번호",
+      "width": 160
+    },
+    {
+      "id": "readonly",
+      "lane": "sys",
+      "col": 2,
+      "type": "database",
+      "label": "읽기 전용 값",
+      "sublabel": "이름 · 소속 · 고용",
+      "width": 160
+    },
+    {
+      "id": "verify",
+      "lane": "sys",
+      "col": 3,
+      "type": "security",
+      "label": "본인인증 · 핀",
+      "sublabel": "통과해야 바뀐다",
+      "width": 160
+    },
+    {
+      "id": "fail",
+      "lane": "exc",
+      "col": 3,
+      "type": "security",
+      "label": "인증 실패",
+      "sublabel": "값은 그대로",
+      "width": 145
+    },
+    {
+      "id": "out",
+      "lane": "exc",
+      "col": 1,
+      "type": "security",
+      "label": "로그아웃",
+      "sublabel": "내 정보 맨 아래",
+      "width": 155
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-notify-inbox",
+      "from": "notify",
+      "to": "inbox",
+      "label": "도착"
+    },
+    {
+      "id": "e-inbox-jump",
+      "from": "inbox",
+      "to": "jump",
+      "label": "눌러서"
+    },
+    {
+      "id": "e-home-me",
+      "from": "home",
+      "to": "me",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-me-change",
+      "from": "me",
+      "to": "change",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-me-readonly",
+      "from": "me",
+      "to": "readonly",
+      "label": "고칠 수 없는 값",
+      "role": "branch"
+    },
+    {
+      "id": "e-me-out",
+      "from": "me",
+      "to": "out",
+      "label": "로그아웃",
+      "variant": "security",
+      "role": "branch"
+    },
+    {
+      "id": "e-change-verify",
+      "from": "change",
+      "to": "verify",
+      "label": "번호 · 이메일",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-verify-fail",
+      "from": "verify",
+      "to": "fail",
+      "label": "실패",
+      "variant": "security",
+      "role": "error"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "확정된 결정",
+      "items": [
+        "직원이 고치는 것은 연락처와 비밀번호뿐 · 휴대폰 번호는 본인인증, 이메일은 핀을 통과해야 바뀐다 · 이름·생년월일은 본인인증이, 소속·고용 형태는 근로계약이 정한다 · 로그아웃은 내 정보 맨 아래"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "여기서 하지 않는 것",
+      "items": [
+        "근무시간 외에 알림을 보낼지는 노무사·법무 확인이 남았다 · 관리자 초기화는 로그인 장에 있다 · 알림 종류별 설정 화면은 1차에 없다"
+      ]
+    }
+  ]
+}

@@ -14,8 +14,6 @@
       .card { display:flex; flex-direction:column; gap:4px; padding:16px 18px; background:var(--card); border:1px solid var(--line); border-radius:10px; color:inherit; text-decoration:none; }
       .card:hover { border-color:var(--acc); }
       .card b { font-size:15px; }
-      .card--soon { opacity:.55; }
-      .card--soon:hover { border-color:var(--line); }
       .area { font-family:ui-monospace, "JetBrains Mono", monospace; font-size:11px; color:var(--muted); letter-spacing:.04em; }
       .sub { color:var(--muted); font-size:12.5px; }
       .note { margin-top:28px; padding:14px 16px; border-left:3px solid var(--line); color:var(--muted); font-size:12.5px; }
@@ -42,19 +40,19 @@
         <b>출퇴근 등록</b>
         <span class="sub">위치로 현장을 확인한다 · ATT-1~6</span>
       </a>
-      <span class="card card--soon">
+      <a class="card" href="work-pay/work-pay.html?theme=light">
         <span class="area">work · pay</span>
         <b>근무와 급여 보기</b>
-        <span class="sub">기간 이동 · 더 보기 · TO-DO 완료</span>
-      </span>
-      <span class="card card--soon">
+        <span class="sub">범위와 목록 넘기기 · ATT-7</span>
+      </a>
+      <a class="card" href="notify-me/notify-me.html?theme=light">
         <span class="area">notify · me</span>
         <b>알림과 내 정보</b>
-        <span class="sub">알림함 · 연락처 변경 · 소속 조회</span>
-      </span>
+        <span class="sub">받는 것과 고치는 것</span>
+      </a>
       </div>
       <div class="note">
-        여섯 열 제한 때문에 앱 전체를 한 장에 넣지 않고 흐름 단위로 나눴다. 옅은 카드는 아직 그리지 않은 장이다.
+        여섯 열 제한 때문에 앱 전체를 한 장에 넣지 않고 흐름 단위로 다섯 장으로 나눴다.
         링크는 라이트 테마로 열리고(<code>?theme=light</code>), 한 번 고른 테마는 그 브라우저에 기억된다. 뷰어 버튼 글자는 영어다.
         원본은 각 폴더의 <code>*.workflow.json</code> 이고 archify 스킬로 다시 만든다. 목업의 결정이 바뀌면 그 장의 JSON 을 고쳐 다시 낸다.
         관리자 웹 쪽 플로우는 whale-erp-front 저장소의 <code>docs/flow</code> 에 있다.
