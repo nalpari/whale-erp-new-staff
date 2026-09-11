@@ -340,15 +340,31 @@ body {
   font-size: 19px;
 }
 
-/* 본문 */
+/* 본문
+   실제 폰처럼 넘치면 스크롤돼야 한다. 클리핑만 하면 화면 아래가 소리 없이
+   잘려서 회의에서 "여기 아래 뭐 있었죠" 가 된다. 스크롤막대는 감춘다.
+   안쪽에 .scroll 을 둔 화면은 그쪽이 먼저 공간을 먹어 여기는 넘치지 않는다. */
 .view {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   padding: 16px;
   background: var(--card);
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.view::-webkit-scrollbar {
+  display: none;
+}
+
+/* 넘칠 때 눌려서 찌그러지지 말고 스크롤되게 한다 */
+.view > * {
+  flex-shrink: 0;
 }
 
 .view--flush {
@@ -358,7 +374,7 @@ body {
   background: var(--card-2);
 }
 .view--center {
-  justify-content: center;
+  justify-content: safe center;
   text-align: center;
   gap: 18px;
 }

@@ -16,6 +16,7 @@
   6. 자간      — 한글에 양수 letter-spacing 을 주지 않았는가
   7. 쟁점      — 번호가 겹치지 않는가, 상태 표시가 붙었는가
   8. 출처      — 명세 ID 가 실재하는 형식인가
+  9. 스크롤    — 본문이 넘칠 때 잘리지 않고 스크롤되는가
 """
 
 import html.parser
@@ -108,6 +109,11 @@ def main():
     known = set(re.findall(r"\.([a-zA-Z][\w-]*)", css))
     # 아이콘과 상태 클래스는 CSS 에 다 적히지 않는다
     known |= {"ph", "ph-fill", "ph-bold", "ph-duotone"}
+
+    # 9. 스크롤 — 한때 .view 가 overflow:hidden 이라 긴 화면의 아래가 잘렸다
+    본문 = re.search(r"^\.view \{(.*?)^\}", css, re.S | re.M)
+    if not 본문 or "overflow-y: auto" not in 본문.group(1):
+        bad("assets/staff.css", ".view 가 스크롤되지 않는다 — 긴 화면의 아래가 잘린다")
 
     pages = sorted(ROOT.glob("*.html")) + sorted((ROOT / "app").glob("*.html"))
     if not pages:
