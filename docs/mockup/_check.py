@@ -135,7 +135,7 @@ def main():
         for href in p.hrefs:
             if href.startswith(("http", "#", "mailto:")):
                 continue
-            target = (page.parent / href.split("#")[0]).resolve()
+            target = (page.parent / href.split("#")[0].split("?")[0]).resolve()
             if not target.exists():
                 bad(rel, f"죽은 링크 → {href}")
 

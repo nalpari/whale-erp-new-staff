@@ -1,0 +1,347 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "가입과 계약 날인 — 초대 링크에서 체결까지",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "happy",
+        "label": "초대에서 체결까지",
+        "focus": [
+          "invite",
+          "token",
+          "signup",
+          "match",
+          "send",
+          "sign",
+          "done"
+        ],
+        "note": "초대 링크를 열어 계정을 만들고 본인인증을 마치면 계약서가 자동으로 도착한다. 날인하면 체결된다."
+      },
+      {
+        "id": "held",
+        "label": "번호가 어긋날 때",
+        "focus": [
+          "signup",
+          "match",
+          "held",
+          "send"
+        ],
+        "note": "본인인증 번호가 초대와 다르면 계정만 만들고 기다린다. 관리자가 승인해야 계약서가 온다."
+      },
+      {
+        "id": "multi",
+        "label": "이미 계정이 있을 때",
+        "focus": [
+          "token",
+          "addsite",
+          "sign",
+          "done"
+        ],
+        "note": "다른 점포에서 부른 것이라 가입을 다시 하지 않는다. 수락은 소속 연결까지이고 조건은 계약서에서 날인한다."
+      }
+    ],
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "앱 화면"
+        },
+        "security": {
+          "label": "판정 · 예외"
+        },
+        "messagebus": {
+          "label": "자동 발송"
+        },
+        "database": {
+          "label": "기록"
+        }
+      }
+    },
+    "viewBox": [
+      1040,
+      668
+    ]
+  },
+  "lanes": [
+    {
+      "id": "multi",
+      "label": "기존 계정"
+    },
+    {
+      "id": "app",
+      "label": "직원 앱 화면"
+    },
+    {
+      "id": "sys",
+      "label": "시스템"
+    },
+    {
+      "id": "exc",
+      "label": "예외 · 보류",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "p-enter",
+      "label": "진입",
+      "fromCol": 0,
+      "toCol": 1
+    },
+    {
+      "id": "p-join",
+      "label": "가입과 연결",
+      "fromCol": 2,
+      "toCol": 3,
+      "variant": "emphasis"
+    },
+    {
+      "id": "p-sign",
+      "label": "발송과 날인",
+      "fromCol": 4,
+      "toCol": 5
+    }
+  ],
+  "groups": [
+    {
+      "id": "g-held",
+      "label": "JOIN-3 · 최소 안내",
+      "lane": "exc",
+      "fromCol": 3,
+      "toCol": 3,
+      "variant": "security"
+    },
+    {
+      "id": "g-addsite",
+      "label": "JOIN-5 · 거절 사유 미정",
+      "lane": "multi",
+      "fromCol": 2,
+      "toCol": 2,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": [
+    "invite",
+    "token",
+    "signup",
+    "match",
+    "send",
+    "sign",
+    "done"
+  ],
+  "nodes": [
+    {
+      "id": "invite",
+      "lane": "app",
+      "col": 0,
+      "type": "frontend",
+      "label": "초대 링크 열기",
+      "sublabel": "토큰이 든 링크",
+      "width": 150
+    },
+    {
+      "id": "token",
+      "lane": "sys",
+      "col": 1,
+      "type": "security",
+      "label": "링크 판정",
+      "sublabel": "만료 · 가입 여부",
+      "width": 150
+    },
+    {
+      "id": "expired",
+      "lane": "exc",
+      "col": 1,
+      "type": "security",
+      "label": "만료 안내",
+      "sublabel": "재초대를 요청",
+      "tag": "초안은 그대로 남는다",
+      "width": 150
+    },
+    {
+      "id": "signup",
+      "lane": "app",
+      "col": 2,
+      "type": "frontend",
+      "label": "계정 등록 · 본인인증",
+      "sublabel": "이메일이 아이디",
+      "width": 170
+    },
+    {
+      "id": "match",
+      "lane": "sys",
+      "col": 3,
+      "type": "security",
+      "label": "연결 판정",
+      "sublabel": "토큰 + 인증 번호",
+      "width": 150,
+      "tag": "JOIN-1"
+    },
+    {
+      "id": "addsite",
+      "lane": "multi",
+      "col": 2,
+      "type": "frontend",
+      "label": "소속 추가 확인",
+      "sublabel": "점포 · 고용 형태만",
+      "width": 160
+    },
+    {
+      "id": "held",
+      "lane": "exc",
+      "col": 3,
+      "type": "security",
+      "label": "연결 보류",
+      "sublabel": "관리자 확인을 기다림",
+      "width": 165
+    },
+    {
+      "id": "send",
+      "lane": "sys",
+      "col": 4,
+      "type": "messagebus",
+      "label": "계약서 자동 발송",
+      "sublabel": "관리자 개입 없이",
+      "width": 160
+    },
+    {
+      "id": "sign",
+      "lane": "app",
+      "col": 4,
+      "type": "frontend",
+      "label": "계약서 날인 · 거부",
+      "sublabel": "본문 아래에 날인",
+      "width": 160
+    },
+    {
+      "id": "done",
+      "lane": "sys",
+      "col": 5,
+      "type": "database",
+      "label": "체결 완료",
+      "sublabel": "처리 완료본 보존",
+      "width": 150
+    },
+    {
+      "id": "reject",
+      "lane": "exc",
+      "col": 5,
+      "type": "security",
+      "label": "거부 · 만료",
+      "sublabel": "날인 기한 30일",
+      "width": 150
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-invite-token",
+      "from": "invite",
+      "to": "token",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-token-signup",
+      "from": "token",
+      "to": "signup",
+      "label": "새 계정",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-token-expired",
+      "from": "token",
+      "to": "expired",
+      "label": "30일 지남",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "e-token-addsite",
+      "from": "token",
+      "to": "addsite",
+      "label": "이미 가입한 계정",
+      "role": "branch"
+    },
+    {
+      "id": "e-signup-match",
+      "from": "signup",
+      "to": "match",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-match-send",
+      "from": "match",
+      "to": "send",
+      "label": "둘 다 일치",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-match-held",
+      "from": "match",
+      "to": "held",
+      "label": "번호 불일치",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "e-held-send",
+      "from": "held",
+      "to": "send",
+      "label": "관리자 승인",
+      "variant": "security",
+      "role": "return"
+    },
+    {
+      "id": "e-addsite-sign",
+      "from": "addsite",
+      "to": "sign",
+      "label": "수락 · 자동 발송",
+      "role": "branch"
+    },
+    {
+      "id": "e-send-sign",
+      "from": "send",
+      "to": "sign",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-sign-done",
+      "from": "sign",
+      "to": "done",
+      "label": "날인",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-sign-reject",
+      "from": "sign",
+      "to": "reject",
+      "label": "거부 · 기한 경과",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "e-reject-send",
+      "from": "reject",
+      "to": "send",
+      "label": "재발송",
+      "variant": "dashed",
+      "role": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "확정된 결정",
+      "items": [
+        "JOIN-1 토큰과 본인인증 번호가 다 맞을 때만 자동 연결 · JOIN-2 초대는 30일 · 수락은 소속 연결까지이고 근무 조건은 계약서에서 날인한다"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "여기서 하지 않는 것",
+      "items": [
+        "로그인과 비밀번호 재설정, 출퇴근 등록은 다른 장 · 보류 화면에서 무엇까지 알릴지(JOIN-3)와 거절 사유를 받을지(JOIN-5)는 미정"
+      ]
+    }
+  ]
+}
