@@ -32,8 +32,9 @@
          만들 때만 쓴다. 계약 데이터가 아니라 직원 레코드의 별도 항목으로
          수집 일시·목적과 함께 남는다.
 
-         정하지 않은 것은 건너뛸 수 있는지(TAX-4)와 급여 계좌를 같이 받을지
-         (TAX-5)다. 두 결정이 이 화면의 상태 수를 바꾼다.
+         건너뛸 수 없고(TAX-4) 급여 계좌를 같이 받는다(TAX-5). 둘 다 재영
+         승인으로 확정됐다. 남은 미정은 신고 서류를 누가 만드는지(TAX-6)
+         뿐이고, 처리방침 문구(TAX-7)는 법무가 쓴다.
 
          근거 : STAFF-16 · S-OIILIW -->
     <a class="skip" href="#main">본문으로 건너뛰기</a>
@@ -81,13 +82,13 @@
               ></a>
               <button
                 class="abar__back"
-                data-when="form later view"
+                data-when="form view"
                 data-go-back
                 style="background: none; border: none; padding: 0; cursor: pointer"
               >
                 <i class="ph ph-caret-left"></i>
               </button>
-              <span class="abar__title" data-when="intro form later">신고 정보</span>
+              <span class="abar__title" data-when="intro form">신고 정보</span>
               <span class="abar__title" data-when="view">등록된 신고 정보</span>
             </div>
 
@@ -96,11 +97,11 @@
               <div class="center stack-8" style="padding: 6px 0 2px">
                 <i class="ph-fill ph-identification-card" style="font-size: 28px; color: var(--pen)"></i>
                 <p class="h-xl">한 가지만 더 받습니다</p>
-                <p class="p">계약이 체결되었습니다. 이제 신고에 쓸 정보를 넣어 주세요.</p>
+                <p class="p">계약이 체결되었습니다. 신고와 급여에 쓸 정보를 넣어야 앱을 쓸 수 있습니다.</p>
               </div>
 
               <div class="card card--pen">
-                <p class="lab">이 값을 쓰는 곳</p>
+                <p class="lab">이 값들을 쓰는 곳</p>
                 <div class="rows" style="margin-top: 2px">
                   <div class="row" style="padding: 8px 0">
                     <i class="ph-fill ph-shield-check" style="color: var(--pen); font-size: 17px"></i>
@@ -114,6 +115,13 @@
                     <div class="row__main">
                       <p class="row__title">근로소득 원천징수</p>
                       <p class="row__sub">급여에서 떼는 세금을 신고할 때</p>
+                    </div>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <i class="ph-fill ph-bank" style="color: var(--pen); font-size: 17px"></i>
+                    <div class="row__main">
+                      <p class="row__title">급여 지급</p>
+                      <p class="row__sub">달마다 급여가 들어갈 계좌</p>
                     </div>
                   </div>
                 </div>
@@ -136,13 +144,19 @@
 
             <!-- ── 2 · 입력 ─────────────────────────────────────── -->
             <div class="view" data-when="form">
-              <p class="h-lg">주민등록번호</p>
-              <p class="p--sm">신고 서류에 그대로 들어갑니다. 다시 한 번 확인해 주세요.</p>
+              <p class="h-lg">주민등록번호와 급여 계좌</p>
+              <p class="p--sm">신고 서류와 급여 이체에 그대로 쓰입니다. 다시 한 번 확인해 주세요.</p>
 
               <div class="field">
                 <label class="field__lab" for="rrn">주민등록번호<span class="req">*</span></label>
                 <input class="input input--pin" id="rrn" type="text" value="900101-1234567" />
                 <p class="field__help">본인의 번호만 넣을 수 있습니다.</p>
+              </div>
+
+              <div class="field">
+                <label class="field__lab" for="bank">급여 계좌<span class="req">*</span></label>
+                <input class="input" id="bank" type="text" value="국민은행 123456-01-234567" />
+                <p class="field__help">예금주가 본인이어야 합니다. 급여는 이 계좌로 들어갑니다.</p>
               </div>
 
               <div class="card card--sunken">
@@ -172,38 +186,7 @@
               <div class="grow"></div>
             </div>
 
-            <!-- ── 3 · 나중에 하기 ──────────────────────────────── -->
-            <div class="view" data-when="later">
-              <div class="center stack-8" style="padding: 20px 0 2px">
-                <i class="ph ph-clock-countdown" style="font-size: 28px; color: var(--amber)"></i>
-                <p class="h-lg">나중에 넣으시겠어요</p>
-                <p class="p">근무와 출퇴근은 지금도 할 수 있습니다.</p>
-              </div>
-
-              <div class="card card--amber">
-                <div class="line">
-                  <i class="ph-fill ph-warning" style="color: var(--amber); font-size: 19px"></i>
-                  <div class="grow">
-                    <p class="h-md" style="color: #6f4608">4대보험 신고가 늦어집니다</p>
-                    <p class="tiny" style="color: var(--amber)">첫 급여 계산 전에는 넣어야 합니다</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="note">
-                <i class="ph ph-bell-ringing"></i>
-                <div>
-                  홈에 배너가 남고 <strong>주 1회 알림</strong>이 옵니다. 넣고 나면 둘 다
-                  사라집니다.
-                </div>
-              </div>
-
-              <p class="tiny center">이 화면이 필요한지는 아직 정하지 않았습니다 — TAX-4</p>
-
-              <div class="grow"></div>
-            </div>
-
-            <!-- ── 4 · 완료 ─────────────────────────────────────── -->
+            <!-- ── 3 · 완료 ─────────────────────────────────────── -->
             <div class="view view--center" data-when="done">
               <div style="display: grid; place-items: center">
                 <div class="seal">등록<br />완료</div>
@@ -215,8 +198,12 @@
               <div class="card card--sunken" style="text-align: left; width: 100%">
                 <div class="rows">
                   <div class="row" style="padding: 9px 0">
-                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">받은 값</span>
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">주민등록번호</span>
                     <span class="push num" style="font-size: 13px">900101-1******</span>
+                  </div>
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">급여 계좌</span>
+                    <span class="push num" style="font-size: 13px">국민 ******-01-234567</span>
                   </div>
                   <div class="row" style="padding: 9px 0">
                     <span class="row__title" style="font-weight: 500; font-size: 13.5px">받은 목적</span>
@@ -231,7 +218,7 @@
               <p class="tiny">내 정보에서 언제든 다시 확인하고 고칠 수 있습니다.</p>
             </div>
 
-            <!-- ── 5 · 등록된 값 보기 ───────────────────────────── -->
+            <!-- ── 4 · 등록된 값 보기 ───────────────────────────── -->
             <div class="view" data-when="view">
               <div class="card">
                 <p class="lab">주민등록번호</p>
@@ -239,6 +226,12 @@
                 <p class="tiny" style="margin-top: 6px">
                   뒷자리는 본인에게도 다시 보여주지 않습니다. 고치려면 새로 넣습니다.
                 </p>
+              </div>
+
+              <div class="card">
+                <p class="lab">급여 계좌</p>
+                <p class="num num--lg" style="margin-top: 4px">국민 ******-01-234567</p>
+                <p class="tiny" style="margin-top: 6px">계좌를 바꾸면 다음 급여부터 새 계좌로 들어갑니다.</p>
               </div>
 
               <div class="card card--sunken">
@@ -269,19 +262,15 @@
             <!-- ── 하단 ─────────────────────────────────────────── -->
             <div class="dock" data-when="intro">
               <button class="btn" data-go="form">
-                <i class="ph-fill ph-pencil-simple"></i>지금 넣기
+                <i class="ph-fill ph-pencil-simple"></i>넣기
               </button>
-              <button class="btn btn--quiet" data-go="later">나중에 하기</button>
+              <p class="tiny center" style="padding: 2px 0">
+                이 단계를 마쳐야 앱을 쓸 수 있습니다
+              </p>
             </div>
 
             <div class="dock" data-when="form">
               <button class="btn" data-go="done" data-toast="신고 정보를 받았습니다">등록하기</button>
-              <button class="btn btn--ghost" data-go-back>취소</button>
-            </div>
-
-            <div class="dock" data-when="later">
-              <button class="btn" data-go="form">역시 지금 넣기</button>
-              <a class="btn btn--ghost" href="home.html">홈으로</a>
             </div>
 
             <div class="dock" data-when="done">
@@ -319,7 +308,7 @@
           <div class="switcher">
             <div class="switcher__head">
               <p class="lab">상태 바꾸기</p>
-              <span class="switcher__hint">숫자키 1–5</span>
+              <span class="switcher__hint">숫자키 1–4</span>
             </div>
             <div class="switcher__body">
               <button class="sw-b" data-state="intro" aria-pressed="true">
@@ -330,16 +319,12 @@
                 <span class="sw-b__k">2</span>
                 <span><span class="sw-b__t">입력</span> <span class="sw-b__d">· 동의 체크 없음</span></span>
               </button>
-              <button class="sw-b" data-state="later">
-                <span class="sw-b__k">3</span>
-                <span><span class="sw-b__t">나중에 하기</span> <span class="sw-b__d">· TAX-4 미정</span></span>
-              </button>
               <button class="sw-b" data-state="done">
-                <span class="sw-b__k">4</span>
+                <span class="sw-b__k">3</span>
                 <span><span class="sw-b__t">완료</span> <span class="sw-b__d">· 수집 일시·목적</span></span>
               </button>
               <button class="sw-b" data-state="view">
-                <span class="sw-b__k">5</span>
+                <span class="sw-b__k">4</span>
                 <span><span class="sw-b__t">등록된 값</span> <span class="sw-b__d">· 내 정보에서</span></span>
               </button>
             </div>
@@ -370,7 +355,7 @@
           <p class="p">
             암호화해 저장하고 관리자 웹에는 가려진 형태로만 보낸다. 원본은 신고 서류를 만들 때만
             쓴다. 저장 위치도 계약 데이터가 아니라 직원 레코드의 별도 항목이고 수집 일시와 목적을
-            함께 남긴다. 완료 화면과 등록된 값 화면이 그 세 가지를 그대로 보여주는 이유다.
+            함께 남긴다. 완료 화면과 등록된 값 화면이 그것을 그대로 보여주는 이유다.
           </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">정할 것</h2>
@@ -422,62 +407,36 @@
             </div>
           </div>
 
-          <div class="gap">
+          <div class="gap is-decided">
             <div class="gap__head">
               <span class="gap__no">TAX-4</span>
               <span class="gap__t">건너뛸 수 있게 할 것인가</span>
-              <span class="gap__st gap__st--open">미정</span>
-              <span class="gap__ref">S-OIILIW</span>
+              <span class="gap__st gap__st--fixed">확정 · 반드시 입력</span>
+              <span class="gap__ref">S-RFOEAG</span>
             </div>
-            <div class="gap__opts">
-              <div class="gap__opt is-picked">
-                <div class="gap__label">A · 건너뛸 수 있다 · 이 목업</div>
-                <p>
-                  나중에 하기를 누르면 홈에 배너가 남고 주 1회 알림이 온다. 첫 급여를 계산하기
-                  전까지만 넣으면 된다. 출퇴근은 그동안에도 찍을 수 있다.
-                </p>
-              </div>
-              <div class="gap__opt">
-                <div class="gap__label">B · 반드시 넣어야 한다</div>
-                <p>
-                  넣기 전에는 앱의 다른 화면으로 갈 수 없다. 신고가 늦어지는 일은 없지만 점포
-                  앞에서 출근을 찍어야 하는 사람을 붙잡아 두게 된다.
-                </p>
-              </div>
+            <div class="gap__one">
+              <p>
+                날인을 마치면 이 화면을 지나야 앱을 쓸 수 있다. 건너뛰는 길을 두지 않는다.
+                <b>4대보험 취득 신고에는 기한이 있고</b>, 미입력이 남으면 그 기한을 놓친다.
+                나중에 하기와 홈 배너·주 1회 알림으로 독촉하는 안은 버렸다.
+              </p>
             </div>
-            <div class="gap__one"><p>
-              A 를 그려 둔 이유는 첫 출근일과 계약 날인일이 같은 경우가 흔해서다. 다만 미입력이 오래
-              남으면 신고 기한을 놓친다. <strong>기한을 며칠로 볼지와 함께 정해야 한다.</strong>
-            </p></div>
           </div>
 
-          <div class="gap">
+          <div class="gap is-decided">
             <div class="gap__head">
               <span class="gap__no">TAX-5</span>
               <span class="gap__t">급여 계좌도 이 단계에서 받을 것인가</span>
-              <span class="gap__st gap__st--open">미정</span>
-              <span class="gap__ref">S-OIILIW</span>
+              <span class="gap__st gap__st--fixed">확정 · 같이 받음</span>
+              <span class="gap__ref">S-RFOEAG</span>
             </div>
-            <div class="gap__opts">
-              <div class="gap__opt is-picked">
-                <div class="gap__label">A · 같이 받는다</div>
-                <p>
-                  급여를 주려면 계좌가 있어야 하고, 직원이 한 번에 끝내는 편이 낫다. 화면 하나에 두
-                  가지를 넣는 대신 단계가 늘지 않는다.
-                </p>
-              </div>
-              <div class="gap__opt">
-                <div class="gap__label">B · 따로 받는다</div>
-                <p>
-                  주민등록번호는 신고용이고 계좌는 지급용이라 성격이 다르다. 첫 급여 계산 전까지만
-                  받으면 되므로 급여 화면에서 받아도 된다.
-                </p>
-              </div>
+            <div class="gap__one">
+              <p>
+                주민등록번호와 <b>급여 계좌를 한 화면에서</b> 받는다. 급여를 주려면 계좌가 있어야
+                하고, 직원이 한 번에 끝내는 편이 낫다. 계좌는 완료 화면과 내 정보에서 가려진
+                형태로 보이고, 바꾸면 다음 급여부터 새 계좌로 들어간다.
+              </p>
             </div>
-            <div class="gap__one"><p>
-              이 목업은 주민등록번호만 그렸다. 계좌를 같이 받기로 하면 입력 화면에 항목이 늘고 완료
-              화면의 표도 한 줄 늘어난다.
-            </p></div>
           </div>
 
           <div class="gap">
@@ -545,7 +504,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 신고 정보 · 2026년 9월 14일 · 상태 5개 · 시트 1개 · 쟁점 7건
+            직원 근무 앱 목업 · 신고 정보 · 2026년 9월 14일 · 상태 4개 · 시트 1개 · 쟁점 7건
           </footer>
         </div>
       </div>
