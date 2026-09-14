@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>신고 정보 · 직원 앱 · WHALE ERP</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Gowun+Batang:wght@400;700&display=swap"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+    <link rel="stylesheet" href="../assets/staff.css" />
+    <script src="../assets/app.js" defer></script>
+  </head>
+  <body data-area="app" data-screen="tax">
+    <!-- 직원 앱 · 신고 정보
+         주민등록번호는 근로계약서에 넣지 않는다. 계약서가 요구하는 것은
+         근로조건이고, 주민등록번호는 4대보험 취득 신고와 원천징수라는 다른
+         목적으로 법령이 처리를 허용하는 값이다. 그래서 받는 자리도 따로다 —
+         계약 날인을 마친 뒤 이 화면에서 직원이 직접 넣는다.
+
+         동의 체크를 두지 않는다. 법령 근거로 처리하는 값에 동의를 받으면
+         "동의하지 않으면 안 줘도 되는 것"처럼 읽혀 오히려 잘못된 안내가
+         된다. 대신 수집 목적을 화면에 그대로 적는다.
+
+         저장은 암호화하고, 관리자 웹에는 마스킹만 보낸다. 원본은 신고 서류를
+         만들 때만 쓴다. 계약 데이터가 아니라 직원 레코드의 별도 항목으로
+         수집 일시·목적과 함께 남는다.
+
+         정하지 않은 것은 건너뛸 수 있는지(TAX-4)와 급여 계좌를 같이 받을지
+         (TAX-5)다. 두 결정이 이 화면의 상태 수를 바꾼다.
+
+         근거 : STAFF-16 · S-OIILIW -->
+    <a class="skip" href="#main">본문으로 건너뛰기</a>
+
+    <div class="doc" id="main">
+      <header class="dochead">
+        <p class="dochead__kicker">직원 앱 · 신고 정보 · /tax</p>
+        <h1>신고 정보</h1>
+        <p>
+          계약서에 날인하고 나면 4대보험 취득 신고와 근로소득 원천징수에 쓸 주민등록번호를 받는다.
+          <strong>계약서에는 이 값이 없다.</strong> 관리자는 어느 화면에서도 직원의 주민등록번호를
+          입력하지 않는다. 받는 사람도 직원 본인이고, 쓰는 곳도 신고 서류뿐이다.
+        </p>
+        <nav class="docnav">
+          <a href="../index.html">← 목업 허브</a>
+          <a href="login.html">로그인</a>
+          <a href="join.html">진입·가입</a>
+          <a href="contract.html">근로계약</a>
+          <a href="home.html">홈</a>
+          <a href="attendance.html">출퇴근 등록</a>
+          <a href="attendance-history.html">출퇴근 현황</a>
+          <a href="work.html">근무 정보</a>
+          <a href="pay.html">급여</a>
+          <a href="notify.html">알림</a>
+          <a href="me.html">내 정보</a>
+        </nav>
+      </header>
+
+      <div class="stage">
+        <!-- ══ 폰 ══════════════════════════════════════════════════ -->
+        <div class="stage__phone">
+          <div class="phone" data-state="intro">
+            <div class="sbar">
+              <span data-clock>14:08</span>
+              <span class="sbar__ic">
+                <i class="ph-fill ph-cell-signal-full"></i>
+                <i class="ph-fill ph-wifi-high"></i>
+                <i class="ph-fill ph-battery-high"></i>
+              </span>
+            </div>
+
+            <div class="abar" data-unless="done">
+              <a class="abar__back" href="contract.html" data-when="intro"
+                ><i class="ph ph-caret-left"></i
+              ></a>
+              <button
+                class="abar__back"
+                data-when="form later view"
+                data-go-back
+                style="background: none; border: none; padding: 0; cursor: pointer"
+              >
+                <i class="ph ph-caret-left"></i>
+              </button>
+              <span class="abar__title" data-when="intro form later">신고 정보</span>
+              <span class="abar__title" data-when="view">등록된 신고 정보</span>
+            </div>
+
+            <!-- ── 1 · 안내 ─────────────────────────────────────── -->
+            <div class="view" data-when="intro">
+              <div class="center stack-8" style="padding: 6px 0 2px">
+                <i class="ph-fill ph-identification-card" style="font-size: 28px; color: var(--pen)"></i>
+                <p class="h-xl">한 가지만 더 받습니다</p>
+                <p class="p">계약이 체결되었습니다. 이제 신고에 쓸 정보를 넣어 주세요.</p>
+              </div>
+
+              <div class="card card--pen">
+                <p class="lab">이 값을 쓰는 곳</p>
+                <div class="rows" style="margin-top: 2px">
+                  <div class="row" style="padding: 8px 0">
+                    <i class="ph-fill ph-shield-check" style="color: var(--pen); font-size: 17px"></i>
+                    <div class="row__main">
+                      <p class="row__title">4대보험 자격취득 신고</p>
+                      <p class="row__sub">국민연금 · 건강보험 · 고용보험 · 산재보험</p>
+                    </div>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <i class="ph-fill ph-receipt" style="color: var(--pen); font-size: 17px"></i>
+                    <div class="row__main">
+                      <p class="row__title">근로소득 원천징수</p>
+                      <p class="row__sub">급여에서 떼는 세금을 신고할 때</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="note">
+                <i class="ph ph-lock-key"></i>
+                <div>
+                  넣은 값은 <strong>암호화해 보관</strong>합니다. 관리자 화면에는 가려진 형태로만
+                  보이고, 원본은 신고 서류를 만들 때만 씁니다.
+                </div>
+              </div>
+
+              <button class="btn btn--quiet" data-sheet="why">
+                <i class="ph ph-question"></i>왜 계약서가 아니라 여기서 받나요
+              </button>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 2 · 입력 ─────────────────────────────────────── -->
+            <div class="view" data-when="form">
+              <p class="h-lg">주민등록번호</p>
+              <p class="p--sm">신고 서류에 그대로 들어갑니다. 다시 한 번 확인해 주세요.</p>
+
+              <div class="field">
+                <label class="field__lab" for="rrn">주민등록번호<span class="req">*</span></label>
+                <input class="input input--pin" id="rrn" type="text" value="900101-1234567" />
+                <p class="field__help">본인의 번호만 넣을 수 있습니다.</p>
+              </div>
+
+              <div class="card card--sunken">
+                <div class="rows">
+                  <div class="row" style="padding: 8px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">이름</span>
+                    <span class="push num" style="font-size: 13px">김민서</span>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">생년월일</span>
+                    <span class="push num" style="font-size: 13px">1990-01-01</span>
+                  </div>
+                </div>
+                <p class="tiny" style="margin-top: 7px">
+                  본인인증으로 확정된 값입니다. 앞자리가 다르면 넣을 수 없습니다.
+                </p>
+              </div>
+
+              <div class="note note--pen">
+                <i class="ph ph-scales"></i>
+                <div>
+                  <strong>동의 항목이 없습니다.</strong> 법으로 정해진 신고에 쓰는 값이라 동의로
+                  받고 말고를 정하는 값이 아닙니다. 대신 쓰는 곳을 그대로 적어 두었습니다.
+                </div>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 3 · 나중에 하기 ──────────────────────────────── -->
+            <div class="view" data-when="later">
+              <div class="center stack-8" style="padding: 20px 0 2px">
+                <i class="ph ph-clock-countdown" style="font-size: 28px; color: var(--amber)"></i>
+                <p class="h-lg">나중에 넣으시겠어요</p>
+                <p class="p">근무와 출퇴근은 지금도 할 수 있습니다.</p>
+              </div>
+
+              <div class="card card--amber">
+                <div class="line">
+                  <i class="ph-fill ph-warning" style="color: var(--amber); font-size: 19px"></i>
+                  <div class="grow">
+                    <p class="h-md" style="color: #6f4608">4대보험 신고가 늦어집니다</p>
+                    <p class="tiny" style="color: var(--amber)">첫 급여 계산 전에는 넣어야 합니다</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="note">
+                <i class="ph ph-bell-ringing"></i>
+                <div>
+                  홈에 배너가 남고 <strong>주 1회 알림</strong>이 옵니다. 넣고 나면 둘 다
+                  사라집니다.
+                </div>
+              </div>
+
+              <p class="tiny center">이 화면이 필요한지는 아직 정하지 않았습니다 — TAX-4</p>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 4 · 완료 ─────────────────────────────────────── -->
+            <div class="view view--center" data-when="done">
+              <div style="display: grid; place-items: center">
+                <div class="seal">등록<br />완료</div>
+              </div>
+              <div class="stack stack-6">
+                <p class="h-lg">신고 정보를 받았습니다</p>
+                <p class="p">4대보험 취득 신고가 진행됩니다. 이제 근무를 시작할 수 있습니다.</p>
+              </div>
+              <div class="card card--sunken" style="text-align: left; width: 100%">
+                <div class="rows">
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">받은 값</span>
+                    <span class="push num" style="font-size: 13px">900101-1******</span>
+                  </div>
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">받은 목적</span>
+                    <span class="push num" style="font-size: 13px">취득 신고 · 원천징수</span>
+                  </div>
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">받은 때</span>
+                    <span class="push num" style="font-size: 13px">2026-09-14 14:08</span>
+                  </div>
+                </div>
+              </div>
+              <p class="tiny">내 정보에서 언제든 다시 확인하고 고칠 수 있습니다.</p>
+            </div>
+
+            <!-- ── 5 · 등록된 값 보기 ───────────────────────────── -->
+            <div class="view" data-when="view">
+              <div class="card">
+                <p class="lab">주민등록번호</p>
+                <p class="num num--lg" style="margin-top: 4px">900101-1******</p>
+                <p class="tiny" style="margin-top: 6px">
+                  뒷자리는 본인에게도 다시 보여주지 않습니다. 고치려면 새로 넣습니다.
+                </p>
+              </div>
+
+              <div class="card card--sunken">
+                <p class="lab">기록</p>
+                <div class="rows" style="margin-top: 2px">
+                  <div class="row" style="padding: 8px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">받은 때</span>
+                    <span class="push num" style="font-size: 13px">2026-09-14 14:08</span>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">쓰는 곳</span>
+                    <span class="push num" style="font-size: 13px">취득 신고 · 원천징수</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="note">
+                <i class="ph ph-eye-slash"></i>
+                <div>
+                  관리자 화면에도 <strong>가려진 형태로만</strong> 보입니다. 원본은 신고 서류를
+                  만들 때만 꺼내 씁니다.
+                </div>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 하단 ─────────────────────────────────────────── -->
+            <div class="dock" data-when="intro">
+              <button class="btn" data-go="form">
+                <i class="ph-fill ph-pencil-simple"></i>지금 넣기
+              </button>
+              <button class="btn btn--quiet" data-go="later">나중에 하기</button>
+            </div>
+
+            <div class="dock" data-when="form">
+              <button class="btn" data-go="done" data-toast="신고 정보를 받았습니다">등록하기</button>
+              <button class="btn btn--ghost" data-go-back>취소</button>
+            </div>
+
+            <div class="dock" data-when="later">
+              <button class="btn" data-go="form">역시 지금 넣기</button>
+              <a class="btn btn--ghost" href="home.html">홈으로</a>
+            </div>
+
+            <div class="dock" data-when="done">
+              <a class="btn" href="home.html">근무 시작하기</a>
+            </div>
+
+            <div class="dock" data-when="view">
+              <button class="btn btn--quiet" data-go="form">새로 넣기</button>
+            </div>
+
+            <!-- ── 시트 ─────────────────────────────────────────── -->
+            <div class="sheet" data-sheet-id="why" hidden>
+              <div class="sheet__grab"></div>
+              <p class="h-lg">계약서에는 왜 없나요</p>
+              <p class="p--sm">
+                근로계약서가 적어야 하는 것은 근무 조건입니다. 임금·근로시간·휴일·연차 같은 것들이고,
+                사람을 특정하는 데는 이름과 생년월일이면 됩니다.
+              </p>
+              <p class="p--sm" style="margin-top: 10px">
+                주민등록번호는 법이 허용한 목적에만 쓸 수 있습니다. 여기서는 4대보험 취득 신고와
+                원천징수가 그 목적입니다. 계약서에 넣어 두면 그 목적 밖으로 번지기 때문에 받는 자리를
+                따로 두었습니다.
+              </p>
+              <div class="note" style="margin-top: 12px">
+                <i class="ph ph-info"></i>
+                <div>관리자는 어느 화면에서도 직원의 주민등록번호를 입력하지 않습니다.</div>
+              </div>
+              <button class="btn btn--ghost" data-sheet-close style="margin-top: 14px">닫기</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ 해설 ═══════════════════════════════════════════════ -->
+        <div class="stage__side">
+          <div class="switcher">
+            <div class="switcher__head">
+              <p class="lab">상태 바꾸기</p>
+              <span class="switcher__hint">숫자키 1–5</span>
+            </div>
+            <div class="switcher__body">
+              <button class="sw-b" data-state="intro" aria-pressed="true">
+                <span class="sw-b__k">1</span>
+                <span><span class="sw-b__t">안내</span> <span class="sw-b__d">· 날인 직후</span></span>
+              </button>
+              <button class="sw-b" data-state="form">
+                <span class="sw-b__k">2</span>
+                <span><span class="sw-b__t">입력</span> <span class="sw-b__d">· 동의 체크 없음</span></span>
+              </button>
+              <button class="sw-b" data-state="later">
+                <span class="sw-b__k">3</span>
+                <span><span class="sw-b__t">나중에 하기</span> <span class="sw-b__d">· TAX-4 미정</span></span>
+              </button>
+              <button class="sw-b" data-state="done">
+                <span class="sw-b__k">4</span>
+                <span><span class="sw-b__t">완료</span> <span class="sw-b__d">· 수집 일시·목적</span></span>
+              </button>
+              <button class="sw-b" data-state="view">
+                <span class="sw-b__k">5</span>
+                <span><span class="sw-b__t">등록된 값</span> <span class="sw-b__d">· 내 정보에서</span></span>
+              </button>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 30px 0 10px">이 화면이 생긴 이유</h2>
+          <p class="p">
+            주민등록번호를 근로계약서에서 빼기로 하면서 받을 자리가 없어졌다. 계약서가 법적으로
+            요구받는 것은 근로조건이고, 사람을 특정하는 데는 이름과 생년월일이면 된다 —
+            근로자명부와 임금대장도 생년월일로 특정한다. 반면 4대보험 취득 신고와 원천징수에는
+            주민등록번호가 필요하다. <strong>같은 값이 아니라 다른 목적</strong>이라 받는 자리를
+            나눈 것이다.
+          </p>
+          <p class="p" style="margin-top: 10px">
+            받는 순서도 정해져 있다. 채용이 확정되기 전에는 수집할 수 없어서, 계약 날인을 마친
+            직후가 가장 이른 시점이다. 그래서 이 화면은 계약서 날인 완료 화면 바로 다음에 온다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">동의 체크를 두지 않는다</h2>
+          <p class="p">
+            보통 개인정보를 받을 때 붙이는 동의 체크가 여기에는 없다. 주민등록번호는 동의로 받을 수
+            있는 값이 아니라 <b>법령이 요구하거나 허용한 목적에만</b> 처리할 수 있는 값이기
+            때문이다. 동의 체크를 두면 "동의하지 않으면 안 줘도 되는 것"처럼 읽혀 오히려 틀린 안내가
+            된다. 대신 쓰는 곳 두 가지를 화면에 그대로 적었다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">보관과 노출</h2>
+          <p class="p">
+            암호화해 저장하고 관리자 웹에는 가려진 형태로만 보낸다. 원본은 신고 서류를 만들 때만
+            쓴다. 저장 위치도 계약 데이터가 아니라 직원 레코드의 별도 항목이고, 수집 일시와 목적을
+            함께 남긴다. 완료 화면과 등록된 값 화면이 그 세 가지를 그대로 보여주는 이유다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">정할 것</h2>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">TAX-1</span>
+              <span class="gap__t">주민등록번호를 계약서에 넣을 것인가</span>
+              <span class="gap__st gap__st--fixed">확정 · 넣지 않음</span>
+              <span class="gap__ref">STAFF-16</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                근로계약서 초안과 계약서 어디에도 주민등록번호를 두지 않는다. 관리자는 어느
+                화면에서도 이 값을 입력하지 않는다. 계약서가 요구하는 것은 근로조건이고, 사람을
+                특정하는 데는 이름과 생년월일로 충분하다.
+              </p>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">TAX-2</span>
+              <span class="gap__t">그러면 언제 누가 받는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 날인 직후 · 본인</span>
+              <span class="gap__ref">S-OIILIW</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                계약서 날인을 마친 직후 직원이 앱에서 직접 넣는다. 채용이 확정되기 전에는 수집할 수
+                없어 그보다 이른 시점은 쓸 수 없고, 관리자가 대신 받는 길도 두지 않는다.
+              </p>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">TAX-3</span>
+              <span class="gap__t">동의 항목을 둘 것인가</span>
+              <span class="gap__st gap__st--fixed">확정 · 두지 않음</span>
+              <span class="gap__ref">S-OIILIW</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                법령 근거로 처리하는 값이라 동의로 받고 말고를 정하는 값이 아니다. 동의 체크를 두면
+                거부할 수 있는 것처럼 읽혀 잘못된 안내가 된다. 대신 <b>수집 목적 두 가지</b>를
+                화면에 표시한다.
+              </p>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">TAX-4</span>
+              <span class="gap__t">건너뛸 수 있게 할 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-OIILIW</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt is-picked">
+                <div class="gap__label">A · 건너뛸 수 있다 · 이 목업</div>
+                <p>
+                  나중에 하기를 누르면 홈에 배너가 남고 주 1회 알림이 온다. 첫 급여를 계산하기
+                  전까지만 넣으면 된다. 출퇴근은 그동안에도 찍을 수 있다.
+                </p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">B · 반드시 넣어야 한다</div>
+                <p>
+                  넣기 전에는 앱의 다른 화면으로 갈 수 없다. 신고가 늦어지는 일은 없지만, 매장
+                  앞에서 출근을 찍어야 하는 사람을 붙잡아 두게 된다.
+                </p>
+              </div>
+            </div>
+            <div class="gap__one"><p>
+              A 를 그려 둔 이유는 첫 출근일과 계약 날인일이 같은 경우가 흔해서다. 다만 미입력이 오래
+              남으면 신고 기한을 놓친다. <strong>기한을 며칠로 볼지와 함께 정해야 한다.</strong>
+            </p></div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">TAX-5</span>
+              <span class="gap__t">급여 계좌도 이 단계에서 받을 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-OIILIW</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt is-picked">
+                <div class="gap__label">A · 같이 받는다</div>
+                <p>
+                  급여를 주려면 계좌가 있어야 하고, 직원이 한 번에 끝내는 편이 낫다. 화면 하나에 두
+                  가지를 넣는 대신 단계가 늘지 않는다.
+                </p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">B · 따로 받는다</div>
+                <p>
+                  주민등록번호는 신고용이고 계좌는 지급용이라 성격이 다르다. 첫 급여 계산 전까지만
+                  받으면 되므로 급여 화면에서 받아도 된다.
+                </p>
+              </div>
+            </div>
+            <div class="gap__one"><p>
+              이 목업은 주민등록번호만 그렸다. 계좌를 같이 받기로 하면 입력 화면에 항목이 늘고 완료
+              화면의 표도 한 줄 늘어난다.
+            </p></div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">TAX-6</span>
+              <span class="gap__t">신고 서류를 이 시스템이 만들 것인가</span>
+              <span class="gap__st gap__st--open">미정 · 1차 범위 밖</span>
+              <span class="gap__ref">S-OIILIW</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                4대보험 신고서와 원천징수 서류를 이 시스템이 만들지, 외부 대행에 넘길지는 1차에서
+                정하지 않았다. 어느 쪽이든 이 화면이 받는 값은 같지만,
+                <b>원본을 어디로 내보내는지</b>가 달라진다.
+              </p>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">TAX-7</span>
+              <span class="gap__t">개인정보 처리방침에 이 항목을 어떻게 적을 것인가</span>
+              <span class="gap__st gap__st--review">밖에서 확인</span>
+              <span class="gap__ref">법무</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                주민등록번호 처리 근거와 보유 기간, 파기 시점을 처리방침에 적어야 한다. 화면 문구는
+                목업에 그렸지만 <b>처리방침 본문은 법무가 쓴다.</b> 서비스가 열리기 전에 끝나야
+                하는 일이다.
+              </p>
+            </div>
+          </div>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
+          <ul class="pol">
+            <li>
+              <span class="pol__src">STAFF-16</span>
+              <span
+                >주민등록번호는 근로계약서에 넣지 않고, 서명을 마친 직원이 앱에서 직접 입력한다.
+                관리자 웹에서는 입력하지 않는다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">S-OIILIW</span>
+              <span
+                >4대보험 취득 신고와 원천징수를 목적으로 수집하고, 암호화 저장·마스킹 노출·신고 시
+                원본 사용으로 다룬다. 별도 동의 항목은 두지 않는다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">근로기준법 17조</span>
+              <span
+                >계약서가 요구하는 것은 근로조건이다. 근로자명부와 임금대장도 생년월일로 사람을
+                특정한다.</span
+              >
+            </li>
+            <li>
+              <span class="pol__src">개인정보보호법</span>
+              <span
+                >24조의2 — 주민등록번호는 법령이 요구하거나 허용한 목적에만 처리할 수 있고 동의만으로는
+                받을 수 없다. 채용 확정 전 수집은 금지된다.</span
+              >
+            </li>
+          </ul>
+
+          <footer class="docfoot">
+            직원 앱 목업 · 신고 정보 · 2026년 9월 14일 · 상태 5개 · 시트 1개 · 쟁점 7건
+          </footer>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
