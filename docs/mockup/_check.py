@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""직원 앱 목업 검사기.
+"""직원 근무 앱 목업 검사기.
 
     python3 docs/mockup/_check.py
 

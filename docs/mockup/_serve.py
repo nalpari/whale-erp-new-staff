@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""직원 앱 목업 로컬 서버.
+"""직원 근무 앱 목업 로컬 서버.
 
     python3 docs/mockup/_serve.py [포트]
 
@@ -41,7 +41,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 socketserver.TCPServer.allow_reuse_address = True
 
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
-    print(f"직원 앱 목업  →  http://localhost:{PORT}/")
+    print(f"직원 근무 앱 목업  →  http://localhost:{PORT}/")
     print(f"  루트: {ROOT}")
     print("  멈추려면 Ctrl+C")
     try:

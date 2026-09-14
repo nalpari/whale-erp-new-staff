@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>직원 앱 목업 · WHALE ERP</title>
+    <title>직원 근무 앱 목업 · WHALE ERP</title>
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css"
@@ -18,7 +18,7 @@
     <script src="assets/app.js" defer></script>
   </head>
   <body data-area="hub">
-    <!-- WHALE ERP 직원 앱 1차 목업 · 허브
+    <!-- WHALE ERP 직원 근무 앱 1차 목업 · 허브
          내용 기준은 manyfast 프로젝트 최신본(2026-09-10). 디자인은 백지에서
          새로 잡았다 — 기존 docs/design 시안은 참고만 했고 따르지 않았다.
 
@@ -32,7 +32,7 @@
     <div class="doc" id="main">
       <header class="dochead">
         <p class="dochead__kicker">WHALE ERP · 1차 · 3팀</p>
-        <h1>직원 앱 목업</h1>
+        <h1>직원 근무 앱 목업</h1>
         <p>
           직원이 자기 폰으로 쓰는 앱이다. 초대를 받아 가입하고, 근로계약서에 날인하고, 매장에서
           출퇴근을 찍고, 근무와 급여를 확인한다. 이 목업은 그림 구경이 아니라
@@ -170,7 +170,7 @@
         <div class="gap is-decided">
           <div class="gap__head">
             <span class="gap__no" data-ref>ATT-1</span>
-            <span class="gap__t">매장용 출퇴근 등록 기기를 없애고 직원 앱으로 합친다</span>
+            <span class="gap__t">매장용 출퇴근 등록 기기를 없애고 직원 근무 앱으로 합친다</span>
             <span class="gap__st gap__st--fixed">확정 · GPS</span>
             <span class="gap__ref">R-CHVHQH</span>
           </div>
@@ -186,7 +186,7 @@
             <div class="gap__opt is-picked">
               <div class="gap__label">B · 1차 확정</div>
               <p>
-                등록을 <b>직원 앱 안으로</b> 들이고 GPS 로 판정한다. 기기가 사라지고 앱이 하나로
+                등록을 <b>직원 근무 앱 안으로</b> 들이고 GPS 로 판정한다. 기기가 사라지고 앱이 하나로
                 준다. 2차에서 기기등록이나 QR 을 얹을 때 판정 근거만 갈아 끼우면 되도록 화면에서
                 위치 확인 영역을 분리해 두었다.
               </p>
@@ -206,13 +206,13 @@
         <div class="gap is-decided">
           <div class="gap__head">
             <span class="gap__no" data-ref>LOGIN</span>
-            <span class="gap__t">직원 앱 로그인 명세가 없어 새로 쓰고 규칙을 확정했다</span>
+            <span class="gap__t">직원 근무 앱 로그인 명세가 없어 새로 쓰고 규칙을 확정했다</span>
             <span class="gap__st gap__st--fixed">확정 · 7건</span>
             <span class="gap__ref">F-WBHYLR</span>
           </div>
           <div class="gap__one">
             <p>
-              직원 앱 명세 여덟 건이 전부 "로그인되어 있어야 한다"를 전제로만 쓰고 로그인 자체를
+              직원 근무 앱 명세 여덟 건이 전부 "로그인되어 있어야 한다"를 전제로만 쓰고 로그인 자체를
               다루지 않았다. <code>R-SXOPEA</code> 아래에 기능 <code>F-WBHYLR</code>(앱 접속과 계정
               유지)를 세우고 명세 <code>S-PHHICH</code>·<code>S-WSPEYJ</code> 를 붙인 뒤, 열어 둔
               질문 일곱 건에 답을 받았다.
@@ -239,7 +239,7 @@
           <div>
             <strong>manyfast 문서에 반영했다.</strong> 출퇴근 등록 운영(<code>R-CHVHQH</code>)과
             현장 출퇴근 기록(<code>F-OJGKPZ</code>), 출근·퇴근 기록 명세(<code>S-EFQGSP</code>)를
-            GPS 판정으로 고치고 기기를 직원 모바일 앱으로 바꿨다. 직원 앱 제외 범위의 "매장 현장
+            GPS 판정으로 고치고 기기를 직원 모바일 앱으로 바꿨다. 직원 근무 앱 제외 범위의 "매장 현장
             출퇴근 입력은 제공하지 않는다"도 지웠다.
           </div>
         </div>
@@ -248,7 +248,7 @@
           <i class="ph-fill ph-warning"></i>
           <div>
             <strong>아직 남은 두 가지.</strong> 기기 목록에 매장용 출퇴근 등록 앱이 그대로 있어
-            manyfast 앱에서 직접 지워야 한다. 유저플로우의 등록기 구간(s7)도 직원 앱 안의 출퇴근
+            manyfast 앱에서 직접 지워야 한다. 유저플로우의 등록기 구간(s7)도 직원 근무 앱 안의 출퇴근
             등록으로 다시 그려야 한다. 관리자 웹 목업의 출퇴근 화면에도 영향이 간다.
           </div>
         </div>
@@ -365,7 +365,7 @@
       </section>
 
       <footer class="docfoot">
-        WHALE ERP 직원 앱 1차 목업 · 2026년 9월 10일 · manyfast 최신본 기준 · 화면 12개
+        WHALE ERP 직원 근무 앱 1차 목업 · 2026년 9월 10일 · manyfast 최신본 기준 · 화면 12개
       </footer>
     </div>
   </body>
