@@ -230,7 +230,7 @@
       "col": 4,
       "type": "frontend",
       "label": "계약서 날인 · 거부",
-      "sublabel": "본문 아래에 날인",
+      "sublabel": "필기 서명으로 날인",
       "width": 160
     },
     {
