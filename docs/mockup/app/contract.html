@@ -23,10 +23,10 @@
          아니라 계약서 본문이다 — 명조체로 그려 종이 계약서에 가깝게 두고,
          읽었다는 확신이 선 다음에야 아래 버튼에 닿게 했다.
 
-         계약서 원본을 화면에 직접 그릴지 PDF 로 띄울지는 기획 확인을 기다린다
-         — CON-1. 밖으로 여는 안은 날인 흐름이 끊겨 버렸다. 이 목업은 우선
-         화면에 직접 그리는 쪽으로 만들었다. 날인은 필기 서명으로 확정됐다 —
-         CON-2. 날인하기를 누르면 서명란이 열리고, 그려야 확정 버튼이 살아난다.
+         계약서 원본은 화면에 직접 그리는 것으로 확정됐다 — CON-1. 체결이
+         끝난 계약서만 처리 완료본 PDF 를 공유 시트로 내보낸다. 화면에 그리는
+         조항과 그 PDF 는 같은 템플릿에서 만든다. 날인은 필기 서명이고 —
+         CON-2 — 서명 이미지는 따로 보관하면서 완료본 PDF 에도 합성한다.
 
          근거 : S-RFOEAG · S-XDBBDP · S-OIILIW -->
     <a class="skip" href="#main">본문으로 건너뛰기</a>
@@ -453,6 +453,13 @@
               <button class="btn is-off" data-when="signing"><i class="ph-fill ph-seal-check"></i>날인하기</button>
               <button class="btn btn--ghost is-off" data-when="signing">거부하기</button>
 
+              <button
+                class="btn btn--quiet"
+                data-when="readonly"
+                data-toast="처리 완료본 PDF 를 공유합니다"
+              >
+                <i class="ph ph-share-network"></i>완료본 내보내기
+              </button>
               <button class="btn btn--ghost" data-when="readonly" data-go="list">목록으로</button>
               <button class="btn btn--ghost" data-when="expired" data-go="list">목록으로</button>
               <button
@@ -468,6 +475,9 @@
               <a class="btn" href="tax.html"
                 ><i class="ph-fill ph-identification-card"></i>신고 정보 넣기</a
               >
+              <button class="btn btn--quiet" data-toast="처리 완료본 PDF 를 공유합니다">
+                <i class="ph ph-share-network"></i>완료본 내보내기
+              </button>
               <p class="tiny center" style="padding: 2px 0">
                 이 단계를 마쳐야 앱을 쓸 수 있습니다
               </p>
@@ -607,6 +617,14 @@
             보낸다. 홈의 대기 카드도 1건일 때는 상세로 직행한다.
           </p>
 
+          <h2 class="h-lg" style="margin: 26px 0 10px">완료본은 내보낼 수 있다</h2>
+          <p class="p">
+            체결이 끝난 계약서에는 <b>완료본 내보내기</b>가 붙는다. 누르면 처리 완료본 PDF 가 공유
+            시트로 넘어가 직원이 저장하거나 남에게 보낼 수 있다. 서명 대기 상태에서는 나오지
+            않는다 — 아직 계약이 아니기 때문이다. 화면에 그리는 조항과 그 PDF 는 같은 템플릿에서
+            만들고, 필기 서명 이미지는 따로 보관하면서 완료본에도 합성한다.
+          </p>
+
           <h2 class="h-lg" style="margin: 26px 0 10px">목록을 넘기는 방식</h2>
           <p class="p">
             계약서 목록은 기간으로 끊지 않고 <strong>스무 건씩 더 보기로 이어 붙이는</strong> 쪽에
@@ -617,35 +635,28 @@
 
           <h2 class="h-lg" style="margin: 26px 0 10px">정할 것</h2>
 
-          <div class="gap">
+          <div class="gap is-decided">
             <div class="gap__head">
               <span class="gap__no">CON-1</span>
               <span class="gap__t">계약서 원본을 어떻게 보여줄 것인가</span>
-              <span class="gap__st gap__st--open">미정 · A·B 중 기획 확인</span>
+              <span class="gap__st gap__st--fixed">확정 · 화면에 직접 · 완료본 내보내기</span>
               <span class="gap__ref">S-RFOEAG</span>
-            </div>
-            <div class="gap__opts">
-              <div class="gap__opt is-picked">
-                <div class="gap__label">A · 화면에 직접 그림 · 이 화면</div>
-                <p>
-                  계약 조항을 명조체 텍스트로 앱 화면에 바로 그린다. 로딩이 빠르고 날인·거부
-                  버튼과 한 화면에서 자연스럽게 이어지지만, 서식이 있는 실제 계약서 원본과는
-                  다르게 보인다.
-                </p>
-              </div>
-              <div class="gap__opt">
-                <div class="gap__label">B · 내장 PDF 뷰어</div>
-                <p>
-                  관리자가 만든 계약서 원본을 그대로 보여준다. 서식은 정확하지만 모바일 PDF 뷰어
-                  구현과 성능 부담이 붙는다.
-                </p>
-              </div>
             </div>
             <div class="gap__one">
               <p>
-                <b>A 와 B 중에서 기획자 확인을 받는다.</b> 파일 앱이나 브라우저로 넘겨 여는 안은
-                앱을 벗어나 날인 흐름이 끊겨 후보에서 뺐다.
+                계약 조항을 <b>명조체로 앱 화면에 직접 그린다.</b> 날인·거부 버튼과 한 화면이라
+                흐름이 끊기지 않는다. 내장 PDF 뷰어와 외부로 열기는 버렸다.
               </p>
+              <ul>
+                <li>
+                  <b>체결이 끝난 계약서만</b> 처리 완료본 PDF 를 공유 시트로 내보낸다. 직원이
+                  저장하거나 남에게 보낼 수 있다. 서명 대기 상태에서는 내보내지 않는다
+                </li>
+                <li>
+                  화면에 그리는 조항과 처리 완료본 PDF 는 <b>같은 계약서 템플릿</b>에서 만든다. 두
+                  벌로 갈라지면 글자가 어긋난다
+                </li>
+              </ul>
             </div>
           </div>
 
@@ -662,6 +673,15 @@
                 날인 확정 버튼이 살아나며, 다시 그리기로 지울 수 있다. 버튼 한 번으로 끝내는 안과
                 비밀번호를 한 번 더 넣는 안은 버렸다.
               </p>
+              <ul>
+                <li>
+                  서명 이미지는 <b>파일로 따로 보관하면서</b> 처리 완료본 PDF 에도 합성한다
+                </li>
+                <li>
+                  서명 이미지는 계약서 파일과 같은 저장소에 두고 접근 권한·보존 기간·파기 시점을
+                  계약서와 같게 관리한다
+                </li>
+              </ul>
             </div>
           </div>
 
