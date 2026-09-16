@@ -28,6 +28,10 @@
          해마다 바뀌어 관리자가 직접 입력한다. 확정 취소는 발송 후에도 되므로
          이미 본 명세서가 조용히 바뀔 수 있다 — resent 상태가 그 경우다.
 
+         발송된 명세서는 상세 화면에서 처리 완료본 PDF 를 공유 시트로 내보낸다
+         — PAY-2. 목록에는 버튼을 두지 않는다. 근로계약서 완료본 내보내기와
+         같은 형식·동작이다.
+
          이 파일은 화면 하나다. 오른쪽 목록으로 상태를 바꾸거나 폰 안의 버튼을
          직접 눌러 본다. 숫자키 1~4 로도 넘어간다.
 
@@ -237,6 +241,10 @@
                 </div>
               </div>
 
+              <button class="btn btn--quiet" data-toast="처리 완료본 PDF 를 공유합니다">
+                <i class="ph ph-share-network"></i>명세서 내보내기
+              </button>
+
               <p class="tiny">
                 급여 지급은 이 화면에서 처리하지 않습니다. 실제 지급은 회사의 지급 절차를 따릅니다.
               </p>
@@ -354,6 +362,10 @@
                   <p class="num num--lg" style="color: var(--pen)">1,620,440<span class="u">원</span></p>
                 </div>
               </div>
+
+              <button class="btn btn--quiet" data-toast="처리 완료본 PDF 를 공유합니다">
+                <i class="ph ph-share-network"></i>명세서 내보내기
+              </button>
             </div>
 
             <!-- ── 빈 상태 ──────────────────────────────────────── -->
@@ -484,23 +496,25 @@
             </div>
           </div>
 
-          <div class="gap">
+          <div class="gap is-decided">
             <div class="gap__head">
               <span class="gap__no">PAY-2</span>
               <span class="gap__t">명세서를 파일로 내려받게 할 것인가</span>
-              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__st gap__st--fixed">확정 · 상세에서 내보내기</span>
+              <span class="gap__ref">S-EWVMGC</span>
             </div>
             <div class="gap__one">
               <p>
-                이메일로 이미 발송되므로 앱 안에 다운로드가 꼭 필요한지부터가 쟁점이다. 필요하다면
-                PDF 형식, 서식(회사 도장·서명 포함 여부)도 함께 정해야 한다.
+                발송된 명세서는 <b>상세 화면에서</b> 처리 완료본 PDF 를 공유 시트로 내보낸다. 형식과
+                동작은 근로계약서와 같다(CON-1).
               </p>
-              <p style="margin-top: 8px">
-                <b>근로계약서는 같은 물음이 먼저 정해졌다</b> — 체결이 끝난 계약서만 처리 완료본
-                PDF 를 공유 시트로 내보낸다(CON-1). 명세서도 같은 방식으로 맞추면 형식과 동작을
-                따로 정하지 않아도 된다. 다만 명세서는 달마다 쌓이고 계약서는 몇 건에 그쳐, 목록
-                어디에 버튼을 둘지는 여기서 따로 봐야 한다.
-              </p>
+              <ul>
+                <li>
+                  <b>목록에는 버튼을 두지 않는다.</b> 달마다 쌓이는 목록에서 한 줄이 좁아지는 것보다,
+                  열어서 확인하고 내보내는 흐름이 계약서와 같아 배우기 쉽다
+                </li>
+                <li>다시 보낸 명세서도 같은 자리에서 내보낸다</li>
+              </ul>
             </div>
           </div>
 
