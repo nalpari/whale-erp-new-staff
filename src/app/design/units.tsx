@@ -244,7 +244,7 @@ export function Pagination({ page, total }: { page: number; total: number }) {
   const last = page === total;
   return (
     <nav aria-label="페이지" className="flex items-center justify-center gap-[17px] text-[14px] font-medium">
-      <button type="button" disabled={first} className="flex items-center gap-[4px] text-erp-thead-text disabled:cursor-default">
+      <button type="button" disabled={first} className="flex items-center gap-[4px] text-erp-thead-text transition-colors duration-150 ease-out enabled:hover:text-erp-brand disabled:cursor-default">
         <Image src="/design/prev.svg" alt="" width={16} height={16} />
         Prev
       </button>
@@ -254,8 +254,8 @@ export function Pagination({ page, total }: { page: number; total: number }) {
             <button
               type="button"
               aria-current={n === page ? "page" : undefined}
-              className={`size-[38px] rounded-[2px] ${
-                n === page ? "bg-erp-subtle font-semibold text-erp-ink" : "border border-erp-subtle bg-white text-erp-muted"
+              className={`size-[38px] rounded-[2px] transition-[border-color,color] duration-150 ease-out ${
+                n === page ? "bg-erp-subtle font-semibold text-erp-ink" : "border border-erp-subtle bg-white text-erp-muted hover:border-erp-brand hover:text-erp-ink"
               }`}
             >
               {n}
@@ -263,7 +263,7 @@ export function Pagination({ page, total }: { page: number; total: number }) {
           </li>
         ))}
       </ol>
-      <button type="button" disabled={last} className="flex items-center gap-[4px] text-erp-ink disabled:text-erp-thead-text">
+      <button type="button" disabled={last} className="flex items-center gap-[4px] text-erp-ink transition-colors duration-150 ease-out enabled:hover:text-erp-brand disabled:text-erp-thead-text">
         Next
         <Image src="/design/next.svg" alt="" width={16} height={16} />
       </button>
