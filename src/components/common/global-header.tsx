@@ -10,7 +10,7 @@ export type HeaderMenu = { label: string; items: { label: string; href: string }
 
 // Figma Top. 1depth 메뉴와, 그 아래 펼쳐지는 2depth 줄.
 // 1depth 를 누르면 열리고, 같은 메뉴를 다시 누르거나 헤더 바깥을 누르거나 Esc 로 닫힌다.
-// right 에는 StoreSelect, UserMenu 같은 오른쪽 컨트롤을 넣는다.
+// right 에는 StoreSelect, UserPop 같은 오른쪽 컨트롤을 넣는다.
 export function GlobalHeader({ menus, right }: { menus: HeaderMenu[]; right?: ReactNode }) {
   // 어떤 메뉴를 보여줄지와 열려 있는지를 따로 둔다. 닫히는 동안에도 마지막 메뉴의 항목이 남아 있어야
   // 줄이 접히면서 빈 줄로 바뀌지 않는다.
@@ -21,7 +21,9 @@ export function GlobalHeader({ menus, right }: { menus: HeaderMenu[]; right?: Re
   const [shown, setShown] = useState(0);
   const ref = useDismiss<HTMLElement>(open, () => setOpen(false));
   const toggle = (next: number) => {
-    if (!open) setShown(next);
+    // 닫혀 있거나 동작 줄이기 설정이면 페이드 없이 바로 바꾼다.
+    // (전환이 없으면 transitionend 가 오지 않아 줄이 흐린 채로 멈추기 때문)
+    if (!open || matchMedia("(prefers-reduced-motion: reduce)").matches) setShown(next);
     setOpen(!(open && menu === next));
     setMenu(next);
   };
@@ -64,6 +66,9 @@ export function GlobalHeader({ menus, right }: { menus: HeaderMenu[]; right?: Re
         <div className="overflow-hidden">
           <ul
             onTransitionEnd={(e) => {
+              if (e.target === e.currentTarget && shown !== menu) setShown(menu);
+            }}
+            onTransitionCancel={(e) => {
               if (e.target === e.currentTarget && shown !== menu) setShown(menu);
             }}
             className={`flex gap-[24px] border-b border-erp-bar-line py-[12px] pl-[404px] text-[13.5px] leading-[16px] text-erp-ink transition-opacity ease-out ${
