@@ -11,6 +11,7 @@ import {
   LoginInfo,
   PageBar,
   Pagination,
+  Radio,
   SAMPLE_ROWS,
   SearchField,
   Select,
@@ -20,6 +21,7 @@ import {
 const COLORS = [
   ["erp-ink", "bg-erp-ink", "#3C4046"],
   ["erp-brand", "bg-erp-brand", "#6B7988"],
+  ["erp-brand-soft", "bg-erp-brand-soft", "#8F9EAF"],
   ["erp-label", "bg-erp-label", "#888888"],
   ["erp-thead-text", "bg-erp-thead-text", "#858B94"],
   ["erp-field-line", "bg-erp-field-line", "#EDEDEE"],
@@ -69,9 +71,10 @@ export default function DesignUnitsPage() {
         </div>
       </Section>
 
-      <Section title="Button">
+      <Section title="Button · hover">
         <div className="flex flex-wrap gap-2">
           <Button>신규 등록</Button>
+          <Button variant="soft">신규 등록</Button>
           <Button variant="off">취소</Button>
         </div>
       </Section>
@@ -95,10 +98,14 @@ export default function DesignUnitsPage() {
         </div>
       </Section>
 
-      <Section title="Checkbox">
+      <Section title="Checkbox · Radio">
         <div className="flex gap-6">
           <Checkbox label="선택됨" defaultChecked />
           <Checkbox label="선택 안 됨" />
+        </div>
+        <div role="radiogroup" aria-label="점포 구분" className="mt-4 flex gap-6">
+          <Radio name="sample-radio" label="프랜차이즈" defaultChecked />
+          <Radio name="sample-radio" label="개인점포" />
         </div>
       </Section>
 
@@ -124,8 +131,9 @@ export default function DesignUnitsPage() {
       </Section>
 
       <Section title="Global header · Page bar">
-        <div className="overflow-x-auto border border-erp-panel-line">
-          <div className="min-w-[1720px]">
+        {/* 가로 스크롤 영역은 세로로도 잘라내므로, 툴팁과 헤더 팝업이 펼쳐질 자리를 아래에 남긴다. */}
+        <div className="overflow-x-auto pb-[220px]">
+          <div className="min-w-[1720px] border border-erp-panel-line">
             <GlobalHeader />
             <PageBar title="점포정보 관리" />
           </div>

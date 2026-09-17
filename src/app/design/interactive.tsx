@@ -7,17 +7,17 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 const EASE_OUT = "ease-[cubic-bezier(0.23,1,0.32,1)]";
 
-function useDropdown() {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+// 열려 있는 동안 바깥을 누르거나 Esc 를 누르면 close 를 부른다.
+function useDismiss<T extends HTMLElement>(open: boolean, close: () => void) {
+  const ref = useRef<T>(null);
 
   useEffect(() => {
     if (!open) return;
     const onPointer = (e: PointerEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+      if (!ref.current?.contains(e.target as Node)) close();
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") close();
     };
     document.addEventListener("pointerdown", onPointer);
     document.addEventListener("keydown", onKey);
@@ -25,12 +25,19 @@ function useDropdown() {
       document.removeEventListener("pointerdown", onPointer);
       document.removeEventListener("keydown", onKey);
     };
-  }, [open]);
+  }, [open, close]);
 
+  return ref;
+}
+
+function useDropdown() {
+  const [open, setOpen] = useState(false);
+  const ref = useDismiss<HTMLDivElement>(open, () => setOpen(false));
   return { open, setOpen, ref };
 }
 
 // 트리거 아래에 뜨는 팝업. 항상 마운트해 두고 전환으로 여닫아서, 연타해도 현재 상태에서 방향만 바뀐다.
+// Figma 는 테두리를 안쪽에 그리므로 여백을 24 가 아닌 23 으로 두어 전체 크기를 맞춘다.
 //  - fold: 위에서부터 펼쳐지고 아래에서부터 말려 올라간다. 아래 가장자리를 clip-path 로 움직인다.
 //          동작 줄이기 설정이면 접힘과 이동을 빼고 투명도만 바꾼다.
 //  - fade: 투명도만 바꾼다.
@@ -69,7 +76,7 @@ function Popup({
   return (
     <div
       inert={!open}
-      className={`absolute top-[calc(100%+8px)] z-20 rounded-[2px] border border-[#ebebeb] bg-white p-[24px] ${EASE_OUT} ${m.base} ${
+      className={`absolute top-[calc(100%+8px)] z-20 rounded-[2px] border border-[#ebebeb] bg-white p-[23px] ${EASE_OUT} ${m.base} ${
         open ? m.open : m.closed
       } ${className}`}
     >
@@ -165,9 +172,9 @@ export function LoginInfo() {
         />
       </button>
       <Popup open={open} motion="fade" tail className="right-0 w-[154px]">
-        <p className="text-[15px] leading-[2] font-medium text-[#111]">MY PAGE</p>
+        <p className="text-[15px] leading-[2] font-medium text-[#111] [text-box:trim-both_cap_alphabetic]">MY PAGE</p>
         <hr className="mt-[12px] mb-[18px] border-erp-button-line" />
-        <ul role="menu" className="text-[14px] leading-[2]">
+        <ul role="menu" className="text-[14px] leading-[2] [text-box:trim-both_cap_alphabetic]">
           <li role="none">
             <a role="menuitem" href="#" className="text-erp-ink hover:text-erp-brand">
               내정보 관리
@@ -229,5 +236,93 @@ export function FilterShell({ header, children, className = "" }: { header: Reac
         <Image src="/design/expand.svg" alt="" width={12} height={18} />
       </button>
     </aside>
+  );
+}
+
+// 1depth 메뉴와, 그 아래 펼쳐지는 2depth 줄. Figma Top 의 Property 1=ON.
+// 1depth 를 누르면 열리고, 같은 메뉴를 다시 누르거나 헤더 바깥을 누르거나 Esc 로 닫힌다.
+const MENUS: Record<string, string[]> = {
+  기초정보관리: ["상품 정보 관리", "가격 정보 관리", "카테고리 정보 관리", "자재 정보 관리"],
+  점포관리: ["점포 정보 관리", "계약서 템플릿 관리", "계약서 관리", "시설물 및 장비 관리", "점검표 템플릿 관리", "점검 결과 관리"],
+  직원관리: ["직원 정보 관리", "근로계약 관리", "급여명세서 관리", "근무 스케줄 관리", "출·퇴근 현황 조회", "TO-DO List 관리"],
+  매출조회: ["매출 조회", "매출 통계", "매출 분석"],
+  재무관리: ["입·출금 관리", "매출/매입 거래 등록", "계정별 현황 조회"],
+  환경설정: ["관리자 관리", "권한 관리", "공통코드 관리", "휴일 관리"],
+  고객지원: ["부가서비스 구독 관리", "구독료 청구 및 납부 현황", "결제수단 관리", "정산 현황 조회", "공지사항", "문의하기"],
+};
+
+export function GlobalHeader() {
+  // 어떤 메뉴를 보여줄지와 열려 있는지를 따로 둔다. 닫히는 동안에도 마지막 메뉴의 항목이 남아 있어야
+  // 줄이 접히면서 빈 줄로 바뀌지 않는다.
+  const [menu, setMenu] = useState("점포관리");
+  const [open, setOpen] = useState(false);
+  // 화면에 그려진 2depth. 열린 채 다른 메뉴로 바꾸면 이것이 먼저 흐려지고(120ms),
+  // 다 흐려진 뒤 새 메뉴로 바뀌어 다시 나타난다(180ms). 연달아 바꿔도 마지막 메뉴로 수렴한다.
+  const [shown, setShown] = useState(menu);
+  const ref = useDismiss<HTMLElement>(open, () => setOpen(false));
+  const toggle = (next: string) => {
+    if (!open) setShown(next);
+    setOpen(!(open && menu === next));
+    setMenu(next);
+  };
+
+  return (
+    <header ref={ref} className="bg-white">
+      <div className="flex h-[71px] items-center gap-[54px] border-b border-erp-bar-line px-[24px]">
+        <div className="flex w-[177px] shrink-0 items-center gap-[10px]">
+          <Image src="/design/logo-whale.svg" alt="" width={53} height={40} />
+          <p className="leading-[1.3] text-[#252525]">
+            <span className="block text-[16px] font-extrabold uppercase">Whale ERP</span>
+            <span className="block text-[12px]">Management System</span>
+          </p>
+        </div>
+        <nav className="flex flex-1 items-center gap-[44px] pl-[150px]">
+          {Object.keys(MENUS).map((label, i) => (
+            <button
+              key={label}
+              type="button"
+              aria-expanded={open && menu === label}
+              onClick={() => toggle(label)}
+              className={`flex h-[52px] shrink-0 items-center text-[16px] font-semibold whitespace-nowrap transition-colors duration-150 ease-out hover:text-erp-brand ${
+                i === 0 ? "pr-[20px]" : "px-[20px]"
+              } ${open && menu === label ? "text-erp-brand" : "text-erp-ink"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+        <div className="flex shrink-0 items-center gap-[15px]">
+          <StoreSelect />
+          <LoginInfo />
+        </div>
+      </div>
+      {/* 1depth 첫 메뉴 글자 시작점(404px)에 맞춘 2depth 줄. 높이 41 = 위아래 12 + 글자 16 + 테두리 1.
+          자주 여닫는 메뉴라 200ms 로 짧게 펼친다. 줄 높이가 본문을 밀어내야 해서 grid 행 높이를 전환한다. */}
+      <div
+        inert={!open}
+        className={`grid transition-[grid-template-rows] duration-200 ${EASE_OUT} motion-reduce:transition-none ${
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <ul
+            onTransitionEnd={(e) => {
+              if (e.target === e.currentTarget && shown !== menu) setShown(menu);
+            }}
+            className={`flex gap-[24px] border-b border-erp-bar-line py-[12px] pl-[404px] text-[13.5px] leading-[16px] text-erp-ink transition-opacity ease-out ${
+              shown === menu ? "opacity-100 duration-[180ms]" : "opacity-0 duration-[120ms]"
+            }`}
+          >
+            {MENUS[shown].map((item) => (
+              <li key={item}>
+                <a href="#" className="whitespace-nowrap transition-colors duration-150 ease-out hover:text-erp-brand">
+                  {item}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </header>
   );
 }

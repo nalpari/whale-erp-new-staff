@@ -1,25 +1,34 @@
 import Image from "next/image";
 import type { ComponentProps, ReactNode } from "react";
-import { FilterShell, LoginInfo, StoreSelect } from "./interactive";
+import { FilterShell, GlobalHeader, LoginInfo, StoreSelect } from "./interactive";
 
-export { LoginInfo, StoreSelect };
+export { GlobalHeader, LoginInfo, StoreSelect };
 
 // 2026 Whale ERP 1차수정 Figma(01.프레임_기본) 기준 기본 유닛.
 // /design 은 하나씩, /design/full 은 조합해서 보여준다. 아이콘은 public/design 의 Figma 원본이다.
 
+// 입력칸은 포커스 링 대신 테두리 색만 브랜드색으로 바꾼다.
+// globals.css 의 포커스 링이 레이어 밖 규칙이라, 여기서는 ! 로 눌러야 사라진다.
 const FIELD =
-  "h-[34px] w-full rounded-[2px] border border-erp-field-line bg-white pl-[10px] text-[14px] text-erp-ink outline-none placeholder:text-erp-ink";
+  "h-[34px] w-full rounded-[2px] border border-erp-field-line bg-white pl-[10px] text-[14px] text-erp-ink outline-none! transition-[border-color] duration-150 ease-out placeholder:text-erp-ink focus:border-erp-brand";
 
+const BUTTON_TONE = {
+  primary: "border-erp-brand bg-erp-brand text-white",
+  soft: "border-erp-brand-soft bg-erp-brand-soft text-white",
+  off: "border-erp-subtle bg-erp-subtle text-erp-ink",
+};
+
+// Figma Btn_basic / Btn_basic_off / Btn_basic_off2. 세 종류 모두 호버(active)하면 흰 바탕에 브랜드 테두리가 된다.
+// 테두리를 처음부터 같은 색으로 깔아 두어 호버 때 크기가 변하지 않는다.
 export function Button({
   variant = "primary",
   className = "",
   ...props
-}: { variant?: "primary" | "off" } & ComponentProps<"button">) {
-  const tone = variant === "primary" ? "bg-erp-brand text-white" : "bg-erp-subtle text-erp-ink";
+}: { variant?: keyof typeof BUTTON_TONE } & ComponentProps<"button">) {
   return (
     <button
       {...props}
-      className={`h-[34px] shrink-0 rounded-[2px] px-[24px] text-[14px] font-medium whitespace-nowrap ${tone} ${className}`}
+      className={`h-[34px] shrink-0 rounded-[2px] border px-[24px] text-[14px] font-medium whitespace-nowrap transition-[background-color,border-color,color] duration-150 ease-out hover:border-erp-brand hover:bg-white hover:text-erp-ink ${BUTTON_TONE[variant]} ${className}`}
     />
   );
 }
@@ -84,6 +93,23 @@ export function Checkbox({ label, ...props }: { label: string } & ComponentProps
           height={9}
           className="pointer-events-none relative scale-75 opacity-0 transition-[opacity,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] peer-checked:scale-100 peer-checked:opacity-100 motion-reduce:scale-100"
         />
+      </span>
+      {label}
+    </label>
+  );
+}
+
+// Figma Form_radio. 체크박스와 같은 방식으로, 선택되면 가운데 점이 살짝 커지며 나타난다.
+export function Radio({ label, ...props }: { label: string } & ComponentProps<"input">) {
+  return (
+    <label className="flex items-center gap-[8px] text-[14px] text-erp-ink">
+      <span className="relative grid size-[20px] shrink-0 place-items-center">
+        <input
+          {...props}
+          type="radio"
+          className="peer absolute inset-0 appearance-none rounded-full border border-erp-field-line bg-white transition-[border-color] duration-150 ease-out checked:border-erp-brand"
+        />
+        <span className="pointer-events-none relative size-[8px] scale-50 rounded-full bg-erp-brand opacity-0 transition-[opacity,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] peer-checked:scale-100 peer-checked:opacity-100 motion-reduce:scale-100" />
       </span>
       {label}
     </label>
@@ -260,42 +286,65 @@ export function Pagination({ page, total }: { page: number; total: number }) {
   );
 }
 
-const MENUS = ["기초정보관리", "점포관리", "직원관리", "매출조회", "재무관리", "환경설정", "고객지원"];
+const SWAP_OFF = "transition-opacity duration-150 ease-out group-hover:opacity-0 group-focus-visible:opacity-0";
+const SWAP_ON = "absolute opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-visible:opacity-100";
 
-export function GlobalHeader() {
+function Dots({ on }: { on?: boolean }) {
   return (
-    <header className="flex h-[71px] items-center gap-[54px] border-b border-erp-bar-line bg-white px-[24px]">
-      <div className="flex shrink-0 items-center gap-[10px]">
-        <Image src="/design/logo-whale.svg" alt="" width={53} height={40} />
-        <p className="leading-[1.3] text-[#252525]">
-          <span className="block text-[16px] font-extrabold uppercase">Whale ERP</span>
-          <span className="block text-[12px]">Management System</span>
-        </p>
-      </div>
-      <nav className="flex flex-1 items-center gap-[44px] pl-[150px]">
-        {MENUS.map((menu) => (
-          <a
-            key={menu}
-            href="#"
-            className="flex h-[52px] shrink-0 items-center px-[20px] text-[16px] font-semibold whitespace-nowrap text-erp-ink"
-          >
-            {menu}
-          </a>
-        ))}
-      </nav>
-      <div className="flex shrink-0 items-center gap-[15px]">
-        <StoreSelect />
-        <LoginInfo />
-      </div>
-    </header>
+    <span className={`grid grid-cols-3 gap-[2.5px] ${on ? SWAP_ON : SWAP_OFF}`}>
+      {Array.from({ length: 9 }, (_, i) => (
+        <Image key={i} src={on ? "/design/dot-on.svg" : "/design/dot.svg"} alt="" width={3} height={3} />
+      ))}
+    </span>
   );
 }
 
-function ServiceBox({ children }: { children: ReactNode }) {
+// Figma Services. 아이콘에 올리면 아이콘이 채워지고 아래에 이름 툴팁이 뜬다.
+// 호버는 자주 스치는 동작이라 150ms 페이드로만 바꾸고, 키보드 포커스에도 같은 상태를 보여 준다.
+// 툴팁은 어느 아이콘에서 열리든 가운데 아이콘 아래 중앙에 뜬다(Figma 기준).
+// 그래서 링크 자체는 위치 기준이 되지 않고, 툴팁은 아이콘 묶음(ServiceLinks 의 relative)을 기준으로 놓인다.
+function ServiceLink({ label, boxed, off, on }: { label: string; boxed?: boolean; off: ReactNode; on: ReactNode }) {
   return (
-    <a href="#" className="grid size-[34px] place-items-center rounded-[2px] border border-erp-brand bg-white">
-      {children}
+    <a
+      href="#"
+      aria-label={label}
+      className={`group grid size-[34px] place-items-center rounded-[2px] ${
+        boxed
+          ? "border border-erp-brand bg-white transition-colors duration-150 ease-out hover:bg-erp-brand focus-visible:bg-erp-brand"
+          : ""
+      }`}
+    >
+      <span className="relative grid place-items-center">
+        {off}
+        {on}
+      </span>
+      <span className="pointer-events-none absolute top-[calc(100%+12px)] left-1/2 z-20 min-w-[110px] -translate-x-1/2 rounded-[2px] border border-erp-brand bg-white px-[11px] py-[9px] text-center text-[14px] leading-[2] whitespace-nowrap [text-box:trim-both_cap_alphabetic] text-erp-brand opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-visible:opacity-100">
+        <span className="absolute -top-[5px] left-1/2 size-[8px] -translate-x-1/2 -rotate-45 rounded-tr-[1px] border-t border-r border-erp-brand bg-white" />
+        {label}
+      </span>
     </a>
+  );
+}
+
+export function ServiceLinks() {
+  return (
+    <div className="flex items-center gap-[18px]">
+      <span className="text-[15px] font-medium text-erp-ink">서비스 바로가기</span>
+      <div className="relative flex gap-[6px]">
+        <ServiceLink
+          label="웨일ERP"
+          off={<Image src="/design/service-1.svg" alt="" width={34} height={34} className={SWAP_OFF} />}
+          on={<Image src="/design/service-1-on.svg" alt="" width={34} height={34} className={SWAP_ON} />}
+        />
+        <ServiceLink
+          label="부가서비스 현황"
+          boxed
+          off={<Image src="/design/service-2.svg" alt="" width={18} height={18} className={SWAP_OFF} />}
+          on={<Image src="/design/service-2-on.svg" alt="" width={18} height={18} className={SWAP_ON} />}
+        />
+        <ServiceLink label="플랫폼관리" boxed off={<Dots />} on={<Dots on />} />
+      </div>
+    </div>
   );
 }
 
@@ -303,24 +352,7 @@ export function PageBar({ title }: { title: string }) {
   return (
     <div className="flex h-[59px] items-center border-b border-erp-bar-line bg-erp-bar px-[24px]">
       <h1 className="flex-1 text-[22px] font-semibold text-erp-ink">{title}</h1>
-      <div className="flex items-center gap-[18px]">
-        <span className="text-[15px] font-medium text-erp-ink">서비스 바로가기</span>
-        <div className="flex gap-[6px]">
-          <a href="#" aria-label="서비스 1">
-            <Image src="/design/service-1.svg" alt="" width={34} height={34} />
-          </a>
-          <ServiceBox>
-            <Image src="/design/service-2.svg" alt="" width={18} height={18} />
-          </ServiceBox>
-          <ServiceBox>
-            <span className="grid grid-cols-3 gap-[2.5px]">
-              {Array.from({ length: 9 }, (_, i) => (
-                <Image key={i} src="/design/dot.svg" alt="" width={3} height={3} />
-              ))}
-            </span>
-          </ServiceBox>
-        </div>
-      </div>
+      <ServiceLinks />
     </div>
   );
 }
