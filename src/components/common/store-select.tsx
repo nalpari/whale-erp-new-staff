@@ -23,7 +23,7 @@ export function StoreSelect({
   label?: string;
   placeholder?: string;
 }) {
-  const { open, setOpen, ref, id } = useDropdown();
+  const { open, setOpen, close, ref, trigger, id } = useDropdown();
   const [inner, setInner] = useState(defaultValue);
   const value = controlled ?? inner;
   const rest = options.filter((o) => o !== value);
@@ -31,6 +31,7 @@ export function StoreSelect({
   return (
     <div ref={ref} className="relative w-[260px]">
       <button
+        ref={trigger}
         type="button"
         aria-expanded={open}
         aria-controls={id}
@@ -66,7 +67,7 @@ export function StoreSelect({
                 onClick={() => {
                   setInner(o);
                   onChange?.(o);
-                  setOpen(false);
+                  close();
                 }}
                 className="block w-full text-left whitespace-nowrap hover:text-erp-brand"
               >
