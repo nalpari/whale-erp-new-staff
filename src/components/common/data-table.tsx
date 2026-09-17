@@ -24,14 +24,14 @@ export function DataTable<T>({
   return (
     <table className="w-full table-fixed border-collapse border-x border-erp-thead-line text-[14px]">
       <colgroup>
-        {columns.map((c) => (
-          <col key={c.header} className={c.width} />
+        {columns.map((c, i) => (
+          <col key={i} className={c.width} />
         ))}
       </colgroup>
       <thead>
         <tr className="h-[42px] border-y border-erp-thead-line bg-erp-thead-bg">
-          {columns.map((c) => (
-            <th key={c.header} scope="col" className="px-[10px] font-medium text-erp-thead-text">
+          {columns.map((c, i) => (
+            <th key={i} scope="col" className="px-[10px] font-medium text-erp-thead-text">
               {c.header}
             </th>
           ))}
@@ -47,8 +47,8 @@ export function DataTable<T>({
         ) : (
           rows.map((row) => (
             <tr key={rowKey(row)} className="h-[46px] border-b border-erp-thead-line">
-              {columns.map((c) => (
-                <td key={c.header} className={`truncate px-[10px] ${c.align === "left" ? "text-left" : "text-center"}`}>
+              {columns.map((c, i) => (
+                <td key={i} className={`truncate px-[10px] ${c.align === "left" ? "text-left" : "text-center"}`}>
                   {c.cell(row)}
                 </td>
               ))}
