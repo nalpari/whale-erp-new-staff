@@ -2,7 +2,6 @@ import Image from "next/image";
 import type { ComponentProps } from "react";
 import { FIELD } from "./theme";
 
-// 입력칸은 모두 폭을 채운다(w-full). 폭은 감싸는 요소로 정한다.
 export function Select(props: Omit<ComponentProps<"select">, "className">) {
   return (
     <select
@@ -27,7 +26,7 @@ const MARK_MOTION =
   "pointer-events-none relative scale-75 opacity-0 transition-[opacity,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] peer-checked:scale-100 peer-checked:opacity-100 motion-reduce:scale-100";
 
 // Figma Form_check. 하루에도 여러 번 누르는 컨트롤이라 짧고 옅게만 움직인다:
-// 칸 색은 바로 바뀌고 체크 표시만 살짝 커지며 나타난다.
+// 칸 색은 150ms 로 짧게 바뀌고, 체크 표시는 살짝 커지며 나타난다.
 export function Checkbox({ label, ...props }: { label: string } & Omit<ComponentProps<"input">, "type" | "className">) {
   return (
     <label className="flex items-center gap-[8px] text-[14px] text-erp-ink">

@@ -93,7 +93,7 @@ export function FilterSection({
 }: {
   label: string;
   children: ReactNode;
-  /** 입력칸 묶음은 라벨 간격이 8, 체크박스 묶음은 12 다. */
+  /** 라벨과 내용 간격을 8 로 줄인다(입력칸 묶음). 없으면 12(체크박스 묶음). */
   tight?: boolean;
   last?: boolean;
 }) {

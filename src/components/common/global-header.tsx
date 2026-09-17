@@ -21,8 +21,8 @@ export function GlobalHeader({ menus, right }: { menus: HeaderMenu[]; right?: Re
   const [shown, setShown] = useState(0);
   const ref = useDismiss<HTMLElement>(open, () => setOpen(false));
   const toggle = (next: number) => {
-    // 닫혀 있거나 동작 줄이기 설정이면 페이드 없이 바로 바꾼다.
-    // (전환이 없으면 transitionend 가 오지 않아 줄이 흐린 채로 멈추기 때문)
+    // 닫혀 있으면 줄이 보이지 않고, 동작 줄이기 설정이면 페이드를 빼야 하므로 바로 바꾼다.
+    // 그 밖에는 흐려짐이 끝나거나 취소된 뒤(onTransitionEnd/Cancel) 바꾼다. 취소를 놓치면 줄이 흐린 채 멈춘다.
     if (!open || matchMedia("(prefers-reduced-motion: reduce)").matches) setShown(next);
     setOpen(!(open && menu === next));
     setMenu(next);
@@ -55,7 +55,7 @@ export function GlobalHeader({ menus, right }: { menus: HeaderMenu[]; right?: Re
         </nav>
         {right && <div className="flex shrink-0 items-center gap-[15px]">{right}</div>}
       </div>
-      {/* 1depth 첫 메뉴 글자 시작점(404px)에 맞춘 2depth 줄. 높이 41 = 위아래 12 + 글자 16 + 테두리 1.
+      {/* 2depth 줄. 왼쪽 404px 은 Figma 값이다(1depth 첫 글자는 Figma 와 같이 405px 에서 시작한다). 높이 41 = 위아래 12 + 글자 16 + 테두리 1.
           자주 여닫는 메뉴라 200ms 로 짧게 펼친다. 줄 높이가 본문을 밀어내야 해서 grid 행 높이를 전환한다. */}
       <div
         inert={!open}
