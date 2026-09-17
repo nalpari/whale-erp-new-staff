@@ -13,7 +13,7 @@ export function Select(props: Omit<ComponentProps<"select">, "className">) {
 }
 
 // 네이티브 달력 버튼은 투명하게 남겨 클릭 영역으로만 쓰고, 보이는 아이콘은 Figma 원본이다.
-export function DateField(props: Omit<ComponentProps<"input">, "type">) {
+export function DateField(props: Omit<ComponentProps<"input">, "type" | "className">) {
   return (
     <input
       {...props}
@@ -28,7 +28,7 @@ const MARK_MOTION =
 
 // Figma Form_check. 하루에도 여러 번 누르는 컨트롤이라 짧고 옅게만 움직인다:
 // 칸 색은 바로 바뀌고 체크 표시만 살짝 커지며 나타난다.
-export function Checkbox({ label, ...props }: { label: string } & Omit<ComponentProps<"input">, "type">) {
+export function Checkbox({ label, ...props }: { label: string } & Omit<ComponentProps<"input">, "type" | "className">) {
   return (
     <label className="flex items-center gap-[8px] text-[14px] text-erp-ink">
       <span className="relative grid size-[20px] shrink-0 place-items-center">
@@ -45,7 +45,7 @@ export function Checkbox({ label, ...props }: { label: string } & Omit<Component
 }
 
 // Figma Form_radio. 체크박스와 같은 방식으로, 선택되면 가운데 점이 살짝 커지며 나타난다.
-export function Radio({ label, ...props }: { label: string } & Omit<ComponentProps<"input">, "type">) {
+export function Radio({ label, ...props }: { label: string } & Omit<ComponentProps<"input">, "type" | "className">) {
   return (
     <label className="flex items-center gap-[8px] text-[14px] text-erp-ink">
       <span className="relative grid size-[20px] shrink-0 place-items-center">

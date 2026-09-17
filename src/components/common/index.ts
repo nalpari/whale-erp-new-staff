@@ -13,5 +13,3 @@ export { GlobalHeader, type HeaderMenu } from "./global-header";
 export { StoreSelect } from "./store-select";
 export { UserPop, type UserPopItem } from "./user-pop";
 export { PageBar, ServiceLinks } from "./page-bar";
-export { Popup, useDismiss, useDropdown } from "./popup";
-export { EASE_OUT, FIELD } from "./theme";
