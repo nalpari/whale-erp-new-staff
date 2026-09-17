@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ComponentProps, type ReactNode } from "react";
+import { FIELD } from "./field";
 
 // /design 샘플에서 클릭 상태가 필요한 유닛. 나머지 유닛은 units.tsx 의 서버 컴포넌트다.
 
@@ -329,5 +330,44 @@ export function GlobalHeader() {
         </div>
       </div>
     </header>
+  );
+}
+
+// 검색 입력칸. 브라우저 기본 지우기(X) 버튼을 숨기고, 값이 있을 때만 같은 선 굵기(1.5)의 X 를 보여 준다.
+// Figma 에 지우기 아이콘이 없어 기존 아이콘(1.5 선, #3C4046 계열)에 맞춰 그렸다.
+export function SearchField({ defaultValue, ...props }: Omit<ComponentProps<"input">, "value" | "onChange" | "type">) {
+  const [value, setValue] = useState(String(defaultValue ?? ""));
+  const input = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className="relative">
+      <input
+        {...props}
+        ref={input}
+        type="search"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        className={`${FIELD} pr-[52px] [&::-webkit-search-cancel-button]:appearance-none`}
+      />
+      <button
+        type="button"
+        aria-label="입력 지우기"
+        tabIndex={value ? 0 : -1}
+        onClick={() => {
+          setValue("");
+          input.current?.focus();
+        }}
+        className={`group absolute top-1/2 right-[32px] grid size-[18px] -translate-y-1/2 place-items-center rounded-full bg-erp-subtle transition-[opacity,background-color] duration-150 ease-out hover:bg-erp-field-line ${
+          value ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      >
+        <svg viewBox="0 0 8 8" className="size-[8px] stroke-erp-label transition-colors duration-150 ease-out group-hover:stroke-erp-ink" aria-hidden>
+          <path d="M1 1l6 6M7 1L1 7" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+        </svg>
+      </button>
+      <button type="button" aria-label="검색" className="absolute top-0 right-0 grid size-[34px] place-items-center">
+        <Image src="/design/search.svg" alt="" width={12} height={12} />
+      </button>
+    </div>
   );
 }

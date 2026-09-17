@@ -1,16 +1,12 @@
 import Image from "next/image";
 import type { ComponentProps, ReactNode } from "react";
-import { FilterShell, GlobalHeader, LoginInfo, StoreSelect } from "./interactive";
+import { FIELD } from "./field";
+import { FilterShell, GlobalHeader, LoginInfo, SearchField, StoreSelect } from "./interactive";
 
-export { GlobalHeader, LoginInfo, StoreSelect };
+export { GlobalHeader, LoginInfo, SearchField, StoreSelect };
 
 // 2026 Whale ERP 1차수정 Figma(01.프레임_기본) 기준 기본 유닛.
 // /design 은 하나씩, /design/full 은 조합해서 보여준다. 아이콘은 public/design 의 Figma 원본이다.
-
-// 입력칸은 포커스 링 대신 테두리 색만 브랜드색으로 바꾼다.
-// globals.css 의 포커스 링이 레이어 밖 규칙이라, 여기서는 ! 로 눌러야 사라진다.
-const FIELD =
-  "h-[34px] w-full rounded-[2px] border border-erp-field-line bg-white pl-[10px] text-[14px] text-erp-ink outline-none! transition-[border-color] duration-150 ease-out placeholder:text-erp-ink focus:border-erp-brand";
 
 const BUTTON_TONE = {
   primary: "border-erp-brand bg-erp-brand text-white",
@@ -42,17 +38,6 @@ export function Badge({ on }: { on: boolean }) {
     >
       {on ? "운영" : "미운영"}
     </span>
-  );
-}
-
-export function SearchField(props: ComponentProps<"input">) {
-  return (
-    <div className="relative">
-      <input {...props} type="search" className={`${FIELD} pr-[30px]`} />
-      <button type="button" aria-label="검색" className="absolute top-0 right-0 grid size-[34px] place-items-center">
-        <Image src="/design/search.svg" alt="" width={12} height={12} />
-      </button>
-    </div>
   );
 }
 
