@@ -9,6 +9,8 @@ const PANEL_BUTTON = "grid h-[32px] place-items-center rounded-[2px] border bord
 // Figma Fillter. 목록 화면 왼쪽의 필터 패널. 안에는 FilterSection 을 쌓는다.
 // 접으면 폭을 226 → 76 으로 바꾼다. 옆 목록이 따라 늘어나야 해서 폭 자체를 전환한다.
 // 안쪽 내용은 폭을 고정해 두고 잘라내므로, 줄어드는 동안 줄바꿈이 일어나지 않는다.
+// 패널 높이는 부모가 정한다. 항목이 넘치면 제목 줄은 두고 그 아래만 세로로 스크롤한다.
+// 스크롤 영역은 왼쪽 18 여백 뒤에 188 폭 내용을 두고, 오른쪽 18 안에서 스크롤바 자리를 잡는다.
 export function FilterPanel({
   title = "필터",
   onReset,
@@ -33,11 +35,11 @@ export function FilterPanel({
     >
       <div
         inert={!open}
-        className={`flex w-[224px] flex-col gap-[18px] px-[18px] pt-[18px] pb-[24px] transition-opacity ${
+        className={`flex h-full w-[224px] flex-col transition-opacity ${
           open ? "opacity-100 duration-200" : "opacity-0 duration-100"
         }`}
       >
-        <div className="flex items-center gap-[6px] border-b border-erp-divider pb-[18px]">
+        <div className="mx-[18px] mt-[18px] flex shrink-0 items-center gap-[6px] border-b border-erp-divider pb-[18px]">
           <h2 className="flex-1 text-[15px] font-semibold text-erp-ink">{title}</h2>
           <button type="button" aria-label={`${title} 초기화`} onClick={onReset} className={`${PANEL_BUTTON} px-[13px]`}>
             <Image src="/icons/reset.svg" alt="" width={14} height={14} />
@@ -46,7 +48,9 @@ export function FilterPanel({
             <Image src="/icons/collapse.svg" alt="" width={12} height={18} />
           </button>
         </div>
-        {children}
+        <div className="min-h-0 flex-1 overflow-y-auto pl-[18px] [scrollbar-gutter:stable]">
+          <div className="flex w-[188px] flex-col gap-[18px] pt-[18px] pb-[24px]">{children}</div>
+        </div>
       </div>
       <button
         type="button"

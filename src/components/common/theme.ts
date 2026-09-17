@@ -9,5 +9,6 @@ export const FIELD =
 
 // 콘솔 전체는 다크 계근대 테마라, ERP 화면은 ErpRoot 안에서만 밝은 테마로 뒤집는다.
 // Tailwind v4 는 버튼에 pointer 커서를 주지 않으므로 누를 수 있는 요소를 여기서 한 번에 잡는다.
+// 스크롤바 색도 globals.css 의 어두운 색(레이어 밖 규칙)을 ! 로 덮어 밝은 화면에 맞춘다.
 export const ERP_THEME =
-  "bg-white font-erp leading-[normal] tracking-[-0.025em] text-erp-ink scheme-light selection:bg-erp-brand selection:text-white [&_*:focus-visible]:outline-erp-brand! [&_:is(a[href],button:enabled,select:enabled,label:has(input:enabled),input[type=checkbox]:enabled)]:cursor-pointer [&_::-webkit-calendar-picker-indicator]:cursor-pointer";
+  "bg-white font-erp leading-[normal] tracking-[-0.025em] text-erp-ink scheme-light selection:bg-erp-brand selection:text-white [&_*:focus-visible]:outline-erp-brand! [&_:is(a[href],button:enabled,select:enabled,label:has(input:enabled),input[type=checkbox]:enabled)]:cursor-pointer [&_::-webkit-calendar-picker-indicator]:cursor-pointer [&_*]:[scrollbar-color:#cfd4da_transparent]!";
