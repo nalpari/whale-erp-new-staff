@@ -5,18 +5,18 @@ import {
   Checkbox,
   DataTable,
   DateField,
-  FilterPanel,
   GlobalHeader,
-  ListTops,
-  LoginInfo,
+  ListToolbar,
   PageBar,
   Pagination,
   Radio,
-  SAMPLE_ROWS,
   SearchField,
   Select,
   StoreSelect,
-} from "./units";
+  UserPop,
+} from "@/components/common";
+import { MENUS, STORE_COLUMNS, STORE_ROWS, STORES, USER_ITEMS } from "./sample";
+import { StoreFilter } from "./store-filter";
 
 const COLORS = [
   ["erp-ink", "bg-erp-ink", "#3C4046"],
@@ -43,11 +43,12 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
+// 공통 컴포넌트(@/components/common)를 하나씩 보여 준다.
 export default function DesignUnitsPage() {
   return (
     <main className="mx-auto max-w-[1680px] px-6 py-12 sm:px-10">
       <h1 className="mb-2 text-[28px] font-bold">기본 유닛</h1>
-      <p className="mb-10 text-[14px] text-erp-label">2026 Whale ERP 1차수정 · 01.프레임_기본</p>
+      <p className="mb-10 text-[14px] text-erp-label">2026 Whale ERP 1차수정 · @/components/common</p>
 
       <Section title="Color">
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
@@ -81,12 +82,12 @@ export default function DesignUnitsPage() {
 
       <Section title="Badge">
         <div className="flex gap-2">
-          <Badge on />
-          <Badge on={false} />
+          <Badge tone="on">운영</Badge>
+          <Badge tone="off">미운영</Badge>
         </div>
       </Section>
 
-      <Section title="Field">
+      <Section title="SearchField · Select · DateField">
         <div className="grid max-w-[640px] gap-4 sm:grid-cols-3">
           <SearchField placeholder="대표자명 입력" aria-label="대표자명" />
           <Select aria-label="페이지당 건수" defaultValue="50">
@@ -109,32 +110,43 @@ export default function DesignUnitsPage() {
         </div>
       </Section>
 
-      <Section title="Header controls">
-        <div className="flex flex-wrap items-center gap-6">
-          <StoreSelect />
-          <LoginInfo />
+      <Section title="StoreSelect · UserPop">
+        <div className="flex flex-wrap items-center gap-6 pb-[160px]">
+          <StoreSelect options={STORES} />
+          <UserPop name="김지영 (admin)" items={USER_ITEMS} />
         </div>
       </Section>
 
-      <Section title="Filter panel">
-        <FilterPanel />
+      <Section title="FilterPanel · FilterSection">
+        <StoreFilter />
       </Section>
 
-      <Section title="List tops · Table · Pagination">
+      <Section title="ListToolbar · DataTable · Pagination">
         <div className="flex flex-col gap-3 overflow-x-auto">
-          <ListTops total={100} />
+          <ListToolbar total={100}>
+            <Button>신규 등록</Button>
+          </ListToolbar>
           <div className="min-w-[1280px]">
-            <DataTable rows={SAMPLE_ROWS.slice(0, 3)} />
+            <DataTable columns={STORE_COLUMNS} rows={STORE_ROWS.slice(0, 3)} rowKey={(r) => r.no} />
           </div>
+          <DataTable columns={STORE_COLUMNS.slice(0, 3)} rows={[]} rowKey={(r) => r.no} />
           <Pagination page={1} total={10} />
         </div>
       </Section>
 
-      <Section title="Global header · Page bar">
+      <Section title="GlobalHeader · PageBar">
         {/* 가로 스크롤 영역은 세로로도 잘라내므로, 툴팁과 헤더 팝업이 펼쳐질 자리를 아래에 남긴다. */}
         <div className="overflow-x-auto pb-[220px]">
           <div className="min-w-[1720px] border border-erp-panel-line">
-            <GlobalHeader />
+            <GlobalHeader
+              menus={MENUS}
+              right={
+                <>
+                  <StoreSelect options={STORES} />
+                  <UserPop name="김지영 (admin)" items={USER_ITEMS} />
+                </>
+              }
+            />
             <PageBar title="점포정보 관리" />
           </div>
         </div>
