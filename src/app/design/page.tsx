@@ -1,33 +1,41 @@
 import type { ReactNode } from "react";
 import {
-  Alarm,
-  Field,
-  ItemRow,
-  Plate,
-  QuietButton,
-  Readout,
-  SAMPLE_ITEMS,
-  StartButton,
+  Badge,
+  Button,
+  Checkbox,
+  DataTable,
+  DateField,
+  FilterPanel,
+  GlobalHeader,
+  ListTops,
+  LoginInfo,
+  PageBar,
+  Pagination,
+  SAMPLE_ROWS,
+  SearchField,
+  Select,
+  StoreSelect,
 } from "./units";
 
 const COLORS = [
-  ["panel", "bg-panel"],
-  ["recess", "bg-recess"],
-  ["seam", "bg-seam"],
-  ["plate", "bg-plate"],
-  ["plate-dim", "bg-plate-dim"],
-  ["amber", "bg-amber"],
-  ["amber-off", "bg-amber-off"],
-  ["start", "bg-start"],
-  ["alarm", "bg-alarm"],
+  ["erp-ink", "bg-erp-ink", "#3C4046"],
+  ["erp-brand", "bg-erp-brand", "#6B7988"],
+  ["erp-label", "bg-erp-label", "#888888"],
+  ["erp-thead-text", "bg-erp-thead-text", "#858B94"],
+  ["erp-field-line", "bg-erp-field-line", "#EDEDEE"],
+  ["erp-button-line", "bg-erp-button-line", "#E5E5E5"],
+  ["erp-thead-line", "bg-erp-thead-line", "#E9EDF5"],
+  ["erp-thead-bg", "bg-erp-thead-bg", "#F8F9FB"],
+  ["erp-subtle", "bg-erp-subtle", "#F0F1F3"],
+  ["erp-bar", "bg-erp-bar", "#F0F2F3"],
+  ["erp-on", "bg-erp-on", "#5E8CE9"],
+  ["erp-off", "bg-erp-off", "#EF6363"],
 ];
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="border-t border-seam py-10">
-      <h2 className="mb-6 font-mono text-[0.72rem] uppercase tracking-[0.2em] text-plate-dim">
-        {title}
-      </h2>
+    <section className="border-t border-erp-panel-line py-10">
+      <h2 className="mb-6 text-[13px] font-semibold tracking-normal text-erp-label uppercase">{title}</h2>
       {children}
     </section>
   );
@@ -35,61 +43,93 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 export default function DesignUnitsPage() {
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12 sm:px-10">
-      <h1 className="mb-10 font-sans text-2xl text-plate">기본 유닛</h1>
+    <main className="mx-auto max-w-[1680px] px-6 py-12 sm:px-10">
+      <h1 className="mb-2 text-[28px] font-bold">기본 유닛</h1>
+      <p className="mb-10 text-[14px] text-erp-label">2026 Whale ERP 1차수정 · 01.프레임_기본</p>
 
       <Section title="Color">
-        <ul className="grid grid-cols-3 gap-4 sm:grid-cols-9">
-          {COLORS.map(([name, bg]) => (
+        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+          {COLORS.map(([name, bg, hex]) => (
             <li key={name}>
-              <div className={`h-14 border border-seam ${bg}`} />
-              <span className="mt-2 block font-mono text-xs text-plate-dim">{name}</span>
+              <div className={`h-14 rounded-[2px] border border-erp-panel-line ${bg}`} />
+              <p className="mt-2 text-[13px] font-medium">{name}</p>
+              <p className="text-[12px] text-erp-label">{hex}</p>
             </li>
           ))}
         </ul>
       </Section>
 
-      <Section title="Type">
+      <Section title="Type · Pretendard">
         <div className="space-y-4">
-          <p className="font-sans text-[2.5rem] font-semibold leading-none tracking-[0.16em]">WHALE ERP</p>
-          <p className="font-sans text-2xl">제목 · IBM Plex Sans KR</p>
-          <p className="font-sans text-base text-plate-dim">본문 보조 텍스트</p>
-          <p className="font-mono text-sm tracking-[0.08em]">WIRE-COIL-5T · IBM Plex Mono</p>
-          <Plate>각인 캡스</Plate>
+          <p className="text-[22px] font-semibold">페이지 제목 22 SemiBold</p>
+          <p className="text-[16px] font-semibold">메뉴 16 SemiBold</p>
+          <p className="text-[15px] font-semibold">패널 제목 15 SemiBold</p>
+          <p className="text-[14px]">본문 14 Regular</p>
+          <p className="text-[14px] font-medium text-erp-label">폼 라벨 14 Medium</p>
         </div>
       </Section>
 
       <Section title="Button">
-        <div className="flex max-w-md flex-col gap-4">
-          <StartButton>로그인</StartButton>
-          <StartButton disabled>확인 중</StartButton>
-          <QuietButton>로그아웃</QuietButton>
+        <div className="flex flex-wrap gap-2">
+          <Button>신규 등록</Button>
+          <Button variant="off">취소</Button>
+        </div>
+      </Section>
+
+      <Section title="Badge">
+        <div className="flex gap-2">
+          <Badge on />
+          <Badge on={false} />
         </div>
       </Section>
 
       <Section title="Field">
-        <div className="max-w-md space-y-7">
-          <Field id="d-email" label="이메일" type="email" placeholder="admin@whale.test" />
-          <Field id="d-password" label="비밀번호" type="password" />
+        <div className="grid max-w-[640px] gap-4 sm:grid-cols-3">
+          <SearchField placeholder="대표자명 입력" aria-label="대표자명" />
+          <Select aria-label="페이지당 건수" defaultValue="50">
+            <option>20</option>
+            <option>50</option>
+            <option>100</option>
+          </Select>
+          <DateField aria-label="등록일" defaultValue="2020-08-28" />
         </div>
       </Section>
 
-      <Section title="Readout">
-        <div className="flex gap-12">
-          <Readout value={99} />
-          <Readout value={0} />
+      <Section title="Checkbox">
+        <div className="flex gap-6">
+          <Checkbox label="선택됨" defaultChecked />
+          <Checkbox label="선택 안 됨" />
         </div>
       </Section>
 
-      <Section title="Alarm">
-        <Alarm>이메일 또는 비밀번호가 맞지 않습니다.</Alarm>
+      <Section title="Header controls">
+        <div className="flex flex-wrap items-center gap-6">
+          <StoreSelect />
+          <LoginInfo />
+        </div>
       </Section>
 
-      <Section title="Item row">
-        <ul>
-          <ItemRow {...SAMPLE_ITEMS[0]} />
-          <li className="border-t border-seam" />
-        </ul>
+      <Section title="Filter panel">
+        <FilterPanel />
+      </Section>
+
+      <Section title="List tops · Table · Pagination">
+        <div className="flex flex-col gap-3 overflow-x-auto">
+          <ListTops total={100} />
+          <div className="min-w-[1280px]">
+            <DataTable rows={SAMPLE_ROWS.slice(0, 3)} />
+          </div>
+          <Pagination page={1} total={10} />
+        </div>
+      </Section>
+
+      <Section title="Global header · Page bar">
+        <div className="overflow-x-auto border border-erp-panel-line">
+          <div className="min-w-[1720px]">
+            <GlobalHeader />
+            <PageBar title="점포정보 관리" />
+          </div>
+        </div>
       </Section>
     </main>
   );

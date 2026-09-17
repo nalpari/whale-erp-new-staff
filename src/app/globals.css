@@ -18,6 +18,27 @@
 
   --font-sans: var(--font-plate), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   --font-mono: var(--font-gauge), ui-monospace, "SFMono-Regular", monospace;
+
+  /* 2026 Whale ERP 1차수정 Figma 토큰. 지금은 /design 샘플에서만 쓴다. */
+  --color-erp-ink: #3c4046;
+  --color-erp-brand: #6b7988;
+  --color-erp-label: #888888;
+  --color-erp-muted: #999999;
+  --color-erp-field-line: #ededee;
+  --color-erp-button-line: #e5e5e5;
+  --color-erp-panel-line: #edeef1;
+  --color-erp-divider: #eeeeee;
+  --color-erp-thead-text: #858b94;
+  --color-erp-thead-bg: #f8f9fb;
+  --color-erp-thead-line: #e9edf5;
+  --color-erp-subtle: #f0f1f3;
+  --color-erp-bar: #f0f2f3;
+  --color-erp-bar-line: #e6e7ea;
+  --color-erp-on: #5e8ce9;
+  --color-erp-on-bg: #f4f9ff;
+  --color-erp-off: #ef6363;
+  --color-erp-off-bg: #fff1f1;
+  --font-erp: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
 }
 
 :root {
