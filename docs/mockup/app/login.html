@@ -37,6 +37,12 @@
          1·3·5분 3회까지 · 유효시간과 쿨다운 중 먼저 걸리는 쪽 적용 ·
          비밀번호가 새로 정해지면 잠금도 함께 풀린다.
 
+         2026-09-17 에 이메일 찾기를 더했다. 이메일을 잊은 직원이 이름·휴대전화번호·
+         생년월일로 로그인 이메일을 찾는다 — 세 값 모두 가입 때 본인인증으로 확정된
+         값이다(LOGIN-8). 관리자 웹의 이메일 아이디 변경 요청 안은 버렸다. 찾은
+         주소를 어디까지 보일지(LOGIN-9)와 맞지 않을 때의 안내·시도 제한(LOGIN-10)은
+         한 안을 그려 두고 쟁점으로 남겼다.
+
          근거 : S-PHHICH · S-WSPEYJ · S-YWYTJY · S-PIXATL -->
     <a class="skip" href="#main">본문으로 건너뛰기</a>
 
@@ -172,6 +178,101 @@
                   기다리기 어려우면 <strong>비밀번호를 다시 정하면</strong> 바로 들어올 수 있습니다.
                   새로 정하면 잠금도 함께 풀립니다.
                 </div>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 이메일 찾기 · 본인 확인 입력 (LOGIN-8) ───────── -->
+            <div class="view" data-when="find">
+              <div style="height: 20px"></div>
+              <div class="stack stack-6">
+                <p class="h-xl">로그인 이메일을 찾습니다</p>
+                <p class="p">
+                  가입할 때 <strong>본인인증으로 확인된 세 가지</strong>를 넣으면 그 이메일을 찾아
+                  드립니다.
+                </p>
+              </div>
+
+              <div class="field" style="margin-top: 6px">
+                <label class="field__lab" for="fe-name">이름</label>
+                <input class="input" id="fe-name" type="text" value="김민서" />
+              </div>
+              <div class="field">
+                <label class="field__lab" for="fe-tel">휴대전화번호</label>
+                <input class="input" id="fe-tel" type="tel" value="010-2841-5521" />
+              </div>
+              <div class="field">
+                <label class="field__lab" for="fe-birth">생년월일</label>
+                <input class="input" id="fe-birth" type="text" value="1999-04-12" />
+                <p class="field__help">가입 때 본인인증으로 확정된 값과 같아야 합니다.</p>
+              </div>
+
+              <div class="note">
+                <i class="ph ph-shield-check"></i>
+                <div>
+                  세 값이 모두 맞아야 알려 드립니다. 하나라도 다르면 어느 값이 틀렸는지는 알려 주지
+                  않습니다.
+                </div>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 이메일 찾기 · 결과 ───────────────────────────── -->
+            <div class="view" data-when="found">
+              <div style="height: 20px"></div>
+              <div class="center stack-8">
+                <i class="ph-fill ph-envelope-simple-open" style="font-size: 28px; color: var(--ok)"></i>
+                <p class="h-xl">이 이메일로 가입되어 있습니다</p>
+              </div>
+
+              <div class="card card--pen">
+                <p class="lab">로그인 이메일</p>
+                <p class="num num--lg" style="margin-top: 4px">min***@gmail.com</p>
+                <p class="tiny" style="margin-top: 6px">
+                  가운데를 가려서 보여 줍니다. 앞뒤 글자와 도메인으로 어느 메일함인지 알아볼 수
+                  있습니다.
+                </p>
+              </div>
+
+              <div class="card card--sunken">
+                <p class="lab">다음에 할 일</p>
+                <p class="p--sm" style="margin-top: 6px">
+                  이 이메일로 로그인하세요. 비밀번호가 기억나지 않으면 이 주소로 인증번호를 받아
+                  다시 정할 수 있습니다.
+                </p>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 이메일 찾기 · 맞지 않음 ──────────────────────── -->
+            <div class="view" data-when="find-fail">
+              <div style="height: 20px"></div>
+              <div class="center stack-8">
+                <i class="ph-fill ph-warning-circle" style="font-size: 28px; color: var(--seal)"></i>
+                <p class="h-xl">맞는 계정을 찾지 못했습니다</p>
+                <p class="p">세 값이 가입 때 확인된 값과 다릅니다. 남은 시도는 2번입니다.</p>
+              </div>
+
+              <div class="card card--sunken">
+                <p class="lab">이럴 때가 많습니다</p>
+                <div class="rows" style="margin-top: 2px">
+                  <div class="row" style="padding: 7px 0">
+                    <span class="row__title" style="font-size: 13px; font-weight: 500"
+                      >휴대전화번호가 가입 뒤에 바뀐 경우</span
+                    >
+                  </div>
+                  <div class="row" style="padding: 7px 0">
+                    <span class="row__title" style="font-size: 13px; font-weight: 500"
+                      >이름의 띄어쓰기나 생년월일 형식이 다른 경우</span
+                    >
+                  </div>
+                </div>
+                <p class="tiny" style="margin-top: 7px">
+                  세 번 더 틀리면 잠시 막습니다. 그때는 관리자에게 알려 주세요.
+                </p>
               </div>
 
               <div class="grow"></div>
@@ -460,11 +561,29 @@
                 <i class="ph-fill ph-sign-in"></i>로그인
               </button>
               <button class="btn btn--quiet" data-go="forgot">비밀번호를 잊으셨나요</button>
+              <button class="btn btn--quiet" data-go="find">이메일이 기억나지 않나요</button>
             </div>
 
             <div class="dock" data-when="locked">
               <button class="btn" data-go="forgot">비밀번호 다시 정하기</button>
               <button class="btn btn--quiet" data-go="login">기다렸다 다시 시도</button>
+            </div>
+
+            <div class="dock" data-when="find">
+              <button class="btn" data-go="found" data-toast="이메일을 찾았습니다">
+                <i class="ph-fill ph-magnifying-glass"></i>이메일 찾기
+              </button>
+              <button class="btn btn--quiet" data-go="find-fail">맞지 않는 경우 보기</button>
+            </div>
+
+            <div class="dock" data-when="found">
+              <button class="btn" data-go="login">이 이메일로 로그인</button>
+              <button class="btn btn--quiet" data-go="forgot">비밀번호도 다시 정하기</button>
+            </div>
+
+            <div class="dock" data-when="find-fail">
+              <button class="btn" data-go="find">다시 넣기</button>
+              <button class="btn btn--quiet" data-go="login">로그인으로 돌아가기</button>
             </div>
 
             <div class="dock" data-when="forgot">
@@ -553,42 +672,60 @@
                   ><span class="sw-b__t">계정 잠김</span> <span class="sw-b__d">· 5회 실패</span></span
                 >
               </button>
-              <button class="sw-b" data-state="forgot">
+              <button class="sw-b" data-state="find">
                 <span class="sw-b__k">4</span>
+                <span
+                  ><span class="sw-b__t">이메일 찾기</span>
+                  <span class="sw-b__d">· 이름·번호·생년월일</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="found">
+                <span class="sw-b__k">5</span>
+                <span><span class="sw-b__t">이메일 찾음</span> <span class="sw-b__d">· 가려서 표시</span></span>
+              </button>
+              <button class="sw-b" data-state="find-fail">
+                <span class="sw-b__k">6</span>
+                <span
+                  ><span class="sw-b__t">이메일 못 찾음</span>
+                  <span class="sw-b__d">· 남은 시도 2번</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="forgot">
+                <span class="sw-b__k">7</span>
                 <span
                   ><span class="sw-b__t">비밀번호 찾기</span>
                   <span class="sw-b__d">· 이메일 입력</span></span
                 >
               </button>
               <button class="sw-b" data-state="pin">
-                <span class="sw-b__k">5</span>
+                <span class="sw-b__k">8</span>
                 <span
                   ><span class="sw-b__t">인증번호 입력</span>
                   <span class="sw-b__d">· 10분 · 5회</span></span
                 >
               </button>
               <button class="sw-b" data-state="cool">
-                <span class="sw-b__k">6</span>
+                <span class="sw-b__k">9</span>
                 <span
                   ><span class="sw-b__t">인증번호 쿨다운</span>
                   <span class="sw-b__d">· 1·3·5분</span></span
                 >
               </button>
               <button class="sw-b" data-state="pin-out">
-                <span class="sw-b__k">7</span>
+                <span class="sw-b__k">·</span>
                 <span
                   ><span class="sw-b__t">인증번호 만료</span> <span class="sw-b__d">· 10분 지남</span></span
                 >
               </button>
               <button class="sw-b" data-state="newpw">
-                <span class="sw-b__k">8</span>
+                <span class="sw-b__k">·</span>
                 <span
                   ><span class="sw-b__t">새 비밀번호 설정</span>
                   <span class="sw-b__d">· 본인 재설정</span></span
                 >
               </button>
               <button class="sw-b" data-state="temp">
-                <span class="sw-b__k">9</span>
+                <span class="sw-b__k">·</span>
                 <span
                   ><span class="sw-b__t">관리자 초기화 직후</span>
                   <span class="sw-b__d">· 변경 강제</span></span
@@ -808,20 +945,83 @@
             <div class="gap__head">
               <span class="gap__no">LOGIN-8</span>
               <span class="gap__t">이메일을 못 받는 직원은 어떻게 하는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 이메일 찾기</span>
+              <span class="gap__ref">S-PIXATL</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                <b>이메일 찾기</b>를 둔다. 직원이 <b>이름·휴대전화번호·생년월일</b>을 넣으면 가입할 때 쓴 로그인
+                이메일을 찾아 준다 (2026-09-17 재영 확정). 세 값은 모두 가입 때 본인인증으로 확정된 값이다.
+              </p>
+              <ul>
+                <li>관리자 웹의 이메일 아이디 변경 요청 안은 쓰지 않는다</li>
+                <li>
+                  찾은 이메일을 화면에 어떻게 보일지(일부 가림 여부), 세 값이 맞지 않을 때의 안내와 시도 제한은
+                  그림을 그리며 정한다
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">LOGIN-9</span>
+              <span class="gap__t">찾은 이메일을 어디까지 보여줄 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-PIXATL</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt is-picked">
+                <div class="gap__label">A · 가운데만 가림 · 이 화면</div>
+                <p>
+                  min***@gmail.com 처럼 앞 세 글자와 도메인만 보인다. 어느 메일함인지 알아볼 수
+                  있으면서 주소 전체가 노출되지 않는다.
+                </p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">B · 전부 보여줌</div>
+                <p>
+                  찾은 주소를 그대로 보여준다. 세 값을 맞힌 사람만 닿는 화면이라 가릴 이유가 없다는
+                  쪽이다. 다만 남의 폰으로 시도하면 주소가 그대로 넘어간다.
+                </p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">C · 이메일로 보내 줌</div>
+                <p>
+                  화면에는 "가입된 이메일로 안내를 보냈다" 만 띄우고 주소는 그 메일함에서 확인하게
+                  한다. 가장 안전하지만 메일함을 못 여는 직원에게는 답이 되지 않는다 — 이 기능을
+                  만든 이유와 어긋난다.
+                </p>
+              </div>
+            </div>
+            <div class="gap__one">
+              <p>
+                A 를 그렸다. C 는 이 기능의 목적과 어긋나 후보에서 약하다. <b>B 로 갈지는 남의 폰에서
+                시도하는 경우를 어떻게 볼지에 달렸다.</b>
+              </p>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">LOGIN-10</span>
+              <span class="gap__t">세 값이 맞지 않을 때 어떻게 안내하고 몇 번까지 시도하게 할 것인가</span>
               <span class="gap__st gap__st--open">미정</span>
               <span class="gap__ref">S-PIXATL</span>
             </div>
             <div class="gap__one">
               <p>
-                본인 핀도 관리자 초기화도 <b>둘 다 이메일로 간다.</b> 폰에 메일 앱을 설정하지 않은
-                직원이나 가입할 때 이메일을 잘못 적은 직원은 두 경로가 함께 막힌다.
+                이 화면은 <b>어느 값이 틀렸는지 알려 주지 않고</b> 남은 시도 횟수만 보인다. 어느
+                값이 틀렸는지 말해 주면 남의 이름·번호를 넣어 보며 맞춰 갈 수 있기 때문이다.
+                시도는 <b>5회</b>로 두고 넘으면 잠시 막는 안을 그렸다 — 로그인 실패 5회와 같은 수다.
               </p>
-              <p>
-                관리자 웹 쪽에서 <b>이메일 아이디 변경 요청</b>을 두는 안이 올라가 있다. 관리자가
-                요청하면 직원의 본인인증 휴대전화로 문자 인증번호가 가고, 직원이 앱에서 그것을 넣고
-                새 이메일을 정하는 방식이다. 휴대전화는 이미 매칭 키로 쓰이니 새 수단을 만들지
-                않는다.
-              </p>
+              <ul>
+                <li>막는 시간을 로그인 잠금처럼 1·3·5분으로 늘려 갈지, 한 가지로 고정할지</li>
+                <li>
+                  막혔을 때 직원이 할 수 있는 일 — 지금 화면은 관리자에게 알리라고만 한다. 관리자
+                  쪽에 이메일을 확인해 주는 자리를 둘지는 관리자 웹과 함께 정해야 한다
+                </li>
+              </ul>
             </div>
           </div>
 
@@ -880,7 +1080,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 로그인 · 2026년 9월 10일 · 상태 11개 · 시트 1개 · 쟁점 8건 중 7건 확정 ·
+            직원 근무 앱 목업 · 로그인 · 2026년 9월 17일 · 상태 14개 · 시트 1개 · 쟁점 10건 중 8건 확정 ·
             F-WBHYLR
           </footer>
         </div>
