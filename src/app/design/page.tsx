@@ -8,7 +8,6 @@ import {
   GlobalHeader,
   ListToolbar,
   PageBar,
-  Pagination,
   Radio,
   SearchField,
   Select,
@@ -16,6 +15,7 @@ import {
   UserPop,
 } from "@/components/common";
 import { MENUS, STORE_COLUMNS, STORE_ROWS, STORES, USER_ITEMS } from "./sample";
+import { SamplePagination } from "./sample-pagination";
 import { StoreFilter } from "./store-filter";
 
 const COLORS = [
@@ -111,6 +111,7 @@ export default function DesignUnitsPage() {
       </Section>
 
       <Section title="StoreSelect · UserPop">
+        {/* 팝업이 섹션 아래로 펼쳐질 자리를 남긴다. */}
         <div className="flex flex-wrap items-center gap-6 pb-[160px]">
           <StoreSelect options={STORES} />
           <UserPop name="김지영 (admin)" items={USER_ITEMS} />
@@ -130,7 +131,7 @@ export default function DesignUnitsPage() {
             <DataTable columns={STORE_COLUMNS} rows={STORE_ROWS.slice(0, 3)} rowKey={(r) => r.no} />
           </div>
           <DataTable columns={STORE_COLUMNS.slice(0, 3)} rows={[]} rowKey={(r) => r.no} />
-          <Pagination page={1} total={10} />
+          <SamplePagination totalPages={10} />
         </div>
       </Section>
 
