@@ -40,8 +40,11 @@
          2026-09-17 에 이메일 찾기를 더했다. 이메일을 잊은 직원이 이름·휴대전화번호·
          생년월일로 로그인 이메일을 찾는다 — 세 값 모두 가입 때 본인인증으로 확정된
          값이다(LOGIN-8). 관리자 웹의 이메일 아이디 변경 요청 안은 버렸다. 찾은
-         주소를 어디까지 보일지(LOGIN-9)와 맞지 않을 때의 안내·시도 제한(LOGIN-10)은
-         한 안을 그려 두고 쟁점으로 남겼다.
+         찾은 주소는 가운데만 가려 보이고(LOGIN-9), 세 값이 맞지 않으면 어느 값이
+         틀렸는지 알리지 않고 5회까지 시도하게 한다. 넘기면 1·3·5분으로 늘려 가며
+         막고 근무지 점포에 문의하라고 안내한다(LOGIN-10). 이메일은 알지만 메일함을
+         쓸 수 없는 경우도 같은 안내를 쓴다 — 1차에는 관리자 웹에 이메일 확인
+         화면을 두지 않는다.
 
          근거 : S-PHHICH · S-WSPEYJ · S-YWYTJY · S-PIXATL -->
     <a class="skip" href="#main">본문으로 건너뛰기</a>
@@ -271,8 +274,38 @@
                   </div>
                 </div>
                 <p class="tiny" style="margin-top: 7px">
-                  세 번 더 틀리면 잠시 막습니다. 그때는 관리자에게 알려 주세요.
+                  다섯 번을 넘기면 잠시 막습니다. 막는 시간은 1분, 3분, 5분으로 늘어납니다. 그때는
+                  근무지 점포에 문의해 주세요.
                 </p>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
+            <!-- ── 이메일 찾기 · 시도 막힘 (LOGIN-10) ───────────── -->
+            <div class="view" data-when="find-lock">
+              <div style="height: 20px"></div>
+              <div class="center stack-8">
+                <i class="ph-fill ph-lock-simple" style="font-size: 28px; color: var(--seal)"></i>
+                <p class="h-xl">잠시 막았습니다</p>
+                <p class="p">다섯 번을 넘겨 틀렸습니다. 아래 시간이 지나면 다시 시도할 수 있습니다.</p>
+              </div>
+
+              <div class="card card--sunken center">
+                <p class="lab">다시 시도까지</p>
+                <p class="num num--xl" style="margin-top: 4px">02:47</p>
+                <p class="tiny" style="margin-top: 6px">
+                  막는 시간은 1분, 3분, 5분으로 늘어납니다. 로그인 잠금과 같은 규칙입니다.
+                </p>
+              </div>
+
+              <div class="note note--pen">
+                <i class="ph ph-storefront"></i>
+                <div>
+                  <strong>근무지 점포에 문의해 주세요.</strong> 이메일은 알지만 그 메일함을 쓸 수 없을
+                  때도 같습니다. 관리자가 이메일을 대신 고치지는 못하므로 점포에서 확인을 받아야
+                  합니다.
+                </div>
               </div>
 
               <div class="grow"></div>
@@ -304,7 +337,8 @@
                 <p class="lab">이메일을 쓸 수 없다면</p>
                 <p class="p--sm" style="margin-top: 6px">
                   관리자에게 알리면 관리자가 초기화를 요청합니다. 그때도 새 비밀번호는 이메일로
-                  갑니다.
+                  갑니다. <b>그 메일함 자체를 쓸 수 없으면 근무지 점포에 문의해 주세요</b> — 관리자가
+                  이메일을 대신 고치지는 못합니다.
                 </p>
               </div>
 
@@ -583,6 +617,11 @@
 
             <div class="dock" data-when="find-fail">
               <button class="btn" data-go="find">다시 넣기</button>
+              <button class="btn btn--quiet" data-go="find-lock">다섯 번 넘긴 경우 보기</button>
+            </div>
+
+            <div class="dock" data-when="find-lock">
+              <button class="btn is-off">다시 넣기 · 02:47 뒤</button>
               <button class="btn btn--quiet" data-go="login">로그인으로 돌아가기</button>
             </div>
 
@@ -688,6 +727,13 @@
                 <span
                   ><span class="sw-b__t">이메일 못 찾음</span>
                   <span class="sw-b__d">· 남은 시도 2번</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="find-lock">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">이메일 찾기 막힘</span>
+                  <span class="sw-b__d">· 1·3·5분 · 점포 문의</span></span
                 >
               </button>
               <button class="sw-b" data-state="forgot">
@@ -982,21 +1028,17 @@
             <div class="gap__head">
               <span class="gap__no">LOGIN-10</span>
               <span class="gap__t">세 값이 맞지 않을 때 어떻게 안내하고 몇 번까지 시도하게 할 것인가</span>
-              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__st gap__st--fixed">확정 · 5회 · 1·3·5분 · 점포 문의 안내</span>
               <span class="gap__ref">S-PIXATL</span>
             </div>
             <div class="gap__one">
               <p>
-                이 화면은 <b>어느 값이 틀렸는지 알려 주지 않고</b> 남은 시도 횟수만 보인다. 어느
-                값이 틀렸는지 말해 주면 남의 이름·번호를 넣어 보며 맞춰 갈 수 있기 때문이다.
-                시도는 <b>5회</b>로 두고 넘으면 잠시 막는 안을 그렸다 — 로그인 실패 5회와 같은 수다.
+                어느 값이 틀렸는지 알리지 않고 <b>5회까지</b> 시도하게 한다. 5회를 넘기면 <b>로그인 잠금과 같이 1·3·5분</b>으로
+                늘려 가며 막는다 (2026-09-17 재영 확정).
               </p>
               <ul>
-                <li>막는 시간을 로그인 잠금처럼 1·3·5분으로 늘려 갈지, 한 가지로 고정할지</li>
-                <li>
-                  막혔을 때 직원이 할 수 있는 일 — 지금 화면은 관리자에게 알리라고만 한다. 관리자
-                  쪽에 이메일을 확인해 주는 자리를 둘지는 관리자 웹과 함께 정해야 한다
-                </li>
+                <li>막혔을 때와 이메일은 알지만 메일함을 쓸 수 없을 때는 <b>근무지 점포에 문의하라고 안내</b>만 한다. 1차에는 관리자 웹에 이메일 확인 화면을 두지 않는다</li>
+                <li>관리자는 이메일을 대신 고치지 않는다(STAFF-9). 문의를 받은 뒤 어떻게 처리할지는 기획 세션에 넘겼다</li>
               </ul>
             </div>
           </div>
@@ -1056,7 +1098,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 로그인 · 2026년 9월 17일 · 상태 14개 · 시트 1개 · 쟁점 10건 중 8건 확정 ·
+            직원 근무 앱 목업 · 로그인 · 2026년 9월 17일 · 상태 15개 · 시트 1개 · 쟁점 10건 모두 확정 ·
             F-WBHYLR
           </footer>
         </div>
