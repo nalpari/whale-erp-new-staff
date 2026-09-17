@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { EASE_OUT } from "./theme";
 
 const PANEL_BUTTON = "grid h-[32px] place-items-center rounded-[2px] border border-erp-button-line bg-white";
@@ -11,6 +11,7 @@ const PANEL_BUTTON = "grid h-[32px] place-items-center rounded-[2px] border bord
 // 안쪽 내용은 폭을 고정해 두고 잘라내므로, 줄어드는 동안 줄바꿈이 일어나지 않는다.
 // 패널 높이는 부모가 정한다. 항목이 넘치면 제목 줄은 두고 그 아래만 세로로 스크롤한다.
 // 스크롤 영역은 왼쪽 18 여백 뒤에 188 폭 내용을 두고, 오른쪽 18 안에서 스크롤바 자리를 잡는다.
+// 누른 버튼이 inert 영역으로 들어가므로, 접고 펼칠 때 포커스를 반대쪽 버튼으로 옮긴다.
 export function FilterPanel({
   title = "필터",
   onReset,
@@ -19,13 +20,20 @@ export function FilterPanel({
   children,
 }: {
   title?: string;
-  /** 넘기면 초기화 버튼이 동작한다. 폼 초기화라면 type="reset" 버튼을 따로 두어도 된다. */
+  /** 없으면 초기화 버튼이 비활성화된다. */
   onReset?: () => void;
   defaultOpen?: boolean;
   className?: string;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const collapseButton = useRef<HTMLButtonElement>(null);
+  const expandButton = useRef<HTMLButtonElement>(null);
+  const toggle = (next: boolean) => {
+    setOpen(next);
+    // inert 가 풀리는 다음 프레임에 옮긴다.
+    requestAnimationFrame(() => (next ? collapseButton : expandButton).current?.focus());
+  };
 
   return (
     <aside
@@ -41,10 +49,17 @@ export function FilterPanel({
       >
         <div className="mx-[18px] mt-[18px] flex shrink-0 items-center gap-[6px] border-b border-erp-divider pb-[18px]">
           <h2 className="flex-1 text-[15px] font-semibold text-erp-ink">{title}</h2>
-          <button type="button" aria-label={`${title} 초기화`} onClick={onReset} className={`${PANEL_BUTTON} px-[13px]`}>
+          <button type="button" aria-label={`${title} 초기화`} disabled={!onReset} onClick={onReset} className={`${PANEL_BUTTON} px-[13px]`}>
             <Image src="/icons/reset.svg" alt="" width={14} height={14} />
           </button>
-          <button type="button" aria-label={`${title} 접기`} aria-expanded onClick={() => setOpen(false)} className={`${PANEL_BUTTON} px-[12px]`}>
+          <button
+            ref={collapseButton}
+            type="button"
+            aria-label={`${title} 접기`}
+            aria-expanded={open}
+            onClick={() => toggle(false)}
+            className={`${PANEL_BUTTON} px-[12px]`}
+          >
             <Image src="/icons/collapse.svg" alt="" width={12} height={18} />
           </button>
         </div>
@@ -53,11 +68,12 @@ export function FilterPanel({
         </div>
       </div>
       <button
+        ref={expandButton}
         type="button"
         aria-label={`${title} 펼치기`}
-        aria-expanded={false}
+        aria-expanded={open}
         inert={open}
-        onClick={() => setOpen(true)}
+        onClick={() => toggle(true)}
         className={`absolute top-[18px] left-[18px] px-[12px] transition-opacity ${PANEL_BUTTON} ${
           open ? "opacity-0 duration-100" : "opacity-100 delay-100 duration-200"
         }`}

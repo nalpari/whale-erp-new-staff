@@ -4,7 +4,8 @@ import Image from "next/image";
 import { useRef, useState, type ComponentProps } from "react";
 import { FIELD } from "./theme";
 
-type Props = Omit<ComponentProps<"input">, "type" | "value" | "defaultValue" | "onChange"> & {
+// 입력칸은 폭을 채운다. 폭은 감싸는 요소로 정한다.
+type Props = Omit<ComponentProps<"input">, "type" | "value" | "defaultValue" | "onChange" | "className"> & {
   /** 넘기면 제어 모드, 안 넘기면 내부 상태로 동작한다. */
   value?: string;
   defaultValue?: string;
@@ -40,7 +41,7 @@ export function SearchField({ value: controlled, defaultValue = "", onValueChang
       <button
         type="button"
         aria-label="입력 지우기"
-        tabIndex={value ? 0 : -1}
+        inert={!value}
         onClick={() => {
           change("");
           input.current?.focus();

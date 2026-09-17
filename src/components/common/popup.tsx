@@ -1,35 +1,50 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useId, useRef, useState, type ReactNode } from "react";
 import { EASE_OUT } from "./theme";
 
-// 열려 있는 동안 ref 바깥을 누르거나 Esc 를 누르면 close 를 부른다.
+// 열려 있는 동안 ref 바깥을 누르거나, 포커스가 바깥으로 나가거나, Esc 를 누르면 close 를 부른다.
+// Esc 로 닫을 때 포커스가 안쪽에 있었다면 열려 있던 트리거(aria-expanded="true")로 되돌린다.
 export function useDismiss<T extends HTMLElement>(open: boolean, close: () => void) {
   const ref = useRef<T>(null);
+  const onClose = useEffectEvent(close);
 
   useEffect(() => {
     if (!open) return;
+    const outside = (e: Event) => !ref.current?.contains(e.target as Node);
     const onPointer = (e: PointerEvent) => {
-      if (!ref.current?.contains(e.target as Node)) close();
+      if (outside(e)) onClose();
+    };
+    const onFocus = (e: FocusEvent) => {
+      if (outside(e)) onClose();
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
+      if (e.key !== "Escape") return;
+      const root = ref.current;
+      if (root?.contains(document.activeElement)) {
+        root.querySelector<HTMLElement>('[aria-expanded="true"]')?.focus();
+      }
+      onClose();
     };
     document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("focusin", onFocus);
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("focusin", onFocus);
       document.removeEventListener("keydown", onKey);
     };
-  }, [open, close]);
+  }, [open]);
 
   return ref;
 }
 
+// 트리거 + Popup 한 쌍. id 는 트리거의 aria-controls 와 Popup 의 id 로 쓴다.
 export function useDropdown() {
   const [open, setOpen] = useState(false);
   const ref = useDismiss<HTMLDivElement>(open, () => setOpen(false));
-  return { open, setOpen, ref };
+  const id = useId();
+  return { open, setOpen, ref, id };
 }
 
 // 트리거 아래에 뜨는 팝업. 트리거와 함께 relative 부모 안에 둔다.
@@ -56,12 +71,14 @@ const MOTION = {
 };
 
 export function Popup({
+  id,
   open,
   motion,
   tail,
   className = "",
   children,
 }: {
+  id?: string;
   open: boolean;
   motion: keyof typeof MOTION;
   /** 트리거를 가리키는 꼬리 */
@@ -73,6 +90,7 @@ export function Popup({
   const m = MOTION[motion];
   return (
     <div
+      id={id}
       inert={!open}
       className={`absolute top-[calc(100%+8px)] z-20 rounded-[2px] border border-[#ebebeb] bg-white p-[23px] ${EASE_OUT} ${m.base} ${
         open ? m.open : m.closed
