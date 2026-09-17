@@ -1,4 +1,3 @@
-import { logoutAction } from "@/app/login/actions";
 import { Badge, type Column, type HeaderMenu, type UserPopItem } from "@/components/common";
 
 // /design 샘플 화면에 넣는 더미 데이터. Figma 시안의 값을 그대로 옮겼다.
@@ -28,7 +27,8 @@ export const STORES = [
 export const USER_ITEMS: UserPopItem[] = [
   { label: "내정보 관리", href: "#" },
   { label: "비밀번호 변경", href: "#" },
-  { label: "로그아웃", action: logoutAction, danger: true },
+  // 샘플이라 실제 로그아웃(logoutAction)을 연결하지 않는다. 실제 화면에서는 action: logoutAction 을 넘긴다.
+  { label: "로그아웃", href: "#", danger: true },
 ];
 
 export type StoreRow = {
