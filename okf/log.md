@@ -2,6 +2,7 @@
 
 ## 2026-09-17
 
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) 의 클릭 상태 유닛 목록에 2depth 메뉴를 더했다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) 에 Figma 기준 디자인 샘플 경로(src/app/design)와 erp 토큰을 적었다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) 에 클릭 상태를 가진 디자인 유닛(interactive.tsx)을 적었다.
 
