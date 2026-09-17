@@ -20,8 +20,11 @@
   <body data-area="app" data-screen="home">
     <!-- 직원 근무 앱 · 홈
          앱을 열면 가장 먼저 보는 화면이다. 오늘 근무와 이번 주 근무를 먼저 보여주고
-         그 아래 처리할 일(계약서 날인, TO-DO, 알림)을 둔다 — 조회 순서는 명세가
-         못박았지만(S-EWVMGC), 그 위에 무엇을 더 얹을지는 아직 열려 있다 — HOME-1.
+         그 아래 처리할 일(계약서 날인, TO-DO, 알림)을 둔다. 조회 순서는 명세가
+         못박았고(S-EWVMGC) 그 순서를 그대로 쓰기로 확정됐다 — HOME-1. 대신
+         서명 대기 계약서가 도착하면 날인 요청 팝업을 홈 위에 띄우고, TO-DO
+         카드에서 TO-DO 목록으로 바로 가는 길을 뒀다. 팝업을 닫은 뒤 다시
+         띄울지는 아직 정하지 않았다 — HOME-4.
 
          상태 5개 중 held 와 empty 를 구분한 게 이 화면의 핵심이다. held 는 가입은
          했지만 번호 불일치로 소속 연결이 관리자 승인을 기다리는 중이라 계약서와
@@ -166,7 +169,15 @@
                   </div>
 
                   <div class="card">
-                    <p class="lab">TO-DO · 1건</p>
+                    <div class="line line--between">
+                      <p class="lab">TO-DO · 1건</p>
+                      <a
+                        href="work.html#todo"
+                        class="tiny"
+                        style="color: var(--pen); font-weight: 600; text-decoration: none"
+                        >TO-DO 목록 <i class="ph ph-caret-right"></i
+                      ></a>
+                    </div>
                     <div class="rows" style="margin-top: 4px">
                       <div class="row">
                         <button class="check__box" data-tick></button>
@@ -292,7 +303,15 @@
                   </a>
 
                   <div class="card">
-                    <p class="lab">TO-DO · 2건</p>
+                    <div class="line line--between">
+                      <p class="lab">TO-DO · 2건</p>
+                      <a
+                        href="work.html#todo"
+                        class="tiny"
+                        style="color: var(--pen); font-weight: 600; text-decoration: none"
+                        >TO-DO 목록 <i class="ph ph-caret-right"></i
+                      ></a>
+                    </div>
                     <div class="rows" style="margin-top: 4px">
                       <div class="row">
                         <button class="check__box" data-tick></button>
@@ -541,6 +560,38 @@
               </div>
               <button class="btn btn--ghost" data-sheet-close>닫기</button>
             </div>
+
+            <!-- 날인 요청 팝업 — 서명 대기 계약서가 도착하면 홈 위에 띄운다 (HOME-1) -->
+            <div class="sheet" data-sheet-id="sign-req" hidden>
+              <div class="sheet__grab"></div>
+              <div class="line">
+                <i class="ph-fill ph-file-text" style="color: var(--amber); font-size: 21px"></i>
+                <p class="h-lg">날인할 계약서가 도착했습니다</p>
+              </div>
+              <div class="card card--amber">
+                <div class="rows">
+                  <div class="row" style="padding: 8px 0">
+                    <span class="row__title" style="font-size: 13.5px">근무지</span>
+                    <span class="push num" style="font-size: 13px">웨일카페 강남역점</span>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <span class="row__title" style="font-size: 13.5px">고용 형태</span>
+                    <span class="push num" style="font-size: 13px">파트타이머</span>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <span class="row__title" style="font-size: 13.5px">날인 기한</span>
+                    <span class="push num" style="font-size: 13px">2026-10-11 · 26일 남음</span>
+                  </div>
+                </div>
+              </div>
+              <p class="p--sm">
+                날인해야 근무가 시작됩니다. 지금 확인하지 않아도 계약서 화면에서 다시 볼 수 있습니다.
+              </p>
+              <a class="btn" href="contract.html#detail"
+                ><i class="ph-fill ph-seal-check"></i>날인하러 가기</a
+              >
+              <button class="btn btn--ghost" data-sheet-close>나중에</button>
+            </div>
           </div>
         </div>
 
@@ -586,6 +637,13 @@
                 <span class="sw-b__k">·</span>
                 <span><span class="sw-b__t">근무지 고르기</span> <span class="sw-b__d">· 근무지 전환</span></span>
               </button>
+              <button class="sw-b" data-sheet="sign-req">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">날인 요청 팝업</span>
+                  <span class="sw-b__d">· 서명 대기 도착</span></span
+                >
+              </button>
             </div>
           </div>
 
@@ -595,6 +653,13 @@
             계약서 날인 대기·TO-DO·미확인 알림 같은 처리할 일은 그 아래 카드와 배지로만 존재를
             알린다. TO-DO 는 이 화면에서 바로 완료 처리하지만, 근무스케줄·출퇴근 현황·급여명세서는
             요약만 보여주고 자세히 보려면 각 화면으로 넘어간다.
+          </p>
+          <p class="p" style="margin-top: 10px">
+            <b>놓치면 안 되는 것 하나는 순서 밖에서 챙긴다.</b> 서명 대기 계약서가 도착하면 홈 위에
+            날인 요청 팝업을 띄운다. 누르면 그 계약서의 날인 화면으로 바로 가고, 나중에를 누르면
+            닫힌다. 카드로만 알리면 아래로 밀려 안 보이는 일이 생기는데, 계약서는 기한이 지나면
+            만료되므로 이 하나만 예외로 뒀다. TO-DO 는 카드 오른쪽 위의 <b>TO-DO 목록</b>으로
+            근무 정보의 TO-DO 쪽으로 바로 넘어간다.
           </p>
           <p class="p" style="margin-top: 10px">
             다른 직원의 근무 정보나 관리자용 편집 기능은 이 화면 어디에도 없다. 공지사항과 FAQ 도
@@ -616,24 +681,20 @@
             <div class="gap__head">
               <span class="gap__no">HOME-1</span>
               <span class="gap__t">홈 맨 위에 무엇을 놓을 것인가</span>
-              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__st gap__st--fixed">확정 · 현행 순서 + 날인 요청 팝업</span>
               <span class="gap__ref">S-EWVMGC</span>
             </div>
-            <div class="gap__opts">
-              <div class="gap__opt">
-                <div class="gap__label">A · 처리할 일 먼저</div>
-                <p>
-                  계약서 날인 대기나 긴급 TO-DO가 있으면 그것부터 보여준다. 놓치면 안 되는 일이 눈에
-                  먼저 띈다.
-                </p>
-              </div>
-              <div class="gap__opt is-picked">
-                <div class="gap__label">B · 오늘·이번 주 먼저 · 이 화면</div>
-                <p>
-                  명세가 정한 조회 순서를 그대로 따른다. 처리할 일은 그 아래 배지와 카드로 존재만
-                  알린다. 매일 같은 자리를 봐야 하는 화면이라 순서가 흔들리면 찾는 시간이 늘어난다.
-                </p>
-              </div>
+            <div class="gap__one">
+              <p>
+                홈 순서는 <b>지금대로 오늘·이번 주 먼저</b> 둔다 (2026-09-17 재영 확정). 대신 놓치면 안 되는 일은 따로 챙긴다.
+              </p>
+              <ul>
+                <li>
+                  <b>날인 요청 팝업</b> — 처리해야 할 근로계약서(서명 대기)가 도착하면 홈 위에 토스트 같은 팝업을
+                  띄워 반드시 알린다. 누르면 그 계약서의 날인 화면으로 간다
+                </li>
+                <li><b>TO-DO 바로가기</b> — 홈의 TO-DO 카드에서 TO-DO 목록으로 바로 간다</li>
+              </ul>
             </div>
           </div>
 
@@ -660,18 +721,51 @@
             <div class="gap__head">
               <span class="gap__no">HOME-3</span>
               <span class="gap__t">출퇴근 등록 진입점을 홈 어디에 둘 것인가</span>
-              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__st gap__st--fixed">확정 · 오늘 근무 카드 안</span>
               <span class="gap__ref">S-EFQGSP</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                출퇴근 등록은 <b>오늘 근무 카드 안</b>에서 바로 누른다. 근무 탭을 거치지 않는다 (2026-09-17 재영 확정).
+              </p>
+            </div>
+          </div>
+
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">HOME-4</span>
+              <span class="gap__t">날인 요청 팝업을 닫은 뒤 다시 띄울 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-EWVMGC</span>
             </div>
             <div class="gap__opts">
               <div class="gap__opt is-picked">
-                <div class="gap__label">A · 오늘 근무 카드 안 · 이 화면</div>
-                <p>홈을 열자마자 오늘 근무 카드에서 바로 출근을 누른다. 근무 탭을 거치지 않는다.</p>
+                <div class="gap__label">A · 앱을 다시 열 때마다 · 이 화면</div>
+                <p>
+                  날인 전까지 홈에 들어올 때마다 띄운다. 놓칠 일이 없지만 기한이 한참 남은 사람에게는
+                  같은 팝업이 매번 뜬다.
+                </p>
               </div>
               <div class="gap__opt">
-                <div class="gap__label">B · 근무 탭에서만</div>
-                <p>홈은 상태만 보여주고 등록은 근무 탭 안에서만 한다. 진입점이 하나로 줄어든다.</p>
+                <div class="gap__label">B · 하루 한 번</div>
+                <p>
+                  닫으면 그날은 다시 띄우지 않는다. 성가심은 줄지만 앱을 하루 한 번만 여는 사람에게는
+                  A 와 차이가 없다.
+                </p>
               </div>
+              <div class="gap__opt">
+                <div class="gap__label">C · 기한이 임박할 때만 다시</div>
+                <p>
+                  처음 한 번 띄우고, 그다음은 남은 기한이 7일 이내로 들어올 때 다시 띄운다. 화면 강조
+                  기준(CON-4)과 같은 선을 쓴다.
+                </p>
+              </div>
+            </div>
+            <div class="gap__one">
+              <p>
+                A 를 그려 뒀다. 다만 계약서는 기한이 30일이라 A 로 두면 한 달 내내 같은 팝업을 보는
+                직원이 생긴다. <b>C 가 CON-4 와 규칙을 공유해 일관되다.</b>
+              </p>
             </div>
           </div>
 
@@ -727,7 +821,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 홈 · 2026년 9월 10일 · 상태 5개 · 시트 1개 · 쟁점 3건
+            직원 근무 앱 목업 · 홈 · 2026년 9월 17일 · 상태 5개 · 시트 2개 · 쟁점 4건
           </footer>
         </div>
       </div>
