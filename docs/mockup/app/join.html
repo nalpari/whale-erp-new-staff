@@ -184,15 +184,21 @@
                 <div>
                   <strong>인적사항은 이제 여기서 직접 입력합니다.</strong> 근로계약서에 들어갈 주소
                   항목이 관리자 작성 화면에서 빠지고, 가입하는 직원이 적는 것으로 바뀌었습니다.
+                  도로명 주소는 검색해서 고르고 상세주소만 직접 적습니다(ME-2).
                 </div>
               </div>
 
               <div class="field">
                 <label class="field__lab">주소<span class="req">*</span></label>
-                <input class="input" value="서울 마포구 양화로 12" />
+                <div class="line" style="gap: 6px">
+                  <input class="input input--ro grow" value="서울 마포구 양화로 12" readonly />
+                  <button class="btn btn--sm btn--ghost" data-toast="주소 검색을 엽니다">검색</button>
+                </div>
+                <p class="field__help">도로명 주소는 검색해서 고릅니다.</p>
               </div>
               <div class="field">
                 <input class="input" placeholder="상세주소" value="3층 302호" />
+                <p class="field__help">상세주소만 직접 적습니다.</p>
               </div>
 
               <div class="grow"></div>

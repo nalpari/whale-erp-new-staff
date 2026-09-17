@@ -24,7 +24,9 @@
          휴대전화번호·이메일·주소·비밀번호뿐이다.
 
          휴대전화번호를 바꾸려면 새 번호로 본인인증을 다시 거쳐야 반영된다.
-         그 번호가 초대 연결과 소속 확인의 매칭 키이기 때문이다. 주소는 이미
+         주소는 외부 주소 검색으로 도로명을 고르고 상세주소만 직접 적는다
+         — ME-2. 가입의 계정 등록 화면도 같은 방식이다. 그 번호가 초대 연결과
+         소속 확인의 매칭 키이기 때문이다. 주소는 이미
          쓴 계약서에는 반영되지 않고 다음 계약부터 적용된다 — 이 안내를 빼면
          안 된다.
 
@@ -200,10 +202,19 @@
                       </div>
                       <div class="field">
                         <label class="field__lab">주소</label>
-                        <input class="input" value="서울 마포구 양화로 12" />
+                        <div class="line" style="gap: 6px">
+                          <input class="input input--ro grow" value="서울 마포구 양화로 12" readonly />
+                          <button class="btn btn--sm btn--ghost" data-go="addr">검색</button>
+                        </div>
+                        <input
+                          class="input"
+                          placeholder="상세주소"
+                          value="3층 302호"
+                          style="margin-top: 6px"
+                        />
                         <p class="field__help">
-                          주소를 바꾸면 지금 계약서에는 반영되지 않고 다음에 새로 쓰는 계약부터
-                          적용됩니다.
+                          도로명 주소는 검색해서 고르고 상세주소만 직접 적습니다. 주소를 바꾸면 지금
+                          계약서에는 반영되지 않고 다음에 새로 쓰는 계약부터 적용됩니다.
                         </p>
                       </div>
                     </div>
@@ -321,6 +332,57 @@
             <div class="dock" data-when="phone-taken">
               <button class="btn" data-go="phone">다른 번호로 다시 시도</button>
               <button class="btn btn--ghost" data-go="view">취소</button>
+            </div>
+
+            <!-- ── 주소 검색 (ME-2) ─────────────────────────────── -->
+            <div class="view" data-when="addr">
+              <div class="field">
+                <label class="field__lab" for="addr-q">도로명 주소 검색</label>
+                <div class="line" style="gap: 6px">
+                  <input class="input grow" id="addr-q" value="양화로 12" />
+                  <button class="btn btn--sm" data-toast="주소를 찾았습니다">검색</button>
+                </div>
+                <p class="field__help">도로명이나 건물 이름으로 찾습니다.</p>
+              </div>
+
+              <div class="card card--flat" style="padding: 0">
+                <div class="rows">
+                  <button
+                    class="row"
+                    data-go="view"
+                    data-toast="주소를 골랐습니다. 상세주소를 적어 주세요"
+                    style="width: 100%; background: none; border: none; padding: 13px 0; text-align: left; cursor: pointer; font: inherit"
+                  >
+                    <div class="row__main">
+                      <p class="row__title">서울 마포구 양화로 12</p>
+                      <p class="row__sub">서교동 · 우편번호 04044</p>
+                    </div>
+                    <i class="ph ph-caret-right row__chev"></i>
+                  </button>
+                  <button
+                    class="row"
+                    data-go="view"
+                    data-toast="주소를 골랐습니다. 상세주소를 적어 주세요"
+                    style="width: 100%; background: none; border: none; padding: 13px 0; text-align: left; cursor: pointer; font: inherit"
+                  >
+                    <div class="row__main">
+                      <p class="row__title">서울 마포구 양화로 12-1</p>
+                      <p class="row__sub">서교동 · 우편번호 04044</p>
+                    </div>
+                    <i class="ph ph-caret-right row__chev"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="note">
+                <i class="ph ph-info"></i>
+                <div>
+                  고른 주소는 <strong>그대로 저장</strong>되고 상세주소만 직접 적습니다. 오타나 형식이
+                  어긋나는 일을 막기 위해서입니다.
+                </div>
+              </div>
+
+              <div class="grow"></div>
             </div>
 
             <!-- ── 비밀번호 변경 ────────────────────────────────── -->
@@ -543,7 +605,7 @@
           <div class="switcher">
             <div class="switcher__head">
               <p class="lab">상태 바꾸기</p>
-              <span class="switcher__hint">숫자키 1–7</span>
+              <span class="switcher__hint">숫자키 1–9</span>
             </div>
             <div class="switcher__body">
               <button class="sw-b" data-state="view" aria-pressed="true">
@@ -584,8 +646,15 @@
                   <span class="sw-b__d">· 10분 · 5회</span></span
                 >
               </button>
+              <button class="sw-b" data-state="addr">
+                <span class="sw-b__k">8</span>
+                <span
+                  ><span class="sw-b__t">주소 검색</span>
+                  <span class="sw-b__d">· 도로명 고르기</span></span
+                >
+              </button>
               <button class="sw-b" data-state="sites">
-                <span class="sw-b__k">7</span>
+                <span class="sw-b__k">9</span>
                 <span><span class="sw-b__t">소속 근무지</span> <span class="sw-b__d">· 조회만</span></span>
               </button>
             </div>
@@ -626,17 +695,13 @@
             <div class="gap__head">
               <span class="gap__no">ME-1</span>
               <span class="gap__t">재설정 링크 유효 시간</span>
-              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__st gap__st--fixed">확정 · 15분</span>
               <span class="gap__ref">S-YWYTJY</span>
             </div>
             <div class="gap__one">
               <p>
-                명세는 "일정 시간이 지나면 만료된다"고만 정해, 정확한 값이 비어 있다. 이 화면은
-                15분으로 시연했다.
+                비밀번호 재설정 링크는 <b>15분</b> 동안 쓸 수 있다. 지금 화면 그대로다 (2026-09-17 재영 확정).
               </p>
-              <ul>
-                <li>짧으면(예: 5분) 확인이 늦은 직원이 다시 요청해야 하고, 길면(예: 1시간) 분실·재사용 위험이 커진다</li>
-              </ul>
             </div>
           </div>
 
@@ -644,17 +709,16 @@
             <div class="gap__head">
               <span class="gap__no">ME-2</span>
               <span class="gap__t">주소를 어떤 형식으로 받는가</span>
-              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__st gap__st--fixed">확정 · 주소 검색 API</span>
             </div>
-            <div class="gap__opts">
-              <div class="gap__opt is-picked">
-                <div class="gap__label">A · 자유 입력 · 이 화면</div>
-                <p>한 줄 텍스트로 받는다. 구현이 가장 쉽지만 오타·형식 불일치가 남는다.</p>
-              </div>
-              <div class="gap__opt">
-                <div class="gap__label">B · 우편번호 검색 연동</div>
-                <p>외부 우편번호 서비스를 붙여 도로명 주소를 표준화한다. 신뢰는 높아지지만 외부 연동이 하나 늘어난다.</p>
-              </div>
+            <div class="gap__one">
+              <p>
+                주소는 <b>외부 주소 검색 API</b>로 찾아 도로명 주소를 고르고, 상세 주소만 직접 적는다 (2026-09-17 재영 확정).
+              </p>
+              <ul>
+                <li>내 정보와 가입의 계정 등록 화면(JOIN-4) 모두 같은 방식으로 받는다</li>
+                <li>어느 API를 붙일지는 개발에서 정한다</li>
+              </ul>
             </div>
           </div>
 
@@ -741,7 +805,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 내 정보 · 2026년 9월 10일 · 상태 7개 · 시트 1개 · 쟁점 3건
+            직원 근무 앱 목업 · 내 정보 · 2026년 9월 17일 · 상태 8개 · 시트 1개 · 쟁점 3건 모두 확정
           </footer>
         </div>
       </div>
