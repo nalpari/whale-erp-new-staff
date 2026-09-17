@@ -53,7 +53,6 @@
           <a href="contract.html">근로계약</a>
           <a href="tax.html">신고 정보</a>
           <a href="work.html">근무 정보</a>
-          <a href="todo.html">TO-DO</a>
           <a href="pay.html">급여</a>
           <a href="notify.html">알림</a>
           <a href="me.html">내 정보</a>
@@ -366,6 +365,15 @@
               </div>
             </div>
 
+            <!-- ── 근무지 없음 (HOME-5) ─────────────────────────── -->
+            <div class="view view--center" data-when="nosite">
+              <div class="empty">
+                <i class="ph ph-door-open"></i>
+                <p class="h-md">근무지가 없습니다</p>
+                <p class="p--sm" style="max-width: 250px">연결된 근무지가 없어 출퇴근 기록을 보여 줄 수 없습니다. 지난 기록은 관리자에게 문의해 주세요.</p>
+              </div>
+            </div>
+
             <!-- ── 시트 ─────────────────────────────────────────── -->
             <div class="sheet" data-sheet-id="editInfo" hidden>
               <div class="sheet__grab"></div>
@@ -471,6 +479,10 @@
               <button class="sw-b" data-state="empty">
                 <span class="sw-b__k">4</span>
                 <span><span class="sw-b__t">기록 없음</span> <span class="sw-b__d">· 빈 상태</span></span>
+              </button>
+              <button class="sw-b" data-state="nosite">
+                <span class="sw-b__k">·</span>
+                <span><span class="sw-b__t">근무지 없음</span> <span class="sw-b__d">· 퇴직 후</span></span>
               </button>
             </div>
           </div>

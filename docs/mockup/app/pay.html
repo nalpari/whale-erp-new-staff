@@ -25,7 +25,7 @@
 
          다시 보낸 명세서는 최신 값으로 덮고, 이전 금액과 나란히 비교하지 않는다.
          대신 상세에 처리 이력을 둬 발송·확정 취소·재발송 시각을 남긴다(PAY-1).
-         퇴직한 뒤에도 내 정보에서 3년 동안 조회한다(PAY-4).
+         퇴직한 뒤에도 이 급여 탭에서 3년 동안 조회한다(PAY-4).
 
          지급 항목(기본급·주휴수당·연장수당)은 근로계약과 출퇴근 기록으로
          시스템이 계산하고, 공제 항목(4대보험·소득세·지방소득세)은 요율이
@@ -61,7 +61,6 @@
           <a href="contract.html">근로계약</a>
           <a href="tax.html">신고 정보</a>
           <a href="work.html">근무 정보</a>
-          <a href="todo.html">TO-DO</a>
           <a href="notify.html">알림</a>
           <a href="me.html">내 정보</a>
         </nav>
@@ -157,7 +156,7 @@
               <div class="grow"></div>
 
               <p class="tiny">
-                명세서는 이메일로도 발송됩니다. <b>퇴직한 뒤에도</b> 내 정보에서 조회할 수 있고,
+                명세서는 이메일로도 발송됩니다. <b>퇴직한 뒤에도 이 급여 탭에서</b> 조회할 수 있고,
                 보존 기간인 3년 동안 볼 수 있습니다.
               </p>
             </div>
@@ -427,6 +426,15 @@
               </div>
             </div>
 
+            <!-- ── 하단 탭바 ────────────────────────────────────── -->
+            <nav class="tabs">
+              <a class="tab" href="home.html"><i class="ph ph-house"></i>홈</a>
+              <a class="tab" href="work.html"><i class="ph ph-calendar-check"></i>근무</a>
+              <a class="tab" href="attendance.html"><i class="ph ph-timer"></i>출퇴근</a>
+              <a class="tab is-on" href="pay.html"><i class="ph-fill ph-receipt"></i>급여</a>
+              <a class="tab" href="me.html"><i class="ph ph-user-circle"></i>내 정보</a>
+            </nav>
+
             <!-- ── 시트 ─────────────────────────────────────────── -->
             <div class="sheet" data-sheet-id="about" hidden>
               <div class="sheet__grab"></div>
@@ -577,12 +585,12 @@
             <div class="gap__head">
               <span class="gap__no">PAY-4</span>
               <span class="gap__t">퇴직 후 조회를 언제 막는가</span>
-              <span class="gap__st gap__st--fixed">확정 · 퇴직 뒤에도 내 정보에서 조회</span>
+              <span class="gap__st gap__st--fixed">확정 · 퇴직 뒤에도 급여 탭에서 조회</span>
             </div>
             <div class="gap__one">
               <p>
-                <b>퇴직한 직원도 급여명세서를 본다.</b> 퇴직 뒤에는 <b>내 정보</b>에서 조회한다 (2026-09-17 재영 확정).
-                막는 시점을 두지 않고, 데이터 보존 기간(생성일로부터 3년) 동안 볼 수 있다.
+                <b>퇴직한 직원도 급여명세서를 본다.</b> 퇴직 뒤에도 <b>하단 급여 탭</b>에서 조회한다 (2026-09-17 재영 확정,
+                처음 적은 "내 정보에서 조회"를 HOME-5 결정에 맞춰 바꿈). 막는 시점을 두지 않고, 데이터 보존 기간(생성일로부터 3년) 동안 볼 수 있다.
               </p>
               <ul>
                 <li>명세의 「퇴직 전까지 조회」 문장은 바꿔야 한다</li>

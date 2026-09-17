@@ -58,7 +58,7 @@
           <a href="contract.html">근로계약</a>
           <a href="tax.html">신고 정보</a>
           <a href="work.html">근무 정보</a>
-          <a href="todo.html">TO-DO</a>
+          <a href="work.html#todo">TO-DO</a>
           <a href="pay.html">급여</a>
           <a href="notify.html">알림</a>
           <a href="me.html">내 정보</a>
@@ -99,7 +99,7 @@
               </button>
               <span class="abar__title" data-when="empty">웨일카페 홍대점</span>
               <span class="abar__title" data-when="held">웨일카페</span>
-              <a class="abar__end" href="notify.html" data-unless="held empty retired">
+              <a class="abar__end" href="notify.html" data-unless="held empty">
                 <i class="ph ph-bell" style="font-size: 20px"></i>
                 <span class="badge badge--seal" data-when="todo" style="margin-left: 2px">3</span>
               </a>
@@ -173,7 +173,7 @@
                     <div class="line line--between">
                       <p class="lab">TO-DO · 1건</p>
                       <a
-                        href="todo.html"
+                        href="work.html#todo"
                         class="tiny"
                         style="color: var(--pen); font-weight: 600; text-decoration: none"
                         >TO-DO 목록 <i class="ph ph-caret-right"></i
@@ -307,7 +307,7 @@
                     <div class="line line--between">
                       <p class="lab">TO-DO · 2건</p>
                       <a
-                        href="todo.html"
+                        href="work.html#todo"
                         class="tiny"
                         style="color: var(--pen); font-weight: 600; text-decoration: none"
                         >TO-DO 목록 <i class="ph ph-caret-right"></i
@@ -513,38 +513,22 @@
             <div class="view view--center" data-when="retired">
               <div class="empty">
                 <i class="ph ph-door-open"></i>
-                <p class="h-md">연결된 근무지가 없습니다</p>
+                <p class="h-md">근무지가 없습니다</p>
                 <p class="p--sm" style="max-width: 260px">
-                  퇴직 처리되어 근무·출퇴근·알림은 더 보이지 않습니다. 받은 급여명세서는 계속 볼 수
-                  있습니다.
+                  연결된 근무지가 없습니다. 근무와 출퇴근 화면도 같은 안내를 보여 줍니다. 받은 급여
+                  명세서는 <strong>급여 탭</strong>에서, 알림은 위쪽 종에서 계속 볼 수 있습니다.
                 </p>
               </div>
-              <a class="btn" href="pay.html"><i class="ph-fill ph-receipt"></i>급여명세서 보기</a>
+              <a class="btn btn--quiet" href="pay.html"><i class="ph ph-receipt"></i>급여 탭으로 가기</a>
               <p class="tiny">보존 기간인 3년 동안 조회할 수 있습니다.</p>
             </div>
 
-            <!-- ── 퇴직 상태 전용 탭 ────────────────────────────── -->
-            <div class="tabs" data-when="retired" style="grid-template-columns: repeat(2, 1fr)">
-              <a class="tab is-on" href="home.html"><i class="ph-fill ph-house"></i>홈</a>
-              <a class="tab" href="me.html"><i class="ph ph-user-circle"></i>내 정보</a>
-            </div>
-
             <!-- ── 탭바 ─────────────────────────────────────────── -->
-            <div class="tabs" data-unless="retired">
+            <div class="tabs">
               <a class="tab is-on" href="home.html"><i class="ph-fill ph-house"></i>홈</a>
               <a class="tab" href="work.html"><i class="ph ph-calendar-check"></i>근무</a>
-              <a class="tab" href="todo.html"><i class="ph ph-list-checks"></i>TO-DO</a>
-              <a class="tab" href="notify.html">
-                <span style="position: relative; display: inline-flex">
-                  <i class="ph ph-bell"></i>
-                  <span
-                    class="dot"
-                    data-when="todo"
-                    style="position: absolute; top: -1px; right: -3px; background: var(--seal)"
-                  ></span>
-                </span>
-                알림
-              </a>
+              <a class="tab" href="attendance.html"><i class="ph ph-timer"></i>출퇴근</a>
+              <a class="tab" href="pay.html"><i class="ph ph-receipt"></i>급여</a>
               <a class="tab" href="me.html"><i class="ph ph-user-circle"></i>내 정보</a>
             </div>
 
@@ -779,38 +763,22 @@
             <div class="gap__head">
               <span class="gap__no">HOME-5</span>
               <span class="gap__t">퇴직해서 연결된 근무지가 없으면 홈과 탭을 어떻게 보일 것인가</span>
-              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__st gap__st--fixed">확정 · 근무지 없음 표기 + 급여 탭 유지</span>
               <span class="gap__ref">S-EWVMGC · S-DOVWAR</span>
-            </div>
-            <div class="gap__opts">
-              <div class="gap__opt is-picked">
-                <div class="gap__label">A · 홈은 안내만, 탭은 둘만 · 이 화면</div>
-                <p>
-                  홈에 퇴직 안내와 급여명세서 버튼만 두고, 하단 탭을 홈·내 정보 둘로 줄인다. 근무·
-                  TO-DO·알림은 볼 것이 없으니 아예 감춘다.
-                </p>
-              </div>
-              <div class="gap__opt">
-                <div class="gap__label">B · 탭은 그대로, 각 화면이 빈 상태</div>
-                <p>
-                  다섯 탭을 그대로 두고 근무·TO-DO·알림은 각각 빈 상태를 보여 준다. 화면 구조가
-                  바뀌지 않지만 눌러 봐야 비었다는 것을 알게 된다.
-                </p>
-              </div>
-              <div class="gap__opt">
-                <div class="gap__label">C · 급여명세서만 남긴 별도 화면</div>
-                <p>
-                  로그인하면 홈 대신 명세서 목록으로 바로 보낸다. 목적이 또렷하지만 내 정보에서
-                  연락처를 고치는 길이 사라진다.
-                </p>
-              </div>
             </div>
             <div class="gap__one">
               <p>
-                A 를 그렸다. 퇴직한 사람에게 근무 탭을 남겨 두면 눌러 보고 빈 화면을 만나게 된다.
-                <b>탭을 둘로 줄이면 칸이 넓어져 레이아웃이 달라지는 것</b>은 감수해야 한다. 퇴직
-                처리 뒤 얼마 동안 로그인을 허용할지는 계정 쪽 결정이 필요하다.
+                연결된 근무지가 없으면 <b>"근무지가 없습니다"</b>라고 표기한다. 하단 탭은 그대로 두고,
+                <b>급여 탭에서 급여명세서를 계속 조회</b>한다 (2026-09-17 재영 확정).
               </p>
+              <ul>
+                <li>근무지에 묶인 화면(근무·출퇴근)은 같은 "근무지가 없습니다" 빈 상태를 보인다</li>
+                <li>
+                  퇴직을 이유로 계정을 막지 않는다. 직원이 앱에서 탈퇴하지 않는 한 계속 로그인한다
+                  (2026-09-17 재영 확정). 로그인 유지 기간은 마지막 접속 뒤 30일 그대로다
+                </li>
+                <li>종 아이콘과 알림함은 근무지가 없어도 그대로 보인다. 급여명세서 발송 알림이 남는다</li>
+              </ul>
             </div>
           </div>
 
