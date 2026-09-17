@@ -394,7 +394,7 @@ body {
 .tabs {
   flex: none;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   background: var(--card);
   border-top: 1px solid var(--rule);
   padding-bottom: 6px;

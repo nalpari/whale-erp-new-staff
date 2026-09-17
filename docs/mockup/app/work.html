@@ -19,11 +19,9 @@
   </head>
   <body data-area="app" data-screen="work">
     <!-- 직원 근무 앱 · 근무 정보
-         근무스케줄과 TO-DO를 한 화면에 세그먼트로 묶었다(WORK-2). 직원은 스케줄을
-         조회만 한다 — 등록·수정·삭제는 관리자 웹의 몫이다. TO-DO는 정규 근무 밖의
-         특별업무 전용이라 반복 업무는 여기 올라오지 않는다. 공유 TO-DO는 한 명이
-         끝내면 나머지에게 완료됨으로 뜨는데, 그 사람 이름까지 보여줄지는 아직
-         정하지 않았다(WORK-3).
+         근무스케줄만 보는 화면이다. TO-DO 는 하단 탭으로 나갔다(WORK-2, todo.html).
+         직원은 스케줄을 조회만 한다 — 등록·수정·삭제는 관리자 웹의 몫이다. 스케줄은
+         월 달력으로 보이고, 날짜를 누르면 달력 아래에 그날 상세가 열린다(WORK-1).
 
          근무지 전환은 이 화면에 없다. 앱 전역 선택기 하나로 홈 상단에서만
          바꾸고 이 화면은 그 근무지를 따른다(WORK-4·HOME-2 확정). 상단 오른쪽에는
@@ -49,6 +47,7 @@
           <a href="login.html">로그인</a>
           <a href="attendance.html">출퇴근 등록</a>
           <a href="attendance-history.html">출퇴근 현황</a>
+          <a href="todo.html">TO-DO</a>
           <a href="home.html">홈</a>
           <a href="join.html">진입·가입</a>
           <a href="contract.html">근로계약</a>
@@ -73,39 +72,12 @@
             </div>
 
             <!-- 상단 앱바 — 최상위 목록(주간·TO-DO)과 드릴다운(하루·근무지)을 나눴다 -->
-            <div class="abar" data-when="week todo todo-done shared empty">
+            <div class="abar" data-when="week empty">
               <span class="abar__title">근무 정보</span>
               <span class="abar__end tiny">웨일카페 강남역점</span>
             </div>
-            <div class="abar" data-when="day">
-              <button
-                class="abar__back"
-                data-go-back
-                style="background: none; border: none; cursor: pointer"
-              >
-                <i class="ph ph-caret-left"></i>
-              </button>
-              <span class="abar__title">9월 10일(목)</span>
-            </div>
-            <!-- ── 이번 주 스케줄 ───────────────────────────────── -->
+            <!-- ── 월 달력과 고른 날 상세 (WORK-1) ──────────────── -->
             <div class="view" data-when="week">
-              <div class="line" style="gap: 6px; padding: 3px; background: var(--sunken); border-radius: 10px">
-                <button
-                  class="btn btn--sm"
-                  style="flex: 1"
-                  data-go="week"
-                >
-                  스케줄
-                </button>
-                <button
-                  class="btn btn--sm btn--ghost"
-                  style="flex: 1; background: transparent; border-color: transparent; color: var(--ink-3)"
-                  data-go="todo"
-                >
-                  TO-DO
-                </button>
-              </div>
-
               <div class="card">
                 <div class="line">
                   <i class="ph-fill ph-storefront" style="color: var(--pen); font-size: 18px"></i>
@@ -129,71 +101,61 @@
               </div>
 
               <div>
-                <p class="lab" style="margin-bottom: 8px">이번 주 · 9월 7일 – 13일</p>
-                <div class="week">
-                  <div class="day is-off">
-                    <p class="day__d">월</p>
-                    <p class="day__n">7</p>
-                    <p class="day__t">휴무</p>
-                  </div>
-                  <div class="day is-work">
-                    <p class="day__d">화</p>
-                    <p class="day__n">8</p>
-                    <p class="day__t">09–18</p>
-                  </div>
-                  <div class="day is-work">
-                    <p class="day__d">수</p>
-                    <p class="day__n">9</p>
-                    <p class="day__t">09–18</p>
-                  </div>
-                  <button
-                    class="day is-today is-work"
-                    data-go="day"
-                    style="cursor: pointer; font: inherit"
-                  >
-                    <p class="day__d">목</p>
-                    <p class="day__n">10</p>
-                    <p class="day__t">09–18</p>
+                <div class="line line--between" style="margin-bottom: 8px">
+                  <button class="btn btn--sm btn--ghost" data-toast="8월로 옮겼습니다" style="padding: 4px 9px">
+                    <i class="ph ph-caret-left"></i>
                   </button>
-                  <div class="day is-work">
-                    <p class="day__d">금</p>
-                    <p class="day__n">11</p>
-                    <p class="day__t">09–18</p>
-                  </div>
-                  <div class="day is-work">
-                    <p class="day__d">토</p>
-                    <p class="day__n">12</p>
-                    <p class="day__t">13–22</p>
-                  </div>
-                  <div class="day is-off">
-                    <p class="day__d">일</p>
-                    <p class="day__n">13</p>
-                    <p class="day__t">휴무</p>
-                  </div>
+                  <p class="lab">2026년 9월</p>
+                  <button class="btn btn--sm btn--ghost" data-toast="10월로 옮겼습니다" style="padding: 4px 9px">
+                    <i class="ph ph-caret-right"></i>
+                  </button>
                 </div>
-                <p class="tiny" style="margin-top: 7px">오늘(목)을 탭하면 하루 상세를 볼 수 있습니다.</p>
+                <div class="week" style="margin-bottom: 4px"><p class="tiny center">월</p><p class="tiny center">화</p><p class="tiny center">수</p><p class="tiny center">목</p><p class="tiny center">금</p><p class="tiny center">토</p><p class="tiny center">일</p></div>
+                <div class="week">
+                  <div class="day is-off"><p class="day__n" style="color: var(--ink-4)">31</p></div>
+                  <div class="day is-work"><p class="day__n">1</p><p class="day__t">09–18</p></div>
+                  <div class="day is-work"><p class="day__n">2</p><p class="day__t">09–18</p></div>
+                  <div class="day is-work"><p class="day__n">3</p><p class="day__t">09–18</p></div>
+                  <div class="day is-work"><p class="day__n">4</p><p class="day__t">09–18</p></div>
+                  <div class="day is-work"><p class="day__n">5</p><p class="day__t">13–22</p></div>
+                  <div class="day is-off"><p class="day__n">6</p></div>
+                  <div class="day is-off"><p class="day__n">7</p></div>
+                  <div class="day is-work"><p class="day__n">8</p><p class="day__t">09–18</p></div>
+                  <div class="day is-work"><p class="day__n">9</p><p class="day__t">09–18</p></div>
+                  <button class="day is-work is-today" data-toast="9월 10일을 골랐습니다" style="cursor: pointer; font: inherit"><p class="day__n">10</p><p class="day__t">09–18</p></button>
+                  <div class="day is-work"><p class="day__n">11</p><p class="day__t">09–18</p></div>
+                  <div class="day is-work"><p class="day__n">12</p><p class="day__t">13–22</p></div>
+                  <div class="day is-off"><p class="day__n">13</p></div>
+                  <div class="day is-off"><p class="day__n">14</p></div>
+                  <div class="day is-work"><p class="day__n">15</p><p class="day__t">09–18</p></div>
+                  <div class="day is-work"><p class="day__n">16</p><p class="day__t">09–18</p></div>
+                  <div class="day is-work"><p class="day__n">17</p><p class="day__t">09–18</p></div>
+                  <div class="day is-work"><p class="day__n">18</p><p class="day__t">09–18</p></div>
+                  <div class="day is-work"><p class="day__n">19</p><p class="day__t">13–22</p></div>
+                  <div class="day is-off"><p class="day__n">20</p></div>
+                  <div class="day is-off"><p class="day__n">21</p></div>
+                  <div class="day is-work"><p class="day__n">22</p><p class="day__t">09–18</p></div>
+                  <div class="day is-work"><p class="day__n">23</p><p class="day__t">09–18</p></div>
+                  <div class="day is-work"><p class="day__n">24</p><p class="day__t">09–18</p></div>
+                  <div class="day is-work"><p class="day__n">25</p><p class="day__t">09–18</p></div>
+                  <div class="day is-work"><p class="day__n">26</p><p class="day__t">13–22</p></div>
+                  <div class="day is-off"><p class="day__n">27</p></div>
+                  <div class="day is-off"><p class="day__n">28</p></div>
+                  <div class="day is-work"><p class="day__n">29</p><p class="day__t">09–18</p></div>
+                  <div class="day is-work"><p class="day__n">30</p><p class="day__t">09–18</p></div>
+                  <div class="day is-off"><p class="day__n" style="color: var(--ink-4)">1</p></div>
+                  <div class="day is-off"><p class="day__n" style="color: var(--ink-4)">2</p></div>
+                  <div class="day is-off"><p class="day__n" style="color: var(--ink-4)">3</p></div>
+                  <div class="day is-off"><p class="day__n" style="color: var(--ink-4)">4</p></div>
+                </div>
+                <p class="tiny" style="margin-top: 7px">
+                  근무가 있는 날에만 시간이 붙습니다. 날짜를 누르면 아래에 그날 상세가 열립니다.
+                </p>
               </div>
 
-              <button
-                class="card card--sunken"
-                data-go="todo"
-                style="width: 100%; text-align: left; cursor: pointer; font: inherit"
-              >
-                <div class="line">
-                  <div class="grow">
-                    <p class="lab">TO-DO</p>
-                    <p class="h-md" style="margin-top: 4px">오늘 2건 남음</p>
-                  </div>
-                  <span class="badge badge--amber">긴급 1</span>
-                  <i class="ph ph-caret-right" style="color: var(--ink-4)"></i>
-                </div>
-              </button>
+              <hr class="hr" />
 
-              <div class="grow"></div>
-            </div>
-
-            <!-- ── 하루 상세 ────────────────────────────────────── -->
-            <div class="view" data-when="day">
+              <p class="lab">고른 날 · 9월 10일(목)</p>
               <div class="card">
                 <div class="line">
                   <i class="ph-fill ph-storefront" style="color: var(--pen); font-size: 17px"></i>
@@ -244,340 +206,31 @@
                 <div>근무스케줄은 관리자가 등록합니다. 이 화면에서는 조회만 할 수 있습니다.</div>
               </div>
 
+
+              <a class="btn btn--quiet" href="attendance.html">출퇴근 등록 화면 보기</a>
+
               <div class="grow"></div>
-            </div>
-
-            <!-- ── TO-DO 목록 ───────────────────────────────────── -->
-            <div class="view" data-when="todo">
-              <div class="line" style="gap: 6px; padding: 3px; background: var(--sunken); border-radius: 10px">
-                <button
-                  class="btn btn--sm btn--ghost"
-                  style="flex: 1; background: transparent; border-color: transparent; color: var(--ink-3)"
-                  data-go="week"
-                >
-                  스케줄
-                </button>
-                <button class="btn btn--sm" style="flex: 1" data-go="todo">TO-DO</button>
-              </div>
-
-              <div class="line" style="gap: 14px">
-                <span class="tiny">대기 <strong style="color: var(--ink)">3</strong></span>
-                <span class="tiny">진행 중 <strong style="color: var(--pen)">1</strong></span>
-                <span class="tiny">완료 <strong style="color: var(--ok)">1</strong></span>
-              </div>
-
-              <div class="scroll">
-                <div class="rows">
-                  <div class="row">
-                    <button class="check__box" data-tick aria-label="완료 체크"></button>
-                    <div class="row__main">
-                      <p class="row__title">마감 청소 사진 촬영</p>
-                      <p class="row__sub" style="color: var(--amber)">9월 9일(수) · 기한 지남</p>
-                    </div>
-                    <span class="badge">대기</span>
-                  </div>
-
-                  <div class="row">
-                    <button
-                      class="check__box"
-                      data-go="todo-done"
-                      data-toast="완료 처리했습니다"
-                      aria-label="완료 처리"
-                    ></button>
-                    <button
-                      class="row__main"
-                      data-sheet="fridge"
-                      style="
-                        background: none;
-                        border: none;
-                        padding: 0;
-                        margin: 0;
-                        text-align: left;
-                        cursor: pointer;
-                        font: inherit;
-                        color: inherit;
-                      "
-                    >
-                      <p class="row__title">냉장고 온도 점검 및 사진 제출</p>
-                      <p class="row__sub">9월 10일(목) 14:00</p>
-                    </button>
-                    <span class="badge badge--amber">긴급</span>
-                    <span class="badge">대기</span>
-                  </div>
-
-                  <div class="row">
-                    <button class="check__box" data-tick aria-label="완료 체크"></button>
-                    <div class="row__main">
-                      <p class="row__title">신메뉴 시식 후 피드백 작성</p>
-                      <p class="row__sub">9월 10일(목) · 시간 미정</p>
-                    </div>
-                    <span class="badge badge--pen">진행 중</span>
-                  </div>
-
-                  <div class="row">
-                    <button class="check__box" data-tick aria-label="완료 체크"></button>
-                    <button
-                      class="row__main"
-                      data-sheet="sharedInfo"
-                      style="
-                        background: none;
-                        border: none;
-                        padding: 0;
-                        margin: 0;
-                        text-align: left;
-                        cursor: pointer;
-                        font: inherit;
-                        color: inherit;
-                      "
-                    >
-                      <p class="row__title">매장 재고 실사 보조</p>
-                      <p class="row__sub">9월 11일(금) 10:00</p>
-                    </button>
-                    <span class="badge">공유</span>
-                    <span class="badge">대기</span>
-                  </div>
-
-                  <div class="row">
-                    <i class="ph-fill ph-check-circle" style="color: var(--ok); font-size: 20px; flex: none"></i>
-                    <div class="row__main">
-                      <p class="row__title" style="color: var(--ink-3)">여름 시즌 POP 철거</p>
-                      <p class="row__sub">9월 8일(화) 16:40 완료</p>
-                    </div>
-                    <span class="badge badge--ok">완료</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- ── TO-DO 완료 처리 직후 ──────────────────────────── -->
-            <div class="view" data-when="todo-done">
-              <div class="line" style="gap: 6px; padding: 3px; background: var(--sunken); border-radius: 10px">
-                <button
-                  class="btn btn--sm btn--ghost"
-                  style="flex: 1; background: transparent; border-color: transparent; color: var(--ink-3)"
-                  data-go="week"
-                >
-                  스케줄
-                </button>
-                <button class="btn btn--sm" style="flex: 1" data-go="todo">TO-DO</button>
-              </div>
-
-              <div class="line" style="gap: 14px">
-                <span class="tiny">대기 <strong style="color: var(--ink)">2</strong></span>
-                <span class="tiny">진행 중 <strong style="color: var(--pen)">1</strong></span>
-                <span class="tiny">완료 <strong style="color: var(--ok)">2</strong></span>
-              </div>
-
-              <div class="scroll">
-                <div class="rows">
-                  <div class="row">
-                    <button class="check__box" data-tick aria-label="완료 체크"></button>
-                    <div class="row__main">
-                      <p class="row__title">마감 청소 사진 촬영</p>
-                      <p class="row__sub" style="color: var(--amber)">9월 9일(수) · 기한 지남</p>
-                    </div>
-                    <span class="badge">대기</span>
-                  </div>
-
-                  <div class="row">
-                    <i class="ph-fill ph-check-circle" style="color: var(--ok); font-size: 20px; flex: none"></i>
-                    <div class="row__main">
-                      <p class="row__title" style="color: var(--ink-3)">냉장고 온도 점검 및 사진 제출</p>
-                      <p class="row__sub">9월 10일(목) 14:03 완료</p>
-                    </div>
-                    <span class="badge badge--ok">완료</span>
-                  </div>
-
-                  <div class="row">
-                    <button class="check__box" data-tick aria-label="완료 체크"></button>
-                    <div class="row__main">
-                      <p class="row__title">신메뉴 시식 후 피드백 작성</p>
-                      <p class="row__sub">9월 10일(목) · 시간 미정</p>
-                    </div>
-                    <span class="badge badge--pen">진행 중</span>
-                  </div>
-
-                  <div class="row">
-                    <button class="check__box" data-tick aria-label="완료 체크"></button>
-                    <div class="row__main">
-                      <p class="row__title">매장 재고 실사 보조</p>
-                      <p class="row__sub">9월 11일(금) 10:00</p>
-                    </div>
-                    <span class="badge">공유</span>
-                    <span class="badge">대기</span>
-                  </div>
-
-                  <div class="row">
-                    <i class="ph-fill ph-check-circle" style="color: var(--ok); font-size: 20px; flex: none"></i>
-                    <div class="row__main">
-                      <p class="row__title" style="color: var(--ink-3)">여름 시즌 POP 철거</p>
-                      <p class="row__sub">9월 8일(화) 16:40 완료</p>
-                    </div>
-                    <span class="badge badge--ok">완료</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- ── 공유 TO-DO를 다른 직원이 먼저 끝냈을 때 ───────── -->
-            <div class="view" data-when="shared">
-              <div class="line" style="gap: 6px; padding: 3px; background: var(--sunken); border-radius: 10px">
-                <button
-                  class="btn btn--sm btn--ghost"
-                  style="flex: 1; background: transparent; border-color: transparent; color: var(--ink-3)"
-                  data-go="week"
-                >
-                  스케줄
-                </button>
-                <button class="btn btn--sm" style="flex: 1" data-go="todo">TO-DO</button>
-              </div>
-
-              <div class="line" style="gap: 14px">
-                <span class="tiny">대기 <strong style="color: var(--ink)">2</strong></span>
-                <span class="tiny">진행 중 <strong style="color: var(--pen)">1</strong></span>
-                <span class="tiny">완료 <strong style="color: var(--ok)">2</strong></span>
-              </div>
-
-              <div class="scroll">
-                <div class="rows">
-                  <div class="row">
-                    <button class="check__box" data-tick aria-label="완료 체크"></button>
-                    <div class="row__main">
-                      <p class="row__title">마감 청소 사진 촬영</p>
-                      <p class="row__sub" style="color: var(--amber)">9월 9일(수) · 기한 지남</p>
-                    </div>
-                    <span class="badge">대기</span>
-                  </div>
-
-                  <div class="row">
-                    <button
-                      class="check__box"
-                      data-go="todo-done"
-                      data-toast="완료 처리했습니다"
-                      aria-label="완료 처리"
-                    ></button>
-                    <div class="row__main">
-                      <p class="row__title">냉장고 온도 점검 및 사진 제출</p>
-                      <p class="row__sub">9월 10일(목) 14:00</p>
-                    </div>
-                    <span class="badge badge--amber">긴급</span>
-                    <span class="badge">대기</span>
-                  </div>
-
-                  <div class="row">
-                    <button class="check__box" data-tick aria-label="완료 체크"></button>
-                    <div class="row__main">
-                      <p class="row__title">신메뉴 시식 후 피드백 작성</p>
-                      <p class="row__sub">9월 10일(목) · 시간 미정</p>
-                    </div>
-                    <span class="badge badge--pen">진행 중</span>
-                  </div>
-
-                  <div class="row">
-                    <i class="ph-fill ph-check-circle" style="color: var(--ok); font-size: 20px; flex: none"></i>
-                    <div class="row__main">
-                      <p class="row__title" style="color: var(--ink-3)">매장 재고 실사 보조</p>
-                      <p class="row__sub">정민준이 9월 11일(금) 10:42에 완료했습니다</p>
-                    </div>
-                    <span class="badge">공유</span>
-                    <span class="badge badge--ok">완료됨</span>
-                  </div>
-
-                  <div class="row">
-                    <i class="ph-fill ph-check-circle" style="color: var(--ok); font-size: 20px; flex: none"></i>
-                    <div class="row__main">
-                      <p class="row__title" style="color: var(--ink-3)">여름 시즌 POP 철거</p>
-                      <p class="row__sub">9월 8일(화) 16:40 완료</p>
-                    </div>
-                    <span class="badge badge--ok">완료</span>
-                  </div>
-                </div>
-              </div>
             </div>
 
             <!-- ── 등록된 근무 없음 ─────────────────────────────── -->
             <div class="view" data-when="empty">
-              <div class="line" style="gap: 6px; padding: 3px; background: var(--sunken); border-radius: 10px">
-                <button class="btn btn--sm" style="flex: 1" data-go="empty">스케줄</button>
-                <button
-                  class="btn btn--sm btn--ghost"
-                  style="flex: 1; background: transparent; border-color: transparent; color: var(--ink-3)"
-                  data-go="todo"
-                >
-                  TO-DO
-                </button>
-              </div>
               <div class="empty">
                 <i class="ph ph-calendar-x"></i>
-                <p class="h-md">이번 주 등록된 근무가 없습니다</p>
-                <p class="tiny">관리자가 스케줄을 등록하면 이 화면에 표시됩니다.</p>
+                <p class="h-md">이번 달 등록된 근무가 없습니다</p>
+                <p class="tiny">관리자가 스케줄을 등록하면 이 달력에 표시됩니다.</p>
               </div>
-            </div>
-
-            <!-- ── 하루 상세에서만 보이는 하단 링크 ──────────────── -->
-            <div class="dock" data-when="day">
-              <a class="btn btn--ghost" href="attendance.html">출퇴근 등록 화면 보기</a>
             </div>
 
             <!-- ── 하단 탭바 ────────────────────────────────────── -->
-            <nav class="tabs" data-unless="day">
+            <nav class="tabs">
               <a class="tab" href="home.html"><i class="ph ph-house"></i>홈</a>
               <a class="tab is-on" href="work.html"><i class="ph-fill ph-briefcase"></i>근무</a>
+              <a class="tab" href="todo.html"><i class="ph ph-list-checks"></i>TO-DO</a>
               <a class="tab" href="notify.html"><i class="ph ph-bell"></i>알림</a>
               <a class="tab" href="me.html"><i class="ph ph-user-circle"></i>내 정보</a>
             </nav>
 
-            <!-- ── 시트 ─────────────────────────────────────────── -->
-            <div class="sheet" data-sheet-id="fridge" hidden>
-              <div class="sheet__grab"></div>
-              <div class="line">
-                <span class="badge badge--amber">긴급</span>
-                <p class="h-lg">냉장고 온도 점검 및 사진 제출</p>
-              </div>
-              <p class="p--sm">
-                강남역점 냉장·냉동고 온도를 확인하고 온도계가 보이는 사진을 찍어 관리자에게 전송한다.
-                이상 온도가 발견되면 즉시 전화로도 알린다.
-              </p>
-              <div class="card card--sunken">
-                <div class="rows">
-                  <div class="row" style="padding: 9px 0">
-                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">수행 예정</span>
-                    <span class="push num tiny">9월 10일(목) 14:00</span>
-                  </div>
-                  <div class="row" style="padding: 9px 0">
-                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">근무지</span>
-                    <span class="push num tiny">웨일카페 강남역점</span>
-                  </div>
-                  <div class="row" style="padding: 9px 0">
-                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">상태</span>
-                    <span class="push"><span class="badge">대기</span></span>
-                  </div>
-                </div>
-              </div>
-              <div class="btnrow">
-                <button class="btn btn--ghost" data-sheet-close>닫기</button>
-                <button class="btn" data-sheet-close data-go="todo-done">완료로 표시</button>
-              </div>
-            </div>
 
-            <div class="sheet" data-sheet-id="sharedInfo" hidden>
-              <div class="sheet__grab"></div>
-              <div class="line">
-                <span class="badge">공유</span>
-                <p class="h-lg">매장 재고 실사 보조</p>
-              </div>
-              <p class="p--sm">
-                강남역점 재고 실사를 돕는다. 강남역점 근무 직원 4명 전체에게 배정되었고, 그중 한 명만
-                완료 처리하면 나머지 전원에게도 완료로 표시된다.
-              </p>
-              <div class="note">
-                <i class="ph ph-info"></i>
-                <div>먼저 완료 처리한 사람이 수행자로 기록됩니다.</div>
-              </div>
-              <div class="btnrow">
-                <button class="btn" data-sheet-close>확인</button>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -586,37 +239,15 @@
           <div class="switcher">
             <div class="switcher__head">
               <p class="lab">상태 바꾸기</p>
-              <span class="switcher__hint">숫자키 1–7</span>
+              <span class="switcher__hint">숫자키 1–2</span>
             </div>
             <div class="switcher__body">
               <button class="sw-b" data-state="week" aria-pressed="true">
                 <span class="sw-b__k">1</span>
-                <span><span class="sw-b__t">이번 주</span> <span class="sw-b__d">· 주간 스케줄</span></span>
-              </button>
-              <button class="sw-b" data-state="day">
-                <span class="sw-b__k">2</span>
-                <span><span class="sw-b__t">하루 상세</span> <span class="sw-b__d">· 오늘</span></span>
-              </button>
-              <button class="sw-b" data-state="todo">
-                <span class="sw-b__k">3</span>
-                <span><span class="sw-b__t">TO-DO 목록</span> <span class="sw-b__d">· 5건</span></span>
-              </button>
-              <button class="sw-b" data-state="todo-done">
-                <span class="sw-b__k">4</span>
-                <span
-                  ><span class="sw-b__t">완료 처리 직후</span>
-                  <span class="sw-b__d">· 토스트 확인</span></span
-                >
-              </button>
-              <button class="sw-b" data-state="shared">
-                <span class="sw-b__k">5</span>
-                <span
-                  ><span class="sw-b__t">공유 TO-DO 선점됨</span>
-                  <span class="sw-b__d">· 동료가 먼저 완료</span></span
-                >
+                <span><span class="sw-b__t">월 달력</span> <span class="sw-b__d">· 고른 날 상세</span></span>
               </button>
               <button class="sw-b" data-state="empty">
-                <span class="sw-b__k">6</span>
+                <span class="sw-b__k">2</span>
                 <span><span class="sw-b__t">등록된 근무 없음</span> <span class="sw-b__d">· 빈 상태</span></span>
               </button>
             </div>
@@ -624,23 +255,15 @@
 
           <h2 class="h-lg" style="margin: 30px 0 10px">이 화면이 하는 일</h2>
           <p class="p">
-            근무스케줄과 TO-DO는 성격이 다르다. 스케줄은 매주 반복되는 정규 근무이고 직원은 보기만
-            한다. TO-DO는 그 밖의 특별업무라 직원이 상태를 직접 바꾼다. 두 성격을 한 화면 위 세그먼트로
-            나눴다. 위쪽 근무지 카드는 지금 어느 근무지를 보고 있는지 알려 주는 읽기 전용이고,
-            TO-DO 요약 카드만 세그먼트를 건너뛰는 지름길이다. 근무지를 바꾸는 자리는 이 화면에
-            없다 — 홈 상단 선택기 하나로 앱 전체가 같은 근무지를 따른다.
+            이 화면은 근무스케줄만 본다. TO-DO 는 성격이 달라 하단 탭으로 나갔다(WORK-2) —
+            스케줄은 관리자가 등록한 것을 직원이 보기만 하고, TO-DO 는 직원이 상태를 직접 바꾼다.
+            위쪽 근무지 카드는 지금 어느 근무지를 보고 있는지 알려 주는 읽기 전용이다. 근무지를
+            바꾸는 자리는 이 화면에 없다 — 홈 상단 선택기 하나로 앱 전체가 같은 근무지를 따른다.
           </p>
           <p class="p" style="margin-top: 10px">
-            주간 격자는 한 손 화면에 7일을 다 넣었다. 칸이 좁아져도 오늘 칸만 굵은 테두리로 눈에 띄면
-            나머지는 흐릿하게 훑어도 된다고 봤다.
-          </p>
-
-          <h2 class="h-lg" style="margin: 26px 0 10px">공유 TO-DO의 경합</h2>
-          <p class="p">
-            근무지 전체에 한 명 수행으로 배정된 TO-DO는 전원 목록에 뜬다. 먼저 완료 처리한 사람이
-            수행자가 되고, 나머지는 목록에서 그 항목이 조용히 완료로 바뀐다. 이 화면은 완료됨과 함께
-            수행자 이름까지 보여주는 쪽을 택했다 — 누가 했는지 알아야 다음에 겹치지 않는다고 봤지만,
-            이건 개인정보 경계 문제라 아직 열어 뒀다.
+            스케줄은 <b>월 달력</b>으로 보인다(WORK-1). 근무가 있는 날에만 시간이 붙어 한 달 가운데
+            어느 날 일하는지가 한눈에 잡힌다. 날짜를 누르면 달력 아래에 그날 상세가 열린다 — 화면을
+            갈아타지 않아 달력과 상세를 번갈아 보기 쉽다.
           </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">정할 것</h2>
@@ -649,17 +272,16 @@
             <div class="gap__head">
               <span class="gap__no">WORK-1</span>
               <span class="gap__t">주간 격자를 모바일에서 어떻게 보일 것인가</span>
-              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__st gap__st--fixed">확정 · 월 달력</span>
             </div>
-            <div class="gap__opts">
-              <div class="gap__opt is-picked">
-                <div class="gap__label">A · 7칸 한 화면 · 이 화면</div>
-                <p>요일 전체를 한눈에 훑는다. 칸이 좁아 시간 텍스트를 한 줄로 줄여야 한다.</p>
-              </div>
-              <div class="gap__opt">
-                <div class="gap__label">B · 세로 목록</div>
-                <p>하루씩 카드로 세로로 늘어놓는다. 정보는 넉넉히 들어가지만 스크롤이 길어진다.</p>
-              </div>
+            <div class="gap__one">
+              <p>
+                근무스케줄은 <b>월 달력</b>으로 보인다. 근무가 있는 날에만 배지를 붙이고, 날짜를 누르면
+                그날의 근무 상세를 <b>달력 아래에 따로</b> 보여 준다 (2026-09-17 재영 확정).
+              </p>
+              <ul>
+                <li>7칸 주간 격자와 세로 목록은 쓰지 않는다</li>
+              </ul>
             </div>
           </div>
 
@@ -667,37 +289,20 @@
             <div class="gap__head">
               <span class="gap__no">WORK-2</span>
               <span class="gap__t">TO-DO와 근무스케줄을 한 화면에 둘지 나눌지</span>
-              <span class="gap__st gap__st--open">미정</span>
-            </div>
-            <div class="gap__opts">
-              <div class="gap__opt is-picked">
-                <div class="gap__label">A · 세그먼트 한 화면 · 이 화면</div>
-                <p>탭 하나를 아끼고 서로를 오가기 쉽다. 다만 두 성격이 다른 목록이 한 화면에 겹친다.</p>
-              </div>
-              <div class="gap__opt">
-                <div class="gap__label">B · 완전히 분리</div>
-                <p>
-                  하단 탭에 TO-DO 전용 자리를 따로 둔다. 성격이 또렷해지지만 탭 하나를 더 써야 한다.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div class="gap">
-            <div class="gap__head">
-              <span class="gap__no">WORK-3</span>
-              <span class="gap__t">공유 TO-DO 수행자 이름을 다른 직원에게 보여줄 것인가</span>
-              <span class="gap__st gap__st--fixed">확정 · 이름 공개</span>
+              <span class="gap__st gap__st--fixed">확정 · 하단 탭으로 분리</span>
             </div>
             <div class="gap__one">
               <p>
-                공유 TO-DO를 누가 완료했는지 <b>이름을 보여 준다</b>. 지금 화면 그대로다 (2026-09-17 재영 확정).
-                같은 일을 두 번 하지 않게 하려는 것이다.
+                TO-DO와 근무스케줄을 <b>나눈다</b>. 하단 탭에 TO-DO 자리를 따로 둔다 (2026-09-17 재영 확정).
               </p>
+              <ul>
+                <li>하단 탭은 홈 · 근무 · TO-DO · 알림 · 내 정보 다섯이 된다</li>
+                <li>홈 TO-DO 카드의 「TO-DO 목록」 바로가기(HOME-1)는 TO-DO 탭으로 간다</li>
+              </ul>
             </div>
           </div>
 
-          <div class="gap">
+                    <div class="gap">
             <div class="gap__head">
               <span class="gap__no">WORK-4</span>
               <span class="gap__t">근무지 전환을 어디에 둘 것인가</span>
@@ -768,7 +373,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 근무 정보 · 2026년 9월 17일 · 상태 6개 · 시트 2개 · 쟁점 4건
+            직원 근무 앱 목업 · 근무 정보 · 2026년 9월 17일 · 상태 2개 · 쟁점 3건 모두 확정
           </footer>
         </div>
       </div>

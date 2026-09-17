@@ -24,6 +24,11 @@
          숫자는 확인용으로 아래에 따라온다. 관리자가 고친 기록을 표시할지는
          정해지지 않아 쟁점으로 남겼다(HIST-1).
 
+         화면은 이번 주 탭과 기간별 탭으로 나뉜다(HIST-2). 기간별 탭은 시작일과
+         종료일을 직접 골라 한 번에 최대 1년까지 본다. 들어가면 이번 달이 기본으로
+         잡힌다. 주·월 두 단계 이동과 연 단위 선택기는 쓰지 않는다. 기록 보존은
+         3년 그대로이고 1년은 한 번에 조회하는 폭의 제한이다.
+
          이 파일은 화면 하나다. 오른쪽 목록으로 상태를 바꾸거나 폰 안의 버튼을
          직접 눌러 본다. 숫자키 1~4 로도 넘어간다.
 
@@ -48,6 +53,7 @@
           <a href="contract.html">근로계약</a>
           <a href="tax.html">신고 정보</a>
           <a href="work.html">근무 정보</a>
+          <a href="todo.html">TO-DO</a>
           <a href="pay.html">급여</a>
           <a href="notify.html">알림</a>
           <a href="me.html">내 정보</a>
@@ -80,19 +86,12 @@
                 <button
                   class="btn btn--sm btn--ghost"
                   style="flex: 1; background: transparent; border-color: transparent; color: var(--ink-3)"
-                  data-go="month"
+                  data-go="period"
                 >
-                  이번 달
+                  기간별
                 </button>
               </div>
 
-              <div class="line">
-                <button class="btn--quiet" data-toast="이전 주 기록을 불러옵니다" style="background: none; border: none; font: inherit; color: var(--ink-2); font-weight: 600; cursor: pointer; padding: 0">
-                  <i class="ph ph-caret-left"></i> 이전 주
-                </button>
-                <span class="push h-md">9월 7일 – 13일</span>
-                <span style="color: var(--ink-4); font-size: 13.5px; font-weight: 600">다음 주 <i class="ph ph-caret-right"></i></span>
-              </div>
 
               <div class="scroll">
                 <div class="stack stack-8">
@@ -191,7 +190,7 @@
             </div>
 
             <!-- ── 이번 달 ──────────────────────────────────────── -->
-            <div class="view" data-when="month">
+            <div class="view" data-when="period">
               <div class="line" style="gap: 6px; padding: 3px; background: var(--sunken); border-radius: 10px">
                 <button
                   class="btn btn--sm btn--ghost"
@@ -200,11 +199,26 @@
                 >
                   이번 주
                 </button>
-                <button class="btn btn--sm" style="flex: 1" data-go="month">이번 달</button>
+                <button class="btn btn--sm" style="flex: 1" data-go="period">기간별</button>
+              </div>
+
+              <div class="card">
+                <p class="lab">기간 고르기</p>
+                <div class="line" style="gap: 6px; margin-top: 6px">
+                  <input class="input" type="text" value="2026-09-01" aria-label="시작일" />
+                  <span class="tiny">–</span>
+                  <input class="input" type="text" value="2026-09-30" aria-label="종료일" />
+                </div>
+                <button class="btn btn--sm" style="margin-top: 8px" data-toast="기간 기록을 불러왔습니다">
+                  조회
+                </button>
+                <p class="field__help" style="margin-top: 7px">
+                  기본은 이번 달입니다. 한 번에 <b>최대 1년</b>까지 고를 수 있습니다.
+                </p>
               </div>
 
               <div class="card card--sunken">
-                <p class="lab">9월 누계 · 1일 – 10일</p>
+                <p class="lab">고른 기간 누계 · 9월 1일 – 30일</p>
                 <div class="line" style="margin-top: 6px; align-items: baseline; gap: 14px">
                   <p class="num num--lg">63<span class="u">시간</span>16<span class="u">분</span></p>
                   <span class="tiny">지각 1회 · 연장 1시간 20분</span>
@@ -213,29 +227,19 @@
 
               <div class="scroll">
                 <div class="rows">
-                  <button
-                    class="row"
-                    data-go="week"
-                    style="width: 100%; background: none; border: none; border-bottom: 1px solid var(--rule-soft); padding: 13px 0; text-align: left; cursor: pointer; font: inherit"
-                  >
+                  <div class="row">
                     <div class="row__main">
                       <p class="row__title">9월 1주 · 8/31 – 9/6</p>
                       <p class="row__sub">근무 5일 · 40시간 12분 · 지각 0 · 연장 1시간 20분</p>
                     </div>
-                    <i class="ph ph-caret-right row__chev"></i>
-                  </button>
+                  </div>
 
-                  <button
-                    class="row"
-                    data-go="week"
-                    style="width: 100%; background: none; border: none; border-bottom: 1px solid var(--rule-soft); padding: 13px 0; text-align: left; cursor: pointer; font: inherit"
-                  >
+                  <div class="row">
                     <div class="row__main">
                       <p class="row__title">9월 2주 · 9/7 – 9/13</p>
                       <p class="row__sub" style="color: var(--pen)">이번 주 · 진행 중 · 23시간 04분 · 지각 1회</p>
                     </div>
-                    <i class="ph ph-caret-right row__chev"></i>
-                  </button>
+                  </div>
 
                   <div class="row" style="opacity: 0.55">
                     <div class="row__main">
@@ -253,7 +257,9 @@
                 </div>
               </div>
 
-              <p class="tiny">최근 3년 안의 기록을 주 단위로 조회할 수 있습니다.</p>
+              <p class="tiny">
+                기록은 3년 보존됩니다. 1년은 한 번에 조회하는 폭의 제한입니다.
+              </p>
             </div>
 
             <!-- ── 확인 필요 건이 섞인 상태 ──────────────────────── -->
@@ -263,9 +269,9 @@
                 <button
                   class="btn btn--sm btn--ghost"
                   style="flex: 1; background: transparent; border-color: transparent; color: var(--ink-3)"
-                  data-go="month"
+                  data-go="period"
                 >
-                  이번 달
+                  기간별
                 </button>
               </div>
 
@@ -273,7 +279,7 @@
                 <i class="ph-fill ph-warning"></i>
                 <div>
                   <strong>확인이 필요한 기록이 2건 있습니다.</strong><br />
-                  관리자가 확인하고 있습니다. 아래에서 자세한 내용을 볼 수 있습니다.
+                  관리자가 확인 중입니다. 기록이 다르면 <strong>근무지 점포에 말씀해 주세요.</strong>
                 </div>
               </div>
 
@@ -348,9 +354,9 @@
                 <button
                   class="btn btn--sm btn--ghost"
                   style="flex: 1; background: transparent; border-color: transparent; color: var(--ink-3)"
-                  data-go="month"
+                  data-go="period"
                 >
-                  이번 달
+                  기간별
                 </button>
               </div>
               <div class="empty">
@@ -405,9 +411,14 @@
                 오차가 매장 범위보다 넓어 매장 안인지 자동으로 확인하지 못했습니다. 출근 시각
                 09:58은 등록되었고 관리자가 검토하고 있습니다.
               </p>
+              <div class="note">
+                <i class="ph ph-storefront"></i>
+                <div>
+                  관리자가 확인 중입니다. 기록이 다르면 <strong>근무지 점포에 말씀해 주세요.</strong>
+                </div>
+              </div>
               <div class="btnrow">
                 <button class="btn btn--ghost" data-sheet-close>닫기</button>
-                <button class="btn" data-sheet-close data-toast="관리자에게 알렸습니다">관리자에게 알리기</button>
               </div>
             </div>
 
@@ -421,9 +432,14 @@
                 09:14에 출근한 기록만 있고 퇴근 기록이 없습니다. 퇴근을 찍지 못했다면 관리자에게
                 알려 대신 등록받을 수 있습니다.
               </p>
+              <div class="note">
+                <i class="ph ph-storefront"></i>
+                <div>
+                  관리자가 확인 중입니다. 기록이 다르면 <strong>근무지 점포에 말씀해 주세요.</strong>
+                </div>
+              </div>
               <div class="btnrow">
                 <button class="btn btn--ghost" data-sheet-close>닫기</button>
-                <button class="btn" data-sheet-close data-toast="관리자에게 알렸습니다">관리자에게 알리기</button>
               </div>
             </div>
           </div>
@@ -441,9 +457,9 @@
                 <span class="sw-b__k">1</span>
                 <span><span class="sw-b__t">이번 주</span> <span class="sw-b__d">· 기본 상태</span></span>
               </button>
-              <button class="sw-b" data-state="month">
+              <button class="sw-b" data-state="period">
                 <span class="sw-b__k">2</span>
-                <span><span class="sw-b__t">이번 달</span> <span class="sw-b__d">· 주 단위 누계</span></span>
+                <span><span class="sw-b__t">기간별</span> <span class="sw-b__d">· 시작일–종료일</span></span>
               </button>
               <button class="sw-b" data-state="flagged">
                 <span class="sw-b__k">3</span>
@@ -478,20 +494,13 @@
             <div class="gap__head">
               <span class="gap__no">HIST-1</span>
               <span class="gap__t">관리자가 수정한 기록을 직원에게 어떻게 보일 것인가</span>
-              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__st gap__st--fixed">확정 · 연필 표시 + 상세 시트</span>
             </div>
-            <div class="gap__opts">
-              <div class="gap__opt is-picked">
-                <div class="gap__label">A · 연필 표시 + 상세 시트 · 이 화면</div>
-                <p>
-                  수정된 날짜에 작은 연필 아이콘을 두고 탭하면 수정 전후 값·수정자·사유를 보여준다.
-                  투명하지만 관리자 개입이 매번 드러난다.
-                </p>
-              </div>
-              <div class="gap__opt">
-                <div class="gap__label">B · 표시 안 함</div>
-                <p>수정된 기록도 원본처럼 보여준다. 화면은 단순하지만 분쟁이 생기면 설명하기 어렵다.</p>
-              </div>
+            <div class="gap__one">
+              <p>
+                관리자가 보정한 날에는 <b>연필 표시</b>를 달고, 누르면 <b>보정 전후 값 · 보정자 · 사유</b>를 상세 시트로 보여 준다.
+                지금 화면 그대로다 (2026-09-17 재영 확정). 출퇴근 기록은 급여의 근거라 보정 흔적을 직원에게 남긴다.
+              </p>
             </div>
           </div>
 
@@ -499,16 +508,16 @@
             <div class="gap__head">
               <span class="gap__no">HIST-2</span>
               <span class="gap__t">기간 필터를 어디까지 줄 것인가</span>
-              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__st gap__st--fixed">확정 · 이번 주 / 기간별 탭</span>
             </div>
             <div class="gap__one">
               <p>
-                보존 기간은 3년이지만 그 전체를 목록으로 스크롤하게 두면 찾기가 어렵다. 이 화면은
-                <b>주·월 두 단계</b>만 뒀고, 월 화면에서 지난 주를 눌러 주 화면으로 들어간다.
+                출퇴근 현황은 <b>이번 주</b> 탭과 <b>기간별</b> 탭으로 나눈다. 기간별 탭은 시작일과 종료일을 직접 고르고,
+                한 번에 <b>최대 1년</b>까지 볼 수 있다. 기간별 탭에 들어가면 <b>이번 달</b>이 기본으로 잡힌다 (2026-09-17 재영 확정).
               </p>
               <ul>
-                <li>연 단위까지 이동하는 별도 선택기를 더할지</li>
-                <li>3년 전 기록까지 같은 화면 하나로 끝까지 감당할지, 특정 시점 이전은 안내만 할지</li>
+                <li>주·월 두 단계 이동과 연 단위 선택기는 쓰지 않는다</li>
+                <li>기록 보존은 3년 그대로다. 1년은 한 번에 조회하는 폭의 제한이다</li>
               </ul>
             </div>
           </div>
@@ -517,20 +526,17 @@
             <div class="gap__head">
               <span class="gap__no">HIST-3</span>
               <span class="gap__t">확인 필요 건을 직원이 어떻게 다룰 수 있게 할 것인가</span>
-              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__st gap__st--fixed">확정 · 보기만 + 점포 안내</span>
             </div>
-            <div class="gap__opts">
-              <div class="gap__opt">
-                <div class="gap__label">A · 보기만</div>
-                <p>확인 필요라는 사실과 사유만 보여주고 끝낸다. 화면은 단순하지만 직원이 할 일이 없다.</p>
-              </div>
-              <div class="gap__opt is-picked">
-                <div class="gap__label">B · 관리자에게 알리기 · 이 화면</div>
-                <p>
-                  시트 안에 알림 버튼을 뒀다. 다만 이건 <b>정식 이의제기 절차는 아니다</b> — 접수·처리
-                  흐름이 따로 있어야 하는지는 아직 정하지 못했다.
-                </p>
-              </div>
+            <div class="gap__one">
+              <p>
+                확인 필요 건은 <b>사실과 사유만 보여 준다</b>. 직원이 누를 버튼은 두지 않고,
+                "관리자가 확인 중입니다. 기록이 다르면 근무지 점포에 말씀해 주세요" 한 줄을 붙인다 (2026-09-17 재영 확정).
+              </p>
+              <ul>
+                <li>관리자에게 알리기 버튼과 정식 이의제기 절차는 1차에 두지 않는다</li>
+                <li>점포 안내는 이메일 찾기(LOGIN-10)와 같은 방식이다</li>
+              </ul>
             </div>
           </div>
 
@@ -575,7 +581,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 출퇴근 현황 · 2026년 9월 10일 · 상태 4개 · 시트 3개 · 쟁점 3건
+            직원 근무 앱 목업 · 출퇴근 현황 · 2026년 9월 17일 · 상태 4개 · 시트 3개 · 쟁점 3건
           </footer>
         </div>
       </div>
