@@ -509,8 +509,28 @@
               </div>
             </div>
 
+            <!-- ── 퇴직해서 연결된 근무지가 없는 상태 (HOME-5) ──── -->
+            <div class="view view--center" data-when="retired">
+              <div class="empty">
+                <i class="ph ph-door-open"></i>
+                <p class="h-md">연결된 근무지가 없습니다</p>
+                <p class="p--sm" style="max-width: 260px">
+                  퇴직 처리되어 근무·출퇴근·알림은 더 보이지 않습니다. 받은 급여명세서는 계속 볼 수
+                  있습니다.
+                </p>
+              </div>
+              <a class="btn" href="pay.html"><i class="ph-fill ph-receipt"></i>급여명세서 보기</a>
+              <p class="tiny">보존 기간인 3년 동안 조회할 수 있습니다.</p>
+            </div>
+
+            <!-- ── 퇴직 상태 전용 탭 ────────────────────────────── -->
+            <div class="tabs" data-when="retired" style="grid-template-columns: repeat(2, 1fr)">
+              <a class="tab is-on" href="home.html"><i class="ph-fill ph-house"></i>홈</a>
+              <a class="tab" href="me.html"><i class="ph ph-user-circle"></i>내 정보</a>
+            </div>
+
             <!-- ── 탭바 ─────────────────────────────────────────── -->
-            <div class="tabs">
+            <div class="tabs" data-unless="retired">
               <a class="tab is-on" href="home.html"><i class="ph-fill ph-house"></i>홈</a>
               <a class="tab" href="work.html"><i class="ph ph-calendar-check"></i>근무</a>
               <a class="tab" href="todo.html"><i class="ph ph-list-checks"></i>TO-DO</a>
@@ -602,7 +622,7 @@
           <div class="switcher">
             <div class="switcher__head">
               <p class="lab">상태 바꾸기</p>
-              <span class="switcher__hint">숫자키 1–5</span>
+              <span class="switcher__hint">숫자키 1–6</span>
             </div>
             <div class="switcher__body">
               <button class="sw-b" data-state="today" aria-pressed="true">
@@ -629,6 +649,13 @@
               <button class="sw-b" data-state="empty">
                 <span class="sw-b__k">5</span>
                 <span><span class="sw-b__t">가입 직후</span> <span class="sw-b__d">· 정보 없음</span></span>
+              </button>
+              <button class="sw-b" data-state="retired">
+                <span class="sw-b__k">6</span>
+                <span
+                  ><span class="sw-b__t">퇴직 후</span>
+                  <span class="sw-b__d">· 연결된 근무지 없음</span></span
+                >
               </button>
             </div>
             <div class="switcher__head" style="border-top: 1px solid var(--rule); border-bottom: none">
@@ -748,6 +775,45 @@
             </div>
           </div>
 
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">HOME-5</span>
+              <span class="gap__t">퇴직해서 연결된 근무지가 없으면 홈과 탭을 어떻게 보일 것인가</span>
+              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__ref">S-EWVMGC · S-DOVWAR</span>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt is-picked">
+                <div class="gap__label">A · 홈은 안내만, 탭은 둘만 · 이 화면</div>
+                <p>
+                  홈에 퇴직 안내와 급여명세서 버튼만 두고, 하단 탭을 홈·내 정보 둘로 줄인다. 근무·
+                  TO-DO·알림은 볼 것이 없으니 아예 감춘다.
+                </p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">B · 탭은 그대로, 각 화면이 빈 상태</div>
+                <p>
+                  다섯 탭을 그대로 두고 근무·TO-DO·알림은 각각 빈 상태를 보여 준다. 화면 구조가
+                  바뀌지 않지만 눌러 봐야 비었다는 것을 알게 된다.
+                </p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">C · 급여명세서만 남긴 별도 화면</div>
+                <p>
+                  로그인하면 홈 대신 명세서 목록으로 바로 보낸다. 목적이 또렷하지만 내 정보에서
+                  연락처를 고치는 길이 사라진다.
+                </p>
+              </div>
+            </div>
+            <div class="gap__one">
+              <p>
+                A 를 그렸다. 퇴직한 사람에게 근무 탭을 남겨 두면 눌러 보고 빈 화면을 만나게 된다.
+                <b>탭을 둘로 줄이면 칸이 넓어져 레이아웃이 달라지는 것</b>은 감수해야 한다. 퇴직
+                처리 뒤 얼마 동안 로그인을 허용할지는 계정 쪽 결정이 필요하다.
+              </p>
+            </div>
+          </div>
+
           <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
           <ul class="pol">
             <li>
@@ -800,7 +866,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 홈 · 2026년 9월 17일 · 상태 5개 · 시트 2개 · 쟁점 4건
+            직원 근무 앱 목업 · 홈 · 2026년 9월 17일 · 상태 6개 · 시트 2개 · 쟁점 5건
           </footer>
         </div>
       </div>
