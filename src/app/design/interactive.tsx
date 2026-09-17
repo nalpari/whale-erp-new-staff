@@ -124,7 +124,12 @@ export function StoreSelect() {
         </span>
       </button>
       <Popup open={open} motion="fold" className="right-0 w-[260px]">
-        <ul role="listbox" aria-label="점포" className="text-[14px] leading-[2] text-erp-ink">
+        {/* 항목이 버튼이라 ul 에 trim 을 걸면 안쪽까지 닿지 않는다. 첫 항목 위, 마지막 항목 아래만 잘라 Figma 높이(114)를 맞춘다. */}
+        <ul
+          role="listbox"
+          aria-label="점포"
+          className="text-[14px] leading-[2] text-erp-ink [text-box-edge:cap_alphabetic] [&>li:first-child>button]:[text-box-trim:trim-start] [&>li:last-child>button]:[text-box-trim:trim-end]"
+        >
           {STORES.slice(1).map((s) => (
             <li key={s} role="option" aria-selected={s === store}>
               <button
@@ -133,7 +138,7 @@ export function StoreSelect() {
                   setStore(s);
                   setOpen(false);
                 }}
-                className="w-full truncate text-left hover:text-erp-brand"
+                className="block w-full text-left whitespace-nowrap hover:text-erp-brand"
               >
                 {s}
               </button>
