@@ -187,7 +187,8 @@
                 <i class="ph-fill ph-warning"></i>
                 <div>
                   <strong>매장에서 240m 떨어져 있습니다.</strong><br />
-                  매장 안이나 바로 앞에서 다시 시도해 주세요.
+                  출근은 매장 안이나 바로 앞에서 등록해 주세요. <b>퇴근은 범위 밖에서도 등록할 수
+                  있습니다</b> — 근무 중일 때 나타납니다.
                 </div>
               </div>
 
@@ -202,6 +203,43 @@
               <div class="center stack stack-4">
                 <p class="lab">현재 시각</p>
                 <p class="num num--xl" style="color: var(--ink-4)" data-clock>08:47</p>
+              </div>
+            </div>
+
+            <!-- ── 근무 중인데 범위 밖 (ATT-11) ─────────────────── -->
+            <div class="view" data-when="far-out">
+              <div class="geo">
+                <div class="geo__fence geo__fence--out"></div>
+                <i class="ph-fill ph-storefront geo__store" style="color: var(--ink-3)"></i>
+                <div class="geo__me geo__me--out" style="left: 78%; top: 26%"></div>
+                <span class="geo__cap">오차 ±14m · 매장까지 240m</span>
+              </div>
+
+              <div class="card card--ok">
+                <div class="line">
+                  <i class="ph-fill ph-check-circle" style="color: var(--ok); font-size: 18px"></i>
+                  <div class="grow">
+                    <p class="h-md">근무 중</p>
+                    <p class="tiny" style="color: var(--ok)">09:02에 출근했습니다</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="note note--amber">
+                <i class="ph-fill ph-warning"></i>
+                <div>
+                  <strong>매장 범위 밖입니다.</strong><br />
+                  퇴근은 여기서도 등록할 수 있습니다. 다만 기록에 <strong>확인 필요</strong>가 붙고
+                  관리자가 확인합니다.
+                </div>
+              </div>
+
+              <div class="grow"></div>
+
+              <div class="center stack stack-4">
+                <p class="lab">근무 경과</p>
+                <p class="num num--xl">6<span class="u">시간</span>41<span class="u">분</span></p>
+                <p class="tiny">현재 시각 <span data-clock>15:43</span></p>
               </div>
             </div>
 
@@ -338,6 +376,13 @@
                 <i class="ph-fill ph-sign-out"></i>퇴근하기
               </button>
 
+              <button class="btn btn--ghost" data-when="far-out" data-sheet="byefar">
+                <i class="ph-fill ph-sign-out"></i>퇴근하기
+              </button>
+              <button class="btn btn--quiet" data-when="far-out" data-go="working" data-toast="매장 범위 안입니다">
+                위치 다시 확인
+              </button>
+
               <button class="btn is-off" data-when="far"><i class="ph-fill ph-sign-in"></i>출근하기</button>
               <button class="btn btn--quiet" data-when="far" data-go="ready" data-toast="매장 범위 안입니다">
                 위치 다시 확인
@@ -395,6 +440,40 @@
               <div class="btnrow">
                 <button class="btn btn--ghost" data-sheet-close>아직 아닙니다</button>
                 <button class="btn" data-sheet-close data-go="done" data-toast="퇴근을 등록했습니다">
+                  퇴근 확정
+                </button>
+              </div>
+            </div>
+
+            <div class="sheet" data-sheet-id="byefar" hidden>
+              <div class="sheet__grab"></div>
+              <div class="line">
+                <i class="ph-fill ph-sign-out" style="color: var(--pen); font-size: 21px"></i>
+                <p class="h-lg">매장 범위 밖에서 퇴근할까요</p>
+              </div>
+              <p class="p--sm">
+                이대로 등록하면 기록에 <strong>확인 필요</strong>가 붙고 관리자가 확인합니다. 퇴근을
+                등록하면 오늘 근무가 끝납니다.
+              </p>
+              <div class="card card--sunken">
+                <div class="line">
+                  <span class="lab">출근</span>
+                  <span class="push num num--md">09:02</span>
+                </div>
+                <div class="line" style="margin-top: 7px">
+                  <span class="lab">지금까지</span>
+                  <span class="push num num--md">6시간 41분</span>
+                </div>
+              </div>
+              <div class="card card--amber">
+                <div class="line">
+                  <i class="ph-fill ph-warning" style="color: var(--amber); font-size: 17px"></i>
+                  <p class="p--sm grow" style="color: #6f4608">매장까지 240m · 범위 100m 밖입니다</p>
+                </div>
+              </div>
+              <div class="btnrow">
+                <button class="btn btn--ghost" data-sheet-close>아직 아닙니다</button>
+                <button class="btn" data-sheet-close data-go="done" data-toast="확인 필요로 퇴근을 등록했습니다">
                   퇴근 확정
                 </button>
               </div>
@@ -557,6 +636,13 @@
                 <span class="sw-b__k">3</span>
                 <span><span class="sw-b__t">퇴근 완료</span> <span class="sw-b__d">· 기록 확정</span></span>
               </button>
+              <button class="sw-b" data-state="far-out">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">근무 중 · 범위 밖</span>
+                  <span class="sw-b__d">· 퇴근만 가능</span></span
+                >
+              </button>
               <button class="sw-b" data-state="far">
                 <span class="sw-b__k">4</span>
                 <span
@@ -593,6 +679,13 @@
               <button class="sw-b" data-sheet="bye">
                 <span class="sw-b__k">·</span>
                 <span><span class="sw-b__t">퇴근 확인</span> <span class="sw-b__d">· 한 번 더 묻기</span></span>
+              </button>
+              <button class="sw-b" data-sheet="byefar">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">범위 밖 퇴근 확인</span>
+                  <span class="sw-b__d">· 240m</span></span
+                >
               </button>
               <button class="sw-b" data-sheet="byeflag">
                 <span class="sw-b__k">·</span>
@@ -643,10 +736,11 @@
             풀 수 없는 것은 통과시킨다.</strong>
           </p>
           <p class="p" style="margin-top: 10px">
-            위치 권한은 직원이 설정에서 바로 켤 수 있으므로 막는다. 범위 밖도 점포로 가면 되니
-            막는다. 다만 버튼을 지우지 않고 꺼 두었다. 사라지면 무엇을 해야 할지 모르지만 꺼져
-            있으면 왜 못 누르는지를 위에서 읽게 된다. 반면 <strong>지하 점포의 위치 오차는 직원이
-            어찌할 수 없어</strong> 확인 필요 꼬리표를 달아 통과시키고 관리자가 검토한다.
+            위치 권한은 직원이 설정에서 바로 켤 수 있으므로 막는다. <b>출근</b>은 범위 밖이면 막는다 —
+            점포로 가면 되고, 현장에 오지 않고 근무를 시작하는 길을 열어 줄 수 없다. <b>퇴근</b>은 범위
+            밖에서도 등록하게 하고 확인 필요로 넘긴다(ATT-11). 매장을 떠난 뒤에야 떠올리는 일이 잦은데,
+            막으면 열린 출근 기록이 그대로 남아 기록이 더 망가진다. 위치가 흐린 경우도 같은 판단이다 —
+            막지 않고 꼬리표를 붙여 관리자에게 넘긴다.
           </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">퇴근만 한 번 더 묻는다</h2>
@@ -845,7 +939,7 @@
             <div class="gap__head">
               <span class="gap__no">ATT-10</span>
               <span class="gap__t">방금 등록한 퇴근을 직원이 되돌릴 수 있게 할 것인가</span>
-              <span class="gap__st gap__st--open">미정</span>
+              <span class="gap__st gap__st--fixed">확정 · 두지 않음</span>
               <span class="gap__ref">S-QMEBXW</span>
             </div>
             <div class="gap__opts">
@@ -866,9 +960,32 @@
             </div>
             <div class="gap__one">
               <p>
-                그림은 A안으로 두었다. 되돌리기를 그리면 취소 이력을 어디에 남길지, 관리자 보정과 어떻게
-                구분할지가 함께 걸려 화면 하나로 끝나지 않는다.
+                <b>A안으로 확정</b>했다 (운영 정책 ATT-15, 2026-09-18 재영 확정). 등록한 기록은 직원이
+                되돌리지 못하고, 잘못된 기록은 <b>관리자 보정</b>으로만 고친다. 되돌리기를 그리면 취소
+                이력을 어디에 남길지와 보정 권한과의 경계가 함께 걸려 화면 하나로 끝나지 않는다.
               </p>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">ATT-11</span>
+              <span class="gap__t">근무지 반경 밖에서 퇴근을 등록할 수 있는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 퇴근만 허용</span>
+              <span class="gap__ref">S-QMEBXW</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                반경 밖에서 <b>퇴근은 등록할 수 있고 출근은 못 한다</b> (운영 정책 ATT-14, 2026-09-18
+                재영 확정). 퇴근 버튼을 누르면 「매장 범위 밖에서 퇴근할까요」 시트가 뜨고, 확정하면
+                <b>확인 필요</b>로 기록된다.
+              </p>
+              <ul>
+                <li>퇴근을 막으면 출근 기록이 열린 채로 남는다. 매장을 떠난 뒤에야 깨닫는 일이 잦아, 막는 쪽이 기록을 더 망가뜨린다</li>
+                <li>출근은 그대로 막는다. 현장에 오지 않고 근무를 시작한 것으로 만들 수 있기 때문이다</li>
+                <li>근무 중에 범위를 벗어난 경우를 <code>far-out</code> 상태로 새로 그렸다. 전에는 범위 밖 화면이 출근 전만 가정해 퇴근 버튼 자체가 없었다</li>
+                <li>시트는 출근용(「확인 필요로 등록할까요」)과 따로 두었다. 퇴근 쪽은 근무가 끝난다는 사실과 출근 시각·근무 시간을 함께 보여야 해서 문구가 겹치지 않는다</li>
+              </ul>
             </div>
           </div>
 
