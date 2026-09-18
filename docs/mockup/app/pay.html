@@ -33,6 +33,9 @@
          해마다 바뀌어 관리자가 직접 입력한다. 확정 취소는 발송 후에도 되므로
          이미 본 명세서가 조용히 바뀔 수 있다 — resent 상태가 그 경우다.
 
+         다시 보낸 명세서도 이전 금액을 나란히 보여 주지 않는다. 표의 「· 정정됨」
+         꼬리표만 어느 줄이 바뀌었는지 짚는다.
+
          발송된 명세서는 상세 화면에서 처리 완료본 PDF 를 공유 시트로 내보낸다
          — PAY-2. 목록에는 버튼을 두지 않는다. 근로계약서 완료본 내보내기와
          같은 형식·동작이다.
@@ -269,8 +272,7 @@
               <div class="note note--amber">
                 <i class="ph-fill ph-arrows-clockwise"></i>
                 <div>
-                  <strong>이 명세서는 다시 발송되었습니다.</strong><br />
-                  8월 3일 처음 발송된 뒤 출퇴근 기록이 정정되어 8월 20일 다시 보냈습니다.
+                  <strong>8월 20일 다시 발송되었습니다.</strong>
                 </div>
               </div>
 
@@ -281,28 +283,7 @@
                     <p class="h-md" style="margin-top: 4px">2026년 7월 1일 – 7월 31일</p>
                   </div>
                 </div>
-                <p class="tiny" style="margin-top: 8px">웨일카페 강남역점 · 파트타임 · 8월 20일 다시 발송</p>
-              </div>
-
-              <div class="card card--pen">
-                <p class="lab" style="color: var(--pen)">처음 보낸 것과 달라진 부분</p>
-                <div class="rows" style="margin-top: 2px">
-                  <div class="row">
-                    <span class="row__title" style="font-size: 13.5px">연장수당</span>
-                    <span class="push tiny" style="text-decoration: line-through">86,625원</span>
-                    <i class="ph ph-arrow-right" style="color: var(--pen); font-size: 13px"></i>
-                    <span class="num" style="font-size: 13.5px; color: var(--pen)">47,250원</span>
-                  </div>
-                  <div class="row">
-                    <span class="row__title" style="font-size: 13.5px">실지급액</span>
-                    <span class="push tiny" style="text-decoration: line-through">1,659,815원</span>
-                    <i class="ph ph-arrow-right" style="color: var(--pen); font-size: 13px"></i>
-                    <span class="num" style="font-size: 13.5px; color: var(--pen)">1,620,440원</span>
-                  </div>
-                </div>
-                <p class="tiny" style="margin-top: 6px; color: var(--pen)">
-                  출퇴근 기록이 정정되며 연장 시간이 5.5시간에서 3.0시간으로 바뀌었습니다.
-                </p>
+                <p class="tiny" style="margin-top: 8px">웨일카페 강남역점 · 파트타임</p>
               </div>
 
               <div class="scroll" style="overflow-y: auto">
@@ -523,6 +504,11 @@
                   이력과 같은 형식이다 (2026-09-18 재영 지시). 금액이 늘 최신 값이라는 것은 이력 줄만
                   봐도 읽혀 설명 문단은 뺐고, 다시 보낸 사유는 화면 위쪽 안내에 이미 있어 이력에는
                   적지 않는다
+                </li>
+                <li>
+                  다시 보낸 명세서에서도 <b>이전 금액을 나란히 보여 주지 않는다</b>. 취소선으로 옛 금액을
+                  짚던 「처음 보낸 것과 달라진 부분」 카드는 뺐다 (2026-09-18 재영 확정). 표의
+                  <b>「· 정정됨」</b> 꼬리표만 남겨 어느 줄이 바뀌었는지 짚되 옛 값은 드러내지 않는다
                 </li>
                 <li>
                   관리자 웹은 누가 했는지까지 적지만 <b>앱에서는 관리자 이름을 적지 않는다</b>. 직원이
