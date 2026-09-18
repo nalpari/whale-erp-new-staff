@@ -25,6 +25,7 @@
 
          다시 보낸 명세서는 최신 값으로 덮고, 이전 금액과 나란히 비교하지 않는다.
          대신 상세에 처리 이력을 둬 발송·확정 취소·재발송 시각을 남긴다(PAY-1).
+         이력은 관리자 웹과 같은 한 줄 형식이되 관리자 이름은 적지 않는다.
          퇴직한 뒤에도 이 급여 탭에서 3년 동안 조회한다(PAY-4).
 
          지급 항목(기본급·주휴수당·연장수당)은 근로계약과 출퇴근 기록으로
@@ -247,24 +248,15 @@
 
               <div class="card">
                 <p class="lab">처리 이력</p>
-                <div class="rows" style="margin-top: 2px">
-                  <div class="row" style="padding: 8px 0">
-                    <span class="row__title" style="font-size: 13.5px">발송</span>
-                    <span class="push num" style="font-size: 13px">2026-08-03 09:12</span>
-                  </div>
-                  <div class="row" style="padding: 8px 0">
-                    <span class="row__title" style="font-size: 13.5px">확정 취소</span>
-                    <span class="push num" style="font-size: 13px">2026-08-19 17:40</span>
-                  </div>
-                  <div class="row" style="padding: 8px 0">
-                    <span class="row__title" style="font-size: 13.5px">재발송</span>
-                    <span class="push num" style="font-size: 13px">2026-08-20 10:05</span>
-                  </div>
+                <div class="stack stack-4" style="margin-top: 7px">
+                  <p class="tiny">
+                    <span class="num">08-20 10:05</span> · 재발송 · 출퇴근 기록 정정 반영
+                  </p>
+                  <p class="tiny">
+                    <span class="num">08-19 17:40</span> · 확정 취소 · 금액 재검토
+                  </p>
+                  <p class="tiny"><span class="num">08-03 09:12</span> · 발송 · 최초 발송</p>
                 </div>
-                <p class="tiny" style="margin-top: 7px">
-                  금액은 늘 최신 값입니다. 이전 금액은 따로 보여주지 않고 언제 무슨 일이 있었는지만
-                  남깁니다.
-                </p>
               </div>
 
               <button class="btn btn--quiet" data-toast="처리 완료본 PDF 를 공유합니다">
@@ -390,24 +382,15 @@
 
               <div class="card">
                 <p class="lab">처리 이력</p>
-                <div class="rows" style="margin-top: 2px">
-                  <div class="row" style="padding: 8px 0">
-                    <span class="row__title" style="font-size: 13.5px">발송</span>
-                    <span class="push num" style="font-size: 13px">2026-08-03 09:12</span>
-                  </div>
-                  <div class="row" style="padding: 8px 0">
-                    <span class="row__title" style="font-size: 13.5px">확정 취소</span>
-                    <span class="push num" style="font-size: 13px">2026-08-19 17:40</span>
-                  </div>
-                  <div class="row" style="padding: 8px 0">
-                    <span class="row__title" style="font-size: 13.5px">재발송</span>
-                    <span class="push num" style="font-size: 13px">2026-08-20 10:05</span>
-                  </div>
+                <div class="stack stack-4" style="margin-top: 7px">
+                  <p class="tiny">
+                    <span class="num">08-20 10:05</span> · 재발송 · 출퇴근 기록 정정 반영
+                  </p>
+                  <p class="tiny">
+                    <span class="num">08-19 17:40</span> · 확정 취소 · 금액 재검토
+                  </p>
+                  <p class="tiny"><span class="num">08-03 09:12</span> · 발송 · 최초 발송</p>
                 </div>
-                <p class="tiny" style="margin-top: 7px">
-                  금액은 늘 최신 값입니다. 이전 금액은 따로 보여주지 않고 언제 무슨 일이 있었는지만
-                  남깁니다.
-                </p>
               </div>
 
               <button class="btn btn--quiet" data-toast="처리 완료본 PDF 를 공유합니다">
@@ -542,6 +525,18 @@
                 다시 보낸 명세서는 <b>최신 값으로 덮는다</b>. 이전 금액과 나란히 비교하지 않고, 대신 상세에
                 <b>처리 이력</b> 항목을 따로 둬 발송 · 확정 취소 · 재발송이 언제 있었는지 보여 준다 (2026-09-17 재영 확정).
               </p>
+              <ul>
+                <li>
+                  이력은 <b>시각 · 짧은 꼬리표 · 한 줄 설명</b>으로 끝낸다. 관리자 웹 급여명세서 상세의
+                  처리 이력과 같은 형식이다 (2026-09-18 재영 지시). 금액이 늘 최신 값이라는 것은 이력
+                  줄만 봐도 읽혀 설명 문단은 뺐다
+                </li>
+                <li>
+                  관리자 웹은 누가 했는지까지 적지만 <b>앱에서는 관리자 이름을 적지 않는다</b>. 직원이
+                  이름을 알아도 할 수 있는 일이 달라지지 않고, 기록이 다르면 근무지 점포에 말하는 길로
+                  이미 안내하고 있다. 누가 눌렀는지는 관리자 웹에서 책임을 가리는 데 쓰는 정보다
+                </li>
+              </ul>
             </div>
           </div>
 
