@@ -17,6 +17,7 @@
   7. 쟁점      — 번호가 겹치지 않는가, 상태 표시가 붙었는가
   8. 출처      — 명세 ID 가 실재하는 형식인가
   9. 스크롤    — 본문이 넘칠 때 잘리지 않고 스크롤되는가
+ 10. 꼬리말    — 꼬리말에 적은 상태·시트·쟁점 수가 실제와 맞는가
 """
 
 import html.parser
@@ -180,6 +181,23 @@ def main():
         for m in re.finditer(r"\b([SRF])-([A-Z0-9]+)\b", text):
             if len(m.group(2)) != 6:
                 bad(rel, f"명세 ID 형식이 이상하다 {m.group(0)}")
+
+        # 10. 꼬리말 — 쟁점이나 상태를 더하고 꼬리말을 안 고치는 일이 잦다
+        꼬리 = re.search(r"직원 근무 앱 목업 ·[^<]*", text)
+        if 꼬리:
+            적은 = dict(re.findall(r"(상태|시트|쟁점) (\d+)[개건]", 꼬리.group(0)))
+            실제 = {
+                "상태": len(re.findall(r'<div class="view', text)),
+                "시트": len(re.findall(r"data-sheet-id=", text)),
+                "쟁점": len(re.findall(r'class="gap__no"(?![^>]*data-ref)', text)),
+            }
+            for 무엇, 값 in 적은.items():
+                if int(값) != 실제[무엇]:
+                    bad(rel, f"꼬리말의 {무엇} {값}{'개' if 무엇 != '쟁점' else '건'} 이 실제 {실제[무엇]} 와 다르다")
+            if "모두 확정" in 꼬리.group(0):
+                미확정 = text.count("gap__st--review") + text.count("gap__st--open")
+                if 미확정:
+                    bad(rel, f"꼬리말에 \"모두 확정\"이라 적었으나 확정이 아닌 쟁점이 {미확정}건 있다")
 
     for 번호, 파일들 in sorted(쟁점.items()):
         if len(파일들) > 1:
