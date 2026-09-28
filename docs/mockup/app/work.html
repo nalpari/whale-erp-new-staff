@@ -241,15 +241,6 @@
               <div class="scroll">
                 <div class="rows">
                   <div class="row">
-                    <button class="check__box" data-tick aria-label="완료 체크"></button>
-                    <div class="row__main">
-                      <p class="row__title">마감 청소 사진 촬영</p>
-                      <p class="row__sub" style="color: var(--amber)">9월 9일(수) · 기한 지남</p>
-                    </div>
-                    <span class="badge">대기</span>
-                  </div>
-
-                  <div class="row">
                     <button
                       class="check__box"
                       data-go="todo-done"
@@ -276,6 +267,16 @@
                     <span class="badge badge--amber">긴급</span>
                     <span class="badge">대기</span>
                   </div>
+
+                  <div class="row">
+                    <button class="check__box" data-tick aria-label="완료 체크"></button>
+                    <div class="row__main">
+                      <p class="row__title">마감 청소 사진 촬영</p>
+                      <p class="row__sub" style="color: var(--amber)">9월 9일(수) · 기한 지남</p>
+                    </div>
+                    <span class="badge">대기</span>
+                  </div>
+
 
                   <div class="row">
                     <button class="check__box" data-tick aria-label="완료 체크"></button>
@@ -727,8 +728,8 @@
             <li>
               <span class="pol__src">S-NIAGGB</span>
               <span
-                >TO-DO 목록은 수행 예정 일시 오름차순으로 정렬하고, 같은 일시 안에서는 긴급 건을
-                앞에 둔다.</span
+                >긴급 건은 <strong>수행 예정 일시와 관계없이 목록 맨 위</strong>에 두고, 긴급 건끼리는
+                수행 예정 일시 순으로 세운다. 나머지는 그 아래에 수행 예정 일시 오름차순으로 정렬한다.</span
               >
             </li>
             <li>
@@ -741,7 +742,7 @@
             <li>
               <span class="pol__src">S-NIAGGB</span>
               <span
-                >긴급 표시는 <strong>목록에서 앞에 놓고 눈에 띄게 하는 데만</strong> 쓴다. TO-DO 배정은
+                >긴급 표시는 <strong>목록 맨 위에 두고 눈에 띄게 하는 데만</strong> 쓴다. TO-DO 배정은
                 앱 푸시를 보내지 않으므로 발송을 앞당기는 뜻은 없다(NOTI-1). 퇴직한 직원에게는 새 TO-DO를
                 배정하지 않는다.</span
               >
