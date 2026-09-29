@@ -28,9 +28,10 @@
          이력은 관리자 웹과 같은 한 줄 형식이되 관리자 이름은 적지 않는다.
          퇴직한 뒤에도 이 급여 탭에서 3년 동안 조회한다(PAY-4).
 
-         지급 항목(기본급·주휴수당·연장수당)은 근로계약과 출퇴근 기록으로
-         시스템이 계산하고, 공제 항목(4대보험·소득세·지방소득세)은 요율이
-         해마다 바뀌어 관리자가 직접 입력한다. 확정 취소는 발송 후에도 되므로
+         지급 항목은 열한 가지인데 그중 기본급·주휴수당·연장수당만 근로계약과
+         출퇴근 기록으로 시스템이 계산한다. 나머지 지급 항목과 공제 항목은
+         관리자가 직접 넣는다. 공제는 늘 보이는 기본 공제 여섯에 필요할 때
+         붙이는 추가 공제 열이 더해진다. 확정 취소는 발송 후에도 되므로
          이미 본 명세서가 조용히 바뀔 수 있다 — resent 상태가 그 경우다.
 
          다시 보낸 명세서도 이전 금액을 나란히 보여 주지 않는다. 표의 「· 정정됨」
@@ -51,8 +52,8 @@
         <p class="dochead__kicker">직원 근무 앱 · 급여 · /pay</p>
         <h1>급여명세서</h1>
         <p>
-          직원은 관리자가 확정해 발송한 명세서만 조회한다. 지급 항목은 근로계약과 출퇴근 기록으로
-          계산되고 공제 항목은 관리자가 직접 채운다. <strong>확정 취소는 발송 후에도 가능</strong>해
+          직원은 관리자가 확정해 발송한 명세서만 조회한다. 기본급·주휴수당·연장수당만 시스템이
+          계산하고 나머지 지급 항목과 공제 항목은 관리자가 채운다. <strong>확정 취소는 발송 후에도 가능</strong>해
           이미 본 명세서가 바뀔 수 있다 — 그 순간을 어떻게 보여줄지가 이 화면의 핵심이다.
         </p>
         <nav class="docnav">
@@ -114,7 +115,7 @@
                   <i class="ph-fill ph-file-text" style="color: var(--pen); font-size: 18px"></i>
                   <div class="grow">
                     <p class="h-md">2026년 8월 급여명세서</p>
-                    <p class="tiny" style="color: var(--pen)">9월 10일 발송 · 실지급액 1,645,320원</p>
+                    <p class="tiny" style="color: var(--pen)">9월 10일 발송 · 실지급액 1,569,050원</p>
                   </div>
                   <i class="ph ph-caret-right" style="color: var(--pen)"></i>
                 </div>
@@ -130,7 +131,7 @@
                         <p class="row__sub">8월 20일 발송</p>
                       </div>
                       <div class="row__end">
-                        <span class="num" style="font-size: 13.5px">1,620,440원</span>
+                        <span class="num" style="font-size: 13.5px">1,545,690원</span>
                       </div>
                     </div>
                     <div class="row" data-go="detail" style="cursor: pointer">
@@ -139,7 +140,7 @@
                         <p class="row__sub">7월 3일 발송</p>
                       </div>
                       <div class="row__end">
-                        <span class="num" style="font-size: 13.5px">1,589,730원</span>
+                        <span class="num" style="font-size: 13.5px">1,512,240원</span>
                         <span class="badge badge--ok">발송 완료</span>
                       </div>
                     </div>
@@ -149,7 +150,7 @@
                         <p class="row__sub">6월 3일 발송</p>
                       </div>
                       <div class="row__end">
-                        <span class="num" style="font-size: 13.5px">1,602,150원</span>
+                        <span class="num" style="font-size: 13.5px">1,524,880원</span>
                         <span class="badge badge--ok">발송 완료</span>
                       </div>
                     </div>
@@ -200,7 +201,7 @@
                       <td class="num">47,250</td>
                     </tr>
                     <tr>
-                      <td>고정 수당<br /><span class="sub">식대</span></td>
+                      <td>식대<br /><span class="sub">비과세</span></td>
                       <td class="num">100,000</td>
                     </tr>
                   </tbody>
@@ -221,8 +222,20 @@
                   </thead>
                   <tbody>
                     <tr>
-                      <td>4대보험</td>
-                      <td class="num">78,660</td>
+                      <td>국민연금</td>
+                      <td class="num">74,140</td>
+                    </tr>
+                    <tr>
+                      <td>건강보험</td>
+                      <td class="num">58,400</td>
+                    </tr>
+                    <tr>
+                      <td>장기요양보험</td>
+                      <td class="num">7,560</td>
+                    </tr>
+                    <tr>
+                      <td>고용보험</td>
+                      <td class="num">14,830</td>
                     </tr>
                     <tr>
                       <td>소득세</td>
@@ -236,7 +249,7 @@
                   <tfoot>
                     <tr>
                       <td>공제 합계</td>
-                      <td class="num">102,130</td>
+                      <td class="num">178,400</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -245,7 +258,7 @@
               <div class="card card--pen">
                 <div class="line line--between">
                   <p class="h-md" style="color: #17325f">실지급액</p>
-                  <p class="num num--lg" style="color: var(--pen)">1,645,320<span class="u">원</span></p>
+                  <p class="num num--lg" style="color: var(--pen)">1,569,050<span class="u">원</span></p>
                 </div>
               </div>
 
@@ -308,7 +321,7 @@
                       <td class="num">47,250</td>
                     </tr>
                     <tr>
-                      <td>고정 수당<br /><span class="sub">식대</span></td>
+                      <td>식대<br /><span class="sub">비과세</span></td>
                       <td class="num">100,000</td>
                     </tr>
                   </tbody>
@@ -329,8 +342,20 @@
                   </thead>
                   <tbody>
                     <tr>
-                      <td>4대보험</td>
-                      <td class="num">77,700</td>
+                      <td>국민연금</td>
+                      <td class="num">72,950</td>
+                    </tr>
+                    <tr>
+                      <td>건강보험</td>
+                      <td class="num">57,470</td>
+                    </tr>
+                    <tr>
+                      <td>장기요양보험</td>
+                      <td class="num">7,440</td>
+                    </tr>
+                    <tr>
+                      <td>고용보험</td>
+                      <td class="num">14,590</td>
                     </tr>
                     <tr>
                       <td>소득세</td>
@@ -344,7 +369,7 @@
                   <tfoot>
                     <tr>
                       <td>공제 합계</td>
-                      <td class="num">100,760</td>
+                      <td class="num">175,510</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -353,7 +378,7 @@
               <div class="card card--pen">
                 <div class="line line--between">
                   <p class="h-md" style="color: #17325f">실지급액</p>
-                  <p class="num num--lg" style="color: var(--pen)">1,620,440<span class="u">원</span></p>
+                  <p class="num num--lg" style="color: var(--pen)">1,545,690<span class="u">원</span></p>
                 </div>
               </div>
 
@@ -396,9 +421,9 @@
               <div class="sheet__grab"></div>
               <p class="h-lg">급여명세서는 이렇게 만들어집니다</p>
               <p class="p--sm">
-                기본급·주휴수당·연장수당은 근로계약과 출퇴근 기록으로 시스템이 계산하고 관리자가
-                확인합니다. 4대보험·소득세·지방소득세는 요율이 해마다 바뀌어 시스템이 계산하지 않고
-                관리자가 직접 입력합니다.
+                <b>기본급·주휴수당·연장수당</b>은 근로계약과 출퇴근 기록으로 시스템이 계산하고 관리자가
+                확인합니다. <b>나머지 지급 항목과 공제 항목은 관리자가 직접 넣습니다.</b> 요율이 해마다
+                바뀌거나 사람이 판단할 값이기 때문입니다.
               </p>
               <div class="note">
                 <i class="ph ph-info"></i>
@@ -483,6 +508,20 @@
               </tbody>
             </table>
           </div>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">항목은 옛 시스템에서 그대로 가져왔다</h2>
+          <p class="p">
+            지급은 <b>열한 가지</b>다 — 기본급·주휴수당·연장수당·야간수당·휴일근무수당·추가근무수당·
+            연차수당·상여·식대·자가운전보조금·육아수당. 이 가운데 <b>기본급·주휴수당·연장수당만</b>
+            시스템이 계산하고 나머지는 관리자가 넣는다. 식대·자가운전보조금·육아수당은 <b>비과세</b>라
+            공제를 매기는 금액에서 빠진다.
+          </p>
+          <p class="p" style="margin-top: 10px">
+            공제는 <b>기본 공제 여섯</b>이 늘 보인다 — 국민연금·건강보험·고용보험·장기요양보험·
+            소득세·지방소득세. 그 밖에 <b>추가 공제 열</b>(연말·중도정산 세 종, 건강보험·장기요양보험·
+            고용보험·국민연금 정산, 장기요양보험산정, 퇴사자유보금, 스톡옵션)과 <b>상여</b>는 관리자가
+            붙인 달에만 줄이 생긴다. 그래서 명세서마다 줄 수가 다르다.
+          </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">정할 것</h2>
 
@@ -610,6 +649,27 @@
             </div>
           </div>
 
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">PAY-6</span>
+              <span class="gap__t">파트타이머에게 3.3% 원천징수를 적용할 것인가</span>
+              <span class="gap__st gap__st--review">노무·세무 검토</span>
+              <span class="gap__ref">S-DOVWAR</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                <b>3.3% 원천징수</b>를 공제 항목으로 둔다 (2026-09-29 확정). 다만 파트타이머에게 실제로
+                적용해도 되는지는 <b>노무·세무 검토 전까지 정하지 않는다</b>. 근로계약을 맺은 직원에게
+                사업소득 원천징수를 적용하면 근로자성 판단과 어긋날 수 있어, 우리가 고를 수 있는 것이
+                아니다.
+              </p>
+              <ul>
+                <li>지금 그림은 기본 공제 여섯만 보인다. 적용이 정해지면 줄 하나가 더 붙는 형태다</li>
+                <li>적용한다면 4대보험 공제와 함께 매길지, 둘 중 하나만 매길지도 함께 받아야 한다</li>
+              </ul>
+            </div>
+          </div>
+
           <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
           <ul class="pol">
             <li>
@@ -622,8 +682,8 @@
             <li>
               <span class="pol__src">S-DOVWAR</span>
               <span
-                >4대보험·소득세·지방소득세는 요율이 매년 바뀌어 <strong>관리자가 직접 입력</strong
-                >한다.</span
+                >기본 공제는 <strong>국민연금·건강보험·고용보험·장기요양보험·소득세·지방소득세</strong>
+                여섯이며 명세서에 늘 보인다. 요율이 매년 바뀌어 관리자가 직접 입력한다.</span
               >
             </li>
             <li>
@@ -667,7 +727,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 급여명세서 · 2026년 9월 18일 · 상태 4개 · 시트 1개 · 쟁점 5건 · 확정 4건 · 외부 검토 1건
+            직원 근무 앱 목업 · 급여명세서 · 2026년 9월 18일 · 상태 4개 · 시트 1개 · 쟁점 6건 · 확정 4건 · 외부 검토 1건
           </footer>
         </div>
       </div>
