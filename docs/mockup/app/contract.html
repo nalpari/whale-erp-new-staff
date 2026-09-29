@@ -120,6 +120,15 @@
                     <i class="ph ph-caret-right row__chev"></i>
                   </div>
 
+                  <div class="row" data-go="paper" role="button" tabindex="0" style="cursor: pointer">
+                    <div class="row__main">
+                      <p class="row__title">웨일카페 홍대점 · 파트타이머</p>
+                      <p class="row__sub">종이 계약 · 관리자 등록 2026-04-02</p>
+                    </div>
+                    <div class="row__end"><span class="badge badge--ok">체결 완료</span></div>
+                    <i class="ph ph-caret-right row__chev"></i>
+                  </div>
+
                   <div class="row" data-go="rejected" role="button" tabindex="0" style="cursor: pointer">
                     <div class="row__main">
                       <p class="row__title">웨일카페 강남역점 · 파트타이머</p>
@@ -378,6 +387,67 @@
             </div>
 
             <!-- ── 다시 보기 · 읽기 전용 ────────────────────────── -->
+            <!-- ── 종이 계약 · 관리자가 올린 날인본 (CON-8) ────── -->
+            <div class="view" data-when="paper">
+              <div class="note note--pen">
+                <i class="ph-fill ph-paperclip"></i>
+                <div>
+                  <strong>종이로 맺은 계약입니다.</strong><br />
+                  이미 종이에 날인한 계약서를 관리자가 올렸습니다. 앱에서 날인할 것은 없습니다.
+                </div>
+              </div>
+
+              <div class="card card--sunken">
+                <div class="rows">
+                  <div class="row" style="padding: 8px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">근무지</span>
+                    <span class="push num" style="font-size: 13px">웨일카페 홍대점</span>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">고용 형태</span>
+                    <span class="push num" style="font-size: 13px">파트타이머</span>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">계약 기간</span>
+                    <span class="push num" style="font-size: 13px">2026-04-01 ~ 2027-03-31</span>
+                  </div>
+                  <div class="row" style="padding: 8px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">등록</span>
+                    <span class="push num" style="font-size: 13px">2026-04-02 · 관리자</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <p class="lab">올라온 날인본</p>
+                <div class="line" style="margin-top: 8px; gap: 10px">
+                  <i class="ph-fill ph-file-pdf" style="font-size: 26px; color: var(--seal)"></i>
+                  <div class="grow">
+                    <p class="h-md" style="font-size: 14px">근로계약서_홍대점_김하은.pdf</p>
+                    <p class="tiny">PDF · 2장 · 1.4MB</p>
+                  </div>
+                </div>
+                <div
+                  class="center"
+                  style="
+                    margin-top: 10px;
+                    padding: 26px 0;
+                    background: var(--sunken);
+                    border-radius: 10px;
+                    color: var(--ink-3);
+                  "
+                >
+                  <i class="ph ph-file-text" style="font-size: 26px"></i>
+                  <p class="tiny" style="margin-top: 6px">파일을 눌러 원본을 봅니다</p>
+                </div>
+                <p class="tiny" style="margin-top: 7px">
+                  조항은 앱에서 그리지 않습니다. 관리자가 올린 파일이 원본입니다.
+                </p>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
             <div class="view" data-when="readonly">
               <div class="note note--pen">
                 <i class="ph-fill ph-lock-simple"></i>
@@ -570,6 +640,14 @@
                 <i class="ph ph-share-network"></i>완료본 내보내기
               </button>
               <button class="btn btn--ghost" data-when="readonly" data-go="list">목록으로</button>
+              <button
+                class="btn btn--quiet"
+                data-when="paper"
+                data-toast="관리자가 올린 날인본을 공유합니다"
+              >
+                <i class="ph ph-share-network"></i>날인본 내보내기
+              </button>
+              <button class="btn btn--ghost" data-when="paper" data-go="list">목록으로</button>
               <button class="btn btn--ghost" data-when="expired" data-go="list">목록으로</button>
               <button
                 class="btn btn--quiet"
@@ -669,6 +747,13 @@
               <button class="sw-b" data-state="readonly">
                 <span class="sw-b__k">7</span>
                 <span><span class="sw-b__t">다시 보기</span> <span class="sw-b__d">· 읽기 전용</span></span>
+              </button>
+              <button class="sw-b" data-state="paper">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">종이 계약</span>
+                  <span class="sw-b__d">· 관리자가 올린 날인본</span></span
+                >
               </button>
               <button class="sw-b" data-state="rejected">
                 <span class="sw-b__k">8</span>
@@ -884,6 +969,30 @@
             </div>
           </div>
 
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">CON-8</span>
+              <span class="gap__t">종이로 맺은 계약은 앱에서 어떻게 보이는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 날인 없이 체결 완료</span>
+              <span class="gap__ref">S-XDBBDP</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                종이에 날인한 계약서를 관리자가 파일로 올려 <b>체결 완료로 등록</b>한다 (2026-09-29
+                재영 확정). 직원에게는 <b>가입 초대를 보내되</b> 가입이나 소속 확인을 마치면 날인 단계
+                없이 <b>곧바로 신고 정보 입력</b>으로 넘어간다.
+              </p>
+              <ul>
+                <li>날인 요청 팝업과 날인 화면은 띄우지 않는다. 이미 끝난 일을 다시 시키는 셈이 된다</li>
+                <li>
+                  상세에서는 <b>조항을 그리지 않는다</b>. 관리자가 올린 파일(PDF·JPG·PNG)이 원본이라
+                  읽기 전용으로 보여 주고, 내보내기도 그 파일을 그대로 공유한다
+                </li>
+                <li>목록에서는 체결 완료로 보인다 — 직원이 할 일이 없다는 점에서 전자계약의 체결 완료와 같다</li>
+              </ul>
+            </div>
+          </div>
+
           <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
           <ul class="pol">
             <li>
@@ -944,7 +1053,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 근로계약 · 2026년 9월 29일 · 상태 9개 · 시트 1개 · 쟁점 7건 · 확정 5건 · 노무사 검토 2건
+            직원 근무 앱 목업 · 근로계약 · 2026년 9월 29일 · 상태 10개 · 시트 1개 · 쟁점 8건 · 확정 6건 · 노무사 검토 2건
           </footer>
         </div>
       </div>
