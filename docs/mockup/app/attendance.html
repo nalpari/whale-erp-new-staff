@@ -271,6 +271,46 @@
               <div class="grow"></div>
             </div>
 
+            <!-- ── 위치정보 동의 없음 (ATT-20) ──────────────────── -->
+            <div class="view" data-when="no-consent">
+              <div class="geo" style="display: grid; place-items: center; background-image: none">
+                <div class="center stack stack-8" style="padding: 20px">
+                  <i class="ph ph-shield-slash" style="font-size: 30px; color: var(--ink-4)"></i>
+                  <p class="tiny">위치정보 동의가 없습니다</p>
+                </div>
+              </div>
+
+              <div class="note note--seal">
+                <i class="ph-fill ph-prohibit"></i>
+                <div>
+                  <strong>위치정보 동의가 없어 앱으로 등록할 수 없습니다.</strong><br />
+                  근무지 관리자가 출퇴근 기록을 대신 남깁니다.
+                </div>
+              </div>
+
+              <div class="card card--sunken">
+                <p class="lab">권한을 끈 것과 다릅니다</p>
+                <p class="p--sm" style="margin-top: 6px">
+                  휴대전화 위치 권한은 설정에서 켜면 바로 등록할 수 있습니다. 여기는 <b>위치정보 수집
+                  동의 자체를 하지 않았거나 철회한</b> 경우라, 설정을 바꿔도 앱에서는 등록되지 않습니다.
+                  다시 동의하려면 근무지 관리자에게 말씀해 주세요.
+                </p>
+              </div>
+
+              <div class="card">
+                <p class="lab">기록은 이렇게 남습니다</p>
+                <div class="line" style="margin-top: 8px; gap: 8px">
+                  <i class="ph-fill ph-pencil-simple" style="color: var(--ink-3); font-size: 17px"></i>
+                  <p class="p--sm grow" style="margin: 0">
+                    관리자가 대신 등록한 기록은 출퇴근 현황에 연필 표시로 보이고, 누르면 누가 언제 왜
+                    남겼는지 볼 수 있습니다.
+                  </p>
+                </div>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
             <!-- ── 위치 흐림 ────────────────────────────────────── -->
             <div class="view" data-when="vague">
               <div class="geo">
@@ -364,7 +404,7 @@
             </div>
 
             <!-- ── 하단 버튼 ────────────────────────────────────── -->
-            <div class="dock" data-unless="done nosite">
+            <div class="dock" data-unless="done nosite no-consent">
               <button class="btn" data-when="ready" data-go="working" data-toast="출근을 등록했습니다">
                 <i class="ph-fill ph-sign-in"></i>출근하기
               </button>
@@ -667,6 +707,13 @@
                   ><span class="sw-b__t">근무지 여럿</span> <span class="sw-b__d">· 자동 판정</span></span
                 >
               </button>
+              <button class="sw-b" data-state="no-consent">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">위치정보 동의 없음</span>
+                  <span class="sw-b__d">· 관리자가 대신 등록</span></span
+                >
+              </button>
               <button class="sw-b" data-state="nosite">
                 <span class="sw-b__k">·</span>
                 <span><span class="sw-b__t">근무지 없음</span> <span class="sw-b__d">· 퇴직 후</span></span>
@@ -850,7 +897,9 @@
               <p>
                 <b>동의는 직원이 처음 출퇴근을 등록하려 할 때 받는다.</b> 가입 단계에서 미리 받으면
                 왜 필요한지 모르는 채 동의하게 된다. 동의를 받는 자리는 이렇게 정했지만, 그
-                동의서와 통지 의무를 어떻게 이행할지는 ATT-8 로 따로 뒀다.
+                동의서와 통지 의무를 어떻게 이행할지는 ATT-8 로 따로 뒀다. 판정 결과(반경 안·밖,
+                오차, 확인 필요 사유)는 <b>출퇴근 시각 기록과 떼어 따로 저장한다</b> (ATT-19,
+                2026-09-29 확정) — 성격이 다른 정보라 보존 기간과 열람 권한을 따로 매길 수 있어야 한다.
               </p>
             </div>
           </div>
@@ -864,11 +913,24 @@
             </div>
             <div class="gap__one">
               <p>
-                출퇴근을 GPS 로 판정하므로 개인위치정보를 다룬다. 좌표를 저장하지 않고 동의를 첫
-                등록 때 받기로 한 것(ATT-5)이 <b>별도 동의와 이용내역 통지 의무를 충족하는지</b>는
-                우리가 정할 수 없다. 동의서 문구와 통지 주기, 보관 기간을 법무가 확인해야 끝난다.
-                서비스가 열리기 전에 마쳐야 하는 일이다.
+                출퇴근을 GPS 로 판정하므로 개인위치정보를 다룬다. 법무에 묻는 것이 <b>열세 가지</b>로
+                늘었다 (2026-09-29). 요지만 적는다 — 전문은 외부 검토 요청서에 있다.
               </p>
+              <ul>
+                <li>판정 결과(반경 안·밖, 오차)가 <b>개인위치정보인가</b></li>
+                <li>관리자가 그 기록을 열람하는 것이 <b>제3자 제공인가</b></li>
+                <li>보존 기간 넷 — 출퇴근 시각 · 판정 결과 · 확인자료 · 동의 기록</li>
+                <li>위치정보사업 <b>신고와 등록</b> 대상인가</li>
+                <li>플랫폼과 사업자 가운데 누가 지는가 — <b>책임 주체 이중 구조</b></li>
+                <li>가맹 구조에서 <b>제공받는 자</b>를 누구로 적는가</li>
+                <li>동의를 거부하거나 철회한 직원의 <b>대체수단</b>(ATT-20 이 그 답이다)</li>
+                <li>철회와 <b>일시 중지</b>를 어디까지 받아야 하는가</li>
+                <li>동의서와 약관의 <b>형식</b></li>
+                <li>확인자료 보관과 <b>보호조치</b> 수준</li>
+                <li>만 14세 미만 등 <b>나이 제한</b></li>
+                <li>도입에 <b>노사협의</b>가 필요한가</li>
+                <li><b>KISA 사전 질의</b>를 넣을 것인가</li>
+              </ul>
             </div>
           </div>
 
@@ -1045,7 +1107,7 @@
           </div>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 출퇴근 등록 · 2026년 9월 18일 · 상태 9개 · 시트 7개 · 쟁점 11건 · 확정 10건 · 법무 검토 1건
+            직원 근무 앱 목업 · 출퇴근 등록 · 2026년 9월 18일 · 상태 10개 · 시트 7개 · 쟁점 11건 · 확정 10건 · 법무 검토 1건
           </footer>
         </div>
       </div>

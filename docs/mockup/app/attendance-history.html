@@ -137,6 +137,8 @@
                     <p class="tiny num" style="margin-top: 6px">출근 09:14 · 퇴근 18:02</p>
                   </div>
 
+                  </div>
+
                   <div class="card card--pen">
                     <div class="line" style="margin-bottom: 8px">
                       <span class="num" style="font-weight: 700; font-size: 13px; color: var(--pen)">목 9/10</span>
@@ -160,6 +162,27 @@
                     </div>
                     <div class="rail" style="height: 26px">
                       <div class="rail__plan" style="left: 8%; right: 17%"></div>
+                    </div>
+                    <div class="railscale">
+                      <span>08:00</span><span>12:00</span><span>16:00</span><span>20:00</span>
+                    </div>
+
+                  <div class="card">
+                    <div class="line" style="margin-bottom: 8px">
+                      <span class="num" style="font-weight: 700; font-size: 13px">토 9/12</span>
+                      <span class="push tiny">웨일카페 강남역점</span>
+                      <button
+                        data-sheet="proxyInfo"
+                        style="background: none; border: none; padding: 0; color: var(--ink-3); cursor: pointer; font-size: 15px; line-height: 1"
+                        aria-label="대신 등록 정보 보기"
+                      >
+                        <i class="ph ph-pencil-simple"></i>
+                      </button>
+                      <span class="badge">관리자 등록</span>
+                    </div>
+                    <div class="rail" style="height: 26px">
+                      <div class="rail__plan" style="left: 8%; right: 17%"></div>
+                      <div class="rail__real" style="left: 8%; right: 17%"></div>
                     </div>
                     <div class="railscale">
                       <span>08:00</span><span>12:00</span><span>16:00</span><span>20:00</span>
@@ -409,6 +432,43 @@
               <button class="btn btn--ghost" data-sheet-close>닫기</button>
             </div>
 
+            <div class="sheet" data-sheet-id="proxyInfo" hidden>
+              <div class="sheet__grab"></div>
+              <div class="line">
+                <i class="ph-fill ph-pencil-simple" style="color: var(--ink-3); font-size: 20px"></i>
+                <p class="h-lg">관리자가 대신 남긴 기록입니다</p>
+              </div>
+              <p class="p--sm">
+                위치정보 동의가 없어 앱으로 등록할 수 없는 경우입니다. 근무지 관리자가 출퇴근 시각을
+                대신 남겼습니다.
+              </p>
+              <div class="card card--sunken">
+                <div class="rows">
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">출근 · 퇴근</span>
+                    <span class="push num" style="font-size: 13px">09:00 · 18:00</span>
+                  </div>
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">남긴 사람</span>
+                    <span class="push" style="font-size: 13px">박지수 매니저</span>
+                  </div>
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">남긴 시각</span>
+                    <span class="push num" style="font-size: 13px">9월 10일 18:05</span>
+                  </div>
+                  <div class="row" style="padding: 9px 0">
+                    <span class="row__title" style="font-weight: 500; font-size: 13.5px">사유</span>
+                    <span class="push" style="font-size: 13px">위치정보 동의 없음</span>
+                  </div>
+                </div>
+              </div>
+              <p class="tiny">
+                기록이 다르면 근무지 점포에 말씀해 주세요. 앱에서 직접 등록하려면 위치정보 수집에 다시
+                동의해야 합니다.
+              </p>
+              <button class="btn btn--ghost" data-sheet-close>닫기</button>
+            </div>
+
             <div class="sheet" data-sheet-id="flagTue" hidden>
               <div class="sheet__grab"></div>
               <div class="line">
@@ -511,6 +571,8 @@
             <div class="gap__one">
               <p>
                 관리자가 보정한 날에는 <b>연필 표시</b>를 달고, 누르면 <b>보정 전후 값 · 보정자 · 사유</b>를 상세 시트로 보여 준다.
+                <b>관리자가 대신 남긴 기록</b>도 같은 연필 표시를 쓴다(ATT-20) — 위치정보 동의가 없어 앱으로
+                등록할 수 없는 직원의 기록이고, 누르면 남긴 사람·시각·사유가 나온다.
                 지금 화면 그대로다 (2026-09-17 재영 확정). 출퇴근 기록은 급여의 근거라 보정 흔적을 직원에게 남긴다.
               </p>
             </div>
@@ -593,7 +655,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 출퇴근 현황 · 2026년 9월 18일 · 상태 5개 · 시트 3개 · 쟁점 3건 모두 확정
+            직원 근무 앱 목업 · 출퇴근 현황 · 2026년 9월 18일 · 상태 5개 · 시트 4개 · 쟁점 3건 모두 확정
           </footer>
         </div>
       </div>
