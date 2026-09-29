@@ -341,6 +341,34 @@
               </div>
             </div>
 
+            <!-- ── 위치 수집 일시 중지 (운영 정책 ATT-26) ───────── -->
+            <div class="view" data-when="paused">
+              <div class="geo" style="display: grid; place-items: center; background-image: none">
+                <div class="center stack stack-8" style="padding: 20px">
+                  <i class="ph ph-pause-circle" style="font-size: 30px; color: var(--amber)"></i>
+                  <p class="tiny">위치를 읽지 않습니다</p>
+                </div>
+              </div>
+
+              <div class="note note--amber">
+                <i class="ph-fill ph-pause"></i>
+                <div>
+                  <strong>위치 수집을 멈춘 상태입니다.</strong><br />
+                  근무지 관리자가 대신 등록합니다.
+                </div>
+              </div>
+
+              <div class="card card--sunken">
+                <p class="lab">다시 켜면 바로 등록할 수 있습니다</p>
+                <p class="p--sm" style="margin-top: 6px">
+                  동의는 그대로 남아 있어 <b>새로 동의하지 않아도 됩니다.</b> 내 정보에서도 켤 수
+                  있습니다. 2026년 9월 29일 14:20 에 멈췄습니다.
+                </p>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
             <!-- ── 위치정보 동의 없음 (운영 정책 ATT-20) ──────────────────── -->
             <div class="view" data-when="no-consent">
               <div class="geo" style="display: grid; place-items: center; background-image: none">
@@ -484,6 +512,10 @@
 
               <button class="btn btn--ghost" data-when="working" data-sheet="bye">
                 <i class="ph-fill ph-sign-out"></i>퇴근하기
+              </button>
+
+              <button class="btn" data-when="paused" data-go="ready" data-toast="위치 수집을 다시 켰습니다">
+                <i class="ph-fill ph-play"></i>다시 켜기
               </button>
 
               <button class="btn is-off" data-when="spoof"><i class="ph-fill ph-sign-in"></i>출근하기</button>
@@ -875,6 +907,13 @@
                   <span class="sw-b__d">· 확인 필요로 받음</span></span
                 >
               </button>
+              <button class="sw-b" data-state="paused">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">위치 수집 멈춤</span>
+                  <span class="sw-b__d">· 다시 켜기로 복귀</span></span
+                >
+              </button>
               <button class="sw-b" data-state="no-consent">
                 <span class="sw-b__k">·</span>
                 <span
@@ -970,6 +1009,14 @@
             밖에서도 등록하게 하고 확인 필요로 넘긴다(ATT-11). 매장을 떠난 뒤에야 떠올리는 일이 잦은데,
             막으면 열린 출근 기록이 그대로 남아 기록이 더 망가진다. 위치가 흐린 경우도 같은 판단이다 —
             막지 않고 꼬리표를 붙여 관리자에게 넘긴다.
+          </p>
+
+          <h2 class="h-lg" style="margin: 26px 0 10px">멈춘 것과 동의하지 않은 것은 다르다</h2>
+          <p class="p">
+            <b>위치 수집 일시 중지</b>는 위치정보법 제24조의 요구를 받는 장치다(운영 정책 ATT-26).
+            멈춰 두면 위치를 읽지 않고 관리자가 대신 등록하는 것까지는 「위치정보 동의 없음」과 같지만,
+            <b>동의가 그대로 남아 있어 「다시 켜기」 한 번으로 돌아온다</b>. 동의를 철회한 쪽은 다음 등록
+            때 새로 동의해야 한다. 그래서 두 화면을 따로 두고 안내 문구도 다르게 적었다.
           </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">누가 보는지 등록 화면에서 알린다</h2>
@@ -1149,7 +1196,9 @@
                 <li>플랫폼과 사업자 가운데 누가 지는가 — <b>책임 주체 이중 구조</b></li>
                 <li>가맹 구조에서 <b>제공받는 자</b>를 누구로 적는가</li>
                 <li>동의를 거부하거나 철회한 직원의 <b>대체수단</b>(운영 정책 ATT-20 이 그 답이다)</li>
-                <li>철회와 <b>일시 중지</b>를 어디까지 받아야 하는가</li>
+                <li>
+                  철회와 <b>일시 중지</b> — 일시 중지는 넣음(운영 정책 ATT-26) · 요건 충족 여부 확인
+                </li>
                 <li>동의서와 약관의 <b>형식</b></li>
                 <li>확인자료 보관과 <b>보호조치</b> 수준</li>
                 <li>만 14세 미만 등 <b>나이 제한</b></li>
@@ -1332,7 +1381,7 @@
           </div>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 출퇴근 등록 · 2026년 9월 18일 · 상태 12개 · 시트 9개 · 쟁점 11건 · 확정 10건 · 법무 검토 1건
+            직원 근무 앱 목업 · 출퇴근 등록 · 2026년 9월 18일 · 상태 13개 · 시트 9개 · 쟁점 11건 · 확정 10건 · 법무 검토 1건
           </footer>
         </div>
       </div>
