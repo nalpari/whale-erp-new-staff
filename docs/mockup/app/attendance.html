@@ -601,8 +601,8 @@
                 <p class="h-lg">위치정보 수집에 동의해 주세요</p>
               </div>
               <p class="p--sm">
-                출퇴근을 등록할 때 <b>매장 안인지</b>를 위치로 확인합니다. 좌표는 저장하지 않고 반경
-                안인지 밖인지와 오차만 남깁니다.
+                출퇴근을 등록할 때 <b>매장 안인지</b>를 위치로 확인합니다. <b>위치는 휴대전화 안에서만
+                확인하고 서버로 보내지 않습니다.</b> 반경 안인지 밖인지와 오차만 남깁니다.
               </p>
               <div class="card card--sunken">
                 <div class="rows">
@@ -612,7 +612,7 @@
                   </div>
                   <div class="row" style="padding: 8px 0">
                     <span class="row__title" style="font-weight: 500; font-size: 13.5px">남기는 것</span>
-                    <span class="push" style="font-size: 13px">반경 안·밖 · 오차 (좌표는 저장 안 함)</span>
+                    <span class="push" style="font-size: 13px">반경 안·밖 · 오차 (좌표는 서버로 안 보냄)</span>
                   </div>
                   <div class="row" style="padding: 8px 0">
                     <span class="row__title" style="font-weight: 500; font-size: 13.5px">동의 철회</span>
@@ -969,8 +969,9 @@
 
           <h2 class="h-lg" style="margin: 26px 0 10px">꾸며 낸 위치는 출근만 막는다</h2>
           <p class="p">
-            동의 시트의 <b>항목과 문구는 법무 검토 중</b>이다(ATT-8 질문 9). 지금 그린 것은 좌표를
-            저장하지 않고 판정 결과와 오차만 남긴다는 뼈대이고, 문구는 검토 결과로 갈아 끼운다.
+            동의 시트의 <b>항목과 문구는 법무 검토 중</b>이다(ATT-8 질문 9). 지금 그린 것은 위치를
+            휴대전화 안에서만 확인하고 판정 결과와 오차만 남긴다는 뼈대이고, 문구는 검토 결과로 갈아
+            끼운다.
           </p>
           <p class="p" style="margin-top: 10px">
             기기 운영체제가 <b>모의 위치</b>라고 알려 주면(Android 모의 위치, iOS 소프트웨어 모의) 그대로
@@ -1078,14 +1079,16 @@
           <div class="gap is-decided">
             <div class="gap__head">
               <span class="gap__no">ATT-5</span>
-              <span class="gap__t">좌표를 저장할 것인가</span>
-              <span class="gap__st gap__st--fixed">확정 · 저장 안 함</span>
+              <span class="gap__t">위치를 어디서 판정하고 무엇을 남길 것인가</span>
+              <span class="gap__st gap__st--fixed">확정 · 휴대전화에서 판정</span>
               <span class="gap__ref">S-EFQGSP</span>
             </div>
             <div class="gap__one">
               <p>
-                <b>위치 좌표 자체는 저장하지 않고 판정 결과와 오차 범위만 남긴다.</b> 개인정보
-                부담이 크게 줄고, 어디 있었는지가 아니라 점포에 있었는지만 기록에 남는다.
+                앱이 근무지 좌표와 반경을 받아 <b>휴대전화 안에서 거리를 계산한다</b>. 서버로는 판정
+                결과(반경 안·밖, 오차, 모의 위치 여부)만 보내고 <b>좌표 자체는 보내지 않는다</b>
+                (2026-09-29 재영 확정). 개인정보 부담이 크게 줄고, 어디 있었는지가 아니라 점포에
+                있었는지만 기록에 남는다.
               </p>
               <p>
                 <b>동의는 직원이 처음 출퇴근을 등록하려 할 때 받는다.</b> 가입 단계에서 미리 받으면
