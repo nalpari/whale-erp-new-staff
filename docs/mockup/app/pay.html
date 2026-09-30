@@ -115,7 +115,7 @@
                   <i class="ph-fill ph-file-text" style="color: var(--pen); font-size: 18px"></i>
                   <div class="grow">
                     <p class="h-md">2026년 8월 급여명세서</p>
-                    <p class="tiny" style="color: var(--pen)">9월 10일 발송 · 실지급액 861,980원</p>
+                    <p class="tiny" style="color: var(--pen)">9월 10일 발송 · 실지급액 834,220원</p>
                   </div>
                   <i class="ph ph-caret-right" style="color: var(--pen)"></i>
                 </div>
@@ -131,7 +131,7 @@
                         <p class="row__sub">8월 20일 발송</p>
                       </div>
                       <div class="row__end">
-                        <span class="num" style="font-size: 13.5px">866,660원</span>
+                        <span class="num" style="font-size: 13.5px">838,730원</span>
                       </div>
                     </div>
                     <div class="row" data-go="detail" style="cursor: pointer">
@@ -140,7 +140,7 @@
                         <p class="row__sub">7월 3일 발송</p>
                       </div>
                       <div class="row__end">
-                        <span class="num" style="font-size: 13.5px">773,160원</span>
+                        <span class="num" style="font-size: 13.5px">748,640원</span>
                         <span class="badge badge--ok">발송 완료</span>
                       </div>
                     </div>
@@ -150,7 +150,7 @@
                         <p class="row__sub">6월 3일 발송</p>
                       </div>
                       <div class="row__end">
-                        <span class="num" style="font-size: 13.5px">908,730원</span>
+                        <span class="num" style="font-size: 13.5px">879,270원</span>
                         <span class="badge badge--ok">발송 완료</span>
                       </div>
                     </div>
@@ -238,18 +238,14 @@
                       <td class="num">7,570</td>
                     </tr>
                     <tr>
-                      <td>소득세</td>
-                      <td class="num">0</td>
-                    </tr>
-                    <tr>
-                      <td>지방소득세</td>
-                      <td class="num">0</td>
+                      <td>3.3% 원천징수</td>
+                      <td class="num">27,760</td>
                     </tr>
                   </tbody>
                   <tfoot>
                     <tr>
                       <td>공제 합계</td>
-                      <td class="num">79,100</td>
+                      <td class="num">106,860</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -258,7 +254,7 @@
               <div class="card card--pen">
                 <div class="line line--between">
                   <p class="h-md" style="color: #17325f">실지급액</p>
-                  <p class="num num--lg" style="color: var(--pen)">861,980<span class="u">원</span></p>
+                  <p class="num num--lg" style="color: var(--pen)">834,220<span class="u">원</span></p>
                 </div>
               </div>
 
@@ -356,18 +352,14 @@
                       <td class="num">7,620</td>
                     </tr>
                     <tr>
-                      <td>소득세</td>
-                      <td class="num">0</td>
-                    </tr>
-                    <tr>
-                      <td>지방소득세</td>
-                      <td class="num">0</td>
+                      <td>3.3% 원천징수</td>
+                      <td class="num">27,930</td>
                     </tr>
                   </tbody>
                   <tfoot>
                     <tr>
                       <td>공제 합계</td>
-                      <td class="num">79,580</td>
+                      <td class="num">107,510</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -376,7 +368,7 @@
               <div class="card card--pen">
                 <div class="line line--between">
                   <p class="h-md" style="color: #17325f">실지급액</p>
-                  <p class="num num--lg" style="color: var(--pen)">866,660<span class="u">원</span></p>
+                  <p class="num num--lg" style="color: var(--pen)">838,730<span class="u">원</span></p>
                 </div>
               </div>
 
@@ -522,9 +514,9 @@
             늘어난다.
           </p>
           <p class="p" style="margin-top: 10px">
-            <b>소득세와 지방소득세가 0원</b>인 것은 이 소득 구간에서 간이세액이 0이기 때문이다. 값이
-            0이어도 기본 공제 여섯 줄은 그대로 보인다 — 무엇을 떼고 무엇을 떼지 않았는지가 명세서의
-            내용이다.
+            공제는 <b>4대보험 네 줄과 3.3% 원천징수</b>다. 파트타이머는 3.3% 를 적용한 채로 시작하고,
+            그때는 <b>소득세·지방소득세 두 줄이 빠진다</b>(운영 정책 PAY-03, 2026-09-30). 관리자가
+            명세서마다 끌 수 있고, 끄면 기본 공제 여섯 줄로 돌아간다.
           </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">항목은 옛 시스템에서 그대로 가져왔다</h2>
@@ -671,22 +663,23 @@
             <div class="gap__head">
               <span class="gap__no">PAY-6</span>
               <span class="gap__t">파트타이머에게 3.3% 원천징수를 적용할 것인가</span>
-              <span class="gap__st gap__st--review">노무·세무 검토</span>
+              <span class="gap__st gap__st--review">3.3% 기본 적용 · 노무·세무 확인 대기</span>
               <span class="gap__ref">S-DOVWAR</span>
             </div>
             <div class="gap__one">
               <p>
-                명세서 <b>구성은 정해졌다</b> — 파트타이머 명세서에는 기본 공제 여섯과 <b>3.3% 원천징수를
-                함께</b> 둔다 (2026-09-29 확정). 다만 실제로 적용해도 되는지는 <b>노무·세무 검토 전까지
+                파트타이머 명세서는 <b>3.3% 를 적용한 채로 시작한다</b> — 4대보험 네 줄과 3.3% 가 붙고
+                <b>소득세·지방소득세 대신</b>이다 (운영 정책 PAY-03, 2026-09-30). 관리자가 명세서마다 끌
+                수 있다. 다만 실제로 적용해도 되는지는 <b>노무·세무 검토 전까지
                 정하지 않는다</b>. 근로계약을 맺은 직원에게 사업소득 원천징수를 적용하면 근로자성 판단과
                 어긋날 수 있어, 우리가 고를 수 있는 것이 아니다.
               </p>
               <ul>
                 <li>
-                  둘 중 하나를 고르는 것이 아니라 <b>둘 다 둘 수 있는 구성</b>이다. 어느 직원에게 무엇을
-                  매길지는 관리자가 정한다
+                  4대보험과 3.3% 를 <b>함께</b> 매기는 구성이다. 적용해도 되는지는 노무·세무 검토
+                  전까지 정해지지 않았다
                 </li>
-                <li>지금 그림은 기본 공제 여섯만 보인다. 이 직원에게는 3.3% 를 매기지 않은 달이다</li>
+                <li>지금 그림은 3.3% 를 적용한 달이다. 끄면 기본 공제 여섯 줄이 된다</li>
                 <li>검토 결과에 따라 달라지는 것은 줄 하나가 붙느냐다. 화면 구조는 바뀌지 않는다</li>
               </ul>
             </div>
