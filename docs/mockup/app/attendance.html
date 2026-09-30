@@ -381,8 +381,8 @@
               <div class="note note--seal">
                 <i class="ph-fill ph-prohibit"></i>
                 <div>
-                  <strong>위치정보 동의가 없어 앱으로 등록할 수 없습니다.</strong><br />
-                  근무지 관리자가 출퇴근 기록을 대신 등록합니다.
+                  <strong>위치정보 이용에 동의하지 않으면 앱으로 출퇴근을 등록할 수 없습니다.</strong><br />
+                  출퇴근 기록은 근무지 관리자에게 문의해 주세요.
                 </div>
               </div>
 
@@ -400,8 +400,8 @@
                 <div class="line" style="margin-top: 8px; gap: 8px">
                   <i class="ph-fill ph-pencil-simple" style="color: var(--ink-3); font-size: 17px"></i>
                   <p class="p--sm grow" style="margin: 0">
-                    <b>대신 등록</b>한 기록은 출퇴근 현황에 연필 표시로 보이고, 누르면 누가 언제 왜
-                    등록했는지 볼 수 있습니다.
+                    문의를 받은 관리자가 <b>대신 등록</b>하면 출퇴근 현황에 연필 표시로 보이고,
+                    누르면 누가 언제 왜 등록했는지 볼 수 있습니다.
                   </p>
                 </div>
               </div>
@@ -657,15 +657,17 @@
                   </div>
                 </div>
               </div>
+              <p class="tiny"><b>동의해야 앱으로 출퇴근을 등록할 수 있습니다.</b></p>
               <p class="tiny">
-                동의하지 않으면 앱으로 등록할 수 없고 근무지 관리자가 대신 등록합니다.
+                서비스 약관과 따로 받는 동의입니다. 동의하지 않으면 출퇴근 기록을 근무지 관리자에게
+                문의해야 합니다.
                 <span style="color: var(--ink-4)">위치정보 수집·이용 동의 v1.2</span>
               </p>
               <p class="tiny" style="color: var(--ink-4)">
                 동의서 항목·문구는 법무 검토 중(ATT-8)
               </p>
               <div class="btnrow">
-                <button class="btn btn--ghost" data-sheet-close>동의하지 않음</button>
+                <button class="btn btn--ghost" data-sheet-close data-go="no-consent">동의하지 않음</button>
                 <button class="btn" data-sheet-close data-toast="위치정보 수집에 동의했습니다">동의합니다</button>
               </div>
             </div>
@@ -1035,7 +1037,10 @@
 
           <h2 class="h-lg" style="margin: 26px 0 10px">꾸며 낸 위치는 출근만 막는다</h2>
           <p class="p">
-            동의 시트의 <b>항목과 문구는 법무 검토 중</b>이다(ATT-8 질문 9). 지금 그린 것은 위치를
+            동의는 <b>서비스 약관과 떼어 첫 출근 등록 때 필수로</b> 받는다(운영 정책 ATT-06,
+            2026-09-30 확정). 거부하면 「위치정보 이용에 동의하지 않으면 앱으로 출퇴근을 등록할 수
+            없습니다. 출퇴근 기록은 근무지 관리자에게 문의해 주세요」를 보인다. 철회한 직원도 같은
+            화면으로 온다. 동의 시트의 <b>항목과 문구는 법무 검토 중</b>이다(ATT-8 질문 9). 지금 그린 것은 위치를
             휴대전화 안에서만 확인하고 출퇴근 시각만 남긴다는 뼈대이고, 문구는 검토 결과로 갈아
             끼운다.
           </p>
@@ -1202,7 +1207,10 @@
                 <li>
                   철회와 <b>일시 중지</b> — 일시 중지는 넣음(운영 정책 ATT-26) · 요건 충족 여부 확인
                 </li>
-                <li>동의서와 약관의 <b>형식</b></li>
+                <li>
+                  동의서와 약관의 <b>형식</b> — 첫 출근 등록 때 필수 · 거부 시 관리자 문의 안내
+                  <span style="color: var(--ink-3)">— 우리 판단 · 법무 확인 대기</span>
+                </li>
                 <li>확인자료 보관과 <b>보호조치</b> 수준</li>
                 <li>만 14세 미만 등 <b>나이 제한</b></li>
                 <li>도입에 <b>노사협의</b>가 필요한가</li>
