@@ -14,6 +14,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 concept의 `sources[].resource`에 들어 있으면 해당 concept 본문을 고치고
 `generated.at`을 갱신한 뒤 `okf/log.md`에 한 줄 남긴다. 해당 없으면 건드리지 않는다.
 
+## 네이밍
+
+@okf/conventions/naming.md
+
 ## 워크트리
 
 워크트리는 저장소 안이 아니라 플랫폼별 루트 아래에 만든다.
