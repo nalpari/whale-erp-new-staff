@@ -4,7 +4,7 @@ title: Naming
 description: DB·API·FRONT 네이밍 규칙과 용어집 영문 식별자 대응표. 세 저장소 공통.
 sources:
   - { id: naming-2026-09-30, resource: ../../docs/raw/2026-09-30-네이밍-규칙.md, title: WHALE ERP 네이밍 규칙 (기획 세션 제안 · 목록 응답과 대응표는 재영 확인) }
-generated: { by: claude-code/opus-5, at: 2026-10-01T01:23:08Z }
+generated: { by: claude-code/opus-5.5, at: 2026-10-01T04:12:52Z }
 ---
 
 # 범위
