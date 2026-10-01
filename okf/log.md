@@ -2,6 +2,7 @@
 
 ## 2026-10-01
 
+* **Update**: [Naming](/conventions/naming.md) 문서 전체(1~5장)를 2026-10-01 재영 확인으로 확정했다.
 * **Update**: [Naming](/conventions/naming.md) 의 영문 식별자 대응표를 2026-10-01 재영 확인으로 표시했다. 1~4장 계층별 규칙은 여전히 제안이다.
 * **Update**: `2026-09-30-네이밍-규칙.md` 가 바뀌어 [Naming](/conventions/naming.md) 의 API 절을
   고쳤다. 목록 응답 규칙(`{ items, total }` · `page`·`pageSize` · 빈 결과 · Nest 기본 오류)을
