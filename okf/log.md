@@ -19,3 +19,4 @@
 ## 2026-08-28
 
 * **Initialization**: Created the OKF v0.2 bundle root and the [Whale ERP Staff](/whale-erp-staff.md) concept.
+- 대응표(영문 식별자) 재영 확인 표시 (2026-10-01, 기획 세션)
