@@ -3,8 +3,8 @@ type: Convention
 title: Naming
 description: DB·API·FRONT 네이밍 규칙과 용어집 영문 식별자 대응표. 세 저장소 공통.
 sources:
-  - { id: naming-2026-09-30, resource: ../../docs/raw/2026-09-30-네이밍-규칙.md, title: WHALE ERP 네이밍 규칙 (2026-09-30 재영 확인) }
-generated: { by: claude-code/opus-5, at: 2026-09-30T07:34:28Z }
+  - { id: naming-2026-09-30, resource: ../../docs/raw/2026-09-30-네이밍-규칙.md, title: WHALE ERP 네이밍 규칙 (기획 세션 제안 · 목록 응답만 재영 확인) }
+generated: { by: claude-code/opus-5, at: 2026-10-01T01:23:08Z }
 ---
 
 # 범위
@@ -13,6 +13,9 @@ generated: { by: claude-code/opus-5, at: 2026-09-30T07:34:28Z }
 저장소가 같은 개념을 같은 영문 이름으로 부르게 하는 규칙이다. 한글 용어는 공통
 용어집(`whale-erp-v2/CLAUDE.md`)의 표준 표기를 따르고, 여기의 **영문 식별자**가 그
 표준 표기의 코드 이름이다. 새 개념을 코드에 넣을 때는 대응표에 먼저 한 줄을 더한다.
+
+**상태**: 문서 전체는 **기획 세션 제안 · 재영 검토 전**이고, 「API 목록 응답」만 2026-10-01
+재영 확인을 받았다.
 
 원본은 기획 세션이 관리한다. 바뀌면 날짜를 붙인 새 원자료가 세 저장소의
 `docs/raw/`에 들어오고 각 저장소에서 `/okf-ingest`를 돌린다.
@@ -46,14 +49,25 @@ generated: { by: claude-code/opus-5, at: 2026-09-30T07:34:28Z }
 |---|---|---|
 | 경로 | kebab-case 복수 명사, 동사 금지 | `GET /staff-members/:id/contracts` |
 | 상태를 바꾸는 동작 | 하위 경로 + POST | `POST /contracts/:id/resend`, `POST /payslips/:id/cancel-confirmation` |
-| 쿼리 파라미터 | camelCase | `?storeId=3&from=2026-09-01&page=1&pageSize=20` |
+| 쿼리 파라미터 | camelCase | `?storeId=3&from=2026-09-01` |
 | JSON 필드 | camelCase, DB 컬럼명을 그대로 노출하지 않음 | `{ startDate, isProxyEntry }` |
-| 목록 응답 | `{ items, total }` | 페이지는 `page` · `pageSize` |
-| 날짜 · 시각 | 날짜 `YYYY-MM-DD`, 시각 ISO 8601 + 오프셋 | `2026-09-30T09:02:00+09:00` |
-| 오류 | `{ code, message }`, `code`는 UPPER_SNAKE | `UNDER_AGE_19`, `OUTSIDE_RADIUS` |
 | 모듈 폴더 | 자원 복수 kebab | `src/payslips/`, `src/staff-members/` |
 | 파일 | `{자원}.{역할}.ts` | `payslips.service.ts` |
 | DTO | 파일 `create-payslip.dto.ts` · 클래스 `CreatePayslipDto` | 응답 `payslip.response.dto.ts` · `PayslipResponseDto` |
+
+## 목록 응답 (2026-10-01 재영 확인)
+
+| 항목 | 규칙 |
+|---|---|
+| 목록 응답 | `{ items, total }` |
+| total 구하기 | `findMany` + `count` (같은 `where`, `$transaction`) |
+| 페이지 파라미터 | `page`(1부터), `pageSize`(기본 20, 최대 200) |
+| 정렬 | 기본 정렬 + 마지막에 `id` |
+| 빈 결과 · 마지막 페이지를 넘긴 요청 | `{ items: [], total }` |
+| 오류 응답 | Nest 기본 `{ statusCode, message, error }` 유지 |
+
+기존 items 예제(`take`·`skip`, 배열 응답, `id` 순)는 front 가 지금 형식으로 부르고 있어
+바꾸지 않는다. 새로 만드는 목록 API 부터 적용한다.
 
 # DB (PostgreSQL + Prisma)
 

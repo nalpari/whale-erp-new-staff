@@ -1,5 +1,12 @@
 # Bundle history
 
+## 2026-10-01
+
+* **Update**: `2026-09-30-네이밍-규칙.md` 가 바뀌어 [Naming](/conventions/naming.md) 의 API 절을
+  고쳤다. 목록 응답 규칙(`{ items, total }` · `page`·`pageSize` · 빈 결과 · Nest 기본 오류)을
+  더하고, `{ code, message }` 오류 규칙과 날짜·시각 형식 줄을 뺐다. 문서 상태는 기획 세션 제안 ·
+  재영 검토 전이고 목록 응답만 재영 확인이다.
+
 ## 2026-09-30
 
 * **Addition**: `2026-09-30-네이밍-규칙.md` 의 DB·API·FRONT 규칙과 용어집 영문 식별자
