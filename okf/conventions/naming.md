@@ -4,7 +4,7 @@ title: Naming
 description: DB·API·FRONT 네이밍 규칙과 용어집 영문 식별자 대응표. 세 저장소 공통.
 sources:
   - { id: naming-2026-09-30, resource: ../../docs/raw/2026-09-30-네이밍-규칙.md, title: WHALE ERP 네이밍 규칙 (2026-10-01 재영 확인) }
-generated: { by: claude-code/opus-5.5, at: 2026-10-02T04:59:32Z }
+generated: { by: claude-code/opus-5.5, at: 2026-10-02T05:02:59Z }
 ---
 
 # 범위
@@ -14,7 +14,9 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-02T04:59:32Z }
 용어집(`whale-erp-v2/CLAUDE.md`)의 표준 표기를 따르고, 여기의 **영문 식별자**가 그
 표준 표기의 코드 이름이다. 새 개념을 코드에 넣을 때는 대응표에 먼저 한 줄을 더한다.
 
-**상태**: **확정** — 2026-10-01 재영이 문서 전체를 확인했다.
+**상태**: **확정** — 2026-10-01 재영이 1~5장 전체를, 2026-10-02 삭제 표시·기본키 이름을
+확인했다. 1팀(인증·계정 · BP·점포 · 설정·시스템관리) 영문 식별자와 DB 예외는 2026-10-02 에
+더했고, 근거는 1팀 1차 논리 ERD(`docs/erd/team1/README.md`)와 2026-09-29·09-30 확정분이다.
 
 원본은 기획 세션이 관리한다. 바뀌면 날짜를 붙인 새 원자료가 세 저장소의
 `docs/raw/`에 들어오고 각 저장소에서 `/okf-ingest`를 돌린다.
@@ -26,7 +28,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-02T04:59:32Z }
 2. **표준 표기 하나 = 영문 식별자 하나.** 세 계층이 같은 어근을 쓴다
    (`attendance_records` ↔ `attendanceRecord` ↔ `/attendance-records` ↔ `AttendanceRecord`).
 3. **약어 금지.** `emp`, `ctr`, `att`처럼 줄이지 않는다. 예외는 `id`, `url`, `bp`,
-   `hq`, `faq`, `todo`, `rrn`(주민등록번호)뿐이다.
+   `hq`, `faq`, `todo`, `rrn`(주민등록번호), `biz`(사업자), `ceo`(대표자)뿐이다.
 
 # FRONT (Next.js · 관리자 웹과 직원 근무 앱 공통)
 
@@ -98,6 +100,16 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-02T04:59:32Z }
 ERD에 단수·복수가 섞인 이름(`attendance`, `schedule_history`)은 다음 ERD 재생성 때
 복수형으로 맞춘다.
 
+## 식별자 1팀 예외
+
+| 대상 | 1팀 규칙 | 이유 |
+|---|---|---|
+| 공통코드 기본키 | `code_groups`는 `group_code`, `code_items`는 (`group_code`, `item_code`, `bp_code`) 복합 PK | 코드 자체가 식별자다. 셋 다 필수이고 등록 뒤 바꾸지 않는다 |
+| BP 기본키 | `bp_codes`는 PK `bp_id` 와 별도로 `bp_code`(BP+6자리)를 고유 식별자로 쓴다 | 외부 노출·화면 표기는 `bp_code` 다 |
+| 사람이 읽는 코드 | `{자원}_code` + 접두 6자리 | `bp_code`(BP), `store_code`(ST), `menu_code`(MN), `role_code`(유형코드, 예 BM000001). 자동 채번, 변경 불가 |
+| 공통코드 값 컬럼 | 논리 타입 `code`, 이름은 `{그룹 코드 소문자}_code` | `auth_type_code`, `account_status_code`, `store_type_code`, `manage_owner_code` |
+| 상세코드 값 | 영문 대문자·숫자·밑줄 20자, 등록 후 변경 불가 | Prisma enum이 아니라 `code_items` 행이다 — 2장의 「상태 값」 규칙을 쓰지 않는다 |
+
 # 영문 식별자 (용어집 대응표)
 
 새 테이블·API·타입은 이 이름을 쓴다.
@@ -111,14 +123,74 @@ DB 테이블은 복수형, 모델·타입은 PascalCase 단수형으로 바꿔 �
 | 플랫폼 마스터 / 플랫폼 관리자 | `PLATFORM_MASTER` / `PLATFORM_ADMIN` | 역할 값 |
 | BP 마스터 / BP 관리자 | `BP_MASTER` / `BP_ADMIN` | 역할 값 |
 | 가맹마스터 / 가맹관리자 | `FRANCHISE_MASTER` / `FRANCHISE_ADMIN` | 역할 값 |
-| BP | `bp` | 1팀 테이블, 3팀은 참조만 |
+| BP | `bp` | |
 | 본사 | `hq` | |
 | 점포 · 근무지 | `store` | 근무지는 직원 레코드의 `store_id` |
 | 직영 / 가맹 | `DIRECT` / `FRANCHISE` | `store_type` |
 | 계정 | `account` | 로그인 주체. api의 기존 `staff` 테이블(템플릿의 인증 주체)과 직원 레코드 `staff_members`는 다른 것이다. 계정 테이블을 만들 때 `staff`를 정리한다 |
+| 관리자 계정 | `admin_account` | 관리자 웹 로그인 주체. 아래 「인증 · 계정」 참고 |
 | 직원 레코드 | `staff_member` | 계정 1 : 레코드 N |
 | 정직원 / 파트타이머 | `FULL_TIME` / `PART_TIME` | `employment_type` |
 | 업무 범위 · 범위 선택기 | `scope` · `ScopeSelector` | |
+
+## 인증 · 계정
+
+| 표준 표기 | 영문 식별자 | 비고 |
+|---|---|---|
+| 관리자 계정 | `admin_account` · 테이블 `admin_accounts` | 관리자 웹 로그인 주체. 3팀 `accounts`(직원 앱 계정)·`staff_members`(직원 레코드)와 다른 테이블이다. PK·FK 는 `admin_account_id` — 3팀 ERD 가 쓰던 `admin_id` 도 같이 맞췄다 |
+| 관리자 로그인ID | `login_id` | 영문·숫자 4~20자, 탈퇴·삭제 포함 고유, 변경 불가 |
+| 권한 유형 | `auth_type_code` | 공통코드 `AUTH_TYPE` 6종. 등록 뒤 변경 불가 |
+| 계정 상태 | `account_status_code` | 공통코드 `ACCOUNT_STATUS`(사용 · 미사용 · 탈퇴) |
+| 가입경로 | `join_path_code` | 공통코드 `JOIN_PATH`(회원가입 · 플랫폼등록). 모든 계정 필수, 변경 불가 |
+| 탈퇴 사유 | `withdraw_reason_code` · `withdraw_reason_detail` | 공통코드 `WITHDRAW_REASON`(`WD_CLOSE` 등). 직접입력은 500자 |
+| 관리 점포 범위 | `is_all_stores` | true면 소속 BP 전체 점포, false면 `admin_store_mappings` 의 점포 |
+| 관리자 점포 매핑 | `admin_store_mapping` | (`admin_account_id`, `store_id`) 복합 PK |
+| 약관 버전 · 약관 유형 | `terms_version` · `terms_type_code` | 공통코드 `TERMS_TYPE`(이용약관 · 개인정보 · 마케팅 · 위치정보) |
+| 약관 동의 이력 | `terms_agreement_log` | 동의 경로 `channel`(회원가입 · 최초 로그인 · 재동의 · 약관변경) |
+| 관리자 접속 상태 | `admin_session` | 접근 토큰 1시간, 갱신 토큰은 마지막 사용 후 1시간 |
+| 임시 비밀번호 | `temp_password` | 발급 용도 `purpose`(임시비밀번호 · 초기비밀번호 · 비밀번호초기화), 모두 1시간 만료 |
+| 관리자 로그인 이력 | `admin_login_log` | 실패 사유 `failure_reason`(불일치 · 잠금 · 미사용 · 탈퇴). 보존 1년 |
+| 메일 발송 이력 · 메일 유형 | `mail_send_log` · `mail_type_code` | 공통코드 `MAIL_TYPE` 8종. 보존 1년 |
+| 관리자 변경 이력 | `admin_change_history` | 보존 5년 |
+
+## BP · 점포
+
+| 표준 표기 | 영문 식별자 | 비고 |
+|---|---|---|
+| BP | `bp_code` · 테이블 `bp_codes` | PK는 `bp_id`, 외부 식별자는 `bp_code`(BP+6자리). 3팀은 참조만 한다 |
+| 플랫폼 BP | `is_platform` | `bp_codes` 에 한 행(BP000000)만. 고객 BP 대상 조회·배포·배치·중복검사에서 빠진다 |
+| BP 상태 | `account_status_code` | 공통코드 `ACCOUNT_STATUS`. BP 마스터 계정 상태와 같은 트랜잭션에서 함께 바뀐다 |
+| 사업자정보 | `biz_` 접두 | `biz_registration_number`, `biz_ceo_name`, `biz_open_date`, `biz_category`, `biz_item`, `biz_verified_at` 등 |
+| BP 변경 이력 | `bp_change_history` | 보존 5년 |
+| 점포 | `store` · `store_code` | 점포코드는 ST+6자리, 자동 채번, 변경 불가 |
+| 점포 유형 | `store_type_code` | 공통코드 `STORE_TYPE`(`DIRECT` 직영점포 · `FRANCHISE` 가맹점포), 변경 불가 |
+| 점포 상태 | `store_status_code` | 공통코드 `STORE_STATUS`(미운영 · 운영 · 폐점) |
+| 점포 층별정보 · 층수 구분 | `store_floor` · `floor_type_code` | 공통코드 `FLOOR_TYPE`(`GROUND` 지상 · `BASEMENT` 지하) |
+| 점포 대표 이미지 | `store_image_file` | |
+| 점포 사업자정보 | `store_business_profile` | 테이블 이름은 `info` 로 줄이지 않는다. 컬럼은 BP 사업자정보와 같은 `biz_` 접두 |
+| 점포 변경 이력 | `store_change_history` | 보존 5년 |
+
+## 설정 · 시스템관리
+
+| 표준 표기 | 영문 식별자 | 비고 |
+|---|---|---|
+| 권한 그룹 · 권한 코드 | `role_group` · `role_code` | 유형코드+6자리(`BM000001` 등), 고유, 변경 불가 |
+| 권한 메뉴 | `role_group_menu` | 메뉴별 CRUD 권한 |
+| 공통코드 그룹 | `code_group` · `group_code` | 대문자 밑줄(예 `EMP_TYPE`). 삭제한 그룹의 코드도 다시 쓰지 않는다 |
+| 상세 코드 | `code_item` · `item_code` · `label` | 플랫폼 원본 행과 BP별 행을 한 테이블에 담는다 |
+| 관리 주체 | `manage_owner_code` | 공통코드 `MANAGE_OWNER`(플랫폼고정 · 플랫폼제공 · BP전용). 등록 뒤 변경 불가 |
+| BP 적용 여부 | `is_bp_applied` | 플랫폼제공 그룹만. 적용으로 바꾸면 사용 중 모든 BP에 복사되고 되돌릴 수 없다 |
+| 메뉴 · 메뉴 코드 | `menu` · `menu_code` | MN+6자리, 자동 채번, 변경 불가. 최대 3단계(`parent_menu_id`, `depth`) |
+| 서비스 | `service_code` | 공통코드 `SERVICE`. 플랫폼고정 그룹이다 |
+| BP 휴일 | `bp_holiday` | 규칙을 한 줄로 저장하고 실제 날짜는 볼 때 계산한다 |
+| 휴일 유형 | `holiday_type_code` | 공통코드 `HOLIDAY_TYPE`(`DAY` 하루 · `PERIOD` 기간 · `REPEAT` 반복) |
+| 휴일 반복 유형 | `holiday_repeat_type_code` | 공통코드 `HOLIDAY_REPEAT_TYPE`(`DAILY` · `WEEKLY` · `MONTHLY` · `YEARLY`) |
+| 반복 종료 조건 | `repeat_end_type` · `repeat_until` · `repeat_count` | 없음 · 날짜 · 횟수 |
+| 휴일 적용 범위 | `is_all_stores` | 관리자 계정의 관리 점포 범위와 같은 이름을 쓴다 |
+| 휴일 점포 매핑 · 예외 점포 | `holiday_store_mapping` · `holiday_excluded_store` | 예외는 `effective_from` 부터 적용해 지난 날짜를 보존한다 |
+| 플랫폼 공식 휴일 | `public_holiday` | 출처 `source`(규칙 계산 · 공식 API) |
+| 공식 휴일 동기화 이력 | `public_holiday_sync_log` | |
+| BP 휴일 변경 이력 | `bp_holiday_change_history` | 보존 5년 |
 
 ## 채용 · 계약
 
