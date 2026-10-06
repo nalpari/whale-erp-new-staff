@@ -4,7 +4,7 @@ title: Naming
 description: DB·API·FRONT 네이밍 규칙과 용어집 영문 식별자 대응표. 세 저장소 공통.
 sources:
   - { id: naming-2026-09-30, resource: ../../docs/raw/2026-09-30-네이밍-규칙.md, title: WHALE ERP 네이밍 규칙 (2026-10-01 재영 확인) }
-generated: { by: claude-code/opus-5.5, at: 2026-10-02T05:02:59Z }
+generated: { by: claude-code/opus-5.5, at: 2026-10-06T00:59:36Z }
 ---
 
 # 범위
@@ -15,11 +15,14 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-02T05:02:59Z }
 표준 표기의 코드 이름이다. 새 개념을 코드에 넣을 때는 대응표에 먼저 한 줄을 더한다.
 
 **상태**: **확정** — 2026-10-01 재영이 1~5장 전체를, 2026-10-02 삭제 표시·기본키 이름을
-확인했다. 1팀(인증·계정 · BP·점포 · 설정·시스템관리) 영문 식별자와 DB 예외는 2026-10-02 에
-더했고, 근거는 1팀 1차 논리 ERD(`docs/erd/team1/README.md`)와 2026-09-29·09-30 확정분이다.
+확인했다. 1팀(인증·계정 · BP·점포 · 설정·시스템관리) 영문 식별자와 DB 예외(식별자 1팀 예외)는
+**1팀이 판단하는 영역**이라 재영 확인 대상이 아니다(2026-10-02 재영). 2026-10-02 에 더했고, 근거는
+1팀 1차 논리 ERD(`docs/erd/team1/README.md`)와 2026-09-29·09-30 확정분이다.
 
-원본은 기획 세션이 관리한다. 바뀌면 날짜를 붙인 새 원자료가 세 저장소의
-`docs/raw/`에 들어오고 각 저장소에서 `/okf-ingest`를 돌린다.
+원본은 기획 세션이 관리한다. 원자료는 `docs/raw/2026-09-30-네이밍-규칙.md` 한 파일을
+제자리에서 고치고, 세 저장소의 `docs/raw/`에 같은 내용으로 둔다. 고친 뒤 각 저장소에서
+`/okf-ingest`를 돌린다. 파일 이름의 날짜는 만든 날이지 버전이 아니며, 고칠 때마다 머리말에
+「고침」 줄을 더한다. 이름이 그대로라 최신인지는 「고침」 줄과 `okf/log.md`를 비교해 확인한다.
 
 # 원칙
 
@@ -28,7 +31,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-02T05:02:59Z }
 2. **표준 표기 하나 = 영문 식별자 하나.** 세 계층이 같은 어근을 쓴다
    (`attendance_records` ↔ `attendanceRecord` ↔ `/attendance-records` ↔ `AttendanceRecord`).
 3. **약어 금지.** `emp`, `ctr`, `att`처럼 줄이지 않는다. 예외는 `id`, `url`, `bp`,
-   `hq`, `faq`, `todo`, `rrn`(주민등록번호), `biz`(사업자), `ceo`(대표자)뿐이다.
+   `hq`, `faq`, `todo`, `rrn`(주민등록번호), `biz`(사업자), `ceo`(대표자), `admin`(관리자)뿐이다.
 
 # FRONT (Next.js · 관리자 웹과 직원 근무 앱 공통)
 
@@ -78,6 +81,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-02T05:02:59Z }
 | Prisma 모델 | PascalCase 단수형 + `@@map` | `model Contract { … @@map("contracts") }` |
 | 컬럼 | snake_case, Prisma 필드는 camelCase + `@map` | `start_date` ↔ `startDate` |
 | 기본키 · 외래키 | `{참조 단수}_id` · `{참조 단수}_id` (기본키도 같은 이름) | `contracts.contract_id`, `staff_members.staff_member_id`, 외래키 `store_id` |
+| 역할 외래키 | 사람(관리자)을 가리키는 외래키는 역할을 이름으로 `{역할}_by`. 한 테이블에 관리자 외래키가 여럿일 수 있어서다 (2026-10-06 재영) | `created_by`, `reviewed_by`, `confirmed_by` |
 | 시각 | `_at`, `timestamptz` | `signed_at`, `reviewed_at`, `created_at` |
 | 날짜만 | `_date` | `start_date`, `birth_date` |
 | 참·거짓 | `is_` · `has_` | `is_proxy_entry`, `is_premium_applied` |
@@ -105,9 +109,9 @@ ERD에 단수·복수가 섞인 이름(`attendance`, `schedule_history`)은 다�
 | 대상 | 1팀 규칙 | 이유 |
 |---|---|---|
 | 공통코드 기본키 | `code_groups`는 `group_code`, `code_items`는 (`group_code`, `item_code`, `bp_code`) 복합 PK | 코드 자체가 식별자다. 셋 다 필수이고 등록 뒤 바꾸지 않는다 |
-| BP 기본키 | `bp_codes`는 PK `bp_id` 와 별도로 `bp_code`(BP+6자리)를 고유 식별자로 쓴다 | 외부 노출·화면 표기는 `bp_code` 다 |
+| BP 기본키 | `bp_codes`는 PK `bp_code_id` 와 별도로 `bp_code`(BP+6자리)를 고유 식별자로 쓴다 | 외부 노출·화면 표기는 `bp_code` 다 |
 | 사람이 읽는 코드 | `{자원}_code` + 접두 6자리 | `bp_code`(BP), `store_code`(ST), `menu_code`(MN), `role_code`(유형코드, 예 BM000001). 자동 채번, 변경 불가 |
-| 공통코드 값 컬럼 | 논리 타입 `code`, 이름은 `{그룹 코드 소문자}_code` | `auth_type_code`, `account_status_code`, `store_type_code`, `manage_owner_code` |
+| 공통코드 값 컬럼 | 논리 타입 `code`, 이름은 `{그룹 코드 소문자}_code` | `role_type_code`, `account_status_code`, `store_type_code`, `manage_owner_code` |
 | 상세코드 값 | 영문 대문자·숫자·밑줄 20자, 등록 후 변경 불가 | Prisma enum이 아니라 `code_items` 행이다 — 2장의 「상태 값」 규칙을 쓰지 않는다 |
 
 # 영문 식별자 (용어집 대응표)
@@ -130,6 +134,7 @@ DB 테이블은 복수형, 모델·타입은 PascalCase 단수형으로 바꿔 �
 | 계정 | `account` | 로그인 주체. api의 기존 `staff` 테이블(템플릿의 인증 주체)과 직원 레코드 `staff_members`는 다른 것이다. 계정 테이블을 만들 때 `staff`를 정리한다 |
 | 관리자 계정 | `admin_account` | 관리자 웹 로그인 주체. 아래 「인증 · 계정」 참고 |
 | 직원 레코드 | `staff_member` | 계정 1 : 레코드 N |
+| 직무 | `job_title` | 직원 레코드 칸. 근로계약서 초안 필수 |
 | 정직원 / 파트타이머 | `FULL_TIME` / `PART_TIME` | `employment_type` |
 | 업무 범위 · 범위 선택기 | `scope` · `ScopeSelector` | |
 
@@ -139,13 +144,13 @@ DB 테이블은 복수형, 모델·타입은 PascalCase 단수형으로 바꿔 �
 |---|---|---|
 | 관리자 계정 | `admin_account` · 테이블 `admin_accounts` | 관리자 웹 로그인 주체. 3팀 `accounts`(직원 앱 계정)·`staff_members`(직원 레코드)와 다른 테이블이다. PK·FK 는 `admin_account_id` — 3팀 ERD 가 쓰던 `admin_id` 도 같이 맞췄다 |
 | 관리자 로그인ID | `login_id` | 영문·숫자 4~20자, 탈퇴·삭제 포함 고유, 변경 불가 |
-| 권한 유형 | `auth_type_code` | 공통코드 `AUTH_TYPE` 6종. 등록 뒤 변경 불가 |
+| 권한 유형 | `role_type_code` | 공통코드 `ROLE_TYPE` 6종. 등록 뒤 변경 불가 |
 | 계정 상태 | `account_status_code` | 공통코드 `ACCOUNT_STATUS`(사용 · 미사용 · 탈퇴) |
 | 가입경로 | `join_path_code` | 공통코드 `JOIN_PATH`(회원가입 · 플랫폼등록). 모든 계정 필수, 변경 불가 |
 | 탈퇴 사유 | `withdraw_reason_code` · `withdraw_reason_detail` | 공통코드 `WITHDRAW_REASON`(`WD_CLOSE` 등). 직접입력은 500자 |
 | 관리 점포 범위 | `is_all_stores` | true면 소속 BP 전체 점포, false면 `admin_store_mappings` 의 점포 |
 | 관리자 점포 매핑 | `admin_store_mapping` | (`admin_account_id`, `store_id`) 복합 PK |
-| 약관 버전 · 약관 유형 | `terms_version` · `terms_type_code` | 공통코드 `TERMS_TYPE`(이용약관 · 개인정보 · 마케팅 · 위치정보) |
+| 약관 버전 · 약관 유형 | `terms_version` · `terms_type_code` | 공통코드 `TERMS_TYPE` 6종(`TERMS_SERVICE` · `PRIVACY_COLLECT` BP 회원가입용, `STAFF_TERMS_SERVICE` · `STAFF_PRIVACY_COLLECT` 직원 앱 회원가입용, `MARKETING` · `LOCATION`) |
 | 약관 동의 이력 | `terms_agreement_log` | 동의 경로 `channel`(회원가입 · 최초 로그인 · 재동의 · 약관변경) |
 | 관리자 접속 상태 | `admin_session` | 접근 토큰 1시간, 갱신 토큰은 마지막 사용 후 1시간 |
 | 임시 비밀번호 | `temp_password` | 발급 용도 `purpose`(임시비밀번호 · 초기비밀번호 · 비밀번호초기화), 모두 1시간 만료 |
@@ -157,7 +162,7 @@ DB 테이블은 복수형, 모델·타입은 PascalCase 단수형으로 바꿔 �
 
 | 표준 표기 | 영문 식별자 | 비고 |
 |---|---|---|
-| BP | `bp_code` · 테이블 `bp_codes` | PK는 `bp_id`, 외부 식별자는 `bp_code`(BP+6자리). 3팀은 참조만 한다 |
+| BP | `bp_code` · 테이블 `bp_codes` | PK는 `bp_code_id`, 외부 식별자는 `bp_code`(BP+6자리). 3팀은 참조만 한다 |
 | 플랫폼 BP | `is_platform` | `bp_codes` 에 한 행(BP000000)만. 고객 BP 대상 조회·배포·배치·중복검사에서 빠진다 |
 | BP 상태 | `account_status_code` | 공통코드 `ACCOUNT_STATUS`. BP 마스터 계정 상태와 같은 트랜잭션에서 함께 바뀐다 |
 | 사업자정보 | `biz_` 접두 | `biz_registration_number`, `biz_ceo_name`, `biz_open_date`, `biz_category`, `biz_item`, `biz_verified_at` 등 |
@@ -185,11 +190,11 @@ DB 테이블은 복수형, 모델·타입은 PascalCase 단수형으로 바꿔 �
 | BP 휴일 | `bp_holiday` | 규칙을 한 줄로 저장하고 실제 날짜는 볼 때 계산한다 |
 | 휴일 유형 | `holiday_type_code` | 공통코드 `HOLIDAY_TYPE`(`DAY` 하루 · `PERIOD` 기간 · `REPEAT` 반복) |
 | 휴일 반복 유형 | `holiday_repeat_type_code` | 공통코드 `HOLIDAY_REPEAT_TYPE`(`DAILY` · `WEEKLY` · `MONTHLY` · `YEARLY`) |
-| 반복 종료 조건 | `repeat_end_type` · `repeat_until` · `repeat_count` | 없음 · 날짜 · 횟수 |
+| 반복 종료 조건 | `repeat_end_type` · `repeat_end_date` · `repeat_count` | 없음 · 날짜 · 횟수 |
 | 휴일 적용 범위 | `is_all_stores` | 관리자 계정의 관리 점포 범위와 같은 이름을 쓴다 |
-| 휴일 점포 매핑 · 예외 점포 | `holiday_store_mapping` · `holiday_excluded_store` | 예외는 `effective_from` 부터 적용해 지난 날짜를 보존한다 |
+| 휴일 점포 매핑 · 예외 점포 | `holiday_store_mapping` · `holiday_excluded_store` | 예외는 `effective_start_date` 부터 적용해 지난 날짜를 보존한다 |
 | 플랫폼 공식 휴일 | `public_holiday` | 출처 `source`(규칙 계산 · 공식 API) |
-| 공식 휴일 동기화 이력 | `public_holiday_sync_log` | |
+| 공식 휴일 동기화 이력 | `public_holiday_synchronization_log` | |
 | BP 휴일 변경 이력 | `bp_holiday_change_history` | 보존 5년 |
 
 ## 채용 · 계약
@@ -199,6 +204,9 @@ DB 테이블은 복수형, 모델·타입은 PascalCase 단수형으로 바꿔 �
 | 근로계약(서) | `contract` | 초안은 상태 `PENDING_SEND`인 계약 |
 | 근로계약 상태 6종 | `PENDING_SEND` · `PENDING_SIGNATURE` · `SIGNED` · `REJECTED` · `EXPIRED` · `ENDED` | 발송 대기 · 서명 대기 · 체결 완료 · 거부 · 만료 · 종료 |
 | 전자계약 / 종이 계약 | `ELECTRONIC` / `PAPER` | `contract_method` |
+| 임금계약서 | `wage_contract` | 종이 계약에서 따로 날인한 임금 약정 문서 |
+| 계약서 파일 구분 | `SENT_ORIGINAL` · `SIGNED_COPY` · `PAPER_EMPLOYMENT_CONTRACT` · `WAGE_CONTRACT` | `contract_documents.kind` — 발송 원본 · 날인 완료본 · 종이 계약 근로계약서 · 임금계약서 |
+| 4대보험 가입 여부 | `is_health_pension_insured` · `is_employment_injury_insured` | 근로계약 칸 두 개 — 건강보험·국민연금 / 고용보험·산재보험 |
 | 날인 · 필기 서명 · 날인 기한 | `sign` · `handwritten_signature` · `sign_deadline_at` | |
 | 재발송 | `resend` | |
 | 초대 · 초대 토큰 | `invitation` · `invitation_token` | |

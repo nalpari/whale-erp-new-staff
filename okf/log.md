@@ -1,6 +1,13 @@
 # Bundle history
 
+## 2026-10-06
+* **Update**: `2026-09-30-네이밍-규칙.md` 머리말에 1팀 변경(커밋 f300ef3·c1a05da)의 「고침」 줄이 더해졌다. 본문 변화가 없어 [Naming](/conventions/naming.md) 은 그대로다.
+* **Update**: `2026-09-30-네이밍-규칙.md` 를 front 원자료로 통째 교체한 데 맞춰 [Naming](/conventions/naming.md) 을 다시 맞췄다. 1팀 이름 8곳(`admin` 약어 예외, `bp_code_id`, `role_type_code`/`ROLE_TYPE`, `repeat_end_date`, `effective_start_date`, `public_holiday_synchronization_log`), DB 역할 외래키 `{역할}_by`, 대응표의 직무(`job_title`)·임금계약서(`wage_contract`)·계약서 파일 구분·4대보험 가입 두 칸을 넣었다.
+
 ## 2026-10-02
+* **Update**: `2026-09-30-네이밍-규칙.md` 의 약관 유형 줄을 1팀 커밋(front c1a05da)대로 고쳐 [Naming](/conventions/naming.md) 「인증 · 계정」 표에 반영했다. `TERMS_TYPE` 6종(BP 회원가입용 둘 · 직원 앱 회원가입용 둘 · 마케팅 · 위치정보).
+* **Update**: `2026-09-30-네이밍-규칙.md` 6장이 바뀌어 [Naming](/conventions/naming.md) 범위 절의 원자료 관리 방식을 고쳤다. 날짜 붙인 새 파일이 아니라 한 파일을 제자리에서 고치고, 최신 여부는 「고침」 줄과 이 로그를 비교한다.
+* **Update**: `2026-09-30-네이밍-규칙.md` 상태 줄이 바뀌어 [Naming](/conventions/naming.md) 상태 문장에 1팀 영문 식별자·DB 예외는 1팀이 판단하는 영역이라 재영 확인 대상이 아니라고 적었다(2026-10-02 재영).
 * **Update**: `2026-09-30-네이밍-규칙.md` 의 1팀 추가분을 [Naming](/conventions/naming.md) 에 반영했다. 약어 예외에 `biz`·`ceo` 를 더하고, DB 절에 「식별자 1팀 예외」 표, 대응표에 「인증 · 계정」「BP · 점포」「설정 · 시스템관리」 세 묶음과 관리자 계정(`admin_account`, 옛 `customers`) 줄을 넣었다. 상태 문장에 1팀 추가분의 근거를 적었다.
 * **Update**: [Naming](/conventions/naming.md) 기본키도 `{참조 단수}_id` 로 짓는다(새 테이블부터). 예제·템플릿 테이블 4개의 `id` 는 결함이 아니라 예제라고 적었다(2026-10-02 재영, api 세션에서 정함).
 * **Update**: [Naming](/conventions/naming.md) DB 절에 삭제 표시(`is_deleted`) 규칙과 함정 두 가지를 넣고, 시각 예시 `deleted_at` 을 `created_at` 으로 바꿨다(2026-10-02 재영, api 세션에서 정함).
