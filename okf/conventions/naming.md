@@ -4,7 +4,7 @@ title: Naming
 description: DB·API·FRONT 네이밍 규칙과 용어집 영문 식별자 대응표. 세 저장소 공통.
 sources:
   - { id: naming-2026-09-30, resource: ../../docs/raw/2026-09-30-네이밍-규칙.md, title: WHALE ERP 네이밍 규칙 (2026-10-01 재영 확인) }
-generated: { by: claude-code/opus-5.5, at: 2026-10-06T01:57:54Z }
+generated: { by: claude-code/opus-5.5, at: 2026-10-06T08:53:02Z }
 ---
 
 # 범위
@@ -45,7 +45,20 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-06T01:57:54Z }
 | 이벤트 핸들러 | `handle` 접두 | `handleSubmit`, `handleProxyEntryClick` |
 | 쿼리 키 | `[자원, 범위, 조건]` | `['payslips', 'list', { storeId, month }]` |
 | 타입 | 자원 PascalCase 단수, enum은 API 값 그대로 | `Payslip`, `PayslipStatus` |
-| 화면 문구 | enum → 한글 대응표 한 곳에 | `PAYSLIP_STATUS_LABEL.CONFIRMED = '확정'` |
+| 화면 문구 | enum 한글은 `getEnum(name)` 으로 받은 `label` 을 쓴다. front·staff 에 상수 대응표를 두지 않는다 | `labelOf(await getEnum('PayslipStatus'), row.status)` |
+
+## API 타입·enum 공유 (2026-10-06 재영)
+
+| 항목 | 규칙 |
+|---|---|
+| enum 원본 | api 가 관리한다. 값은 Prisma·DB enum, 한글은 물리 ERD 원본(api `docs/erd-physical/_model.py`)과 API 전용 enum 목록에서 api 배포 때 만든다 |
+| enum 조회 | front·staff 는 `GET /enums`(전체)·`GET /enums/{name}`(하나)로 값·한글·순서를 받아 쓴다. 응답 `{ version, enums: { ContractStatus: [{ value, label, order }] } }`. enum 이 바뀌어도 front·staff 는 따로 작업하지 않는다 |
+| front·staff 캐시 | 데이터 접근 계층 한 곳(`getEnum(name)`)에서 Next 서버 캐시로 받는다. enum 은 api 배포 때만 바뀌므로 오래 두고, `version` 이 바뀌면 새로 받는다 |
+| 화면 | 등록 화면 선택지와 목록·상세의 한글 표시는 조회한 목록으로 그린다. 특정 값에 따라 동작이 갈리는 코드(예: 서명 대기일 때만 재발송)는 값을 코드에 적고, 새 값이 생기면 그 코드는 고친다 |
+| 공통코드 | enum 과 같은 모양으로 조회한다(`getCodes(group)`). 운영 중에 바뀌므로 플랫폼 관리자가 고치면 캐시를 비운다. 조회 API 는 1팀 공통코드와 맞춰 정한다 |
+| 요청·응답 타입 | api 가 `pnpm openapi:export` 로 `openapi/openapi.json` 을 커밋하고, front·staff 는 `openapi-typescript` 로 경로·입력·응답 타입을 생성한다(`WHALE_API_DIR`, 기본 `../whale-erp-api`). enum 필드에는 `@ApiProperty({ enum, enumName })` 를 단다. 이 타입은 enum 값 목록이 아니라 API 모양을 맞추는 데 쓴다 |
+
+남은 것: 1팀 동의 대기 — api·front 저장소를 1팀도 쓴다. 공통코드 조회 API 를 누가 만들지 1팀과 정한다.
 
 # API (NestJS)
 

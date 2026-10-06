@@ -1,6 +1,12 @@
 # Bundle history
 
 ## 2026-10-06
+* **Update**: `2026-09-30-네이밍-규칙.md` 「화면 문구」 줄의 대상을 「front·staff」로 넓힌 것을 [Naming](/conventions/naming.md) 에 맞췄다.
+* **Update**: `2026-09-30-네이밍-규칙.md` FRONT 표의 「화면 문구」 줄을 [Naming](/conventions/naming.md) 에 맞췄다 — enum 한글은 `getEnum(name)` 의 label 을 쓰고 상수 대응표를 두지 않는다.
+* **Update**: `2026-09-30-네이밍-규칙.md` 4장 「API 타입·enum 공유」가 새로 쓰여 [Naming](/conventions/naming.md) 의 같은 절을 바꿨다. enum 은 api 가 관리하고 front·staff 는 `GET /enums` 로 조회해 `getEnum(name)` 캐시로 쓴다(생성 파일 `labels.ts` 방식 폐기). 공통코드도 같은 모양(`getCodes`). 요청·응답 타입만 `openapi-typescript` 로 생성.
+* **Update**: `2026-09-30-네이밍-규칙.md` 「API 타입·enum 공유」의 원본과 front·staff 생성 기준을 api 가 커밋한 `openapi/openapi.json` 으로 고쳐 [Naming](/conventions/naming.md) 에 반영했다.
+* **Update**: `2026-09-30-네이밍-규칙.md` 4장 「API 타입·enum 공유」의 미정 자리가 결정으로 채워져 [Naming](/conventions/naming.md) 에 반영했다. 생성 도구 `openapi-typescript`, api 가 `openapi/openapi.json`·`enum-labels.json` 을 커밋, front·staff 는 `pnpm api:types` 로 생성(`WHALE_API_DIR`, 기본 `../whale-erp-api`), 생성 파일 머리에 api 커밋 해시.
+* **Update**: `2026-09-30-네이밍-규칙.md` 4장 끝 「API 타입·enum 공유」(A안, 2026-10-06 재영)를 [Naming](/conventions/naming.md) FRONT 절 끝에 옮겼다. api Swagger 문서에서 타입·enum 을 생성하고, 생성 도구·시점과 한글 대응표 전달 방법은 미정.
 * **Update**: `2026-09-30-네이밍-규칙.md` 의 1팀 고침 두 줄을 [Naming](/conventions/naming.md) 에 반영했다. 역할 값을 공통코드 `ROLE_TYPE` 2글자(`PM`·`PA`·`BM`·`BA`·`FM`·`FA`)로, 직원 앱 개인정보 수집 약관 코드를 `STAFF_PRIVACY` 로 바꿨다.
 * **Update**: `2026-09-30-네이밍-규칙.md` 머리말에 1팀 변경(커밋 f300ef3·c1a05da)의 「고침」 줄이 더해졌다. 본문 변화가 없어 [Naming](/conventions/naming.md) 은 그대로다.
 * **Update**: `2026-09-30-네이밍-규칙.md` 를 front 원자료로 통째 교체한 데 맞춰 [Naming](/conventions/naming.md) 을 다시 맞췄다. 1팀 이름 8곳(`admin` 약어 예외, `bp_code_id`, `role_type_code`/`ROLE_TYPE`, `repeat_end_date`, `effective_start_date`, `public_holiday_synchronization_log`), DB 역할 외래키 `{역할}_by`, 대응표의 직무(`job_title`)·임금계약서(`wage_contract`)·계약서 파일 구분·4대보험 가입 두 칸을 넣었다.
