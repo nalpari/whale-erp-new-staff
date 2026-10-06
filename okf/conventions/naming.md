@@ -4,7 +4,7 @@ title: Naming
 description: DB·API·FRONT 네이밍 규칙과 용어집 영문 식별자 대응표. 세 저장소 공통.
 sources:
   - { id: naming-2026-09-30, resource: ../../docs/raw/2026-09-30-네이밍-규칙.md, title: WHALE ERP 네이밍 규칙 (2026-10-01 재영 확인) }
-generated: { by: claude-code/opus-5.5, at: 2026-10-06T00:59:36Z }
+generated: { by: claude-code/opus-5.5, at: 2026-10-06T01:57:54Z }
 ---
 
 # 범위
@@ -124,9 +124,9 @@ DB 테이블은 복수형, 모델·타입은 PascalCase 단수형으로 바꿔 �
 
 | 표준 표기 | 영문 식별자 | 비고 |
 |---|---|---|
-| 플랫폼 마스터 / 플랫폼 관리자 | `PLATFORM_MASTER` / `PLATFORM_ADMIN` | 역할 값 |
-| BP 마스터 / BP 관리자 | `BP_MASTER` / `BP_ADMIN` | 역할 값 |
-| 가맹마스터 / 가맹관리자 | `FRANCHISE_MASTER` / `FRANCHISE_ADMIN` | 역할 값 |
+| 플랫폼 마스터 / 플랫폼 관리자 | `PM` / `PA` | 공통코드 `ROLE_TYPE` 의 상세코드. DB 저장값이자 화면 표시값이고, `role_groups.role_code` 의 2글자 접두로도 쓴다(`PM000001`). `role_code` CHECK 제약이 `^[A-Z]{2}[0-9]{6}$` 라 2글자가 아니면 저장되지 않는다 |
+| BP 마스터 / BP 관리자 | `BM` / `BA` | 같은 공통코드. `BM000001` · `BA000001` |
+| 가맹마스터 / 가맹관리자 | `FM` / `FA` | 같은 공통코드. `FM000001` · `FA000001` |
 | BP | `bp` | |
 | 본사 | `hq` | |
 | 점포 · 근무지 | `store` | 근무지는 직원 레코드의 `store_id` |
@@ -150,7 +150,7 @@ DB 테이블은 복수형, 모델·타입은 PascalCase 단수형으로 바꿔 �
 | 탈퇴 사유 | `withdraw_reason_code` · `withdraw_reason_detail` | 공통코드 `WITHDRAW_REASON`(`WD_CLOSE` 등). 직접입력은 500자 |
 | 관리 점포 범위 | `is_all_stores` | true면 소속 BP 전체 점포, false면 `admin_store_mappings` 의 점포 |
 | 관리자 점포 매핑 | `admin_store_mapping` | (`admin_account_id`, `store_id`) 복합 PK |
-| 약관 버전 · 약관 유형 | `terms_version` · `terms_type_code` | 공통코드 `TERMS_TYPE` 6종(`TERMS_SERVICE` · `PRIVACY_COLLECT` BP 회원가입용, `STAFF_TERMS_SERVICE` · `STAFF_PRIVACY_COLLECT` 직원 앱 회원가입용, `MARKETING` · `LOCATION`) |
+| 약관 버전 · 약관 유형 | `terms_version` · `terms_type_code` | 공통코드 `TERMS_TYPE` 6종(`TERMS_SERVICE` · `PRIVACY_COLLECT` BP 회원가입용, `STAFF_TERMS_SERVICE` · `STAFF_PRIVACY` 직원 앱 회원가입용, `MARKETING` · `LOCATION`) |
 | 약관 동의 이력 | `terms_agreement_log` | 동의 경로 `channel`(회원가입 · 최초 로그인 · 재동의 · 약관변경) |
 | 관리자 접속 상태 | `admin_session` | 접근 토큰 1시간, 갱신 토큰은 마지막 사용 후 1시간 |
 | 임시 비밀번호 | `temp_password` | 발급 용도 `purpose`(임시비밀번호 · 초기비밀번호 · 비밀번호초기화), 모두 1시간 만료 |

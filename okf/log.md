@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-06
+* **Update**: `2026-09-30-네이밍-규칙.md` 의 1팀 고침 두 줄을 [Naming](/conventions/naming.md) 에 반영했다. 역할 값을 공통코드 `ROLE_TYPE` 2글자(`PM`·`PA`·`BM`·`BA`·`FM`·`FA`)로, 직원 앱 개인정보 수집 약관 코드를 `STAFF_PRIVACY` 로 바꿨다.
 * **Update**: `2026-09-30-네이밍-규칙.md` 머리말에 1팀 변경(커밋 f300ef3·c1a05da)의 「고침」 줄이 더해졌다. 본문 변화가 없어 [Naming](/conventions/naming.md) 은 그대로다.
 * **Update**: `2026-09-30-네이밍-규칙.md` 를 front 원자료로 통째 교체한 데 맞춰 [Naming](/conventions/naming.md) 을 다시 맞췄다. 1팀 이름 8곳(`admin` 약어 예외, `bp_code_id`, `role_type_code`/`ROLE_TYPE`, `repeat_end_date`, `effective_start_date`, `public_holiday_synchronization_log`), DB 역할 외래키 `{역할}_by`, 대응표의 직무(`job_title`)·임금계약서(`wage_contract`)·계약서 파일 구분·4대보험 가입 두 칸을 넣었다.
 
