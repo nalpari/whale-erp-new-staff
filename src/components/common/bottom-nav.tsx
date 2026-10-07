@@ -18,6 +18,7 @@ export const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
 // 칸을 옮길 때는 오른쪽 칸이면 nav-forward, 왼쪽 칸이면 nav-back 슬라이드를 붙인다(globals.css).
 // 메뉴 자신은 view-transition-name 으로 따로 떼어 움직이지 않게 한다 — 내용만 미끄러지고 메뉴는 기준점으로 남는다.
 export function BottomNav({ current, items = BOTTOM_NAV_ITEMS }: { current: string; items?: BottomNavItem[] }) {
+  const here = items.findIndex((n) => n.href === current);
   return (
     <nav
       aria-label="주 메뉴"
@@ -26,7 +27,6 @@ export function BottomNav({ current, items = BOTTOM_NAV_ITEMS }: { current: stri
     >
       {items.map((item, i) => {
         const on = item.href === current;
-        const here = items.findIndex((n) => n.href === current);
         const direction = here < 0 || i === here ? undefined : i > here ? ["nav-forward"] : ["nav-back"];
         return (
           <Link
