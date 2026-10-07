@@ -11,7 +11,7 @@ export function StoreTopBar() {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <TopBar store={store} onStoreClick={() => setOpen(true)} alarmHref="#" hasNewAlarm />
+      <TopBar store={store} onStoreClick={() => setOpen(true)} alarmHref="/design/notification-settings" hasNewAlarm />
       <StoreSheet open={open} onClose={() => setOpen(false)} store={store} onPick={setStore} />
     </>
   );

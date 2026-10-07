@@ -34,6 +34,7 @@ export function TopBar({
       </div>
       <Link
         href={alarmHref}
+        transitionTypes={["nav-forward"]}
         aria-label={hasNewAlarm ? "알림, 새 알림 있음" : "알림"}
         className="relative flex size-[44px] shrink-0 items-center justify-center rounded-[14px] border border-[#e9edf3] bg-white transition-colors duration-150 ease-out active:bg-staff-info-bg"
       >
