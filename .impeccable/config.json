@@ -57,6 +57,48 @@
         ],
         "createdAt": "2026-09-10T08:41:48.430Z",
         "reason": "폰 목업이라 인라인 font-size 대부분이 Phosphor 아이콘 크기다. 지적 지점(L83)은 앱바 제목 16px 과 나란히 놓인 보조 버튼 12.5px 로 비율 1.28 이며 규칙을 넘는다. 같은 파일의 본문 위계는 토큰(h-xl 25 / h-lg 19 / h-md 15 / tiny 12)으로 잡혀 있다. pay·work·attendance-history·home 과 같은 오탐."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgb(0 0 0 / 0.55)",
+        "createdAt": "2026-10-07T02:24:05.490Z",
+        "reason": "agent: pre-existing weighbridge dark console styles in globals.css (.slot/.lit), separate from the staff DESIGN.md system"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgb(255 170 0 / 0.22)",
+        "createdAt": "2026-10-07T02:24:05.608Z",
+        "reason": "agent: pre-existing weighbridge dark console styles in globals.css (.slot/.lit), separate from the staff DESIGN.md system"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#ffd06a",
+        "createdAt": "2026-10-07T02:24:05.734Z",
+        "reason": "agent: pre-existing weighbridge dark console styles in globals.css (.slot/.lit), separate from the staff DESIGN.md system"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgb(255 170 0 / 0.4)",
+        "createdAt": "2026-10-07T02:24:05.851Z",
+        "reason": "agent: pre-existing weighbridge dark console styles in globals.css (.slot/.lit), separate from the staff DESIGN.md system"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "32px",
+        "files": [
+          "src/app/design/page.tsx"
+        ],
+        "createdAt": "2026-10-07T02:24:23.537Z",
+        "reason": "agent: Figma style-guide page chrome (Heading 1 32px, typeface sample 24px), guide page only, not app UI"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "24px",
+        "files": [
+          "src/app/design/page.tsx"
+        ],
+        "createdAt": "2026-10-07T02:24:23.645Z",
+        "reason": "agent: Figma style-guide page chrome (Heading 1 32px, typeface sample 24px), guide page only, not app UI"
       }
     ]
   }
