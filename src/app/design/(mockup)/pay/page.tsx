@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { PageHeader, StatusChip, type StatusChipTone } from "@/components/common";
+import { BottomNav, PageHeader, StatusChip, type StatusChipTone } from "@/components/common";
+import { MOCKUP_NAV } from "../mockup-nav";
 import { PageSlide } from "../page-slide";
 
 // Figma 08.급여(node 17:825). 목업 데이터: 2026년 8월분이 9월 10일에 도착한다.
+// Figma 프레임에는 하단 메뉴가 없지만 급여가 하단 메뉴 칸이라, 홈·근무처럼 메뉴를 붙여 탭 사이에서 사라지지 않게 한다.
 const PAST: { month: string; sent: string; amount: string; status: { label: string; tone: StatusChipTone } }[] = [
   { month: "2026년 7월", sent: "8월 3일 발송 · 8월 20일 다시 보냄", amount: "1,620,440원", status: { label: "다시 보냄", tone: "warning" } },
   { month: "2026년 6월", sent: "7월 3일 발송", amount: "1,589,730원", status: { label: "발송 완료", tone: "success" } },
@@ -57,6 +59,9 @@ export default function MockupPayPage() {
             이 화면에서는 퇴직 전까지 조회할 수 있습니다.
           </p>
         </main>
+        <div className="sticky bottom-0">
+          <BottomNav current="/design/pay" items={MOCKUP_NAV} />
+        </div>
       </div>
     </PageSlide>
   );
