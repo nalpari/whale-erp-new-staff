@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function DesignLayout({ children }: LayoutProps<"/design">) {
-  return <StaffRoot className="min-h-[100dvh]">{children}</StaffRoot>;
+  return <StaffRoot>{children}</StaffRoot>;
 }
