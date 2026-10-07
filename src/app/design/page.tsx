@@ -10,7 +10,7 @@ import {
   TextField,
   WorkTimeBar,
 } from "@/components/common";
-import { NavDemo, SegmentedDemo, TodoDemo, WeekDemo } from "./demos";
+import { NavDemo, SegmentedDemo, SheetDemo, TodoDemo, WeekDemo } from "./demos";
 import { GuideBox, GuideCaption, GuideLabel, GuideSection, GuideSpec, MockupLinks, SwatchGrid, type Swatch } from "./guide";
 
 // Figma 직원앱_공유 · 디자인 스타일 가이드(node 2001:68)를 코드 컴포넌트로 다시 그린 화면.
@@ -336,6 +336,17 @@ export default function DesignPage() {
             <WeekDemo />
             <p className="pt-[12px] text-[12px] text-staff-text-sub">이번 주 5일 · 40시간 근무 예정</p>
           </Card>
+        </div>
+      </GuideSection>
+
+      <GuideSection title="Bottom Sheet">
+        <div className="max-w-[368px] pt-[24px]">
+          <GuideBox padding="p-[16px]">
+            <div className="flex flex-col gap-[12px]">
+              <SheetDemo />
+              <GuideCaption>눌러서 열기 · 뒤 화면 / Esc / 닫기로 닫힘 · radius 26 · handle 40×4 · title 20px bold</GuideCaption>
+            </div>
+          </GuideBox>
         </div>
       </GuideSection>
 

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Badge, BOTTOM_NAV_ITEMS, BottomNav, InfoRow, SectionTitle, TopBar } from "@/components/common";
+import { Badge, BOTTOM_NAV_ITEMS, BottomNav, InfoRow, SectionTitle } from "@/components/common";
+import { StoreTopBar } from "./store-top-bar";
 import { ThisWeek } from "./this-week";
 
 // Figma 02.Main(node 8:3). 목업이라 데이터는 고정이고, 아직 없는 화면으로 가는 링크는 # 로 둔다.
@@ -11,7 +12,7 @@ export default function MockupHomePage() {
   return (
     <div className="flex flex-1 flex-col gap-[24px]">
       <main className="flex flex-col px-[22px] pt-[42px]">
-        <TopBar store="웨일카페 강남역점" alarmHref="#" hasNewAlarm />
+        <StoreTopBar />
 
         <div className="flex flex-col gap-[5px] pt-[24px] pb-[20px] leading-[1.5]">
           <h1 className="text-[26px] font-bold">하은님, 좋은 아침이에요</h1>

@@ -3,6 +3,9 @@
 import { useState } from "react";
 import {
   Badge,
+  BottomSheet,
+  Button,
+  SheetOption,
   BOTTOM_NAV_ITEMS,
   BottomNav,
   SegmentedControl,
@@ -101,5 +104,31 @@ export function TodoDemo() {
         badges={<Badge tone="success">완료</Badge>}
       />
     </TodoList>
+  );
+}
+
+export function SheetDemo() {
+  const [open, setOpen] = useState(false);
+  const [store, setStore] = useState("웨일카페 강남역점");
+  return (
+    <>
+      <Button variant="outline" onClick={() => setOpen(true)}>
+        {store}
+      </Button>
+      <BottomSheet open={open} onClose={() => setOpen(false)} title="어디에서 근무하시나요?" description="선택한 근무지의 정보를 보여드려요.">
+        {["웨일카페 강남역점", "웨일카페 홍대점"].map((s) => (
+          <SheetOption
+            key={s}
+            selected={s === store}
+            onClick={() => {
+              setStore(s);
+              setOpen(false);
+            }}
+          >
+            {s}
+          </SheetOption>
+        ))}
+      </BottomSheet>
+    </>
   );
 }
