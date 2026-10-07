@@ -20,6 +20,26 @@
   --font-mono: var(--font-gauge), ui-monospace, "SFMono-Regular", monospace;
 }
 
+/* 직원앱 Figma(직원앱_공유 · 디자인 스타일 가이드) 토큰. @/components/common(StaffRoot 안)에서 쓴다. */
+@theme {
+  --color-staff-primary: #4c4ddc;
+  --color-staff-primary-inactive: #ededfb;
+  --color-staff-text: #182237;
+  --color-staff-text-sub: #526077;
+  --color-staff-text-muted: #69758a;
+  --color-staff-placeholder: #8993a5;
+  --color-staff-bg: #f4f6fa;
+  --color-staff-border: #dbe1eb;
+  --color-staff-border-light: #eff2f6;
+  --color-staff-info-bg: #f5f7fb;
+  --color-staff-success: #22c55e;
+  --color-staff-warning: #f59e0b;
+  --color-staff-error: #ef4444;
+  --color-staff-navy: #182237;
+  --font-staff: var(--font-pretendard), Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-staff-code: Menlo, ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
 :root {
   /* 이 콘솔은 다크 하나로 고정한다. 폼 컨트롤과 스크롤바도 같이 어두워진다. */
   color-scheme: dark;
