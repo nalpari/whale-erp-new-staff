@@ -215,6 +215,7 @@ components:
 화면을 옮길 때는 방향 있는 슬라이드를 쓴다(React `<ViewTransition>`, `design/(mockup)/page-slide.tsx`).
 더 깊은 화면으로 가는 링크에는 `transitionTypes={["nav-forward"]}`, 돌아가는 링크에는 `["nav-back"]` 을 붙인다(`PageHeader` 의 뒤로 가기는 이미 붙어 있다).
 나가는 화면은 150ms 로 흐려지며 60px 비키고, 들어오는 화면은 100ms 뒤 나타나며 320ms 동안 60px 를 미끄러진다. 방향이 없는 이동(브라우저 뒤로 가기)과 움직임 줄이기 설정에서는 움직이지 않는다.
+하단 메뉴(`BottomNav`)로 칸을 옮길 때도 같은 슬라이드를 쓴다 — 오른쪽 칸은 nav-forward, 왼쪽 칸은 nav-back. 메뉴 자신은 `view-transition-name: bottom-nav` 로 떼어 제자리에 둔다.
 
 ## Elevation & Depth
 
@@ -234,7 +235,7 @@ components:
 
 ## Components
 
-모두 `src/components/common/` 에 있고 `@/components/common` 에서 가져온다. 눌러 볼 수 있는 견본은 `/design`, 화면 목업은 `/design/login` · `/design/home` · `/design/check-in` · `/design/attendance` 처럼 `src/app/design/(mockup)/` 아래에 있다.
+모두 `src/components/common/` 에 있고 `@/components/common` 에서 가져온다. 눌러 볼 수 있는 견본은 `/design`, 화면 목업은 `/design/login` · `/design/home` · `/design/check-in` · `/design/attendance` · `/design/work` 처럼 `src/app/design/(mockup)/` 아래에 있다.
 
 ### Buttons — `Button`
 - **primary:** 52px · radius 12 · 남보라 바탕 · 흰 글자 15px bold. 화면의 주 동작 하나(출근하기·퇴근하기·로그인).
@@ -258,12 +259,13 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **InfoRow:** radius 18 · 안쪽 16 · 사이 9. 바탕까지 그려진 33px 아이콘(`menu-*.svg`) + 제목 14px semibold + 설명 12px 보조 글자 + 12px 꺾쇠. 카드 전체가 링크.
 - **WorkTimeBar:** #EDF0F6 26px 막대(radius 6). 예정 근무는 막대 높이 전체에 #B6C1D5 점선 + 옅은 빗금, 실제 근무는 위아래 5px 안쪽 #7676E4. 근무 중(`ongoing`)이면 오른쪽 끝이 흐려진다. 아래 4시간 눈금 11px(기본 08~20시).
 - **AttendanceDayCard · DayOffRow:** 출퇴근 현황의 하루 카드(radius 18). `done` 흰 바탕, `today` 연한 남보라 · 남보라 글자, `upcoming` #F9FBFD · 보조 글자. 윗줄 요일 13px bold · 점포 12px · 수정 표시(연필) · 상태 칩(11px bold, 정상 #EAF8F2/#13785E · 지각 #FFF6E5/#956013 · 근무 중 #E1E8FF/남보라). 쉬는 날은 radius 12 한 줄.
+- **StatusChip:** 11px bold 상태 칩(radius 8). `success` 정상 · `warning` 지각·긴급 · `working` 근무 중. 12px 의 Badge 와 다른 칩이다.
 - **PeriodNav:** 「‹ 이전 주 · 기간(16px bold) · 다음 주 ›」 줄. 버튼 15px semibold, 화살표 24px.
 
 ### Tabs & Nav — `SegmentedControl` · `BottomNav` · `WeekSelector`
 - **SegmentedControl:** #EDF0F6 판(radius 10, 안쪽 3, 사이 6) 안에서 고른 칸만 남보라·흰 글자. 칸은 44px · radius 10 · 13px bold, 나머지는 흐린 글자.
-- **BottomNav:** 홈 · 근무 · 알림 · 내 정보. 아이콘 23px + 글자 11px(최소 높이 54), 지금 칸은 남보라 bold, 나머지는 보조 글자. 아이콘은 마스크라 글자색을 따른다. 화면 아래에 붙인다.
-- **WeekSelector:** 7칸(사이 8), 칸마다 82px · radius 12 · #DCE4FF 테두리. 요일 12px · 날짜 16px bold · 근무일 4px 점. 기본은 연한 남보라(#EEF2FF), `muted` 날은 흰 바탕·흐린 글자, 고른 날은 남보라.
+- **BottomNav:** 홈 · 근무 · 알림 · 내 정보. 아이콘 23px + 글자 11px(최소 높이 54), 지금 칸은 남보라 bold, 나머지는 보조 글자. 아이콘은 마스크라 글자색을 따르고, 홈·근무는 지금 칸일 때 채운 아이콘(`activeIcon`)으로 바뀐다. 화면 아래에 붙인다.
+- **WeekSelector:** 7칸(사이 8), 칸마다 82px · radius 12 · #DCE4FF 테두리. 요일 12px · 날짜 16px bold · 근무일 4px 점. 기본은 연한 남보라(#EEF2FF), `muted` 날은 흰 바탕·흐린 글자, 고른 날은 남보라. 근무 시간·휴무를 셋째 줄 10px 글자(`note`)로 쓰면 점 대신 그 글자가 선다.
 
 ### Bottom Sheet — `BottomSheet` · `SheetOption`
 - **BottomSheet:** 네이티브 `<dialog>`. 흰 바탕 · 위 모서리 26 · 위 그림자 · 40×4 손잡이 · 제목 20px bold · 설명 14px · 좌우 24. 뒤 화면 #17253D 38% + 1.5px 흐림. 아래에서 260ms 로 올라오고 200ms 로 내려간다. 뒤 화면·Esc·「닫기」로 닫는다.
