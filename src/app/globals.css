@@ -129,3 +129,59 @@ input:-webkit-autofill:focus {
     }
   }
 }
+
+/*
+  직원앱 화면 이동 슬라이드(design/(mockup)/page-slide.tsx 의 ViewTransition).
+  나가는 화면은 빨리(150ms) 흐려지며 비키고, 들어오는 화면은 그 뒤에 나타나며 60px 를 미끄러진다(320ms).
+*/
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(.nav-forward) {
+  --slide-offset: -60px;
+  animation:
+    150ms ease-in both staff-fade reverse,
+    320ms cubic-bezier(0.23, 1, 0.32, 1) both staff-slide reverse;
+}
+::view-transition-new(.nav-forward) {
+  --slide-offset: 60px;
+  animation:
+    210ms ease-out 100ms both staff-fade,
+    320ms cubic-bezier(0.23, 1, 0.32, 1) both staff-slide;
+}
+::view-transition-old(.nav-back) {
+  --slide-offset: 60px;
+  animation:
+    150ms ease-in both staff-fade reverse,
+    320ms cubic-bezier(0.23, 1, 0.32, 1) both staff-slide reverse;
+}
+::view-transition-new(.nav-back) {
+  --slide-offset: -60px;
+  animation:
+    210ms ease-out 100ms both staff-fade,
+    320ms cubic-bezier(0.23, 1, 0.32, 1) both staff-slide;
+}
+@keyframes staff-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes staff-slide {
+  from {
+    translate: var(--slide-offset);
+  }
+  to {
+    translate: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
