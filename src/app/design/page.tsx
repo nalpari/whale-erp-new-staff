@@ -18,7 +18,7 @@ const FIGMA_FILE = "https://www.figma.com/design/fTjUhrEgrf4HG1G3dCXjpY/";
 
 const BRAND: Swatch[] = [
   { name: "Master Color", hex: "#4c4ddc", usage: "Primary actions, active states, brand identity", dark: true },
-  { name: "Master Inactive", hex: "#ededfb", usage: "Inactive tabs, disabled chips, hover fill" },
+  { name: "Master Inactive", hex: "#ededfb", usage: "Pressed fill, switch off, empty checkbox" },
 ];
 const TEXT: Swatch[] = [
   { name: "Default Text", hex: "#182237", usage: "Headings and high-emphasis body copy", dark: true },
@@ -54,10 +54,10 @@ const SPACING = [4, 6, 8, 14, 16, 18, 24, 30, 52, 76];
 
 const RADIUS = [
   { name: "XS · 8px", value: "8px", usage: "Badges, chips" },
-  { name: "SM · 12px", value: "12px", usage: "Inputs, cards, buttons" },
+  { name: "SM · 12px", value: "12px", usage: "Inputs, buttons, notices" },
   { name: "MD · 14px", value: "14px", usage: "Ghost buttons" },
-  { name: "LG · 16px", value: "16px", usage: "Modals, bottom sheets" },
-  { name: "Full · 9999px", value: "9999px", usage: "Pills, avatar" },
+  { name: "LG · 16px", value: "16px", usage: "Cards" },
+  { name: "Full · 9999px", value: "9999px", usage: "Switch" },
 ];
 
 // mockup 이 있으면 카드가 목업 화면으로 간다(인증 없이 UI 만).
@@ -73,7 +73,7 @@ const SCREENS: { node: string; name: string; mockup?: string }[] = [
 
 const TOKENS = [
   { token: "--color-staff-primary", hex: "#4c4ddc", usage: "Buttons, active states, brand" },
-  { token: "--color-staff-primary-inactive", hex: "#ededfb", usage: "Inactive tab bg, chip fill" },
+  { token: "--color-staff-primary-inactive", hex: "#ededfb", usage: "Pressed fill, switch off, empty checkbox" },
   { token: "--color-staff-text", hex: "#182237", usage: "Headings, primary body" },
   { token: "--color-staff-text-sub", hex: "#526077", usage: "Secondary labels, descriptions" },
   { token: "--color-staff-text-muted", hex: "#69758a", usage: "Captions, helper text" },

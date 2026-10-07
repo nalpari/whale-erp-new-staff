@@ -8,7 +8,7 @@ export type WeekDay = { key: string; weekday: string; date: number; work?: boole
 
 // Figma 02.Main 「이번 주 근무」 날짜 줄(node 9:243): 7칸(사이 8), 칸마다 최소 높이 82 · radius 12 · #DCE4FF 테두리.
 // 요일 12px · 날짜 16px bold · 근무 있는 날은 4px 점(사이 6).
-//   고른 날 — 남보라 바탕 · 흰 글자 · 남보라 그림자
+//   고른 날 — 남보라 바탕 · 흰 글자 · 파란 그림자(#315DF5 16%)
 //   기본 — 연한 남보라 바탕(#EEF2FF) · 보조 글자
 //   muted — 흰 바탕 · 흐린 글자
 // 칸 색(#EEF2FF · #DCE4FF)은 이 줄에만 나와 토큰으로 두지 않는다.

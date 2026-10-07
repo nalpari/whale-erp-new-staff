@@ -97,7 +97,7 @@ typography:
   nano:
     fontFamily: "Pretendard, -apple-system, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
     fontSize: "10px"
-    fontWeight: 500
+    fontWeight: 400
     lineHeight: 1.5
 rounded:
   xs: "8px"
@@ -138,6 +138,7 @@ components:
     rounded: "{rounded.xs}"
     padding: "4px 10px"
     typography: "{typography.caption}"
+    fontWeight: 600
   card:
     backgroundColor: "{colors.surface}"
     rounded: "{rounded.lg}"
@@ -159,32 +160,32 @@ components:
 그래서 관리자 웹(whale-erp-front)과 정반대로 간다 — 누를 것은 크고(52px), 모서리는 둥글고(12~20px), 정보는 카드 하나에 하나씩 담는다.
 
 색은 남보라 한 가지(#4c4ddc)가 끌고 간다. 지금 누를 수 있는 것, 지금 고른 것, 지금 근무 중이라는 사실에만 쓴다.
-그 옅은 판(#ededfb)이 고르지 않은 탭과 아이콘 바탕을 맡고, 나머지는 회청 바탕(#f4f6fa) 위의 흰 카드다.
-홈 맨 위 두 장만 진하다 — 오늘의 근무(남보라)와 급여(짙은 남색). 화면에서 가장 먼저 봐야 할 두 숫자다.
+그 옅은 판(#ededfb)이 누를 때 바탕과 꺼진 스위치·빈 체크칸을 맡고, 나머지는 회청 바탕(#f4f6fa) 위의 흰 카드다.
+진한 카드는 두 장뿐이다 — 홈의 오늘의 근무(남보라)와 급여 화면의 이번 달 실지급액(짙은 남색). 그 화면에서 가장 먼저 봐야 할 숫자다.
 
 **Key Characteristics:**
 - 남보라 한 가지 + 옅은 남보라 판, 나머지는 회청 바탕과 흰 카드
 - 52px 주 버튼·입력칸, 44px 보조 버튼·탭 — 엄지 크기
-- 둥근 모서리 8 / 12 / 14 / 16 / 20 / 알약형
+- 둥근 모서리 8 / 10 / 12 / 14 / 16 / 18 / 20 / 24 / 26 / 알약형
 - Pretendard 400·500·600·700 네 단계
 - 상태는 옅은 바탕 + 같은 계열 글자의 배지로 말한다
 
 ## Colors
 
 ### Primary
-- **남보라** (#4c4ddc, `staff-primary`): 주 버튼, 고른 탭·날짜, 하단 메뉴의 지금 칸, 근무 막대, 오늘의 근무 카드.
-- **옅은 남보라** (#ededfb, `staff-primary-inactive`): 탭 판, 아이콘 칸 바탕, 근무 막대 바탕, 누를 때 바탕.
+- **남보라** (#4c4ddc, `staff-primary`): 주 버튼, 고른 탭·날짜, 하단 메뉴의 지금 칸, 오늘의 근무 카드. 근무 막대의 실제 근무는 한 단계 옅은 #7676E4 다.
+- **옅은 남보라** (#ededfb, `staff-primary-inactive`): 누를 때 바탕, 꺼진 스위치, 빈 체크칸. 탭 판과 근무 막대 바탕은 이보다 회색인 #EDF0F6 이다.
 
 ### Text
 - **기본** (#182237, `staff-text`): 제목과 본문.
-- **보조** (#526077, `staff-text-sub`): 폼 라벨, 설명, 하단 메뉴의 나머지 칸.
-- **흐림** (#69758a, `staff-text-muted`): 안내 문구, 일시, 고르지 않은 탭 칸.
-- **자리표시** (#8993a5, `staff-placeholder`): 입력칸 자리표시, 요일, 눈금, 완료한 TO-DO 제목.
+- **보조** (#526077, `staff-text-sub`): 폼 라벨, 설명, 하단 메뉴의 나머지 칸, 근무 막대 눈금.
+- **흐림** (#69758a, `staff-text-muted`): 안내 문구, 일시, 고르지 않은 탭 칸, 완료한 TO-DO 제목.
+- **자리표시** (#8993a5, `staff-placeholder`): 입력칸 자리표시, 주간 날짜의 `muted` 날.
 
 ### Surface & Border
 - **바탕** (#f4f6fa, `staff-bg`): 화면 바탕.
 - **면** (#ffffff): 카드, 입력칸, 바텀시트.
-- **테두리** (#dbe1eb, `staff-border`): 입력칸·외곽선 버튼·체크칸.
+- **테두리** (#dbe1eb, `staff-border`): 입력칸·외곽선 버튼.
 - **옅은 테두리** (#eff2f6, `staff-border-light`): 카드 테두리와 줄 사이 선.
 - **안내 바탕** (#f5f7fb, `staff-info-bg`): 안내 블록.
 
@@ -209,11 +210,11 @@ components:
 - **Title 1** (700, 22px): 묶음 제목.
 - **Title 2** (700, 18px): 카드 제목, 금액의 "원".
 - **Body Large** (400, 16px): 입력 값, 주 본문. 입력칸은 16px 아래로 내리지 않는다(iOS 확대 방지).
-- **Body** (700, 15px): 버튼, 탭 글자.
-- **Body Small** (600·700, 14px): 카드·TO-DO 제목, 외곽선 버튼, 탭 글자, 날짜 숫자.
-- **Label** (600, 13px): 폼 라벨, 항목 이름.
-- **Caption** (400, 12px): 안내 문구, 일시.
-- **Micro** (400, 11px) · **Nano** (500·700, 10px): 요일·하단 메뉴 글자·근무 막대 눈금·견본 설명(11px), 주간 날짜 셋째 줄(10px)에만.
+- **Body** (700, 15px): 버튼.
+- **Body Small** (600·700, 14px): 카드 제목, 외곽선 버튼.
+- **Label** (600·700, 13px): 폼 라벨, 항목 이름, 탭 글자(700).
+- **Caption** (400, 12px): 안내 문구, 일시, 주간 날짜의 요일.
+- **Micro** (400·700, 11px) · **Nano** (400, 10px): 하단 메뉴 글자·근무 막대 눈금·상태 칩·견본 설명(11px), 주간 날짜 셋째 줄(10px)에만.
 
 ## Layout
 
@@ -230,19 +231,29 @@ components:
 
 ## Elevation & Depth
 
-평평하다. 카드는 그림자 없이 옅은 테두리(#eff2f6)로 바탕과 갈린다. 유일한 그림자는 탭에서 고른 칸이 판 위로 살짝 뜨는 `0 1px 1.5px / 0 1px 1px rgba(0,0,0,0.1)` 이다.
-깊이가 필요하면 진한 카드(남보라·짙은 남색)로 무게를 준다.
+평평하다. 흰 카드는 그림자 없이 옅은 테두리(#eff2f6)로 바탕과 갈린다. 그림자는 떠 있는 것에만 아주 옅게 쓴다.
+
+- 하단 메뉴: 위로 `0 -5px 10px rgba(35,55,82,0.01)`
+- 바텀시트: 위로 `0 -8px 28px rgba(22,25,28,0.16)`
+- 오늘의 근무 카드: `0 9px 23px rgba(49,93,245,0.15)`
+- 주간 날짜의 고른 날: `0 5px 6px rgba(49,93,245,0.16)`
+- 스위치 손잡이: `0 3px 14px rgba(36,56,89,0.02)`
+
+깊이가 더 필요하면 진한 카드(남보라·짙은 남색)로 무게를 준다.
 
 ## Shapes
 
-- **XS 8px:** 배지.
-- **SM 12px:** 입력칸, 주·외곽선 버튼, 탭 칸, 안내 블록.
-- **MD 14px:** 고스트 버튼, 탭 판.
-- **LG 16px:** TO-DO 목록, 바텀시트.
-- **18px:** 홈의 카드(오늘의 근무 · 이번 주 근무 · 오늘 할 일 · 나의 근무 정보).
-- **20px:** 홈의 진한 카드 두 장.
-- **알약형:** 근무 막대, 날짜 원, 상태 칩, 아바타.
-- 그 밖: 아이콘 칸 10px, 체크칸 6px.
+- **XS 8px:** 배지, 상태 칩.
+- **10px:** 탭 판과 탭 칸, 아이콘 칸.
+- **SM 12px:** 입력칸, 주·외곽선 버튼, 안내 블록, 주간 날짜 칸, 시트 선택지.
+- **MD 14px:** 고스트 버튼, 알림 버튼.
+- **LG 16px:** `Card`.
+- **18px:** 홈·근무·출퇴근 현황의 카드(오늘의 근무 · 이번 주 근무 · 나의 근무 정보 · 하루 카드).
+- **20px:** `HeroCard`, 급여 화면의 지난 명세서.
+- **24px:** 급여 화면의 실지급액 카드.
+- **26px:** 바텀시트 위 모서리.
+- **알약형:** 스위치.
+- 그 밖: 근무 막대 6px(안쪽 5px), TO-DO 체크칸 2px.
 
 ## Components
 
@@ -274,12 +285,12 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **PeriodNav:** 「‹ 이전 주 · 기간(16px bold) · 다음 주 ›」 줄. 버튼 15px semibold, 화살표 24px.
 
 ### Tabs & Nav — `SegmentedControl` · `BottomNav` · `WeekSelector`
-- **SegmentedControl:** #EDF0F6 판(radius 10, 안쪽 3, 사이 6) 안에서 고른 칸만 남보라·흰 글자. 칸은 44px · radius 10 · 13px bold, 나머지는 흐린 글자. 칸을 바꾸면 바탕·글자색이 제자리에서 흐려지며 바뀐다(200ms). 탭 내용은 화면 이동과 같은 슬라이드로 바꾼다 — `startTransition` 안에서 `addTransitionType`(오른쪽 탭 nav-forward · 왼쪽 탭 nav-back) 후 상태를 바꾸고, 내용을 `<PageSlide key={tab}>` 로 감싼다.
+- **SegmentedControl:** #EDF0F6 판(radius 10, 안쪽 3, 사이 6) 안에서 고른 칸만 남보라·흰 글자. 칸은 44px · radius 10 · 13px bold, 나머지는 흐린 글자. 칸을 바꾸면 바탕·글자색이 제자리에서 흐려지며 바뀐다(200ms). 탭 내용은 화면 이동과 같은 슬라이드로 바꾼다 — `startTransition` 안에서 `addTransitionType`(오른쪽 탭 nav-forward · 왼쪽 탭 nav-back) 후 상태를 바꾸고, 내용을 `<PageSlide key={tab}>` 로 감싼다. 아래 내용을 바꾸는 탭이면 `panelId` 를 넘기고 내용 쪽에 `id={panelId}` · `role="tabpanel"` · `aria-labelledby={segmentTabId(panelId, tab)}` 를 붙인다. `panelId` 가 없으면 값만 고르는 눌림 버튼(`aria-pressed`) 묶음이다.
 - **BottomNav:** 홈 · 근무 · 급여 · 내 정보(알림은 머리줄 알림 버튼이 맡는다). 급여 아이콘은 Figma 근무지 시트의 급여명세서 아이콘(19px)을 23px 칸에 맞춰 쓴다. 아이콘 23px + 글자 11px(최소 높이 54), 지금 칸은 남보라 bold, 나머지는 보조 글자. 아이콘은 마스크라 글자색을 따르고, 홈·근무는 지금 칸일 때 채운 아이콘(`activeIcon`)으로 바뀐다. 화면 아래에 붙인다.
 - **WeekSelector:** 7칸(사이 8), 칸마다 82px · radius 12 · #DCE4FF 테두리. 요일 12px · 날짜 16px bold · 근무일 4px 점. 기본은 연한 남보라(#EEF2FF), `muted` 날은 흰 바탕·흐린 글자, 고른 날은 남보라. 근무 시간·휴무를 셋째 줄 10px 글자(`note`)로 쓰면 점 대신 그 글자가 선다.
 
 ### Switch — `Switch` · `SwitchRow`
-- **Switch:** 48×28 알약(role=switch). 켜짐 남보라 · 꺼짐 옅은 남보라, 흰 손잡이 22px 가 200ms 로 옮겨 간다. 꺼 둘 수 없는 알림은 잠금(disabled) — 켜짐 상태를 그대로 보이고 50% 로 흐리게 그려 누를 수 없다.
+- **Switch:** 48×28 알약(role=switch). 켜짐 남보라 · 꺼짐 옅은 남보라, 흰 손잡이 22px 가 200ms 로 옮겨 간다. 누르는 칸은 위아래 8px 씩 넓혀 44px 다. 꺼 둘 수 없는 알림은 잠금(disabled) — 켜짐 상태를 그대로 보이고 50% 로 흐리게 그려 누를 수 없다.
 - **SwitchRow:** 설정 한 줄. 위아래 17 · 제목 15px semibold · 설명 12px · 오른쪽 스위치. 목록이 #E8EDF3 선으로 줄을 나눈다.
 
 ### Bottom Sheet — `BottomSheet` · `SheetOption`
@@ -287,12 +298,12 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **SheetOption:** 52px · radius 12 · #E4E8EF 테두리 · 15px semibold. 고른 것은 19px 체크.
 
 ### Header — `TopBar` · `SectionTitle` · `PageHeader`
-- **PageHeader:** 하위 화면 머리줄. 흰 바탕 · 최소 72px · 뒤로(19px) · 제목 18px bold · 오른쪽 아이콘 하나. 아이콘 버튼은 보이는 24px 칸 대신 44px 로 눌린다(-10px 여백).
+- **PageHeader:** 하위 화면 머리줄. 흰 바탕 · 최소 72px · 뒤로(19px) · 제목 18px bold · 오른쪽 아이콘 하나. 뒤로 가기는 보이는 24px 칸 대신 44px 로 눌린다(-10px 여백). 오른쪽 `action` 도 쓰는 쪽이 같은 방식으로 44px 칸을 만들어 넘긴다.
 - **TopBar:** 작은 로고 36px · 점포 이름 버튼(15px bold + 아래 꺾쇠) · 알림 버튼(44px, radius 14, #E9EDF3 테두리, 새 알림 8px 빨간 점 #C24242).
 - **SectionTitle:** 제목 16px bold, 옆에 개수(12px bold 남보라), 오른쪽 끝에 기간·「전체 보기」.
 
 ### TO-DO — `TodoList` · `TodoItem`
-카드 없이 줄만 쌓고 줄 사이는 #E8EDF3 1px 선. 한 줄은 위아래 17 · 사이 12: 체크칸 28px(radius 2, 옅은 남보라 · 완료면 남보라에 흰 체크) · 제목 15px semibold · 일시 12px(기한 지남은 #956013) · 오른쪽 StatusChip(semibold). 완료한 제목은 흐린 글자.
+카드 없이 줄만 쌓고 줄 사이는 #E8EDF3 1px 선. 한 줄은 위아래 17 · 사이 12: 체크칸 28px(radius 2, 옅은 남보라 · 완료면 남보라에 흰 체크, 누르는 칸은 사방 8px 넓혀 44px) · 제목 15px semibold · 일시 12px(기한 지남은 #956013) · 오른쪽 StatusChip(semibold). 완료한 제목은 흐린 글자.
 
 ## Do's and Don'ts
 
@@ -300,7 +311,7 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **Do** 직원앱 화면은 `StaffRoot` 안에 둔다. 루트 `globals.css` 는 계근대(다크) 콘솔이라, 밝은 테마·글꼴·포커스색·자동완성 바탕이 `StaffRoot` 안에서만 바뀐다.
 - **Do** 색은 `--color-staff-*` 토큰에서 가져온다. 배지 색처럼 한 곳에만 나오는 색은 쓰는 자리에 직접 적고 주석을 단다.
 - **Do** 누를 것은 44px 이상으로 둔다. 주 동작은 52px.
-- **Do** 전환은 150~200ms, `cubic-bezier(0.23,1,0.32,1)` 하나로 맞춘다.
+- **Do** 색·누름 전환은 150~200ms, `cubic-bezier(0.23,1,0.32,1)` 하나로 맞춘다. 자리를 옮기는 움직임(바텀시트 260ms, 화면 슬라이드 320ms)은 더 길게 둔다.
 - **Do** 상태 배지에는 늘 글자를 함께 둔다.
 
 ### Don't:
