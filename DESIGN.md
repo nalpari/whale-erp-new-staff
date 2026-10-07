@@ -18,6 +18,11 @@ colors:
   error: "#ef4444"
   navy: "#182237"
 typography:
+  clock:
+    fontFamily: "Pretendard, -apple-system, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
+    fontSize: "42px"
+    fontWeight: 700
+    lineHeight: 1.1
   hero-number:
     fontFamily: "Pretendard, -apple-system, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
     fontSize: "30px"
@@ -185,6 +190,7 @@ components:
 **Font:** Pretendard (저장소에 담은 400·500·600·700, 폴백 -apple-system → Apple SD Gothic Neo → Malgun Gothic). 줄간은 1.5, 자간은 0.
 
 ### Hierarchy
+- **Clock** (700, 42px, 줄간 1.1): 출퇴근 화면의 현재 시각.
 - **Hero Number** (700, 30px, 자간 -0.025em): 오늘의 근무 카드의 근무 시간("09:00 — 18:00") 한 곳.
 - **Sheet Title** (700, 20px): 바텀시트 제목.
 - **Greeting** (700, 26px): 홈 인사말("하은님, 좋은 아침이에요").
@@ -204,6 +210,12 @@ components:
 간격은 4 / 6 / 8 / 14 / 16 / 18 / 24 / 30 / 52 / 76 안에서 고른다 — 8 은 라벨·입력칸·안내 사이, 12 는 아이콘과 글 사이, 16 은 카드 안쪽, 20 은 진한 카드 안쪽과 폼 줄 사이, 24 는 묶음 사이.
 하단 메뉴는 화면 아래에 붙고 `env(safe-area-inset-bottom)` 만큼 비운다.
 
+## Motion
+
+화면을 옮길 때는 방향 있는 슬라이드를 쓴다(React `<ViewTransition>`, `design/(mockup)/page-slide.tsx`).
+더 깊은 화면으로 가는 링크에는 `transitionTypes={["nav-forward"]}`, 돌아가는 링크에는 `["nav-back"]` 을 붙인다(`PageHeader` 의 뒤로 가기는 이미 붙어 있다).
+나가는 화면은 150ms 로 흐려지며 60px 비키고, 들어오는 화면은 100ms 뒤 나타나며 320ms 동안 60px 를 미끄러진다. 방향이 없는 이동(브라우저 뒤로 가기)과 움직임 줄이기 설정에서는 움직이지 않는다.
+
 ## Elevation & Depth
 
 평평하다. 카드는 그림자 없이 옅은 테두리(#eff2f6)로 바탕과 갈린다. 유일한 그림자는 탭에서 고른 칸이 판 위로 살짝 뜨는 `0 1px 1.5px / 0 1px 1px rgba(0,0,0,0.1)` 이다.
@@ -222,7 +234,7 @@ components:
 
 ## Components
 
-모두 `src/components/common/` 에 있고 `@/components/common` 에서 가져온다. 눌러 볼 수 있는 견본은 `/design`, 화면 목업은 `/design/login` · `/design/home` 처럼 `src/app/design/(mockup)/` 아래에 있다.
+모두 `src/components/common/` 에 있고 `@/components/common` 에서 가져온다. 눌러 볼 수 있는 견본은 `/design`, 화면 목업은 `/design/login` · `/design/home` · `/design/check-in` 처럼 `src/app/design/(mockup)/` 아래에 있다.
 
 ### Buttons — `Button`
 - **primary:** 52px · radius 12 · 남보라 바탕 · 흰 글자 15px bold. 화면의 주 동작 하나(출근하기·퇴근하기·로그인).
@@ -255,7 +267,8 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **BottomSheet:** 네이티브 `<dialog>`. 흰 바탕 · 위 모서리 26 · 위 그림자 · 40×4 손잡이 · 제목 20px bold · 설명 14px · 좌우 24. 뒤 화면 #17253D 38% + 1.5px 흐림. 아래에서 260ms 로 올라오고 200ms 로 내려간다. 뒤 화면·Esc·「닫기」로 닫는다.
 - **SheetOption:** 52px · radius 12 · #E4E8EF 테두리 · 15px semibold. 고른 것은 19px 체크.
 
-### Header — `TopBar` · `SectionTitle`
+### Header — `TopBar` · `SectionTitle` · `PageHeader`
+- **PageHeader:** 하위 화면 머리줄. 흰 바탕 · 최소 72px · 뒤로(19px) · 제목 18px bold · 오른쪽 아이콘 하나.
 - **TopBar:** 작은 로고 36px · 점포 이름 버튼(15px bold + 아래 꺾쇠) · 알림 버튼(44px, radius 14, #E9EDF3 테두리, 새 알림 8px 빨간 점 #C24242).
 - **SectionTitle:** 제목 16px bold, 옆에 개수(12px bold 남보라), 오른쪽 끝에 기간·「전체 보기」.
 
