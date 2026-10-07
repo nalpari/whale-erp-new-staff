@@ -209,7 +209,7 @@ components:
 
 ## Components
 
-모두 `src/components/common/` 에 있고 `@/components/common` 에서 가져온다. 눌러 볼 수 있는 견본은 `/design`.
+모두 `src/components/common/` 에 있고 `@/components/common` 에서 가져온다. 눌러 볼 수 있는 견본은 `/design`, 화면 목업은 `/design/login` 처럼 `src/app/design/(mockup)/` 아래에 있다.
 
 ### Buttons — `Button`
 - **primary:** 52px · radius 12 · 남보라 바탕 · 흰 글자 15px bold. 화면의 주 동작 하나(출근하기·퇴근하기·로그인).
@@ -222,7 +222,7 @@ components:
 - **Focus:** 테두리만 남보라. **Error:** 테두리 #ef4444 + 안내 자리에 오류 문구.
 
 ### Notice — `Notice`
-안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 16. 강조할 말은 `<strong>` (기본 글자색 bold).
+안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14. 아이콘은 20px 칸 가운데, 글과 사이 6. 강조할 말은 `<strong>` (기본 글자색 bold).
 
 ### Badges — `Badge`
 radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `progress` 진행 중, `success` 정상·완료, `danger` 지각, `warning` 긴급, `waiting` 대기, `plain` 공유.

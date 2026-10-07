@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-07
+* **Update**: 로그인 화면 목업(`/design/login`)과 폭 100% 목업 레이아웃(`design/(mockup)`)을 [Whale ERP Staff](/whale-erp-staff.md) Layout 에 더했다.
 * **Update**: 직원앱 Figma 디자인 스타일 가이드를 `src/components/common`·`DESIGN.md`·`/design` 으로 옮겨 [Whale ERP Staff](/whale-erp-staff.md) 에 Design 절과 소스 두 개를 더했다.
 
 ## 2026-10-06
