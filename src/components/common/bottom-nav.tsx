@@ -11,23 +11,27 @@ export const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
   { href: "/me", label: "내 정보", icon: "/icons/nav-me.svg" },
 ];
 
-// Figma BottomNav: 흰 바탕 · 위 1px #EFF2F6 · 칸마다 아이콘 20px + 글자 10px(사이 4, 위아래 12).
-// 지금 화면 칸은 브랜드색·bold, 나머지는 흐린 글자·medium. 아이콘은 마스크로 글자색을 따른다.
+// Figma 02.Main 하단 메뉴(node 19:2077): 흰 바탕 · 위 1px #EFF2F6 · 위로 아주 옅은 그림자 · 안쪽 좌우 12 위아래 9.
+// 칸마다 아이콘 23px + 글자 11px(사이 3.5, 최소 높이 54). 지금 칸은 남보라 bold, 나머지는 보조 글자 regular.
+// 아이콘은 마스크로 글자색을 따른다(Figma 가 뒤집어 내보내 flipY).
 export function BottomNav({ current, items = BOTTOM_NAV_ITEMS }: { current: string; items?: BottomNavItem[] }) {
   return (
-    <nav aria-label="주 메뉴" className="flex w-full border-t border-staff-border-light bg-white pb-[env(safe-area-inset-bottom)]">
+    <nav
+      aria-label="주 메뉴"
+      className="flex w-full items-end border-t border-staff-border-light bg-white px-[12px] pt-[9px] pb-[max(9px,env(safe-area-inset-bottom))] shadow-[0_-5px_10px_rgba(35,55,82,0.01)]"
+    >
       {items.map((item) => {
         const on = item.href === current;
         return (
           <Link
-            key={item.href}
+            key={item.label}
             href={item.href}
             aria-current={on ? "page" : undefined}
-            className={`flex flex-1 flex-col items-center gap-[4px] py-[12px] text-[10px] transition-colors duration-150 ease-out ${
-              on ? "font-bold text-staff-primary" : "font-medium text-staff-text-muted"
+            className={`flex min-h-[54px] flex-1 flex-col items-center gap-[3.5px] rounded-[12px] py-[6px] text-[11px] leading-[1.5] transition-colors duration-150 ease-out ${
+              on ? "font-bold text-staff-primary" : "text-staff-text-sub"
             }`}
           >
-            <MaskIcon src={item.icon} size={20} />
+            <MaskIcon src={item.icon} size={23} flipY />
             {item.label}
           </Link>
         );

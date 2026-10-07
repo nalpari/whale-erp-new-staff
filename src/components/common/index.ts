@@ -3,6 +3,8 @@
 export { StaffRoot } from "./staff-root";
 export { MaskIcon } from "./icon";
 export { BrandLogo } from "./brand-logo";
+export { TopBar } from "./top-bar";
+export { SectionTitle } from "./section-title";
 export { Button, type ButtonVariant } from "./button";
 export { TextField } from "./text-field";
 export { Notice } from "./notice";

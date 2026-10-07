@@ -48,13 +48,13 @@ export function NavDemo() {
 }
 
 const WEEK: WeekDay[] = [
-  { key: "09-07", weekday: "월", date: 7, hasSchedule: true },
-  { key: "09-08", weekday: "화", date: 8, hasSchedule: true },
-  { key: "09-09", weekday: "수", date: 9, hasSchedule: true },
-  { key: "09-10", weekday: "목", date: 10, hasSchedule: true },
-  { key: "09-11", weekday: "금", date: 11, hasSchedule: true },
-  { key: "09-12", weekday: "토", date: 12, hasSchedule: true },
-  { key: "09-13", weekday: "일", date: 13 },
+  { key: "09-07", weekday: "월", date: 7 },
+  { key: "09-08", weekday: "화", date: 8, work: true, muted: true },
+  { key: "09-09", weekday: "수", date: 9, work: true },
+  { key: "09-10", weekday: "목", date: 10, work: true },
+  { key: "09-11", weekday: "금", date: 11, work: true },
+  { key: "09-12", weekday: "토", date: 12, work: true },
+  { key: "09-13", weekday: "일", date: 13, muted: true },
 ];
 
 export function WeekDemo() {
