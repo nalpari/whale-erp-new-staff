@@ -259,7 +259,7 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **InfoRow:** radius 18 · 안쪽 16 · 사이 9. 바탕까지 그려진 33px 아이콘(`menu-*.svg`) + 제목 14px semibold + 설명 12px 보조 글자 + 12px 꺾쇠. 카드 전체가 링크.
 - **WorkTimeBar:** #EDF0F6 26px 막대(radius 6). 예정 근무는 막대 높이 전체에 #B6C1D5 점선 + 옅은 빗금, 실제 근무는 위아래 5px 안쪽 #7676E4. 근무 중(`ongoing`)이면 오른쪽 끝이 흐려진다. 아래 4시간 눈금 11px(기본 08~20시).
 - **AttendanceDayCard · DayOffRow:** 출퇴근 현황의 하루 카드(radius 18). `done` 흰 바탕, `today` 연한 남보라 · 남보라 글자, `upcoming` #F9FBFD · 보조 글자. 윗줄 요일 13px bold · 점포 12px · 수정 표시(연필) · 상태 칩(11px bold, 정상 #EAF8F2/#13785E · 지각 #FFF6E5/#956013 · 근무 중 #E1E8FF/남보라). 쉬는 날은 radius 12 한 줄.
-- **StatusChip:** 11px bold 상태 칩(radius 8). `success` 정상 · `warning` 지각·긴급 · `working` 근무 중. 12px 의 Badge 와 다른 칩이다.
+- **StatusChip:** 11px 상태 칩(radius 8). `success` 정상·완료 · `warning` 지각·긴급 · `working` 근무 중 · `progress` 진행 중 · `neutral` 대기·공유(#F9FBFD + 옅은 테두리). 카드에서는 bold, TO-DO 줄에서는 `weight="semibold"`. 12px 의 Badge 와 다른 칩이다.
 - **PeriodNav:** 「‹ 이전 주 · 기간(16px bold) · 다음 주 ›」 줄. 버튼 15px semibold, 화살표 24px.
 
 ### Tabs & Nav — `SegmentedControl` · `BottomNav` · `WeekSelector`
@@ -277,7 +277,7 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **SectionTitle:** 제목 16px bold, 옆에 개수(12px bold 남보라), 오른쪽 끝에 기간·「전체 보기」.
 
 ### TO-DO — `TodoList` · `TodoItem`
-radius 16 목록, 줄 사이 옅은 선. 체크칸 24px(radius 6, 2px 테두리) · 제목 14px semibold · 일시 12px · 오른쪽 배지. 완료하면 체크칸이 남보라로 차고 제목은 자리표시 색 + 취소선.
+카드 없이 줄만 쌓고 줄 사이는 #E8EDF3 1px 선. 한 줄은 위아래 17 · 사이 12: 체크칸 28px(radius 2, 옅은 남보라 · 완료면 남보라에 흰 체크) · 제목 15px semibold · 일시 12px(기한 지남은 #956013) · 오른쪽 StatusChip(semibold). 완료한 제목은 흐린 글자.
 
 ## Do's and Don'ts
 
