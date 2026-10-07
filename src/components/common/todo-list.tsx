@@ -12,6 +12,7 @@ export function TodoList({ children }: { children: ReactNode }) {
 // 한 줄(node 17:612): 위아래 17 · 사이 12. 체크칸 28px(radius 2, #EDEDFB) · 제목 15px semibold · 아래 12px 일시 · 오른쪽 칩들(사이 4).
 // 완료하면 체크칸이 남보라로 차고 제목은 흐린 글자가 된다. overdue(기한 지남)면 일시를 갈색(#956013)으로.
 // 체크 표시는 Figma 의 두 그림(빈 칸·찬 칸)을 그대로 쓴다. onToggle 이 없으면 보기 전용이다.
+// 보이는 칸은 28px 이지만 체크박스는 사방 8px 더 넓혀 44px 로 눌린다.
 export function TodoItem({
   title,
   meta,
@@ -40,7 +41,7 @@ export function TodoItem({
           onChange={(e) => onToggle?.(e.target.checked)}
           disabled={!onToggle}
           aria-label={`${title} 완료`}
-          className="absolute inset-0 appearance-none rounded-[2px]"
+          className="absolute -inset-[8px] appearance-none rounded-[10px]"
         />
         <Image src={done ? "/icons/todo-check-on.svg" : "/icons/todo-check-off.svg"} alt="" width={12} height={9} className="pointer-events-none" />
       </label>

@@ -26,7 +26,7 @@ export function TopBar({
           type="button"
           onClick={onStoreClick}
           aria-label={`점포 바꾸기, 지금 ${store}`}
-          className="flex max-w-full items-center gap-[7px] py-[10px] text-[15px] leading-[1.5] font-bold text-staff-text"
+          className="flex min-h-[44px] max-w-full items-center gap-[7px] py-[10px] text-[15px] leading-[1.5] font-bold text-staff-text"
         >
           <span className="truncate">{store}</span>
           <Image src="/icons/chevron-down.svg" alt="" width={15} height={15} className="-scale-y-100" />

@@ -77,7 +77,7 @@ export function WorkView() {
                   <br />
                   스케줄은 정상 등록됩니다.
                 </p>
-                <Link href="#" className="shrink-0 text-[13px] font-semibold">
+                <Link href="#" className="-m-[12px] flex min-h-[44px] shrink-0 items-center p-[12px] text-[13px] font-semibold">
                   확인
                 </Link>
               </div>

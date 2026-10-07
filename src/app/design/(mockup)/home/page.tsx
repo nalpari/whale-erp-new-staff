@@ -62,7 +62,7 @@ export default function MockupHomePage() {
 
             <section className="flex flex-col gap-[12px]">
               <SectionTitle title="오늘 할 일" count={1}>
-                <Link href="#" className="flex items-center text-[12px] text-staff-text-sub">
+                <Link href="#" className="-my-[13px] flex min-h-[44px] items-center text-[12px] text-staff-text-sub">
                   전체 보기
                   <Image src="/icons/chevron-right-small.svg" alt="" width={11} height={11} className="-scale-y-100" />
                 </Link>

@@ -27,7 +27,7 @@ export default function MockupPayPage() {
             </p>
             <div className="flex justify-between gap-[8px] border-t border-white/13 pt-[15px] text-[12px] text-[#d1daeb]">
               <span>9월 10일 도착</span>
-              <Link href="#" className="shrink-0">
+              <Link href="#" className="-my-[13px] flex min-h-[44px] shrink-0 items-center">
                 명세서 확인하기 →
               </Link>
             </div>
