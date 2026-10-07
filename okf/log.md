@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-07
+* **Update**: 공통 바텀시트(`BottomSheet`·`SheetOption`)를 더하고 홈 목업의 점포 이름에 근무지 고르기 시트를 붙였다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 홈 화면 목업(`/design/home`)을 더하고 하단 메뉴·근무 정보 줄·주간 날짜를 화면 디자인에 맞췄다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 로그인 화면 목업(`/design/login`)과 폭 100% 목업 레이아웃(`design/(mockup)`)을 [Whale ERP Staff](/whale-erp-staff.md) Layout 에 더했다.
 * **Update**: 직원앱 Figma 디자인 스타일 가이드를 `src/components/common`·`DESIGN.md`·`/design` 으로 옮겨 [Whale ERP Staff](/whale-erp-staff.md) 에 Design 절과 소스 두 개를 더했다.

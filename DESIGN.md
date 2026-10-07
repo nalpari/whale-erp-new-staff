@@ -24,6 +24,11 @@ typography:
     fontWeight: 700
     lineHeight: 1.5
     letterSpacing: "-0.025em"
+  sheet-title:
+    fontFamily: "Pretendard, -apple-system, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
+    fontSize: "20px"
+    fontWeight: 700
+    lineHeight: 1.5
   greeting:
     fontFamily: "Pretendard, -apple-system, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
     fontSize: "26px"
@@ -181,6 +186,7 @@ components:
 
 ### Hierarchy
 - **Hero Number** (700, 30px, 자간 -0.025em): 오늘의 근무 카드의 근무 시간("09:00 — 18:00") 한 곳.
+- **Sheet Title** (700, 20px): 바텀시트 제목.
 - **Greeting** (700, 26px): 홈 인사말("하은님, 좋은 아침이에요").
 - **Display** (700, 28px): 로그인·인사말 같은 화면 첫 제목. 급여 금액.
 - **Title 1** (700, 22px): 묶음 제목.
@@ -244,6 +250,10 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **SegmentedControl:** 옅은 남보라 판(radius 14, 안쪽 4) 안에서 고른 칸만 남보라(radius 12, 44px).
 - **BottomNav:** 홈 · 근무 · 알림 · 내 정보. 아이콘 23px + 글자 11px(최소 높이 54), 지금 칸은 남보라 bold, 나머지는 보조 글자. 아이콘은 마스크라 글자색을 따른다. 화면 아래에 붙인다.
 - **WeekSelector:** 7칸(사이 8), 칸마다 82px · radius 12 · #DCE4FF 테두리. 요일 12px · 날짜 16px bold · 근무일 4px 점. 기본은 연한 남보라(#EEF2FF), `muted` 날은 흰 바탕·흐린 글자, 고른 날은 남보라.
+
+### Bottom Sheet — `BottomSheet` · `SheetOption`
+- **BottomSheet:** 네이티브 `<dialog>`. 흰 바탕 · 위 모서리 26 · 위 그림자 · 40×4 손잡이 · 제목 20px bold · 설명 14px · 좌우 24. 뒤 화면 #17253D 38% + 1.5px 흐림. 아래에서 260ms 로 올라오고 200ms 로 내려간다. 뒤 화면·Esc·「닫기」로 닫는다.
+- **SheetOption:** 52px · radius 12 · #E4E8EF 테두리 · 15px semibold. 고른 것은 19px 체크.
 
 ### Header — `TopBar` · `SectionTitle`
 - **TopBar:** 작은 로고 36px · 점포 이름 버튼(15px bold + 아래 꺾쇠) · 알림 버튼(44px, radius 14, #E9EDF3 테두리, 새 알림 8px 빨간 점 #C24242).
