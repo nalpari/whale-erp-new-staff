@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { addTransitionType, startTransition, useState } from "react";
-import { SegmentedControl, StatusChip, WeekSelector, type WeekDay } from "@/components/common";
+import { addTransitionType, startTransition, useId, useState } from "react";
+import { SegmentedControl, segmentTabId, StatusChip, WeekSelector, type WeekDay } from "@/components/common";
 import { STORES } from "../mockup-nav";
 import { PageSlide } from "../page-slide";
 import { StoreSheet } from "../store-sheet";
@@ -36,11 +36,13 @@ export function WorkView() {
   const [store, setStore] = useState(STORES[0]);
   const [sheet, setSheet] = useState(false);
   const [day, setDay] = useState("09-10");
+  const panelId = useId();
 
   return (
     <main className="flex flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px] leading-[1.5]">
       <SegmentedControl
         label="보기"
+        panelId={panelId}
         value={tab}
         onChange={setTab}
         items={[
@@ -51,7 +53,7 @@ export function WorkView() {
 
       {/* key 가 바뀌면 옛 내용은 나가고(exit) 새 내용이 들어온다(enter) — 화면 이동 슬라이드와 같은 움직임. */}
       <PageSlide key={tab}>
-        <div className="flex flex-col gap-[20px]">
+        <div id={panelId} role="tabpanel" aria-labelledby={segmentTabId(panelId, tab)} className="flex flex-col gap-[20px]">
           {tab === "todo" ? (
             <TodoPanel />
           ) : (

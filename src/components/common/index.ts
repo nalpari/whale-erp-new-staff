@@ -18,7 +18,7 @@ export { Badge, type BadgeTone } from "./badge";
 export { Card, HeroCard } from "./card";
 export { InfoRow } from "./info-row";
 export { WorkTimeBar } from "./work-time-bar";
-export { SegmentedControl } from "./segmented-control";
+export { SegmentedControl, segmentTabId } from "./segmented-control";
 export { BottomNav, BOTTOM_NAV_ITEMS, type BottomNavItem } from "./bottom-nav";
 export { WeekSelector, type WeekDay } from "./week-selector";
 export { TodoList, TodoItem } from "./todo-list";

@@ -29,7 +29,7 @@ export function TodoPanel() {
   const count = (s: Status) => TODOS.filter((t) => statusOf(t) === s).length;
 
   return (
-    <div role="tabpanel" className="flex flex-col gap-[20px]">
+    <div className="flex flex-col gap-[20px]">
       <p className="flex gap-[14px] text-[12px] leading-[1.5] text-staff-text-muted">
         <span>
           완료 <b className="text-[#13785e]">{count("done")}</b>
