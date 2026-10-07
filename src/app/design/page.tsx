@@ -67,7 +67,7 @@ const SCREENS: { node: string; name: string; mockup?: string }[] = [
   { node: "3:1965", name: "로그인", mockup: "/design/login" },
   { node: "1:893", name: "TO-DO" },
   { node: "12:1233", name: "출퇴근 현황", mockup: "/design/attendance" },
-  { node: "1:1209", name: "급여" },
+  { node: "17:825", name: "급여", mockup: "/design/pay" },
   { node: "12:756", name: "출퇴근 (GPS)", mockup: "/design/check-in" },
 ];
 
