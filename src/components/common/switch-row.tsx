@@ -4,7 +4,8 @@ import { useId } from "react";
 import { EASE_OUT } from "./theme";
 
 // Figma 09.알림설정 스위치(node 17:1248): 48×28 알약. 켜짐은 남보라 + 흰 손잡이 오른쪽, 꺼짐은 옅은 남보라 + 손잡이 왼쪽.
-// 손잡이 22px · 안쪽 3px · 아주 옅은 그림자. 잠긴 스위치(disabled)는 Figma 처럼 옅은 판으로 그리고 누를 수 없다.
+// 손잡이 22px · 안쪽 3px · 아주 옅은 그림자. 잠긴 스위치(disabled)는 켜짐·꺼짐을 그대로 보여 주고 흐리게(50%) 그려 누를 수 없게 한다.
+// (Figma 는 잠긴 「항상 켜짐」을 옅은 꺼짐 모양으로 그렸으나, 화면과 읽기 도구가 서로 다른 상태를 말하게 되어 바꿨다.)
 export function Switch({
   checked,
   onChange,
@@ -18,7 +19,6 @@ export function Switch({
   label: string;
   describedBy?: string;
 }) {
-  const on = checked && !disabled;
   return (
     <button
       type="button"
@@ -28,10 +28,10 @@ export function Switch({
       aria-describedby={describedBy}
       disabled={disabled}
       onClick={() => onChange?.(!checked)}
-      className={`relative h-[28px] w-[48px] shrink-0 rounded-full transition-colors duration-200 ${EASE_OUT} ${on ? "bg-staff-primary" : "bg-staff-primary-inactive"}`}
+      className={`relative h-[28px] w-[48px] shrink-0 rounded-full transition-colors duration-200 ${EASE_OUT} ${checked ? "bg-staff-primary" : "bg-staff-primary-inactive"} disabled:opacity-50`}
     >
       <span
-        className={`absolute top-[3px] left-[3px] size-[22px] rounded-full bg-white shadow-[0_3px_14px_rgba(36,56,89,0.02)] transition-transform duration-200 ${EASE_OUT} ${on ? "translate-x-[20px]" : ""}`}
+        className={`absolute top-[3px] left-[3px] size-[22px] rounded-full bg-white shadow-[0_3px_14px_rgba(36,56,89,0.02)] transition-transform duration-200 ${EASE_OUT} ${checked ? "translate-x-[20px]" : ""}`}
       />
     </button>
   );
