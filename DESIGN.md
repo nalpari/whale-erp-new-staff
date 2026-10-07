@@ -24,6 +24,11 @@ typography:
     fontWeight: 700
     lineHeight: 1.5
     letterSpacing: "-0.025em"
+  greeting:
+    fontFamily: "Pretendard, -apple-system, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
+    fontSize: "26px"
+    fontWeight: 700
+    lineHeight: 1.5
   display:
     fontFamily: "Pretendard, -apple-system, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
     fontSize: "28px"
@@ -176,6 +181,7 @@ components:
 
 ### Hierarchy
 - **Hero Number** (700, 30px, 자간 -0.025em): 오늘의 근무 카드의 근무 시간("09:00 — 18:00") 한 곳.
+- **Greeting** (700, 26px): 홈 인사말("하은님, 좋은 아침이에요").
 - **Display** (700, 28px): 로그인·인사말 같은 화면 첫 제목. 급여 금액.
 - **Title 1** (700, 22px): 묶음 제목.
 - **Title 2** (700, 18px): 카드 제목, 금액의 "원".
@@ -202,14 +208,15 @@ components:
 - **XS 8px:** 배지.
 - **SM 12px:** 입력칸, 주·외곽선 버튼, 탭 칸, 안내 블록.
 - **MD 14px:** 고스트 버튼, 탭 판.
-- **LG 16px:** 카드, TO-DO 목록, 바텀시트.
+- **LG 16px:** TO-DO 목록, 바텀시트.
+- **18px:** 홈의 카드(오늘의 근무 · 이번 주 근무 · 오늘 할 일 · 나의 근무 정보).
 - **20px:** 홈의 진한 카드 두 장.
 - **알약형:** 근무 막대, 날짜 원, 상태 칩, 아바타.
 - 그 밖: 아이콘 칸 10px, 체크칸 6px.
 
 ## Components
 
-모두 `src/components/common/` 에 있고 `@/components/common` 에서 가져온다. 눌러 볼 수 있는 견본은 `/design`, 화면 목업은 `/design/login` 처럼 `src/app/design/(mockup)/` 아래에 있다.
+모두 `src/components/common/` 에 있고 `@/components/common` 에서 가져온다. 눌러 볼 수 있는 견본은 `/design`, 화면 목업은 `/design/login` · `/design/home` 처럼 `src/app/design/(mockup)/` 아래에 있다.
 
 ### Buttons — `Button`
 - **primary:** 52px · radius 12 · 남보라 바탕 · 흰 글자 15px bold. 화면의 주 동작 하나(출근하기·퇴근하기·로그인).
@@ -230,13 +237,17 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 ### Cards — `Card` · `HeroCard` · `InfoRow` · `WorkTimeBar`
 - **Card:** 흰 바탕 · 옅은 테두리 · radius 16 · 안쪽 16.
 - **HeroCard:** radius 20 · 안쪽 20 · 흰 글자. `primary`(오늘의 근무) / `navy`(급여). 안쪽 보조 글자는 흰색에 투명도 60~80%, 버튼은 흰색 15% 바탕 + 20% 테두리.
-- **InfoRow:** 36px 아이콘 칸(radius 10, 옅은 남보라) + 제목 14px semibold + 설명 12px + 꺾쇠. 카드 전체가 링크.
+- **InfoRow:** radius 18 · 안쪽 16 · 사이 9. 바탕까지 그려진 33px 아이콘(`menu-*.svg`) + 제목 14px semibold + 설명 12px 보조 글자 + 12px 꺾쇠. 카드 전체가 링크.
 - **WorkTimeBar:** 12px 알약 막대, 근무 구간을 남보라로 칠하고 아래에 4시간 눈금(기본 08~20시).
 
 ### Tabs & Nav — `SegmentedControl` · `BottomNav` · `WeekSelector`
 - **SegmentedControl:** 옅은 남보라 판(radius 14, 안쪽 4) 안에서 고른 칸만 남보라(radius 12, 44px).
-- **BottomNav:** 홈 · 근무 · 알림 · 내 정보. 아이콘 20px + 글자 10px, 지금 칸은 남보라 bold. 아이콘은 마스크라 글자색을 따른다.
-- **WeekSelector:** 7칸. 요일 11px 아래 36px 원 날짜, 근무 있는 날은 4px 점, 고른 날은 남보라 원.
+- **BottomNav:** 홈 · 근무 · 알림 · 내 정보. 아이콘 23px + 글자 11px(최소 높이 54), 지금 칸은 남보라 bold, 나머지는 보조 글자. 아이콘은 마스크라 글자색을 따른다. 화면 아래에 붙인다.
+- **WeekSelector:** 7칸(사이 8), 칸마다 82px · radius 12 · #DCE4FF 테두리. 요일 12px · 날짜 16px bold · 근무일 4px 점. 기본은 연한 남보라(#EEF2FF), `muted` 날은 흰 바탕·흐린 글자, 고른 날은 남보라.
+
+### Header — `TopBar` · `SectionTitle`
+- **TopBar:** 작은 로고 36px · 점포 이름 버튼(15px bold + 아래 꺾쇠) · 알림 버튼(44px, radius 14, #E9EDF3 테두리, 새 알림 8px 빨간 점 #C24242).
+- **SectionTitle:** 제목 16px bold, 옆에 개수(12px bold 남보라), 오른쪽 끝에 기간·「전체 보기」.
 
 ### TO-DO — `TodoList` · `TodoItem`
 radius 16 목록, 줄 사이 옅은 선. 체크칸 24px(radius 6, 2px 테두리) · 제목 14px semibold · 일시 12px · 오른쪽 배지. 완료하면 체크칸이 남보라로 차고 제목은 자리표시 색 + 취소선.
