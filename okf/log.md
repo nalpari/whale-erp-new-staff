@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-10-07
+* **Update**: `2026-09-30-네이밍-규칙.md` 「고객지원 · 알림」의 알림 템플릿 식별자(알림 템플릿 · 발송 채널 4종 · 템플릿 코드 · 사용 여부 · 변수 목록 · 알림 유형 · 발송 용도)와 `NOTIFICATION_TYPE`·`SEND_PURPOSE` 코드값 표를 [Naming](/conventions/naming.md) 에 옮겼다. 템플릿 코드는 등록 때 기본값을 채우고 플랫폼 운영자가 고칠 수 있다.
+
 ## 2026-10-06
 * **Update**: `2026-09-30-네이밍-규칙.md` 「화면 문구」 줄의 대상을 「front·staff」로 넓힌 것을 [Naming](/conventions/naming.md) 에 맞췄다.
 * **Update**: `2026-09-30-네이밍-규칙.md` FRONT 표의 「화면 문구」 줄을 [Naming](/conventions/naming.md) 에 맞췄다 — enum 한글은 `getEnum(name)` 의 label 을 쓰고 상수 대응표를 두지 않는다.
