@@ -66,7 +66,7 @@ const SCREENS: { node: string; name: string; mockup?: string }[] = [
   { node: "1:252", name: "매장 선택 (Bottom Sheet)" },
   { node: "3:1965", name: "로그인", mockup: "/design/login" },
   { node: "1:893", name: "TO-DO" },
-  { node: "1:1097", name: "출퇴근 현황" },
+  { node: "12:1233", name: "출퇴근 현황", mockup: "/design/attendance" },
   { node: "1:1209", name: "급여" },
   { node: "12:756", name: "출퇴근 (GPS)", mockup: "/design/check-in" },
 ];
@@ -307,7 +307,7 @@ export default function DesignPage() {
                   <Badge tone="success">정상</Badge>
                 </div>
               </div>
-              <WorkTimeBar checkIn="08:58" checkOut="18:00" />
+              <WorkTimeBar schedule={{ start: "09:00", end: "18:00" }} worked={{ start: "08:58", end: "18:00" }} />
               <p className="pt-[8px] text-[12px] text-staff-text-sub">출근 08:58 · 퇴근 18:00</p>
             </Card>
           </div>
@@ -320,7 +320,7 @@ export default function DesignPage() {
             <GuideLabel small>Segmented Control</GuideLabel>
             <GuideBox padding="p-[16px]">
               <SegmentedDemo />
-              <p className="pt-[12px] text-[11px] text-staff-text-muted">bg #EDEDFB · active bg #4C4DDC · radius 12/14px</p>
+              <p className="pt-[12px] text-[11px] text-staff-text-muted">bg #EDF0F6 · active bg #4C4DDC · radius 10px</p>
             </GuideBox>
           </div>
           <div className="flex flex-col gap-[12px]">

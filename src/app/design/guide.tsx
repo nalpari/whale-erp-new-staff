@@ -7,6 +7,7 @@ export const MOCKUP_LINKS = [
   { href: "/design/login", label: "로그인", node: "3:1965" },
   { href: "/design/home", label: "홈", node: "8:3" },
   { href: "/design/check-in", label: "출퇴근 (GPS)", node: "12:756" },
+  { href: "/design/attendance", label: "출퇴근 현황", node: "12:1233" },
 ];
 
 // 가이드 맨 위 목업 표: 화면 · 경로 · Figma 노드. 줄 전체가 아니라 화면 이름이 링크다.
