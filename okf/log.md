@@ -13,6 +13,7 @@
 * **Update**: 홈 화면 목업(`/design/home`)을 더하고 하단 메뉴·근무 정보 줄·주간 날짜를 화면 디자인에 맞췄다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 로그인 화면 목업(`/design/login`)과 폭 100% 목업 레이아웃(`design/(mockup)`)을 [Whale ERP Staff](/whale-erp-staff.md) Layout 에 더했다.
 * **Update**: 직원앱 Figma 디자인 스타일 가이드를 `src/components/common`·`DESIGN.md`·`/design` 으로 옮겨 [Whale ERP Staff](/whale-erp-staff.md) 에 Design 절과 소스 두 개를 더했다.
+* **Update**: `2026-09-30-네이밍-규칙.md` 「고객지원 · 알림」의 알림 템플릿 식별자(알림 템플릿 · 발송 채널 4종 · 템플릿 코드 · 사용 여부 · 변수 목록 · 알림 유형 · 발송 용도)와 `NOTIFICATION_TYPE`·`SEND_PURPOSE` 코드값 표를 [Naming](/conventions/naming.md) 에 옮겼다. 템플릿 코드는 등록 때 기본값을 채우고 플랫폼 운영자가 고칠 수 있다.
 
 ## 2026-10-06
 * **Update**: `2026-09-30-네이밍-규칙.md` 「화면 문구」 줄의 대상을 「front·staff」로 넓힌 것을 [Naming](/conventions/naming.md) 에 맞췄다.
