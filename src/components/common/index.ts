@@ -5,6 +5,7 @@ export { MaskIcon } from "./icon";
 export { BrandLogo } from "./brand-logo";
 export { TopBar } from "./top-bar";
 export { SectionTitle } from "./section-title";
+export { PageHeader } from "./page-header";
 export { BottomSheet, SheetOption } from "./bottom-sheet";
 export { Button, type ButtonVariant } from "./button";
 export { TextField } from "./text-field";

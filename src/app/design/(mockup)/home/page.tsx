@@ -42,7 +42,8 @@ export default function MockupHomePage() {
               휴게 60분 <span className="text-[11px]">·</span> 총 8시간 근무
             </p>
             <Link
-              href="#"
+              href="/design/check-in"
+             
               className="flex min-h-[48px] items-center justify-center gap-[8px] rounded-[12px] bg-white px-[18px] text-[15px] font-bold text-staff-primary transition-colors duration-150 ease-out active:bg-staff-primary-inactive"
             >
               퇴근하기
