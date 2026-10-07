@@ -2,8 +2,7 @@ import Image from "next/image";
 import { BrandLogo, Button, Notice, TextField } from "@/components/common";
 
 // Figma 01.Login(node 3:1965). 목업이라 실제 로그인은 하지 않고 다음 화면으로 넘어간다.
-// 홈 목업이 생기기 전까지 다음 화면은 가이드 첫 화면이다. 홈을 만들면 /design/home 으로 바꾼다.
-const NEXT = "/design";
+const NEXT = "/design/home";
 
 export default function MockupLoginPage() {
   return (

@@ -62,7 +62,7 @@ const RADIUS = [
 
 // mockup 이 있으면 카드가 목업 화면으로 간다(인증 없이 UI 만).
 const SCREENS: { node: string; name: string; mockup?: string }[] = [
-  { node: "1:100", name: "홈 대시보드" },
+  { node: "8:3", name: "홈 대시보드", mockup: "/design/home" },
   { node: "1:252", name: "매장 선택 (Bottom Sheet)" },
   { node: "3:1965", name: "로그인", mockup: "/design/login" },
   { node: "1:893", name: "TO-DO" },
@@ -295,7 +295,7 @@ export default function DesignPage() {
           </div>
           <div className="flex flex-col gap-[12px]">
             <GuideLabel small>Info Row Card</GuideLabel>
-            <InfoRow href="#" icon="/icons/document.svg" title="급여명세서" description="8월 명세서가 도착했어요" />
+            <InfoRow href="#" icon="/icons/menu-payslip.svg" title="급여명세서" description="8월 명세서가 도착했어요" />
           </div>
           <div className="flex flex-col gap-[12px]">
             <GuideLabel small>Attendance Time Bar</GuideLabel>

@@ -3,22 +3,49 @@ import type { ReactNode } from "react";
 
 // 화면 목업 링크. 목업을 하나 만들 때마다 여기에 한 줄 더하고, page.tsx SCREENS 의 mockup 도 채운다.
 // 목업은 design/(mockup)/ 아래에 두고 인증 없이 UI 만 보여 준다.
-export const MOCKUP_LINKS = [{ href: "/design/login", label: "로그인" }];
+export const MOCKUP_LINKS = [
+  { href: "/design/login", label: "로그인", node: "3:1965" },
+  { href: "/design/home", label: "홈", node: "8:3" },
+];
 
-// 가이드 맨 위 링크 줄.
+// 가이드 맨 위 목업 표: 화면 · 경로 · Figma 노드. 줄 전체가 아니라 화면 이름이 링크다.
 export function MockupLinks() {
   return (
-    <nav aria-label="화면 목업" className="flex flex-wrap items-center gap-[8px] pb-[24px]">
-      <span className="text-[12px] font-semibold tracking-[0.1em] text-staff-text-muted uppercase">Mockups</span>
-      {MOCKUP_LINKS.map((m) => (
-        <Link
-          key={m.href}
-          href={m.href}
-          className="rounded-full bg-staff-primary-inactive px-[12px] py-[6px] text-[13px] font-semibold text-staff-primary transition-colors duration-150 ease-out hover:bg-staff-primary hover:text-white"
-        >
-          {m.label} →
-        </Link>
-      ))}
+    <nav aria-label="화면 목업" className="pb-[32px]">
+      <h2 className="pb-[12px] text-[12px] font-semibold tracking-[0.1em] text-staff-text-muted uppercase">Mockups</h2>
+      <div className="overflow-x-auto rounded-[12px] border border-staff-border-light bg-white">
+        <table className="w-full min-w-[420px] text-left text-[13px]">
+          <thead>
+            <tr className="border-b border-staff-border-light text-staff-text-muted">
+              <th className="px-[16px] py-[12px] font-semibold">화면</th>
+              <th className="px-[16px] py-[12px] font-semibold">경로</th>
+              <th className="px-[16px] py-[12px] font-semibold">Figma</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-staff-border-light">
+            {MOCKUP_LINKS.map((m) => (
+              <tr key={m.href}>
+                <td className="px-[16px] py-[12px]">
+                  <Link href={m.href} className="font-semibold text-staff-primary hover:underline">
+                    {m.label} →
+                  </Link>
+                </td>
+                <td className="px-[16px] py-[12px] font-staff-code text-staff-text-sub">{m.href}</td>
+                <td className="px-[16px] py-[12px]">
+                  <a
+                    href={`https://www.figma.com/design/fTjUhrEgrf4HG1G3dCXjpY/?node-id=${m.node.replace(":", "-")}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-staff-code text-staff-text-sub hover:text-staff-primary hover:underline"
+                  >
+                    {m.node}
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </nav>
   );
 }
