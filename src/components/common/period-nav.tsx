@@ -15,17 +15,17 @@ export function PeriodNav({
   onPrev?: () => void;
   onNext?: () => void;
 }) {
-  const btn = "flex min-h-[44px] items-center text-[15px] font-semibold text-staff-text-sub transition-colors duration-150 ease-out active:text-staff-text";
+  const buttonClass = "flex min-h-[44px] items-center text-[15px] font-semibold text-staff-text-sub transition-colors duration-150 ease-out active:text-staff-text";
   return (
     <div className="flex w-full items-center gap-[8px] leading-[1.5]">
       <div className="min-w-0 flex-1">
-        <button type="button" onClick={onPrev} className={btn}>
+        <button type="button" onClick={onPrev} className={buttonClass}>
           <Image src="/icons/chevron-left-24.svg" alt="" width={24} height={24} className="-scale-y-100" />
           {prevLabel}
         </button>
       </div>
       <p className="shrink-0 text-[16px] font-bold text-staff-text">{label}</p>
-      <button type="button" onClick={onNext} className={`${btn} shrink-0 justify-end gap-[2px]`}>
+      <button type="button" onClick={onNext} className={`${buttonClass} shrink-0 justify-end gap-[2px]`}>
         {nextLabel}
         <Image src="/icons/chevron-right-24.svg" alt="" width={24} height={24} className="-scale-y-100" />
       </button>

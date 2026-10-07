@@ -27,8 +27,8 @@ export function WorkTimeBar({
   to?: number;
 }) {
   const span = (to - from) * 60;
-  const pos = (time: string) => Math.min(Math.max(((toMinutes(time) - from * 60) / span) * 100, 0), 100);
-  const place = (r: Range) => ({ left: `${pos(r.start)}%`, right: `${100 - pos(r.end)}%` });
+  const position = (time: string) => Math.min(Math.max(((toMinutes(time) - from * 60) / span) * 100, 0), 100);
+  const place = (r: Range) => ({ left: `${position(r.start)}%`, right: `${100 - position(r.end)}%` });
   const ticks = Array.from({ length: Math.floor((to - from) / 4) + 1 }, (_, i) => from + i * 4);
   const label = [schedule && `예정 ${schedule.start}–${schedule.end}`, worked && `근무 ${worked.start}–${ongoing ? "진행 중" : worked.end}`]
     .filter(Boolean)
