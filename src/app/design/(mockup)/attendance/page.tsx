@@ -15,7 +15,7 @@ export default function MockupAttendancePage() {
           title="출퇴근 현황"
           backHref="/design/home"
           action={
-            <Link href="#" aria-label="출퇴근 기록" className="flex size-[24px] shrink-0 items-center justify-center">
+            <Link href="#" aria-label="출퇴근 기록" className="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">
               <Image src="/icons/history.svg" alt="" width={21} height={21} className="-scale-y-100" />
             </Link>
           }

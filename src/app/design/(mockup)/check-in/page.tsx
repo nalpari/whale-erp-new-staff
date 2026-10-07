@@ -15,7 +15,7 @@ export default function MockupCheckInPage() {
           title="출퇴근"
           backHref={HOME}
           action={
-            <Link href="/design/attendance" transitionTypes={["nav-forward"]} aria-label="출퇴근 기록" className="flex size-[24px] shrink-0 items-center justify-center">
+            <Link href="/design/attendance" transitionTypes={["nav-forward"]} aria-label="출퇴근 기록" className="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">
               <Image src="/icons/history.svg" alt="" width={21} height={21} className="-scale-y-100" />
             </Link>
           }

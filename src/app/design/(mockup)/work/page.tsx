@@ -14,7 +14,7 @@ export default function MockupWorkPage() {
           title="근무정보"
           backHref="/design/home"
           action={
-            <Link href="#" aria-label="근무지 정보" className="flex size-[24px] shrink-0 items-center justify-center">
+            <Link href="#" aria-label="근무지 정보" className="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">
               <Image src="/icons/store-header.svg" alt="" width={21} height={21} className="-scale-y-100" />
             </Link>
           }
