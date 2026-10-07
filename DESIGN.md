@@ -234,7 +234,7 @@ components:
 
 ## Components
 
-모두 `src/components/common/` 에 있고 `@/components/common` 에서 가져온다. 눌러 볼 수 있는 견본은 `/design`, 화면 목업은 `/design/login` · `/design/home` · `/design/check-in` 처럼 `src/app/design/(mockup)/` 아래에 있다.
+모두 `src/components/common/` 에 있고 `@/components/common` 에서 가져온다. 눌러 볼 수 있는 견본은 `/design`, 화면 목업은 `/design/login` · `/design/home` · `/design/check-in` · `/design/attendance` 처럼 `src/app/design/(mockup)/` 아래에 있다.
 
 ### Buttons — `Button`
 - **primary:** 52px · radius 12 · 남보라 바탕 · 흰 글자 15px bold. 화면의 주 동작 하나(출근하기·퇴근하기·로그인).
@@ -256,10 +256,12 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **Card:** 흰 바탕 · 옅은 테두리 · radius 16 · 안쪽 16.
 - **HeroCard:** radius 20 · 안쪽 20 · 흰 글자. `primary`(오늘의 근무) / `navy`(급여). 안쪽 보조 글자는 흰색에 투명도 60~80%, 버튼은 흰색 15% 바탕 + 20% 테두리.
 - **InfoRow:** radius 18 · 안쪽 16 · 사이 9. 바탕까지 그려진 33px 아이콘(`menu-*.svg`) + 제목 14px semibold + 설명 12px 보조 글자 + 12px 꺾쇠. 카드 전체가 링크.
-- **WorkTimeBar:** 12px 알약 막대, 근무 구간을 남보라로 칠하고 아래에 4시간 눈금(기본 08~20시).
+- **WorkTimeBar:** #EDF0F6 26px 막대(radius 6). 예정 근무는 막대 높이 전체에 #B6C1D5 점선 + 옅은 빗금, 실제 근무는 위아래 5px 안쪽 #7676E4. 근무 중(`ongoing`)이면 오른쪽 끝이 흐려진다. 아래 4시간 눈금 11px(기본 08~20시).
+- **AttendanceDayCard · DayOffRow:** 출퇴근 현황의 하루 카드(radius 18). `done` 흰 바탕, `today` 연한 남보라 · 남보라 글자, `upcoming` #F9FBFD · 보조 글자. 윗줄 요일 13px bold · 점포 12px · 수정 표시(연필) · 상태 칩(11px bold, 정상 #EAF8F2/#13785E · 지각 #FFF6E5/#956013 · 근무 중 #E1E8FF/남보라). 쉬는 날은 radius 12 한 줄.
+- **PeriodNav:** 「‹ 이전 주 · 기간(16px bold) · 다음 주 ›」 줄. 버튼 15px semibold, 화살표 24px.
 
 ### Tabs & Nav — `SegmentedControl` · `BottomNav` · `WeekSelector`
-- **SegmentedControl:** 옅은 남보라 판(radius 14, 안쪽 4) 안에서 고른 칸만 남보라(radius 12, 44px).
+- **SegmentedControl:** #EDF0F6 판(radius 10, 안쪽 3, 사이 6) 안에서 고른 칸만 남보라·흰 글자. 칸은 44px · radius 10 · 13px bold, 나머지는 흐린 글자.
 - **BottomNav:** 홈 · 근무 · 알림 · 내 정보. 아이콘 23px + 글자 11px(최소 높이 54), 지금 칸은 남보라 bold, 나머지는 보조 글자. 아이콘은 마스크라 글자색을 따른다. 화면 아래에 붙인다.
 - **WeekSelector:** 7칸(사이 8), 칸마다 82px · radius 12 · #DCE4FF 테두리. 요일 12px · 날짜 16px bold · 근무일 4px 점. 기본은 연한 남보라(#EEF2FF), `muted` 날은 흰 바탕·흐린 글자, 고른 날은 남보라.
 

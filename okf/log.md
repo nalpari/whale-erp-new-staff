@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-07
+* **Update**: 출퇴근 현황 목업(`/design/attendance`)과 하루 카드·기간 이동을 더하고, 탭·근무 막대를 화면 디자인에 맞췄다. 목업 화면마다 가이드로 돌아가는 고정 버튼을 붙였다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 목업 화면 사이에 방향 있는 슬라이드(ViewTransition, nav-forward·nav-back)를 붙였다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 출퇴근(GPS) 목업(`/design/check-in`)과 공통 `PageHeader` 를 더했다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 공통 바텀시트(`BottomSheet`·`SheetOption`)를 더하고 홈 목업의 점포 이름에 근무지 고르기 시트를 붙였다([Whale ERP Staff](/whale-erp-staff.md)).
