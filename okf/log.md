@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-10-07
+* **Update**: 직원앱 Figma 디자인 스타일 가이드를 `src/components/common`·`DESIGN.md`·`/design` 으로 옮겨 [Whale ERP Staff](/whale-erp-staff.md) 에 Design 절과 소스 두 개를 더했다.
+
 ## 2026-10-06
 * **Update**: `2026-09-30-네이밍-규칙.md` 「화면 문구」 줄의 대상을 「front·staff」로 넓힌 것을 [Naming](/conventions/naming.md) 에 맞췄다.
 * **Update**: `2026-09-30-네이밍-규칙.md` FRONT 표의 「화면 문구」 줄을 [Naming](/conventions/naming.md) 에 맞췄다 — enum 한글은 `getEnum(name)` 의 label 을 쓰고 상수 대응표를 두지 않는다.

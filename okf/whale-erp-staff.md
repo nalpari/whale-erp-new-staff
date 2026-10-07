@@ -7,7 +7,9 @@ tags: [erp, staff, nextjs]
 sources:
   - { id: package-json, resource: ../package.json, title: Dependency manifest }
   - { id: app-dir, resource: ../src/app, title: App Router entry }
-generated: { by: claude-code/opus-5, at: 2026-08-31T00:00:00Z }
+  - { id: common, resource: ../src/components/common, title: Common UI components }
+  - { id: design-md, resource: ../DESIGN.md, title: Design system }
+generated: { by: claude-code/opus-5, at: 2026-10-07T00:00:00Z }
 ---
 
 # Stack
@@ -22,8 +24,16 @@ generated: { by: claude-code/opus-5, at: 2026-08-31T00:00:00Z }
 
 # Layout
 
-* `src/app/` - App Router entry (`layout.tsx`, `page.tsx`, `globals.css`).
-* `public/` - Static assets served at the site root.
+* `src/app/` - App Router entry (`layout.tsx`, `page.tsx`, `globals.css`, `fonts.ts`).
+* `src/app/design/` - 디자인 가이드 견본 화면(`/design`, 색인 제외).
+* `src/components/common/` - 직원앱 공통 컴포넌트. 화면은 `StaffRoot` 로 감싼다.
+* `public/` - Static assets served at the site root. Figma 아이콘은 `public/icons/`.
+
+# Design
+
+직원앱 Figma 「디자인 스타일 가이드」(node 2001:68)를 옮긴 시스템이 `DESIGN.md` 에 있다.
+토큰은 `globals.css` 의 `--color-staff-*`·`--font-staff`(Pretendard 400·500·600·700, `src/app/fonts.ts`)이고,
+루트의 계근대(다크) 테마와 섞이지 않도록 `StaffRoot` 안에서만 밝은 테마가 걸린다.
 
 # Commands
 
