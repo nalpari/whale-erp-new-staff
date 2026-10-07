@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import {
   Badge,
   Button,
@@ -10,7 +11,7 @@ import {
   WorkTimeBar,
 } from "@/components/common";
 import { NavDemo, SegmentedDemo, TodoDemo, WeekDemo } from "./demos";
-import { GuideBox, GuideCaption, GuideLabel, GuideSection, GuideSpec, SwatchGrid, type Swatch } from "./guide";
+import { GuideBox, GuideCaption, GuideLabel, GuideSection, GuideSpec, MockupLinks, SwatchGrid, type Swatch } from "./guide";
 
 // Figma 직원앱_공유 · 디자인 스타일 가이드(node 2001:68)를 코드 컴포넌트로 다시 그린 화면.
 const FIGMA_FILE = "https://www.figma.com/design/fTjUhrEgrf4HG1G3dCXjpY/";
@@ -59,10 +60,11 @@ const RADIUS = [
   { name: "Full · 9999px", value: "9999px", usage: "Pills, avatar" },
 ];
 
-const SCREENS = [
+// mockup 이 있으면 카드가 목업 화면으로 간다(인증 없이 UI 만).
+const SCREENS: { node: string; name: string; mockup?: string }[] = [
   { node: "1:100", name: "홈 대시보드" },
   { node: "1:252", name: "매장 선택 (Bottom Sheet)" },
-  { node: "1:773", name: "로그인" },
+  { node: "3:1965", name: "로그인", mockup: "/design/login" },
   { node: "1:893", name: "TO-DO" },
   { node: "1:1097", name: "출퇴근 현황" },
   { node: "1:1209", name: "급여" },
@@ -86,6 +88,7 @@ const TOKENS = [
 export default function DesignPage() {
   return (
     <main className="mx-auto max-w-[808px] px-[16px] pt-[40px] pb-[64px] sm:px-[24px]">
+      <MockupLinks />
       <header>
         <h1 className="text-[32px] leading-[1.5] font-bold">Design Style Guide</h1>
         <p className="pt-[8px] text-[15px] leading-[1.625] text-staff-text-sub">
@@ -211,7 +214,7 @@ export default function DesignPage() {
           </GuideBox>
         </div>
         <div className="max-w-[448px] pt-[16px]">
-          <Notice icon="🛡">
+          <Notice icon={<Image src="/icons/shield.svg" alt="" width={12} height={12.5} className="-scale-y-100" />}>
             한 번 로그인하면 <strong>30일</strong> 동안 다시 묻지 않습니다.
           </Notice>
         </div>
@@ -336,26 +339,38 @@ export default function DesignPage() {
         </div>
       </GuideSection>
 
-      <GuideSection title="Screens">
-        <p className="pt-[24px] text-[14px] text-staff-text-sub">7 screens from the Figma design system shown as reference thumbnails.</p>
+      <GuideSection title="Screens" id="screens">
+        <p className="pt-[24px] text-[14px] text-staff-text-sub">
+          7 screens from the Figma design system. 목업이 있는 화면은 눌러서 목업으로, 나머지는 Figma 로 간다.
+        </p>
         <div className="grid grid-cols-2 gap-[16px] pt-[24px] sm:grid-cols-4">
-          {SCREENS.map((s) => (
-            <a
-              key={s.node}
-              href={`${FIGMA_FILE}?node-id=${s.node.replace(":", "-")}`}
-              target="_blank"
-              rel="noreferrer"
-              className="overflow-clip rounded-[12px] border border-staff-border-light bg-white transition-colors duration-150 ease-out hover:border-staff-border"
-            >
-              <div className="flex aspect-[178/313] flex-col items-center justify-center gap-[4px] bg-staff-bg">
-                <span className="font-staff-code text-[10px] text-staff-placeholder">{s.node}</span>
-                <span className="flex size-[32px] items-center justify-center rounded-full bg-staff-primary-inactive">
-                  <Image src="/icons/phone.svg" alt="" width={16} height={16} />
-                </span>
-              </div>
-              <p className="px-[12px] py-[10px] text-[12px] font-semibold">{s.name}</p>
-            </a>
-          ))}
+          {SCREENS.map((s) => {
+            const card = (
+              <>
+                <div className="flex aspect-[178/313] flex-col items-center justify-center gap-[4px] bg-staff-bg">
+                  <span className="font-staff-code text-[10px] text-staff-placeholder">{s.node}</span>
+                  <span className="flex size-[32px] items-center justify-center rounded-full bg-staff-primary-inactive">
+                    <Image src="/icons/phone.svg" alt="" width={16} height={16} />
+                  </span>
+                </div>
+                <p className="flex items-center justify-between gap-[6px] px-[12px] py-[10px] text-[12px] font-semibold">
+                  {s.name}
+                  {s.mockup && <Badge tone="working">목업</Badge>}
+                </p>
+              </>
+            );
+            const cls =
+              "overflow-clip rounded-[12px] border border-staff-border-light bg-white transition-colors duration-150 ease-out hover:border-staff-border";
+            return s.mockup ? (
+              <Link key={s.node} href={s.mockup} className={cls}>
+                {card}
+              </Link>
+            ) : (
+              <a key={s.node} href={`${FIGMA_FILE}?node-id=${s.node.replace(":", "-")}`} target="_blank" rel="noreferrer" className={cls}>
+                {card}
+              </a>
+            );
+          })}
         </div>
       </GuideSection>
 

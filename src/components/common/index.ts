@@ -2,6 +2,7 @@
 // 직원앱 화면은 StaffRoot 로 감싸야 밝은 테마와 font-staff 가 적용된다(글꼴 변수는 루트 layout 의 <html> 에 있어야 한다).
 export { StaffRoot } from "./staff-root";
 export { MaskIcon } from "./icon";
+export { BrandLogo } from "./brand-logo";
 export { Button, type ButtonVariant } from "./button";
 export { TextField } from "./text-field";
 export { Notice } from "./notice";

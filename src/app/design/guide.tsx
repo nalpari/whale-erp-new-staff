@@ -1,10 +1,43 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
+
+// 화면 목업 링크. 목업을 하나 만들 때마다 여기에 한 줄 더하고, page.tsx SCREENS 의 mockup 도 채운다.
+// 목업은 design/(mockup)/ 아래에 두고 인증 없이 UI 만 보여 준다.
+export const MOCKUP_LINKS = [{ href: "/design/login", label: "로그인" }];
+
+// 가이드 맨 위 링크 줄.
+export function MockupLinks() {
+  return (
+    <nav aria-label="화면 목업" className="flex flex-wrap items-center gap-[8px] pb-[24px]">
+      <span className="text-[12px] font-semibold tracking-[0.1em] text-staff-text-muted uppercase">Mockups</span>
+      {MOCKUP_LINKS.map((m) => (
+        <Link
+          key={m.href}
+          href={m.href}
+          className="rounded-full bg-staff-primary-inactive px-[12px] py-[6px] text-[13px] font-semibold text-staff-primary transition-colors duration-150 ease-out hover:bg-staff-primary hover:text-white"
+        >
+          {m.label} →
+        </Link>
+      ))}
+    </nav>
+  );
+}
 
 // 디자인 가이드 화면에서만 쓰는 조각. 앱 화면에는 쓰지 않으므로 components/common 에 두지 않는다.
 
-export function GuideSection({ title, first = false, children }: { title: string; first?: boolean; children: ReactNode }) {
+export function GuideSection({
+  title,
+  id,
+  first = false,
+  children,
+}: {
+  title: string;
+  id?: string;
+  first?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <section className={first ? "pt-[48px]" : "pt-[64px]"}>
+    <section id={id} className={first ? "pt-[48px]" : "pt-[64px]"}>
       <h2 className="border-b border-staff-border pb-[12px] text-[22px] leading-[1.5] font-bold">{title}</h2>
       {children}
     </section>
