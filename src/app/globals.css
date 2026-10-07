@@ -20,6 +20,26 @@
   --font-mono: var(--font-gauge), ui-monospace, "SFMono-Regular", monospace;
 }
 
+/* 직원앱 Figma(직원앱_공유 · 디자인 스타일 가이드) 토큰. @/components/common(StaffRoot 안)에서 쓴다. */
+@theme {
+  --color-staff-primary: #4c4ddc;
+  --color-staff-primary-inactive: #ededfb;
+  --color-staff-text: #182237;
+  --color-staff-text-sub: #526077;
+  --color-staff-text-muted: #69758a;
+  --color-staff-placeholder: #8993a5;
+  --color-staff-bg: #f4f6fa;
+  --color-staff-border: #dbe1eb;
+  --color-staff-border-light: #eff2f6;
+  --color-staff-info-bg: #f5f7fb;
+  --color-staff-success: #22c55e;
+  --color-staff-warning: #f59e0b;
+  --color-staff-error: #ef4444;
+  --color-staff-navy: #182237;
+  --font-staff: var(--font-pretendard), Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-staff-code: Menlo, ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
 :root {
   /* 이 콘솔은 다크 하나로 고정한다. 폼 컨트롤과 스크롤바도 같이 어두워진다. */
   color-scheme: dark;
@@ -107,5 +127,72 @@ input:-webkit-autofill:focus {
       opacity: 1;
       transform: none;
     }
+  }
+}
+
+/*
+  직원앱 화면 이동 슬라이드(design/(mockup)/page-slide.tsx 의 ViewTransition).
+  나가는 화면은 빨리(150ms) 흐려지며 비키고, 들어오는 화면은 그 뒤에 나타나며 60px 를 미끄러진다(320ms).
+*/
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(.nav-forward) {
+  --slide-offset: -60px;
+  animation:
+    150ms ease-in both staff-fade reverse,
+    320ms cubic-bezier(0.23, 1, 0.32, 1) both staff-slide reverse;
+}
+::view-transition-new(.nav-forward) {
+  --slide-offset: 60px;
+  animation:
+    210ms ease-out 100ms both staff-fade,
+    320ms cubic-bezier(0.23, 1, 0.32, 1) both staff-slide;
+}
+::view-transition-old(.nav-back) {
+  --slide-offset: 60px;
+  animation:
+    150ms ease-in both staff-fade reverse,
+    320ms cubic-bezier(0.23, 1, 0.32, 1) both staff-slide reverse;
+}
+::view-transition-new(.nav-back) {
+  --slide-offset: -60px;
+  animation:
+    210ms ease-out 100ms both staff-fade,
+    320ms cubic-bezier(0.23, 1, 0.32, 1) both staff-slide;
+}
+/* 하단 메뉴는 화면이 바뀌어도 제자리에 둔다. 옛 모습은 숨겨 두 메뉴가 겹쳐 보이지 않게 한다. */
+::view-transition-group(bottom-nav) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(bottom-nav) {
+  display: none;
+}
+::view-transition-new(bottom-nav) {
+  animation: none;
+}
+@keyframes staff-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes staff-slide {
+  from {
+    translate: var(--slide-offset);
+  }
+  to {
+    translate: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans_KR } from "next/font/google";
+import { pretendard } from "./fonts";
 import "./globals.css";
 
 const plate = IBM_Plex_Sans_KR({
@@ -36,7 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="ko"
-      className={`${plate.variable} ${gauge.variable} h-full antialiased`}
+      className={`${plate.variable} ${gauge.variable} ${pretendard.variable} h-full antialiased`}
     >
       <body className="min-h-full">
         <div hidden dangerouslySetInnerHTML={{ __html: DIRECTION_CONTRACT }} />

@@ -18,6 +18,16 @@ concept의 `sources[].resource`에 들어 있으면 해당 concept 본문을 고
 
 @okf/conventions/naming.md
 
+## 디자인
+
+직원 근무 앱 화면 코드(`src/`)는 아래 디자인 시스템을 따른다. Figma 「직원앱_공유 · 디자인 스타일 가이드」(node 2001:68)에서 옮긴 것이다.
+
+@DESIGN.md
+
+- 화면을 만들 때는 `src/components/common/`의 공통 컴포넌트를 먼저 쓰고, 화면은 `StaffRoot` 로 감싼다. 없는 컴포넌트를 새로 만들 때도 DESIGN.md의 토큰과 크기 체계를 따른다.
+- 색은 `globals.css`의 `--color-staff-*` 토큰에서, 스타일 조각은 `src/components/common/theme.ts`에서 가져온다.
+- 견본은 `/design` 에서 본다.
+
 ## 워크트리
 
 워크트리는 저장소 안이 아니라 플랫폼별 루트 아래에 만든다.
