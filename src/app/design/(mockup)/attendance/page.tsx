@@ -30,7 +30,7 @@ export default function MockupAttendancePage() {
               state="done"
               day="화 9/8"
               store={STORE}
-              status={{ label: "정상", tone: "normal" }}
+              status={{ label: "정상", tone: "success" }}
               schedule={{ start: "09:00", end: "18:00" }}
               worked={{ start: "08:50", end: "18:00" }}
               summary="출근 08:58 · 퇴근 18:00"
@@ -40,7 +40,7 @@ export default function MockupAttendancePage() {
               day="수 9/9"
               store={STORE}
               edited
-              status={{ label: "지각 14분", tone: "late" }}
+              status={{ label: "지각 14분", tone: "warning" }}
               schedule={{ start: "09:00", end: "18:00" }}
               worked={{ start: "08:50", end: "18:00" }}
               summary="출근 08:58 · 퇴근 18:00"

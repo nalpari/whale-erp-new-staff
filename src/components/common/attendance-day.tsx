@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { ComponentProps } from "react";
+import { StatusChip, type StatusChipTone } from "./status-chip";
 import { WorkTimeBar } from "./work-time-bar";
 
 // Figma 05.출퇴근 현황 하루 카드(node 12:1355). radius 18 · 위 20 좌우 20 아래 32 · 사이 3.
@@ -13,14 +14,7 @@ const CARD = {
   upcoming: "border-staff-border-light bg-[#f9fbfd] text-staff-text-sub",
 };
 
-// 상태 칩: 11px bold · radius 8 · 좌우 10 위아래 4. 이 카드에만 나오는 색이라 토큰으로 두지 않는다.
-const CHIP = {
-  normal: "bg-[#eaf8f2] text-[#13785e]", // 정상
-  late: "bg-[#fff6e5] text-[#956013]", // 지각
-  working: "bg-[#e1e8ff] text-staff-primary", // 근무 중
-};
-
-export type AttendanceDayStatus = { label: string; tone: keyof typeof CHIP };
+export type AttendanceDayStatus = { label: string; tone: StatusChipTone };
 
 export function AttendanceDayCard({
   state,
@@ -45,7 +39,7 @@ export function AttendanceDayCard({
         <h3 className="min-w-0 flex-1 text-[13px] font-bold">{day}</h3>
         <span className={`truncate text-[12px] ${sub}`}>{store}</span>
         {edited && <Image src="/icons/pencil.svg" alt="수정된 기록" width={11.719} height={13.719} />}
-        {status && <span className={`shrink-0 rounded-[8px] px-[10px] py-[4px] text-[11px] font-bold ${CHIP[status.tone]}`}>{status.label}</span>}
+        {status && <StatusChip tone={status.tone}>{status.label}</StatusChip>}
       </div>
       <WorkTimeBar {...bar} />
       <p className={`pt-[2px] text-[12px] ${sub}`}>{summary}</p>

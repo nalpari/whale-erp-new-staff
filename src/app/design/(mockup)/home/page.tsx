@@ -1,13 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Badge, BOTTOM_NAV_ITEMS, BottomNav, InfoRow, SectionTitle } from "@/components/common";
+import { Badge, BottomNav, InfoRow, SectionTitle } from "@/components/common";
+import { MOCKUP_NAV } from "../mockup-nav";
 import { PageSlide } from "../page-slide";
 import { StoreTopBar } from "./store-top-bar";
 import { ThisWeek } from "./this-week";
 
 // Figma 02.Main(node 8:3). 목업이라 데이터는 고정이고, 아직 없는 화면으로 가는 링크는 # 로 둔다.
 const HOME = "/design/home";
-const NAV = BOTTOM_NAV_ITEMS.map((item) => ({ ...item, href: item.label === "홈" ? HOME : "#" }));
 
 export default function MockupHomePage() {
   return (
@@ -83,14 +83,14 @@ export default function MockupHomePage() {
               <SectionTitle title="나의 근무 정보" />
               <InfoRow href="#" icon="/icons/menu-payslip.svg" title="급여명세서" description="8월 명세서가 도착했어요" />
               <InfoRow href="/design/attendance" icon="/icons/menu-attendance.svg" title="출퇴근 기록" description="이번 달 출근 9회" />
-              <InfoRow href="#" icon="/icons/menu-schedule.svg" title="근무 스케줄" description="이번 달 근무 12회" />
+              <InfoRow href="/design/work" icon="/icons/menu-schedule.svg" title="근무 스케줄" description="이번 달 근무 12회" />
             </section>
           </div>
         </main>
 
         {/* 하단 메뉴는 앱의 탭 막대라 화면 아래에 붙여 둔다. */}
         <div className="sticky bottom-0 mt-auto">
-          <BottomNav current={HOME} items={NAV} />
+          <BottomNav current={HOME} items={MOCKUP_NAV} />
         </div>
       </div>
     </PageSlide>

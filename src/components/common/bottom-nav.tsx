@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { MaskIcon } from "./icon";
 
-export type BottomNavItem = { href: string; label: string; icon: string };
+// activeIcon: 지금 칸일 때 바꿔 끼우는 아이콘(Figma 는 홈·근무만 채운 모양이 따로 있다). 없으면 icon 을 남보라로 칠한다.
+export type BottomNavItem = { href: string; label: string; icon: string; activeIcon?: string };
 
 // 직원앱 하단 메뉴 네 칸(Figma 순서). 경로는 화면이 생기면 실제 라우트에 맞춘다.
 export const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
-  { href: "/", label: "홈", icon: "/icons/nav-home.svg" },
-  { href: "/work", label: "근무", icon: "/icons/nav-work.svg" },
+  { href: "/", label: "홈", icon: "/icons/nav-home.svg", activeIcon: "/icons/nav-home-on.svg" },
+  { href: "/work", label: "근무", icon: "/icons/nav-work.svg", activeIcon: "/icons/nav-work-on.svg" },
   { href: "/notifications", label: "알림", icon: "/icons/nav-alarm.svg" },
   { href: "/me", label: "내 정보", icon: "/icons/nav-me.svg" },
 ];
@@ -31,7 +32,7 @@ export function BottomNav({ current, items = BOTTOM_NAV_ITEMS }: { current: stri
               on ? "font-bold text-staff-primary" : "text-staff-text-sub"
             }`}
           >
-            <MaskIcon src={item.icon} size={23} flipY />
+            <MaskIcon src={(on && item.activeIcon) || item.icon} size={23} flipY />
             {item.label}
           </Link>
         );

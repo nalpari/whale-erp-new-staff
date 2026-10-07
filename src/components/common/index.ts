@@ -7,6 +7,7 @@ export { TopBar } from "./top-bar";
 export { SectionTitle } from "./section-title";
 export { PageHeader } from "./page-header";
 export { PeriodNav } from "./period-nav";
+export { StatusChip, type StatusChipTone } from "./status-chip";
 export { AttendanceDayCard, DayOffRow, type AttendanceDayStatus } from "./attendance-day";
 export { BottomSheet, SheetOption } from "./bottom-sheet";
 export { Button, type ButtonVariant } from "./button";

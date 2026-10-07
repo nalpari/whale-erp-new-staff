@@ -2,8 +2,9 @@
 
 import { EASE_OUT } from "./theme";
 
-// work: 근무가 있는 날(아래 4px 점). muted: 흰 바탕·흐린 글자로 낮춘 날(쉬는 날 등 — 어떤 날을 낮출지는 화면이 정한다).
-export type WeekDay = { key: string; weekday: string; date: number; work?: boolean; muted?: boolean };
+// work: 근무가 있는 날(아래 4px 점). note: 점 대신 셋째 줄에 쓰는 10px 글자(근무 시간 "09-18"·"휴무", 고르지 않은 날은 남보라).
+// muted: 흰 바탕·흐린 글자로 낮춘 날(쉬는 날 등 — 어떤 날을 낮출지는 화면이 정한다).
+export type WeekDay = { key: string; weekday: string; date: number; work?: boolean; muted?: boolean; note?: string };
 
 // Figma 02.Main 「이번 주 근무」 날짜 줄(node 9:243): 7칸(사이 8), 칸마다 최소 높이 82 · radius 12 · #DCE4FF 테두리.
 // 요일 12px · 날짜 16px bold · 근무 있는 날은 4px 점(사이 6).
@@ -40,7 +41,11 @@ export function WeekSelector({
           >
             <span className="text-[12px]">{day.weekday}</span>
             <span className="text-[16px] font-bold">{day.date}</span>
-            {day.work && <span className="size-[4px] rounded-[2px] bg-current" />}
+            {day.note ? (
+              <span className={`text-[10px] ${on ? "" : "text-staff-primary"}`}>{day.note}</span>
+            ) : (
+              day.work && <span className="size-[4px] rounded-[2px] bg-current" />
+            )}
           </button>
         );
       })}
