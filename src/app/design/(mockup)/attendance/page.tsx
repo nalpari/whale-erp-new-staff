@@ -42,8 +42,8 @@ export default function MockupAttendancePage() {
               edited
               status={{ label: "지각 14분", tone: "warning" }}
               schedule={{ start: "09:00", end: "18:00" }}
-              worked={{ start: "08:58", end: "18:00" }}
-              summary="출근 08:58 · 퇴근 18:00"
+              worked={{ start: "09:14", end: "18:00" }}
+              summary="출근 09:14 · 퇴근 18:00"
             />
             <AttendanceDayCard
               state="today"
@@ -51,7 +51,7 @@ export default function MockupAttendancePage() {
               store={STORE}
               status={{ label: "근무 중", tone: "working" }}
               schedule={{ start: "09:00", end: "18:00" }}
-              worked={{ start: "09:05", end: "14:00" }}
+              worked={{ start: "09:02", end: "14:00" }}
               ongoing
               summary="출근 09:02 · 퇴근 진행 중"
             />
