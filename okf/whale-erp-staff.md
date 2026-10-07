@@ -26,7 +26,7 @@ generated: { by: claude-code/opus-5, at: 2026-10-07T00:00:00Z }
 
 * `src/app/` - App Router entry (`layout.tsx`, `page.tsx`, `globals.css`, `fonts.ts`).
 * `src/app/design/` - 디자인 가이드 견본 화면(`/design`, 색인 제외). 맨 위 링크 줄에서 화면 목업으로 간다.
-* `src/app/design/(mockup)/` - 인증·API 없이 UI 만 보여 주는 화면 목업(`/design/login`, `/design/home`, `/design/check-in`, `/design/attendance`, `/design/work` …). 모바일 앱에 들어갈 화면이라 폭 100% 로 그린다.
+* `src/app/design/(mockup)/` - 인증·API 없이 UI 만 보여 주는 화면 목업(`/design/login`, `/design/home`, `/design/check-in`, `/design/attendance`, `/design/work`, `/design/pay` …). 모바일 앱에 들어갈 화면이라 폭 100% 로 그린다.
 * `src/components/common/` - 직원앱 공통 컴포넌트. 화면은 `StaffRoot` 로 감싼다.
 * `public/` - Static assets served at the site root. Figma 아이콘은 `public/icons/`.
 

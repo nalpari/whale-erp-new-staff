@@ -18,6 +18,16 @@ colors:
   error: "#ef4444"
   navy: "#182237"
 typography:
+  pay-amount:
+    fontFamily: "Pretendard, -apple-system, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
+    fontSize: "32px"
+    fontWeight: 700
+    lineHeight: 1.5
+  pay-unit:
+    fontFamily: "Pretendard, -apple-system, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
+    fontSize: "17px"
+    fontWeight: 700
+    lineHeight: 1.5
   clock:
     fontFamily: "Pretendard, -apple-system, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
     fontSize: "42px"
@@ -190,6 +200,7 @@ components:
 **Font:** Pretendard (저장소에 담은 400·500·600·700, 폴백 -apple-system → Apple SD Gothic Neo → Malgun Gothic). 줄간은 1.5, 자간은 0.
 
 ### Hierarchy
+- **Pay Amount** (700, 32px) · **Pay Unit** (700, 17px): 급여 화면의 실지급액과 「원」.
 - **Clock** (700, 42px, 줄간 1.1): 출퇴근 화면의 현재 시각.
 - **Hero Number** (700, 30px, 자간 -0.025em): 오늘의 근무 카드의 근무 시간("09:00 — 18:00") 한 곳.
 - **Sheet Title** (700, 20px): 바텀시트 제목.
@@ -235,7 +246,7 @@ components:
 
 ## Components
 
-모두 `src/components/common/` 에 있고 `@/components/common` 에서 가져온다. 눌러 볼 수 있는 견본은 `/design`, 화면 목업은 `/design/login` · `/design/home` · `/design/check-in` · `/design/attendance` · `/design/work` 처럼 `src/app/design/(mockup)/` 아래에 있다.
+모두 `src/components/common/` 에 있고 `@/components/common` 에서 가져온다. 눌러 볼 수 있는 견본은 `/design`, 화면 목업은 `/design/login` · `/design/home` · `/design/check-in` · `/design/attendance` · `/design/work` · `/design/pay` 처럼 `src/app/design/(mockup)/` 아래에 있다.
 
 ### Buttons — `Button`
 - **primary:** 52px · radius 12 · 남보라 바탕 · 흰 글자 15px bold. 화면의 주 동작 하나(출근하기·퇴근하기·로그인).
