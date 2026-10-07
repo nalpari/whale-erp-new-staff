@@ -161,6 +161,17 @@ input:-webkit-autofill:focus {
     210ms ease-out 100ms both staff-fade,
     320ms cubic-bezier(0.23, 1, 0.32, 1) both staff-slide;
 }
+/* 하단 메뉴는 화면이 바뀌어도 제자리에 둔다. 옛 모습은 숨겨 두 메뉴가 겹쳐 보이지 않게 한다. */
+::view-transition-group(bottom-nav) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(bottom-nav) {
+  display: none;
+}
+::view-transition-new(bottom-nav) {
+  animation: none;
+}
 @keyframes staff-fade {
   from {
     opacity: 0;
