@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-07
+* **Update**: `2026-09-30-네이밍-규칙.md` 「템플릿 사용 여부 · 변수 목록」 줄의 변수 모양에 `isButtonLink`(선택)를 더해 [Naming](/conventions/naming.md) 에 반영했다. 버튼으로 붙는 링크 변수는 이 표시로 「필수 변수는 제목·본문에」 검사에서 뺀다(2026-10-07 재영).
 * **Update**: PR 검토를 반영해 누름 칸을 44px 로 넓히고, 근무 탭을 내용과 읽기 연결하고, DESIGN.md 의 그림자·모서리·색·글자 설명을 코드에 맞췄다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 알림 설정 목업(`/design/notification-settings`)과 공통 `Switch`·`SwitchRow` 를 더하고 홈 알림 버튼에서 잇는다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 급여 목업(`/design/pay`)을 더하고 하단 메뉴 급여 칸·홈 급여명세서에서 잇는다([Whale ERP Staff](/whale-erp-staff.md)).
