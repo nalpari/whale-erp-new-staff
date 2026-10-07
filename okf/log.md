@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-07
+* **Update**: 알림 설정 목업(`/design/notification-settings`)과 공통 `Switch`·`SwitchRow` 를 더하고 홈 알림 버튼에서 잇는다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 급여 목업(`/design/pay`)을 더하고 하단 메뉴 급여 칸·홈 급여명세서에서 잇는다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 근무정보 목업에 TO-DO 탭(Figma 07)을 붙이고 TodoList·TodoItem·StatusChip 을 화면 디자인에 맞췄다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 근무정보 목업(`/design/work`)을 더하고 하단 메뉴 지금 칸 아이콘·주간 날짜 셋째 줄·StatusChip 을 화면 디자인에 맞췄다([Whale ERP Staff](/whale-erp-staff.md)).

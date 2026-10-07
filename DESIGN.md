@@ -246,7 +246,7 @@ components:
 
 ## Components
 
-모두 `src/components/common/` 에 있고 `@/components/common` 에서 가져온다. 눌러 볼 수 있는 견본은 `/design`, 화면 목업은 `/design/login` · `/design/home` · `/design/check-in` · `/design/attendance` · `/design/work` · `/design/pay` 처럼 `src/app/design/(mockup)/` 아래에 있다.
+모두 `src/components/common/` 에 있고 `@/components/common` 에서 가져온다. 눌러 볼 수 있는 견본은 `/design`, 화면 목업은 `/design/login` · `/design/home` · `/design/check-in` · `/design/attendance` · `/design/work` · `/design/pay` · `/design/notification-settings` 처럼 `src/app/design/(mockup)/` 아래에 있다.
 
 ### Buttons — `Button`
 - **primary:** 52px · radius 12 · 남보라 바탕 · 흰 글자 15px bold. 화면의 주 동작 하나(출근하기·퇴근하기·로그인).
@@ -274,9 +274,13 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **PeriodNav:** 「‹ 이전 주 · 기간(16px bold) · 다음 주 ›」 줄. 버튼 15px semibold, 화살표 24px.
 
 ### Tabs & Nav — `SegmentedControl` · `BottomNav` · `WeekSelector`
-- **SegmentedControl:** #EDF0F6 판(radius 10, 안쪽 3, 사이 6) 안에서 고른 칸만 남보라·흰 글자. 칸은 44px · radius 10 · 13px bold, 나머지는 흐린 글자.
+- **SegmentedControl:** #EDF0F6 판(radius 10, 안쪽 3, 사이 6) 안에서 고른 칸만 남보라·흰 글자. 칸은 44px · radius 10 · 13px bold, 나머지는 흐린 글자. 남보라 바탕은 한 장이 고른 칸으로 260ms 미끄러지고, 탭 내용은 고른 탭 쪽에서 24px 들어온다(`staff-tab-in-right`·`staff-tab-in-left`, 처음 열 때는 움직이지 않음).
 - **BottomNav:** 홈 · 근무 · 급여 · 내 정보(알림은 머리줄 알림 버튼이 맡는다). 급여 아이콘은 Figma 근무지 시트의 급여명세서 아이콘(19px)을 23px 칸에 맞춰 쓴다. 아이콘 23px + 글자 11px(최소 높이 54), 지금 칸은 남보라 bold, 나머지는 보조 글자. 아이콘은 마스크라 글자색을 따르고, 홈·근무는 지금 칸일 때 채운 아이콘(`activeIcon`)으로 바뀐다. 화면 아래에 붙인다.
 - **WeekSelector:** 7칸(사이 8), 칸마다 82px · radius 12 · #DCE4FF 테두리. 요일 12px · 날짜 16px bold · 근무일 4px 점. 기본은 연한 남보라(#EEF2FF), `muted` 날은 흰 바탕·흐린 글자, 고른 날은 남보라. 근무 시간·휴무를 셋째 줄 10px 글자(`note`)로 쓰면 점 대신 그 글자가 선다.
+
+### Switch — `Switch` · `SwitchRow`
+- **Switch:** 48×28 알약(role=switch). 켜짐 남보라 · 꺼짐 옅은 남보라, 흰 손잡이 22px 가 200ms 로 옮겨 간다. 꺼 둘 수 없는 알림은 잠금(disabled) — Figma 처럼 옅은 판으로 그리고 누를 수 없다.
+- **SwitchRow:** 설정 한 줄. 위아래 17 · 제목 15px semibold · 설명 12px · 오른쪽 스위치. 목록이 #E8EDF3 선으로 줄을 나눈다.
 
 ### Bottom Sheet — `BottomSheet` · `SheetOption`
 - **BottomSheet:** 네이티브 `<dialog>`. 흰 바탕 · 위 모서리 26 · 위 그림자 · 40×4 손잡이 · 제목 20px bold · 설명 14px · 좌우 24. 뒤 화면 #17253D 38% + 1.5px 흐림. 아래에서 260ms 로 올라오고 200ms 로 내려간다. 뒤 화면·Esc·「닫기」로 닫는다.
