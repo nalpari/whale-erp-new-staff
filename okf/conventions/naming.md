@@ -4,7 +4,7 @@ title: Naming
 description: DB·API·FRONT 네이밍 규칙과 용어집 영문 식별자 대응표. 세 저장소 공통.
 sources:
   - { id: naming-2026-09-30, resource: ../../docs/raw/2026-09-30-네이밍-규칙.md, title: WHALE ERP 네이밍 규칙 (2026-10-01 재영 확인) }
-generated: { by: claude-code/opus-5.5, at: 2026-10-07T06:40:50Z }
+generated: { by: claude-code/opus-5.5, at: 2026-10-07T07:28:52Z }
 ---
 
 # 범위
@@ -110,6 +110,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-07T06:40:50Z }
 
 - 삭제 가능한 데이터는 행을 지우지 않고 `is_deleted = true` 로 표시한다. 표시는 `is_deleted` 하나뿐이다 — `deleted_at` 을 함께 두면 플래그와 시각이 어긋난 행이 생길 수 있다. 삭제 시각이 필요해지면 그때 `deleted_at` 을 더하고 CHECK 로 묶는다.
 - 남아야 하는 기록(`stock_movements`, `*_logs`, `*_histories`)에는 두지 않는다. 이 컬럼이 없는 테이블은 지우지 않는 테이블이다.
+- 예외: 두 표를 잇는 부속 관계 표 `todo_assignees` 는 `is_deleted` 없이 행을 DELETE 한다. 배정을 푼 사실은 `todo_status_histories` 에 남긴다(퇴직 처리의 배정 해제, 2026-10-07 재영).
 - 모든 조회에 `is_deleted = false` 를 건다. 빠뜨려도 오류가 나지 않고 지운 행이 그대로 보인다 — 목록, id 조회, total 을 위한 count, insert 전 존재 확인 모두 해당한다.
 - 유니크 제약은 부분 인덱스(`WHERE NOT is_deleted`)로 만든다. 안 그러면 지운 행이 sku·email 을 붙잡아 같은 값으로 다시 만들 때 409 가 난다. Prisma 가 표현하지 못해 CHECK 제약처럼 마이그레이션 SQL 에만 남는다.
 - **기본키 이름** (2026-10-02 재영, api 세션에서 정함): 새 테이블부터 기본키도 `{참조 단수}_id` 로 짓는다. 지금 있는 `items`·`stock_movements`(예제)와 `staff`·`customers`(템플릿 인증 주체)는 기본키가 `id` 인데, 결함이 아니라 예제·템플릿이라 고치지 않는다. front 의 `listItems` 와 로그인이 아직 쓰고 있어, 계정 테이블과 첫 도메인 모듈이 생길 때 함께 정리하거나 대체한다.
