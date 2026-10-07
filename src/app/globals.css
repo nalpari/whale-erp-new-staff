@@ -172,21 +172,6 @@ input:-webkit-autofill:focus {
 ::view-transition-new(bottom-nav) {
   animation: none;
 }
-/* 같은 화면 안에서 탭을 바꿀 때 내용이 고른 탭 쪽에서 들어온다(work-view 등). 화면 이동 슬라이드보다 짧다. */
-@media (prefers-reduced-motion: no-preference) {
-  .staff-tab-in-right {
-    --slide-offset: 24px;
-    animation:
-      200ms ease-out both staff-fade,
-      260ms cubic-bezier(0.23, 1, 0.32, 1) both staff-slide;
-  }
-  .staff-tab-in-left {
-    --slide-offset: -24px;
-    animation:
-      200ms ease-out both staff-fade,
-      260ms cubic-bezier(0.23, 1, 0.32, 1) both staff-slide;
-  }
-}
 @keyframes staff-fade {
   from {
     opacity: 0;
