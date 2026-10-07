@@ -8,7 +8,7 @@ export type BottomNavItem = { href: string; label: string; icon: string; activeI
 export const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
   { href: "/", label: "홈", icon: "/icons/nav-home.svg", activeIcon: "/icons/nav-home-on.svg" },
   { href: "/work", label: "근무", icon: "/icons/nav-work.svg", activeIcon: "/icons/nav-work-on.svg" },
-  { href: "/notifications", label: "알림", icon: "/icons/nav-alarm.svg" },
+  { href: "/pay", label: "급여", icon: "/icons/nav-pay.svg" },
   { href: "/me", label: "내 정보", icon: "/icons/nav-me.svg" },
 ];
 

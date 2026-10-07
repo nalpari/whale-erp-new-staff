@@ -264,7 +264,7 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 
 ### Tabs & Nav — `SegmentedControl` · `BottomNav` · `WeekSelector`
 - **SegmentedControl:** #EDF0F6 판(radius 10, 안쪽 3, 사이 6) 안에서 고른 칸만 남보라·흰 글자. 칸은 44px · radius 10 · 13px bold, 나머지는 흐린 글자.
-- **BottomNav:** 홈 · 근무 · 알림 · 내 정보. 아이콘 23px + 글자 11px(최소 높이 54), 지금 칸은 남보라 bold, 나머지는 보조 글자. 아이콘은 마스크라 글자색을 따르고, 홈·근무는 지금 칸일 때 채운 아이콘(`activeIcon`)으로 바뀐다. 화면 아래에 붙인다.
+- **BottomNav:** 홈 · 근무 · 급여 · 내 정보(알림은 머리줄 알림 버튼이 맡는다). 급여 아이콘은 Figma 근무지 시트의 급여명세서 아이콘(19px)을 23px 칸에 맞춰 쓴다. 아이콘 23px + 글자 11px(최소 높이 54), 지금 칸은 남보라 bold, 나머지는 보조 글자. 아이콘은 마스크라 글자색을 따르고, 홈·근무는 지금 칸일 때 채운 아이콘(`activeIcon`)으로 바뀐다. 화면 아래에 붙인다.
 - **WeekSelector:** 7칸(사이 8), 칸마다 82px · radius 12 · #DCE4FF 테두리. 요일 12px · 날짜 16px bold · 근무일 4px 점. 기본은 연한 남보라(#EEF2FF), `muted` 날은 흰 바탕·흐린 글자, 고른 날은 남보라. 근무 시간·휴무를 셋째 줄 10px 글자(`note`)로 쓰면 점 대신 그 글자가 선다.
 
 ### Bottom Sheet — `BottomSheet` · `SheetOption`
