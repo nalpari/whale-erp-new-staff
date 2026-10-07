@@ -177,8 +177,8 @@ components:
 
 ### Text
 - **기본** (#182237, `staff-text`): 제목과 본문.
-- **보조** (#526077, `staff-text-sub`): 폼 라벨, 설명, 고르지 않은 탭 글자.
-- **흐림** (#69758a, `staff-text-muted`): 안내 문구, 일시, 하단 메뉴의 나머지 칸.
+- **보조** (#526077, `staff-text-sub`): 폼 라벨, 설명, 하단 메뉴의 나머지 칸.
+- **흐림** (#69758a, `staff-text-muted`): 안내 문구, 일시, 고르지 않은 탭 칸.
 - **자리표시** (#8993a5, `staff-placeholder`): 입력칸 자리표시, 요일, 눈금, 완료한 TO-DO 제목.
 
 ### Surface & Border
@@ -213,7 +213,7 @@ components:
 - **Body Small** (600·700, 14px): 카드·TO-DO 제목, 외곽선 버튼, 탭 글자, 날짜 숫자.
 - **Label** (600, 13px): 폼 라벨, 항목 이름.
 - **Caption** (400, 12px): 안내 문구, 일시.
-- **Micro** (400, 11px) · **Nano** (500·700, 10px): 요일·견본 설명(11px), 하단 메뉴 글자·근무 막대 눈금(10px)에만.
+- **Micro** (400, 11px) · **Nano** (500·700, 10px): 요일·하단 메뉴 글자·근무 막대 눈금·견본 설명(11px), 주간 날짜 셋째 줄(10px)에만.
 
 ## Layout
 
@@ -279,7 +279,7 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **WeekSelector:** 7칸(사이 8), 칸마다 82px · radius 12 · #DCE4FF 테두리. 요일 12px · 날짜 16px bold · 근무일 4px 점. 기본은 연한 남보라(#EEF2FF), `muted` 날은 흰 바탕·흐린 글자, 고른 날은 남보라. 근무 시간·휴무를 셋째 줄 10px 글자(`note`)로 쓰면 점 대신 그 글자가 선다.
 
 ### Switch — `Switch` · `SwitchRow`
-- **Switch:** 48×28 알약(role=switch). 켜짐 남보라 · 꺼짐 옅은 남보라, 흰 손잡이 22px 가 200ms 로 옮겨 간다. 꺼 둘 수 없는 알림은 잠금(disabled) — Figma 처럼 옅은 판으로 그리고 누를 수 없다.
+- **Switch:** 48×28 알약(role=switch). 켜짐 남보라 · 꺼짐 옅은 남보라, 흰 손잡이 22px 가 200ms 로 옮겨 간다. 꺼 둘 수 없는 알림은 잠금(disabled) — 켜짐 상태를 그대로 보이고 50% 로 흐리게 그려 누를 수 없다.
 - **SwitchRow:** 설정 한 줄. 위아래 17 · 제목 15px semibold · 설명 12px · 오른쪽 스위치. 목록이 #E8EDF3 선으로 줄을 나눈다.
 
 ### Bottom Sheet — `BottomSheet` · `SheetOption`
@@ -287,7 +287,7 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **SheetOption:** 52px · radius 12 · #E4E8EF 테두리 · 15px semibold. 고른 것은 19px 체크.
 
 ### Header — `TopBar` · `SectionTitle` · `PageHeader`
-- **PageHeader:** 하위 화면 머리줄. 흰 바탕 · 최소 72px · 뒤로(19px) · 제목 18px bold · 오른쪽 아이콘 하나.
+- **PageHeader:** 하위 화면 머리줄. 흰 바탕 · 최소 72px · 뒤로(19px) · 제목 18px bold · 오른쪽 아이콘 하나. 아이콘 버튼은 보이는 24px 칸 대신 44px 로 눌린다(-10px 여백).
 - **TopBar:** 작은 로고 36px · 점포 이름 버튼(15px bold + 아래 꺾쇠) · 알림 버튼(44px, radius 14, #E9EDF3 테두리, 새 알림 8px 빨간 점 #C24242).
 - **SectionTitle:** 제목 16px bold, 옆에 개수(12px bold 남보라), 오른쪽 끝에 기간·「전체 보기」.
 
