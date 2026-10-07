@@ -35,7 +35,7 @@ export function WeekSelector({
             key={day.key}
             type="button"
             aria-pressed={on}
-            aria-label={`${day.weekday} ${day.date}일 ${day.work ? "근무" : "휴무"}`}
+            aria-label={`${day.weekday} ${day.date}일 ${day.note ?? (day.work ? "근무" : "휴무")}`}
             onClick={() => onSelect(day.key)}
             className={`flex min-h-[82px] min-w-0 flex-1 flex-col items-center gap-[6px] rounded-[12px] border pt-[8px] pb-[16px] leading-[1.5] transition-[background-color,border-color,color,box-shadow] duration-200 ${EASE_OUT} ${tone}`}
           >
