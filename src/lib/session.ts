@@ -43,10 +43,14 @@ export async function getSession(): Promise<Session | null> {
   }
 }
 
-/** 로그인이 필요한 화면 · 액션의 첫 줄. proxy 가 먼저 막지만 proxy 만 믿지 않는다. */
+/**
+ * 로그인이 필요한 화면 · 액션의 첫 줄. proxy 가 먼저 막지만 proxy 만 믿지 않는다.
+ * proxy 는 통과시켰는데 여기서 세션이 없으면(account 쿠키가 깨짐 등) 쿠키를 지우는 만료 경로로 보낸다.
+ * /login 으로만 보내면 proxy 가 남은 쿠키를 보고 /home 으로 되돌려 끝없이 돈다.
+ */
 export async function requireSession(): Promise<Session> {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect(EXPIRED_LOGIN_PATH);
   return session;
 }
 

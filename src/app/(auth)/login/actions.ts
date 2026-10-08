@@ -28,6 +28,10 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
     if (error instanceof ApiError) {
       if (error.status === 429 && error.message.startsWith(LOCKED_MESSAGE_PREFIX)) return { email, locked: true };
       if (error.status === 429) return { email, error: "시도가 많아 잠시 막았습니다. 잠시 뒤에 다시 시도해 주세요" };
+      // 5xx 의 api 원문(Internal server error 등)은 보이지 않는다.
+      if (error.status >= 500) return { email, error: "로그인하지 못했습니다. 잠시 뒤 다시 시도해 주세요" };
+      // 400 은 이메일 형식 검증(class-validator, 영어 원문)이다.
+      if (error.status === 400) return { email, error: "이메일 형식을 확인해 주세요" };
       // 401 「이메일 또는 비밀번호가 올바르지 않습니다」 — 틀림 · 없는 계정 · 탈퇴 모두 같다.
       return { email, error: error.message };
     }

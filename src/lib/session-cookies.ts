@@ -8,8 +8,12 @@ export const ACCOUNT_COOKIE = "account";
 /** 로그인의 deviceIdentifier. 같은 기기로 다시 로그인하면 그 기기의 이전 접속만 끊긴다. 로그아웃해도 남긴다. */
 export const DEVICE_ID_COOKIE = "device_id";
 
-/** 액세스 토큰 수명(api: 15분). */
-const ACCESS_TOKEN_SECONDS = 15 * 60;
+/**
+ * 액세스 토큰 쿠키 수명. 토큰(JWT)은 api 가 낸 때부터 15분인데 쿠키는 브라우저가 받은 때부터 세므로,
+ * 같은 15분이면 쿠키는 살았는데 토큰은 죽은 틈이 생긴다. 그 틈의 요청은 401 → 접속 종료로 읽히므로
+ * 1분 먼저 쿠키를 끝내 proxy 가 미리 갱신하게 한다.
+ */
+const ACCESS_TOKEN_SECONDS = 15 * 60 - 60;
 const DEVICE_ID_SECONDS = 365 * 24 * 60 * 60;
 
 const BASE = {
