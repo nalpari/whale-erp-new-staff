@@ -297,6 +297,12 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **BottomSheet:** 네이티브 `<dialog>`. 흰 바탕 · 위 모서리 26 · 위 그림자 · 40×4 손잡이 · 제목 20px bold · 설명 14px · 좌우 24. 뒤 화면 #17253D 38% + 1.5px 흐림. 아래에서 260ms 로 올라오고 200ms 로 내려간다. 뒤 화면·Esc·「닫기」로 닫는다.
 - **SheetOption:** 52px · radius 12 · #E4E8EF 테두리 · 15px semibold. 고른 것은 19px 체크.
 
+### Dock · Alert · DangerButton
+데모 조각에서 공통 부품으로 올린 것이다(데모 `_components` 는 그대로 두고 따로 고친다).
+- **Dock:** 화면 아래 버튼 줄. 흰 바탕 · 위 14 · 사이 8 · 아래 safe area 와 24 중 큰 쪽 · 본문이 짧으면 맨 아래에 붙는다. 좌우 24, 로그인 · 비밀번호 재설정은 30.
+- **Alert:** 경고 안내 판. radius 12 · 안쪽 14 · 13px · `<strong>` bold. `warning` #FFF6E5/#956013 · `danger` #FEE2E2/#DC2626.
+- **DangerButton:** 되돌리기 어려운 확정. 52px · radius 12 · 15px bold · 오류색 바탕, 누르면 #DC2626. 로그아웃 시트.
+
 ### Header — `TopBar` · `SectionTitle` · `PageHeader`
 - **PageHeader:** 하위 화면 머리줄. 흰 바탕 · 최소 72px · 뒤로(19px) · 제목 18px bold · 오른쪽 아이콘 하나. 뒤로 가기는 보이는 24px 칸 대신 44px 로 눌린다(-10px 여백). 오른쪽 `action` 도 쓰는 쪽이 같은 방식으로 44px 칸을 만들어 넘긴다.
 - **TopBar:** 작은 로고 36px · 점포 이름 버튼(15px bold + 아래 꺾쇠) · 알림 버튼(44px, radius 14, #E9EDF3 테두리, 새 알림 8px 빨간 점 #C24242).
