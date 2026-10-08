@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { BottomSheet, BrandLogo, Button, Card, Notice, TextField } from "@/components/common";
 import { PageSlide } from "@/app/design/(mockup)/page-slide";
-import { DemoStates, useDemoState, type DemoDirection, type DemoState } from "../_components";
+import { Alert, DangerButton, DemoStates, Dock, useDemoState, type DemoDirection, type DemoState } from "../_components";
 
 const STATES: DemoState[] = [
   { id: "login", label: "로그인", note: "평상시" },
@@ -56,15 +56,8 @@ export default function DemoLoginPage() {
         description="다시 들어오려면 이메일과 비밀번호가 필요합니다. 출퇴근을 찍어야 할 때 번거로울 수 있습니다."
         closeLabel="그대로 두기"
       >
-        {/* 목업 btn--seal(빨강). 되돌리기 어려운 동작이라 남보라 대신 오류색을 쓴다 — 공통 Button 에 없는 톤이라 여기서만 그린다.
-            「그대로 두기」는 들어온 곳인 내 정보로 돌아간다. */}
-        <button
-          type="button"
-          onClick={() => back("login")}
-          className="flex h-[52px] items-center justify-center rounded-[12px] bg-staff-error text-[15px] font-bold text-white transition-[background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-[#dc2626]"
-        >
-          로그아웃
-        </button>
+        {/* 목업 btn--seal(빨강). 되돌리기 어려운 동작이라 남보라 대신 오류색을 쓴다. 「그대로 두기」는 들어온 곳인 내 정보로 돌아간다. */}
+        <DangerButton onClick={() => back("login")}>로그아웃</DangerButton>
       </BottomSheet>
 
       <DemoStates states={STATES} current={view} onChange={go} />
@@ -82,7 +75,7 @@ function renderView(view: string, go: (id: string, dir?: Dir) => void, back: (id
             <p className="text-[13px] font-semibold text-staff-text-sub">직원 근무 앱</p>
           </div>
           <p className="pb-[14px] text-center text-[12px] text-staff-text-muted">저장된 로그인을 확인하는 중입니다</p>
-          <Dock>
+          <Dock inset={30}>
             <Button variant="ghost" href={HOME} transitionTypes={["nav-forward"]}>
               홈으로 들어가기
             </Button>
@@ -162,10 +155,10 @@ function renderView(view: string, go: (id: string, dir?: Dir) => void, back: (id
             </>
           }
         >
-          <Amber>
+          <Alert tone="warning">
             <p className="text-[14px] font-semibold">남은 시간</p>
             <p className="text-[28px] font-bold tabular-nums">04:12</p>
-          </Amber>
+          </Alert>
           <Notice>
             기다리기 어려우면 <strong>비밀번호를 다시 정하면</strong> 바로 들어올 수 있습니다. 새로 정하면 잠금도 함께 풀립니다. 잠긴
             동안에는 비밀번호가 맞아도 들어갈 수 없습니다.
@@ -368,9 +361,9 @@ function renderView(view: string, go: (id: string, dir?: Dir) => void, back: (id
             </>
           }
         >
-          <Amber>
+          <Alert tone="warning">
             기다릴 필요 없이 <strong>바로 다시 받을 수 있습니다.</strong> 새로 받으면 시간도 10분부터 다시 셉니다.
-          </Amber>
+          </Alert>
         </Screen>
       );
 
@@ -388,9 +381,9 @@ function renderView(view: string, go: (id: string, dir?: Dir) => void, back: (id
             </>
           }
         >
-          <Amber>
+          <Alert tone="warning">
             남은 시도가 있어도 <strong>10분이 지나면 만료</strong>됩니다.
-          </Amber>
+          </Alert>
         </Screen>
       );
 
@@ -432,10 +425,10 @@ function renderView(view: string, go: (id: string, dir?: Dir) => void, back: (id
             </>
           }
         >
-          <Amber>
+          <Alert tone="warning">
             저장할 때 인증번호를 한 번 더 확인합니다. 시간이 지났거나 인증번호가 닫혔으면 여기로 옵니다. 앞서 받은 인증번호는{" "}
             <strong>다시 쓸 수 없습니다.</strong>
-          </Amber>
+          </Alert>
         </Screen>
       );
 
@@ -447,10 +440,10 @@ function renderView(view: string, go: (id: string, dir?: Dir) => void, back: (id
           desc="관리자가 보낸 재설정 링크로 들어왔습니다. 지금 쓰던 비밀번호는 묻지 않습니다."
           dock={<Button onClick={() => go("splash")}>비밀번호 정하고 시작하기</Button>}
         >
-          <Amber>
+          <Alert tone="warning">
             이 링크는 보낸 때로부터 <strong>24시간</strong> 동안, <strong>한 번만</strong> 쓸 수 있습니다. 비밀번호를 정하고 나면 바로
             무효가 됩니다. 관리자는 새 비밀번호를 정하지 못합니다.
-          </Amber>
+          </Alert>
           <NewPasswordFields />
         </Screen>
       );
@@ -484,10 +477,10 @@ function renderView(view: string, go: (id: string, dir?: Dir) => void, back: (id
             </Button>
           }
         >
-          <Amber>
+          <Alert tone="warning">
             <p className="text-[14px] font-semibold">출근을 찍으려던 중이었습니다</p>
             <p className="text-[12px]">로그인하면 하던 자리로 돌아갑니다</p>
-          </Amber>
+          </Alert>
           <TextField label="비밀번호" type="password" autoComplete="current-password" defaultValue="haeun2026" />
         </Screen>
       );
@@ -507,21 +500,8 @@ function Screen({ top, title, desc, children, dock }: { top?: ReactNode; title: 
         </div>
         {children}
       </div>
-      <Dock>{dock}</Dock>
+      <Dock inset={30}>{dock}</Dock>
     </>
-  );
-}
-
-function Dock({ children }: { children: ReactNode }) {
-  return <div className="mt-auto flex flex-col gap-[8px] bg-white px-[30px] pt-[14px] pb-[max(24px,env(safe-area-inset-bottom))]">{children}</div>;
-}
-
-// 주의 블록(목업 card--amber · note--amber). 색은 DESIGN.md 상태 칩 「지각」 짝(#FFF6E5 / #956013)을 빌렸다.
-function Amber({ children }: { children: ReactNode }) {
-  return (
-    <div className="flex w-full flex-col gap-[2px] rounded-[12px] bg-[#fff6e5] p-[14px] text-[13px] leading-[1.5] text-[#956013] [&_strong]:font-bold">
-      {children}
-    </div>
   );
 }
 

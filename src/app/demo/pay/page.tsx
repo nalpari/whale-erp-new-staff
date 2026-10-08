@@ -13,10 +13,10 @@
 // 상세 · 다시 보낸 명세서 · 빈 상태 · 안내 시트는 Figma 없음 — DESIGN.md 기준 초안. 상세의 실지급액은 목록과 같은 짙은 남색 카드다.
 // 하단 메뉴는 목업처럼 다섯 칸이다(2026-10-08 재영 결정, Figma 는 네 칸).
 import Image from "next/image";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState } from "react";
 import { Badge, BottomNav, BottomSheet, Button, Card, HeroCard, Notice, PageHeader } from "@/components/common";
 import { PageSlide } from "@/app/design/(mockup)/page-slide";
-import { DEMO_NAV_ITEMS, DemoStates, useDemoState } from "../_components";
+import { BackHeader, Body, DEMO_NAV_ITEMS, DemoStates, Tiny, useDemoState, useToast } from "../_components";
 
 // 목업 오른쪽 목록 순서 그대로. 마지막은 목업의 「시트 열기」라 목록 위에 시트를 띄운다.
 const STATES = [
@@ -93,12 +93,7 @@ export default function DemoPayPage() {
   const [state, move] = useDemoState(STATES);
 
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 2000);
-    return () => clearTimeout(timer);
-  }, [toast]);
+  const [toast, setToast] = useToast();
 
   const view = state === "about" ? "list" : state;
 
@@ -130,7 +125,7 @@ export default function DemoPayPage() {
             {(view === "detail" || view === "resent") && <BackHeader title="급여명세서" onBack={handleBack} />}
 
             {view === "list" && (
-              <Body>
+              <Body variant="detail">
                 {/* 이번 달 실지급액(Figma node 17:1003): 짙은 남색 · radius 24 · 안쪽 25. 남색 위 흐린 글자 #BAC7DE·#D1DAEB 는 이 카드에만 쓴다(/design/pay 그대로). */}
                 <section aria-label="이번 달 급여명세서" className="flex flex-col rounded-[24px] bg-staff-navy p-[25px] text-white">
                   <p className="text-[13px] text-[#bac7de]">2026년 8월 급여명세서 · 실지급액</p>
@@ -180,14 +175,14 @@ export default function DemoPayPage() {
             )}
 
             {view === "detail" && (
-              <Body>
+              <Body variant="detail">
                 <PayslipView payslip={PAYSLIPS.detail} onExport={handleExport} />
                 <Tiny>급여 지급은 이 화면에서 처리하지 않습니다. 실제 지급은 회사의 지급 절차를 따릅니다.</Tiny>
               </Body>
             )}
 
             {view === "resent" && (
-              <Body>
+              <Body variant="detail">
                 {/* 목업 note--amber. 상태 칩 지각·긴급 색(#FFF6E5 · #956013). 다시 보낸 사유는 이 안내가 맡고 처리 이력에는 적지 않는다(PAY-1). */}
                 <p className="rounded-[12px] bg-[#fff6e5] p-[14px] text-[13px] font-bold text-[#956013]">8월 20일 다시 발송되었습니다.</p>
                 <PayslipView payslip={PAYSLIPS.resent} onExport={handleExport} />
@@ -195,7 +190,7 @@ export default function DemoPayPage() {
             )}
 
             {view === "empty" && (
-              <Body>
+              <Body variant="detail">
                 <div className="flex flex-1 flex-col items-center justify-center gap-[8px] py-[52px] text-center">
                   <Image src="/icons/menu-payslip.svg" alt="" width={44} height={44} className="mb-[6px]" />
                   <p className="text-[18px] font-bold">아직 받은 명세서가 없습니다</p>
@@ -220,15 +215,7 @@ export default function DemoPayPage() {
         <Notice icon={<InfoIcon size={16} />}>급여 지급(입금)은 이 앱이 처리하지 않습니다. 명세서 데이터는 생성일로부터 3년간 보관됩니다.</Notice>
       </BottomSheet>
 
-      {/* 목업의 data-toast. 화면을 옮겨도 남도록 슬라이드 밖에 둔다(다른 데모와 같다). */}
-      {toast && (
-        <p
-          role="status"
-          className="fixed bottom-[120px] left-1/2 z-40 -translate-x-1/2 rounded-[12px] bg-staff-navy/90 px-[16px] py-[10px] text-[13px] font-semibold whitespace-nowrap text-white"
-        >
-          {toast}
-        </p>
-      )}
+      {toast}
     </>
   );
 }
@@ -325,18 +312,6 @@ function PayTable({ head, lines, totalLabel, total }: { head: string; lines: Lin
   );
 }
 
-// 같은 화면 안에서 목록으로 돌아가는 머리줄(contract 데모의 BackHeader 와 같다). PageHeader 모양이지만 뒤로 가기가 상태 이동이다.
-function BackHeader({ title, onBack }: { title: string; onBack: () => void }) {
-  return (
-    <header className="flex min-h-[72px] w-full items-center gap-[20px] bg-white px-[22px] py-[14px]">
-      <button type="button" onClick={onBack} aria-label="뒤로" className="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">
-        <Image src="/icons/back.svg" alt="" width={19} height={19} className="-scale-y-100" />
-      </button>
-      <h1 className="min-w-0 flex-1 truncate text-[18px] leading-[1.5] font-bold">{title}</h1>
-    </header>
-  );
-}
-
 // 목업 abar 의 안내 아이콘(ph-info). public/icons 에 없어 원 안의 i 를 직접 그린다. 보조 글자색.
 function InfoIcon({ size = 22 }: { size?: number }) {
   return (
@@ -345,14 +320,4 @@ function InfoIcon({ size = 22 }: { size?: number }) {
       <path d="M12 11v5.5M12 7.6v.1" />
     </svg>
   );
-}
-
-// 본문: 좌우 22 · 위 22 · 사이 20(다른 데모와 같다).
-function Body({ children }: { children: ReactNode }) {
-  return <div className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px]">{children}</div>;
-}
-
-// 목업 tiny: 12px 흐린 글자. 강조는 굵은 보조 글자.
-function Tiny({ children }: { children: ReactNode }) {
-  return <p className="text-[12px] text-staff-text-muted [&_b]:font-bold [&_b]:text-staff-text-sub">{children}</p>;
 }

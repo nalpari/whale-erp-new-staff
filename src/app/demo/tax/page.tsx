@@ -9,12 +9,11 @@
 // 처리방침 문구는 우리 초안 · 법무 확인 대기(TAX-7)라 화면 문구도 목업 그대로 두었다.
 // 목업과 다른 점: 주민등록번호 입력칸은 앞 6자리와 뒤 7자리로 나누고 뒷자리를 가려 보인다(목업은 한 칸에 그대로 보임).
 // Figma 없음 — DESIGN.md 기준 초안.
-import Image from "next/image";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { BottomSheet, Button, Card, MaskIcon, Notice, PageHeader, TextField } from "@/components/common";
 import { FIELD } from "@/components/common/theme";
 import { PageSlide } from "@/app/design/(mockup)/page-slide";
-import { DemoStates, useDemoState } from "../_components";
+import { BackHeader, Body, DemoStates, Dock, IconRow, Label, Seal, Sunken, useDemoState, useToast, Values } from "../_components";
 
 // 목업 오른쪽 상태 목록 순서 그대로. why 는 목업의 안내 화면 시트라 안내 위에 띄운다.
 const STATES = [
@@ -47,12 +46,7 @@ export default function DemoTaxPage() {
   const [sheetOpen, setSheetOpen] = useState(false);
   // 입력 화면의 뒤로 가기는 들어온 곳(안내 또는 등록된 값)으로 돌아간다(목업 data-go-back).
   const [formFrom, setFormFrom] = useState<"intro" | "view">("intro");
-  const [toast, setToast] = useState<string | null>(null);
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 2000);
-    return () => clearTimeout(timer);
-  }, [toast]);
+  const [toast, setToast] = useToast();
 
   const view = state === "why" ? "intro" : state;
 
@@ -91,7 +85,7 @@ export default function DemoTaxPage() {
                 </div>
                 <Card>
                   <Label>이 값들을 쓰는 곳</Label>
-                  <div className="flex flex-col divide-y divide-staff-border-light pt-[2px]">
+                  <div className="flex flex-col divide-y divide-staff-border-light pt-[10px]">
                     <IconRow icon="/icons/shield.svg" flipY title="4대보험 자격취득 신고" sub="국민연금 · 건강보험 · 고용보험 · 산재보험" />
                     <IconRow icon="/icons/contract.svg" title="근로소득 원천징수" sub="급여에서 떼는 세금을 신고할 때" />
                     <IconRow icon="/icons/nav-pay.svg" title="급여 지급" sub="달마다 급여가 들어갈 계좌" />
@@ -252,15 +246,7 @@ export default function DemoTaxPage() {
         <Notice>관리자는 어느 화면에서도 직원의 주민등록번호를 입력하지 않습니다.</Notice>
       </BottomSheet>
 
-      {/* 목업의 data-toast. 화면을 옮겨도 남도록 슬라이드 밖에 둔다. 떠 있는 것이라 짙은 남색 바탕. */}
-      {toast && (
-        <p
-          role="status"
-          className="fixed bottom-[120px] left-1/2 z-40 -translate-x-1/2 rounded-[12px] bg-staff-navy/90 px-[16px] py-[10px] text-[13px] font-semibold whitespace-nowrap text-white"
-        >
-          {toast}
-        </p>
-      )}
+      {toast}
     </>
   );
 }
@@ -294,78 +280,7 @@ function RrnField() {
   );
 }
 
-// 입력 화면 머리줄. PageHeader 와 같은 모양이고, 뒤로 가기가 링크가 아니라 화면 안 상태를 되돌리는 버튼이다.
-function BackHeader({ title, onBack }: { title: string; onBack: () => void }) {
-  return (
-    <header className="flex min-h-[72px] w-full items-center gap-[20px] bg-white px-[22px] py-[14px]">
-      <button type="button" onClick={onBack} aria-label="뒤로" className="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">
-        <Image src="/icons/back.svg" alt="" width={19} height={19} className="-scale-y-100" />
-      </button>
-      <h1 className="min-w-0 flex-1 truncate text-[18px] leading-[1.5] font-bold">{title}</h1>
-    </header>
-  );
-}
-
-// 본문: 좌우 24 · 위 30 · 줄 사이 16(join 데모와 같다). center 면 가운데 정렬 결과 화면.
-function Body({ center = false, children }: { center?: boolean; children: ReactNode }) {
-  return <div className={`flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] ${center ? "text-center" : ""}`}>{children}</div>;
-}
-
-// 하단 버튼 줄: 흰 띠. 본문이 짧으면 mt-auto 로 맨 아래에 붙는다.
-function Dock({ children }: { children: ReactNode }) {
-  return (
-    <div className="mt-auto flex flex-col gap-[8px] bg-white px-[24px] pt-[14px] pb-[max(24px,env(safe-area-inset-bottom))]">{children}</div>
-  );
-}
-
-// 카드 안 항목 이름(Label 13px semibold, 보조 글자).
-function Label({ children }: { children: ReactNode }) {
-  return <p className="text-[13px] font-semibold text-staff-text-sub">{children}</p>;
-}
-
 // 받은 근거 한 줄(Caption 12px). 강조는 <b>.
 function Basis({ children }: { children: ReactNode }) {
   return <p className="pt-[6px] text-[12px] text-staff-text-sub first:pt-0 [&_b]:font-bold [&_b]:text-staff-text">{children}</p>;
-}
-
-// 목업의 card--sunken: 안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14. 결과 화면 안에서도 왼쪽 정렬.
-function Sunken({ children }: { children: ReactNode }) {
-  return <div className="w-full rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px] text-left">{children}</div>;
-}
-
-function IconRow({ icon, title, sub, flipY = false }: { icon: string; title: string; sub: string; flipY?: boolean }) {
-  return (
-    <div className="flex items-center gap-[12px] py-[8px] last:pb-0">
-      <span className="flex size-[20px] shrink-0 items-center justify-center text-staff-text-sub">
-        <MaskIcon src={icon} size={16} flipY={flipY} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[14px] font-semibold">{title}</p>
-        <p className="text-[12px] text-staff-text-sub">{sub}</p>
-      </div>
-    </div>
-  );
-}
-
-// 이름·값 줄. 값은 오른쪽 정렬.
-function Values({ rows }: { rows: [string, string][] }) {
-  return (
-    <dl className="flex flex-col divide-y divide-staff-border-light">
-      {rows.map(([k, v]) => (
-        <div key={k} className="flex items-start gap-[12px] py-[9px] first:pt-0 last:pb-0">
-          <dt className="shrink-0 text-[13px] font-medium text-staff-text-sub">{k}</dt>
-          <dd className="min-w-0 flex-1 text-right text-[13px]">{v}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
-// 결과 도장(목업 .seal). 정상·완료 칩 색(#EAF8F2 · #13785E).
-function Seal({ children }: { children: ReactNode }) {
-  return (
-    <div className="mx-auto flex size-[88px] items-center justify-center rounded-full border-2 border-[#13785e] bg-[#eaf8f2] text-[15px] leading-[1.3] font-bold text-[#13785e]">
-      {children}
-    </div>
-  );
 }

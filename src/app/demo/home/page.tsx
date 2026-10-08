@@ -10,7 +10,7 @@
 // 그 밖 상태(처리할 일 카드 · 휴무 · 연결 보류 · 가입 직후 · 퇴직 후 · 날인 요청 팝업)는 Figma 없음 — DESIGN.md 기준 초안.
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   BottomNav,
   BottomSheet,
@@ -27,7 +27,7 @@ import {
   type WeekDay,
 } from "@/components/common";
 import { PageSlide } from "@/app/design/(mockup)/page-slide";
-import { DEMO_NAV_ITEMS, DemoStates, useDemoState } from "../_components";
+import { DEMO_NAV_ITEMS, DemoStates, Empty, useDemoState, useToast } from "../_components";
 
 // 목업 오른쪽 상태 목록 순서 그대로. store·sign-req 는 목업의 「시트 열기」라 뒤에 평상시·처리할 일 쌓임 화면을 깐다.
 const STATES = [
@@ -60,12 +60,7 @@ export default function DemoHomePage() {
   const [state, move] = useDemoState(STATES);
   const [store, setStore] = useState(STORES[0]);
   const [openedSheet, setOpenedSheet] = useState<Sheet | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 2000);
-    return () => clearTimeout(timer);
-  }, [toast]);
+  const [toast, setToast] = useToast();
 
   const sheet = openedSheet ?? (isSheet(state) ? state : null);
   const view = isSheet(state) ? SHEET_VIEW[state] : state;
@@ -176,7 +171,7 @@ export default function DemoHomePage() {
 
             {/* 연결 보류는 승인 전이라 계약서·근무 정보를 아예 보이지 않고, 가입 직후는 연결은 끝났고 근무만 아직 없다 — 다른 상태다. */}
             {view === "held" && (
-              <Empty icon="/icons/history.svg" title="관리자가 소속 연결을 확인하고 있습니다">
+              <Empty icon={<MaskIcon src="/icons/history.svg" size={24} flipY />} title="관리자가 소속 연결을 확인하고 있습니다">
                 <p>
                   가입할 때 인증한 번호가 등록된 연락처와 달라 자동으로 연결되지 않았습니다. 담당 관리자가 연락해 확인한 뒤 연결을 승인합니다.
                 </p>
@@ -185,13 +180,13 @@ export default function DemoHomePage() {
             )}
 
             {view === "empty" && (
-              <Empty icon="/icons/nav-work.svg" title="아직 쌓인 근무 정보가 없습니다">
+              <Empty icon={<MaskIcon src="/icons/nav-work.svg" size={24} flipY />} title="아직 쌓인 근무 정보가 없습니다">
                 <p>웨일카페 홍대점과 연결되었습니다. 관리자가 근무스케줄을 등록하면 이 화면에 오늘 근무와 이번 주 근무가 표시됩니다.</p>
               </Empty>
             )}
 
             {view === "retired" && (
-              <Empty icon="/icons/store.svg" title="근무지가 없습니다">
+              <Empty icon={<MaskIcon src="/icons/store.svg" size={24} flipY />} title="근무지가 없습니다">
                 <p className="[&_strong]:font-bold [&_strong]:text-staff-text">
                   연결된 근무지가 없습니다. 근무와 출퇴근 화면도 같은 안내를 보여 줍니다. 받은 급여명세서는 <strong>급여 탭</strong>에서,
                   알림은 위쪽 종에서 계속 볼 수 있습니다.
@@ -245,15 +240,7 @@ export default function DemoHomePage() {
         </Button>
       </BottomSheet>
 
-      {/* 목업의 data-toast. 화면을 옮겨도 남도록 슬라이드 밖에 둔다. 떠 있는 것이라 짙은 남색 바탕(join 데모와 같다). */}
-      {toast && (
-        <p
-          role="status"
-          className="fixed bottom-[120px] left-1/2 z-40 -translate-x-1/2 rounded-[12px] bg-staff-navy/90 px-[16px] py-[10px] text-[13px] font-semibold whitespace-nowrap text-white"
-        >
-          {toast}
-        </p>
-      )}
+      {toast}
     </>
   );
 }
@@ -365,18 +352,5 @@ function WorkInfo() {
       <InfoRow href="/demo/attendance" icon="/icons/menu-attendance.svg" title="출퇴근 현황" description="이번 달 출근 9회 · 지각 0회" />
       <InfoRow href="/demo/pay" icon="/icons/menu-payslip.svg" title="급여명세서" description="2026년 8월분 발송됨" />
     </section>
-  );
-}
-
-// 빈 상태(연결 보류 · 가입 직후 · 퇴직 후). 아이콘 칸 · 제목 Title 2 · 설명 14px 보조 글자, 화면 가운데.
-function Empty({ icon, title, children }: { icon: string; title: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-[14px] px-[8px] pb-[52px] text-center">
-      <span className="flex size-[56px] items-center justify-center rounded-full border border-staff-border-light bg-white text-staff-text-sub">
-        <MaskIcon src={icon} size={24} flipY />
-      </span>
-      <h2 className="text-[18px] font-bold">{title}</h2>
-      <div className="flex max-w-[300px] flex-col gap-[8px] text-[14px] text-staff-text-sub">{children}</div>
-    </div>
   );
 }

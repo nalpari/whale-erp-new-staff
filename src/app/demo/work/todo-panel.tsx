@@ -8,10 +8,10 @@
 // 목업 shared 는 긴급 건을 둘째 줄에 그렸지만 정책에 맞춰 맨 위에 둔다.
 // 체크칸: 긴급 건은 누르면 todo-done 으로 옮기고(목업 data-go), 나머지 미완료 건은 그 자리에서만 켜고 끈다(목업 data-tick).
 // 완료된 건은 목업처럼 보기 전용이다.
-import Image from "next/image";
 import { useState, type ReactNode } from "react";
 import { StatusChip, TodoList } from "@/components/common";
 import { EASE_OUT } from "@/components/common/theme";
+import { CheckBox } from "../_components";
 
 export type TodoSheet = "fridge" | "sharedInfo";
 type Status = "waiting" | "progress" | "done";
@@ -147,21 +147,7 @@ function TodoRow({
   );
   return (
     <li className="flex items-center gap-[12px] py-[17px] leading-[1.5]">
-      <label
-        className={`relative flex size-[28px] shrink-0 items-center justify-center rounded-[2px] transition-colors duration-150 ${EASE_OUT} ${
-          done ? "bg-staff-primary" : "bg-staff-primary-inactive"
-        }`}
-      >
-        <input
-          type="checkbox"
-          checked={done}
-          onChange={(e) => onToggle?.(e.target.checked)}
-          disabled={!onToggle}
-          aria-label={`${title} 완료`}
-          className="absolute -inset-[8px] appearance-none rounded-[10px]"
-        />
-        <Image src={done ? "/icons/todo-check-on.svg" : "/icons/todo-check-off.svg"} alt="" width={12} height={9} className="pointer-events-none" />
-      </label>
+      <CheckBox checked={done} onChange={onToggle} label={`${title} 완료`} />
       {onOpen ? (
         <button
           type="button"

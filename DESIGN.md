@@ -305,6 +305,23 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 ### TO-DO — `TodoList` · `TodoItem`
 카드 없이 줄만 쌓고 줄 사이는 #E8EDF3 1px 선. 한 줄은 위아래 17 · 사이 12: 체크칸 28px(radius 2, 옅은 남보라 · 완료면 남보라에 흰 체크, 누르는 칸은 사방 8px 넓혀 44px) · 제목 15px semibold · 일시 12px(기한 지남은 #956013) · 오른쪽 StatusChip(semibold). 완료한 제목은 흐린 글자.
 
+### 데모 조각 — `src/app/demo/_components`
+직원 근무 앱 데모(/demo)에서 화면 둘 이상이 쓰는 조각이다. 공통 부품(`src/components/common`)에 없는 모양을 DESIGN.md 토큰·크기 체계로 만들었다. 실제 앱 화면을 만들 때 공통 부품으로 올릴 후보다.
+
+- **BackHeader:** PageHeader 와 같은 모양(최소 72px · 뒤로 19px · 제목 18px bold)에 뒤로 가기가 링크가 아니라 화면 안 상태를 되돌리는 버튼. 근로계약 · 신고 정보 · 급여 · 알림 · 내 정보.
+- **Body:** 머리줄과 Dock 사이 본문. `form` 좌우 24 · 위 30 · 사이 16(가입 · 신고 정보 · 내 정보), `detail` 좌우 22 · 위 22 · 사이 20(출퇴근 등록 · 근로계약 · 급여). `center` 는 결과 화면 가운데 정렬, detail 은 위 52.
+- **Dock:** 화면 아래 버튼 줄. 흰 바탕 · 위 14 · 사이 8 · 아래 safe area 와 24 중 큰 쪽 · 본문이 짧으면 맨 아래에 붙는다. 좌우 24, 로그인 · 출퇴근 등록 · 근로계약은 30.
+- **Sunken:** 안내 판. 안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14 · 왼쪽 정렬. `label` 은 머리 13px semibold, `prose` 는 글을 바로 담을 때 13px 보조 글자(`<b>` 는 기본 글자 bold). 출퇴근 현황 · 근무 · 출퇴근 등록 · 근로계약 · 가입 · 신고 정보 · 내 정보.
+- **Values:** 이름 · 값 줄. 13px, 이름은 보조 글자 · 값은 기본 글자 오른쪽 정렬, 위아래 9 · 줄 사이 옅은 선. 주로 Sunken 안. Sunken 을 쓰는 화면 모두.
+- **Alert:** 경고 안내 판. radius 12 · 안쪽 14 · 13px · `<strong>` bold. `warning` #FFF6E5/#956013(지각 칩 짝) · `danger` #FEE2E2/#DC2626. 출퇴근 등록 · 로그인 · 내 정보.
+- **Seal:** 결과 도장. 88px 원 · 2px 테두리 · 15px bold. `success` #EAF8F2/#13785E · `danger` #FEE2E2/#DC2626(거부 완료). 출퇴근 등록 · 근로계약 · 가입 · 신고 정보 · 내 정보.
+- **Empty:** 빈 상태. 56px 흰 원 안 24px 아이콘 · 제목 18px bold · 설명 14px 보조 글자(최대 300px) · 사이 14, 남은 높이 가운데. 홈 · 알림.
+- **DangerButton:** 되돌리기 어려운 확정. 주 버튼 크기(52px · radius 12 · 15px bold)에 오류색 바탕, 누르면 #DC2626. 시트 안 로그아웃 · 거부 확정. 로그인 · 근로계약 · 내 정보.
+- **CheckBox:** TO-DO 체크칸 모양의 체크박스. 28px · radius 2 · 꺼짐 옅은 남보라 · 켜짐 남보라에 흰 체크, 누르는 칸 44px. 가입(약관 · 본사 제공 동의) · 근무(TO-DO).
+- **IconRow:** 아이콘 한 줄. 20px 칸의 16px 보조색 아이콘 · 제목 14px semibold · 설명 12px 보조 글자 · 사이 12 · 위아래 8. 가입 · 신고 정보.
+- **Label · Tiny:** Label 은 카드 · 판 머리 이름 13px semibold 보조 글자(신고 정보 · 내 정보). Tiny 는 본문 아래 안내 12px 흐린 글자, `<b>` 는 보조 글자 bold(근로계약 · 급여).
+- **useToast:** 토스트. 짙은 남색 90% 알약 · radius 12 · 13px semibold 흰 글자 · 화면 아래 120px 위 · 2초 뒤 사라짐 · `role="status"`. `const [toast, setToast] = useToast()` 로 받아 PageSlide 밖에 `{toast}` 를 둔다. 로그인을 뺀 열 화면.
+
 ## Do's and Don'ts
 
 ### Do:

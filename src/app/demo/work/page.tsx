@@ -11,7 +11,7 @@
 // 하단 메뉴는 목업처럼 다섯 칸이다(2026-10-08 재영 결정, Figma 는 네 칸).
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useId, useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import {
   BottomNav,
   BottomSheet,
@@ -27,7 +27,7 @@ import {
   WorkTimeBar,
 } from "@/components/common";
 import { PageSlide } from "@/app/design/(mockup)/page-slide";
-import { DEMO_NAV_ITEMS, DemoStates, useDemoState } from "../_components";
+import { DEMO_NAV_ITEMS, DemoStates, Sunken, useDemoState, useToast, Values } from "../_components";
 import { MonthCalendar } from "./month-calendar";
 import { TodoPanel, type TodoSheet, type TodoState } from "./todo-panel";
 
@@ -54,12 +54,7 @@ export default function DemoWorkPage() {
   const panelId = useId();
 
   const [openedSheet, setOpenedSheet] = useState<TodoSheet | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 2000);
-    return () => clearTimeout(timer);
-  }, [toast]);
+  const [toast, setToast] = useToast();
 
   const sheet = openedSheet ?? (isSheet(state) ? state : null);
   const view = isSheet(state) ? "todo" : state;
@@ -176,15 +171,7 @@ export default function DemoWorkPage() {
         <Notice>먼저 완료 처리한 사람이 수행자로 기록됩니다.</Notice>
       </BottomSheet>
 
-      {/* 목업의 data-toast. 하단 메뉴 위에 띄운다. 떠 있는 것이라 짙은 남색 바탕(join 데모와 같은 모양). */}
-      {toast && (
-        <p
-          role="status"
-          className="fixed bottom-[120px] left-1/2 z-40 -translate-x-1/2 rounded-[12px] bg-staff-navy/90 px-[16px] py-[10px] text-[13px] font-semibold whitespace-nowrap text-white"
-        >
-          {toast}
-        </p>
-      )}
+      {toast}
     </>
   );
 }
@@ -279,23 +266,5 @@ function Empty({ icon, title, description }: { icon: ReactNode; title: string; d
       <p className="text-[18px] font-bold">{title}</p>
       <p className="max-w-[260px] text-[13px] text-staff-text-sub">{description}</p>
     </div>
-  );
-}
-
-// 목업 card--sunken: 안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14(join 데모와 같은 판).
-function Sunken({ children }: { children: ReactNode }) {
-  return <div className="w-full rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px]">{children}</div>;
-}
-
-function Values({ rows }: { rows: [string, ReactNode][] }) {
-  return (
-    <dl className="flex flex-col divide-y divide-staff-border-light">
-      {rows.map(([k, v]) => (
-        <div key={k} className="flex items-center gap-[12px] py-[9px] first:pt-0 last:pb-0">
-          <dt className="shrink-0 text-[13px] font-medium text-staff-text-sub">{k}</dt>
-          <dd className="flex min-w-0 flex-1 justify-end text-right text-[13px] tabular-nums">{v}</dd>
-        </div>
-      ))}
-    </dl>
   );
 }

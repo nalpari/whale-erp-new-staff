@@ -15,12 +15,11 @@
 // 탈퇴 화면은 목업에도 아직 없고 이번 데모 범위 밖이다.
 // Figma 없음 — DESIGN.md 기준 초안.
 import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useId, useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { Badge, BottomNav, BottomSheet, Button, Card, MaskIcon, Notice, TextField } from "@/components/common";
 import { FIELD } from "@/components/common/theme";
 import { PageSlide } from "@/app/design/(mockup)/page-slide";
-import { DEMO_NAV_ITEMS, DemoStates, useDemoState } from "../_components";
+import { Alert, BackHeader, Body, DangerButton, DEMO_NAV_ITEMS, DemoStates, Dock, Label, Seal, Sunken, useDemoState, useToast, Values } from "../_components";
 
 // 목업 오른쪽 상태 목록 순서 그대로. 뒤의 둘은 목업의 「시트 열기」라 내 정보 화면을 뒤에 깐다.
 const STATES = [
@@ -70,12 +69,7 @@ export default function DemoMePage() {
     setSeenState(state);
     if (state === "revoked") setConsent({});
   }
-  const [toast, setToast] = useState<string | null>(null);
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 2000);
-    return () => clearTimeout(timer);
-  }, [toast]);
+  const [toast, setToast] = useToast();
 
   // 변경 이력·일시 중지·동의 철회 뒤는 내 정보 화면 위의 모습이라 슬라이드 열쇠를 view 로 둔다(카드만 바뀌고 화면은 움직이지 않는다).
   const view = state === "history" || state === "paused" || state === "revoked" ? "view" : state;
@@ -598,19 +592,14 @@ export default function DemoMePage() {
 
       <BottomSheet open={sheet === "bpshare"} onClose={closeSheet} title="본사 제공 동의">
         <Sunken>
-          <dl className="flex flex-col divide-y divide-staff-border-light">
-            {[
+          <Values
+            rows={[
               ["받는 자", "가맹본부 · 웨일카페"],
               ["항목", "근로계약 · 근무스케줄 · 출퇴근 기록과 확인 필요 사유 · 급여명세서"],
               ["목적", "가맹점 운영 지원과 점검"],
               ["보유 기간", "철회 또는 가맹 관계 종료까지"],
-            ].map(([k, v]) => (
-              <div key={k} className="flex items-start gap-[12px] py-[8px] first:pt-0 last:pb-0">
-                <dt className="shrink-0 text-[13px] font-medium text-staff-text-sub">{k}</dt>
-                <dd className="min-w-0 flex-1 text-right text-[13px]">{v}</dd>
-              </div>
-            ))}
-          </dl>
+            ]}
+          />
         </Sunken>
         <p className="text-[12px] text-staff-text-muted [&_b]:font-bold [&_b]:text-staff-text">
           선택 동의입니다. 철회해도 가입과 근무는 그대로이고, 본사에는 점포별 숫자로만 보입니다. <b>항목이나 목적이 넓어지면</b> 새 버전으로 다시
@@ -636,38 +625,14 @@ export default function DemoMePage() {
         description="다시 들어오려면 이메일과 비밀번호가 필요합니다. 출퇴근을 찍어야 할 때 번거로울 수 있습니다."
         closeLabel="그대로 두기"
       >
-        {/* 목업 btn--seal(빨강). 로그인 데모의 로그아웃 시트와 같은 모양이고, 여기서는 로그인 화면으로 가는 링크다. */}
-        <Link
-          href="/demo/login"
-          transitionTypes={["nav-back"]}
-          className="flex h-[52px] items-center justify-center rounded-[12px] bg-staff-error text-[15px] font-bold text-white transition-[background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-[#dc2626]"
-        >
+        {/* 목업 btn--seal(빨강). 여기서는 로그인 화면으로 가는 링크다. */}
+        <DangerButton href="/demo/login" transitionTypes={["nav-back"]}>
           로그아웃
-        </Link>
+        </DangerButton>
       </BottomSheet>
 
-      {/* 목업의 data-toast. 화면을 옮겨도 남도록 슬라이드 밖에 둔다. 떠 있는 것이라 짙은 남색 바탕. */}
-      {toast && (
-        <p
-          role="status"
-          className="fixed bottom-[120px] left-1/2 z-40 -translate-x-1/2 rounded-[12px] bg-staff-navy/90 px-[16px] py-[10px] text-[13px] font-semibold whitespace-nowrap text-white"
-        >
-          {toast}
-        </p>
-      )}
+      {toast}
     </>
-  );
-}
-
-// 하위 화면 머리줄. PageHeader 와 같은 모양이고, 뒤로 가기가 링크가 아니라 화면 안 상태를 되돌리는 버튼이다(tax 데모와 같다).
-function BackHeader({ title, onBack }: { title: string; onBack: () => void }) {
-  return (
-    <header className="flex min-h-[72px] w-full items-center gap-[20px] bg-white px-[22px] py-[14px]">
-      <button type="button" onClick={onBack} aria-label="뒤로" className="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">
-        <Image src="/icons/back.svg" alt="" width={19} height={19} className="-scale-y-100" />
-      </button>
-      <h1 className="min-w-0 flex-1 truncate text-[18px] leading-[1.5] font-bold">{title}</h1>
-    </header>
   );
 }
 
@@ -719,11 +684,6 @@ function CardHead({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-// 카드 안 항목 이름(Label 13px semibold, 보조 글자).
-function Label({ children }: { children: ReactNode }) {
-  return <p className="text-[13px] font-semibold text-staff-text-sub">{children}</p>;
-}
-
 // 카드 안 안내 한 줄(Caption 12px). muted 는 한 단계 더 흐린 끝줄.
 function Tiny({ muted = false, children }: { muted?: boolean; children: ReactNode }) {
   return <p className={`pt-[8px] text-[12px] ${muted ? "text-staff-placeholder" : "text-staff-text-muted"}`}>{children}</p>;
@@ -769,37 +729,5 @@ function Rule({ ok, children }: { ok: boolean; children: ReactNode }) {
       <span className="sr-only">{ok ? "충족" : "미충족"}</span>
       <span>{children}</span>
     </li>
-  );
-}
-
-// 막힘·주의 안내(목업 note--seal · note--amber). Notice 와 같은 크기에 색만 Badge 의 지각·긴급 짝을 빌린다.
-function Alert({ tone, children }: { tone: "danger" | "warning"; children: ReactNode }) {
-  const color = tone === "danger" ? "bg-[#fee2e2] text-[#b91c1c]" : "bg-[#fef3c7] text-[#92400e]";
-  return <p className={`w-full rounded-[12px] p-[14px] text-[13px] leading-[1.5] [&_strong]:font-bold ${color}`}>{children}</p>;
-}
-
-// 본문: 좌우 24 · 위 30 · 줄 사이 16(tax 데모와 같다). center 면 가운데 정렬 결과 화면.
-function Body({ center = false, children }: { center?: boolean; children: ReactNode }) {
-  return <div className={`flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] ${center ? "text-center" : ""}`}>{children}</div>;
-}
-
-// 하단 버튼 줄: 흰 띠. 본문이 짧으면 mt-auto 로 맨 아래에 붙는다.
-function Dock({ children }: { children: ReactNode }) {
-  return (
-    <div className="mt-auto flex flex-col gap-[8px] bg-white px-[24px] pt-[14px] pb-[max(24px,env(safe-area-inset-bottom))]">{children}</div>
-  );
-}
-
-// 목업의 card--sunken: 안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14.
-function Sunken({ children }: { children: ReactNode }) {
-  return <div className="w-full rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px] text-left">{children}</div>;
-}
-
-// 결과 도장(목업 .seal). 정상·완료 칩 색(#EAF8F2 · #13785E).
-function Seal({ children }: { children: ReactNode }) {
-  return (
-    <div className="mx-auto flex size-[88px] items-center justify-center rounded-full border-2 border-[#13785e] bg-[#eaf8f2] text-[15px] leading-[1.3] font-bold text-[#13785e]">
-      {children}
-    </div>
   );
 }

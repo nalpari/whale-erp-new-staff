@@ -8,12 +8,11 @@
 // 노무사 검토 중: 제4조 휴일(CON-6) · 제7조 연차유급휴가(CON-7)는 「문구 확정 전」, 제6조·제8조는 「문구는 노무사 검토 중(PAY-5)」 그대로.
 // Figma 없음 — DESIGN.md 기준 초안.
 // 목업과 다른 점: 목업 btn--quiet(완료본 내보내기 등)는 홈 데모처럼 outline 버튼이다. 종이 계약에도 목업에 없는 뒤로 가기를 둬 목록으로 간다.
-// 목업 seal(인주색 도장)은 다른 데모처럼 날인 완료는 정상·완료 색, 거부 완료는 거부 배지와 같은 오류 색이다.
-import Image from "next/image";
-import { useEffect, useState, type ReactNode } from "react";
+// 목업 seal(인주색 도장)은 데모 조각 Seal 로 그린다. 날인 완료는 정상·완료 색(success), 거부 완료는 거부 배지와 같은 오류 색(danger)이다.
+import { useState } from "react";
 import { Badge, BottomSheet, Button, MaskIcon, Notice, PageHeader, type BadgeTone } from "@/components/common";
 import { PageSlide } from "@/app/design/(mockup)/page-slide";
-import { DemoStates, useDemoState } from "../_components";
+import { BackHeader, Body, DangerButton, DemoStates, Dock, Seal, Sunken, Tiny, useDemoState, useToast, Values } from "../_components";
 import { SignaturePad } from "./signature-pad";
 
 // 목업 오른쪽 목록 순서 그대로. 마지막은 목업의 「시트 열기」라 상세 위에 시트를 띄운다.
@@ -67,12 +66,7 @@ export default function DemoContractPage() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [submittedReason, setSubmittedReason] = useState<string | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 2000);
-    return () => clearTimeout(timer);
-  }, [toast]);
+  const [toast, setToast] = useToast();
 
   const view = state === "reject" ? "detail" : state;
   const back = BACK[view];
@@ -102,7 +96,7 @@ export default function DemoContractPage() {
           {back && <BackHeader title="근로계약" onBack={() => go(back, undefined, "nav-back")} />}
 
           {view === "list" && (
-            <Body>
+            <Body variant="detail">
               <ul className="flex flex-col divide-y divide-staff-border-light overflow-hidden rounded-[16px] border border-staff-border-light bg-white">
                 {CONTRACTS.map((c, i) => (
                   <li key={i}>
@@ -133,7 +127,7 @@ export default function DemoContractPage() {
 
           {view === "detail" && (
             <>
-              <Body>
+              <Body variant="detail">
                 {/* 남은 기한 7일 이내라 머리 카드가 강조색이다(CON-4). 상태 칩 지각·긴급 색(#FFF6E5 · #956013). */}
                 <section className="flex items-center gap-[12px] rounded-[16px] bg-[#fff6e5] p-[16px]">
                   <span className="flex text-[#956013]">
@@ -152,7 +146,7 @@ export default function DemoContractPage() {
                   사업장의 사실이고 달마다 바뀔 수 있기 때문입니다. 계약서에는 법에 따라 가산한다는 일반 문구만 둡니다.
                 </Tiny>
 
-                <Sunken label="본인인증으로 확인된 정보">
+                <Sunken prose label="본인인증으로 확인된 정보">
                   <Values
                     rows={[
                       ["성명", "김민서"],
@@ -164,7 +158,7 @@ export default function DemoContractPage() {
                 </Sunken>
                 <Tiny>날인 또는 거부하면 담당 관리자에게 이메일과 운영 알림함 알림이 함께 생성됩니다.</Tiny>
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button onClick={() => go("sign")}>날인하기</Button>
                 <Button variant="ghost" onClick={() => setSheetOpen(true)}>
                   거부하기
@@ -175,7 +169,7 @@ export default function DemoContractPage() {
 
           {(view === "sign" || view === "sign-drawn") && (
             <>
-              <Body>
+              <Body variant="detail">
                 <div className="flex flex-col gap-[6px]">
                   <h2 className="text-[22px] font-bold">서명란에 서명해 주세요</h2>
                   <p className="text-[14px] text-staff-text-sub">손가락으로 서명하면 날인이 됩니다. 확정한 뒤에는 되돌릴 수 없습니다.</p>
@@ -191,7 +185,7 @@ export default function DemoContractPage() {
                 </Sunken>
               </Body>
               {/* 그리기와 확정을 두 번에 나눈다(CON-2). 그리기 전에는 날인 확정이 꺼져 있다. */}
-              <Dock>
+              <Dock inset={30}>
                 {view === "sign" ? (
                   <>
                     <Button disabled>날인 확정</Button>
@@ -213,7 +207,7 @@ export default function DemoContractPage() {
 
           {view === "signing" && (
             <>
-              <Body center>
+              <Body variant="detail" center>
                 <div className="flex flex-col gap-[6px]">
                   <h2 className="text-[22px] font-bold">요청을 처리하는 중입니다</h2>
                   <p className="text-[14px] text-staff-text-sub">처리가 끝날 때까지 화면을 벗어나지 마세요. 처리하는 동안 날인과 거부 버튼은 눌리지 않습니다.</p>
@@ -222,7 +216,7 @@ export default function DemoContractPage() {
                   <Values rows={[["대상 계약", "웨일카페 강남역점 · 파트타이머"]]} />
                 </Sunken>
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button disabled>날인하기</Button>
                 <Button variant="ghost" disabled>
                   거부하기
@@ -233,7 +227,7 @@ export default function DemoContractPage() {
 
           {view === "signed" && (
             <>
-              <Body center>
+              <Body variant="detail" center>
                 <Seal tone="success">
                   날인
                   <br />
@@ -254,7 +248,7 @@ export default function DemoContractPage() {
                 </Notice>
                 <Tiny>담당 관리자에게 이메일과 운영 알림함 알림이 함께 생성됩니다. 계약 내용을 바꾸려면 관리자에게 재발송을 요청해야 합니다.</Tiny>
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button href={TAX} transitionTypes={["nav-forward"]}>
                   신고 정보 넣기
                 </Button>
@@ -268,7 +262,7 @@ export default function DemoContractPage() {
 
           {view === "readonly" && (
             <>
-              <Body>
+              <Body variant="detail">
                 <Notice>
                   <strong>이미 처리가 끝난 계약서입니다.</strong>
                   <br />
@@ -283,7 +277,7 @@ export default function DemoContractPage() {
                 </section>
                 <ContractDocument {...FULL_TIME} />
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button variant="outline" onClick={() => setToast("처리 완료본 PDF 를 공유합니다")}>
                   완료본 내보내기
                 </Button>
@@ -296,7 +290,7 @@ export default function DemoContractPage() {
 
           {view === "paper" && (
             <>
-              <Body>
+              <Body variant="detail">
                 <Notice>
                   <strong>종이로 맺은 계약입니다.</strong>
                   <br />
@@ -330,7 +324,7 @@ export default function DemoContractPage() {
                   <Tiny>조항은 앱에서 그리지 않습니다. 관리자가 올린 파일이 원본입니다.</Tiny>
                 </section>
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button variant="outline" onClick={() => setToast("올라온 파일 두 개를 함께 공유합니다")}>
                   파일 모두 내보내기
                 </Button>
@@ -343,17 +337,17 @@ export default function DemoContractPage() {
 
           {view === "rejected" && (
             <>
-              <Body center>
+              <Body variant="detail" center>
                 <Seal tone="danger">
                   거부
                   <br />
                   완료
                 </Seal>
                 <Clock label="거부 처리" time="14:11" />
-                <Sunken label="거부 사유">{submittedReason === null ? REJECT_SAMPLE : submittedReason || "사유를 남기지 않았습니다."}</Sunken>
+                <Sunken prose label="거부 사유">{submittedReason === null ? REJECT_SAMPLE : submittedReason || "사유를 남기지 않았습니다."}</Sunken>
                 <Tiny>담당 관리자에게 이메일과 운영 알림함 알림이 함께 생성됩니다. 관리자가 계약서를 다시 보내야 새로 처리할 수 있습니다.</Tiny>
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button variant="ghost" href={HOME} transitionTypes={["nav-back"]}>
                   홈으로
                 </Button>
@@ -363,7 +357,7 @@ export default function DemoContractPage() {
 
           {view === "empty" && (
             <>
-              <Body center>
+              <Body variant="detail" center>
                 <div className="flex flex-col items-center gap-[8px] pt-[52px]">
                   <span className="flex text-staff-placeholder">
                     <MaskIcon src="/icons/contract.svg" size={30} />
@@ -376,7 +370,7 @@ export default function DemoContractPage() {
                   </p>
                 </div>
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button variant="outline" onClick={() => setToast("관리자에게 문의를 보냈습니다")}>
                   관리자에게 문의하기
                 </Button>
@@ -386,7 +380,7 @@ export default function DemoContractPage() {
 
           {view === "expired" && (
             <>
-              <Body>
+              <Body variant="detail">
                 {/* 목업 note--amber. 상태 칩 지각·긴급 색(#FFF6E5 · #956013). */}
                 <p className="rounded-[12px] bg-[#fff6e5] p-[14px] text-[13px] text-[#956013] [&_strong]:font-bold">
                   <strong>날인 기한이 지나 계약이 만료되었습니다.</strong>
@@ -403,9 +397,9 @@ export default function DemoContractPage() {
                   </div>
                   <Badge tone="danger">만료</Badge>
                 </section>
-                <Sunken>다시 처리하려면 관리자가 계약서를 재발송해야 합니다. 재발송되면 새 날인 기한을 알림으로 안내받습니다.</Sunken>
+                <Sunken prose>다시 처리하려면 관리자가 계약서를 재발송해야 합니다. 재발송되면 새 날인 기한을 알림으로 안내받습니다.</Sunken>
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button variant="ghost" onClick={() => go("list", undefined, "nav-back")}>
                   목록으로
                 </Button>
@@ -435,25 +429,11 @@ export default function DemoContractPage() {
           />
           <span className="text-[12px] text-staff-text-muted">사유를 남기면 관리자가 재발송 여부를 판단하는 데 참고합니다.</span>
         </label>
-        {/* 목업 btn--seal(빨강). 되돌릴 수 없는 확정이라 로그인 데모의 로그아웃처럼 오류색으로 여기서만 그린다. */}
-        <button
-          type="button"
-          onClick={handleRejectConfirm}
-          className="flex h-[52px] items-center justify-center rounded-[12px] bg-staff-error text-[15px] font-bold text-white transition-[background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-[#dc2626]"
-        >
-          거부 확정
-        </button>
+        {/* 목업 btn--seal(빨강). 되돌릴 수 없는 확정이라 오류색이다. */}
+        <DangerButton onClick={handleRejectConfirm}>거부 확정</DangerButton>
       </BottomSheet>
 
-      {/* 목업의 data-toast. 화면을 옮겨도 남도록 슬라이드 밖에 둔다(다른 데모와 같다). */}
-      {toast && (
-        <p
-          role="status"
-          className="fixed bottom-[120px] left-1/2 z-40 -translate-x-1/2 rounded-[12px] bg-staff-navy/90 px-[16px] py-[10px] text-[13px] font-semibold whitespace-nowrap text-white"
-        >
-          {toast}
-        </p>
-      )}
+      {toast}
     </>
   );
 }
@@ -582,59 +562,6 @@ function FileRow({ name, tag, meta, onDownload }: { name: string; tag: string; m
   );
 }
 
-// 같은 화면 안에서 앞 상태로 돌아가는 머리줄. PageHeader 와 같은 모양이지만 뒤로 가기가 링크가 아니라 상태 이동이다.
-function BackHeader({ title, onBack }: { title: string; onBack: () => void }) {
-  return (
-    <header className="flex min-h-[72px] w-full items-center gap-[20px] bg-white px-[22px] py-[14px]">
-      <button type="button" onClick={onBack} aria-label="뒤로" className="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">
-        <Image src="/icons/back.svg" alt="" width={19} height={19} className="-scale-y-100" />
-      </button>
-      <h1 className="min-w-0 flex-1 truncate text-[18px] leading-[1.5] font-bold">{title}</h1>
-    </header>
-  );
-}
-
-// 본문: 좌우 22 · 위 22 · 사이 20(출퇴근 데모와 같다). center 면 가운데 정렬(처리 중·날인 완료·거부 완료·빈 상태).
-function Body({ center = false, children }: { center?: boolean; children: ReactNode }) {
-  return (
-    <div className={`flex flex-1 flex-col gap-[20px] px-[22px] pb-[14px] ${center ? "pt-[52px] text-center" : "pt-[22px]"}`}>{children}</div>
-  );
-}
-
-// 하단 버튼 줄: 흰 띠 · 좌우 30 · 위 14. 본문이 짧으면 맨 아래에 붙는다. 날인·거부는 본문을 다 지나야 닿는 자리다.
-function Dock({ children }: { children: ReactNode }) {
-  return <div className="mt-auto flex flex-col gap-[8px] bg-white px-[30px] pt-[14px] pb-[max(24px,env(safe-area-inset-bottom))]">{children}</div>;
-}
-
-// 목업 tiny: 12px 흐린 글자.
-function Tiny({ children }: { children: ReactNode }) {
-  return <p className="text-[12px] text-staff-text-muted [&_b]:font-bold [&_b]:text-staff-text-sub">{children}</p>;
-}
-
-// 목업의 card--sunken: 안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14. label 이 있으면 13px 소제목.
-function Sunken({ label, children }: { label?: string; children: ReactNode }) {
-  return (
-    <div className="w-full rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px] text-left text-[13px] text-staff-text-sub">
-      {label && <p className="pb-[6px] font-semibold">{label}</p>}
-      {children}
-    </div>
-  );
-}
-
-// 이름·값 줄. 값이 길면 오른쪽 정렬로 접힌다.
-function Values({ rows }: { rows: [string, string][] }) {
-  return (
-    <dl className="flex flex-col divide-y divide-staff-border-light">
-      {rows.map(([k, v]) => (
-        <div key={k} className="flex items-start gap-[12px] py-[8px] first:pt-0 last:pb-0">
-          <dt className="shrink-0 font-medium text-staff-text-sub">{k}</dt>
-          <dd className="min-w-0 flex-1 text-right text-staff-text">{v}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
 // 시각 블록: 라벨 13px semibold · Clock 42px bold.
 function Clock({ label, time }: { label: string; time: string }) {
   return (
@@ -642,15 +569,5 @@ function Clock({ label, time }: { label: string; time: string }) {
       <h2 className="text-[13px] font-semibold text-staff-text-sub">{label}</h2>
       <p className="text-[42px] leading-[1.1] font-bold">{time}</p>
     </section>
-  );
-}
-
-// 결과 도장. 날인 완료는 정상·완료 칩 색(#EAF8F2 · #13785E), 거부 완료는 거부 배지 색(#FEE2E2 · #DC2626).
-const SEAL = { success: "border-[#13785e] bg-[#eaf8f2] text-[#13785e]", danger: "border-[#dc2626] bg-[#fee2e2] text-[#dc2626]" };
-function Seal({ tone, children }: { tone: keyof typeof SEAL; children: ReactNode }) {
-  return (
-    <div className={`mx-auto flex size-[88px] items-center justify-center rounded-full border-2 text-[15px] leading-[1.3] font-bold ${SEAL[tone]}`}>
-      {children}
-    </div>
   );
 }

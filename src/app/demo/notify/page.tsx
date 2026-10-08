@@ -15,12 +15,11 @@
 // 목업에서 링크가 없던 읽은 줄도 같은 규칙으로 관련 화면에 잇는다. 줄마다 읽음을 바꾸는 동작은 목업에 그려져 있지 않아 왼쪽 점을 누르는 것으로 그렸다.
 // 데모라 다른 화면으로 갔다 돌아오면 읽음 표시는 처음으로 돌아간다.
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState } from "react";
 import { BottomNav, Button, MaskIcon, Notice, PageHeader, SwitchRow } from "@/components/common";
 import { PRESS } from "@/components/common/theme";
 import { PageSlide } from "@/app/design/(mockup)/page-slide";
-import { BackHeader } from "./back-header";
-import { DEMO_NAV_ITEMS, DemoStates, useDemoState } from "../_components";
+import { BackHeader, DEMO_NAV_ITEMS, DemoStates, Empty, useDemoState, useToast } from "../_components";
 
 // 목업 오른쪽 목록 순서 그대로.
 const STATES = [
@@ -82,12 +81,7 @@ export default function DemoNotifyPage() {
   const [state, go] = useDemoState(STATES);
   const [unread, setUnread] = useState(() => new Set(NOTIFICATIONS.filter((n) => n.unread).map((n) => n.id)));
   const [scheduleOn, setScheduleOn] = useState(true);
-  const [toast, setToast] = useState<string | null>(null);
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 2000);
-    return () => clearTimeout(timer);
-  }, [toast]);
+  const [toast, setToast] = useToast();
 
   const setRead = (id: string, read: boolean) =>
     setUnread((prev) => {
@@ -153,9 +147,11 @@ export default function DemoNotifyPage() {
           )}
 
           {state === "inbox-empty" && (
-            <Empty icon={<MaskIcon src="/icons/bell.svg" size={24} flipY />} title="확인할 알림이 없습니다">
-              근로계약서, 근무스케줄 변경, TO-DO 배정, 급여명세서가 도착하면 여기에 표시됩니다.
-            </Empty>
+            <main className="flex flex-1 flex-col">
+              <Empty icon={<MaskIcon src="/icons/bell.svg" size={24} flipY />} title="확인할 알림이 없습니다">
+                근로계약서, 근무스케줄 변경, TO-DO 배정, 급여명세서가 도착하면 여기에 표시됩니다.
+              </Empty>
+            </main>
           )}
 
           {/* 수신 설정 — Figma 09.알림설정(node 17:1097)의 여백·목록·안내 블록, 문구는 목업. */}
@@ -187,14 +183,16 @@ export default function DemoNotifyPage() {
 
           {/* 알림을 눌렀지만 관련 항목이 지워졌거나 볼 수 없을 때. 알림은 알림함에 남는다. */}
           {state === "gone" && (
-            <Empty icon={<LinkBreakIcon />} title="이 알림과 연결된 화면을 열 수 없습니다">
-              관련 항목이 삭제되었거나 더 이상 접근할 수 없습니다. 알림 자체는 계속 알림함에 남아 있습니다.
-              <div className="pt-[8px]">
-                <Button variant="ghost" onClick={() => go("inbox", "nav-back")}>
-                  알림함으로 돌아가기
-                </Button>
-              </div>
-            </Empty>
+            <main className="flex flex-1 flex-col">
+              <Empty icon={<LinkBreakIcon />} title="이 알림과 연결된 화면을 열 수 없습니다">
+                관련 항목이 삭제되었거나 더 이상 접근할 수 없습니다. 알림 자체는 계속 알림함에 남아 있습니다.
+                <div className="pt-[8px]">
+                  <Button variant="ghost" onClick={() => go("inbox", "nav-back")}>
+                    알림함으로 돌아가기
+                  </Button>
+                </div>
+              </Empty>
+            </main>
           )}
 
           {/* 목업 탭바는 수신 설정·연결 끊김에서 빠진다(data-unless). 알림은 메뉴 칸이 아니라 지금 칸이 없다. */}
@@ -206,15 +204,7 @@ export default function DemoNotifyPage() {
         </div>
       </PageSlide>
 
-      {/* 목업의 data-toast. 화면을 옮겨도 남도록 슬라이드 밖에 둔다(다른 데모와 같다). */}
-      {toast && (
-        <p
-          role="status"
-          className="fixed bottom-[120px] left-1/2 z-40 -translate-x-1/2 rounded-[12px] bg-staff-navy/90 px-[16px] py-[10px] text-[13px] font-semibold whitespace-nowrap text-white"
-        >
-          {toast}
-        </p>
-      )}
+      {toast}
     </>
   );
 }
@@ -264,17 +254,6 @@ function NotificationRow({
         <span className="shrink-0 pt-[2px] text-[12px] text-staff-text-muted">{time}</span>
       </Link>
     </li>
-  );
-}
-
-// 빈 상태(알림 없음 · 연결 끊김). 홈 데모의 빈 상태와 같은 모양: 56px 아이콘 칸 · 제목 18px bold · 설명 14px 보조 글자, 화면 가운데.
-function Empty({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
-  return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-[14px] px-[30px] pb-[52px] text-center">
-      <span className="flex size-[56px] items-center justify-center rounded-full border border-staff-border-light bg-white text-staff-text-sub">{icon}</span>
-      <h2 className="text-[18px] font-bold">{title}</h2>
-      <div className="flex max-w-[300px] flex-col gap-[8px] text-[14px] text-staff-text-sub">{children}</div>
-    </main>
   );
 }
 

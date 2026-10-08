@@ -12,7 +12,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   BottomNav,
   AttendanceDayCard,
@@ -30,7 +30,7 @@ import {
 } from "@/components/common";
 import { FIELD } from "@/components/common/theme";
 import { PageSlide } from "@/app/design/(mockup)/page-slide";
-import { DEMO_NAV_ITEMS, DemoStates, useDemoState, type DemoState } from "../_components";
+import { DEMO_NAV_ITEMS, DemoStates, Sunken, useDemoState, useToast, Values, type DemoState } from "../_components";
 
 // 목업 오른쪽 상태 목록 순서 그대로. 시트 넷은 목업에서 카드를 눌러 여는 것이라 데모 도구에서도 열 수 있게 뒤에 붙였다.
 const STATES: DemoState[] = [
@@ -61,12 +61,7 @@ const shiftYear = (date: string, years: number) => `${Number(date.slice(0, 4)) +
 export default function DemoAttendancePage() {
   const [state, go] = useDemoState(STATES);
   const [openedSheet, setOpenedSheet] = useState<Sheet | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 2000);
-    return () => clearTimeout(timer);
-  }, [toast]);
+  const [toast, setToast] = useToast();
 
   const sheet = openedSheet ?? (isSheet(state) ? state : null);
   const view = isSheet(state) ? SHEET_BASE[state] : state;
@@ -202,15 +197,7 @@ export default function DemoAttendancePage() {
         </Notice>
       </BottomSheet>
 
-      {/* 목업의 data-toast. join 데모와 같은 떠 있는 짙은 남색 띠. */}
-      {toast && (
-        <p
-          role="status"
-          className="fixed bottom-[120px] left-1/2 z-40 -translate-x-1/2 rounded-[12px] bg-staff-navy/90 px-[16px] py-[10px] text-[13px] font-semibold whitespace-nowrap text-white"
-        >
-          {toast}
-        </p>
-      )}
+      {toast}
     </>
   );
 }
@@ -460,25 +447,6 @@ function Empty({ icon, title, children }: { icon: string; title: string; childre
       <h2 className="text-[18px] font-bold">{title}</h2>
       <p className="max-w-[250px] text-[14px] text-staff-text-sub">{children}</p>
     </div>
-  );
-}
-
-// 목업 card--sunken: 안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14(join 데모와 같은 판).
-function Sunken({ children }: { children: ReactNode }) {
-  return <div className="w-full rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px]">{children}</div>;
-}
-
-// 이름·값 줄(join 데모와 같은 모양).
-function Values({ rows }: { rows: [string, string][] }) {
-  return (
-    <dl className="flex flex-col divide-y divide-staff-border-light">
-      {rows.map(([k, v]) => (
-        <div key={k} className="flex items-start gap-[12px] py-[9px] first:pt-0 last:pb-0">
-          <dt className="shrink-0 text-[13px] font-medium text-staff-text-sub">{k}</dt>
-          <dd className="min-w-0 flex-1 text-right text-[13px]">{v}</dd>
-        </div>
-      ))}
-    </dl>
   );
 }
 

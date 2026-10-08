@@ -15,10 +15,10 @@
 // 하단 메뉴 「출퇴근」 칸 화면이다(2026-10-08 다섯 칸). 머리줄(PageHeader) 뒤로 가기는 근무 화면처럼 홈으로 간다.
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { BottomNav, BottomSheet, Button, MaskIcon, PageHeader, SheetOption, WorkTimeBar } from "@/components/common";
 import { PageSlide } from "@/app/design/(mockup)/page-slide";
-import { DEMO_NAV_ITEMS, DemoStates, useDemoState } from "../_components";
+import { Alert, Body, DEMO_NAV_ITEMS, DemoStates, Dock, Seal, Sunken, useDemoState, useToast, Values } from "../_components";
 import { GeoBlank, GeoMap } from "./geo-map";
 
 // 목업 오른쪽 목록 순서 그대로. 뒤 여덟은 목업의 「시트 열기」라 SHEET_BASE 의 화면 위에 시트를 띄운다.
@@ -79,12 +79,7 @@ export default function DemoCheckInPage() {
   const [openedSheet, setOpenedSheet] = useState<Sheet | null>(null);
   const [picking, setPicking] = useState(false);
   const [site, setSite] = useState(0);
-  const [toast, setToast] = useState<string | null>(null);
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 2000);
-    return () => clearTimeout(timer);
-  }, [toast]);
+  const [toast, setToast] = useToast();
 
   const sheet = openedSheet ?? (isSheet(state) ? state : null);
   const view: string = isSheet(state) ? SHEET_BASE[state] : state;
@@ -123,7 +118,7 @@ export default function DemoCheckInPage() {
 
           {view === "ready" && (
             <>
-              <Body>
+              <Body variant="detail">
                 <GeoMap tone="in" caption="오차 ±12m · 매장까지 18m" />
                 <SiteCard title="웨일카페 강남역점" sub="매장 범위 안에 있습니다" />
                 {/* 오늘 예정 근무(Figma node 12:957 아래 카드) */}
@@ -136,7 +131,7 @@ export default function DemoCheckInPage() {
                 </section>
                 <Clock label="현재 시각" time="08:52" note="기록 시각은 서버가 요청을 받은 때로 정해집니다" />
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 {/* 출근은 확인 없이 바로 기록한다(ATT-9 · 운영 정책 ATT-13). */}
                 <Button onClick={() => go("working", "출근을 등록했습니다")}>
                   출근하기
@@ -151,7 +146,7 @@ export default function DemoCheckInPage() {
 
           {view === "working" && (
             <>
-              <Body>
+              <Body variant="detail">
                 <SiteCard title="근무 중" sub="09:02에 출근했습니다" />
                 <section className="flex flex-col gap-[9px] rounded-[18px] border border-staff-border-light bg-white p-[20px]">
                   <h2 className="text-[13px] font-semibold text-staff-text-sub">오늘</h2>
@@ -161,7 +156,7 @@ export default function DemoCheckInPage() {
                 <Elapsed />
                 <p className="text-center text-[12px] text-staff-text-muted">{ADMIN_NOTE}</p>
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button onClick={() => setOpenedSheet("bye")}>퇴근하기</Button>
               </Dock>
             </>
@@ -169,7 +164,7 @@ export default function DemoCheckInPage() {
 
           {view === "done" && (
             <>
-              <Body center>
+              <Body variant="detail" center>
                 <Seal>
                   퇴근
                   <br />
@@ -187,7 +182,7 @@ export default function DemoCheckInPage() {
                 </Sunken>
                 <p className="text-[12px] text-staff-text-muted">기록이 저장되었습니다. {ADMIN_NOTE}</p>
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button variant="ghost" href={HOME} transitionTypes={["nav-back"]}>
                   홈으로
                 </Button>
@@ -197,7 +192,7 @@ export default function DemoCheckInPage() {
 
           {view === "far" && (
             <>
-              <Body>
+              <Body variant="detail">
                 <GeoMap tone="out" caption="오차 ±14m · 매장까지 240m" />
                 <Alert tone="warning">
                   <strong>매장에서 240m 떨어져 있습니다.</strong>
@@ -211,7 +206,7 @@ export default function DemoCheckInPage() {
                 </section>
                 <Clock label="현재 시각" time="08:47" dim />
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button disabled>출근하기</Button>
                 <Button variant="ghost" onClick={() => go("ready", "매장 범위 안입니다")}>
                   위치 다시 확인
@@ -222,7 +217,7 @@ export default function DemoCheckInPage() {
 
           {view === "far-out" && (
             <>
-              <Body>
+              <Body variant="detail">
                 <GeoMap tone="out" caption="오차 ±14m · 매장까지 240m" />
                 <SiteCard title="근무 중" sub="09:02에 출근했습니다" />
                 <Alert tone="warning">
@@ -232,7 +227,7 @@ export default function DemoCheckInPage() {
                 </Alert>
                 <Elapsed />
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button onClick={() => setOpenedSheet("byefar")}>퇴근하기</Button>
                 <Button variant="ghost" onClick={() => go("working", "매장 범위 안입니다")}>
                   위치 다시 확인
@@ -243,7 +238,7 @@ export default function DemoCheckInPage() {
 
           {view === "denied" && (
             <>
-              <Body>
+              <Body variant="detail">
                 <GeoBlank icon="/icons/pin.svg" iconClass="text-staff-placeholder">
                   위치를 확인할 수 없습니다
                 </GeoBlank>
@@ -252,11 +247,11 @@ export default function DemoCheckInPage() {
                   <br />
                   출퇴근은 매장에 있는지를 위치로 확인합니다. 설정에서 위치 접근을 허용해 주세요.
                 </Alert>
-                <Sunken label="권한이 필요한 이유">
+                <Sunken prose label="권한이 필요한 이유">
                   매장에 있는지를 위치로만 확인하기 때문에, 권한이 없으면 출퇴근을 등록할 수 없습니다. 설정에서 위치 접근을 허용한 뒤 다시 시도해 주세요.
                 </Sunken>
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button onClick={() => go("ready", "위치 권한을 켰습니다")}>설정 열기</Button>
               </Dock>
             </>
@@ -264,7 +259,7 @@ export default function DemoCheckInPage() {
 
           {view === "spoof" && (
             <>
-              <Body>
+              <Body variant="detail">
                 <GeoBlank icon="/icons/pin.svg" iconClass="text-staff-error">
                   위치를 믿을 수 없습니다
                 </GeoBlank>
@@ -273,12 +268,12 @@ export default function DemoCheckInPage() {
                   <br />
                   모의 위치 설정이나 가상 위치 앱을 끄고 다시 시도하세요.
                 </Alert>
-                <Sunken label="왜 막나요">
+                <Sunken prose label="왜 막나요">
                   출근은 매장에 실제로 왔는지를 위치로만 확인합니다. 기기가 꾸며 낸 위치로는 그것을 확인할 수 없어 등록을 받지 않습니다.{" "}
                   <b>퇴근은 막지 않습니다</b> — 이미 일한 사실이 있어 기록을 남기는 편이 낫고, 대신 확인 필요가 붙습니다.
                 </Sunken>
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button disabled>출근하기</Button>
                 <Button variant="ghost" onClick={() => go("ready", "모의 위치를 껐습니다")}>
                   껐습니다 · 다시 확인
@@ -289,7 +284,7 @@ export default function DemoCheckInPage() {
 
           {view === "spoof-out" && (
             <>
-              <Body>
+              <Body variant="detail">
                 <GeoBlank icon="/icons/pin.svg" iconClass="text-staff-warning">
                   위치를 믿을 수 없습니다
                 </GeoBlank>
@@ -301,7 +296,7 @@ export default function DemoCheckInPage() {
                 </Alert>
                 <Elapsed />
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button onClick={() => setOpenedSheet("byespoof")}>퇴근하기</Button>
               </Dock>
             </>
@@ -309,7 +304,7 @@ export default function DemoCheckInPage() {
 
           {view === "paused" && (
             <>
-              <Body>
+              <Body variant="detail">
                 <GeoBlank icon="/icons/pin.svg" iconClass="text-staff-warning">
                   위치를 읽지 않습니다
                 </GeoBlank>
@@ -318,12 +313,12 @@ export default function DemoCheckInPage() {
                   <br />
                   출퇴근 기록은 근무지 관리자에게 문의해 주세요.
                 </Alert>
-                <Sunken label="다시 켜면 바로 등록할 수 있습니다">
+                <Sunken prose label="다시 켜면 바로 등록할 수 있습니다">
                   동의는 그대로 남아 있어 <b>새로 동의하지 않아도 됩니다.</b> 내 정보에서도 켤 수 있습니다. 2026년 9월 29일 14:20 부터 일시 중지
                   상태입니다.
                 </Sunken>
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button onClick={() => go("ready", "위치 수집을 다시 켰습니다")}>다시 켜기</Button>
                 {/* 목업 본문의 「내 정보에서도 켤 수 있습니다」를 눌러 가는 길. 위치정보 동의 관리는 내 정보(4장)에 있다. */}
                 <Button variant="ghost" href={ME} transitionTypes={["nav-forward"]}>
@@ -334,7 +329,7 @@ export default function DemoCheckInPage() {
           )}
 
           {view === "no-consent" && (
-            <Body>
+            <Body variant="detail">
               <GeoBlank icon="/icons/pin.svg" iconClass="text-staff-placeholder">
                 위치정보 동의가 없습니다
               </GeoBlank>
@@ -343,7 +338,7 @@ export default function DemoCheckInPage() {
                 <br />
                 출퇴근 기록은 근무지 관리자에게 문의해 주세요.
               </Alert>
-              <Sunken label="권한을 끈 것과 다릅니다">
+              <Sunken prose label="권한을 끈 것과 다릅니다">
                 휴대전화 위치 권한은 설정에서 켜면 바로 등록할 수 있습니다. 여기는 <b>위치정보 수집 동의 자체를 하지 않았거나 철회한</b> 경우라,
                 설정을 바꿔도 앱에서는 등록되지 않습니다. 다시 동의하려면 근무지 관리자에게 말씀해 주세요.
               </Sunken>
@@ -363,7 +358,7 @@ export default function DemoCheckInPage() {
 
           {view === "vague" && (
             <>
-              <Body>
+              <Body variant="detail">
                 <GeoMap tone="vague" caption="오차 ±180m" />
                 <Alert tone="warning">
                   <strong>위치가 흐릿합니다.</strong>
@@ -374,7 +369,7 @@ export default function DemoCheckInPage() {
                   그대로 등록하면 <strong>확인 필요</strong>로 표시되어 관리자가 검토합니다.
                 </Alert>
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button onClick={() => go("ready", "위치를 다시 잡았습니다")}>다시 확인</Button>
                 <Button variant="ghost" onClick={() => setOpenedSheet("byeflag")}>
                   확인 필요로 등록하기
@@ -385,7 +380,7 @@ export default function DemoCheckInPage() {
 
           {view === "multi" && (
             <>
-              <Body>
+              <Body variant="detail">
                 <GeoMap tone="in" caption="오차 ±9m · 매장까지 6m" />
                 <SiteCard
                   title={SITES[site].name}
@@ -400,7 +395,7 @@ export default function DemoCheckInPage() {
                     </button>
                   }
                 />
-                <Sunken label="내 근무지 3곳">
+                <Sunken prose label="내 근무지 3곳">
                   <ul className="flex flex-col divide-y divide-staff-border-light pt-[4px]">
                     {SITES.map((s, i) => (
                       <li key={s.name} className="flex items-center gap-[10px] py-[8px] last:pb-0">
@@ -413,7 +408,7 @@ export default function DemoCheckInPage() {
                 </Sunken>
                 <Clock label="현재 시각" time="13:58" />
               </Body>
-              <Dock>
+              <Dock inset={30}>
                 <Button onClick={() => go("working", `${SITES[site].name.split(" ")[1]}으로 출근했습니다`)}>
                   출근하기
                   <Image src="/icons/arrow-right.svg" alt="" width={14} height={12} />
@@ -423,7 +418,7 @@ export default function DemoCheckInPage() {
           )}
 
           {view === "nosite" && (
-            <Body center>
+            <Body variant="detail" center>
               <div className="flex flex-1 flex-col items-center justify-center gap-[8px] pt-[76px]">
                 <span className="flex text-staff-placeholder">
                   <MaskIcon src="/icons/store.svg" size={30} flipY />
@@ -534,7 +529,7 @@ export default function DemoCheckInPage() {
         title="출근 기록이 없습니다"
         description="퇴근은 열려 있는 출근 기록이 있어야 등록할 수 있습니다. 오늘 출근을 찍지 않았다면 관리자에게 알려 주세요."
       >
-        <Sunken>관리자는 최근 3개월 안의 기록을 수정할 수 있습니다.</Sunken>
+        <Sunken prose>관리자는 최근 3개월 안의 기록을 수정할 수 있습니다.</Sunken>
         <Button onClick={() => handleToastClick("관리자에게 알렸습니다")}>관리자에게 알리기</Button>
       </BottomSheet>
 
@@ -584,29 +579,9 @@ export default function DemoCheckInPage() {
         ))}
       </BottomSheet>
 
-      {/* 목업의 data-toast. 화면을 옮겨도 남도록 슬라이드 밖에 둔다. 떠 있는 것이라 짙은 남색 바탕(1장과 같다). */}
-      {toast && (
-        <p
-          role="status"
-          className="fixed bottom-[120px] left-1/2 z-40 -translate-x-1/2 rounded-[12px] bg-staff-navy/90 px-[16px] py-[10px] text-[13px] font-semibold whitespace-nowrap text-white"
-        >
-          {toast}
-        </p>
-      )}
+      {toast}
     </>
   );
-}
-
-// 본문: Figma 04.출퇴근 main — 좌우 22 · 위 22 · 사이 20. center 면 가운데 정렬(퇴근 완료·근무지 없음).
-function Body({ center = false, children }: { center?: boolean; children: ReactNode }) {
-  return (
-    <div className={`flex flex-1 flex-col gap-[20px] px-[22px] pb-[14px] ${center ? "pt-[52px] text-center" : "pt-[22px]"}`}>{children}</div>
-  );
-}
-
-// 하단 버튼 줄: Figma node 12:989 — 흰 띠 · 좌우 30 · 위 14. 본문이 짧으면 맨 아래에 붙는다.
-function Dock({ children }: { children: ReactNode }) {
-  return <div className="mt-auto flex flex-col gap-[8px] bg-white px-[30px] pt-[14px] pb-[max(24px,env(safe-area-inset-bottom))]">{children}</div>;
 }
 
 // 근무지 카드(Figma node 12:957): 연한 남보라(#EEF2FF · #DCE4FF 테두리). 근무 중 카드도 같은 판을 쓴다 — 남보라는 「지금 근무 중」이다.
@@ -661,37 +636,6 @@ function PunchSummary() {
   );
 }
 
-// 경고·막음 안내. DESIGN.md 의 Notice 는 회색 안내 판이라, 목업 note--amber · note--seal 은 상태 색 짝으로 따로 그린다.
-// warning: 상태 칩의 지각·긴급(#FFF6E5 · #956013) · danger: 배지의 지각(#FEE2E2 · #DC2626). 이 화면에만 나와 토큰으로 두지 않는다.
-const ALERT = { warning: "bg-[#fff6e5] text-[#956013]", danger: "bg-[#fee2e2] text-[#dc2626]" };
-function Alert({ tone, children }: { tone: keyof typeof ALERT; children: ReactNode }) {
-  return <p className={`w-full rounded-[12px] p-[14px] text-left text-[13px] [&_strong]:font-bold ${ALERT[tone]}`}>{children}</p>;
-}
-
-// 목업의 card--sunken: 안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14(1장 join 과 같은 판). label 이 있으면 13px 소제목.
-function Sunken({ label, children }: { label?: string; children: ReactNode }) {
-  return (
-    <div className="w-full rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px] text-left text-[13px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text">
-      {label && <p className="pb-[6px] font-semibold">{label}</p>}
-      {children}
-    </div>
-  );
-}
-
-// 이름·값 줄. 값이 길면 오른쪽 정렬로 접힌다.
-function Values({ rows }: { rows: [string, string][] }) {
-  return (
-    <dl className="flex flex-col divide-y divide-staff-border-light">
-      {rows.map(([k, v]) => (
-        <div key={k} className="flex items-start gap-[12px] py-[9px] first:pt-0 last:pb-0">
-          <dt className="shrink-0 font-medium text-staff-text-sub">{k}</dt>
-          <dd className="min-w-0 flex-1 text-right text-staff-text">{v}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
 // 근무지 목록의 고름 표시: 고른 곳은 남보라 원에 흰 체크, 나머지는 빈 원.
 function Picked({ on }: { on: boolean }) {
   return on ? (
@@ -700,14 +644,5 @@ function Picked({ on }: { on: boolean }) {
     </span>
   ) : (
     <span className="size-[16px] shrink-0 rounded-full border border-staff-placeholder" />
-  );
-}
-
-// 결과 도장(1장 join 의 Seal 과 같다). 확정을 말하는 것이라 정상·완료 칩 색(#EAF8F2 · #13785E).
-function Seal({ children }: { children: ReactNode }) {
-  return (
-    <div className="mx-auto flex size-[88px] items-center justify-center rounded-full border-2 border-[#13785e] bg-[#eaf8f2] text-[15px] leading-[1.3] font-bold text-[#13785e]">
-      {children}
-    </div>
   );
 }

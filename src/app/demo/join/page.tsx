@@ -6,11 +6,11 @@
 // 계정 등록의 약관 동의(JOIN-6, 2026-10-08)는 필수 둘을 모두 체크해야 「다음」이 켜진다.
 // Figma 없음 — DESIGN.md 기준 초안.
 import Image from "next/image";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Badge, BottomSheet, Button, Card, MaskIcon, Notice, PageHeader, TextField } from "@/components/common";
 import { FIELD } from "@/components/common/theme";
 import { PageSlide } from "@/app/design/(mockup)/page-slide";
-import { DemoStates, useDemoState } from "../_components";
+import { Body, CheckBox, DemoStates, Dock, IconRow, Seal, Sunken, useDemoState, useToast, Values } from "../_components";
 
 // 목업 오른쪽 상태 목록 순서 그대로. bpshare·reject 는 목업의 「시트 열기」라 소속 추가 확인 위에 시트를 띄운다.
 const STATES = [
@@ -38,15 +38,10 @@ export default function DemoJoinPage() {
   const [state, move] = useDemoState(STATES);
 
   const [openedSheet, setOpenedSheet] = useState<Sheet | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useToast();
   // 약관 동의(JOIN-6). 필수 둘 · 선택 하나. 데모에서 「다음」이 켜지는 것을 보이려고 모두 빈 칸으로 시작한다.
   const [terms, setTerms] = useState({ service: false, privacy: false, marketing: false });
   const termsMet = terms.service && terms.privacy;
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 2000);
-    return () => clearTimeout(timer);
-  }, [toast]);
 
   const sheet = openedSheet ?? (isSheet(state) ? state : null);
   const view = isSheet(state) ? "addsite" : state;
@@ -470,28 +465,8 @@ export default function DemoJoinPage() {
         <Button onClick={handleRejectClick}>거절하기</Button>
       </BottomSheet>
 
-      {/* 목업의 data-toast. 화면을 옮겨도 남도록 슬라이드 밖에 둔다. 떠 있는 것이라 짙은 남색 바탕. */}
-      {toast && (
-        <p
-          role="status"
-          className="fixed bottom-[120px] left-1/2 z-40 -translate-x-1/2 rounded-[12px] bg-staff-navy/90 px-[16px] py-[10px] text-[13px] font-semibold whitespace-nowrap text-white"
-        >
-          {toast}
-        </p>
-      )}
+      {toast}
     </>
-  );
-}
-
-// 본문: 좌우 24 · 위 30 · 줄 사이 16. center 면 가운데 정렬(연결 완료·가입 중단 같은 결과 화면). 카드·안내 글은 왼쪽 정렬로 되돌린다.
-function Body({ center = false, children }: { center?: boolean; children: ReactNode }) {
-  return <div className={`flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] ${center ? "text-center" : ""}`}>{children}</div>;
-}
-
-// 하단 버튼 줄: login 데모·/design/login 과 같은 흰 띠. 본문이 짧으면 mt-auto 로 맨 아래에 붙는다.
-function Dock({ children }: { children: ReactNode }) {
-  return (
-    <div className="mt-auto flex flex-col gap-[8px] bg-white px-[24px] pt-[14px] pb-[max(24px,env(safe-area-inset-bottom))]">{children}</div>
   );
 }
 
@@ -531,41 +506,8 @@ function Steps({ label, step }: { label: string; step: number }) {
   );
 }
 
-// 목업의 card--sunken: 안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14(Notice 와 같은 판). 결과 화면 안에서도 왼쪽 정렬.
-function Sunken({ children }: { children: ReactNode }) {
-  return <div className="w-full rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px] text-left">{children}</div>;
-}
-
 function Rows({ children }: { children: ReactNode }) {
   return <div className="flex flex-col divide-y divide-staff-border-light">{children}</div>;
-}
-
-function IconRow({ icon, title, sub }: { icon: string; title: string; sub: string }) {
-  return (
-    <div className="flex items-center gap-[12px] py-[8px] text-left first:pt-0 last:pb-0">
-      <span className="flex size-[20px] shrink-0 items-center justify-center text-staff-text-sub">
-        <MaskIcon src={icon} size={16} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[14px] font-semibold">{title}</p>
-        <p className="text-[12px] text-staff-text-sub">{sub}</p>
-      </div>
-    </div>
-  );
-}
-
-// 이름·값 줄. 값이 길면 오른쪽 정렬로 접힌다.
-function Values({ rows }: { rows: [string, string][] }) {
-  return (
-    <dl className="flex flex-col divide-y divide-staff-border-light">
-      {rows.map(([k, v]) => (
-        <div key={k} className="flex items-start gap-[12px] py-[9px] first:pt-0 last:pb-0">
-          <dt className="shrink-0 text-[13px] font-medium text-staff-text-sub">{k}</dt>
-          <dd className="min-w-0 flex-1 text-right text-[13px]">{v}</dd>
-        </div>
-      ))}
-    </dl>
-  );
 }
 
 // 비밀번호 조건 충족 줄: 성공색(#22C55E) 원 안에 흰 체크.
@@ -577,35 +519,6 @@ function Met({ children }: { children: ReactNode }) {
       </span>
       <span>{children}</span>
     </li>
-  );
-}
-
-// 결과 도장(목업 .seal). 상태를 말하는 것이라 정상·완료 칩 색(#EAF8F2 · #13785E)을 쓴다.
-function Seal({ children }: { children: ReactNode }) {
-  return (
-    <div className="mx-auto flex size-[88px] items-center justify-center rounded-full border-2 border-[#13785e] bg-[#eaf8f2] text-[15px] leading-[1.3] font-bold text-[#13785e]">
-      {children}
-    </div>
-  );
-}
-
-// 동의 체크칸. TO-DO 체크칸과 같은 모양(28px, 누르는 칸 44px). 본사 제공 동의와 약관 동의가 함께 쓴다.
-function CheckBox({ checked, onChange, label }: { checked: boolean; onChange: (checked: boolean) => void; label: string }) {
-  return (
-    <label
-      className={`relative mt-[2px] flex size-[28px] shrink-0 items-center justify-center rounded-[2px] transition-colors duration-150 ease-out ${
-        checked ? "bg-staff-primary" : "bg-staff-primary-inactive"
-      }`}
-    >
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        aria-label={label}
-        className="absolute -inset-[8px] appearance-none rounded-[10px]"
-      />
-      <Image src={checked ? "/icons/todo-check-on.svg" : "/icons/todo-check-off.svg"} alt="" width={12} height={9} className="pointer-events-none" />
-    </label>
   );
 }
 

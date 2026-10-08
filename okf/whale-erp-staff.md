@@ -9,7 +9,7 @@ sources:
   - { id: app-dir, resource: ../src/app, title: App Router entry }
   - { id: common, resource: ../src/components/common, title: Common UI components }
   - { id: design-md, resource: ../DESIGN.md, title: Design system }
-generated: { by: claude-code/opus-5.5, at: 2026-10-08T03:31:04Z }
+generated: { by: claude-code/opus-5.5, at: 2026-10-08T03:55:07Z }
 ---
 
 # Stack
@@ -28,7 +28,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-08T03:31:04Z }
 * `src/lib/api.ts` - whale-erp-api 호출 틀(`API_BASE_URL`, `request`, `ApiError`)과 세션 쿠키(`setSession`·`getSession`·`clearSession`). 견본 API(`/items`, `/auth/staff/login`)는 2026-10-08 걷어 냈다.
 * `src/app/design/` - 디자인 가이드 견본 화면(`/design`, 색인 제외). 맨 위 링크 줄에서 화면 목업으로 간다.
 * `src/app/design/(mockup)/` - 인증·API 없이 UI 만 보여 주는 화면 목업(`/design/login`, `/design/home`, `/design/check-in`, `/design/attendance`, `/design/work`, `/design/pay`, `/design/notification-settings` …). 모바일 앱에 들어갈 화면이라 폭 100% 로 그린다.
-* `src/app/demo/` - 직원 근무 앱 클릭 데모(`/demo`). 목업 `docs/mockup/app` 한 장을 화면 하나로 옮기고, 같은 화면의 상태는 `_components` 의 `useDemoState`(주소 `#상태`)와 화면 밖 `DemoStates` 도구로 바꾼다. 하단 메뉴는 공통 `BottomNav` 다섯 칸(홈·근무·출퇴근·급여·내 정보, 2026-10-08 재영 결정 — Figma 는 네 칸)에 경로만 `/demo` 로 바꾼 `DEMO_NAV_ITEMS` 를 쓴다. 출퇴근 칸은 출퇴근 등록으로 간다. 가짜 값만 쓰고 API 는 부르지 않는다. 화면은 `login`·`join`·`home`·`work`·`check-in`·`attendance`·`contract`·`tax`·`pay`·`notify`·`me`. 계획은 `docs/plans/2026-10-08-직원-근무-앱-데모.md`.
+* `src/app/demo/` - 직원 근무 앱 클릭 데모(`/demo`). 목업 `docs/mockup/app` 한 장을 화면 하나로 옮기고, 같은 화면의 상태는 `_components` 의 `useDemoState`(주소 `#상태`)와 화면 밖 `DemoStates` 도구로 바꾼다. 화면 둘 이상이 쓰는 조각(`Body`·`Dock`·`Sunken`·`Values`·`Seal`·`Alert`·`BackHeader`·`useToast` 등)도 `_components` 에 두고 DESIGN.md 「데모 조각」 절에 적는다. 하단 메뉴는 공통 `BottomNav` 다섯 칸(홈·근무·출퇴근·급여·내 정보, 2026-10-08 재영 결정 — Figma 는 네 칸)에 경로만 `/demo` 로 바꾼 `DEMO_NAV_ITEMS` 를 쓴다. 출퇴근 칸은 출퇴근 등록으로 간다. 가짜 값만 쓰고 API 는 부르지 않는다. 화면은 `login`·`join`·`home`·`work`·`check-in`·`attendance`·`contract`·`tax`·`pay`·`notify`·`me`. 계획은 `docs/plans/2026-10-08-직원-근무-앱-데모.md`.
 * `scripts/build-demo.mjs` - `DEMO_EXPORT=1` 정적 내보내기(`next.config.ts`)를 `docs/demo/` 로 옮긴다. 미니 nginx 8081 이 `/demo/`·`/_next/`·`/icons/` 를 그 아래로 잇는다.
 * `src/components/common/` - 직원앱 공통 컴포넌트. 화면은 `StaffRoot` 로 감싼다.
 * `public/` - Static assets served at the site root. Figma 아이콘은 `public/icons/`.
