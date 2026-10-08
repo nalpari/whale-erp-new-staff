@@ -1,0 +1,101 @@
+"use client";
+
+import Image from "next/image";
+import { useActionState, useState } from "react";
+import { Alert, BrandLogo, Button, Notice, TextField } from "@/components/common";
+import { AuthScreen } from "../_components/auth-screen";
+import { loginAction, type LoginState } from "./actions";
+
+// 기준: 데모 /demo/login 의 login · fail · locked · expired.
+// 남은 횟수와 남은 잠금 시간은 api 가 주지 않아 보이지 않는다. 이메일 찾기(WHALEERP-178·179)는 API 가 생기면 더한다.
+export function LoginForm({ expired }: { expired: boolean }) {
+  const [state, formAction, pending] = useActionState<LoginState, FormData>(loginAction, { email: "" });
+  // 「5분 뒤 다시 시도」로 걷어 낸 잠금 결과. 같은 경로로 가는 링크는 화면을 새로 그리지 않아 상태가 남는다.
+  const [dismissed, setDismissed] = useState<LoginState | null>(null);
+
+  if (state.locked && state !== dismissed) {
+    return (
+      <AuthScreen
+        title="잠시 잠겼습니다"
+        description={
+          <>
+            비밀번호를 연속 다섯 번 틀려 계정이 잠겼습니다. <strong>5분 뒤에 다시 시도하거나 비밀번호를 재설정하세요.</strong>
+          </>
+        }
+        dock={
+          <>
+            <Button href="/password-reset" transitionTypes={["nav-forward"]}>
+              비밀번호 재설정
+            </Button>
+            <Button variant="ghost" onClick={() => setDismissed(state)}>
+              5분 뒤 다시 시도
+            </Button>
+          </>
+        }
+      >
+        <Notice>
+          기다리기 어려우면 <strong>비밀번호를 다시 정하면</strong> 바로 들어올 수 있습니다. 새로 정하면 잠금도 함께 풀립니다. 잠긴
+          동안에는 비밀번호가 맞아도 들어갈 수 없습니다.
+        </Notice>
+      </AuthScreen>
+    );
+  }
+
+  return (
+    <form action={formAction} className="flex flex-1 flex-col">
+      <AuthScreen
+        top={expired ? undefined : <BrandLogo />}
+        title={expired ? "로그인이 만료되었습니다" : "다시 오셨네요"}
+        description={
+          expired
+            ? "접속이 끝나 다시 로그인해야 합니다. 30일 동안 쓰지 않았거나 다른 곳에서 비밀번호를 바꾼 경우입니다."
+            : "근무 정보와 출퇴근을 확인하려면 로그인하세요."
+        }
+        dock={
+          <>
+            <Button type="submit" disabled={pending}>
+              로그인
+              <Image src="/icons/arrow-right.svg" alt="" width={14} height={12} />
+            </Button>
+            <Button variant="ghost" href="/password-reset" transitionTypes={["nav-forward"]}>
+              비밀번호를 잊으셨나요
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-[16px]">
+          <TextField
+            label="이메일"
+            name="email"
+            type="email"
+            autoComplete="username"
+            required
+            maxLength={254}
+            defaultValue={state.email}
+            help="가입할 때 정한 아이디입니다"
+          />
+          <TextField
+            label="비밀번호"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            maxLength={128}
+            error={state.error}
+          />
+        </div>
+        {state.error ? (
+          <Notice>
+            연속 <strong>5</strong>회 틀리면 5분 동안 잠깁니다.
+          </Notice>
+        ) : expired ? (
+          <Alert tone="warning">로그인하면 다시 30일 동안 묻지 않습니다.</Alert>
+        ) : (
+          <Notice icon={<Image src="/icons/shield.svg" alt="" width={12} height={12.5} className="-scale-y-100" />}>
+            한 번 로그인하면 <strong>30일</strong> 동안 다시 묻지 않습니다.
+          </Notice>
+        )}
+      </AuthScreen>
+    </form>
+  );
+}
