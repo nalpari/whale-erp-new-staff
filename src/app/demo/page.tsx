@@ -22,8 +22,8 @@ const CHAPTERS: { title: string; screens: { name: string; href?: string; desc: s
   {
     title: "3 · 계약·신고 정보",
     screens: [
-      { name: "근로계약서", desc: "필기 서명 · 거부" },
-      { name: "신고 정보", desc: "4대보험 · 급여 계좌" },
+      { name: "근로계약서", href: "/demo/contract", desc: "필기 서명 · 거부" },
+      { name: "신고 정보", href: "/demo/tax", desc: "4대보험 · 급여 계좌" },
     ],
   },
   {

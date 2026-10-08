@@ -31,7 +31,7 @@ const isSheet = (id: string): id is Sheet => id === "bpshare" || id === "reject"
 
 // 아직 없는 화면(2·3장)은 데모 입구로 건다.
 const HOME = "/demo/home";
-const CONTRACT = "/demo"; // 3장에서 /demo/contract#detail 로
+const CONTRACT = "/demo/contract#detail";
 
 export default function DemoJoinPage() {
   const [state, move] = useDemoState(STATES);

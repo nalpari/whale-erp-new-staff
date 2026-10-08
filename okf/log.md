@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-08
+* **Update**: 데모 화면 목록(2장 home·work·check-in·attendance, 3장 tax)을 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 절에 적었다.
 * **Update**: 데모 하단 메뉴(`DEMO_NAV_ITEMS`, 네 칸)를 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 절에 적었다.
 * **Update**: 직원 근무 앱 클릭 데모(`src/app/demo`, `scripts/build-demo.mjs`, `docs/demo`)를 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 절에 더했다.
 * **Update**: 견본 콘솔(품목 목록·견본 로그인·계근대 꾸밈)을 걷어 낸 것에 맞춰 [Whale ERP Staff](/whale-erp-staff.md) 의 설명·Layout·Design 절을 고쳤다. `src/lib/api.ts` 는 호출 틀과 세션 쿠키만 남았고 `/` 는 `/design` 으로 보낸다.
