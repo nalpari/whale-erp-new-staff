@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-08
+* **Update**: 만료 안내(`/login?expired=1`)에서 갱신으로 확인한 뒤에만 쿠키를 지우게 바꾼 것을 [Whale ERP Staff](/whale-erp-staff.md) 의 proxy 줄에 적었다.
 * **Update**: 리뷰 반영 — 액세스 토큰 쿠키 14분, 세션을 못 읽으면 만료 경로, 데모 빌드의 남은 파일 검사 · Ctrl-C 되돌리기를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
 * **Update**: 직원 계정 로그인 · 접속 유지(proxy) · 로그아웃과 임시 홈, 세션 쿠키 · openapi 타입 생성 · enum 조회, 공통 부품 `Dock`·`Alert`·`DangerButton`, 데모 빌드에서 실제 앱 치우기를 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 에 적었다(WHALEERP-165·166·167).
 * **Update**: `2026-09-30-네이밍-규칙.md` 2026-10-08 고침을 [네이밍 규칙](/conventions/naming.md) 에 옮겼다 — 「근무 · 출퇴근」의 근무 유형 4종(`DAY`·`OPEN`·`MIDDLE`·`CLOSE`, enum `work_type`) 줄을 지웠다(재영).

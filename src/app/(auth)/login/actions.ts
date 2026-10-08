@@ -1,6 +1,6 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { RedirectType, redirect } from "next/navigation";
 import { ApiError } from "@/lib/api";
 import { login } from "@/lib/auth";
 import { getDeviceId, saveLogin } from "@/lib/session";
@@ -38,5 +38,6 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
     if (error instanceof TypeError) return { email, error: CONNECTION_FAILED_MESSAGE };
     throw error;
   }
-  redirect("/home");
+  // 서버 액션의 redirect 는 기본이 push 다. 로그인 화면을 히스토리에 남기지 않는다.
+  redirect("/home", RedirectType.replace);
 }

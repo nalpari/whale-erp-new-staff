@@ -9,7 +9,7 @@ sources:
   - { id: app-dir, resource: ../src/app, title: App Router entry }
   - { id: common, resource: ../src/components/common, title: Common UI components }
   - { id: design-md, resource: ../DESIGN.md, title: Design system }
-generated: { by: claude-code/opus-5.5, at: 2026-10-08T08:06:03Z }
+generated: { by: claude-code/opus-5.5, at: 2026-10-08T08:32:20Z }
 ---
 
 # Stack
@@ -27,7 +27,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-08T08:06:03Z }
 * `src/app/` - App Router entry (`layout.tsx`, `page.tsx`, `globals.css`, `fonts.ts`). `/` 는 `/home` 으로 보내고, 로그인하지 않았으면 proxy 가 `/login` 으로 돌린다.
 * `src/app/(auth)/` - 로그인 없이 여는 직원 앱 화면. `/login`(로그인 · 5분 잠금 · 요청 제한 · `?expired=1` 만료 안내, WHALEERP-165·166). 화면 틀 `_components/auth-screen.tsx` 는 데모 login 의 `Screen` 을 참고해 새로 썼다.
 * `src/app/(app)/` - 로그인한 직원 화면. 지금은 임시 홈 `/home`(이름 · 계정 상태 · `LINK_HOLD` 안내 · 로그아웃 시트, WHALEERP-167)뿐이고, 실제 홈은 다른 작업이 이 파일을 채운다.
-* `src/proxy.ts` - 접속 유지. 액세스 토큰이 없고 갱신 토큰이 있으면 `/auth/account/refresh` 로 다시 받아 응답·요청 쿠키에 굽고, 갱신이 401 이면 쿠키를 지우고 `/login?expired=1` 로 보낸다. `/login?expired=1` 에서는 남은 세션 쿠키를 지운다(서버 컴포넌트가 401 을 받으면 이리로 보낸다). 로그인 필요 경로 판정도 여기서 하되, 화면·액션은 `requireSession()` 을 따로 거친다. `/design` · `/demo` · 정적 파일은 빼고 돈다.
+* `src/proxy.ts` - 접속 유지. 액세스 토큰이 없고 갱신 토큰이 있으면 `/auth/account/refresh` 로 다시 받아 응답·요청 쿠키에 굽고, 갱신이 401 이면 쿠키를 지우고 `/login?expired=1` 로 보낸다. `/login?expired=1`(서버 컴포넌트가 401 을 받거나 세션을 못 읽으면 이리로 보낸다)에서는 갱신을 해 보고 정말 끝났을 때(401)만 쿠키를 지운다 — 살아 있으면 다시 굽고 `/home` 으로 보낸다. 주소만으로 지우면 다시 로그인한 뒤 뒤로 가기 · 새로 고침이나 남이 건 링크로 접속이 끊긴다. 읽히지 않는 `account` 쿠키는 세션으로 치지 않고 지운다. 로그인 필요 경로 판정도 여기서 하되, 화면·액션은 `requireSession()` 을 따로 거친다. `/design` · `/demo` · 정적 파일은 빼고 돈다.
 * `src/lib/api.ts` - whale-erp-api 호출 틀(`API_BASE_URL`, `request`, `ApiError`, 요청·응답 타입 `Schemas`). `request` 는 `json`·`accessToken`·`revalidate`(enum 처럼 모두에게 같은 응답만 캐시) 옵션을 받는다.
 * `src/lib/api-types.d.ts` - `pnpm openapi:types`(`scripts/openapi-types.mjs`)가 api 의 `openapi/openapi.json` 으로 만든 타입. api 위치는 `WHALE_API_DIR`(기본 `../whale-erp-api`).
 * `src/lib/session-cookies.ts` · `session.ts` - httpOnly 쿠키 `access_token`(14분 — 15분짜리 JWT 보다 1분 먼저 끝내 proxy 가 미리 갱신한다) · `refresh_token`(api 가 준 만료까지, 회전 없음) · `account`(로그인 응답의 계정 JSON) · `device_id`(로그인의 `deviceIdentifier`, 로그아웃해도 남김). `saveLogin` · `getSession` · `requireSession` · `clearSession` · `getDeviceId` · `authedRequest`(401 이면 `/login?expired=1`).
