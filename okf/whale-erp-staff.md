@@ -9,7 +9,7 @@ sources:
   - { id: app-dir, resource: ../src/app, title: App Router entry }
   - { id: common, resource: ../src/components/common, title: Common UI components }
   - { id: design-md, resource: ../DESIGN.md, title: Design system }
-generated: { by: claude-code/opus-5.5, at: 2026-10-08T03:16:29Z }
+generated: { by: claude-code/opus-5.5, at: 2026-10-08T03:31:04Z }
 ---
 
 # Stack

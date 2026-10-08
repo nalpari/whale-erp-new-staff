@@ -2,7 +2,7 @@
 
 // 근로계약 데모. 기준 목업: docs/mockup/app/contract.html — 상태 11개(목록 · 상세 · 서명란 · 서명 뒤 · 처리 중 · 날인 완료 · 다시 보기 ·
 // 종이 계약 · 거부 완료 · 빈 상태 · 만료)와 시트 1개(거부 사유), 화면 문구·가짜 값·계약서 본문·버튼의 이동(data-go)·알림(data-toast)을 옮겼다.
-// 확정 쟁점: 계약서를 명조체로 화면에 직접 그리고 체결 완료만 완료본 내보내기(CON-1) · 날인은 필기 서명 — 서명란에 그려야 날인 확정이 살아나고
+// 확정 쟁점: 계약서를 앱 글꼴(Pretendard)로 화면에 직접 그리고 체결 완료만 완료본 내보내기(CON-1) · 날인은 필기 서명 — 서명란에 그려야 날인 확정이 살아나고
 // 다시 그리기로 지운다(CON-2, 실제로 그리는 캔버스) · 거부 사유는 선택(CON-3) · 남은 기한 7일 이내만 강조색, 임박 알림 없음(CON-4) ·
 // 날인 기한 30일 · 근로계약 상태 6종, 발송 대기는 이 화면에 나오지 않는다(CON-5) · 종이 계약은 조항 없이 올라온 날인본 파일만, 임금계약서는 선택(CON-8).
 // 노무사 검토 중: 제4조 휴일(CON-6) · 제7조 연차유급휴가(CON-7)는 「문구 확정 전」, 제6조·제8조는 「문구는 노무사 검토 중(PAY-5)」 그대로.
@@ -484,12 +484,12 @@ const FULL_TIME: ContractText = {
   wage: "월급 2,400,000원으로 한다. 임금은 매월 25일에 본인 명의 계좌로 지급하고, 지급일이 휴일이면 전날 지급한다.",
 };
 
-// CON-1: 명조체로 화면에 직접 그린다. Pretendard 밖의 서체라 글꼴을 싣지 않고 기기의 명조(AppleMyungjo · 바탕)를 쓴다.
+// CON-1: 화면에 직접 그린다. 글꼴은 앱 글꼴(Pretendard) 그대로다(2026-10-08 명조체에서 바꿈). 줄 간격만 읽기용으로 넓힌다.
 function ContractDocument({ kind, term, place, hours, wage }: ContractText) {
   return (
     <section className="rounded-[16px] border border-staff-border-light bg-white p-[16px]">
       <h2 className="text-[13px] font-semibold text-staff-text-sub">{kind}</h2>
-      <div className="flex flex-col gap-[6px] pt-[8px] text-[14px] leading-[1.85] [font-family:AppleMyungjo,Batang,serif] [&_strong]:font-bold">
+      <div className="flex flex-col gap-[6px] pt-[8px] text-[14px] leading-[1.85] [&_strong]:font-bold">
         <p>
           <strong>제1조(근로계약기간)</strong> {term}
         </p>

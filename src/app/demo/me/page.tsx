@@ -1,13 +1,15 @@
 "use client";
 
 // 직원 근무 앱 데모 · 내 정보(/demo/me). 기준 목업: docs/mockup/app/me.html — 상태 9개(내 정보 · 번호 변경 · 번호 변경 완료 ·
-// 이미 인증된 번호 · 비밀번호 변경 · 이메일 변경 · 새 이메일 인증 · 주소 검색 · 소속 근무지)와 시트 8개(변경 이력 · 약관 보기 · 잠시 멈춤 ·
-// 일시 중지 동안의 카드 · 본사 제공 동의 내용 · 본사 제공 동의 철회 · 위치정보 동의 철회 · 로그아웃), 화면 문구·가짜 값·이동(data-go)·알림(data-toast)을 옮겼다.
+// 이미 인증된 번호 · 비밀번호 변경 · 이메일 변경 · 새 이메일 인증 · 주소 검색 · 소속 근무지)와 시트 9개(변경 이력 · 약관 보기 · 잠시 멈춤 ·
+// 일시 중지 동안의 카드 · 철회한 뒤의 카드 · 본사 제공 동의 내용 · 본사 제공 동의 철회 · 위치정보 동의 철회 · 로그아웃), 화면 문구·가짜 값·이동(data-go)·알림(data-toast)을 옮겼다.
 // 이름·생년월일은 본인인증으로 확정된 값이고 소속 근무지·고용 형태는 근로계약으로만 바뀌어 읽기 전용이다. 직원이 고치는 건 휴대전화번호·이메일·주소·비밀번호뿐이다.
 // 위치정보 동의 카드: 동의 상태·일시·버전, 약관 보기 · 잠시 멈춤 · 동의 철회(운영 정책 ATT-23·26). 일시 중지 중이면 같은 카드가 「다시 켜기」로 바뀐다.
 // 본사 제공 동의 카드: 가맹 점포 직원의 선택 동의, 내용 보기 · 동의 철회(운영 정책 ATT-30). 동의 문구는 법무 검토 중(ATT-8).
+// 두 카드 모두 철회하면 같은 자리에서 「동의하지 않음 · 철회 일시」와 「다시 동의하기」로 바뀐다(ME-5, 2026-10-08). 목업의 「철회한 뒤의 카드」 시트는
+// 두 카드를 철회한 모양으로 바꾼 상태(revoked)로 그린다.
 // 확정 쟁점: ME-1 재설정 핀 10분(로그인 화면) · ME-2 주소는 주소 검색으로 도로명을 고르고 상세주소만 적는다 · ME-3 이메일은 새 이메일 인증 뒤에 바뀐다 ·
-// ME-4 비밀번호 규칙(세 가지 8자 · 두 가지 10자 · 최대 20자 · 이메일 아이디와 겹치지 않기). 로그아웃은 맨 아래(S-PHHICH 확정).
+// ME-4 비밀번호 규칙(세 가지 8자 · 두 가지 10자 · 최대 20자 · 이메일 아이디와 겹치지 않기) · ME-5 철회 뒤 카드. 로그아웃은 맨 아래(S-PHHICH 확정).
 // 목업과 다른 점: 목업의 「일시 중지 동안의 카드」 시트는 카드 자체를 일시 중지 모양으로 바꾼 상태(paused)로 그린다.
 // 이메일 변경·새 이메일 인증·주소 검색은 목업에 머리줄이 없어 같은 뒤로 가기 머리줄을 붙였다. 출퇴근 등록 화면으로 가는 버튼 둘은 데모용으로 더했다.
 // 탈퇴 화면은 목업에도 아직 없고 이번 데모 범위 밖이다.
@@ -32,6 +34,7 @@ const STATES = [
   { id: "addr", label: "주소 검색", note: "도로명 고르기" },
   { id: "sites", label: "소속 근무지", note: "조회만" },
   { id: "history", label: "변경 이력", note: "항목·일시·전후" },
+  { id: "revoked", label: "동의 철회 뒤", note: "다시 동의하기" },
   { id: "paused", label: "위치 수집 일시 중지", note: "다시 켜기" },
 ];
 
@@ -59,6 +62,14 @@ export default function DemoMePage() {
 
   const [openedSheet, setOpenedSheet] = useState<Sheet | null>(null);
   const [address, setAddress] = useState(ADDRESSES[0]);
+  // 화면 안에서 철회하거나 다시 동의한 값. 없으면 데모 상태를 따른다(revoked 면 둘 다 철회). 상태 전환 도구로 고르면 비운다.
+  const [consent, setConsent] = useState<{ locationRevoked?: boolean; bpRevoked?: boolean }>({});
+  // 주소(#revoked)로 들어와도 두 카드가 철회 모양이 되게, revoked 로 바뀔 때마다 화면 안 값을 비운다.
+  const [seenState, setSeenState] = useState<string | null>(null);
+  if (seenState !== state) {
+    setSeenState(state);
+    if (state === "revoked") setConsent({});
+  }
   const [toast, setToast] = useState<string | null>(null);
   useEffect(() => {
     if (!toast) return;
@@ -66,9 +77,11 @@ export default function DemoMePage() {
     return () => clearTimeout(timer);
   }, [toast]);
 
-  // 변경 이력·일시 중지는 내 정보 화면 위의 모습이라 슬라이드 열쇠를 view 로 둔다(카드만 바뀌고 화면은 움직이지 않는다).
-  const view = state === "history" || state === "paused" ? "view" : state;
+  // 변경 이력·일시 중지·동의 철회 뒤는 내 정보 화면 위의 모습이라 슬라이드 열쇠를 view 로 둔다(카드만 바뀌고 화면은 움직이지 않는다).
+  const view = state === "history" || state === "paused" || state === "revoked" ? "view" : state;
   const paused = state === "paused";
+  const locationRevoked = consent.locationRevoked ?? state === "revoked";
+  const bpRevoked = consent.bpRevoked ?? state === "revoked";
   const sheet = openedSheet ?? (state === "history" ? "history" : null);
 
   const closeSheet = () => {
@@ -83,6 +96,28 @@ export default function DemoMePage() {
     handleSheetAction("위치 수집을 멈췄습니다");
     move("paused");
   };
+  const handleDemoStateChange = (id: string) => {
+    setConsent({});
+    move(id);
+  };
+  const handleLocationRevoke = () => {
+    handleSheetAction("위치정보 동의를 철회했습니다");
+    setConsent({ ...consent, locationRevoked: true });
+  };
+  // 일시 중지 중에 철회했다가 다시 동의하면 수집하는 상태(동의함)로 돌아온다.
+  const handleLocationReagree = () => {
+    setConsent({ ...consent, locationRevoked: false });
+    setToast("위치정보 수집에 다시 동의했습니다");
+    if (paused) move("view");
+  };
+  const handleBpRevoke = () => {
+    handleSheetAction("본사 제공 동의를 철회했습니다");
+    setConsent({ ...consent, bpRevoked: true });
+  };
+  const handleBpReagree = () => {
+    setConsent({ ...consent, bpRevoked: false });
+    setToast("본사 제공에 다시 동의했습니다");
+  };
   const handleAddressPick = (picked: string) => {
     setAddress(picked);
     back("view");
@@ -95,7 +130,7 @@ export default function DemoMePage() {
 
   return (
     <>
-      <DemoStates states={STATES} current={state} onChange={move} />
+      <DemoStates states={STATES} current={state} onChange={handleDemoStateChange} />
 
       <PageSlide key={view}>
         <div className="flex flex-1 flex-col leading-[1.5]">
@@ -144,7 +179,21 @@ export default function DemoMePage() {
                 </div>
 
                 {/* 위치정보 동의(운영 정책 ATT-23·26). 일시 중지 중이면 같은 자리에서 「다시 켜기」로 돌아온다 — 다시 켤 때 동의 절차가 없다. */}
-                {paused ? (
+                {locationRevoked ? (
+                  <Card>
+                    <CardHead title="위치정보 동의">
+                      <Badge tone="plain">동의하지 않음</Badge>
+                    </CardHead>
+                    <Tiny>2026년 10월 2일 18:40 철회 · 위치정보 수집·이용 동의 v1.2</Tiny>
+                    <div className="flex flex-col gap-[8px] pt-[10px]">
+                      <Button onClick={handleLocationReagree}>다시 동의하기</Button>
+                      <div className="flex gap-[8px]">
+                        <SmallButton onClick={() => setOpenedSheet("terms")}>약관 보기</SmallButton>
+                      </div>
+                    </div>
+                    <Tiny muted>동의하지 않은 동안 출퇴근 기록은 근무지 관리자에게 문의해 주세요. 다음 출퇴근 등록 때 동의해도 됩니다.</Tiny>
+                  </Card>
+                ) : paused ? (
                   <Card>
                     <CardHead title="위치정보 동의">
                       <Badge tone="warning">일시 중지</Badge>
@@ -181,17 +230,33 @@ export default function DemoMePage() {
                 )}
 
                 {/* 본사 제공 동의(운영 정책 ATT-30). 가맹 점포 직원에게만 묻는 선택 동의라 철회해도 가입과 근무는 그대로다. */}
-                <Card>
-                  <CardHead title="본사 제공 동의">
-                    <Badge tone="success">동의함</Badge>
-                  </CardHead>
-                  <Tiny>2026년 3월 15일 09:04 동의 · 가맹본부 웨일카페 · 본사 제공 동의 v1.0</Tiny>
-                  <div className="flex gap-[8px] pt-[10px]">
-                    <SmallButton onClick={() => setOpenedSheet("bpshare")}>내용 보기</SmallButton>
-                    <SmallButton onClick={() => setOpenedSheet("bprevoke")}>동의 철회</SmallButton>
-                  </div>
-                  <Tiny muted>철회해도 가입과 근무는 그대로입니다. 본사에는 점포별 숫자로만 보입니다.</Tiny>
-                </Card>
+                {bpRevoked ? (
+                  <Card>
+                    <CardHead title="본사 제공 동의">
+                      <Badge tone="plain">동의하지 않음</Badge>
+                    </CardHead>
+                    <Tiny>2026년 10월 2일 18:42 철회 · 가맹본부 웨일카페 · 본사 제공 동의 v1.0</Tiny>
+                    <div className="flex flex-col gap-[8px] pt-[10px]">
+                      <Button onClick={handleBpReagree}>다시 동의하기</Button>
+                      <div className="flex gap-[8px]">
+                        <SmallButton onClick={() => setOpenedSheet("bpshare")}>내용 보기</SmallButton>
+                      </div>
+                    </div>
+                    <Tiny muted>지금은 본사에 점포별 숫자로만 보입니다. 다시 동의하면 개인 단위로 보입니다.</Tiny>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardHead title="본사 제공 동의">
+                      <Badge tone="success">동의함</Badge>
+                    </CardHead>
+                    <Tiny>2026년 3월 15일 09:04 동의 · 가맹본부 웨일카페 · 본사 제공 동의 v1.0</Tiny>
+                    <div className="flex gap-[8px] pt-[10px]">
+                      <SmallButton onClick={() => setOpenedSheet("bpshare")}>내용 보기</SmallButton>
+                      <SmallButton onClick={() => setOpenedSheet("bprevoke")}>동의 철회</SmallButton>
+                    </div>
+                    <Tiny muted>철회해도 가입과 근무는 그대로입니다. 본사에는 점포별 숫자로만 보입니다.</Tiny>
+                  </Card>
+                )}
 
                 <Card>
                   <Label>연락처</Label>
@@ -524,7 +589,7 @@ export default function DemoMePage() {
         <Sunken>
           <p className="text-[14px] text-staff-text-sub">다시 등록하려면 다음 출퇴근 등록 때 새로 동의하면 됩니다. 이미 남은 기록은 그대로 보존됩니다.</p>
         </Sunken>
-        <Button onClick={() => handleSheetAction("위치정보 동의를 철회했습니다")}>철회합니다</Button>
+        <Button onClick={handleLocationRevoke}>철회합니다</Button>
         {/* 데모용: 철회 뒤의 출퇴근 등록 화면(「위치정보 동의 없음」, 운영 정책 ATT-20) */}
         <Button variant="outline" href="/demo/check-in#no-consent" transitionTypes={["nav-forward"]}>
           출퇴근 등록 화면 보기
@@ -561,7 +626,7 @@ export default function DemoMePage() {
         <Sunken>
           <p className="text-[14px] text-staff-text-sub">가입과 근무, 급여명세서 수령은 그대로입니다. 다시 동의하려면 이 화면에서 켜면 됩니다.</p>
         </Sunken>
-        <Button onClick={() => handleSheetAction("본사 제공 동의를 철회했습니다")}>철회합니다</Button>
+        <Button onClick={handleBpRevoke}>철회합니다</Button>
       </BottomSheet>
 
       <BottomSheet

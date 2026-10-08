@@ -1,12 +1,13 @@
 "use client";
 
 // 직원 근무 앱 데모 · 알림(/demo/notify). 기준 목업: docs/mockup/app/notify.html — 상태 4개(알림함 · 알림 없음 · 수신 설정 · 연결 끊김),
-// 화면 문구·가짜 값·버튼의 이동(data-go)·알림(data-toast)을 옮겼다. 목업에 시트는 없다. 쟁점 NOTI-1~6 은 모두 확정이다.
+// 화면 문구·가짜 값·버튼의 이동(data-go)·알림(data-toast)을 옮겼다. 목업에 시트는 없다. 쟁점 NOTI-1~7 은 모두 확정이다.
 //   직원 알림은 근로계약서 발송 · 근무스케줄 주요 변경 · TO-DO 배정 · 급여명세서 발송 넷뿐이다(S-AYBNWF).
 //   NOTI-1 TO-DO 배정은 앱 푸시를 보내지 않고 알림함에만 한 줄 쌓인다. 근무시간 외 보류 규칙은 없어졌다. 긴급 TO-DO 는 빨간 점.
 //   NOTI-2 알림톡은 자동 대체 없이 프로세스별로 함께 보낸다. NOTI-3 알림함은 14일 보관. NOTI-4 한 줄에 발송 결과까지 적는다.
 //   NOTI-5 알림함은 머리줄 알림 버튼으로 들어온다(홈 데모). NOTI-6 다시 보낸 급여명세서는 「다시 발송되었습니다 · 금액이 바뀌었을 수 있습니다」.
-//   알림을 누르면 관련 화면으로 가며 자동으로 읽음 처리된다. 직원 알림함은 줄마다 읽음을 바꿀 수 있다(S-IMFWJT) — 관리자 웹 운영 알림함과 반대.
+//   알림을 누르면 관련 화면으로 가며 자동으로 읽음 처리된다. 직원 알림함은 줄마다 읽음을 바꿀 수 있고(S-IMFWJT), 머리에 「모두 읽음」도 둔다(NOTI-7,
+//   2026-10-08) — 관리자 웹 운영 알림함은 모두 읽음만 둔다.
 //   수신은 수신 설정 묶음(근로계약서 · 근무스케줄 · TO-DO · 급여명세서) 단위로 켜고 끈다. 근로계약서 · 급여명세서는 잠긴 스위치, 꺼 둔 묶음의 알림도
 //   알림함에는 남는다(S-SIGZJQ). TO-DO 묶음은 보낼 앱 푸시가 없어 스위치 대신 「알림함만」(목업 그대로).
 // 수신 설정(settings)은 Figma 09.알림설정(node 17:1097)을 따른다. 알림함 · 알림 없음 · 연결 끊김은 Figma 없음 — DESIGN.md 기준 초안.
@@ -16,6 +17,7 @@
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { BottomNav, Button, MaskIcon, Notice, PageHeader, SwitchRow } from "@/components/common";
+import { PRESS } from "@/components/common/theme";
 import { PageSlide } from "@/app/design/(mockup)/page-slide";
 import { BackHeader } from "./back-header";
 import { DEMO_NAV_ITEMS, DemoStates, useDemoState } from "../_components";
@@ -73,7 +75,7 @@ const NOTIFICATIONS: {
   { id: "n5", kind: "todo", title: "TO-DO가 배정되었습니다", sub: "유통기한 라벨 점검 · 내일 14:00까지 · 읽음", time: "어제 23:40" },
   { id: "n6", kind: "payslip", title: "8월 급여명세서가 도착했습니다", sub: "읽음", time: "8일 전" },
   { id: "n7", kind: "schedule", title: "근무스케줄이 바뀌었습니다", sub: "9/9(수) 근무가 휴무로 바뀌었습니다 · 읽음", time: "4일 전" },
-  { id: "n8", kind: "contract", title: "근로계약서가 도착했습니다", sub: "2026년 8월 근로계약서 · 날인 완료 · 읽음", time: "1개월 전" },
+  { id: "n8", kind: "contract", title: "근로계약서가 도착했습니다", sub: "2026년 8월 근로계약서 · 날인 완료 · 읽음", time: "12일 전" },
 ];
 
 export default function DemoNotifyPage() {
@@ -121,6 +123,21 @@ export default function DemoNotifyPage() {
 
           {state === "inbox" && (
             <main className="flex flex-1 flex-col gap-[16px] px-[16px] pt-[16px] pb-[24px]">
+              {/* 모두 읽음(NOTI-7). 미확인이 없으면 누를 것이 없어 끈다. */}
+              <div className="-my-[8px] flex items-center justify-between pl-[2px]">
+                <span className="text-[13px] font-semibold text-staff-text-sub">미확인 {unread.size}건</span>
+                <button
+                  type="button"
+                  disabled={unread.size === 0}
+                  onClick={() => {
+                    setUnread(new Set());
+                    setToast("모두 읽음으로 바꿨습니다");
+                  }}
+                  className={`h-[44px] rounded-[14px] px-[12px] text-[13px] font-bold text-staff-text-sub active:bg-staff-primary-inactive ${PRESS}`}
+                >
+                  모두 읽음
+                </button>
+              </div>
               <ul className="flex flex-col divide-y divide-staff-border-light overflow-hidden rounded-[16px] border border-staff-border-light bg-white">
                 {NOTIFICATIONS.map((n) => (
                   <NotificationRow key={n.id} {...n} unread={unread.has(n.id)} onRead={(read) => setRead(n.id, read)} />

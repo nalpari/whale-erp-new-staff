@@ -1,9 +1,10 @@
 "use client";
 
 // 직원 근무 앱 데모 · 출퇴근 현황(/demo/attendance). 기준 목업: docs/mockup/app/attendance-history.html —
-// 상태 5개(이번 주 · 기간별 · 확인 필요 섞임 · 기록 없음 · 근무지 없음)와 시트 4개(보정 · 대신 등록 · 출근 위치 확인 실패 · 퇴근 기록 누락),
+// 상태 5개(이번 주 · 기간별 · 확인 필요 섞임 · 기록 없음 · 근무지 없음)와 시트 4개(보정 · 대신 등록 · 출근 위치 확인 실패 · 퇴근 기록 없음),
 // 화면 문구·가짜 값을 옮겼다. 쟁점 HIST-1(보정·대신 등록은 연필 표시 + 상세 시트), HIST-2(이번 주 / 기간별 탭, 기간별은 이번 달 기본 ·
-// 한 번에 최대 1년), HIST-3(확인 필요는 보기만 + 점포 안내)은 모두 확정이고 목업이 그린 그대로다.
+// 한 번에 최대 1년), HIST-3(확인 필요는 보기만 + 점포 안내), HIST-4(퇴근 기록 없음은 확인 필요가 아닌 별도 표시, 2026-10-08)는
+// 모두 확정이고 목업이 그린 그대로다.
 // 이번 주(week)는 Figma 05.출퇴근 현황(node 12:1233)을 따른다 — 다만 HIST-2 에 따라 탭 이름은 「기간별」이고 주 이동 줄(PeriodNav)은 두지 않는다.
 // 그 밖 상태와 시트는 Figma 없음 — DESIGN.md 기준 초안.
 // 목업과 달리 한 곳: 목업 이번 주의 대신 등록 카드가 「토 9/12」로 두 번 나오고 아직 오지 않은 날이라, 지난 쉬는 날이던 월 9/7 에 두고
@@ -35,13 +36,13 @@ import { DEMO_NAV_ITEMS, DemoStates, useDemoState, type DemoState } from "../_co
 const STATES: DemoState[] = [
   { id: "week", label: "이번 주", note: "기본 상태" },
   { id: "period", label: "기간별", note: "시작일–종료일" },
-  { id: "flagged", label: "확인 필요 섞임", note: "위치 실패·퇴근 누락" },
+  { id: "flagged", label: "확인 필요 섞임", note: "위치 실패·퇴근 기록 없음" },
   { id: "empty", label: "기록 없음", note: "빈 상태" },
   { id: "nosite", label: "근무지 없음", note: "퇴직 후" },
   { id: "editInfo", label: "보정 기록", note: "시트 · 수 9/9 연필 표시" },
   { id: "proxyInfo", label: "대신 등록 기록", note: "시트 · 월 9/7 연필 표시" },
   { id: "flagTue", label: "출근 위치 확인 실패", note: "시트 · 확인 필요" },
-  { id: "flagWed", label: "퇴근 기록 누락", note: "시트 · 확인 필요" },
+  { id: "flagWed", label: "퇴근 기록 없음", note: "시트 · 수 9/9" },
 ];
 type Sheet = "editInfo" | "proxyInfo" | "flagTue" | "flagWed";
 // 시트마다 뒤에 깔리는 상태.
@@ -193,10 +194,12 @@ export default function DemoAttendancePage() {
       <BottomSheet
         open={sheet === "flagWed"}
         onClose={handleSheetClose}
-        title="퇴근 기록 누락"
-        description="09:14에 출근한 기록만 있고 퇴근 기록이 없습니다. 퇴근을 찍지 못했다면 관리자에게 알려 대신 등록받을 수 있습니다."
+        title="퇴근 기록 없음"
+        description="09:14에 출근한 기록만 있고 퇴근 기록이 없습니다. 퇴근을 찍지 못했다면 근무지 관리자에게 문의해 주세요. 관리자가 퇴근 시각을 보정하면 이 표시는 사라집니다."
       >
-        <StoreNotice />
+        <Notice icon={<MaskIcon src="/icons/store-small.svg" size={16} />}>
+          <strong>근무지 관리자에게 문의</strong>해 주세요. 앱에서 직접 고칠 수는 없습니다.
+        </Notice>
       </BottomSheet>
 
       {/* 목업의 data-toast. join 데모와 같은 떠 있는 짙은 남색 띠. */}
@@ -355,14 +358,14 @@ function WeekRow({ title, sub, current = false, upcoming = false }: { title: str
   );
 }
 
-// 확인 필요가 섞인 이번 주. 꼬리표가 붙은 카드는 눌러 사유 시트를 연다. 직원이 누를 처리 버튼은 없다(HIST-3).
+// 확인 필요가 섞인 이번 주. 꼬리표가 붙은 카드와 퇴근 기록 없음 카드는 눌러 시트를 연다. 직원이 누를 처리 버튼은 없다(HIST-3).
 function FlaggedView({ onOpen }: { onOpen: (sheet: Sheet) => void }) {
   return (
     <>
       <div className="flex gap-[6px] rounded-[12px] border border-[#f6e3bd] bg-[#fff6e5] p-[14px] text-[13px] text-[#6f4608] [&_strong]:font-bold">
         <WarningIcon />
         <p className="min-w-0 flex-1">
-          <strong>확인이 필요한 기록이 2건 있습니다.</strong>
+          <strong>확인이 필요한 기록이 1건 있습니다.</strong>
           <br />
           관리자가 확인 중입니다. 기록이 다르면 <strong>근무지 점포에 말씀해 주세요.</strong> 확인이 끝나면 이 표시와 사유는 사라집니다.
         </p>
@@ -375,7 +378,17 @@ function FlaggedView({ onOpen }: { onOpen: (sheet: Sheet) => void }) {
           worked={{ start: "09:58", end: "18:00" }}
           onClick={() => onOpen("flagTue")}
         />
-        <FlaggedDayCard day="수 9/9" summary="출근 09:14 · 퇴근 기록 없음" onClick={() => onOpen("flagWed")} />
+        {/* 퇴근 기록 없음(HIST-4): 확인 필요 사유가 아니라 그 날 카드에 붙는 별도 표시라 일반 카드에 둔다. */}
+        <Pressable label="수 9/9 퇴근 기록 없음 보기" onClick={() => onOpen("flagWed")}>
+          <AttendanceDayCard
+            state="done"
+            day="수 9/9"
+            store={STORE}
+            status={{ label: "퇴근 기록 없음", tone: "neutral" }}
+            schedule={{ start: "09:00", end: "18:00" }}
+            summary="출근 09:14 · 퇴근 기록 없음 · 근무지 관리자에게 문의"
+          />
+        </Pressable>
         <TodayCard />
       </div>
     </>

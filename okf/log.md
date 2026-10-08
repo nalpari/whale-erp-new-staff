@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-08
+* **Update**: 데모에 2026-10-08 결정(약관 동의·퇴근 기록 없음·계약서 Pretendard·모두 읽음·철회 뒤 카드·PAY-7)을 옮겼다 — [Whale ERP Staff](/whale-erp-staff.md) 구조는 그대로.
 * **Update**: 하단 메뉴 다섯 칸(출퇴근 추가, 2026-10-08 재영 결정)과 데모 화면 11개를 [Whale ERP Staff](/whale-erp-staff.md) 에 반영했다.
 * **Update**: 데모 화면 목록(2장 home·work·check-in·attendance, 3장 tax)을 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 절에 적었다.
 * **Update**: 데모 하단 메뉴(`DEMO_NAV_ITEMS`, 네 칸)를 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 절에 적었다.

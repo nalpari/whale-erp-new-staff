@@ -2,7 +2,8 @@
 
 // 진입·가입 데모. 기준 목업: docs/mockup/app/join.html — 상태 10개(초대 확인 · 계정 등록 · 본인인증 · 연결 완료 ·
 // 만 19세 미만 · 연결 보류 · 소속 추가 확인 · 소속 추가 완료 · 초대 만료 · 로그인)와 시트 2개(본사 제공 동의 · 소속 추가 거절),
-// 화면 문구·가짜 값·하단 버튼의 이동(data-go)을 그대로 옮겼다. 쟁점 JOIN-1~5 는 모두 확정이고 목업이 그린 그대로다.
+// 화면 문구·가짜 값·하단 버튼의 이동(data-go)을 그대로 옮겼다. 쟁점 JOIN-1~6 은 모두 확정이고 목업이 그린 그대로다.
+// 계정 등록의 약관 동의(JOIN-6, 2026-10-08)는 필수 둘을 모두 체크해야 「다음」이 켜진다.
 // Figma 없음 — DESIGN.md 기준 초안.
 import Image from "next/image";
 import { useEffect, useState, type ReactNode } from "react";
@@ -38,6 +39,9 @@ export default function DemoJoinPage() {
 
   const [openedSheet, setOpenedSheet] = useState<Sheet | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  // 약관 동의(JOIN-6). 필수 둘 · 선택 하나. 데모에서 「다음」이 켜지는 것을 보이려고 모두 빈 칸으로 시작한다.
+  const [terms, setTerms] = useState({ service: false, privacy: false, marketing: false });
+  const termsMet = terms.service && terms.privacy;
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(null), 2000);
@@ -154,9 +158,51 @@ export default function DemoJoinPage() {
                   </p>
                 </div>
                 <TextField label="상세주소" placeholder="상세주소" defaultValue="3층 302호" help="상세주소만 직접 적습니다." />
+
+                <hr className="border-staff-border-light" />
+
+                {/* 약관 동의(JOIN-6). 필수 둘은 1팀 TERMS_TYPE 의 직원 앱 회원가입용(STAFF_TERMS_SERVICE · STAFF_PRIVACY),
+                    선택은 MARKETING. 위치정보 동의는 첫 출근 등록 때 따로 받는다. */}
+                <div className="flex flex-col gap-[8px]">
+                  <p className="text-[13px] font-semibold text-staff-text-sub">약관 동의</p>
+                  <Sunken>
+                    <TermRow
+                      title="직원 앱 서비스 이용약관"
+                      required
+                      sub="직원 근무 앱을 쓰는 데 필요한 약관입니다."
+                      checked={terms.service}
+                      onChange={(v) => setTerms({ ...terms, service: v })}
+                      onView={() => setToast("서비스 이용약관 전문을 엽니다")}
+                    />
+                    <TermRow
+                      title="개인정보 수집·이용 동의"
+                      required
+                      sub="계정을 만들고 근무를 관리하는 데 쓰는 정보입니다."
+                      checked={terms.privacy}
+                      onChange={(v) => setTerms({ ...terms, privacy: v })}
+                      onView={() => setToast("개인정보 수집·이용 동의 전문을 엽니다")}
+                    />
+                    <TermRow
+                      title="마케팅 정보 수신"
+                      sub="새 기능과 이벤트 소식을 받습니다. 동의하지 않아도 가입할 수 있습니다."
+                      checked={terms.marketing}
+                      onChange={(v) => setTerms({ ...terms, marketing: v })}
+                      onView={() => setToast("마케팅 정보 수신 안내를 엽니다")}
+                    />
+                  </Sunken>
+                </div>
+                <div className="flex flex-col gap-[8px]">
+                  <p className="text-[12px] text-staff-text-muted">가맹 점포로 가입할 때만 보입니다</p>
+                  <BpShareConsent onOpen={() => setOpenedSheet("bpshare")} />
+                </div>
+                <p className="text-[12px] text-staff-text-muted">
+                  필수 약관 두 개에 모두 동의해야 다음으로 넘어갑니다. 위치정보 동의는 첫 출근 등록 때 따로 받습니다.
+                </p>
               </Body>
               <Dock>
-                <Button onClick={() => go("verify")}>다음</Button>
+                <Button disabled={!termsMet} onClick={() => go("verify")}>
+                  다음
+                </Button>
               </Dock>
             </>
           )}
@@ -543,27 +589,71 @@ function Seal({ children }: { children: ReactNode }) {
   );
 }
 
-// 본사 제공 동의(가맹 점포 · 선택). 체크칸은 TO-DO 체크칸과 같은 모양(28px, 누르는 칸 44px).
+// 동의 체크칸. TO-DO 체크칸과 같은 모양(28px, 누르는 칸 44px). 본사 제공 동의와 약관 동의가 함께 쓴다.
+function CheckBox({ checked, onChange, label }: { checked: boolean; onChange: (checked: boolean) => void; label: string }) {
+  return (
+    <label
+      className={`relative mt-[2px] flex size-[28px] shrink-0 items-center justify-center rounded-[2px] transition-colors duration-150 ease-out ${
+        checked ? "bg-staff-primary" : "bg-staff-primary-inactive"
+      }`}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        aria-label={label}
+        className="absolute -inset-[8px] appearance-none rounded-[10px]"
+      />
+      <Image src={checked ? "/icons/todo-check-on.svg" : "/icons/todo-check-off.svg"} alt="" width={12} height={9} className="pointer-events-none" />
+    </label>
+  );
+}
+
+// 약관 한 줄(JOIN-6): 체크칸 · 이름 + 필수/선택 배지 · 설명 · 「보기」.
+function TermRow({
+  title,
+  required = false,
+  sub,
+  checked,
+  onChange,
+  onView,
+}: {
+  title: string;
+  required?: boolean;
+  sub: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  onView: () => void;
+}) {
+  return (
+    <div className="flex items-start gap-[10px] py-[8px] first:pt-0 last:pb-0">
+      <CheckBox checked={checked} onChange={onChange} label={title} />
+      <div className="min-w-0 flex-1">
+        <p className="flex flex-wrap items-center gap-[6px] text-[14px] font-semibold">
+          {title} <Badge tone="plain">{required ? "필수" : "선택"}</Badge>
+        </p>
+        <p className="pt-[3px] text-[12px] text-staff-text-sub">{sub}</p>
+      </div>
+      <button
+        type="button"
+        onClick={onView}
+        aria-label={`${title} 보기`}
+        className="-my-[8px] h-[44px] shrink-0 rounded-[12px] px-[10px] text-[13px] font-semibold text-staff-text-sub underline underline-offset-2 transition-colors duration-150 ease-out active:bg-staff-primary-inactive"
+      >
+        보기
+      </button>
+    </div>
+  );
+}
+
+// 본사 제공 동의(가맹 점포 · 선택).
 // 선택 동의가 필수처럼 읽히지 않도록 「동의하지 않아도 가입과 근무는 그대로」를 체크 옆에 같이 둔다.
 function BpShareConsent({ onOpen }: { onOpen: () => void }) {
   const [agreed, setAgreed] = useState(false);
   return (
     <Sunken>
       <div className="flex items-start gap-[10px]">
-        <label
-          className={`relative mt-[2px] flex size-[28px] shrink-0 items-center justify-center rounded-[2px] transition-colors duration-150 ease-out ${
-            agreed ? "bg-staff-primary" : "bg-staff-primary-inactive"
-          }`}
-        >
-          <input
-            type="checkbox"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            aria-label="본사 제공 동의"
-            className="absolute -inset-[8px] appearance-none rounded-[10px]"
-          />
-          <Image src={agreed ? "/icons/todo-check-on.svg" : "/icons/todo-check-off.svg"} alt="" width={12} height={9} className="pointer-events-none" />
-        </label>
+        <CheckBox checked={agreed} onChange={setAgreed} label="본사 제공 동의" />
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-[6px] text-[14px] font-semibold">
             본사 제공 동의 <Badge tone="plain">선택</Badge>
