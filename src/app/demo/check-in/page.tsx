@@ -43,7 +43,7 @@ const STATES = [
   { id: "byeflag", label: "확인 필요 등록 확인", note: "위치 흐림" },
   { id: "dup", label: "이미 출근함", note: "열린 출근이 있을 때" },
   { id: "nopunch", label: "출근 기록 없음", note: "퇴근만 찍을 때" },
-  { id: "nocontract", label: "계약 미체결", note: "경고 후 등록 허용" },
+  { id: "nocontract", label: "계약 미체결", note: "출근 막음" },
 ];
 const SHEET_BASE = {
   consent: "ready",
@@ -536,8 +536,8 @@ export default function DemoCheckInPage() {
       <BottomSheet
         open={sheet === "nocontract"}
         onClose={handleSheetClose}
-        title="아직 계약서를 날인하지 않았습니다"
-        description="계약이 없어도 출퇴근은 등록할 수 있습니다. 다만 급여명세서를 만들 때 계약이 있어야 하니 계약서를 먼저 확인해 주세요."
+        title="근로계약을 체결해야 출근할 수 있습니다"
+        description="오늘 날짜가 들어간 체결 완료 근로계약이 있어야 출퇴근을 등록할 수 있습니다. 받은 계약서를 날인하면 바로 출근할 수 있습니다."
       >
         {/* 경고 판: 상태 칩의 지각·긴급 색(#FFF6E5 · #956013). 카드 전체가 계약서로 가는 링크. */}
         <Link
@@ -553,9 +553,6 @@ export default function DemoCheckInPage() {
         </Link>
         <Button href={CONTRACT} transitionTypes={["nav-forward"]}>
           계약서 보기
-        </Button>
-        <Button variant="ghost" onClick={() => go("working", "출근을 등록했습니다")}>
-          그대로 출근
         </Button>
       </BottomSheet>
 

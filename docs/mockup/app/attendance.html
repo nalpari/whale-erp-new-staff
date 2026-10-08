@@ -781,11 +781,11 @@
               <div class="sheet__grab"></div>
               <div class="line">
                 <i class="ph-fill ph-file-dashed" style="color: var(--amber); font-size: 21px"></i>
-                <p class="h-lg">아직 계약서를 날인하지 않았습니다</p>
+                <p class="h-lg">근로계약을 체결해야 출근할 수 있습니다</p>
               </div>
               <p class="p--sm">
-                계약이 없어도 출퇴근은 등록할 수 있습니다. 다만 급여명세서를 만들 때 계약이 있어야
-                하니 계약서를 먼저 확인해 주세요.
+                오늘 날짜가 들어간 체결 완료 근로계약이 있어야 출퇴근을 등록할 수 있습니다. 받은
+                계약서를 날인하면 바로 출근할 수 있습니다.
               </p>
               <a class="card card--amber" href="contract.html" style="text-decoration: none">
                 <div class="line">
@@ -797,14 +797,7 @@
                 </div>
               </a>
               <div class="btnrow">
-                <button
-                  class="btn btn--ghost"
-                  data-sheet-close
-                  data-go="working"
-                  data-toast="출근을 등록했습니다"
-                >
-                  그대로 출근
-                </button>
+                <button class="btn btn--ghost" data-sheet-close>닫기</button>
                 <a class="btn" href="contract.html">계약서 보기</a>
               </div>
             </div>
@@ -982,7 +975,7 @@
                 <span class="sw-b__k">·</span>
                 <span
                   ><span class="sw-b__t">계약 미체결</span>
-                  <span class="sw-b__d">· 경고 후 등록 허용</span></span
+                  <span class="sw-b__d">· 출근 막음 (ATT-12)</span></span
                 >
               </button>
             </div>
@@ -1351,6 +1344,40 @@
             </div>
           </div>
 
+          <div class="gap">
+            <div class="gap__head">
+              <span class="gap__no">ATT-12</span>
+              <span class="gap__t">근로계약이 없는 날의 출근을 막을 때 무엇을 안내할 것인가</span>
+              <span class="gap__st gap__st--open">막기 확정 · 문구 미정</span>
+              <span class="gap__ref">S-EFQGSP</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                <b>막는 것은 확정</b>이다 (2026-10-08 재영). 판단은 근무일 기준이다 — 그날이 체결 완료
+                근로계약 기간 안에 있어야 한다. 미체결뿐 아니라 계약 시작 전·종료 후도 막는다. 전에는
+                경고만 띄우고 「그대로 출근」을 허용했다. 미체결 직원에게는 근무스케줄도 생기지 않는다.
+              </p>
+            </div>
+            <div class="gap__opts">
+              <div class="gap__opt">
+                <div class="gap__label">A · 원인에 따라 두 갈래 (지금 그린 것)</div>
+                <p>
+                  서명 대기 계약이 있으면 「근로계약을 체결해야 출근할 수 있습니다」와 계약서 카드·「계약서
+                  보기」를 띄운다. 날인하면 바로 출근할 수 있다. 서명 대기 계약이 없으면(시작 전·종료 후·계약
+                  없음) 「오늘은 근로계약 기간이 아닙니다 · 근무지 관리자에게 문의해 주세요」와 「닫기」만 둔다.
+                </p>
+              </div>
+              <div class="gap__opt">
+                <div class="gap__label">B · 한 문구로 묶기</div>
+                <p>
+                  「오늘 날짜의 근로계약이 없어 출근할 수 없습니다. 받은 계약서가 있으면 날인하고, 없으면 근무지
+                  관리자에게 문의해 주세요」 하나로 쓴다. 화면은 단순하지만 직원이 자기가 어느 경우인지 스스로
+                  가려야 한다.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
           <ul class="pol">
             <li>
@@ -1369,7 +1396,7 @@
             </li>
             <li>
               <span class="pol__src">S-EFQGSP</span>
-              <span>근로계약이 체결되지 않은 직원도 경고를 확인한 뒤 등록할 수 있다.</span>
+              <span>근무일이 체결 완료 근로계약 기간 안에 있어야 등록할 수 있다. 미체결·계약 시작 전·종료 후는 막는다 (ATT-12, 2026-10-08 재영).</span>
             </li>
             <li>
               <span class="pol__src">S-EFQGSP</span>
@@ -1407,7 +1434,7 @@
           </div>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 출퇴근 등록 · 2026년 9월 18일 · 상태 13개 · 시트 9개 · 쟁점 11건 · 확정 10건 · 법무 검토 1건
+            직원 근무 앱 목업 · 출퇴근 등록 · 2026년 9월 18일 · 상태 13개 · 시트 9개 · 쟁점 12건 · 확정 10건 · 미정 1건 · 법무 검토 1건
           </footer>
         </div>
       </div>

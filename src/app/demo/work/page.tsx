@@ -10,7 +10,6 @@
 // 월 달력과 읽기 전용 카드로 바꿨다. 월 달력 · 고른 날 상세 · 근무지 없음 · 등록된 근무 없음 · 시트 2개는 Figma 없음 — DESIGN.md 기준 초안.
 // 하단 메뉴는 목업처럼 다섯 칸이다(2026-10-08 재영 결정, Figma 는 네 칸).
 import Image from "next/image";
-import Link from "next/link";
 import { useId, useState, type ReactNode } from "react";
 import {
   BottomNav,
@@ -47,7 +46,6 @@ const isTodo = (id: string): id is TodoState => id === "todo" || id === "todo-do
 
 const STORE = "웨일카페 강남역점";
 const CHECK_IN = "/demo/check-in";
-const CONTRACT = "/demo/contract"; // 3장
 
 export default function DemoWorkPage() {
   const [state, move] = useDemoState(STATES);
@@ -186,15 +184,6 @@ function Schedule({ onMonth, onToday, onTodoSummary }: { onMonth: (month: number
           <p className="truncate text-[16px] font-bold">{STORE}</p>
           <p className="text-[12px] text-staff-text-sub">연결된 근무지 2곳 · 전환은 홈 상단에서</p>
         </div>
-      </div>
-
-      {/* 근로계약 미체결 경고(목업 근거 S-WPGUXX). 글자색은 Figma 그대로 남보라 — 「확인」 링크가 지금 누를 것이다. */}
-      <div className="flex items-center gap-[14px] rounded-[18px] border border-[#dce4ff] bg-[#eef2ff] px-[20px] pt-[20px] pb-[24px] text-staff-primary">
-        <Image src="/icons/contract.svg" alt="" width={11.688} height={13.813} />
-        <p className="min-w-0 flex-1 text-[14px]">근로계약이 아직 체결되지 않았습니다. 스케줄은 정상 등록됩니다.</p>
-        <Link href={CONTRACT} transitionTypes={["nav-forward"]} className="-m-[12px] flex min-h-[44px] shrink-0 items-center p-[12px] text-[13px] font-semibold">
-          확인
-        </Link>
       </div>
 
       <section className="flex flex-col gap-[8px]">
