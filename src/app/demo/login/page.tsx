@@ -325,7 +325,7 @@ function renderView(view: string, go: (id: string, dir?: Dir) => void, back: (id
           title="인증번호를 넣어 주세요"
           desc={
             <>
-              <span className="tabular-nums">haeun****@gmail.com</span> 으로 여섯 자리를 보냈습니다.
+              <span className="tabular-nums">ha******e@gmail.com</span> 으로 여섯 자리를 보냈습니다.
             </>
           }
           dock={

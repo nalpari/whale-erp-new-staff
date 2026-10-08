@@ -444,7 +444,7 @@ export default function DemoMePage() {
           {view === "email-pin" && (
             <>
               <Body>
-                <Lead title="새 이메일로 보낸 번호를 넣어 주세요">haeun.new****@gmail.com 으로 보냈습니다.</Lead>
+                <Lead title="새 이메일로 보낸 번호를 넣어 주세요">ha******w@gmail.com 으로 보냈습니다.</Lead>
                 <TextField label="인증번호" autoComplete="one-time-code" defaultValue="9T4X1P" />
                 <div className="flex items-center justify-between text-[12px] text-staff-text-sub">
                   <span>
