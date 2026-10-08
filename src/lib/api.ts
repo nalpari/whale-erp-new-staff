@@ -1,18 +1,7 @@
-import { cookies } from "next/headers";
+import type { components } from "./api-types";
 
-const SESSION_COOKIE = "session";
-
-export interface AuthUser {
-  id: number;
-  email: string;
-  name: string;
-}
-
-/** 쿠키에 담는 값. API 호출에 필요한 것은 액세스 토큰뿐이다. */
-export interface Session {
-  accessToken: string;
-  user: AuthUser;
-}
+/** api 가 커밋한 openapi.json 에서 만든 요청·응답 모양(pnpm openapi:types). */
+export type Schemas = components["schemas"];
 
 export class ApiError extends Error {
   constructor(
@@ -36,14 +25,31 @@ function baseUrl(): string {
   return url;
 }
 
+export interface RequestOptions {
+  method?: string;
+  /** 본문. 있으면 JSON 으로 보낸다. */
+  json?: unknown;
+  /** 있으면 Authorization: Bearer 로 보낸다. */
+  accessToken?: string;
+  /** 모두에게 같은 응답(enum)만 초 단위로 캐시한다. 없으면 캐시하지 않는다. */
+  revalidate?: number;
+}
+
 export async function request<T>(
   path: string,
-  init: RequestInit = {},
+  { method = "GET", json, accessToken, revalidate }: RequestOptions = {},
 ): Promise<T> {
+  const headers = new Headers();
+  if (json !== undefined) headers.set("Content-Type", "application/json");
+  if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
+
   const response = await fetch(`${baseUrl()}${path}`, {
-    ...init,
-    // 사용자마다 다른 응답이라 캐시하지 않는다.
-    cache: "no-store",
+    method,
+    headers,
+    body: json === undefined ? undefined : JSON.stringify(json),
+    // 사용자마다 다른 응답이라 기본은 캐시하지 않는다. cache 와 revalidate 를 같이 주면
+    // 둘 다 무시되므로 하나만 준다.
+    ...(revalidate === undefined ? { cache: "no-store" as const } : { next: { revalidate } }),
   });
 
   if (!response.ok)
@@ -62,32 +68,4 @@ async function errorMessage(response: Response): Promise<string> {
   if (Array.isArray(message)) return message.join(", ");
   if (typeof message === "string") return message;
   return `요청이 실패했습니다 (HTTP ${response.status})`;
-}
-
-/** 로그인에 성공하면 부른다. maxAge 는 액세스 토큰 수명과 맞춘다. */
-export async function setSession(
-  session: Session,
-  maxAgeSeconds: number,
-): Promise<void> {
-  (await cookies()).set(SESSION_COOKIE, JSON.stringify(session), {
-    httpOnly: true, // 브라우저 JS 가 토큰을 읽지 못하게 한다
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: maxAgeSeconds,
-  });
-}
-
-export async function getSession(): Promise<Session | null> {
-  const raw = (await cookies()).get(SESSION_COOKIE)?.value;
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as Session;
-  } catch {
-    return null; // 손상된 쿠키는 로그아웃으로 취급한다
-  }
-}
-
-export async function clearSession(): Promise<void> {
-  (await cookies()).delete(SESSION_COOKIE);
 }
