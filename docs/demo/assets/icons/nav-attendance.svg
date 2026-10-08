@@ -1,0 +1,7 @@
+<svg width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- 하단 메뉴 출퇴근 칸(2026-10-08 다섯 칸 결정, Figma 에 없음). 다른 nav-*.svg 처럼 위아래를 뒤집어 그려 BottomNav 의 flipY 로 바로 선다. -->
+<g transform="translate(0 23) scale(1 -1)">
+<circle cx="11.5" cy="11.5" r="8.4" stroke="#526077" stroke-width="1.45"/>
+<path d="M11.5 6.9V11.5L14.6 13.4" stroke="#526077" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>
