@@ -4,7 +4,7 @@ title: Naming
 description: DB·API·FRONT 네이밍 규칙과 용어집 영문 식별자 대응표. 세 저장소 공통.
 sources:
   - { id: naming-2026-09-30, resource: ../../docs/raw/2026-09-30-네이밍-규칙.md, title: WHALE ERP 네이밍 규칙 (2026-10-01 재영 확인) }
-generated: { by: claude-code/opus-5.5, at: 2026-10-07T07:28:52Z }
+generated: { by: claude-code/opus-5.5, at: 2026-10-08T05:10:48Z }
 ---
 
 # 범위
@@ -26,12 +26,75 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-07T07:28:52Z }
 
 # 원칙
 
-1. **계층마다 생태계 관례를 따른다.** DB는 `snake_case`, API·JSON·TypeScript는
-   `camelCase`, URL·파일은 `kebab-case`. 변환은 Prisma `@map`이 맡는다.
-2. **표준 표기 하나 = 영문 식별자 하나.** 세 계층이 같은 어근을 쓴다
-   (`attendance_records` ↔ `attendanceRecord` ↔ `/attendance-records` ↔ `AttendanceRecord`).
-3. **약어 금지.** `emp`, `ctr`, `att`처럼 줄이지 않는다. 예외는 `id`, `url`, `bp`,
-   `hq`, `faq`, `todo`, `rrn`(주민등록번호), `biz`(사업자), `ceo`(대표자), `admin`(관리자)뿐이다.
+1. **계층마다 생태계 관례를 따른다.** DB는 `snake_case`, API·JSON·TypeScript는 `camelCase`, URL·파일은 `kebab-case`. 변환은 Prisma `@map`이 맡는다.
+2. **표준 표기 하나 = 영문 식별자 하나.** 세 계층이 같은 어근을 쓴다 (`attendance_records` ↔ `attendanceRecord` ↔ `/attendance-records` ↔ `AttendanceRecord`).
+3. **약어 금지.** `emp`, `ctr`, `att`처럼 줄이지 않는다. 예외는 `id`, `url`, `bp`, `hq`, `faq`, `todo`, `rrn`(주민등록번호), `biz`(사업자), `ceo`(대표자), `admin`(관리자)뿐이다.
+
+# DB (PostgreSQL + Prisma)
+
+| 대상 | 규칙 | 예 |
+|---|---|---|
+| 테이블 | snake_case 복수형 | `contracts`, `attendance_records`, `location_access_logs` |
+| Prisma 모델 | PascalCase 단수형 + `@@map` | `model Contract { … @@map("contracts") }` |
+| 컬럼 | snake_case, Prisma 필드는 camelCase + `@map` | `start_date` ↔ `startDate` |
+| 기본키 · 외래키 | `{참조 단수}_id` · `{참조 단수}_id` (기본키도 같은 이름) | `contracts.contract_id`, `staff_members.staff_member_id`, 외래키 `store_id` |
+| 역할 외래키 | 사람(관리자)을 가리키는 외래키는 역할을 이름으로 `{역할}_by`. 한 테이블에 관리자 외래키가 여럿일 수 있어서다 (2026-10-06 재영) | `created_by`, `reviewed_by`, `confirmed_by` |
+| 시각 | `_at`, `timestamptz` | `signed_at`, `reviewed_at`, `created_at` |
+| 날짜만 | `_date` | `start_date`, `birth_date` |
+| 참·거짓 | `is_` · `has_` | `is_proxy_entry`, `is_premium_applied` |
+| 삭제 표시 | `is_deleted boolean NOT NULL DEFAULT false`. 행을 DELETE 하지 않는다. 삭제가 가능한 테이블에만 둔다 | `contracts.is_deleted` |
+| 금액 | `_amount`, 원 단위 정수 | `base_pay_amount` |
+| 길이 · 단위 | 단위를 이름 끝에 | `break_minutes`, `radius_m` |
+| 상태 값 | Prisma enum, 값은 UPPER_SNAKE | `ContractStatus.PENDING_SIGNATURE` |
+| 이력 | 변경 전후는 `_histories`, 사건 기록은 `_logs` | `contract_status_histories`, `payslip_logs` |
+| 인덱스 · 키 | `{table}_{cols}_{idx·key·fkey}` | `contracts_staff_member_id_idx` |
+| CHECK 제약 | `{table}_{col}_{조건}`, 조건을 이름에 쓴다 | `accounts_phone_format`, `notification_templates_template_code_format` |
+
+**삭제 표시 · 기본키 이름** (2026-10-02 재영, api 세션에서 정함)
+
+- 삭제 가능한 데이터는 행을 지우지 않고 `is_deleted = true` 로 표시한다. 표시는 `is_deleted` 하나뿐이다 — `deleted_at` 을 함께 두면 플래그와 시각이 어긋난 행이 생길 수 있다. 삭제 시각이 필요해지면 그때 `deleted_at` 을 더하고 CHECK 로 묶는다.
+- 남아야 하는 기록(`*_logs`, `*_histories`)에는 두지 않는다. 이 컬럼이 없는 테이블은 지우지 않는 테이블이다.
+- 예외: 두 표를 잇는 부속 관계 표 `todo_assignees` 는 `is_deleted` 없이 행을 DELETE 한다. 배정을 푼 사실은 `todo_status_histories` 에 남긴다(퇴직 처리의 배정 해제, 2026-10-07 재영).
+- 모든 조회에 `is_deleted = false` 를 건다. 빠뜨려도 오류가 나지 않고 지운 행이 그대로 보인다 — 목록, id 조회, total 을 위한 count, insert 전 존재 확인 모두 해당한다.
+- 유니크 제약은 부분 인덱스(`WHERE NOT is_deleted`)로 만든다. 안 그러면 지운 행이 sku·email 을 붙잡아 같은 값으로 다시 만들 때 409 가 난다. Prisma 가 표현하지 못해 CHECK 제약처럼 마이그레이션 SQL 에만 남는다.
+- 기본키도 `{참조 단수}_id` 로 짓는다. 기본키가 `id` 였던 견본 테이블(`items`·`stock_movements`·`staff`·`customers`)은 2026-10-07 에 견본 로그인·`/items` API 와 함께 지웠다(재영).
+
+ERD에 단수·복수가 섞인 이름(`attendance`, `schedule_history`)은 다음 ERD 재생성 때 복수형으로 맞춘다.
+
+## 식별자 1팀 예외
+
+| 대상 | 1팀 규칙 | 이유 |
+|---|---|---|
+| 공통코드 기본키 | `code_groups`는 `group_code`, `code_items`는 (`group_code`, `item_code`, `bp_code`) 복합 PK | 코드 자체가 식별자다. 셋 다 필수이고 등록 뒤 바꾸지 않는다 |
+| BP 기본키 | `bp_codes`는 PK `bp_code_id` 와 별도로 `bp_code`(BP+6자리)를 고유 식별자로 쓴다 | 외부 노출·화면 표기는 `bp_code` 다 |
+| 사람이 읽는 코드 | `{자원}_code` + 접두 6자리 | `bp_code`(BP), `store_code`(ST), `menu_code`(MN), `role_code`(유형코드, 예 BM000001). 자동 채번, 변경 불가 |
+| 공통코드 값 컬럼 | 논리 타입 `code`, 이름은 `{그룹 코드 소문자}_code` | `role_type_code`, `account_status_code`, `store_type_code`, `manage_owner_code` |
+| 상세코드 값 | 영문 대문자·숫자·밑줄 20자, 등록 후 변경 불가 | Prisma enum이 아니라 `code_items` 행이다 — 2장의 「상태 값」 규칙을 쓰지 않는다 |
+
+# API (NestJS)
+
+| 대상 | 규칙 | 예 |
+|---|---|---|
+| 경로 | kebab-case 복수 명사, 동사 금지 | `GET /staff-members/:id/contracts` |
+| 상태를 바꾸는 동작 | 하위 경로 + POST | `POST /contracts/:id/resend`, `POST /payslips/:id/cancel-confirmation` |
+| 쿼리 파라미터 | camelCase | `?storeId=3&from=2026-09-01` |
+| JSON 필드 | camelCase, DB 컬럼명을 그대로 노출하지 않음 | `{ startDate, isProxyEntry }` |
+| 모듈 폴더 | 자원 복수 kebab | `src/payslips/`, `src/staff-members/` |
+| 파일 | `{자원}.{역할}.ts` | `payslips.service.ts` |
+| DTO | 파일 `create-payslip.dto.ts` · 클래스 `CreatePayslipDto` | 응답 `payslip.response.dto.ts` · `PayslipResponseDto` |
+
+## API 목록 응답
+
+| 항목 | 규칙 |
+|---|---|
+| 목록 응답 | `{ items, total }` |
+| total 구하기 | `findMany` + `count` (같은 `where`, `$transaction`) |
+| 페이지 파라미터 | `page`(1부터), `pageSize`(기본 20, 최대 200) |
+| 정렬 | 기본 정렬 + 마지막에 `id` |
+| 빈 결과 · 마지막 페이지를 넘긴 요청 | `{ items: [], total }` |
+| 오류 응답 | Nest 기본 `{ statusCode, message, error }` 유지 |
+
+모든 목록 API 에 적용한다. 다른 형식이던 견본 `/items`(`take`·`skip`, 배열 응답)는 2026-10-07 에 지웠다.
 
 # FRONT (Next.js · 관리자 웹과 직원 근무 앱 공통)
 
@@ -60,77 +123,7 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-07T07:28:52Z }
 
 남은 것: 1팀 동의 대기 — api·front 저장소를 1팀도 쓴다. 공통코드 조회 API 를 누가 만들지 1팀과 정한다.
 
-# API (NestJS)
-
-| 대상 | 규칙 | 예 |
-|---|---|---|
-| 경로 | kebab-case 복수 명사, 동사 금지 | `GET /staff-members/:id/contracts` |
-| 상태를 바꾸는 동작 | 하위 경로 + POST | `POST /contracts/:id/resend`, `POST /payslips/:id/cancel-confirmation` |
-| 쿼리 파라미터 | camelCase | `?storeId=3&from=2026-09-01` |
-| JSON 필드 | camelCase, DB 컬럼명을 그대로 노출하지 않음 | `{ startDate, isProxyEntry }` |
-| 모듈 폴더 | 자원 복수 kebab | `src/payslips/`, `src/staff-members/` |
-| 파일 | `{자원}.{역할}.ts` | `payslips.service.ts` |
-| DTO | 파일 `create-payslip.dto.ts` · 클래스 `CreatePayslipDto` | 응답 `payslip.response.dto.ts` · `PayslipResponseDto` |
-
-## 목록 응답
-
-| 항목 | 규칙 |
-|---|---|
-| 목록 응답 | `{ items, total }` |
-| total 구하기 | `findMany` + `count` (같은 `where`, `$transaction`) |
-| 페이지 파라미터 | `page`(1부터), `pageSize`(기본 20, 최대 200) |
-| 정렬 | 기본 정렬 + 마지막에 `id` |
-| 빈 결과 · 마지막 페이지를 넘긴 요청 | `{ items: [], total }` |
-| 오류 응답 | Nest 기본 `{ statusCode, message, error }` 유지 |
-
-기존 items 예제(`take`·`skip`, 배열 응답, `id` 순)는 front 가 지금 형식으로 부르고 있어
-바꾸지 않는다. 새로 만드는 목록 API 부터 적용한다.
-
-# DB (PostgreSQL + Prisma)
-
-| 대상 | 규칙 | 예 |
-|---|---|---|
-| 테이블 | snake_case 복수형 | `contracts`, `attendance_records`, `location_access_logs` |
-| Prisma 모델 | PascalCase 단수형 + `@@map` | `model Contract { … @@map("contracts") }` |
-| 컬럼 | snake_case, Prisma 필드는 camelCase + `@map` | `start_date` ↔ `startDate` |
-| 기본키 · 외래키 | `{참조 단수}_id` · `{참조 단수}_id` (기본키도 같은 이름) | `contracts.contract_id`, `staff_members.staff_member_id`, 외래키 `store_id` |
-| 역할 외래키 | 사람(관리자)을 가리키는 외래키는 역할을 이름으로 `{역할}_by`. 한 테이블에 관리자 외래키가 여럿일 수 있어서다 (2026-10-06 재영) | `created_by`, `reviewed_by`, `confirmed_by` |
-| 시각 | `_at`, `timestamptz` | `signed_at`, `reviewed_at`, `created_at` |
-| 날짜만 | `_date` | `start_date`, `birth_date` |
-| 참·거짓 | `is_` · `has_` | `is_proxy_entry`, `is_premium_applied` |
-| 삭제 표시 | `is_deleted boolean NOT NULL DEFAULT false`. 행을 DELETE 하지 않는다. 삭제가 가능한 테이블에만 둔다 | `contracts.is_deleted` |
-| 금액 | `_amount`, 원 단위 정수 | `base_pay_amount` |
-| 길이 · 단위 | 단위를 이름 끝에 | `break_minutes`, `radius_m` |
-| 상태 값 | Prisma enum, 값은 UPPER_SNAKE | `ContractStatus.PENDING_SIGNATURE` |
-| 이력 | 변경 전후는 `_histories`, 사건 기록은 `_logs` | `contract_status_histories`, `payslip_logs` |
-| 인덱스 · 키 | `{table}_{cols}_{idx·key·fkey}` | `stock_movements_item_id_idx` |
-| CHECK 제약 | `{table}_{col}_{조건}`, 조건을 이름에 쓴다 | `items_sku_not_blank`, `payslip_items_amount_nonzero` |
-
-**삭제 표시** (2026-10-02 재영, api 세션에서 정함)
-
-- 삭제 가능한 데이터는 행을 지우지 않고 `is_deleted = true` 로 표시한다. 표시는 `is_deleted` 하나뿐이다 — `deleted_at` 을 함께 두면 플래그와 시각이 어긋난 행이 생길 수 있다. 삭제 시각이 필요해지면 그때 `deleted_at` 을 더하고 CHECK 로 묶는다.
-- 남아야 하는 기록(`stock_movements`, `*_logs`, `*_histories`)에는 두지 않는다. 이 컬럼이 없는 테이블은 지우지 않는 테이블이다.
-- 예외: 두 표를 잇는 부속 관계 표 `todo_assignees` 는 `is_deleted` 없이 행을 DELETE 한다. 배정을 푼 사실은 `todo_status_histories` 에 남긴다(퇴직 처리의 배정 해제, 2026-10-07 재영).
-- 모든 조회에 `is_deleted = false` 를 건다. 빠뜨려도 오류가 나지 않고 지운 행이 그대로 보인다 — 목록, id 조회, total 을 위한 count, insert 전 존재 확인 모두 해당한다.
-- 유니크 제약은 부분 인덱스(`WHERE NOT is_deleted`)로 만든다. 안 그러면 지운 행이 sku·email 을 붙잡아 같은 값으로 다시 만들 때 409 가 난다. Prisma 가 표현하지 못해 CHECK 제약처럼 마이그레이션 SQL 에만 남는다.
-- **기본키 이름** (2026-10-02 재영, api 세션에서 정함): 새 테이블부터 기본키도 `{참조 단수}_id` 로 짓는다. 지금 있는 `items`·`stock_movements`(예제)와 `staff`·`customers`(템플릿 인증 주체)는 기본키가 `id` 인데, 결함이 아니라 예제·템플릿이라 고치지 않는다. front 의 `listItems` 와 로그인이 아직 쓰고 있어, 계정 테이블과 첫 도메인 모듈이 생길 때 함께 정리하거나 대체한다.
-
-ERD에 단수·복수가 섞인 이름(`attendance`, `schedule_history`)은 다음 ERD 재생성 때
-복수형으로 맞춘다.
-
-## 식별자 1팀 예외
-
-| 대상 | 1팀 규칙 | 이유 |
-|---|---|---|
-| 공통코드 기본키 | `code_groups`는 `group_code`, `code_items`는 (`group_code`, `item_code`, `bp_code`) 복합 PK | 코드 자체가 식별자다. 셋 다 필수이고 등록 뒤 바꾸지 않는다 |
-| BP 기본키 | `bp_codes`는 PK `bp_code_id` 와 별도로 `bp_code`(BP+6자리)를 고유 식별자로 쓴다 | 외부 노출·화면 표기는 `bp_code` 다 |
-| 사람이 읽는 코드 | `{자원}_code` + 접두 6자리 | `bp_code`(BP), `store_code`(ST), `menu_code`(MN), `role_code`(유형코드, 예 BM000001). 자동 채번, 변경 불가 |
-| 공통코드 값 컬럼 | 논리 타입 `code`, 이름은 `{그룹 코드 소문자}_code` | `role_type_code`, `account_status_code`, `store_type_code`, `manage_owner_code` |
-| 상세코드 값 | 영문 대문자·숫자·밑줄 20자, 등록 후 변경 불가 | Prisma enum이 아니라 `code_items` 행이다 — 2장의 「상태 값」 규칙을 쓰지 않는다 |
-
 # 영문 식별자 (용어집 대응표)
-
-새 테이블·API·타입은 이 이름을 쓴다.
 
 DB 테이블은 복수형, 모델·타입은 PascalCase 단수형으로 바꿔 쓴다.
 
@@ -145,7 +138,7 @@ DB 테이블은 복수형, 모델·타입은 PascalCase 단수형으로 바꿔 �
 | 본사 | `hq` | |
 | 점포 · 근무지 | `store` | 근무지는 직원 레코드의 `store_id` |
 | 직영 / 가맹 | `DIRECT` / `FRANCHISE` | `store_type` |
-| 계정 | `account` | 로그인 주체. api의 기존 `staff` 테이블(템플릿의 인증 주체)과 직원 레코드 `staff_members`는 다른 것이다. 계정 테이블을 만들 때 `staff`를 정리한다 |
+| 계정 | `account` | 직원 근무 앱 로그인 주체(3팀 `accounts`). 직원 레코드 `staff_members` 와 다른 것이다. 견본 인증 테이블 `staff` 는 2026-10-07 에 지웠다 |
 | 관리자 계정 | `admin_account` | 관리자 웹 로그인 주체. 아래 「인증 · 계정」 참고 |
 | 직원 레코드 | `staff_member` | 계정 1 : 레코드 N |
 | 직무 | `job_title` | 직원 레코드 칸. 근로계약서 초안 필수 |
@@ -169,7 +162,7 @@ DB 테이블은 복수형, 모델·타입은 PascalCase 단수형으로 바꿔 �
 | 관리자 접속 상태 | `admin_session` | 접근 토큰 1시간, 갱신 토큰은 마지막 사용 후 1시간 |
 | 임시 비밀번호 | `temp_password` | 발급 용도 `purpose`(임시비밀번호 · 초기비밀번호 · 비밀번호초기화), 모두 1시간 만료 |
 | 관리자 로그인 이력 | `admin_login_log` | 실패 사유 `failure_reason`(불일치 · 잠금 · 미사용 · 탈퇴). 보존 1년 |
-| 메일 발송 이력 · 메일 유형 | `mail_send_log` · `mail_type_code` | 공통코드 `MAIL_TYPE` 8종. 보존 1년 |
+| 메일 발송 이력 · 메일 유형 | `mail_send_log` · `mail_type_code` | 알림 템플릿의 `template_code`(1팀 8종 `EMAIL_SIGNUP_DONE` 등)를 글자로 담는다. 외래키 없음. 보존 1년 |
 | 관리자 변경 이력 | `admin_change_history` | 보존 5년 |
 
 ## BP · 점포
@@ -237,6 +230,7 @@ DB 테이블은 복수형, 모델·타입은 PascalCase 단수형으로 바꿔 �
 | 표준 표기 | 영문 식별자 | 비고 |
 |---|---|---|
 | 근무스케줄 | `work_schedule` | |
+| 근무 유형 4종 | `DAY` · `OPEN` · `MIDDLE` · `CLOSE` | 주간 · 오픈 · 미들 · 마감. enum `work_type` |
 | 출퇴근 기록 · 출퇴근 현황 | `attendance_record` · `attendance` | 현황은 화면·경로 이름 |
 | 출근 / 퇴근 | `CHECK_IN` / `CHECK_OUT` | |
 | 보정 | `correction` | |
@@ -267,32 +261,44 @@ DB 테이블은 복수형, 모델·타입은 PascalCase 단수형으로 바꿔 �
 | 비과세 | `is_tax_free` | |
 | 3.3% 원천징수 | `business_income_withholding` | 적용 여부 `is_withholding_applied` |
 | 연장·야간·휴일 가산 적용 여부 | `is_premium_applied` | |
-| 주휴수당 · 연장수당 | `weekly_holiday_pay` · `overtime_pay` | 항목 코드 |
 | 일괄 저장 | `bulk_export` | |
+| 급여 항목 | `payslip_item_master` | 공통코드가 아니라 전용 표. 항목 코드 `item_code`, 구분 `category`, 비과세 `is_tax_free`, 시스템 계산 `is_system_calculated`, 사용 여부 `is_active`. 플랫폼 관리자가 관리(PAY-21) |
+| 급여 항목 구분 4종 | `EARNING` · `BASIC` · `ADDITIONAL` · `WITHHOLDING` | 지급 · 기본 공제 · 추가 공제 · 원천징수. 기본·추가 공제 값은 위 줄과 같다 |
+
+### 급여 항목 코드 (2026-10-07 재영)
+
+| 구분 | 코드값 | 표준 표기 |
+|---|---|---|
+| 지급 11 | `BASE_PAY` · `WEEKLY_HOLIDAY_PAY` · `OVERTIME_PAY` · `NIGHT_WORK_PAY` · `HOLIDAY_WORK_PAY` · `EXTRA_WORK_PAY` · `ANNUAL_LEAVE_PAY` · `BONUS` · `MEAL_ALLOWANCE` · `CAR_ALLOWANCE` · `CHILDCARE_ALLOWANCE` | 기본급 · 주휴수당 · 연장수당 · 야간수당 · 휴일근무수당 · 추가근무수당 · 연차수당 · 상여 · 식대 · 자가운전보조금 · 육아수당. 앞의 셋은 시스템 계산, 끝의 셋은 비과세 |
+| 기본 공제 6 | `NATIONAL_PENSION` · `HEALTH_INSURANCE` · `EMPLOYMENT_INSURANCE` · `LONG_TERM_CARE_INSURANCE` · `INCOME_TAX` · `LOCAL_INCOME_TAX` | 국민연금 · 건강보험 · 고용보험 · 장기요양보험 · 소득세 · 지방소득세 |
+| 추가 공제 10 | `YEAR_END_SETTLEMENT` · `YEAR_END_INCOME_TAX` · `YEAR_END_LOCAL_TAX` · `HEALTH_INSURANCE_SETTLEMENT` · `LONG_TERM_CARE_SETTLEMENT` · `EMPLOYMENT_INSURANCE_SETTLEMENT` · `NATIONAL_PENSION_SETTLEMENT` · `LONG_TERM_CARE_ASSESSMENT` · `RETIREMENT_RESERVE` · `STOCK_OPTION` | 연말(중도)정산 · 연말(중도)정산 소득세 · 연말(중도)정산 주민세 · 건강보험정산 · 장기요양보험정산 · 고용보험정산 · 국민연금정산 · 장기요양보험산정 · 퇴사자유보금 · 스톡옵션 |
+| 원천징수 2 | `BUSINESS_INCOME_TAX` · `BUSINESS_LOCAL_INCOME_TAX` | 사업소득세(3%) · 지방소득세(0.3%). 3.3% 원천징수 |
 
 ## 고객지원 · 알림
 
 | 표준 표기 | 영문 식별자 | 비고 |
 |---|---|---|
 | 공지사항 · FAQ · 문의사항 · 도입문의 | `notice` · `faq` · `inquiry` · `lead` | |
-| 노출 대상 | `audience` | |
+| 노출 대상 · 부가서비스 | `audience` · `service_code` | 부가서비스는 1팀 공통코드 `SERVICE` |
 | 게시 상태 | `PUBLISHED` · `DRAFT` · `PRIVATE` | 게시 · 임시저장 · 비공개 |
 | 문의 답변 상태 | `RECEIVED` · `IN_PROGRESS` · `ANSWERED` | 접수 · 처리중 · 답변완료 |
 | 운영 알림 · 앱 푸시 | `notification` · `push` | |
-| 알림 템플릿 | `notification_template` | 알림 유형(또는 발송 용도) × 발송 채널 한 칸마다 제목·본문 틀. 변경 이력은 `notification_template_history` |
+| 알림 템플릿 | `notification_template` | 발송 채널 + 템플릿 이름 + 템플릿 코드로 구분하는 제목·본문 틀. 변경 이력은 `notification_template_history` |
 | 발송 채널 4종 | `NOTIFICATION` · `PUSH` · `EMAIL` · `ALIMTALK` | 운영 알림 · 앱 푸시 · 메일 · 알림톡. enum `NotificationTemplateChannel` |
-| 템플릿 코드 | `template_code` | 등록할 때 채널 접두(`NTF` · `PUSH` · `EMAIL` · `TALK`) + `_` + 알림 유형·발송 용도 코드로 기본값을 채우고(예 `EMAIL_SIGNUP_DONE`) 플랫폼 운영자가 고칠 수 있다. 형식 `^[A-Z][A-Z0-9_]*$`, 고유. 개발자는 이 코드로 템플릿을 불러 발송한다. 알림톡의 카카오 템플릿 코드는 `kakao_template_code` 로 따로 둔다 |
+| 템플릿 코드 | `template_code` | 등록할 때 채널 접두(`NTF` · `PUSH` · `EMAIL` · `TALK`)를 채우고 플랫폼 운영자가 정하며 고칠 수 있다. 형식 `^[A-Z][A-Z0-9_]*$`, 고유. 개발자는 이 코드로 템플릿을 불러 발송하고, 알림 기록(`notifications.template_code`)과 1팀 `mail_send_logs.mail_type_code` 도 이 값을 담는다. 알림톡의 카카오 템플릿 코드는 `kakao_template_code` 로 따로 둔다 |
 | 템플릿 사용 여부 · 변수 목록 | `is_active` · `variables` | 지우지 않고 `is_active = false` 로 끈다. 변수 목록은 JSON 배열 `[{ name, label, isRequired, sampleValue, isButtonLink? }]`. `isButtonLink: true` 인 변수는 메일 공통 틀의 버튼이나 알림톡 버튼이 붙이므로 「필수 변수는 제목·본문에 있어야 한다」 검사에서 뺀다. 키가 없으면 false. 변수 이름이 아니라 이 표시로 가른다 (2026-10-07 재영) |
-| 알림 유형 | `notification_type_code` | 공통코드 `NOTIFICATION_TYPE`. 값은 아래 표 |
-| 발송 용도 | `send_purpose_code` | 공통코드 `SEND_PURPOSE`. 알림 유형이 없는 메일·알림톡. 값은 아래 표. 1팀 `mail_send_logs.mail_type_code` 도 이 값을 담는다 |
+| 템플릿 이름 | `template_name` | 운영자가 붙이는 이름(예: 근로계약 날인 알림). 알림 유형·발송 용도 공통코드 대신 쓴다 |
+| 수신 설정 묶음 4종 | `CONTRACT` · `SCHEDULE` · `TODO` · `PAYSLIP` | 근로계약서 · 근무스케줄 · TO-DO · 급여명세서. 앱 푸시 템플릿만 하나 고르고, 직원 알림 수신 설정(`notification_preferences`)이 이 묶음으로 켜고 끈다 |
 
-### 알림 유형 · 발송 용도 코드값 (2026-10-07 재영)
+### 기본 템플릿 코드 (2026-10-07 재영)
 
-공통코드 상세코드라 `^[A-Z][A-Z0-9_]{0,19}$` 를 따르고 등록 뒤 바꾸지 않는다. 화면·문서에서 지어 쓰지 말고 이 값을 쓴다.
+마이그레이션으로 처음 넣는 37건의 템플릿 코드다. 운영자가 고칠 수 있지만, 발송 코드는 이 값으로 부르므로 고치면 발송 코드도 바꿔야 한다. 화면·문서에서 지어 쓰지 말고 이 값을 쓴다.
 
-| 그룹 | 코드값 | 표준 표기 |
+| 채널 | 템플릿 코드 | 템플릿 이름 |
 |---|---|---|
-| `NOTIFICATION_TYPE` 운영 10 | `INQUIRY_RECEIVED` · `LEAD_RECEIVED` · `INQUIRY_ANSWERED` · `LEAD_ANSWERED` · `CONTRACT_SIGNED` · `CONTRACT_REJECTED` · `CONTRACT_EXPIRED` · `LINK_HOLD` · `AFFILIATION_REJECTED` · `CONTRACT_RENEWAL_DUE` | 문의사항 접수 · 도입문의 접수 · 문의사항 답변 · 도입문의 처리 상태 변경 · 근로계약 날인 · 근로계약 거부 · 근로계약 만료 · 가입 연결 보류 · 소속 추가 확인 거절 · 계약 갱신 예정 |
-| `NOTIFICATION_TYPE` 직원 4 | `CONTRACT_SENT` · `SCHEDULE_CHANGED` · `TODO_ASSIGNED` · `PAYSLIP_SENT` | 근로계약서 발송 · 근무스케줄 주요 변경 · TO-DO 배정 · 급여명세서 발송 |
-| `SEND_PURPOSE` 3팀 5 | `STAFF_PASSWORD_PIN` · `STAFF_RESET_LINK` · `EMAIL_CHANGE_PIN` · `LEAD_CONFIRMATION` · `STAFF_INVITATION` | 비밀번호 찾기 핀 · 관리자 초기화 재설정 링크 · 로그인 이메일 변경 핀 · 도입문의 접수 확인 · 가입 초대 |
-| `SEND_PURPOSE` 1팀 8 | `SIGNUP_DONE` · `SIGNUP_ALERT` · `BP_REGISTER` · `PLAT_ADMIN_CREATE` · `BP_ADMIN_CREATE` · `PASSWORD_RESET` · `TEMP_PASSWORD` · `WITHDRAW_DONE` | 회원가입 완료 · 신규 BP 가입 알림 · BP 신규 등록 · 플랫폼 관리자 계정 생성 · BP 관리자 계정 생성 · 비밀번호 초기화 · 임시 비밀번호 발급 · 회원 탈퇴 완료. 1팀 `MAIL_TYPE` 에서 옮긴 값이라 1팀 코드값 그대로다 |
+| 운영 알림 10 | `NTF_INQUIRY_RECEIVED` · `NTF_LEAD_RECEIVED` · `NTF_INQUIRY_ANSWERED` · `NTF_LEAD_ANSWERED` · `NTF_CONTRACT_SIGNED` · `NTF_CONTRACT_REJECTED` · `NTF_CONTRACT_EXPIRED` · `NTF_LINK_HOLD` · `NTF_AFFILIATION_REJECTED` · `NTF_CONTRACT_RENEWAL_DUE` | 문의사항 접수 · 도입문의 접수 · 문의사항 답변 · 도입문의 처리 상태 변경 · 근로계약 날인 · 근로계약 거부 · 근로계약 만료 · 가입 연결 보류 · 소속 추가 확인 거절 · 계약 갱신 예정 |
+| 앱 푸시 4 | `PUSH_CONTRACT_SENT` · `PUSH_SCHEDULE_CHANGED` · `PUSH_TODO_ASSIGNED` · `PUSH_PAYSLIP_SENT` | 근로계약서 발송 · 근무스케줄 변경 · TO-DO 배정(알림함에만) · 급여명세서 발송 |
+| 메일 · 운영 알림 짝 10 | `EMAIL_` + 운영 알림 열 코드(예 `EMAIL_CONTRACT_SIGNED`) | 운영 알림과 같은 이름 |
+| 메일 · 3팀 4 | `EMAIL_STAFF_PASSWORD_PIN` · `EMAIL_STAFF_RESET_LINK` · `EMAIL_CHANGE_PIN` · `EMAIL_LEAD_CONFIRMATION` | 비밀번호 찾기 핀 · 관리자 초기화 재설정 링크 · 로그인 이메일 변경 핀 · 도입문의 접수 확인 |
+| 메일 · 1팀 8 | `EMAIL_SIGNUP_DONE` · `EMAIL_SIGNUP_ALERT` · `EMAIL_BP_REGISTER` · `EMAIL_PLAT_ADMIN_CREATE` · `EMAIL_BP_ADMIN_CREATE` · `EMAIL_PASSWORD_RESET` · `EMAIL_TEMP_PASSWORD` · `EMAIL_WITHDRAW_DONE` | 회원가입 완료 · 신규 BP 가입 알림 · BP 신규 등록 · 플랫폼 관리자 계정 생성 · BP 관리자 계정 생성 · 비밀번호 초기화 · 임시 비밀번호 발급 · 회원 탈퇴 완료. 뒤 코드는 1팀 옛 MAIL_TYPE 값 그대로 |
+| 알림톡 1 | `TALK_STAFF_INVITATION` | 가입 초대 |
