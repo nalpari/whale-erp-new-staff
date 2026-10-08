@@ -9,7 +9,7 @@ sources:
   - { id: app-dir, resource: ../src/app, title: App Router entry }
   - { id: common, resource: ../src/components/common, title: Common UI components }
   - { id: design-md, resource: ../DESIGN.md, title: Design system }
-generated: { by: claude-code/opus-5.5, at: 2026-10-08T07:24:17Z }
+generated: { by: claude-code/opus-5.5, at: 2026-10-08T08:06:03Z }
 ---
 
 # Stack
@@ -30,12 +30,12 @@ generated: { by: claude-code/opus-5.5, at: 2026-10-08T07:24:17Z }
 * `src/proxy.ts` - 접속 유지. 액세스 토큰이 없고 갱신 토큰이 있으면 `/auth/account/refresh` 로 다시 받아 응답·요청 쿠키에 굽고, 갱신이 401 이면 쿠키를 지우고 `/login?expired=1` 로 보낸다. `/login?expired=1` 에서는 남은 세션 쿠키를 지운다(서버 컴포넌트가 401 을 받으면 이리로 보낸다). 로그인 필요 경로 판정도 여기서 하되, 화면·액션은 `requireSession()` 을 따로 거친다. `/design` · `/demo` · 정적 파일은 빼고 돈다.
 * `src/lib/api.ts` - whale-erp-api 호출 틀(`API_BASE_URL`, `request`, `ApiError`, 요청·응답 타입 `Schemas`). `request` 는 `json`·`accessToken`·`revalidate`(enum 처럼 모두에게 같은 응답만 캐시) 옵션을 받는다.
 * `src/lib/api-types.d.ts` - `pnpm openapi:types`(`scripts/openapi-types.mjs`)가 api 의 `openapi/openapi.json` 으로 만든 타입. api 위치는 `WHALE_API_DIR`(기본 `../whale-erp-api`).
-* `src/lib/session-cookies.ts` · `session.ts` - httpOnly 쿠키 `access_token`(15분) · `refresh_token`(api 가 준 만료까지, 회전 없음) · `account`(로그인 응답의 계정 JSON) · `device_id`(로그인의 `deviceIdentifier`, 로그아웃해도 남김). `saveLogin` · `getSession` · `requireSession` · `clearSession` · `getDeviceId` · `authedRequest`(401 이면 `/login?expired=1`).
+* `src/lib/session-cookies.ts` · `session.ts` - httpOnly 쿠키 `access_token`(14분 — 15분짜리 JWT 보다 1분 먼저 끝내 proxy 가 미리 갱신한다) · `refresh_token`(api 가 준 만료까지, 회전 없음) · `account`(로그인 응답의 계정 JSON) · `device_id`(로그인의 `deviceIdentifier`, 로그아웃해도 남김). `saveLogin` · `getSession` · `requireSession` · `clearSession` · `getDeviceId` · `authedRequest`(401 이면 `/login?expired=1`).
 * `src/lib/auth.ts` - 직원 계정 인증 API(`login` · `refreshAccessToken` · `logout`). `src/lib/enums.ts` - `getEnum(name)`(한 시간 서버 캐시) · `labelOf`.
 * `src/app/design/` - 디자인 가이드 견본 화면(`/design`, 색인 제외). 맨 위 링크 줄에서 화면 목업으로 간다.
 * `src/app/design/(mockup)/` - 인증·API 없이 UI 만 보여 주는 화면 목업(`/design/login`, `/design/home`, `/design/check-in`, `/design/attendance`, `/design/work`, `/design/pay`, `/design/notification-settings` …). 모바일 앱에 들어갈 화면이라 폭 100% 로 그린다.
 * `src/app/demo/` - 직원 근무 앱 클릭 데모(`/demo`). 목업 `docs/mockup/app` 한 장을 화면 하나로 옮기고, 같은 화면의 상태는 `_components` 의 `useDemoState`(주소 `#상태`)와 화면 밖 `DemoStates` 도구로 바꾼다. 화면 둘 이상이 쓰는 조각(`Body`·`Dock`·`Sunken`·`Values`·`Seal`·`Alert`·`BackHeader`·`useToast` 등)도 `_components` 에 두고 DESIGN.md 「데모 조각」 절에 적는다. 하단 메뉴는 공통 `BottomNav` 다섯 칸(홈·근무·출퇴근·급여·내 정보, 2026-10-08 재영 결정 — Figma 는 네 칸)에 경로만 `/demo` 로 바꾼 `DEMO_NAV_ITEMS` 를 쓴다. 출퇴근 칸은 출퇴근 등록으로 간다. 가짜 값만 쓰고 API 는 부르지 않는다. 화면은 `login`·`join`·`home`·`work`·`check-in`·`attendance`·`contract`·`tax`·`pay`·`notify`·`me`. 계획은 `docs/plans/2026-10-08-직원-근무-앱-데모.md`.
-* `scripts/build-demo.mjs` - `DEMO_EXPORT=1` 정적 내보내기(`next.config.ts`)를 `docs/demo/` 로 옮긴다. 정적 내보내기는 proxy · 서버 액션 · 쿠키를 못 쓰므로 빌드 동안 실제 앱(`(auth)` · `(app)` · `proxy.ts`)과 생성된 라우트 타입(`.next/dev/types`)을 `.demo-aside/` 로 치웠다가 되돌린다. 미니 nginx 8081 이 `/demo/`·`/_next/`·`/icons/` 를 그 아래로 잇는다.
+* `scripts/build-demo.mjs` - `DEMO_EXPORT=1` 정적 내보내기(`next.config.ts`)를 `docs/demo/` 로 옮긴다. 정적 내보내기는 proxy · 서버 액션 · 쿠키를 못 쓰므로 빌드 동안 실제 앱(`(auth)` · `(app)` · `proxy.ts`)과 `.demo-aside/` 로 치웠다가 되돌린다(Ctrl-C 를 받아도 되돌리고, 지난 실행이 남긴 파일이 있으면 멈춘다). 생성된 라우트 타입(`.next/dev/types`)은 빌드 전에 지운다. 미니 nginx 8081 이 `/demo/`·`/_next/`·`/icons/` 를 그 아래로 잇는다.
 * `src/components/common/` - 직원앱 공통 컴포넌트. 화면은 `StaffRoot` 로 감싼다. `Dock` · `Alert` · `DangerButton` 은 데모 조각을 참고해 새로 올린 것이다(데모 `_components` 는 따로 고친다).
 * `public/` - Static assets served at the site root. Figma 아이콘은 `public/icons/`.
 
