@@ -8,7 +8,7 @@
 // 화면 틀(머리줄 · 탭 · 근무지 카드 · 계약 안내 · TO-DO 요약 카드 · 하단 메뉴)은 Figma 06.근무 정보(node 15:183 · 본문 15:193),
 // TO-DO 목록은 Figma 07.근무 정보_list(node 17:602~)를 따른다. Figma 의 주간 날짜 줄과 근무지 전환 시트는 WORK-1·WORK-4 확정에 따라
 // 월 달력과 읽기 전용 카드로 바꿨다. 월 달력 · 고른 날 상세 · 근무지 없음 · 등록된 근무 없음 · 시트 2개는 Figma 없음 — DESIGN.md 기준 초안.
-// 하단 메뉴는 Figma·DESIGN.md 의 네 칸이다(목업은 출퇴근까지 다섯 칸).
+// 하단 메뉴는 목업처럼 다섯 칸이다(2026-10-08 재영 결정, Figma 는 네 칸).
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useId, useState, type ReactNode } from "react";

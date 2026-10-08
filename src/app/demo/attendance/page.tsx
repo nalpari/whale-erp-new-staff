@@ -13,6 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import {
+  BottomNav,
   AttendanceDayCard,
   BottomSheet,
   Button,
@@ -28,7 +29,7 @@ import {
 } from "@/components/common";
 import { FIELD } from "@/components/common/theme";
 import { PageSlide } from "@/app/design/(mockup)/page-slide";
-import { DemoStates, useDemoState, type DemoState } from "../_components";
+import { DEMO_NAV_ITEMS, DemoStates, useDemoState, type DemoState } from "../_components";
 
 // 목업 오른쪽 상태 목록 순서 그대로. 시트 넷은 목업에서 카드를 눌러 여는 것이라 데모 도구에서도 열 수 있게 뒤에 붙였다.
 const STATES: DemoState[] = [
@@ -138,6 +139,11 @@ export default function DemoAttendancePage() {
           </main>
         </div>
       </PageSlide>
+
+      {/* 하단 메뉴 다섯 칸(2026-10-08 재영 결정)의 출퇴근 칸 화면이라 다른 칸 화면처럼 아래에 붙인다. */}
+      <div className="sticky bottom-0 mt-auto">
+        <BottomNav current="/demo/check-in" items={DEMO_NAV_ITEMS} />
+      </div>
 
       <BottomSheet open={sheet === "editInfo"} onClose={handleSheetClose} title="관리자가 수정한 기록입니다">
         <Sunken>

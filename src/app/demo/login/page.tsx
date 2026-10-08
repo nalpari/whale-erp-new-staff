@@ -6,6 +6,7 @@
 // 목업의 토스트(data-toast)는 옮기지 않았다.
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { BottomSheet, BrandLogo, Button, Card, Notice, TextField } from "@/components/common";
 import { PageSlide } from "@/app/design/(mockup)/page-slide";
@@ -39,6 +40,7 @@ type Dir = DemoDirection;
 
 export default function DemoLoginPage() {
   const [view, go] = useDemoState(STATES);
+  const router = useRouter();
   const back = (id: string) => go(id, "nav-back");
 
   return (
@@ -49,13 +51,13 @@ export default function DemoLoginPage() {
 
       <BottomSheet
         open={view === "logout"}
-        onClose={() => back("login")}
+        onClose={() => router.push("/demo/me")}
         title="로그아웃할까요"
         description="다시 들어오려면 이메일과 비밀번호가 필요합니다. 출퇴근을 찍어야 할 때 번거로울 수 있습니다."
         closeLabel="그대로 두기"
       >
         {/* 목업 btn--seal(빨강). 되돌리기 어려운 동작이라 남보라 대신 오류색을 쓴다 — 공통 Button 에 없는 톤이라 여기서만 그린다.
-            내 정보(4장)가 없어 「그대로 두기」도 로그인으로 돌아간다. */}
+            「그대로 두기」는 들어온 곳인 내 정보로 돌아간다. */}
         <button
           type="button"
           onClick={() => back("login")}

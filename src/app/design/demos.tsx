@@ -34,7 +34,7 @@ export function SegmentedDemo() {
 
 // 가이드에서는 다른 화면으로 넘어가지 않게 # 링크로 두고, 누른 칸을 지금 칸으로 칠한다.
 // next/link 의 # 이동은 pushState 라 hashchange 가 오지 않으므로 누른 링크를 직접 읽는다.
-const GUIDE_NAV = BOTTOM_NAV_ITEMS.map((item, i) => ({ ...item, href: `#${["home", "work", "pay", "me"][i]}` }));
+const GUIDE_NAV = BOTTOM_NAV_ITEMS.map((item, i) => ({ ...item, href: `#${["home", "work", "check-in", "pay", "me"][i]}` }));
 
 export function NavDemo() {
   const [current, setCurrent] = useState("#home");

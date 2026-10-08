@@ -4,10 +4,12 @@ import { MaskIcon } from "./icon";
 // activeIcon: 지금 칸일 때 바꿔 끼우는 아이콘(Figma 는 홈·근무만 채운 모양이 따로 있다). 없으면 icon 을 남보라로 칠한다.
 export type BottomNavItem = { href: string; label: string; icon: string; activeIcon?: string };
 
-// 직원앱 하단 메뉴 네 칸(Figma 순서). 경로는 화면이 생기면 실제 라우트에 맞춘다.
+// 직원앱 하단 메뉴 다섯 칸. Figma 는 네 칸(홈·근무·급여·내 정보)이지만 2026-10-08 재영 결정으로 목업처럼 출퇴근을 더했다.
+// 출퇴근 아이콘은 Figma 에 없어 DESIGN.md 규칙(23px · 선 1.45)으로 그렸다. 경로는 화면이 생기면 실제 라우트에 맞춘다.
 export const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
   { href: "/", label: "홈", icon: "/icons/nav-home.svg", activeIcon: "/icons/nav-home-on.svg" },
   { href: "/work", label: "근무", icon: "/icons/nav-work.svg", activeIcon: "/icons/nav-work-on.svg" },
+  { href: "/check-in", label: "출퇴근", icon: "/icons/nav-attendance.svg" },
   { href: "/pay", label: "급여", icon: "/icons/nav-pay.svg" },
   { href: "/me", label: "내 정보", icon: "/icons/nav-me.svg" },
 ];

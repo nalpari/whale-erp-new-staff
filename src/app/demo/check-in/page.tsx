@@ -12,13 +12,13 @@
 // 동의 문구는 법무 검토 중이라(ATT-8) 시트에 그대로 적었다.
 // 모양: 매장 안(ready)은 Figma 04.출퇴근(node 12:756, /design/check-in)을 따른다. 나머지 상태와 시트는 Figma 없음 — DESIGN.md 기준 초안.
 // 목업과 다른 점: 퇴근하기는 목업의 테두리 버튼 대신 DESIGN.md 의 주 버튼(primary — 「출근하기·퇴근하기」)이다. 하단 탭바는 Figma·DESIGN.md 대로 두지 않고
-// 하위 화면 머리줄(PageHeader)로 홈에 돌아간다.
+// 하단 메뉴 「출퇴근」 칸 화면이다(2026-10-08 다섯 칸). 머리줄(PageHeader) 뒤로 가기는 근무 화면처럼 홈으로 간다.
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
-import { BottomSheet, Button, MaskIcon, PageHeader, SheetOption, WorkTimeBar } from "@/components/common";
+import { BottomNav, BottomSheet, Button, MaskIcon, PageHeader, SheetOption, WorkTimeBar } from "@/components/common";
 import { PageSlide } from "@/app/design/(mockup)/page-slide";
-import { DemoStates, useDemoState } from "../_components";
+import { DEMO_NAV_ITEMS, DemoStates, useDemoState } from "../_components";
 import { GeoBlank, GeoMap } from "./geo-map";
 
 // 목업 오른쪽 목록 순서 그대로. 뒤 여덟은 목업의 「시트 열기」라 SHEET_BASE 의 화면 위에 시트를 띄운다.
@@ -437,6 +437,11 @@ export default function DemoCheckInPage() {
           )}
         </main>
       </PageSlide>
+
+      {/* 하단 메뉴 다섯 칸(2026-10-08 재영 결정)의 출퇴근 칸 화면이라 다른 칸 화면처럼 아래에 붙인다. */}
+      <div className="sticky bottom-0 mt-auto">
+        <BottomNav current="/demo/check-in" items={DEMO_NAV_ITEMS} />
+      </div>
 
       {/* ── 시트 ── 퇴근은 확인 시트를 한 번 거친다(ATT-9). 버튼 이름은 「퇴근 확정」과 「아직 아닙니다」. */}
       <BottomSheet

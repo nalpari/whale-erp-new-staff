@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BrandLogo, Notice } from "@/components/common";
 
-// 데모 입구. 장마다 만든 화면만 링크를 걸고, 아직이면 「준비 중」으로 둔다(docs/plans/2026-10-08-직원-근무-앱-데모.md).
+// 데모 입구. 화면마다 링크를 건다. 링크가 없으면 「준비 중」으로 보인다(docs/plans/2026-10-08-직원-근무-앱-데모.md).
 const CHAPTERS: { title: string; screens: { name: string; href?: string; desc: string }[] }[] = [
   {
     title: "1 · 로그인·가입",
@@ -29,9 +29,9 @@ const CHAPTERS: { title: string; screens: { name: string; href?: string; desc: s
   {
     title: "4 · 급여·알림·내 정보",
     screens: [
-      { name: "급여명세서", desc: "이번 달 · 지난 명세서" },
-      { name: "알림", desc: "알림함 · 수신 설정 묶음" },
-      { name: "내 정보", desc: "위치정보 동의 · 본사 제공 동의" },
+      { name: "급여명세서", href: "/demo/pay", desc: "이번 달 · 지난 명세서" },
+      { name: "알림", href: "/demo/notify", desc: "알림함 · 수신 설정 묶음" },
+      { name: "내 정보", href: "/demo/me", desc: "위치정보 동의 · 본사 제공 동의" },
     ],
   },
 ];
