@@ -201,10 +201,7 @@ function Schedule({ onMonth, onToday, onTodoSummary }: { onMonth: (month: number
         <Card>
           <div className="flex items-center gap-[12px]">
             <Image src="/icons/store-small.svg" alt="" width={14.625} height={13.5} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[14px] font-semibold">{STORE}</p>
-              <p className="text-[12px] text-staff-text-sub">오픈조</p>
-            </div>
+            <p className="min-w-0 flex-1 truncate text-[14px] font-semibold">{STORE}</p>
           </div>
         </Card>
         <Card>
@@ -218,7 +215,6 @@ function Schedule({ onMonth, onToday, onTodoSummary }: { onMonth: (month: number
               ["예정 시간", "09:00 – 18:00"],
               ["휴게시간", "60분"],
               ["실제 출근", "09:02"],
-              ["근무 유형", "오픈"],
             ]}
           />
         </Sunken>
