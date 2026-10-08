@@ -33,8 +33,7 @@ const STATES: DemoState[] = [
   { id: "logout", label: "로그아웃", note: "내 정보 맨 아래에 둔다" },
 ];
 
-// 2장에서 /demo/home 으로
-const HOME = "/demo";
+const HOME = "/demo/home";
 
 type Dir = DemoDirection;
 

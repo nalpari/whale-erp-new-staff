@@ -13,10 +13,10 @@ const CHAPTERS: { title: string; screens: { name: string; href?: string; desc: s
   {
     title: "2 · 홈·근무·출퇴근",
     screens: [
-      { name: "홈", desc: "오늘의 근무 · 날인 요청 팝업" },
-      { name: "근무", desc: "근무스케줄 · TO-DO" },
-      { name: "출퇴근 등록", desc: "GPS 판정 · 확인 필요 · 위치정보 동의 · 일시 중지" },
-      { name: "출퇴근 현황", desc: "이번 주 · 기간별" },
+      { name: "홈", href: "/demo/home", desc: "오늘의 근무 · 날인 요청 팝업" },
+      { name: "근무", href: "/demo/work", desc: "근무스케줄 · TO-DO" },
+      { name: "출퇴근 등록", href: "/demo/check-in", desc: "GPS 판정 · 확인 필요 · 위치정보 동의 · 일시 중지" },
+      { name: "출퇴근 현황", href: "/demo/attendance", desc: "이번 주 · 기간별" },
     ],
   },
   {

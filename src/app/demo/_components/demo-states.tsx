@@ -15,14 +15,16 @@ export function DemoStates({
   onChange: (id: string) => void;
 }) {
   const index = states.findIndex((s) => s.id === current);
+  // 휴대전화 폭에서는 머리줄 오른쪽 버튼(알림·기록)을 가리지 않게 화면 높이 40% 쯤 오른쪽 가장자리에 둔다.
+  // 데스크톱에서는 430px 기둥 밖 오른쪽 위다.
   return (
-    <details className="group fixed top-[8px] right-[8px] z-50 max-w-[280px] text-[12px] leading-[1.5] text-white">
-      <summary className="ml-auto flex w-fit cursor-pointer list-none items-center gap-[6px] rounded-full bg-staff-navy/85 px-[12px] py-[8px] font-semibold shadow-[0_4px_12px_rgba(24,34,55,0.18)] [&::-webkit-details-marker]:hidden">
+    <details className="group fixed top-[8px] right-[8px] z-50 max-w-[280px] text-[12px] leading-[1.5] text-white max-[600px]:top-[40%] max-[600px]:right-0">
+      <summary className="ml-auto flex max-[600px]:rounded-r-none max-[600px]:px-[10px] max-[600px]:py-[6px] w-fit cursor-pointer list-none items-center gap-[6px] rounded-full bg-staff-navy/85 px-[12px] py-[8px] font-semibold shadow-[0_4px_12px_rgba(24,34,55,0.18)] [&::-webkit-details-marker]:hidden">
         상태 {index + 1}/{states.length}
         {/* 휴대전화 폭에서는 화면 제목을 가리지 않게 번호만 보인다. 데스크톱에서는 기둥 밖이라 이름까지 둔다. */}
         <span className="font-normal text-white/70 max-[600px]:hidden">{states[index]?.label}</span>
       </summary>
-      <div className="mt-[6px] max-h-[70dvh] overflow-y-auto rounded-[12px] bg-staff-navy/95 p-[6px] shadow-[0_8px_28px_rgba(22,25,28,0.24)]">
+      <div className="mt-[6px] max-h-[55dvh] overflow-y-auto rounded-[12px] bg-staff-navy/95 p-[6px] shadow-[0_8px_28px_rgba(22,25,28,0.24)]">
         {states.map((s, i) => (
           <button
             key={s.id}
