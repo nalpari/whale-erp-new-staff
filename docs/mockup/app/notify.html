@@ -20,8 +20,9 @@
   <body data-area="app" data-screen="notify">
     <!-- 직원 근무 앱 · 알림
          알림 유형은 넷뿐이다 — 근로계약서 발송, 근무스케줄 주요 변경, TO-DO 배정,
-         급여명세서 발송(S-AYBNWF). 근로계약서·급여명세서는 수신을 끌 수 없고, 끈
-         유형의 알림도 알림함에는 남는다(S-SIGZJQ). 알림을 눌러 관련 화면으로
+         급여명세서 발송(S-AYBNWF). 수신은 수신 설정 묶음(근로계약서·근무스케줄·TO-DO·
+         급여명세서) 단위로 켜고 끄며, 근로계약서·급여명세서는 끌 수 없고, 꺼 둔 묶음의
+         알림도 알림함에는 남는다(S-SIGZJQ). 알림을 눌러 관련 화면으로
          이동하면 자동으로 읽음 처리된다 — 관리자 웹 알림함(S-GDUNIT)은 항목별
          읽음 버튼 없이 "모두 읽음"만 두는데, 직원 알림함은 항목별로도 읽음을
          바꿀 수 있다(S-IMFWJT). 두 알림함이 일부러 다르게 동작한다는 뜻이라
@@ -44,8 +45,8 @@
         <p>
           직원에게 발송된 알림을 모아 보는 화면이다. 알림 유형은 근로계약서 발송·근무스케줄 주요
           변경·TO-DO 배정·급여명세서 발송 넷뿐이다. 알림을 누르면 관련 화면으로 이동하며
-          <strong>자동으로 읽음 처리</strong>된다. 근로계약서와 급여명세서 알림은 수신을 끌 수 없고,
-          꺼 둔 유형의 알림도 알림함에는 그대로 남는다.
+          <strong>자동으로 읽음 처리</strong>된다. 수신은 <strong>수신 설정 묶음</strong>(근로계약서·근무스케줄·TO-DO·급여명세서) 단위로
+          켜고 끈다. 근로계약서와 급여명세서는 끌 수 없고, 꺼 둔 묶음의 알림도 알림함에는 그대로 남는다.
         </p>
         <nav class="docnav">
           <a href="../index.html">← 목업 허브</a>
@@ -336,7 +337,7 @@
               </button>
               <button class="sw-b" data-state="settings">
                 <span class="sw-b__k">3</span>
-                <span><span class="sw-b__t">수신 설정</span> <span class="sw-b__d">· 유형별 토글</span></span>
+                <span><span class="sw-b__t">수신 설정</span> <span class="sw-b__d">· 수신 설정 묶음별 토글</span></span>
               </button>
               <button class="sw-b" data-state="gone">
                 <span class="sw-b__k">4</span>
