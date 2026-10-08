@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
-// 이 콘솔의 첫 화면은 품목 목록이다. 목록이 세션을 확인하고 필요하면 로그인으로 보낸다.
+// 임시 첫 화면. 직원 근무 앱 화면이 생길 때까지 볼 수 있는 것은 디자인 견본과 화면 목업뿐이다.
+// 로그인(3팀 accounts)이 생기면 그쪽으로 바꾼다.
 export default function Home() {
-  redirect("/items");
+  redirect("/design");
 }

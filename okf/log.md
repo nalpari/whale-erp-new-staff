@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-10-08
+* **Update**: 견본 콘솔(품목 목록·견본 로그인·계근대 꾸밈)을 걷어 낸 것에 맞춰 [Whale ERP Staff](/whale-erp-staff.md) 의 설명·Layout·Design 절을 고쳤다. `src/lib/api.ts` 는 호출 틀과 세션 쿠키만 남았고 `/` 는 `/design` 으로 보낸다.
+
 ## 2026-10-07
 * **Update**: `2026-09-30-네이밍-규칙.md` 삭제 표시 절의 예외(`todo_assignees` 는 DELETE, 배정 해제는 `todo_status_histories` 에 기록, 2026-10-07 재영)를 [Naming](/conventions/naming.md) 에 반영했다.
 * **Update**: `2026-09-30-네이밍-규칙.md` 「템플릿 사용 여부 · 변수 목록」 줄의 변수 모양에 `isButtonLink`(선택)를 더해 [Naming](/conventions/naming.md) 에 반영했다. 버튼으로 붙는 링크 변수는 이 표시로 「필수 변수는 제목·본문에」 검사에서 뺀다(2026-10-07 재영).

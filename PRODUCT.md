@@ -4,59 +4,36 @@
 
 ## Platform
 
-web
+mobile (직원 휴대전화). 지금 저장소의 화면은 웹으로 그린 목업이다.
 
 ## Users
 
-두 부류가 같은 화면을 쓴다 (사용자 확인).
-
-- 사무실 관리자: 데스크톱, 실내 조명, 오래 본다.
-- 현장/창고 직원: 태블릿, 밝은 조명과 서서 쓰는 상황.
+직원 근무 앱 사용자는 **직원**(정직원 · 파트타이머)이다. 자기 휴대전화로 쓴다.
+관리자(BP 마스터·BP 관리자·가맹마스터·가맹관리자)는 관리자 웹(`whale-erp-front`)을 쓴다.
 
 ## Product Purpose
 
-whale-erp-api 의 품목과 재고를 다루는 직원 전용 콘솔. 고객용 whale-erp-front 와 같은
-API 를 쓰되 `staff` 토큰으로만 들어간다. 성공은 직원이 로그인해서 품목의 현재 재고를
-바로 확인하는 것.
+직원이 초대를 받아 가입하고, 근로계약서에 날인하고, 점포에서 출퇴근을 등록하고,
+근무스케줄·TO-DO·급여명세서를 확인하는 앱. 근거: `docs/mockup/index.html`.
 
 ## Positioning
 
-재고는 별도 컬럼이 아니라 `stock_movements` 합계로 유도된다. 즉 이 콘솔이 보여주는
-숫자는 입력값이 아니라 이동 이력의 결과다. (그 밖의 포지셔닝은 미결정.)
+(미결정.)
 
 ## Operating Context
 
-- 로그인(`POST /auth/staff/login`) → 품목 목록(`GET /items`).
-- 액세스 토큰 15분, 만료되면 다시 로그인. 리프레시 회전은 아직 미구현.
-- API 에 CORS 설정이 없어 브라우저 직접 호출이 막힌다. 모든 호출은 서버 사이드.
-- 회원가입 API 가 없다. 직원 계정은 운영자가 스크립트로 만든다.
+- 화면 기준은 `docs/mockup/`(목업 12화면, 쟁점 포함)과 `docs/flow/`(유저플로우)다.
+  하단 탭은 홈 · 근무 · 출퇴근 · 급여 · 내 정보 다섯 개다.
+- 출퇴근은 휴대전화에서 GPS 로 판정하고 좌표는 서버로 보내지 않는다. 첫 출근 등록 때
+  위치정보 동의를 필수로 받는다(용어집 「GPS 판정」·「위치정보 동의」).
+- API 는 `whale-erp-api`. 주소는 `API_BASE_URL`, 호출은 모두 서버에서 한다(`src/lib/api.ts`).
+  enum 은 `GET /enums` 로 받고, 요청·응답 타입은 api 의 `openapi/openapi.json` 에서 생성한다
+  (`okf/conventions/naming.md` 「API 타입·enum 공유」).
 
 ## Capabilities and Constraints
 
-- 구현됨: staff 로그인, 로그아웃(리프레시 토큰 폐기), 품목 목록(최대 200건).
-- API 에 있으나 화면 미구현: 품목 등록·수정·삭제, 재고 이동 기록.
-- 목록은 페이지네이션 파라미터(take/skip)만 있고 총 건수 API 가 없다.
-- 용어: 품목(item), SKU, 단위(EA/KG/M/BOX), 재고(stock), 재고 이동(stock movement).
-
-## Brand Commitments
-
-없음 (사용자 확인). 고정된 것은 제품명 "Whale ERP" 뿐. 로고·지정색·지정 서체 없음.
-
-## Evidence on Hand
-
-- 실제 품목 데이터 2건: `WIRE-COIL-5T` 강선 코일 5T (재고 99, EA),
-  `PLATE-SS400` 열연강판 SS400 (재고 0, EA). 취급 품목은 철강 자재다.
-- 실제 직원 계정 1개: `admin@whale.test` / 이름 "관리자".
-- 로고, 사진, 고객사, 매출, 인증 자료 없음. 지어내지 말 것.
-
-## Product Principles
-
-1. 재고 숫자가 화면의 주인공이다. 장식이 숫자를 이기면 안 된다.
-2. 같은 화면이 데스크톱과 태블릿 양쪽에서 제 몫을 해야 한다.
-3. 화면은 API 가 실제로 주는 것만 말한다. 없는 지표를 그리지 않는다.
-4. 실패(로그인 실패, 토큰 만료, API 다운)는 숨기지 않고 다음 행동을 알려준다.
-
-## Accessibility & Inclusion
-
-밝은 조명의 현장에서 태블릿으로 읽는 상황이 기준. 본문 대비 4.5:1 이상, 터치 타깃
-44px 이상, 키보드만으로 로그인과 목록 이동이 가능해야 한다.
+- 구현됨: 디자인 견본(`/design`)과 화면 목업(`/design/login` · `home` · `check-in` · `attendance`
+  · `work` · `pay` · `notification-settings`). 인증·API 를 부르지 않는다.
+- 아직 없음: 로그인. 직원 계정(`accounts`)으로 3팀이 새로 만든다. 그 전까지 `/` 는 `/design` 으로 보낸다.
+- 견본 콘솔(품목 목록 · `POST /auth/staff/login`)은 2026-10-08 걷어 냈다(`docs/plans/2026-10-08-견본-제거.md`).
+- 용어는 `whale-erp-v2/CLAUDE.md` 용어집, 영문 이름은 `okf/conventions/naming.md` 를 따른다.
