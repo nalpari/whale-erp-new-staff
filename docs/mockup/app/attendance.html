@@ -802,6 +802,21 @@
               </div>
             </div>
 
+            <div class="sheet" data-sheet-id="noperiod" hidden>
+              <div class="sheet__grab"></div>
+              <div class="line">
+                <i class="ph-fill ph-file-dashed" style="color: var(--amber); font-size: 21px"></i>
+                <p class="h-lg">오늘은 근로계약 기간이 아닙니다</p>
+              </div>
+              <p class="p--sm">
+                오늘 날짜가 들어간 체결 완료 근로계약이 있어야 출퇴근을 등록할 수 있습니다. 근무지
+                관리자에게 문의해 주세요.
+              </p>
+              <div class="btnrow">
+                <button class="btn" data-sheet-close>닫기</button>
+              </div>
+            </div>
+
             <div class="sheet" data-sheet-id="pick" hidden>
               <div class="sheet__grab"></div>
               <p class="h-lg">근무지 고르기</p>
@@ -975,7 +990,14 @@
                 <span class="sw-b__k">·</span>
                 <span
                   ><span class="sw-b__t">계약 미체결</span>
-                  <span class="sw-b__d">· 출근 막음 (ATT-12)</span></span
+                  <span class="sw-b__d">· 서명 대기 계약 있음 (ATT-12)</span></span
+                >
+              </button>
+              <button class="sw-b" data-sheet="noperiod">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">계약 기간 아님</span>
+                  <span class="sw-b__d">· 시작 전·종료 후·계약 없음 (ATT-12)</span></span
                 >
               </button>
             </div>
@@ -1344,11 +1366,11 @@
             </div>
           </div>
 
-          <div class="gap">
+          <div class="gap is-decided">
             <div class="gap__head">
               <span class="gap__no">ATT-12</span>
               <span class="gap__t">근로계약이 없는 날의 출근을 막을 때 무엇을 안내할 것인가</span>
-              <span class="gap__st gap__st--open">막기 확정 · 문구 미정</span>
+              <span class="gap__st gap__st--fixed">확정 · 원인별 두 갈래</span>
               <span class="gap__ref">S-EFQGSP</span>
             </div>
             <div class="gap__one">
@@ -1360,7 +1382,7 @@
             </div>
             <div class="gap__opts">
               <div class="gap__opt">
-                <div class="gap__label">A · 원인에 따라 두 갈래 (지금 그린 것)</div>
+                <div class="gap__label">A · 원인에 따라 두 갈래</div>
                 <p>
                   서명 대기 계약이 있으면 「근로계약을 체결해야 출근할 수 있습니다」와 계약서 카드·「계약서
                   보기」를 띄운다. 날인하면 바로 출근할 수 있다. 서명 대기 계약이 없으면(시작 전·종료 후·계약
@@ -1375,6 +1397,12 @@
                   가려야 한다.
                 </p>
               </div>
+            </div>
+            <div class="gap__one">
+              <p>
+                <b>A안으로 확정</b>했다 (2026-10-08 재영 확정). 서명 대기 계약이 있으면 날인을 안내하고
+                (<code>nocontract</code> 시트), 없으면 근무지 관리자에게 문의하라고 띄운다(<code>noperiod</code> 시트).
+              </p>
             </div>
           </div>
 
@@ -1434,7 +1462,7 @@
           </div>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 출퇴근 등록 · 2026년 9월 18일 · 상태 13개 · 시트 9개 · 쟁점 12건 · 확정 10건 · 미정 1건 · 법무 검토 1건
+            직원 근무 앱 목업 · 출퇴근 등록 · 2026년 9월 18일 · 상태 13개 · 시트 10개 · 쟁점 12건 · 확정 11건 · 법무 검토 1건
           </footer>
         </div>
       </div>

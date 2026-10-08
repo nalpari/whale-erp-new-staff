@@ -43,7 +43,8 @@ const STATES = [
   { id: "byeflag", label: "확인 필요 등록 확인", note: "위치 흐림" },
   { id: "dup", label: "이미 출근함", note: "열린 출근이 있을 때" },
   { id: "nopunch", label: "출근 기록 없음", note: "퇴근만 찍을 때" },
-  { id: "nocontract", label: "계약 미체결", note: "출근 막음" },
+  { id: "nocontract", label: "계약 미체결", note: "서명 대기 계약 있음" },
+  { id: "noperiod", label: "계약 기간 아님", note: "시작 전·종료 후·계약 없음" },
 ];
 const SHEET_BASE = {
   consent: "ready",
@@ -54,6 +55,7 @@ const SHEET_BASE = {
   dup: "ready",
   nopunch: "ready",
   nocontract: "ready",
+  noperiod: "ready",
 } as const;
 type Sheet = keyof typeof SHEET_BASE;
 const isSheet = (id: string): id is Sheet => id in SHEET_BASE;
@@ -554,6 +556,15 @@ export default function DemoCheckInPage() {
         <Button href={CONTRACT} transitionTypes={["nav-forward"]}>
           계약서 보기
         </Button>
+      </BottomSheet>
+
+      <BottomSheet
+        open={sheet === "noperiod"}
+        onClose={handleSheetClose}
+        title="오늘은 근로계약 기간이 아닙니다"
+        description="오늘 날짜가 들어간 체결 완료 근로계약이 있어야 출퇴근을 등록할 수 있습니다."
+      >
+        <Sunken prose>근무지 관리자에게 문의해 주세요.</Sunken>
       </BottomSheet>
 
       {/* 근무지 고르기(ATT-6): 목업 상태 목록에는 없고 근무지 여럿의 「변경」으로만 연다. */}
