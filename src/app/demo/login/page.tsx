@@ -17,7 +17,7 @@ const STATES: DemoState[] = [
   { id: "fail", label: "로그인 실패", note: "남은 횟수" },
   { id: "locked", label: "계정 잠김", note: "5회 실패" },
   { id: "find", label: "이메일 찾기", note: "이름·번호·생년월일" },
-  { id: "found", label: "이메일 찾음", note: "가려서 표시" },
+  { id: "found", label: "이메일 찾음", note: "목록 · 가려서 표시" },
   { id: "find-fail", label: "이메일 못 찾음", note: "남은 시도 2번" },
   { id: "find-lock", label: "이메일 찾기 막힘", note: "5분 · 점포 문의" },
   { id: "forgot", label: "비밀번호 찾기", note: "이메일 입력" },
@@ -27,7 +27,7 @@ const STATES: DemoState[] = [
   { id: "newpw", label: "새 비밀번호 설정", note: "본인 재설정" },
   { id: "newpw-out", label: "새 비밀번호 저장 실패", note: "10분 지남·핀 닫힘" },
   { id: "temp", label: "관리자 초기화 링크", note: "24시간" },
-  { id: "link-used", label: "이미 쓴 링크", note: "한 번만 사용" },
+  { id: "link-used", label: "쓸 수 없는 링크", note: "사유 구분 없음" },
   { id: "expired", label: "세션 만료", note: "30일 지남" },
   { id: "splash", label: "앱 시작", note: "자동 로그인" },
   // 목업에서는 상태가 아니라 시트(data-sheet="logout")다. 데모 도구에서 열 수 있게 상태로 두고, 뒤에는 로그인 화면을 깐다.
@@ -194,14 +194,15 @@ function renderView(view: string, go: (id: string, dir?: Dir) => void, back: (id
         </Screen>
       );
 
-    // LOGIN-9: 가운데만 가려 보인다.
+    // LOGIN-9: @ 앞 처음 2글자 + 마지막 1글자만 보이고(3글자 이하면 첫 글자만) 도메인은 그대로. 늘 목록 모양이고,
+    // 맞는 계정이 여럿이면 탈퇴 계정을 빼고 모두 보인다(2026-10-08).
     case "found":
       return (
         <Screen
-          title="이 이메일로 가입되어 있습니다"
+          title="가입된 이메일입니다"
           dock={
             <>
-              <Button onClick={() => back("login")}>이 이메일로 로그인</Button>
+              <Button onClick={() => back("login")}>로그인하러 가기</Button>
               <Button variant="ghost" onClick={() => go("forgot")}>
                 비밀번호도 다시 정하기
               </Button>
@@ -209,10 +210,16 @@ function renderView(view: string, go: (id: string, dir?: Dir) => void, back: (id
           }
         >
           <Card>
-            <p className="text-[13px] font-semibold text-staff-text-sub">로그인 이메일</p>
-            <p className="pt-[4px] text-[22px] font-bold tabular-nums">min***@gmail.com</p>
+            <p className="text-[13px] font-semibold text-staff-text-sub">로그인 이메일 2개</p>
+            <ul className="pt-[4px]">
+              {["ha******e@gmail.com", "ha*****1@naver.com"].map((email) => (
+                <li key={email} className="border-b border-staff-border-light py-[10px] text-[16px] font-semibold tabular-nums last:border-b-0">
+                  {email}
+                </li>
+              ))}
+            </ul>
             <p className="pt-[6px] text-[12px] text-staff-text-muted">
-              가운데를 가려서 보여 줍니다. 앞뒤 글자와 도메인으로 어느 메일함인지 알아볼 수 있습니다.
+              @ 앞은 처음 두 글자와 마지막 한 글자만 보이고 나머지는 글자 수만큼 가립니다. 도메인으로 어느 메일함인지 알아볼 수 있습니다.
             </p>
           </Card>
           <Notice>
@@ -441,21 +448,22 @@ function renderView(view: string, go: (id: string, dir?: Dir) => void, back: (id
           dock={<Button onClick={() => go("splash")}>비밀번호 정하고 시작하기</Button>}
         >
           <Alert tone="warning">
-            이 링크는 보낸 때로부터 <strong>24시간</strong> 동안, <strong>한 번만</strong> 쓸 수 있습니다. 비밀번호를 정하고 나면 바로
+            이 링크는 보낸 때로부터 <strong>24시간</strong> 동안, <strong>한 번만</strong> 쓸 수 있습니다. 이 링크나 인증번호로 비밀번호를 정하고 나면 바로
             무효가 됩니다. 관리자는 새 비밀번호를 정하지 못합니다.
           </Alert>
           <NewPasswordFields />
         </Screen>
       );
 
+    // LOGIN-6: 이미 썼든 기한이 지났든 닫혔든 사유를 구분하지 않고 같은 문구로 막는다(운영 정책 ACC-19 v91).
     case "link-used":
       return (
         <Screen
-          title="이 링크는 이미 사용했습니다"
-          desc="비밀번호를 정하는 데 한 번 쓰인 링크입니다. 비밀번호를 또 바꾸려면 새로 요청해 주세요. 기억나는 비밀번호가 있으면 그대로 로그인하셔도 됩니다."
+          title="이 링크는 쓸 수 없습니다"
+          desc="관리자에게 재설정 링크를 다시 청하거나, 비밀번호 찾기에서 인증번호를 받아 직접 정해 주세요. 기억나는 비밀번호가 있으면 그대로 로그인하셔도 됩니다."
           dock={
             <>
-              <Button onClick={() => go("forgot")}>비밀번호 재설정 다시 요청하기</Button>
+              <Button onClick={() => go("forgot")}>인증번호로 직접 정하기</Button>
               <Button variant="ghost" onClick={() => back("login")}>
                 로그인으로 돌아가기
               </Button>

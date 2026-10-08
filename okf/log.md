@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-08
+* **Update**: 데모 로그인의 이메일 찾기 결과(목록·가림 규칙)와 쓸 수 없는 링크 문구를 바꿨다(LOGIN-6·9, 2026-10-08) — [Whale ERP Staff](/whale-erp-staff.md) 구조는 그대로.
 * **Update**: `2026-09-30-네이밍-규칙.md` 를 [Naming](/conventions/naming.md) 에 다시 맞췄다. 그동안 들어오지 않았던 10-07 고침(알림 유형·발송 용도 공통코드 폐지 → 템플릿 이름·기본 템플릿 코드 표, 견본 삭제로 바뀐 예시·문장, 근무 유형 4종, 급여 항목 `payslip_item_master`·항목 코드, 수신 설정 묶음 4종, 노출 대상 `service_code`)과 10-08 고침(1팀 `mail_type_code` 비고 → `template_code`, `PUSH_SCHEDULE_CHANGED` 이름 「근무스케줄 변경」)을 넣었다. 본문은 원자료 1~5장을 그대로 옮기고 절 번호만 뺐다(표 줄 차이 0).
 * **Update**: 데모 알림 화면의 알림 이름을 「근무스케줄 변경」으로 바꿨다(2026-10-08 재영) — [Whale ERP Staff](/whale-erp-staff.md) 구조는 그대로.
 * **Update**: 데모 화면에 복사돼 있던 조각을 `src/app/demo/_components` 로 모으고 DESIGN.md 에 「데모 조각」 절을 더한 것을 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 절에 적었다.
