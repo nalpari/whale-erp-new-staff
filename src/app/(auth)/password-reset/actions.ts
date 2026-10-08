@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { ApiError } from "@/lib/api";
-import { requestPasswordResetPin } from "@/lib/auth";
+import { requestPasswordResetPin, verifyPasswordResetPin } from "@/lib/auth";
 import { PIN_RESEND_MS, readPasswordReset, savePasswordReset } from "@/lib/password-reset";
 import { CONNECTION_FAILED_MESSAGE } from "../_components/auth-screen";
 
@@ -48,4 +48,33 @@ export async function resendPinAction(): Promise<ResendState> {
   }
   await savePasswordReset({ email: state.email, issuedAt: Date.now() });
   return { notice: "새 인증번호를 보냈습니다. 앞서 받은 인증번호는 쓸 수 없습니다" };
+}
+
+export interface PinState {
+  pin: string;
+  error?: string;
+  /** 이 결과가 나온 핀의 발급 시각. 다시 받은 뒤에는 앞 핀의 오류를 숨기는 데 쓴다. */
+  issuedAt?: number;
+}
+
+export async function verifyPinAction(_previous: PinState, formData: FormData): Promise<PinState> {
+  // 앞뒤 공백 · 대소문자는 api 가 정리한다. 화면은 입력한 그대로 보낸다.
+  const pin = String(formData.get("pin") ?? "");
+  const state = await readPasswordReset();
+  if (!state) redirect("/password-reset");
+  if (!pin.trim()) return { pin, error: "인증번호를 넣어 주세요" };
+  try {
+    await verifyPasswordResetPin({ email: state.email, pin });
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      return {
+        pin,
+        error: "인증번호가 맞지 않거나 만료되었습니다. 다섯 번 틀리면 새로 받아야 합니다",
+        issuedAt: state.issuedAt,
+      };
+    }
+    return { pin, error: messageOf(error), issuedAt: state.issuedAt };
+  }
+  await savePasswordReset({ ...state, pin });
+  redirect("/password-reset/new-password");
 }
