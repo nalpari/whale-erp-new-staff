@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-08
+* **Update**: 데모 알림 화면의 알림 이름을 「근무스케줄 변경」으로 바꿨다(2026-10-08 재영) — [Whale ERP Staff](/whale-erp-staff.md) 구조는 그대로.
 * **Update**: 데모 화면에 복사돼 있던 조각을 `src/app/demo/_components` 로 모으고 DESIGN.md 에 「데모 조각」 절을 더한 것을 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 절에 적었다.
 * **Update**: 데모에 2026-10-08 결정(약관 동의·퇴근 기록 없음·계약서 Pretendard·모두 읽음·철회 뒤 카드·PAY-7)을 옮겼다 — [Whale ERP Staff](/whale-erp-staff.md) 구조는 그대로.
 * **Update**: 하단 메뉴 다섯 칸(출퇴근 추가, 2026-10-08 재영 결정)과 데모 화면 11개를 [Whale ERP Staff](/whale-erp-staff.md) 에 반영했다.

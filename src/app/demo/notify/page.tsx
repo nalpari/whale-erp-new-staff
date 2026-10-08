@@ -2,7 +2,7 @@
 
 // 직원 근무 앱 데모 · 알림(/demo/notify). 기준 목업: docs/mockup/app/notify.html — 상태 4개(알림함 · 알림 없음 · 수신 설정 · 연결 끊김),
 // 화면 문구·가짜 값·버튼의 이동(data-go)·알림(data-toast)을 옮겼다. 목업에 시트는 없다. 쟁점 NOTI-1~7 은 모두 확정이다.
-//   직원 알림은 근로계약서 발송 · 근무스케줄 주요 변경 · TO-DO 배정 · 급여명세서 발송 넷뿐이다(S-AYBNWF).
+//   직원 알림은 근로계약서 발송 · 근무스케줄 변경 · TO-DO 배정 · 급여명세서 발송 넷뿐이다(S-AYBNWF).
 //   NOTI-1 TO-DO 배정은 앱 푸시를 보내지 않고 알림함에만 한 줄 쌓인다. 근무시간 외 보류 규칙은 없어졌다. 긴급 TO-DO 는 빨간 점.
 //   NOTI-2 알림톡은 자동 대체 없이 프로세스별로 함께 보낸다. NOTI-3 알림함은 14일 보관. NOTI-4 한 줄에 발송 결과까지 적는다.
 //   NOTI-5 알림함은 머리줄 알림 버튼으로 들어온다(홈 데모). NOTI-6 다시 보낸 급여명세서는 「다시 발송되었습니다 · 금액이 바뀌었을 수 있습니다」.
@@ -163,7 +163,7 @@ export default function DemoNotifyPage() {
               </p>
               <ul className="divide-y divide-[#e8edf3]">
                 <SwitchRow title="근로계약서 발송" description="항상 켜져 있습니다 · 계약 확인은 놓치면 안 됩니다" checked locked />
-                <SwitchRow title="근무스케줄 주요 변경" description="근무 시간이나 근무일이 바뀌면 알립니다" checked={scheduleOn} onChange={setScheduleOn} />
+                <SwitchRow title="근무스케줄 변경" description="근무 시간이나 근무일이 바뀌면 알립니다" checked={scheduleOn} onChange={setScheduleOn} />
                 {/* TO-DO 묶음은 앱 푸시가 없어(NOTI-1) 켜고 끌 것이 없다. SwitchRow 와 같은 줄에 스위치 대신 「알림함만」. */}
                 <li className="flex items-center gap-[12px] py-[17px]">
                   <div className="flex min-w-0 flex-1 flex-col">
