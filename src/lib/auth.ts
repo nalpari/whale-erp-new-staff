@@ -18,3 +18,18 @@ export function refreshAccessToken(refreshToken: string) {
 export function logout(accessToken: string) {
   return request<void>("/auth/account/logout", { method: "POST", accessToken });
 }
+
+/** 계정이 없어도 · 1분 안에 다시 불러도 · 하루 10번을 넘어도 204 다(가입 여부를 드러내지 않는다). 503 은 발송기가 없는 환경. */
+export function requestPasswordResetPin(email: string) {
+  return request<void>("/auth/account/password-reset-pins", { method: "POST", json: { email } });
+}
+
+/** 204 면 맞다. 틀림 · 만료 · 5회로 닫힘 · 없음은 모두 같은 401. */
+export function verifyPasswordResetPin(body: Schemas["VerifyPasswordResetPinDto"]) {
+  return request<void>("/auth/account/password-reset-pins/verify", { method: "POST", json: body });
+}
+
+/** 204 면 바꾸고 모든 기기 접속을 끊는다. 400 은 규칙 위반(핀은 그대로), 401 은 핀이 틀렸거나 닫혔다. */
+export function resetPassword(body: Schemas["ResetPasswordDto"]) {
+  return request<void>("/auth/account/password-reset", { method: "POST", json: body });
+}
