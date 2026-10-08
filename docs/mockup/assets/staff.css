@@ -516,7 +516,8 @@ body {
 
 /* 계약서 본문은 명조 */
 .doc-serif {
-  font-family: var(--serif);
+  /* 계약서 본문. 2026-10-08 재영 결정으로 명조체를 버리고 Pretendard 로 통일했다(CON-1). 클래스 이름은 그대로 둔다. */
+  font-family: var(--sans);
   font-size: 13.5px;
   line-height: 1.85;
   color: var(--ink);

@@ -694,6 +694,44 @@
               <button class="btn btn--ghost" data-sheet-close>닫기</button>
             </div>
 
+            <!-- 철회 뒤의 두 카드(ME-5, 2026-10-08 재영 확정). 「동의하지 않음 · 철회 일시」와 「다시 동의하기」. -->
+            <div class="sheet" data-sheet-id="revoked" hidden>
+              <div class="sheet__grab"></div>
+              <div class="line">
+                <i class="ph ph-prohibit" style="color: var(--ink-3); font-size: 21px"></i>
+                <p class="h-lg">철회한 뒤의 카드</p>
+              </div>
+              <div class="card">
+                <div class="line line--between">
+                  <p class="lab">위치정보 동의</p>
+                  <span class="badge">동의하지 않음</span>
+                </div>
+                <p class="tiny" style="margin-top: 6px">2026년 10월 2일 18:40 철회 · 위치정보 수집·이용 동의 v1.2</p>
+                <div class="line" style="gap: 8px; margin-top: 10px">
+                  <button class="btn btn--sm btn--ghost" style="flex: 1">약관 보기</button>
+                  <button class="btn btn--sm" style="flex: 1" data-toast="위치정보 수집에 다시 동의했습니다">다시 동의하기</button>
+                </div>
+                <p class="tiny" style="margin-top: 8px; color: var(--ink-4)">
+                  동의하지 않은 동안 출퇴근 기록은 근무지 관리자에게 문의해 주세요. 다음 출퇴근 등록 때 동의해도 됩니다.
+                </p>
+              </div>
+              <div class="card">
+                <div class="line line--between">
+                  <p class="lab">본사 제공 동의</p>
+                  <span class="badge">동의하지 않음</span>
+                </div>
+                <p class="tiny" style="margin-top: 6px">2026년 10월 2일 18:42 철회 · 가맹본부 웨일카페 · 본사 제공 동의 v1.0</p>
+                <div class="line" style="gap: 8px; margin-top: 10px">
+                  <button class="btn btn--sm btn--ghost" style="flex: 1">내용 보기</button>
+                  <button class="btn btn--sm" style="flex: 1" data-toast="본사 제공에 다시 동의했습니다">다시 동의하기</button>
+                </div>
+                <p class="tiny" style="margin-top: 8px; color: var(--ink-4)">
+                  지금은 본사에 점포별 숫자로만 보입니다. 다시 동의하면 개인 단위로 보입니다.
+                </p>
+              </div>
+              <button class="btn btn--ghost" data-sheet-close>닫기</button>
+            </div>
+
             <div class="sheet" data-sheet-id="bpshare" hidden>
               <div class="sheet__grab"></div>
               <div class="line">
@@ -856,6 +894,13 @@
                 <span class="sw-b__k">·</span>
                 <span><span class="sw-b__t">변경 이력</span> <span class="sw-b__d">· 항목·일시·전후</span></span>
               </button>
+              <button class="sw-b" data-sheet="revoked">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">동의 철회 뒤</span>
+                  <span class="sw-b__d">· 다시 동의하기</span></span
+                >
+              </button>
               <button class="sw-b" data-sheet="paused">
                 <span class="sw-b__k">·</span>
                 <span
@@ -910,7 +955,7 @@
           </p>
           <p class="p" style="margin-top: 10px">
             철회한 뒤의 출퇴근 등록 화면은 「위치정보 동의 없음」 상태를 그대로 쓴다(운영 정책 ATT-20). 다시
-            동의하려면 다음 출퇴근 등록 때 동의 시트에서 받는다. <b>약관 버전이 바뀌어도</b> 같은
+            동의하려면 내 정보의 「다시 동의하기」나 다음 출퇴근 등록 때의 동의 시트에서 받는다(ME-5). <b>약관 버전이 바뀌어도</b> 같은
             자리에서 새 버전으로 다시 받는다. 일시 중지는 운영 정책 ATT-26 으로 정해져 이 카드에 넣었다.
           </p>
 
@@ -1005,6 +1050,25 @@
             </div>
           </div>
 
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">ME-5</span>
+              <span class="gap__t">동의를 철회한 뒤 카드를 어떻게 보이는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 동의하지 않음 + 다시 동의하기</span>
+              <span class="gap__ref">운영 정책 ATT-30</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                위치정보 동의와 본사 제공 동의 모두, 철회한 뒤 카드에 <b>「동의하지 않음 · 철회 일시」</b>와
+                <b>「다시 동의하기」</b>를 둔다 (2026-10-08 재영 확정).
+              </p>
+              <ul>
+                <li>위치정보는 내 정보에서 다시 동의할 수 있고, 다음 출근 등록 때 받는 동의도 그대로 둔다</li>
+                <li>본사 제공 동의는 운영 정책 ATT-30 의 「내 정보에서 철회(다시 동의)」와 짝을 맞춘다</li>
+              </ul>
+            </div>
+          </div>
+
           <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
           <ul class="pol">
             <li>
@@ -1044,7 +1108,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 내 정보 · 2026년 9월 18일 · 상태 9개 · 시트 8개 · 쟁점 4건 모두 확정
+            직원 근무 앱 목업 · 내 정보 · 2026년 10월 8일 · 상태 9개 · 시트 9개 · 쟁점 5건 모두 확정
           </footer>
         </div>
       </div>

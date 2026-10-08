@@ -205,6 +205,56 @@
                 <p class="field__help">상세주소만 직접 적습니다.</p>
               </div>
 
+              <hr class="hr" />
+
+              <!-- 약관 동의(JOIN-6, 2026-10-08 재영 확정). 필수 둘은 1팀 TERMS_TYPE 의 직원 앱 회원가입용
+                   (STAFF_TERMS_SERVICE · STAFF_PRIVACY), 선택은 마케팅(MARKETING). 위치정보 동의는 여기서 받지 않고
+                   첫 출근 등록 때 따로 받는다. 본사 제공 동의는 가맹 점포 레코드로 가입할 때만 이 화면에 붙는다. -->
+              <p class="lab">약관 동의</p>
+              <div class="card card--sunken">
+                <div class="line" style="gap: 10px; align-items: flex-start; padding: 8px 0">
+                  <button class="check__box is-on" data-tick aria-label="직원 앱 서비스 이용약관"></button>
+                  <div class="grow">
+                    <p class="row__title" style="font-size: 13.5px">직원 앱 서비스 이용약관 <span class="badge">필수</span></p>
+                    <p class="tiny" style="margin-top: 2px">직원 근무 앱을 쓰는 데 필요한 약관입니다.</p>
+                  </div>
+                  <button class="btn btn--sm btn--ghost" data-toast="서비스 이용약관 전문을 엽니다">보기</button>
+                </div>
+                <div class="line" style="gap: 10px; align-items: flex-start; padding: 8px 0">
+                  <button class="check__box is-on" data-tick aria-label="개인정보 수집·이용 동의"></button>
+                  <div class="grow">
+                    <p class="row__title" style="font-size: 13.5px">개인정보 수집·이용 동의 <span class="badge">필수</span></p>
+                    <p class="tiny" style="margin-top: 2px">계정을 만들고 근무를 관리하는 데 쓰는 정보입니다.</p>
+                  </div>
+                  <button class="btn btn--sm btn--ghost" data-toast="개인정보 수집·이용 동의 전문을 엽니다">보기</button>
+                </div>
+                <div class="line" style="gap: 10px; align-items: flex-start; padding: 8px 0">
+                  <button class="check__box" data-tick aria-label="마케팅 정보 수신"></button>
+                  <div class="grow">
+                    <p class="row__title" style="font-size: 13.5px">마케팅 정보 수신 <span class="badge">선택</span></p>
+                    <p class="tiny" style="margin-top: 2px">새 기능과 이벤트 소식을 받습니다. 동의하지 않아도 가입할 수 있습니다.</p>
+                  </div>
+                  <button class="btn btn--sm btn--ghost" data-toast="마케팅 정보 수신 안내를 엽니다">보기</button>
+                </div>
+              </div>
+
+              <div class="card card--sunken">
+                <p class="tiny" style="margin-bottom: 6px; color: var(--ink-4)">가맹 점포로 가입할 때만 보입니다</p>
+                <div class="line" style="gap: 10px; align-items: flex-start; padding: 8px 0">
+                  <button class="check__box" data-tick aria-label="본사 제공 동의"></button>
+                  <div class="grow">
+                    <p class="row__title" style="font-size: 13.5px">본사 제공 동의 <span class="badge">선택</span></p>
+                    <p class="tiny" style="margin-top: 2px">가맹본부(웨일카페)가 내 근무 정보를 개인 단위로 보는 것에 동의합니다.</p>
+                  </div>
+                  <button class="btn btn--sm btn--ghost" data-sheet="bpshare">보기</button>
+                </div>
+                <p class="tiny" style="margin-top: 4px; color: var(--ink-4)">
+                  동의하지 않아도 가입과 근무는 그대로 됩니다. 이때 본사에는 점포별 숫자로만 보입니다.
+                </p>
+              </div>
+
+              <p class="tiny">필수 약관 두 개에 모두 동의해야 다음으로 넘어갑니다. 위치정보 동의는 첫 출근 등록 때 따로 받습니다.</p>
+
               <div class="grow"></div>
             </div>
 
@@ -224,7 +274,7 @@
               </p>
 
               <div class="field">
-                <label class="field__lab">휴대전화 번호<span class="req">*</span></label>
+                <label class="field__lab">휴대전화번호<span class="req">*</span></label>
                 <input class="input input--mono" value="010-9284-5521" />
               </div>
               <button class="btn btn--ghost btn--sm" style="align-self: flex-start">
@@ -873,6 +923,26 @@
             </div>
           </div>
 
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">JOIN-6</span>
+              <span class="gap__t">계정 등록 때 어떤 약관 동의를 받는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 필수 2 · 선택 1</span>
+              <span class="gap__ref">운영 정책 ATT-30</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                계정 등록 화면에서 <b>필수 둘</b>(직원 앱 서비스 이용약관 · 개인정보 수집·이용 동의 — 1팀 TERMS_TYPE 의 직원 앱
+                회원가입용)과 <b>선택 하나</b>(마케팅 정보 수신)를 받는다. 약관마다 「보기」를 두고, 필수를 모두 체크해야
+                다음으로 넘어간다 (2026-10-08 재영 확정).
+              </p>
+              <ul>
+                <li><b>가맹 점포 레코드로 가입할 때만</b> 같은 화면에 본사 제공 동의(선택)를 둔다(운영 정책 ATT-30). 소속 추가 확인 화면의 본사 제공 동의는 그대로다</li>
+                <li>위치정보 동의는 여기서 받지 않고 지금처럼 첫 출근 등록 때 따로 받는다</li>
+              </ul>
+            </div>
+          </div>
+
           <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
           <ul class="pol">
             <li>
@@ -925,7 +995,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 진입·가입 · 2026년 9월 10일 · 상태 10개 · 시트 2개 · 쟁점 5건
+            직원 근무 앱 목업 · 진입·가입 · 2026년 10월 8일 · 상태 10개 · 시트 2개 · 쟁점 6건
           </footer>
         </div>
       </div>

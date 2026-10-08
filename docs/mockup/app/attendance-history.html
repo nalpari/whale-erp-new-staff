@@ -296,7 +296,7 @@
               <div class="note note--amber">
                 <i class="ph-fill ph-warning"></i>
                 <div>
-                  <strong>확인이 필요한 기록이 2건 있습니다.</strong><br />
+                  <strong>확인이 필요한 기록이 1건 있습니다.</strong><br />
                   관리자가 확인 중입니다. 기록이 다르면 <strong>근무지 점포에 말씀해 주세요.</strong>
                   확인이 끝나면 이 표시와 사유는 사라집니다.
                 </div>
@@ -328,15 +328,16 @@
                     <p class="p--sm" style="margin-top: 6px; color: #6f4608">출근 위치 확인 실패 · 09:58 등록됨</p>
                   </button>
 
+                  <!-- 퇴근 기록 없음(HIST-4): 확인 필요 사유가 아니라 그 날 카드에 붙는 별도 표시다. -->
                   <button
-                    class="card card--amber"
+                    class="card"
                     data-sheet="flagWed"
                     style="width: 100%; text-align: left; cursor: pointer; font: inherit"
                   >
                     <div class="line" style="margin-bottom: 8px">
-                      <span class="num" style="font-weight: 700; font-size: 13px; color: #6f4608">수 9/9</span>
-                      <span class="push tiny" style="color: #6f4608">웨일카페 강남역점</span>
-                      <span class="badge badge--amber">확인 필요</span>
+                      <span class="num" style="font-weight: 700; font-size: 13px">수 9/9</span>
+                      <span class="push tiny">웨일카페 강남역점</span>
+                      <span class="badge">퇴근 기록 없음</span>
                     </div>
                     <div class="rail" style="height: 26px">
                       <div class="rail__plan" style="left: 8%; right: 17%"></div>
@@ -344,7 +345,7 @@
                     <div class="railscale">
                       <span>08:00</span><span>12:00</span><span>16:00</span><span>20:00</span>
                     </div>
-                    <p class="p--sm" style="margin-top: 6px; color: #6f4608">출근 09:14 · 퇴근 기록 없음</p>
+                    <p class="p--sm" style="margin-top: 6px">출근 09:14 · 퇴근 기록 없음 · 근무지 관리자에게 문의</p>
                   </button>
 
                   <div class="card card--pen">
@@ -491,19 +492,16 @@
             <div class="sheet" data-sheet-id="flagWed" hidden>
               <div class="sheet__grab"></div>
               <div class="line">
-                <i class="ph-fill ph-warning-circle" style="color: var(--amber); font-size: 21px"></i>
-                <p class="h-lg">퇴근 기록 누락</p>
+                <i class="ph ph-clock-countdown" style="color: var(--ink-3); font-size: 21px"></i>
+                <p class="h-lg">퇴근 기록 없음</p>
               </div>
               <p class="p--sm">
-                09:14에 출근한 기록만 있고 퇴근 기록이 없습니다. 퇴근을 찍지 못했다면 관리자에게
-                알려 대신 등록받을 수 있습니다.
+                09:14에 출근한 기록만 있고 퇴근 기록이 없습니다. 퇴근을 찍지 못했다면 근무지 관리자에게
+                문의해 주세요. 관리자가 퇴근 시각을 보정하면 이 표시는 사라집니다.
               </p>
               <div class="note">
                 <i class="ph ph-storefront"></i>
-                <div>
-                  관리자가 확인 중입니다. 기록이 다르면 <strong>근무지 점포에 말씀해 주세요.</strong>
-                  확인이 끝나면 이 표시와 사유는 사라집니다.
-                </div>
+                <div><strong>근무지 관리자에게 문의</strong>해 주세요. 앱에서 직접 고칠 수는 없습니다.</div>
               </div>
               <div class="btnrow">
                 <button class="btn btn--ghost" data-sheet-close>닫기</button>
@@ -532,7 +530,7 @@
                 <span class="sw-b__k">3</span>
                 <span
                   ><span class="sw-b__t">확인 필요 섞임</span>
-                  <span class="sw-b__d">· 위치 실패·퇴근 누락</span></span
+                  <span class="sw-b__d">· 위치 실패·퇴근 기록 없음</span></span
                 >
               </button>
               <button class="sw-b" data-state="empty">
@@ -613,6 +611,25 @@
             </div>
           </div>
 
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">HIST-4</span>
+              <span class="gap__t">퇴근 기록이 없는 날을 어떻게 보일 것인가</span>
+              <span class="gap__st gap__st--fixed">확정 · 별도 표시</span>
+              <span class="gap__ref">운영 정책 ATT-19·21</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                퇴근 기록 누락은 <b>확인 필요 사유가 아니다</b>. 확인 필요 사유는 운영 정책 ATT-19·21 의 셋(위치 오차 초과·반경 밖
+                퇴근·위치 조작 감지) 그대로 둔다. 퇴근이 없는 날은 확인 필요 꼬리표 대신 그 날 카드에 별도 표시
+                <b>「퇴근 기록 없음 · 근무지 관리자에게 문의」</b>를 보인다 (2026-10-08 재영 확정).
+              </p>
+              <ul>
+                <li>급여명세서 검토 대기 사유 「출퇴근 누락」과는 별개다</li>
+              </ul>
+            </div>
+          </div>
+
           <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
           <ul class="pol">
             <li>
@@ -654,7 +671,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 출퇴근 현황 · 2026년 9월 18일 · 상태 5개 · 시트 4개 · 쟁점 3건 모두 확정
+            직원 근무 앱 목업 · 출퇴근 현황 · 2026년 10월 8일 · 상태 5개 · 시트 4개 · 쟁점 4건 모두 확정
           </footer>
         </div>
       </div>

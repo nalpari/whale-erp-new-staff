@@ -102,6 +102,11 @@
 
             <!-- ── 알림함 ───────────────────────────────────────── -->
             <div class="view" data-when="inbox">
+              <!-- 모두 읽음(NOTI-7, 2026-10-08 재영 확정). 줄마다 읽음도 그대로 둔다. -->
+              <div class="line line--between" style="padding: 0 2px">
+                <span class="lab">미확인 4건</span>
+                <button class="btn btn--sm btn--ghost" style="width: auto; padding: 0 12px" data-toast="모두 읽음으로 바꿨습니다">모두 읽음</button>
+              </div>
               <div class="scroll">
                 <div class="rows">
                   <a
@@ -217,7 +222,7 @@
                       <p class="row__sub">2026년 8월 근로계약서 · 날인 완료 · 읽음</p>
                     </div>
                     <div class="row__end">
-                      <span class="tiny">1개월 전</span>
+                      <span class="tiny">12일 전</span>
                     </div>
                   </div>
                 </div>
@@ -373,7 +378,7 @@
           <p class="p">
             관리자 웹의 운영 알림함(S-GDUNIT)은 줄마다 읽음 버튼을 두지 않고 "모두 읽음" 한 동작만
             제공한다. 반면 직원 알림함은 알림 하나하나에 읽음 상태를 확인하고 바꿀 수 있는 동작을
-            둔다(S-IMFWJT). 관리자는 알림이 많고 업무 처리 자체가 상태를 대신 말해 주지만, 직원은
+            두고(S-IMFWJT), 머리에 「모두 읽음」도 함께 둔다(NOTI-7). 관리자는 알림이 많고 업무 처리 자체가 상태를 대신 말해 주지만, 직원은
             알림 자체가 곧 확인해야 할 일이라 한 건씩 다루는 편이 맞다고 봤다. 두 알림함이 같은
             구조를 쓰지만 일부러 다르게 움직이는 지점이다.
           </p>
@@ -511,6 +516,21 @@
             </div>
           </div>
 
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">NOTI-7</span>
+              <span class="gap__t">직원 알림함에 「모두 읽음」을 둘 것인가</span>
+              <span class="gap__st gap__st--fixed">확정 · 모두 읽음 + 줄마다 읽음</span>
+              <span class="gap__ref">S-IMFWJT</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                알림함 머리에 <b>「모두 읽음」</b> 버튼을 두고, 줄마다 읽음을 바꾸는 동작도 그대로 둔다 (2026-10-08 재영 확정).
+                관리자 웹 운영 알림함은 모두 읽음만 두므로 직원 알림함이 한 동작 더 많다.
+              </p>
+            </div>
+          </div>
+
           <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
           <ul class="pol">
             <li>
@@ -568,7 +588,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 알림 · 2026년 9월 17일 · 상태 4개 · 쟁점 6건
+            직원 근무 앱 목업 · 알림 · 2026년 10월 8일 · 상태 4개 · 쟁점 7건
           </footer>
         </div>
       </div>
