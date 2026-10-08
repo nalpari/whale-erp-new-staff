@@ -305,8 +305,8 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 ### TO-DO — `TodoList` · `TodoItem`
 카드 없이 줄만 쌓고 줄 사이는 #E8EDF3 1px 선. 한 줄은 위아래 17 · 사이 12: 체크칸 28px(radius 2, 옅은 남보라 · 완료면 남보라에 흰 체크, 누르는 칸은 사방 8px 넓혀 44px) · 제목 15px semibold · 일시 12px(기한 지남은 #956013) · 오른쪽 StatusChip(semibold). 완료한 제목은 흐린 글자.
 
-### 데모 조각 — `src/app/demo/_components`
-직원 근무 앱 데모(/demo)에서 화면 둘 이상이 쓰는 조각이다. 공통 부품(`src/components/common`)에 없는 모양을 DESIGN.md 토큰·크기 체계로 만들었다. 실제 앱 화면을 만들 때 공통 부품으로 올릴 후보다.
+### 데모 조각 — `docs/demo/src/ui.mjs`
+직원 근무 앱 데모(`docs/demo`, 정적 HTML 생성기)에서 화면 둘 이상이 쓰는 조각이다. `ui.mjs` 에 공통 부품을 HTML 문자열로 옮긴 함수와 함께 둔다(`alert`·`backHeader`·`body`·`dock` 등, 이름은 아래 항목의 소문자 시작). 공통 부품(`src/components/common`)에 없는 모양을 DESIGN.md 토큰·크기 체계로 만들었다. 실제 앱 화면을 만들 때 공통 부품으로 올릴 후보다.
 
 - **BackHeader:** PageHeader 와 같은 모양(최소 72px · 뒤로 19px · 제목 18px bold)에 뒤로 가기가 링크가 아니라 화면 안 상태를 되돌리는 버튼. 근로계약 · 신고 정보 · 급여 · 알림 · 내 정보.
 - **Body:** 머리줄과 Dock 사이 본문. `form` 좌우 24 · 위 30 · 사이 16(가입 · 신고 정보 · 내 정보), `detail` 좌우 22 · 위 22 · 사이 20(출퇴근 등록 · 근로계약 · 급여). `center` 는 결과 화면 가운데 정렬, detail 은 위 52.
@@ -320,7 +320,7 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **CheckBox:** TO-DO 체크칸 모양의 체크박스. 28px · radius 2 · 꺼짐 옅은 남보라 · 켜짐 남보라에 흰 체크, 누르는 칸 44px. 가입(약관 · 본사 제공 동의) · 근무(TO-DO).
 - **IconRow:** 아이콘 한 줄. 20px 칸의 16px 보조색 아이콘 · 제목 14px semibold · 설명 12px 보조 글자 · 사이 12 · 위아래 8. 가입 · 신고 정보.
 - **Label · Tiny:** Label 은 카드 · 판 머리 이름 13px semibold 보조 글자(신고 정보 · 내 정보). Tiny 는 본문 아래 안내 12px 흐린 글자, `<b>` 는 보조 글자 bold(근로계약 · 급여).
-- **useToast:** 토스트. 짙은 남색 90% 알약 · radius 12 · 13px semibold 흰 글자 · 화면 아래 120px 위 · 2초 뒤 사라짐 · `role="status"`. `const [toast, setToast] = useToast()` 로 받아 PageSlide 밖에 `{toast}` 를 둔다. 로그인을 뺀 열 화면.
+- **toast:** 토스트. 짙은 남색 90% 알약 · radius 12 · 13px semibold 흰 글자 · 화면 아래 120px 위 · 2초 뒤 사라짐 · `role="status"`. 화면마다 하나 두고(build.mjs), 누를 것에 `data-toast="문구"` 를 달면 `assets/staff.js` 가 띄운다.
 
 ## Do's and Don'ts
 

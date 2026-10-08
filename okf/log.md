@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-08
+* **Update**: 직원 근무 앱 데모를 앱 안 React(`src/app/demo`, `scripts/build-demo.mjs`, Next 정적 내보내기)에서 front 방식 정적 HTML 생성기(`docs/demo/build.mjs`·`src/ui.mjs`·`src/pages`·`assets/staff.js`)로 옮긴 것을 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 절에 적었다(재영).
 * **Update**: `2026-09-30-네이밍-규칙.md` 2026-10-08 고침을 [네이밍 규칙](/conventions/naming.md) 에 옮겼다 — 「근무 · 출퇴근」의 근무 유형 4종(`DAY`·`OPEN`·`MIDDLE`·`CLOSE`, enum `work_type`) 줄을 지웠다(재영).
 * **Update**: 데모의 핀 화면·새 이메일 인증의 이메일 가림을 이메일 찾기와 같은 규칙으로 맞췄다(2026-10-08) — [Whale ERP Staff](/whale-erp-staff.md) 구조는 그대로.
 * **Update**: 데모 로그인의 이메일 찾기 결과(목록·가림 규칙)와 쓸 수 없는 링크 문구를 바꿨다(LOGIN-6·9, 2026-10-08) — [Whale ERP Staff](/whale-erp-staff.md) 구조는 그대로.
