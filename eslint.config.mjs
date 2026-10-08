@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     // Vendored agent skills — third-party sources, not ours to lint.
     ".agents/**",
     ".claude/skills/**",
+    // 데모 정적 내보내기(scripts/build-demo.mjs) 결과물.
+    "docs/demo/**",
   ]),
 ]);
 
