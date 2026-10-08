@@ -2,8 +2,9 @@
 
 import { redirect } from "next/navigation";
 import { ApiError } from "@/lib/api";
-import { requestPasswordResetPin, verifyPasswordResetPin } from "@/lib/auth";
-import { PIN_RESEND_MS, readPasswordReset, savePasswordReset } from "@/lib/password-reset";
+import { requestPasswordResetPin, resetPassword, verifyPasswordResetPin } from "@/lib/auth";
+import { PIN_RESEND_MS, clearPasswordReset, readPasswordReset, savePasswordReset } from "@/lib/password-reset";
+import { clearSession } from "@/lib/session";
 import { CONNECTION_FAILED_MESSAGE } from "../_components/auth-screen";
 
 /** api 오류를 폼 문구로. 503(발송기 없음) · 400(형식)은 api 메시지를 그대로 쓴다. */
@@ -77,4 +78,35 @@ export async function verifyPinAction(_previous: PinState, formData: FormData): 
   }
   await savePasswordReset({ ...state, pin });
   redirect("/password-reset/new-password");
+}
+
+export interface NewPasswordState {
+  error?: string;
+}
+
+export async function resetPasswordAction(_previous: NewPasswordState, formData: FormData): Promise<NewPasswordState> {
+  const newPassword = String(formData.get("newPassword") ?? "");
+  const confirmation = String(formData.get("newPasswordConfirmation") ?? "");
+  const state = await readPasswordReset();
+  if (!state?.pin) redirect("/password-reset");
+  if (newPassword !== confirmation) return { error: "두 칸의 비밀번호가 다릅니다" };
+  let timedOut = false;
+  try {
+    await resetPassword({ email: state.email, pin: state.pin, newPassword });
+  } catch (error) {
+    // 400: 규칙 위반. 핀은 그대로라 이 자리에서 다시 입력한다. 사유는 api 메시지.
+    if (error instanceof ApiError && error.status === 400) return { error: error.message };
+    // 401: 10분이 지났거나 핀이 닫혔다. 앞서 받은 핀은 다시 쓸 수 없어 핀 요청의 「시간이 지났습니다」로 보낸다.
+    // (쿠키를 지운 뒤 이 화면에 머물면 다시 그려지면서 쿠키가 없어 /password-reset 으로 튕긴다.)
+    if (error instanceof ApiError && error.status === 401) timedOut = true;
+    else return { error: messageOf(error) };
+  }
+  if (timedOut) {
+    await clearPasswordReset();
+    redirect("/password-reset?timeout=1");
+  }
+  // 모든 기기의 접속이 끊겼다. 이 기기의 쿠키도 지운다.
+  await clearPasswordReset();
+  await clearSession();
+  redirect("/login?reset=1");
 }

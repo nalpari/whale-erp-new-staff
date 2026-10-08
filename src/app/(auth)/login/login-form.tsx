@@ -8,7 +8,7 @@ import { loginAction, type LoginState } from "./actions";
 
 // 기준: 데모 /demo/login 의 login · fail · locked · expired.
 // 남은 횟수와 남은 잠금 시간은 api 가 주지 않아 보이지 않는다. 이메일 찾기(WHALEERP-178·179)는 API 가 생기면 더한다.
-export function LoginForm({ expired }: { expired: boolean }) {
+export function LoginForm({ expired, reset }: { expired: boolean; reset: boolean }) {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(loginAction, { email: "" });
   // 「5분 뒤 다시 시도」로 걷어 낸 잠금 결과. 같은 경로로 가는 링크는 화면을 새로 그리지 않아 상태가 남는다.
   const [dismissed, setDismissed] = useState<LoginState | null>(null);
@@ -87,6 +87,10 @@ export function LoginForm({ expired }: { expired: boolean }) {
         {state.error ? (
           <Notice>
             연속 <strong>5</strong>회 틀리면 5분 동안 잠깁니다.
+          </Notice>
+        ) : reset ? (
+          <Notice>
+            비밀번호를 바꿨습니다. <strong>새 비밀번호로 로그인해 주세요.</strong> 다른 기기는 모두 로그아웃되었습니다.
           </Notice>
         ) : expired ? (
           <Alert tone="warning">로그인하면 다시 30일 동안 묻지 않습니다.</Alert>
