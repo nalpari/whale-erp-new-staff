@@ -51,10 +51,17 @@ export async function clearPasswordReset(): Promise<void> {
 
 export const isPinExpired = (state: PasswordReset, now = Date.now()) => now - state.issuedAt >= PIN_VALID_MS;
 
-/** 화면에 보일 이메일: @ 앞을 절반만(최대 5자) 남긴다. haeun.lee@gmail.com → haeun****@gmail.com */
+/**
+ * 화면에 보일 이메일(LOGIN-9, 앱 안 이메일 가림 한 규칙). @ 앞은 처음 2글자 + 마지막 1글자만 두고 나머지는 글자 수만큼
+ * `*` 로 가린다. 3글자 이하면 첫 글자만 둔다. 도메인은 그대로. haeun.lee@gmail.com → ha******e@gmail.com
+ */
 export function maskEmail(email: string): string {
   const at = email.indexOf("@");
   if (at <= 0) return email;
-  const local = email.slice(0, at);
-  return `${local.slice(0, Math.min(5, Math.ceil(local.length / 2)))}****${email.slice(at)}`;
+  const local = [...email.slice(0, at)];
+  const masked =
+    local.length <= 3
+      ? local[0] + "*".repeat(local.length - 1)
+      : local.slice(0, 2).join("") + "*".repeat(local.length - 3) + local[local.length - 1];
+  return masked + email.slice(at);
 }
