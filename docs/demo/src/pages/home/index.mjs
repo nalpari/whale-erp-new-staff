@@ -68,11 +68,11 @@ const thisWeek = (days) =>
     selected: "09-10",
   })}<p class="border-t border-staff-border-light pt-[12px] text-[12px] text-staff-text-sub">이번 주는 월요일부터 일요일까지, 한국 표준시 기준입니다</p></div></section>`;
 
-// TO-DO 카드. 오른쪽 위 「TO-DO 목록」으로 근무 화면의 TO-DO 쪽에 바로 간다(HOME-1).
+// TO-DO 카드. 오른쪽 위 「전체보기」로 근무 화면의 TO-DO 쪽에 바로 간다(HOME-1).
 const todoSection = (count, children) =>
   `<section class="flex flex-col gap-[12px]">${sectionTitle("TO-DO", {
     count,
-    right: `<a href="${page("work", "todo")}" class="-my-[13px] flex min-h-[44px] items-center gap-[2px] text-[12px] text-staff-text-sub">TO-DO 목록${img("chevron-right-small.svg", 11, 11, "-scale-y-100")}</a>`,
+    right: `<a href="${page("work", "todo")}" class="-my-[13px] flex min-h-[44px] items-center gap-[2px] text-[12px] text-staff-text-sub">전체보기${img("chevron-right-small.svg", 11, 11, "-scale-y-100")}</a>`,
   })}<div class="rounded-[18px] border border-staff-border-light bg-white px-[16px]">${children}</div></section>`;
 
 // 근무 정보(Figma 「나의 근무 정보」 줄 모양). 요약만 보이고 자세한 것은 각 화면에서 본다.
