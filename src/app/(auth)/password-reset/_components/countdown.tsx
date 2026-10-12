@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 // 1초마다 바뀌는 지금 시각. 서버와 하이드레이션 때는 null 이라 시계를 비워 두고, 그 뒤부터 센다.
 const subscribe = (onChange: () => void) => {
@@ -11,13 +11,21 @@ const subscribe = (onChange: () => void) => {
 const getSnapshot = () => Math.floor(Date.now() / 1000) * 1000;
 const getServerSnapshot = () => null;
 
-export function useNow(): number | null {
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+/**
+ * 서버 시계로 옮긴 지금 시각. 발급 시각(issuedAt)은 서버 시계라 휴대폰 시계와 바로 비교하면, 휴대폰 시계가 틀린 만큼
+ * 만료 · 다시 받기 판정이 어긋난다(10분 넘게 앞서면 핀을 받자마자 만료로 보인다). 화면을 그린 순간의 서버 시각
+ * `serverNow` 와 휴대폰 시각의 차이를 처음 한 번 재 두고 그만큼 옮긴다. 오차는 서버가 그린 때부터
+ * 화면이 하이드레이션될 때까지의 시간이고, 남은 시간이 그만큼 길게 보인다(안내용이라 판정은 api 가 한다).
+ */
+export function useNow(serverNow: number): number | null {
+  const [offset] = useState(() => serverNow - Date.now());
+  const now = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  return now === null ? null : now + offset;
 }
 
 /** 핀 입력 · 새 비밀번호가 함께 쓰는 남은 시간(한 시계). 안내용이고 판정은 api 가 한다. */
-export function Countdown({ deadline }: { deadline: number }) {
-  const now = useNow();
+export function Countdown({ deadline, serverNow }: { deadline: number; serverNow: number }) {
+  const now = useNow(serverNow);
   const left = now === null ? null : Math.max(0, deadline - now);
   const text =
     left === null

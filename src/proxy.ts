@@ -1,36 +1,34 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { ApiError } from "@/lib/api";
+import { ApiError, NetworkError } from "@/lib/api";
 import { refreshAccessToken } from "@/lib/auth";
+import { clientIpFrom } from "@/lib/client-ip";
 import {
   ACCESS_TOKEN_COOKIE,
   ACCOUNT_COOKIE,
   REFRESH_TOKEN_COOKIE,
   accessTokenCookie,
   clearSessionCookies,
+  parseAccountCookie,
   untilCookie,
 } from "@/lib/session-cookies";
 
-// 로그인 없이 여는 화면.
+// 로그인 없이 여는 화면. 폴더((auth))가 아니라 이 경로 목록으로 판정한다 — (auth) 에 화면을 더하면 여기에도 더한다.
 const PUBLIC_PATHS = ["/login", "/password-reset"];
 
 const isPublic = (pathname: string) =>
   PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 
-/** account 쿠키가 읽히는 JSON 일 때만 세션으로 친다. 깨진 쿠키를 세션으로 보면 화면은 못 읽어 /home ↔ /login 을 돈다. */
-function readableAccount(raw: string | undefined): string | undefined {
-  if (!raw) return undefined;
-  try {
-    JSON.parse(raw);
-    return raw;
-  } catch {
-    return undefined;
-  }
-}
+/** 모든 화면 요청이 갱신을 기다리므로 api 가 멈춰도 오래 붙잡지 않는다. */
+const REFRESH_TIMEOUT_MS = 5_000;
+
+/** 접속은 끝나지 않았는데 api 에 닿지 못해 확인하지 못했을 때 가는 곳. 만료 안내와 달리 쿠키를 지우지 않는다. */
+const UNAVAILABLE_LOGIN_PATH = "/login?unavailable=1";
 
 /**
  * 접속 유지(WHALEERP-166). 액세스 토큰(14분)이 없고 갱신 토큰이 있으면 다시 받아 굽는다.
  * 같은 요청을 처리할 서버 컴포넌트도 새 토큰을 보도록 요청 쿠키에도 넣는다.
- * 갱신이 401 이면 접속이 끝난 것이라 쿠키를 지우고 만료 안내로 보낸다.
+ * 갱신이 401 · 400 이면 접속이 끝난 것이라 쿠키를 지우고 만료 안내로 보낸다(로그인 없이 여는 화면은 쿠키만 지우고 그대로 연다).
+ * 그 밖의 실패(api 미기동 · 시간 초과 · 429 · 5xx)는 쿠키를 두고 「확인하지 못했다」 안내로 보낸다.
  */
 export async function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
@@ -42,30 +40,46 @@ export async function proxy(request: NextRequest) {
   let accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
   const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
   const rawAccount = request.cookies.get(ACCOUNT_COOKIE)?.value;
-  const account = readableAccount(rawAccount);
+  // 화면의 getSession 과 같은 판정이어야 한다. 읽히지 않는 account 쿠키는 세션으로 치지 않고 지운다.
+  const account = parseAccountCookie(rawAccount) ? rawAccount : undefined;
   let refreshedUntil: Date | null = null;
   let sessionEnded = Boolean(rawAccount) && !account;
+  let unavailable = false;
 
   if ((!accessToken || expiredNotice) && refreshToken && account) {
     try {
-      const refreshed = await refreshAccessToken(refreshToken);
+      const refreshed = await refreshAccessToken(refreshToken, {
+        clientIp: clientIpFrom(request.headers),
+        timeoutMs: REFRESH_TIMEOUT_MS,
+      });
       accessToken = refreshed.accessToken;
       refreshedUntil = new Date(refreshed.refreshTokenExpiresAt);
       request.cookies.set(ACCESS_TOKEN_COOKIE, accessToken);
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) sessionEnded = true;
-      // api 미기동 · 429 등은 접속이 끝난 게 아니다. 쿠키를 그대로 두고 로그인 화면으로만 보낸다.
-      else if (!(error instanceof ApiError) && !(error instanceof TypeError)) throw error;
+      // 401 은 끝난 접속, 400 은 쓸 수 없는 토큰(형식 검증)이라 다시 해도 낫지 않는다.
+      if (error instanceof ApiError && (error.status === 401 || error.status === 400)) sessionEnded = true;
+      else if (error instanceof ApiError || error instanceof NetworkError) {
+        // 5xx · 연결 실패는 request() 가 이미 남겼다. 429 등 4xx 는 여기서 남긴다.
+        if (error instanceof ApiError && error.status < 500) console.error("[proxy] 갱신 실패", error.status, error.message);
+        unavailable = true;
+      } else throw error;
       if (expiredNotice) accessToken = undefined;
     }
   }
 
   if (sessionEnded) {
-    const response = expiredNotice
+    // 로그인 없이 여는 화면(만료 안내 · 비밀번호 재설정)은 쿠키만 지우고 그대로 연다. 다른 기기에서 비밀번호를 바꿔
+    // 접속이 끝난 직원이 「비밀번호를 잊으셨나요」를 눌렀을 때 만료 안내로 한 번 튕기지 않게 한다.
+    const response = expiredNotice || isPublic(pathname)
       ? NextResponse.next()
       : NextResponse.redirect(new URL("/login?expired=1", request.url));
     clearSessionCookies(response.cookies);
     return response;
+  }
+
+  // 만료 안내에서 갱신이 401 아닌 이유로 실패했으면, 끝났다고 단정하지 않고 확인하지 못했다는 안내로 바꾼다.
+  if (unavailable && (expiredNotice || !isPublic(pathname))) {
+    return NextResponse.redirect(new URL(UNAVAILABLE_LOGIN_PATH, request.url));
   }
 
   // 만료 안내에서는 방금 갱신에 성공해야 로그인된 것으로 본다(남은 액세스 토큰은 api 가 이미 거절한 것일 수 있다).
@@ -85,6 +99,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // 정적 파일 · 디자인 견본 · 데모는 뺀다(점이 든 경로 = public 파일).
-  matcher: ["/((?!_next/|design|demo|.*\\..*).*)"],
+  // 정적 파일 · 디자인 견본은 뺀다(점이 든 경로 = public 파일). design 은 /design 과 그 아래만 — /designer 같은 경로는 돈다.
+  matcher: ["/((?!_next/|design/|design$|.*\\..*).*)"],
 };

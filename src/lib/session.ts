@@ -9,14 +9,16 @@ import {
   accessTokenCookie,
   clearSessionCookies,
   deviceIdCookie,
+  parseAccountCookie,
   untilCookie,
+  type Account,
 } from "./session-cookies";
 
-export type Account = Schemas["LoginAccountResponseDto"];
+export type { Account };
 
 export interface Session {
-  accessToken: string;
-  account: Account;
+  readonly accessToken: string;
+  readonly account: Account;
 }
 
 /**
@@ -37,18 +39,15 @@ export async function saveLogin(result: Schemas["LoginResponseDto"]): Promise<vo
 export async function getSession(): Promise<Session | null> {
   const jar = await cookies();
   const accessToken = jar.get(ACCESS_TOKEN_COOKIE)?.value;
-  const raw = jar.get(ACCOUNT_COOKIE)?.value;
-  if (!accessToken || !raw) return null;
-  try {
-    return { accessToken, account: JSON.parse(raw) as Account };
-  } catch {
-    return null; // 손상된 쿠키는 로그아웃으로 취급한다
-  }
+  // 손상된 쿠키는 로그아웃으로 취급한다. 판정은 proxy 와 같은 parseAccountCookie 다.
+  const account = parseAccountCookie(jar.get(ACCOUNT_COOKIE)?.value);
+  if (!accessToken || !account) return null;
+  return { accessToken, account };
 }
 
 /**
  * 로그인이 필요한 화면 · 액션의 첫 줄. proxy 가 먼저 막지만 proxy 만 믿지 않는다.
- * proxy 는 통과시켰는데 여기서 세션이 없으면(account 쿠키가 깨짐 등) 쿠키를 지우는 만료 경로로 보낸다.
+ * proxy 는 통과시켰는데 여기서 세션이 없으면(proxy 를 거치지 않은 경로 등, 방어용) 쿠키를 지우는 만료 경로로 보낸다.
  * /login 으로만 보내면 proxy 가 남은 쿠키를 보고 /home 으로 되돌려 끝없이 돈다.
  */
 export async function requireSession(): Promise<Session> {
@@ -73,8 +72,8 @@ export async function getDeviceId(): Promise<string> {
 }
 
 /**
- * 로그인한 직원으로 부르는 API. 401 이면 접속이 끝난 것이다 — 다른 기기에서 비밀번호를 바꿨거나
- * 관리자가 접속을 끊으면 액세스 토큰이 남은 시간과 상관없이 바로 401 이 된다.
+ * 로그인한 직원으로 부르는 API. 401 이면 접속이 끝난 것이다 — 비밀번호를 재설정했거나 같은 기기로 다시 로그인해
+ * 이 접속이 끊기면, 액세스 토큰이 남은 시간과 상관없이 바로 401 이 된다.
  */
 export async function authedRequest<T>(
   path: string,

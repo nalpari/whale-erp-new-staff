@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Alert, Card, Dock } from "@/components/common";
-import { getEnum, labelOf } from "@/lib/enums";
+import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { requireSession } from "@/lib/session";
 import { LogoutSheet } from "./logout-sheet";
 
@@ -10,7 +10,8 @@ export const metadata: Metadata = { title: "홈 · Whale ERP" };
 // 다른 작업자가 이 파일을 바꿔 채운다. 로그아웃의 실제 자리는 내 정보 화면(WHALEERP-193)이다.
 export default async function HomePage() {
   const { account } = await requireSession();
-  const statuses = await getEnum("AccountStatus");
+  // 한글 이름 하나 때문에 화면 전체를 오류로 만들지 않는다. 못 받으면 labelOf 가 값 그대로 보인다.
+  const statuses = await getEnumOrEmpty("AccountStatus");
 
   return (
     <>

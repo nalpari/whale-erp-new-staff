@@ -6,9 +6,10 @@ import { Alert, BrandLogo, Button, Notice, TextField } from "@/components/common
 import { AuthScreen } from "../_components/auth-screen";
 import { loginAction, type LoginState } from "./actions";
 
-// 기준: 데모 /demo/login 의 login · fail · locked · expired.
+// 기준: 데모 docs/demo/src/pages/login 의 login · fail · locked · expired.
 // 남은 횟수와 남은 잠금 시간은 api 가 주지 않아 보이지 않는다. 이메일 찾기(WHALEERP-178·179)는 API 가 생기면 더한다.
-export function LoginForm({ expired, reset }: { expired: boolean; reset: boolean }) {
+// unavailable 은 proxy 가 접속을 갱신하려다 api 에 닿지 못한 경우다(접속이 끝났는지 모른다).
+export function LoginForm({ expired, reset, unavailable }: { expired: boolean; reset: boolean; unavailable: boolean }) {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(loginAction, { email: "" });
   // 「5분 뒤 다시 시도」로 걷어 낸 잠금 결과. 같은 경로로 가는 링크는 화면을 새로 그리지 않아 상태가 남는다.
   const [dismissed, setDismissed] = useState<LoginState | null>(null);
@@ -72,7 +73,8 @@ export function LoginForm({ expired, reset }: { expired: boolean; reset: boolean
             required
             maxLength={254}
             defaultValue={state.email}
-            help="가입할 때 정한 아이디입니다"
+            help={state.error ? undefined : "가입할 때 정한 아이디입니다"}
+            error={state.field === "email" ? state.error : undefined}
           />
           <TextField
             label="비밀번호"
@@ -81,13 +83,20 @@ export function LoginForm({ expired, reset }: { expired: boolean; reset: boolean
             autoComplete="current-password"
             required
             maxLength={128}
-            error={state.error}
+            placeholder="비밀번호를 입력해 주세요"
+            error={state.field === "password" ? state.error : undefined}
           />
         </div>
-        {state.error ? (
+        {state.field === "form" ? (
+          <Alert tone="danger">{state.error}</Alert>
+        ) : state.field === "password" ? (
           <Notice>
             연속 <strong>5</strong>회 틀리면 5분 동안 잠깁니다.
           </Notice>
+        ) : state.error ? null : unavailable ? (
+          <Alert tone="warning">
+            지금 서버에 연결하지 못해 접속을 확인하지 못했습니다. <strong>잠시 뒤 다시 열어 주세요.</strong>
+          </Alert>
         ) : reset ? (
           <Notice>
             비밀번호를 바꿨습니다. <strong>새 비밀번호로 로그인해 주세요.</strong> 다른 기기는 모두 로그아웃되었습니다.

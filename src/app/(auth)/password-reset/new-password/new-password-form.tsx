@@ -8,8 +8,8 @@ import { AuthScreen } from "../../_components/auth-screen";
 import { Countdown } from "../_components/countdown";
 import { resetPasswordAction, type NewPasswordState } from "../actions";
 
-// 기준: 데모 /demo/login 의 newpw. newpw-out(핀 무효 401)은 핀 요청 화면의 ?timeout=1 로 보낸다.
-export function NewPasswordForm({ email, deadline }: { email: string; deadline: number }) {
+// 기준: 데모 docs/demo/src/pages/login 의 newpw. newpw-out(핀 무효 401)은 핀 요청 화면의 ?timeout=1 로 보낸다.
+export function NewPasswordForm({ email, deadline, serverNow }: { email: string; deadline: number; serverNow: number }) {
   const [state, formAction, pending] = useActionState<NewPasswordState, FormData>(resetPasswordAction, {});
   // 400 뒤에도 입력한 새 비밀번호가 남고 조건 목록이 바로 반응하도록 첫 칸은 상태로 든다
   // (React 19 폼 액션은 제출 뒤 비제어 칸을 비운다).
@@ -32,7 +32,7 @@ export function NewPasswordForm({ email, deadline }: { email: string; deadline: 
     <form action={formAction} className="flex flex-1 flex-col">
       <AuthScreen
         title="새 비밀번호를 정해 주세요"
-        description="현재 비밀번호는 묻지 않습니다. 인증번호로 본인을 확인했습니다."
+        description="현재 비밀번호는 묻지 않습니다. 인증번호로 본인을 확인했습니다. 이 인증번호는 여기서 비밀번호를 정하면 무효가 됩니다."
         dock={
           <>
             <p className="pb-[6px] text-center text-[12px] text-staff-text-muted">인증번호를 받은 때부터 10분 안에 마쳐 주세요</p>
@@ -43,7 +43,7 @@ export function NewPasswordForm({ email, deadline }: { email: string; deadline: 
         }
       >
         <div className="text-[12px] text-staff-text-muted">
-          <Countdown deadline={deadline} />
+          <Countdown deadline={deadline} serverNow={serverNow} />
         </div>
         <div className="flex flex-col gap-[16px]">
           <TextField
@@ -55,6 +55,7 @@ export function NewPasswordForm({ email, deadline }: { email: string; deadline: 
             maxLength={128}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+            error={state.field === "newPassword" ? state.error : undefined}
           />
           <TextField
             label="새 비밀번호 확인"
@@ -63,7 +64,7 @@ export function NewPasswordForm({ email, deadline }: { email: string; deadline: 
             autoComplete="new-password"
             required
             maxLength={128}
-            error={state.error}
+            error={state.field === "newPassword" ? undefined : state.error}
           />
         </div>
         <Card>

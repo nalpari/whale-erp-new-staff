@@ -10,7 +10,10 @@ const PASSWORD_RESET_PATH = "/password-reset";
 export const PIN_VALID_MS = 10 * 60 * 1000;
 /** api 는 직전 발급 뒤 1분 안의 요청을 보내지 않고도 204 로 답한다. 그동안 「다시 받기」를 막는다. */
 export const PIN_RESEND_MS = 60 * 1000;
-/** 쿠키는 10분보다 길게 둔다. 10분이 지난 뒤 들어와도 「시간이 지났습니다」를 보여 주려는 것이다. */
+/**
+ * 쿠키는 10분보다 길게 둔다. 10분이 지난 뒤 들어와도 만료 안내(핀 화면의 「인증번호가 만료되었습니다」 · 다시 받기,
+ * 새 비밀번호의 「시간이 지났습니다」)를 보여 주려는 것이다. 다시 받기에는 쿠키의 이메일이 필요하다.
+ */
 const COOKIE_SECONDS = 30 * 60;
 
 export interface PasswordReset {
@@ -32,11 +35,18 @@ const cookieOptions = (maxAge: number) => ({
 export async function readPasswordReset(): Promise<PasswordReset | null> {
   const raw = (await cookies()).get(PASSWORD_RESET_COOKIE)?.value;
   if (!raw) return null;
+  let value: unknown;
   try {
-    return JSON.parse(raw) as PasswordReset;
+    value = JSON.parse(raw);
   } catch {
     return null;
   }
+  // 모양이 다르면(필드 이름이 바뀐 배포 전의 옛 쿠키 등) 없는 것으로 본다. 화면은 null 이면 처음 단계로 돌려보낸다.
+  if (typeof value !== "object" || value === null) return null;
+  const { email, issuedAt, pin } = value as Record<string, unknown>;
+  if (typeof email !== "string" || typeof issuedAt !== "number" || !Number.isFinite(issuedAt)) return null;
+  if (pin !== undefined && typeof pin !== "string") return null;
+  return pin ? { email, issuedAt, pin } : { email, issuedAt };
 }
 
 /** 서버 액션에서만 부른다. */
@@ -44,12 +54,18 @@ export async function savePasswordReset(state: PasswordReset): Promise<void> {
   (await cookies()).set(PASSWORD_RESET_COOKIE, JSON.stringify(state), cookieOptions(COOKIE_SECONDS));
 }
 
-/** 서버 액션에서만 부른다. delete(name) 은 path 를 받지 않아, 같은 path 로 빈 값을 0초 수명으로 굽는다. */
+/** 서버 액션에서만 부른다. 구운 쿠키와 같은 path 를 줘야 지워진다(이름만 주면 path `/` 쿠키를 지운다). */
 export async function clearPasswordReset(): Promise<void> {
-  (await cookies()).set(PASSWORD_RESET_COOKIE, "", cookieOptions(0));
+  (await cookies()).delete({ name: PASSWORD_RESET_COOKIE, ...cookieOptions(0) });
 }
 
 export const isPinExpired = (state: PasswordReset, now = Date.now()) => now - state.issuedAt >= PIN_VALID_MS;
+
+/** 화면을 그리는 지금의 서버 시각과 핀 만료 여부. 화면의 시계는 이 서버 시각에 맞춰 센다(휴대폰 시계를 믿지 않는다). */
+export function readPinClock(state: PasswordReset): { serverNow: number; expired: boolean } {
+  const serverNow = Date.now();
+  return { serverNow, expired: isPinExpired(state, serverNow) };
+}
 
 /**
  * 화면에 보일 이메일(LOGIN-9, 앱 안 이메일 가림 한 규칙). @ 앞은 처음 2글자 + 마지막 1글자만 두고 나머지는 글자 수만큼
