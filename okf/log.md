@@ -1,6 +1,11 @@
 # Bundle history
 
 ## 2026-10-12
+* **Update**: api PR #10(BFF 뒤 클라이언트 IP 로 요청 제한)에 맞춰 인증 API 호출에 `X-Forwarded-For` 를 넣는 `client-ip.ts` · `TRUSTED_PROXY_HOPS` 를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+* **Update**: 2차 리뷰 반영 — `NetworkError` · 요청 시간 제한 · 서버 오류 로그 · `error.tsx` · `instrumentation.ts`, proxy 의 `?unavailable=1`, `parseAccountCookie` 공용 판정, 로그인 오류 칸 나눔, `getEnumOrEmpty` 를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+* **Update**: 리뷰 Minor 반영 — 공개 경로에서 끝난 접속은 쿠키만 지우고 통과, proxy 제외를 `/design` 과 그 아래로 좁힘, 새 비밀번호 400 사유를 첫 칸에 붙임을 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+* **Update**: 리뷰 반영 — 핀 시계를 서버 시각에 맞춘 것(`readPinClock`)과 `account` 쿠키가 로그인 시점 값이라는 한계를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+* **Update**: 인증 화면을 최신 데모(`docs/demo/src/pages/login`)와 맞춘 것 — 핀 화면의 10분 만료 화면, 새 비밀번호 저장 시간 초과 화면 분리 — 을 [Whale ERP Staff](/whale-erp-staff.md) 의 `(auth)` 줄에 적었다.
 * **Update**: main 의 데모 정적 HTML 생성기 전환을 인증 화면 브랜치에 합치며 [Whale ERP Staff](/whale-erp-staff.md) 에서 `src/app/demo` · `scripts/build-demo.mjs` 줄을 지우고 `docs/demo` 줄을 남겼다.
 
 ## 2026-10-08
