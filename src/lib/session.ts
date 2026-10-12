@@ -23,7 +23,7 @@ export interface Session {
 
 /**
  * 접속이 끝났을 때 가는 곳. 서버 컴포넌트는 쿠키를 지울 수 없어, proxy 가 이 경로에서 갱신을 해 보고
- * 정말 끝났으면(401) 쿠키를 지우고 안내를 보인다. 살아 있으면 쿠키를 다시 굽고 /home 으로 돌려보낸다.
+ * 정말 끝났으면(401 · 400) 쿠키를 지우고 안내를 보인다. 살아 있으면 쿠키를 다시 굽고 /home 으로 돌려보낸다.
  */
 export const EXPIRED_LOGIN_PATH = "/login?expired=1";
 

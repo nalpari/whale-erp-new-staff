@@ -8,7 +8,7 @@ import { loginAction, type LoginState } from "./actions";
 
 // 기준: 데모 docs/demo/src/pages/login 의 login · fail · locked · expired.
 // 남은 횟수와 남은 잠금 시간은 api 가 주지 않아 보이지 않는다. 이메일 찾기(WHALEERP-178·179)는 API 가 생기면 더한다.
-// unavailable 은 proxy 가 접속을 갱신하려다 api 에 닿지 못한 경우다(접속이 끝났는지 모른다).
+// unavailable 은 proxy 의 갱신이 401 · 400 아닌 이유(연결 실패 · 시간 초과 · 429 · 5xx)로 실패한 경우다(접속이 끝났는지 모른다).
 export function LoginForm({ expired, reset, unavailable }: { expired: boolean; reset: boolean; unavailable: boolean }) {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(loginAction, { email: "" });
   // 「5분 뒤 다시 시도」로 걷어 낸 잠금 결과. 같은 경로로 가는 링크는 화면을 새로 그리지 않아 상태가 남는다.
