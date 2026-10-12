@@ -1,11 +1,15 @@
 # Bundle history
 
+## 2026-10-12
+* **Update**: main 의 데모 정적 HTML 생성기 전환을 인증 화면 브랜치에 합치며 [Whale ERP Staff](/whale-erp-staff.md) 에서 `src/app/demo` · `scripts/build-demo.mjs` 줄을 지우고 `docs/demo` 줄을 남겼다.
+
 ## 2026-10-08
 * **Update**: 핀 화면 이메일 가림(LOGIN-9 공통 규칙)과 1분 안 핀 재요청 처리를 [Whale ERP Staff](/whale-erp-staff.md) 의 `password-reset.ts` 줄에 적었다.
 * **Update**: 비밀번호 재설정 화면(핀 요청 · 핀 입력 · 새 비밀번호, `password_reset` 쿠키)을 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 에 적었다(WHALEERP-174·175·176).
 * **Update**: 만료 안내(`/login?expired=1`)에서 갱신으로 확인한 뒤에만 쿠키를 지우게 바꾼 것을 [Whale ERP Staff](/whale-erp-staff.md) 의 proxy 줄에 적었다.
 * **Update**: 리뷰 반영 — 액세스 토큰 쿠키 14분, 세션을 못 읽으면 만료 경로, 데모 빌드의 남은 파일 검사 · Ctrl-C 되돌리기를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
 * **Update**: 직원 계정 로그인 · 접속 유지(proxy) · 로그아웃과 임시 홈, 세션 쿠키 · openapi 타입 생성 · enum 조회, 공통 부품 `Dock`·`Alert`·`DangerButton`, 데모 빌드에서 실제 앱 치우기를 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 에 적었다(WHALEERP-165·166·167).
+* **Update**: 직원 근무 앱 데모를 앱 안 React(`src/app/demo`, `scripts/build-demo.mjs`, Next 정적 내보내기)에서 front 방식 정적 HTML 생성기(`docs/demo/build.mjs`·`src/ui.mjs`·`src/pages`·`assets/staff.js`)로 옮긴 것을 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 절에 적었다(재영).
 * **Update**: `2026-09-30-네이밍-규칙.md` 2026-10-08 고침을 [네이밍 규칙](/conventions/naming.md) 에 옮겼다 — 「근무 · 출퇴근」의 근무 유형 4종(`DAY`·`OPEN`·`MIDDLE`·`CLOSE`, enum `work_type`) 줄을 지웠다(재영).
 * **Update**: 데모의 핀 화면·새 이메일 인증의 이메일 가림을 이메일 찾기와 같은 규칙으로 맞췄다(2026-10-08) — [Whale ERP Staff](/whale-erp-staff.md) 구조는 그대로.
 * **Update**: 데모 로그인의 이메일 찾기 결과(목록·가림 규칙)와 쓸 수 없는 링크 문구를 바꿨다(LOGIN-6·9, 2026-10-08) — [Whale ERP Staff](/whale-erp-staff.md) 구조는 그대로.

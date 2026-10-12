@@ -1,0 +1,132 @@
+// 신고 정보 데모. 기준 목업: docs/mockup/app/tax.html — 상태 4개(안내 · 입력 · 완료 · 등록된 값)와 시트 1개(계약서에는 왜 없나요),
+// 화면 문구·가짜 값·하단 버튼의 이동(data-go)·알림(data-toast)을 그대로 옮겼다.
+// 신고 정보는 날인을 마친 직원이 직접 넣는 4대보험 취득 신고·원천징수용 값이고 계약서와 따로 받는다(STAFF-16).
+// 확정 쟁점: 주민등록번호는 계약서에 넣지 않는다(TAX-1) · 날인 직후 본인이 넣는다, 관리자가 대신 받는 길 없음(TAX-2) ·
+// 동의 체크 없이 수집 목적을 적는다(TAX-3) · 건너뛸 수 없다(TAX-4) · 급여 계좌를 같은 화면에서 받는다(TAX-5) ·
+// 신고 서류를 누가 만드는지는 2차로 미룸(TAX-6). 안내는 근거별로 나눈다 — 주민등록번호는 법령, 급여 계좌는 계약 이행(운영 정책 TAX-08).
+// 처리방침 문구는 우리 초안 · 법무 확인 대기(TAX-7)라 화면 문구도 목업 그대로 두었다.
+// 목업과 다른 점: 주민등록번호 입력칸은 앞 6자리와 뒤 7자리로 나누고 뒷자리를 가려 보인다(목업은 한 칸에 그대로 보임).
+// Figma 없음 — DESIGN.md 기준 초안.
+// 입력 화면의 뒤로 가기는 들어온 곳(안내 또는 등록된 값)으로 돌아간다(목업 data-go-back) — assets/staff.js 가 맞춘다.
+import { FIELD, backHeader, body, bottomSheet, button, card, dock, iconRow, label, maskIcon, notice, page, pageHeader, seal, state, sunken, textField, values } from "../../ui.mjs";
+
+// 목업 오른쪽 상태 목록 순서 그대로. why 는 목업의 안내 화면 시트라 안내 위에 띄운다.
+const STATES = [
+  { id: "intro", label: "안내", note: "날인 직후" },
+  { id: "form", label: "입력", note: "동의 체크 없음" },
+  { id: "done", label: "완료", note: "수집 일시·목적" },
+  { id: "view", label: "등록된 값", note: "내 정보에서" },
+  { id: "why", label: "계약서에는 왜 없나요", note: "안내 시트" },
+];
+
+// 두 값의 받은 근거(운영 정책 TAX-08). 입력 화면과 등록된 값 화면이 같은 문장을 쓴다.
+const RRN_BASIS = "4대보험 취득 신고와 근로소득 원천징수를 위해 <b>법령에 따라</b> 받습니다. 동의 없이 받으며, 신고 서류를 만들 때만 씁니다.";
+const ACCOUNT_BASIS = "<b>근로계약에 따라</b> 급여를 보내기 위해 받습니다. 급여 지급 외에는 쓰지 않습니다.";
+
+// 받은 근거 한 줄(Caption 12px). 강조는 <b>.
+const basis = (children) => `<p class="pt-[6px] text-[12px] text-staff-text-sub first:pt-0 [&_b]:font-bold [&_b]:text-staff-text">${children}</p>`;
+
+// 주민등록번호: 앞 6자리는 보이고 뒤 7자리는 가린다(type=password). textField 는 한 칸이라 FIELD 로 두 칸을 그린다.
+const rrnField = () =>
+  `<fieldset class="flex flex-col gap-[8px]"><legend class="pb-[8px] text-[13px] font-semibold text-staff-text-sub">주민등록번호*</legend><div class="flex items-center gap-[8px]"><input aria-label="주민등록번호 앞 6자리" inputmode="numeric" maxlength="6" required value="900101" class="${FIELD}"><span aria-hidden="true" class="text-staff-text-muted">–</span><input aria-label="주민등록번호 뒤 7자리" type="password" inputmode="numeric" maxlength="7" autocomplete="off" required value="1234567" aria-describedby="tax-rrn-help" class="${FIELD}"></div><p id="tax-rrn-help" class="text-[12px] text-staff-text-muted">본인의 번호만 넣을 수 있습니다.</p></fieldset>`;
+
+const sheet = (a = {}) =>
+  bottomSheet(
+    "why",
+    { title: "계약서에는 왜 없나요", ...a },
+    `<p class="text-[14px] text-staff-text-sub">근로계약서가 적어야 하는 것은 근무 조건입니다. 임금·근로시간·휴일·연차 같은 것들이고, 사람을 특정하는 데는 이름과 생년월일이면 됩니다.</p><p class="text-[14px] text-staff-text-sub">주민등록번호는 법이 허용한 목적에만 쓸 수 있습니다. 여기서는 4대보험 취득 신고와 원천징수가 그 목적입니다. 계약서에 넣어 두면 그 목적 밖으로 번지기 때문에 받는 자리를 따로 두었습니다.</p>${notice(
+      "관리자는 어느 화면에서도 직원의 주민등록번호를 입력하지 않습니다.",
+    )}`,
+  );
+
+const intro = () =>
+  pageHeader("신고 정보", { backHref: page("contract", "signed") }) +
+  body(
+    `<div class="flex flex-col items-center gap-[8px] text-center"><span class="text-staff-text-sub">${maskIcon("contract.svg", 28)}</span><h2 class="text-[22px] font-bold">한 가지만 더 받습니다</h2><p class="text-[14px] text-staff-text-sub">계약이 체결되었습니다. 신고와 급여에 쓸 정보를 넣어야 앱을 쓸 수 있습니다.</p></div>` +
+      card(
+        label("이 값들을 쓰는 곳") +
+          `<div class="flex flex-col divide-y divide-staff-border-light pt-[10px]">${iconRow({ icon: "shield.svg", flipY: true, title: "4대보험 자격취득 신고", sub: "국민연금 · 건강보험 · 고용보험 · 산재보험" })}${iconRow({
+            icon: "contract.svg",
+            title: "근로소득 원천징수",
+            sub: "급여에서 떼는 세금을 신고할 때",
+          })}${iconRow({ icon: "nav-pay.svg", title: "급여 지급", sub: "달마다 급여가 들어갈 계좌" })}</div>`,
+      ) +
+      notice("넣은 값은 <strong>암호화해 보관</strong>합니다. 관리자 화면에는 가려진 형태로만 보이고, 원본은 신고 서류를 만들 때만 씁니다.", maskIcon("shield.svg", 14, true)) +
+      button("왜 계약서가 아니라 여기서 받나요", { variant: "ghost", "data-open": "why" }),
+  ) +
+  // 건너뛰는 길을 두지 않는다(TAX-4).
+  dock(`${button(`${maskIcon("pencil.svg", 14)}넣기`, { "data-go": "form" })}<p class="py-[2px] text-center text-[12px] text-staff-text-muted">이 단계를 마쳐야 앱을 쓸 수 있습니다</p>`);
+
+const VIEWS = {
+  intro: () => intro() + sheet(),
+
+  form: () =>
+    backHeader("신고 정보", "intro") +
+    body(
+      `<div class="flex flex-col gap-[6px]"><h2 class="text-[22px] font-bold">주민등록번호와 급여 계좌</h2><p class="text-[14px] text-staff-text-sub">신고 서류와 급여 이체에 그대로 쓰입니다. 다시 한 번 확인해 주세요.</p></div>` +
+        // 동의 체크 없이 칸마다 받은 근거를 적는다(TAX-3 · 운영 정책 TAX-08).
+        `<div class="flex flex-col gap-[8px]">${basis(RRN_BASIS)}${rrnField()}</div>` +
+        `<div class="flex flex-col gap-[8px]">${basis(ACCOUNT_BASIS)}${textField({
+          label: "급여 계좌*",
+          required: true,
+          value: "국민은행 123456-01-234567",
+          help: "예금주가 본인이어야 합니다. 급여는 이 계좌로 들어갑니다.",
+        })}</div>` +
+        sunken(
+          values([
+            ["이름", "김민서"],
+            ["생년월일", "1990-01-01"],
+          ]) + `<p class="pt-[8px] text-[12px] text-staff-text-muted">본인인증으로 확정된 값입니다. 앞자리가 다르면 넣을 수 없습니다.</p>`,
+        ) +
+        notice(
+          "이 정보는 <strong>강남역점(사업주)</strong>이 받으며, WHALE ERP 는 강남역점의 위탁을 받아 암호화해 보관합니다. 둘 다 동의로 받고 말고를 정하는 값이 아니라 <strong>동의 항목이 없습니다.</strong>",
+        ),
+    ) +
+    dock(button("등록하기", { "data-go": "done", "data-toast": "신고 정보를 받았습니다" })),
+
+  done: () =>
+    body(
+      seal("등록<br>완료") +
+        `<div class="flex flex-col gap-[6px]"><h1 class="text-[22px] font-bold">신고 정보를 받았습니다</h1><p class="text-[14px] text-staff-text-sub">4대보험 취득 신고가 진행됩니다. 이제 근무를 시작할 수 있습니다.</p></div>` +
+        sunken(
+          values([
+            ["주민등록번호", "900101-1******"],
+            ["급여 계좌", "국민 ******-01-234567"],
+            ["받은 목적", "취득 신고 · 원천징수"],
+            ["받은 때", "2026-09-14 14:08"],
+          ]),
+        ) +
+        `<p class="text-[12px] text-staff-text-muted">내 정보에서 언제든 다시 확인하고 고칠 수 있습니다.</p>`,
+      { center: true },
+    ) + dock(button("근무 시작하기", { href: page("home") })),
+
+  view: () =>
+    pageHeader("등록된 신고 정보", { backHref: page("me") }) +
+    body(
+      card(
+        `${label("주민등록번호")}<p class="pt-[4px] text-[18px] font-bold">900101-1******</p><p class="pt-[6px] text-[12px] text-staff-text-muted">뒷자리는 본인에게도 다시 보여주지 않습니다. 고치려면 새로 넣습니다.</p>`,
+      ) +
+        card(
+          `${label("급여 계좌")}<p class="pt-[4px] text-[18px] font-bold">국민 ******-01-234567</p><p class="pt-[6px] text-[12px] text-staff-text-muted">계좌를 바꾸면 다음 급여부터 새 계좌로 들어갑니다.</p>`,
+        ) +
+        sunken(
+          label("기록") +
+            `<div class="pt-[8px]">${values([
+              ["받은 때", "2026-09-14 14:08"],
+              ["쓰는 곳", "취득 신고 · 원천징수"],
+            ])}</div>`,
+        ) +
+        sunken(label("받은 근거") + basis(`<b>주민등록번호</b> — ${RRN_BASIS}`) + basis(`<b>급여 계좌</b> — ${ACCOUNT_BASIS}`)) +
+        notice("이 정보는 <strong>강남역점(사업주)</strong>이 받으며, WHALE ERP 는 강남역점의 위탁을 받아 암호화해 보관합니다.") +
+        notice("관리자 화면에도 <strong>가려진 형태로만</strong> 보입니다. 원본은 신고 서류를 만들 때만 꺼내 씁니다.", maskIcon("shield.svg", 14, true)),
+    ) +
+    dock(button("새로 넣기", { variant: "ghost", "data-go": "form" })),
+
+  why: () => intro() + sheet({ "data-sheet-auto": true, "data-on-close": "#intro" }),
+};
+
+export default () => ({
+  title: "신고 정보",
+  states: STATES,
+  html: `<main class="flex flex-1 flex-col leading-[1.5]">${STATES.map((s) => state(s.id, VIEWS[s.id]())).join("")}</main>`,
+});
