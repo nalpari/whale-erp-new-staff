@@ -171,14 +171,14 @@ const screen = (view) =>
     view
   ]()}</main><div class="sticky bottom-0 mt-auto">${bottomNav("home")}</div></div>`;
 
-// 근무지 고르기(Figma 03.Sheet). 고른 근무지를 근무·출퇴근 현황·급여·알림이 모두 따른다(HOME-2). 최근 선택이 곧 지금 근무지다.
-// 고르면 머리줄 점포 이름(data-slot="store")을 바꾸고 닫는다. 체크·「최근 선택」은 data-pick 묶음이 고른 칸으로 옮긴다.
+// 근무지 고르기(Figma 03.Sheet). 제목·설명·선택지는 /design 과 같다(2026-10-12 재영). 고른 근무지를 근무·출퇴근 현황·급여·알림이 모두 따른다(HOME-2). 최근 선택이 곧 지금 근무지다.
+// 고르면 머리줄 점포 이름(data-slot="store")을 바꾸고 닫는다. 체크는 data-pick 묶음이 고른 칸으로 옮긴다.
 const storeSheet = (a = {}) =>
   bottomSheet(
     "store",
-    { title: "근무지 고르기", description: "최근에 고른 근무지가 기본으로 표시됩니다.", ...a },
+    { title: "어디에서 근무하시나요?", description: "선택한 근무지의 정보를 보여드려요.", ...a },
     `<div data-pick class="contents">${STORES.map((s) =>
-      sheetOption(`${s}<span data-pick-only class="text-[12px] font-normal text-staff-text-muted${s === STORE ? "" : " hidden"}">최근 선택</span>`, {
+      sheetOption(s, {
         selected: s === STORE,
         "data-set": `store=${s}`,
         "data-toast": s === STORE ? undefined : `${s}으로 전환했습니다`,
