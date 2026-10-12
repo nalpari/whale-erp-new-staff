@@ -69,7 +69,9 @@ const loginView = (fail) =>
     top: brandLogo(),
     title: "다시 오셨네요",
     desc: "근무 정보와 출퇴근을 확인하려면 로그인하세요.",
-    dock: button(`로그인${arrow()}`, go("splash")) + ghost("비밀번호를 잊으셨나요", go("forgot")) + ghost("이메일이 기억나지 않나요", go("find")),
+    // 기본 로그인은 /design/login(Figma 01.Login)과 같게 둔다 — 버튼 둘, 비밀번호 칸 비움(2026-10-12 재영).
+    // 이메일 찾기(LOGIN-8)는 이 화면에 버튼이 없어 상태 전환 도구로만 들어간다.
+    dock: button(`미리보기 로그인${arrow()}`, go("splash")) + ghost("비밀번호를 잊으셨나요", go("forgot")),
     children: `<div class="flex flex-col gap-[16px]">${textField({
       label: "이메일",
       type: "email",
@@ -80,7 +82,7 @@ const loginView = (fail) =>
       label: "비밀번호",
       type: "password",
       autocomplete: "current-password",
-      value: "haeun2026",
+      ...(fail ? { value: "haeun2026" } : { placeholder: "비밀번호를 입력해 주세요" }),
       error: fail ? "이메일이나 비밀번호가 맞지 않습니다" : undefined,
     })}</div>${
       fail

@@ -8,7 +8,6 @@
       "Segoe UI Symbol", "Noto Color Emoji";
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
-    --color-black: #000;
     --color-white: #fff;
     --font-weight-normal: 400;
     --font-weight-medium: 500;
@@ -35,7 +34,6 @@
     --color-staff-error: #ef4444;
     --color-staff-navy: #182237;
     --font-staff: var(--font-pretendard), Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-    --font-staff-code: Menlo, ui-monospace, "SFMono-Regular", Consolas, monospace;
   }
 }
 @layer base {
