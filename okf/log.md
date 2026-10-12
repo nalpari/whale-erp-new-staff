@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-12
+* **Update**: 3차 리뷰 반영 — `/login?unavailable=1` 재확인(루프 방지), 기동 시 설정 확인(`register`), `ClientIp` 타입 · 고르지 못할 때 경고, 본문 시간 초과를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
 * **Update**: api PR #10(BFF 뒤 클라이언트 IP 로 요청 제한)에 맞춰 인증 API 호출에 `X-Forwarded-For` 를 넣는 `client-ip.ts` · `TRUSTED_PROXY_HOPS` 를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
 * **Update**: 2차 리뷰 반영 — `NetworkError` · 요청 시간 제한 · 서버 오류 로그 · `error.tsx` · `instrumentation.ts`, proxy 의 `?unavailable=1`, `parseAccountCookie` 공용 판정, 로그인 오류 칸 나눔, `getEnumOrEmpty` 를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
 * **Update**: 리뷰 Minor 반영 — 공개 경로에서 끝난 접속은 쿠키만 지우고 통과, proxy 제외를 `/design` 과 그 아래로 좁힘, 새 비밀번호 400 사유를 첫 칸에 붙임을 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
