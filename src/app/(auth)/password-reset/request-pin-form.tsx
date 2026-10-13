@@ -75,6 +75,15 @@ export function RequestPinForm({ timedOut }: { timedOut: boolean }) {
             <strong className="font-bold text-staff-text">그 메일함 자체를 쓸 수 없으면 근무지 점포에 직접 방문해 물어 주세요</strong> —
             관리자가 이메일을 대신 고치지는 못합니다.
           </p>
+          {/* 가입을 마치지 않은 직원은 계정이 없어 인증번호가 가지 않는다. 화면은 계정 유무를 드러내지 않으려고 누구에게나
+              「보냈습니다」로 넘어가므로, 미가입자를 가려 안내할 수 없어 모두에게 보이는 안내로 둔다(WHALEERP-174, 2026-10-13 노영주). */}
+          <p className="mt-[12px] border-t border-staff-border-light pt-[12px] text-[13px] font-semibold text-staff-text-sub">
+            아직 가입을 마치지 않았다면
+          </p>
+          <p className="pt-[6px] text-[13px] text-staff-text-sub">
+            인증번호는 가입을 마친 계정에만 갑니다. 받은 초대 링크로 가입을 먼저 마쳐 주세요.{" "}
+            <strong className="font-bold text-staff-text">링크가 만료됐으면 근무지에 다시 초대해 달라고 요청해 주세요.</strong>
+          </p>
         </Card>
       </AuthScreen>
     </form>
