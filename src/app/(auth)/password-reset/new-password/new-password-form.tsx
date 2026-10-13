@@ -5,7 +5,7 @@ import { useActionState, useState } from "react";
 import { Button, Card, Notice, TextField } from "@/components/common";
 import { checkPasswordRules } from "@/lib/password-rules";
 import { AuthScreen } from "../../_components/auth-screen";
-import { Countdown } from "../_components/countdown";
+import { Countdown } from "../../_components/countdown";
 import { resetPasswordAction, type NewPasswordState } from "../actions";
 
 // 기준: 데모 docs/demo/src/pages/login 의 newpw. newpw-out(핀 무효 401)은 핀 요청 화면의 ?timeout=1 로 보낸다.
