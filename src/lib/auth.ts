@@ -41,3 +41,11 @@ export function verifyPasswordResetPin(body: Schemas["VerifyPasswordResetPinDto"
 export function resetPassword(body: Schemas["ResetPasswordDto"], clientIp: ClientIp | undefined) {
   return request<void>("/auth/account/password-reset", { method: "POST", json: body, clientIp });
 }
+
+/**
+ * 이름 · 휴대전화번호 · 생년월일로 로그인 이메일을 찾는다. 200 이면 가린 이메일 목록(탈퇴 계정 제외). 맞는 계정이 없으면 어느 값이
+ * 틀렸든 404. 같은 번호로 5번 틀리면 5분 막혀 429 와 본문 lockExpiresAt(요청 제한의 429 에는 없음). 찾은 이메일을 보내지는 않는다.
+ */
+export function findEmails(body: Schemas["EmailFindDto"], clientIp: ClientIp | undefined) {
+  return request<Schemas["EmailFindResponseDto"]>("/auth/account/email-find-attempts", { method: "POST", json: body, clientIp });
+}
