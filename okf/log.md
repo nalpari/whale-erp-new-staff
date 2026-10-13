@@ -1,5 +1,9 @@
 # Bundle history
 
+## 2026-10-13
+
+* **Update**: `2026-09-30-네이밍-규칙.md` 2026-10-13 고침을 [네이밍 규칙](/conventions/naming.md) 에 옮겼다 — 삭제 표시 예외에 임시저장(`DRAFT`) 근로계약 행 삭제를 더했다(재영).
+
 ## 2026-10-08
 * **Update**: 직원 근무 앱 데모를 앱 안 React(`src/app/demo`, `scripts/build-demo.mjs`, Next 정적 내보내기)에서 front 방식 정적 HTML 생성기(`docs/demo/build.mjs`·`src/ui.mjs`·`src/pages`·`assets/staff.js`)로 옮긴 것을 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 절에 적었다(재영).
 * **Update**: `2026-09-30-네이밍-규칙.md` 2026-10-08 고침을 [네이밍 규칙](/conventions/naming.md) 에 옮겼다 — 「근무 · 출퇴근」의 근무 유형 4종(`DAY`·`OPEN`·`MIDDLE`·`CLOSE`, enum `work_type`) 줄을 지웠다(재영).
