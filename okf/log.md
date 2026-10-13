@@ -1,11 +1,25 @@
 # Bundle history
 
 ## 2026-10-13
-
+* **Update**: 머지 블로커 반영 — 운영에서 `TRUSTED_PROXY_HOPS` 가 비었거나 0 이면 기동을 막는 것을 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
 * **Update**: `2026-09-30-네이밍-규칙.md` 2026-10-13 고침을 [네이밍 규칙](/conventions/naming.md) 에 옮겼다 — 삭제 표시 예외에 노출 대상 연결 표 `post_audiences` 행 삭제를 더했다(재영, api #18).
 * **Update**: `2026-09-30-네이밍-규칙.md` 2026-10-13 고침을 [네이밍 규칙](/conventions/naming.md) 에 옮겼다 — 삭제 표시 예외에 임시저장(`DRAFT`) 근로계약 행 삭제를 더했다(재영).
 
+## 2026-10-12
+* **Update**: 3차 리뷰 반영 — `/login?unavailable=1` 재확인(루프 방지), 기동 시 설정 확인(`register`), `ClientIp` 타입 · 고르지 못할 때 경고, 본문 시간 초과를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+* **Update**: api PR #10(BFF 뒤 클라이언트 IP 로 요청 제한)에 맞춰 인증 API 호출에 `X-Forwarded-For` 를 넣는 `client-ip.ts` · `TRUSTED_PROXY_HOPS` 를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+* **Update**: 2차 리뷰 반영 — `NetworkError` · 요청 시간 제한 · 서버 오류 로그 · `error.tsx` · `instrumentation.ts`, proxy 의 `?unavailable=1`, `parseAccountCookie` 공용 판정, 로그인 오류 칸 나눔, `getEnumOrEmpty` 를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+* **Update**: 리뷰 Minor 반영 — 공개 경로에서 끝난 접속은 쿠키만 지우고 통과, proxy 제외를 `/design` 과 그 아래로 좁힘, 새 비밀번호 400 사유를 첫 칸에 붙임을 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+* **Update**: 리뷰 반영 — 핀 시계를 서버 시각에 맞춘 것(`readPinClock`)과 `account` 쿠키가 로그인 시점 값이라는 한계를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+* **Update**: 인증 화면을 최신 데모(`docs/demo/src/pages/login`)와 맞춘 것 — 핀 화면의 10분 만료 화면, 새 비밀번호 저장 시간 초과 화면 분리 — 을 [Whale ERP Staff](/whale-erp-staff.md) 의 `(auth)` 줄에 적었다.
+* **Update**: main 의 데모 정적 HTML 생성기 전환을 인증 화면 브랜치에 합치며 [Whale ERP Staff](/whale-erp-staff.md) 에서 `src/app/demo` · `scripts/build-demo.mjs` 줄을 지우고 `docs/demo` 줄을 남겼다.
+
 ## 2026-10-08
+* **Update**: 핀 화면 이메일 가림(LOGIN-9 공통 규칙)과 1분 안 핀 재요청 처리를 [Whale ERP Staff](/whale-erp-staff.md) 의 `password-reset.ts` 줄에 적었다.
+* **Update**: 비밀번호 재설정 화면(핀 요청 · 핀 입력 · 새 비밀번호, `password_reset` 쿠키)을 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 에 적었다(WHALEERP-174·175·176).
+* **Update**: 만료 안내(`/login?expired=1`)에서 갱신으로 확인한 뒤에만 쿠키를 지우게 바꾼 것을 [Whale ERP Staff](/whale-erp-staff.md) 의 proxy 줄에 적었다.
+* **Update**: 리뷰 반영 — 액세스 토큰 쿠키 14분, 세션을 못 읽으면 만료 경로, 데모 빌드의 남은 파일 검사 · Ctrl-C 되돌리기를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+* **Update**: 직원 계정 로그인 · 접속 유지(proxy) · 로그아웃과 임시 홈, 세션 쿠키 · openapi 타입 생성 · enum 조회, 공통 부품 `Dock`·`Alert`·`DangerButton`, 데모 빌드에서 실제 앱 치우기를 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 에 적었다(WHALEERP-165·166·167).
 * **Update**: 직원 근무 앱 데모를 앱 안 React(`src/app/demo`, `scripts/build-demo.mjs`, Next 정적 내보내기)에서 front 방식 정적 HTML 생성기(`docs/demo/build.mjs`·`src/ui.mjs`·`src/pages`·`assets/staff.js`)로 옮긴 것을 [Whale ERP Staff](/whale-erp-staff.md) 의 Layout 절에 적었다(재영).
 * **Update**: `2026-09-30-네이밍-규칙.md` 2026-10-08 고침을 [네이밍 규칙](/conventions/naming.md) 에 옮겼다 — 「근무 · 출퇴근」의 근무 유형 4종(`DAY`·`OPEN`·`MIDDLE`·`CLOSE`, enum `work_type`) 줄을 지웠다(재영).
 * **Update**: 데모의 핀 화면·새 이메일 인증의 이메일 가림을 이메일 찾기와 같은 규칙으로 맞췄다(2026-10-08) — [Whale ERP Staff](/whale-erp-staff.md) 구조는 그대로.

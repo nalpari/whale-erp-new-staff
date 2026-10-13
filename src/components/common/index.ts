@@ -22,3 +22,6 @@ export { SegmentedControl, segmentTabId } from "./segmented-control";
 export { BottomNav, BOTTOM_NAV_ITEMS, type BottomNavItem } from "./bottom-nav";
 export { WeekSelector, type WeekDay } from "./week-selector";
 export { TodoList, TodoItem } from "./todo-list";
+export { Dock } from "./dock";
+export { Alert } from "./alert";
+export { DangerButton } from "./danger-button";
