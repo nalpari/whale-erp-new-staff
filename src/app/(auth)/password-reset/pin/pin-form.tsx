@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { Alert, Button, Notice, TextField } from "@/components/common";
 import { AuthScreen } from "../../_components/auth-screen";
-import { Countdown, useNow } from "../_components/countdown";
+import { Countdown, useNow } from "../../_components/countdown";
 import { resendPinAction, verifyPinAction, type PinState, type ResendState } from "../actions";
 
 // 기준: 데모 docs/demo/src/pages/login 의 pin · pin-out. 10분이 지난 것(pin-out)은 서버가 그릴 때 이미 지났으면 expired 로,

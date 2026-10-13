@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import { Dock } from "@/components/common";
 
 export const CONNECTION_FAILED_MESSAGE = "서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요";
@@ -13,9 +13,15 @@ export function AuthScreen({
   description,
   children,
   dock,
+  titleRef,
 }: {
   top?: ReactNode;
   title: string;
+  /**
+   * 주면 제목이 초점을 받을 수 있게 된다(tabIndex -1). 페이지 이동 없이 같은 화면에서 결과로 바뀔 때(이메일 찾기) 부른 쪽이 제목에
+   * 초점을 옮긴다 — 누른 버튼이 사라지면 초점이 body 로 떨어져 화면 읽기 사용자는 바뀐 줄 모른다.
+   */
+  titleRef?: Ref<HTMLHeadingElement>;
   description?: ReactNode;
   children?: ReactNode;
   dock: ReactNode;
@@ -25,7 +31,9 @@ export function AuthScreen({
       <div className="flex flex-col gap-[16px] px-[30px] pt-[52px] pb-[24px] leading-[1.5]">
         {top && <div className="pt-[10px] pb-[60px]">{top}</div>}
         <div className="flex flex-col gap-[6px] pb-[8px]">
-          <h1 className="text-[28px] font-bold">{title}</h1>
+          <h1 ref={titleRef} tabIndex={titleRef ? -1 : undefined} className="text-[28px] font-bold outline-none">
+            {title}
+          </h1>
           {description && (
             <p className="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">{description}</p>
           )}

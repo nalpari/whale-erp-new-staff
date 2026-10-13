@@ -142,6 +142,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/account/email-find-attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 이름 · 휴대전화번호 · 생년월일로 로그인 이메일을 찾는다(WHALEERP-178). 계정의 본인인증 값과 모두 맞으면
+         *     가린 이메일 목록을 준다. 찾은 이메일을 메일이나 문자로 보내지 않는다.
+         *
+         *     맞는 계정이 없으면 어느 값이 틀렸든 같은 메시지의 404 다. 같은 휴대전화번호로 5번 틀리면 5분 동안 막히고,
+         *     막힌 동안은 값이 맞아도 429 와 해제 시각(`lockExpiresAt`)을 준다. 풀리거나 성공하면 횟수는 0 이 된다.
+         */
+        post: operations["EmailFindController_find"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/enums": {
         parameters: {
             query?: never;
@@ -168,6 +191,59 @@ export interface paths {
         get: operations["EnumsController_findOne"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/code-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 공통코드 그룹 목록. 플랫폼고정 · 플랫폼제공 그룹을 표시 순서대로. */
+        get: operations["CodeGroupsController_listGroups"];
+        /** 그룹 목록 패널 저장. 기존 그룹 수정(`updates`)과 새 그룹(`creates`)을 한 번에. */
+        put: operations["CodeGroupsController_saveGroups"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/code-groups/{groupCode}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 고른 그룹의 상세 코드(플랫폼 원본). BP전용 코드는 나오지 않는다. */
+        get: operations["CodeGroupsController_listItems"];
+        /** 상세 코드 목록 패널 저장. 기존 코드 수정(`updates`)과 새 코드(`creates`)를 한 번에. */
+        put: operations["CodeGroupsController_saveItems"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/code-groups/{groupCode}/bp-application": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** BP에 적용. 플랫폼제공 그룹만. 각 BP 에 아직 없는 행만 넣는다 — 다시 눌러도 된다. */
+        post: operations["CodeGroupsController_applyToBps"];
         delete?: never;
         options?: never;
         head?: never;
@@ -296,6 +372,32 @@ export interface components {
              */
             newPassword: string;
         };
+        EmailFindDto: {
+            /** @description 본인인증 실명. 앞뒤 공백은 무시하고, 한글 자모가 풀려 와도(NFD) 같은 이름으로 본다. */
+            name: string;
+            /** @description 휴대전화번호. 하이픈 · 공백은 지우고 숫자 10~11자리만 받는다. */
+            phone: string;
+            /** @description 생년월일. YYYY-MM-DD 이고 있는 날짜여야 한다. */
+            birthDate: string;
+        };
+        EmailFindResponseDto: {
+            /**
+             * @description 맞는 계정의 로그인 이메일을 가린 것. 휴대전화번호는 고유하지 않아 여럿일 수 있고(탈퇴 계정은 뺀다),
+             *     가입 순서대로다. @ 앞은 처음 2글자와 마지막 1글자만 보이고(3글자 이하면 첫 글자만), 도메인은 그대로다.
+             *     예: st*****m@gmail.com
+             */
+            emails: string[];
+        };
+        EmailFindTooManyRequestsResponseDto: {
+            statusCode: number;
+            message: string;
+            error: string;
+            /**
+             * Format: date-time
+             * @description 번호 잠금이 풀리는 시각. 요청 제한의 429 에는 없다.
+             */
+            lockExpiresAt?: string;
+        };
         EnumValueDto: {
             /** @description 저장·전송 값. 예: PENDING_SEND */
             value: string;
@@ -336,12 +438,135 @@ export interface components {
             };
         };
         /**
-         * @description 발송 대기 또는 서명 대기
+         * @description 사용 상태.
          * @enum {string}
          */
-        ContractStatus: "PENDING_SEND" | "PENDING_SIGNATURE" | "SIGNED" | "REJECTED" | "EXPIRED" | "ENDED";
+        UseStatus: "ACTIVE" | "INACTIVE";
+        CodeGroupResponseDto: {
+            /**
+             * @description 관리 주체. 공통코드 MANAGE_OWNER 값.
+             * @enum {string}
+             */
+            manageOwnerCode: "PLATFORM_FIXED" | "PLATFORM_PROVIDED";
+            /** @description 사용 상태. */
+            status: components["schemas"]["UseStatus"];
+            /**
+             * @description 그룹 코드.
+             * @example EMP_TYPE
+             */
+            groupCode: string;
+            /** @description 그룹명. */
+            groupName: string;
+            /** @description BP 적용 여부. 플랫폼제공 그룹만 의미가 있다. */
+            isBpApplied: boolean;
+            /** @description 표시 순서. */
+            sortOrder: number;
+        };
+        CodeGroupListResponseDto: {
+            items: components["schemas"]["CodeGroupResponseDto"][];
+            /** @description 조건에 맞는 전체 건수. */
+            total: number;
+        };
+        UpdateCodeGroupDto: {
+            /**
+             * @description 그룹 코드. 수정이면 대상을 가리킬 뿐 바뀌지 않는다.
+             * @example EMP_TYPE
+             */
+            groupCode: string;
+            /** @description 그룹명. 앞뒤 공백을 지우고 1~50자. */
+            groupName: string;
+            /**
+             * @description 사용 상태.
+             * @enum {string}
+             */
+            status: "ACTIVE" | "INACTIVE";
+            /** @description 표시 순서. 화면이 끌어 옮긴 뒤 1부터 다시 매긴 값. */
+            sortOrder: number;
+        };
+        CreateCodeGroupDto: {
+            /**
+             * @description 그룹 코드. 수정이면 대상을 가리킬 뿐 바뀌지 않는다.
+             * @example EMP_TYPE
+             */
+            groupCode: string;
+            /** @description 그룹명. 앞뒤 공백을 지우고 1~50자. */
+            groupName: string;
+            /**
+             * @description 사용 상태.
+             * @enum {string}
+             */
+            status: "ACTIVE" | "INACTIVE";
+            /** @description 표시 순서. 화면이 끌어 옮긴 뒤 1부터 다시 매긴 값. */
+            sortOrder: number;
+            /**
+             * @description 관리 주체. 플랫폼고정 · 플랫폼제공만. 등록 뒤 바꾸지 않는다.
+             * @enum {string}
+             */
+            manageOwnerCode: "PLATFORM_FIXED" | "PLATFORM_PROVIDED";
+        };
+        SaveCodeGroupsDto: {
+            updates: components["schemas"]["UpdateCodeGroupDto"][];
+            creates: components["schemas"]["CreateCodeGroupDto"][];
+        };
+        CodeItemResponseDto: {
+            /** @description 사용 상태. */
+            status: components["schemas"]["UseStatus"];
+            /**
+             * @description 상세 코드.
+             * @example FULL
+             */
+            itemCode: string;
+            /**
+             * @description 코드명.
+             * @example 정규직
+             */
+            label: string;
+            /** @description 표시 순서. */
+            sortOrder: number;
+        };
+        CodeItemListResponseDto: {
+            items: components["schemas"]["CodeItemResponseDto"][];
+            /** @description 전체 건수. 상세 코드는 쪽을 나누지 않는다. */
+            total: number;
+        };
+        CodeItemInputDto: {
+            /**
+             * @description 상세 코드. 기존 행이면 대상을 가리킬 뿐 바뀌지 않는다. SERVICE 그룹이면 서비스 코드다.
+             * @example FULL
+             */
+            itemCode: string;
+            /**
+             * @description 코드명. 앞뒤 공백을 지우고 1~50자. SERVICE 그룹이면 서비스명이다.
+             * @example 정규직
+             */
+            label: string;
+            /**
+             * @description 사용 상태.
+             * @enum {string}
+             */
+            status: "ACTIVE" | "INACTIVE";
+            /** @description 표시 순서. 화면이 끌어 옮긴 뒤 1부터 다시 매긴 값. */
+            sortOrder: number;
+        };
+        SaveCodeItemsDto: {
+            updates: components["schemas"]["CodeItemInputDto"][];
+            creates: components["schemas"]["CodeItemInputDto"][];
+        };
+        BpApplicationResponseDto: {
+            /** @description 적용 대상 BP 수(사용 중인 고객 BP). */
+            bpCount: number;
+            /** @description 복사한 플랫폼 원본 상세 코드 수. 지운 것은 빠지고 사용 안 함은 포함된다. */
+            itemCount: number;
+            /** @description 실제로 넣은 행 수. BP 에 이미 있던 행은 건너뛰어 세지 않는다. */
+            createdCount: number;
+        };
+        /**
+         * @description 임시저장 · 발송 대기 · 서명 대기
+         * @enum {string}
+         */
+        ContractStatus: "DRAFT" | "PENDING_SEND" | "PENDING_SIGNATURE" | "SIGNED" | "REJECTED" | "EXPIRED" | "ENDED";
         ContractToEndDto: {
-            /** @description 발송 대기 또는 서명 대기 */
+            /** @description 임시저장 · 발송 대기 · 서명 대기 */
             status: components["schemas"]["ContractStatus"];
             contractId: number;
         };
@@ -350,7 +575,7 @@ export interface components {
             schedulesToRemove: number;
             /** @description 개인으로 배정된 미완료 TO-DO 수 — 배정을 푼다 */
             todosToUnassign: number;
-            /** @description 발송 대기 · 서명 대기 계약 — 종료로 닫는다 */
+            /** @description 임시저장 · 발송 대기 · 서명 대기 계약 — 종료로 닫는다 */
             contractsToEnd: components["schemas"]["ContractToEndDto"][];
         };
         RetirementDateDto: {
@@ -515,6 +740,52 @@ export interface operations {
             };
         };
     };
+    EmailFindController_find: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailFindDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailFindResponseDto"];
+                };
+            };
+            /** @description 이름이 비었거나 · 휴대전화번호가 숫자 10~11자리가 아니거나(하이픈 · 공백은 지운 뒤) · 생년월일이 YYYY-MM-DD 의 있는 날짜가 아니거나 · 모르는 칸이 있음. 번호 잠금의 실패로는 세지 않는다(요청 제한에는 센다) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 맞는 계정이 없음. 어느 값이 틀렸든 같은 메시지(「일치하는 계정이 없습니다」)이고 실패 1회로 센다 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `lockExpiresAt` 이 있으면 그 번호가 5번 틀려 그때까지 막힘(값이 맞아도), 없으면 요청 제한 */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailFindTooManyRequestsResponseDto"];
+                };
+            };
+        };
+    };
     EnumsController_findAll: {
         parameters: {
             query?: never;
@@ -555,6 +826,200 @@ export interface operations {
             };
             /** @description 그 이름의 enum 이 없다 */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CodeGroupsController_listGroups: {
+        parameters: {
+            query: {
+                /** @description 쪽 번호. 1부터, 최대 10,000,000 — 건너뛸 행 수가 integer 범위를 넘지 않게. */
+                page: number;
+                /** @description 한 쪽 건수. 기본 20, 최대 200. */
+                pageSize: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CodeGroupListResponseDto"];
+                };
+            };
+            /** @description 플랫폼 관리자가 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CodeGroupsController_saveGroups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveCodeGroupsDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 관리자가 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 고칠 그룹이 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 이미 있는 그룹 코드 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CodeGroupsController_listItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                groupCode: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CodeItemListResponseDto"];
+                };
+            };
+            /** @description 플랫폼 관리자가 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 그룹 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CodeGroupsController_saveItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                groupCode: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveCodeItemsDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 관리자가 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 그룹 · 고칠 상세 코드가 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 이 그룹에 이미 있는 상세 코드 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CodeGroupsController_applyToBps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                groupCode: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BpApplicationResponseDto"];
+                };
+            };
+            /** @description 플랫폼 관리자가 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 그룹 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼제공 그룹이 아님 · 상세 코드가 없음 · 사용 중인 고객 BP 가 없음 */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

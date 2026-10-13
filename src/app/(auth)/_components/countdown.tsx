@@ -23,17 +23,19 @@ export function useNow(serverNow: number): number | null {
   return now === null ? null : now + offset;
 }
 
-/** 핀 입력 · 새 비밀번호가 함께 쓰는 남은 시간(한 시계). 안내용이고 판정은 api 가 한다. */
+/** 남은 시간(핀 입력 · 새 비밀번호의 한 시계, 이메일 찾기 막힘). 안내용이고 판정은 api 가 한다. */
 export function Countdown({ deadline, serverNow }: { deadline: number; serverNow: number }) {
   const now = useNow(serverNow);
-  const left = now === null ? null : Math.max(0, deadline - now);
-  const text =
-    left === null
-      ? "--:--"
-      : `${String(Math.floor(left / 60_000)).padStart(2, "0")}:${String(Math.floor((left % 60_000) / 1000)).padStart(2, "0")}`;
+  const text = now === null ? "--:--" : formatLeft(deadline - now);
   return (
     <span>
       남은 시간 <b className="text-staff-text tabular-nums">{text}</b>
     </span>
   );
+}
+
+/** 남은 시간을 mm:ss 로. 지났으면 00:00. */
+export function formatLeft(ms: number): string {
+  const left = Math.max(0, ms);
+  return `${String(Math.floor(left / 60_000)).padStart(2, "0")}:${String(Math.floor((left % 60_000) / 1000)).padStart(2, "0")}`;
 }

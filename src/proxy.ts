@@ -13,7 +13,7 @@ import {
 } from "@/lib/session-cookies";
 
 // 로그인 없이 여는 화면. 폴더((auth))가 아니라 이 경로 목록으로 판정한다 — (auth) 에 화면을 더하면 여기에도 더한다.
-const PUBLIC_PATHS = ["/login", "/password-reset"];
+const PUBLIC_PATHS = ["/login", "/password-reset", "/email-find"];
 
 const isPublic = (pathname: string) =>
   PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -71,7 +71,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (sessionEnded) {
-    // 로그인 없이 여는 화면(만료 안내 · 비밀번호 재설정)은 쿠키만 지우고 그대로 연다. 다른 기기에서 비밀번호를 바꿔
+    // 로그인 없이 여는 화면(만료 안내 · 비밀번호 재설정 · 이메일 찾기)은 쿠키만 지우고 그대로 연다. 다른 기기에서 비밀번호를 바꿔
     // 접속이 끝난 직원이 「비밀번호를 잊으셨나요」를 눌렀을 때 만료 안내로 한 번 튕기지 않게 한다.
     const response = expiredNotice || isPublic(pathname)
       ? NextResponse.next()
@@ -81,7 +81,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // 갱신이 401 · 400 아닌 이유로 실패했으면 끝났다고 단정하지 않고 「확인하지 못했다」 안내로 보낸다. 로그인이 필요한
-  // 화면과 만료 안내만 해당하고, 그 밖의 공개 화면(/login · /password-reset)은 그대로 연다.
+  // 화면과 만료 안내만 해당하고, 그 밖의 공개 화면(/login · /password-reset · /email-find)은 그대로 연다.
   if (unavailable && (expiredNotice || !isPublic(pathname))) {
     return NextResponse.redirect(new URL(UNAVAILABLE_LOGIN_PATH, request.url));
   }

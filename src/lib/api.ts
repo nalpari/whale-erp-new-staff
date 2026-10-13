@@ -4,12 +4,16 @@ import type { ClientIp } from "./client-ip";
 /** api 가 커밋한 openapi.json 에서 만든 요청·응답 모양(pnpm openapi:types). */
 export type Schemas = components["schemas"];
 
-/** api 가 2xx 가 아닌 응답을 줬다. message 는 Nest 의 message(배열이면 이어 붙임)나 대체 문구다. */
+/**
+ * api 가 2xx 가 아닌 응답을 줬다. message 는 Nest 의 message(배열이면 이어 붙임)나 대체 문구다.
+ * body 는 JSON 본문 그대로다(JSON 이 아니면 null). 메시지 밖의 칸(이메일 찾기 429 의 lockExpiresAt 등)을 읽을 때 쓴다.
+ */
 export class ApiError extends Error {
   override name = "ApiError";
   constructor(
     readonly status: number,
     message: string,
+    readonly body: unknown = null,
   ) {
     super(message);
   }
@@ -95,7 +99,8 @@ export async function request<T>(
   }
 
   if (!response.ok) {
-    const error = new ApiError(response.status, await errorMessage(response, fail));
+    const body = await errorBody(response, fail);
+    const error = new ApiError(response.status, errorMessage(response.status, body), body);
     // 4xx 는 대개 사용자 입력이라 부른 쪽이 화면 문구로 바꾼다. 5xx 는 api 쪽 문제라 여기서 남긴다.
     if (response.status >= 500) console.error(`[api] ${method} ${path} ${response.status}`, error.message);
     throw error;
@@ -108,21 +113,25 @@ export async function request<T>(
 }
 
 /**
- * Nest 는 { statusCode, message, error } 를 주고, 검증 실패면 message 가 배열이다. 본문을 읽다 시간이 넘거나 끊기면 fail 로
- * NetworkError 가 된다. JSON 이 아닌 본문(게이트웨이 HTML 등)은 대체 문구로 바꾸고 남긴다.
+ * 오류 응답의 JSON 본문. 본문을 읽다 시간이 넘거나 끊기면 fail 로 NetworkError 가 된다. JSON 이 아닌 본문(게이트웨이 HTML 등)은
+ * null 로 바꾸고 남긴다.
  */
-async function errorMessage(response: Response, fail: (error: unknown) => never): Promise<string> {
-  const body: unknown = await response.json().catch((error: unknown) => {
+async function errorBody(response: Response, fail: (error: unknown) => never): Promise<unknown> {
+  return response.json().catch((error: unknown) => {
     if (error instanceof SyntaxError) {
       console.warn(`[api] ${response.status} 응답 본문이 JSON 이 아닙니다`);
       return null;
     }
     return fail(error);
   });
+}
+
+/** Nest 는 { statusCode, message, error } 를 주고, 검증 실패면 message 가 배열이다. 없으면 대체 문구. */
+function errorMessage(status: number, body: unknown): string {
   const message = (body as { message?: unknown } | null)?.message;
   if (Array.isArray(message)) return message.join(", ");
   if (typeof message === "string") return message;
-  return `요청이 실패했습니다 (HTTP ${response.status})`;
+  return `요청이 실패했습니다 (HTTP ${status})`;
 }
 
 /** 부른 쪽이 예상하지 못한 api 오류를 남긴다. 화면에는 일반 문구를 보이고 원문은 여기에만 둔다. */
