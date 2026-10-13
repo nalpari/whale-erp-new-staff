@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, type ReactNode } from "react";
 import { Alert, Button, Card, Notice, TextField } from "@/components/common";
 import { AuthScreen } from "../_components/auth-screen";
 import { formatLeft, useNow } from "../_components/countdown";
@@ -9,22 +9,30 @@ import { findEmailAction, type EmailFindState, type EmailFindValues } from "./ac
 // 기준: 데모 docs/demo/src/pages/login 의 find · found · find-fail · find-lock (LOGIN-8 · 9 · 10).
 // 남은 시도 횟수(데모의 「남은 시도는 2번」)는 api 가 주지 않아 보이지 않는다.
 // 생년월일은 데모처럼 글자 칸이다. 숫자 8자리도 받아 서버 액션이 YYYY-MM-DD 로 바꾼다.
+// 결과 화면의 「다시 넣기」도 같은 서버 액션으로 제출한다(넣은 값을 숨은 칸에 실어 보냄). 그래서 JS 없이 보낸 경우에도
+// 동작하고, 넣은 값이 칸에 되돌아온다.
 
 const EMPTY: EmailFindValues = { name: "", phone: "", birthDate: "" };
 
 export function EmailFindForm() {
   const [state, formAction, pending] = useActionState<EmailFindState, FormData>(findEmailAction, { step: "input", values: EMPTY });
-  // 「다시 넣기」로 걷어 낸 결과. 걷어 내면 넣은 값을 칸에 되돌린 입력 화면을 보인다.
-  const [dismissed, setDismissed] = useState<EmailFindState | null>(null);
-  const showing = state === dismissed ? null : state;
 
-  if (showing?.step === "found") return <Found emails={showing.emails} />;
-  if (showing?.step === "not-found") return <NotFound onRetry={() => setDismissed(showing)} />;
-  if (showing?.step === "locked")
-    return <Locked lockExpiresAt={showing.lockExpiresAt} serverNow={showing.serverNow} onRetry={() => setDismissed(showing)} />;
+  if (state.step === "found") return <Found emails={state.emails} />;
+  if (state.step === "not-found")
+    return (
+      <RetryForm action={formAction} values={state.values}>
+        <NotFound pending={pending} />
+      </RetryForm>
+    );
+  if (state.step === "locked")
+    return (
+      <RetryForm action={formAction} values={state.values}>
+        <Locked lockExpiresAt={state.lockExpiresAt} serverNow={state.serverNow} pending={pending} />
+      </RetryForm>
+    );
 
-  const values = state.step === "found" ? EMPTY : state.values;
-  const error = state.step === "input" && state === showing ? state : null;
+  const { values } = state;
+  const error = state.error ? state : null;
   return (
     // 결과 화면에서 돌아오면 폼이 새로 붙어 defaultValue 로 넣은 값을 되돌린다.
     <form action={formAction} className="flex flex-1 flex-col">
@@ -93,6 +101,19 @@ export function EmailFindForm() {
   );
 }
 
+/** 결과 화면의 「다시 넣기」 폼. 넣은 값을 숨은 칸에 실어 같은 액션으로 보내면, 액션은 api 를 부르지 않고 입력 화면을 돌려준다. */
+function RetryForm({ action, values, children }: { action: (formData: FormData) => void; values: EmailFindValues; children: ReactNode }) {
+  return (
+    <form action={action} className="flex flex-1 flex-col">
+      <input type="hidden" name="intent" value="retry" />
+      <input type="hidden" name="name" value={values.name} />
+      <input type="hidden" name="phone" value={values.phone} />
+      <input type="hidden" name="birthDate" value={values.birthDate} />
+      {children}
+    </form>
+  );
+}
+
 /** 결과 화면이 붙을 때 제목에 초점을 옮긴다. 같은 화면에서 바뀌어 경로 알림이 없고, 누른 버튼이 사라져 초점이 body 로 떨어진다. */
 function useFocusedTitle() {
   const ref = useRef<HTMLHeadingElement>(null);
@@ -139,7 +160,7 @@ function Found({ emails }: { emails: string[] }) {
   );
 }
 
-function NotFound({ onRetry }: { onRetry: () => void }) {
+function NotFound({ pending }: { pending: boolean }) {
   const titleRef = useFocusedTitle();
   return (
     <AuthScreen
@@ -148,7 +169,9 @@ function NotFound({ onRetry }: { onRetry: () => void }) {
       description="세 값이 가입 때 확인된 값과 다릅니다."
       dock={
         <>
-          <Button onClick={onRetry}>다시 넣기</Button>
+          <Button type="submit" disabled={pending}>
+            다시 넣기
+          </Button>
           <Button variant="ghost" href="/login" transitionTypes={["nav-back"]}>
             로그인으로 돌아가기
           </Button>
@@ -169,12 +192,14 @@ function NotFound({ onRetry }: { onRetry: () => void }) {
   );
 }
 
-function Locked({ lockExpiresAt, serverNow, onRetry }: { lockExpiresAt: number; serverNow: number; onRetry: () => void }) {
+function Locked({ lockExpiresAt, serverNow, pending }: { lockExpiresAt: number; serverNow: number; pending: boolean }) {
   const titleRef = useFocusedTitle();
   const now = useNow(serverNow);
-  // 하이드레이션 전(now 가 null)에는 아직 막힌 것으로 본다. 판정은 api 가 하므로 일찍 풀려도 다시 429 를 받을 뿐이다.
-  const left = now === null ? lockExpiresAt - serverNow : lockExpiresAt - now;
-  const text = now === null ? "--:--" : formatLeft(left);
+  // 시계가 돌기 전(서버가 그린 화면 · JS 없음 · 하이드레이션 전)은 서버가 그린 순간의 남은 시간을 한 번 보이고 버튼을 열어 둔다 —
+  // 시계가 없으면 버튼을 풀어 줄 수 없어서다. 일찍 누르면 api 가 다시 막힘으로 답할 뿐이다. 시계가 돌면 시간이 다 될 때까지 잠근다.
+  const left = lockExpiresAt - (now ?? serverNow);
+  const text = formatLeft(left);
+  const waiting = now !== null && left > 0;
   return (
     <AuthScreen
       titleRef={titleRef}
@@ -182,8 +207,8 @@ function Locked({ lockExpiresAt, serverNow, onRetry }: { lockExpiresAt: number; 
       description="다섯 번 틀렸습니다. 아래 시간이 지나면 다시 시도할 수 있습니다."
       dock={
         <>
-          <Button onClick={onRetry} disabled={left > 0}>
-            {left > 0 ? `다시 넣기 · ${text} 뒤` : "다시 넣기"}
+          <Button type="submit" disabled={waiting || pending}>
+            {waiting ? `다시 넣기 · ${text} 뒤` : "다시 넣기"}
           </Button>
           <Button variant="ghost" href="/login" transitionTypes={["nav-back"]}>
             로그인으로 돌아가기

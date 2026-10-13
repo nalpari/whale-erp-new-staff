@@ -38,6 +38,8 @@ export async function findEmailAction(_previous: EmailFindState, formData: FormD
     phone: String(formData.get("phone") ?? "").trim(),
     birthDate: String(formData.get("birthDate") ?? "").trim(),
   };
+  // 결과 화면의 「다시 넣기」. api 를 부르지 않고 넣은 값을 칸에 되돌린 입력 화면을 돌려준다.
+  if (formData.get("intent") === "retry") return { step: "input", values };
   const input = (field: "name" | "phone" | "birthDate" | "form", error: string): EmailFindState => ({
     step: "input",
     values,
