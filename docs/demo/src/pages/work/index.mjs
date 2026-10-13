@@ -162,8 +162,8 @@ const schedule = () =>
   `<button type="button" data-go="todo" class="flex items-center gap-[8px] rounded-[18px] border border-staff-border-light bg-[#f9fbfd] p-[20px] text-left transition-colors duration-150 ease-out active:bg-staff-info-bg"><span class="flex min-w-0 flex-1 flex-col gap-[3px]"><span class="text-[13px] font-semibold text-staff-text-sub">TO-DO</span><span class="text-[16px] font-bold">오늘 2건 남음</span></span>${statusChip(
     "warning",
     "긴급 1",
-  )}${img("chevron-right-15.svg", 15, 15, "-scale-y-100")}</button>` +
-  button("출퇴근 등록 화면 보기", { variant: "ghost", href: page("check-in") });
+  )}${img("chevron-right-15.svg", 15, 15, "-scale-y-100")}</button>`;
+// 출퇴근 등록으로 가는 버튼은 두지 않는다. 출퇴근은 하단 메뉴의 출퇴근 칸으로 간다(2026-10-12 재영).
 
 // 빈 상태: 가운데 정렬 아이콘 · 제목(18px) · 설명 13px.
 const emptyView = (icon, title, description) =>

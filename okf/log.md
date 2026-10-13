@@ -2,6 +2,8 @@
 
 ## 2026-10-13
 * **Update**: 머지 블로커 반영 — 운영에서 `TRUSTED_PROXY_HOPS` 가 비었거나 0 이면 기동을 막는 것을 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+* **Update**: `2026-09-30-네이밍-규칙.md` 2026-10-13 고침을 [네이밍 규칙](/conventions/naming.md) 에 옮겼다 — 삭제 표시 예외에 노출 대상 연결 표 `post_audiences` 행 삭제를 더했다(재영, api #18).
+* **Update**: `2026-09-30-네이밍-규칙.md` 2026-10-13 고침을 [네이밍 규칙](/conventions/naming.md) 에 옮겼다 — 삭제 표시 예외에 임시저장(`DRAFT`) 근로계약 행 삭제를 더했다(재영).
 
 ## 2026-10-12
 * **Update**: 3차 리뷰 반영 — `/login?unavailable=1` 재확인(루프 방지), 기동 시 설정 확인(`register`), `ClientIp` 타입 · 고르지 못할 때 경고, 본문 시간 초과를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.

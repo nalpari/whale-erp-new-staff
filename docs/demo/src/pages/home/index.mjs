@@ -68,11 +68,11 @@ const thisWeek = (days) =>
     selected: "09-10",
   })}<p class="border-t border-staff-border-light pt-[12px] text-[12px] text-staff-text-sub">이번 주는 월요일부터 일요일까지, 한국 표준시 기준입니다</p></div></section>`;
 
-// TO-DO 카드. 오른쪽 위 「TO-DO 목록」으로 근무 화면의 TO-DO 쪽에 바로 간다(HOME-1).
+// TO-DO 카드. 오른쪽 위 「전체보기」로 근무 화면의 TO-DO 쪽에 바로 간다(HOME-1).
 const todoSection = (count, children) =>
   `<section class="flex flex-col gap-[12px]">${sectionTitle("TO-DO", {
     count,
-    right: `<a href="${page("work", "todo")}" class="-my-[13px] flex min-h-[44px] items-center gap-[2px] text-[12px] text-staff-text-sub">TO-DO 목록${img("chevron-right-small.svg", 11, 11, "-scale-y-100")}</a>`,
+    right: `<a href="${page("work", "todo")}" class="-my-[13px] flex min-h-[44px] items-center gap-[2px] text-[12px] text-staff-text-sub">전체보기${img("chevron-right-small.svg", 11, 11, "-scale-y-100")}</a>`,
   })}<div class="rounded-[18px] border border-staff-border-light bg-white px-[16px]">${children}</div></section>`;
 
 // 근무 정보(Figma 「나의 근무 정보」 줄 모양). 요약만 보이고 자세한 것은 각 화면에서 본다.
@@ -171,14 +171,14 @@ const screen = (view) =>
     view
   ]()}</main><div class="sticky bottom-0 mt-auto">${bottomNav("home")}</div></div>`;
 
-// 근무지 고르기(Figma 03.Sheet). 고른 근무지를 근무·출퇴근 현황·급여·알림이 모두 따른다(HOME-2). 최근 선택이 곧 지금 근무지다.
-// 고르면 머리줄 점포 이름(data-slot="store")을 바꾸고 닫는다. 체크·「최근 선택」은 data-pick 묶음이 고른 칸으로 옮긴다.
+// 근무지 고르기(Figma 03.Sheet). 제목·설명·선택지는 /design 과 같다(2026-10-12 재영). 고른 근무지를 근무·출퇴근 현황·급여·알림이 모두 따른다(HOME-2). 최근 선택이 곧 지금 근무지다.
+// 고르면 머리줄 점포 이름(data-slot="store")을 바꾸고 닫는다. 체크는 data-pick 묶음이 고른 칸으로 옮긴다.
 const storeSheet = (a = {}) =>
   bottomSheet(
     "store",
-    { title: "근무지 고르기", description: "최근에 고른 근무지가 기본으로 표시됩니다.", ...a },
+    { title: "어디에서 근무하시나요?", description: "선택한 근무지의 정보를 보여드려요.", ...a },
     `<div data-pick class="contents">${STORES.map((s) =>
-      sheetOption(`${s}<span data-pick-only class="text-[12px] font-normal text-staff-text-muted${s === STORE ? "" : " hidden"}">최근 선택</span>`, {
+      sheetOption(s, {
         selected: s === STORE,
         "data-set": `store=${s}`,
         "data-toast": s === STORE ? undefined : `${s}으로 전환했습니다`,
