@@ -8,7 +8,8 @@ import { isIP } from "node:net";
 // 그래서 들어온 헤더를 그대로 넘기면 아무나 IP 를 지어낼 수 있다. Next 앞에서 이 헤더에 접속 주소를 덧붙이는
 // 프록시(로드밸런서) 수 TRUSTED_PROXY_HOPS 만큼 오른쪽에서 센 항목 하나만 믿는다 — 그 왼쪽은 클라이언트가 지어낸 값일 수 있다.
 //   0(기본): Next 가 바로 접속을 받는다. 로컬 개발용이다. Next 가 채운 소켓 주소를 쓰지만, 클라이언트가 헤더를 보내면
-//            그 값이 남아 지어낼 수 있다. 운영에서 0 으로 두지 않는다. 코드상으로는 1 과 같이 맨 오른쪽 항목을 고른다.
+//            그 값이 남아 지어낼 수 있다. 코드상으로는 1 과 같이 맨 오른쪽 항목을 고른다.
+//            운영(NODE_ENV=production)에서는 비었거나 0 이면 서버가 뜨지 않는다 — 요청마다 IP 를 바꿔 api 의 IP 축 요청 제한을 피할 수 있어서다.
 //   1: 로드밸런서 하나(예: ALB 가 접속 주소를 덧붙임). 맨 오른쪽 항목.
 //   N: 오른쪽에서 N 번째 항목.
 
@@ -18,9 +19,11 @@ export type ClientIp = string & { readonly __brand: "ClientIp" };
 /** 서버가 뜰 때(instrumentation register) 한 번 불러 잘못된 값이면 바로 멈추게 한다. */
 export function trustedHops(): number {
   const raw = process.env.TRUSTED_PROXY_HOPS;
-  if (!raw) return 0;
-  const hops = Number(raw);
+  const hops = raw ? Number(raw) : 0;
   if (!Number.isInteger(hops) || hops < 0) throw new Error(`TRUSTED_PROXY_HOPS 는 0 이상의 정수여야 합니다: ${raw}`);
+  if (hops === 0 && process.env.NODE_ENV === "production") {
+    throw new Error("운영에서는 TRUSTED_PROXY_HOPS 를 1 이상으로 정해야 합니다 — 0 이면 클라이언트가 X-Forwarded-For 로 IP 를 지어낼 수 있습니다");
+  }
   return hops;
 }
 
