@@ -180,6 +180,10 @@ const VIEWS = {
         notice("인증번호는 보낸 때부터 <strong>10분</strong> 동안 쓸 수 있습니다. 새 비밀번호도 이 10분 안에 정해 주세요.") +
         card(
           `<p class="text-[13px] font-semibold text-staff-text-sub">이메일을 쓸 수 없다면</p><p class="pt-[6px] text-[13px] text-staff-text-sub">관리자에게 알리면 관리자가 초기화를 요청합니다. 그때는 재설정 링크가 이메일로 갑니다. <strong class="font-bold text-staff-text">그 메일함 자체를 쓸 수 없으면 근무지 점포에 직접 방문해 물어 주세요</strong> — 관리자가 이메일을 대신 고치지는 못합니다.</p>`,
+        ) +
+        // LOGIN · WHALEERP-174(2026-10-13 재영): 계정 유무를 드러내지 않게 누구에게나 같은 안내를 둔다.
+        card(
+          `<p class="text-[13px] font-semibold text-staff-text-sub">아직 가입을 마치지 않았다면</p><p class="pt-[6px] text-[13px] text-staff-text-sub">받은 초대 링크로 가입을 먼저 마쳐 주세요. 링크가 만료됐으면 근무지에 다시 초대해 달라고 요청해 주세요.</p>`,
         ),
     }),
 
@@ -195,7 +199,7 @@ const VIEWS = {
         autocomplete: "one-time-code",
         maxlength: 6,
         value: "4B7K2M",
-      })}<div class="flex items-center justify-between text-[12px] text-staff-text-muted">${remaining("09:41")}<span>남은 시도 <b class="text-staff-text tabular-nums">5</b>회</span></div></div>${notice(
+      })}<div class="flex items-center justify-between text-[12px] text-staff-text-muted">${remaining("09:41")}<span>다섯 번 틀리면 새로 받아야 합니다</span></div></div>${notice(
         "메일이 오지 않으면 스팸함을 확인해 주세요. 1분 뒤 다시 받을 수 있고, 하루 10번까지 받을 수 있습니다. 다시 받으면 <strong>앞서 보낸 인증번호는 바로 무효</strong>가 됩니다.",
       )}`,
     }),
@@ -214,7 +218,7 @@ const VIEWS = {
       title: "인증번호가 만료되었습니다",
       desc: "보낸 지 10분이 지났습니다. 다시 받아 주세요.",
       dock: button("인증번호 다시 받기", back("pin")) + ghost("로그인으로 돌아가기", back("login")),
-      children: alert("warning", "남은 시도가 있어도 <strong>10분이 지나면 만료</strong>됩니다."),
+      children: alert("warning", "다섯 번을 다 틀리지 않았어도 <strong>10분이 지나면 만료</strong>됩니다."),
     }),
 
   // LOGIN-11: 핀 입력과 같은 시계(09:41 → 07:12)를 이어서 보인다.
