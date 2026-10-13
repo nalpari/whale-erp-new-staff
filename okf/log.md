@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-13
+* **Update**: 핀 요청 화면에 가입 전 직원 안내(WHALEERP-174)를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
 * **Update**: staff #3 리뷰 참고 반영 — 이메일 찾기 결과 화면의 「다시 넣기」를 폼 제출로 바꿔 JS 없이도 동작하게 했다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 이메일 찾기 화면 `/email-find`(WHALEERP-179)를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다 — 입력 · 찾음 · 못 찾음 · 막힘, `ApiError.body`, `src/lib/email-find.ts`, 시계를 `(auth)/_components` 로 옮김. api 타입은 api PR #20 기준으로 다시 만들었다.
 * **Update**: 머지 블로커 반영 — 운영에서 `TRUSTED_PROXY_HOPS` 가 비었거나 0 이면 기동을 막는 것을 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
