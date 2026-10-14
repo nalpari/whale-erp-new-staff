@@ -183,8 +183,8 @@
               <div class="note note--pen">
                 <i class="ph ph-lightbulb"></i>
                 <div>
-                  기다리기 어려우면 <strong>비밀번호를 다시 정하면</strong> 바로 들어올 수 있습니다.
-                  새로 정하면 잠금도 함께 풀립니다. 잠긴 동안에는 비밀번호가 맞아도 들어갈 수 없습니다.
+                  기다리기 어려우면 <strong>비밀번호를 다시 정해</strong> 로그인 화면에서 새 비밀번호로
+                  들어올 수 있습니다. 새로 정하면 잠금도 함께 풀립니다. 잠긴 동안에는 비밀번호가 맞아도 들어갈 수 없습니다.
                 </div>
               </div>
 
@@ -357,6 +357,15 @@
                 </p>
               </div>
 
+              <!-- WHALEERP-174(2026-10-13 재영): 계정 유무를 드러내지 않게 누구에게나 같은 안내를 둔다 -->
+              <div class="card card--sunken">
+                <p class="lab">아직 가입을 마치지 않았다면</p>
+                <p class="p--sm" style="margin-top: 6px">
+                  받은 초대 링크로 가입을 먼저 마쳐 주세요. 링크가 만료됐으면 근무지에 다시 초대해
+                  달라고 요청해 주세요.
+                </p>
+              </div>
+
               <div class="grow"></div>
             </div>
 
@@ -384,7 +393,7 @@
                   <i class="ph ph-timer" style="color: var(--pen); font-size: 15px"></i>
                   <span class="tiny" style="color: var(--pen)">남은 시간 <b class="num">09:41</b></span>
                 </span>
-                <span class="tiny">남은 시도 <b class="num">5</b>회</span>
+                <span class="tiny">다섯 번 틀리면 새로 받아야 합니다</span>
               </div>
 
               <div class="note">
@@ -425,7 +434,7 @@
               <div class="note note--amber">
                 <i class="ph-fill ph-info"></i>
                 <div>
-                  남은 시도가 있어도 <strong>10분이 지나면 만료</strong>됩니다.
+                  다섯 번을 다 틀리지 않았어도 <strong>10분이 지나면 만료</strong>됩니다.
                 </div>
               </div>
 
@@ -576,6 +585,15 @@
                 </p>
               </div>
 
+              <!-- WHALEERP-176(2026-10-13·14 재영): 링크로 정해도 핀과 같이 로그인 화면으로 보낸다 -->
+              <div class="note note--pen">
+                <i class="ph ph-info"></i>
+                <div>
+                  새로 정하면 <strong>다른 기기의 로그인이 모두 끊기고</strong> 잠금도 함께 풀립니다.
+                  로그인 화면에서 새 비밀번호로 로그인해 주세요.
+                </div>
+              </div>
+
               <div class="grow"></div>
             </div>
 
@@ -689,8 +707,8 @@
             </div>
 
             <div class="dock" data-when="temp">
-              <button class="btn" data-go="splash" data-toast="비밀번호를 바꿨습니다">
-                비밀번호 정하고 시작하기
+              <button class="btn" data-go="login" data-toast="비밀번호를 바꿨습니다. 다시 로그인해 주세요">
+                비밀번호 정하기
               </button>
             </div>
 
@@ -889,7 +907,7 @@
             핀에는 유효시간과 시도 횟수가 겹쳐 있어 자칫 사용자가 갇힌다. 그래서 어느
             화면에서도 빠져나갈 길을 하나 남겼다. 다섯 번 틀려 핀이 닫혔거나, 10분이 지났거나,
             새 비밀번호를 저장할 때 핀이 이미 쓸 수 없게 됐으면 기다리지 않고 <strong>다시 받기</strong>가 있다. 계정이 잠겼을 때도
-            기다리는 것 말고 <strong>비밀번호를 다시 정해 바로 들어오는</strong> 길이 있다.
+            기다리는 것 말고 <strong>비밀번호를 다시 정해 새 비밀번호로 로그인하는</strong> 길이 있다.
           </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">정해진 것</h2>

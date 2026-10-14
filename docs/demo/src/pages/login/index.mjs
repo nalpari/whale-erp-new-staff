@@ -104,7 +104,7 @@ const VIEWS = {
       children:
         alert("warning", `<p class="text-[14px] font-semibold">남은 시간</p><p class="text-[28px] font-bold tabular-nums">04:12</p>`) +
         notice(
-          "기다리기 어려우면 <strong>비밀번호를 다시 정하면</strong> 바로 들어올 수 있습니다. 새로 정하면 잠금도 함께 풀립니다. 잠긴 동안에는 비밀번호가 맞아도 들어갈 수 없습니다.",
+          "기다리기 어려우면 <strong>비밀번호를 다시 정해</strong> 로그인 화면에서 새 비밀번호로 들어올 수 있습니다. 새로 정하면 잠금도 함께 풀립니다. 잠긴 동안에는 비밀번호가 맞아도 들어갈 수 없습니다.",
         ),
     }),
 
@@ -249,12 +249,15 @@ const VIEWS = {
     screen({
       title: "새 비밀번호를 정해 주세요",
       desc: "관리자가 보낸 재설정 링크로 들어왔습니다. 지금 쓰던 비밀번호는 묻지 않습니다.",
-      dock: button("비밀번호 정하고 시작하기", go("splash")),
+      // WHALEERP-176(2026-10-13·14 재영): 링크로 정해도 핀과 같이 로그인 화면으로 보내 새 비밀번호로 로그인하게 한다.
+      dock: button("비밀번호 정하기", back("login")),
       children:
         alert(
           "warning",
           "이 링크는 보낸 때로부터 <strong>24시간</strong> 동안, <strong>한 번만</strong> 쓸 수 있습니다. 이 링크나 인증번호로 비밀번호를 정하고 나면 바로 무효가 됩니다. 관리자는 새 비밀번호를 정하지 못합니다.",
-        ) + newPasswordFields(),
+        ) +
+        newPasswordFields() +
+        notice("새로 정하면 <strong>다른 기기의 로그인이 모두 끊기고</strong> 잠금도 함께 풀립니다. 로그인 화면에서 새 비밀번호로 로그인해 주세요."),
     }),
 
   // LOGIN-6: 이미 썼든 기한이 지났든 닫혔든 사유를 구분하지 않고 같은 문구로 막는다(운영 정책 ACC-19 v91).
