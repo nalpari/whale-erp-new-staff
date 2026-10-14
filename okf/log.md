@@ -3,6 +3,11 @@
 ## 2026-10-14
 * **Update**: staff #7 리뷰 반영 — `safeNextPath` 가 정규화한 뒤 `//` 로 시작하는 값(`/.//evil.com`)을 버려 오픈 리다이렉트를 막았다. proxy 의 만료 안내 설명을 `next`(없으면 `/home`)로, `x-staff-path` 를 덮어쓰는 범위를 로그인 필요 화면으로 고쳤다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 로그인 뒤 보던 화면으로 돌려보내기(WHALEERP-166)를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다 — proxy 와 만료 안내가 `next` 를 싣고, `src/lib/login-return.ts` 의 `safeNextPath` 로 거른다. `PUBLIC_PATHS` 를 그 파일로 옮겼다.
+* **Update**: PR #6 리뷰 반영 — 주소의 토큰을 남기는 경우를 「연결 실패」에서 「확인하지 못함(429 · 5xx · 연결 실패)」으로 바로잡았다([Whale ERP Staff](/whale-erp-staff.md)).
+* **Update**: 링크 화면 2차 리뷰 반영 — 예상 밖 400 로그, 서버 액션 요청이 끊기면 다시 시도 화면, 확인하지 못함의 범위를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+* **Update**: 쓸 수 없는 링크 안내에 「메일에서 받은 링크를 다시 눌러 보세요」를 더했다(앱 · 데모 `link-used`, 2026-10-14 노영주) — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 링크 화면 리뷰 반영 — 빈 `#token=` 은 쿠키로 넘어가지 않음, 결과 화면마다 제목 초점, 핀 흐름 성공 때 링크 쿠키도 지움을 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+* **Update**: 관리자 재설정 링크 화면 `/password-reset/link`(WHALEERP-173)와 링크 토큰 쿠키 `password_reset_link`, 핀 · 링크가 같이 쓰는 새 비밀번호 칸 `new-password-fields.tsx` 를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다. api 타입은 api main(#28) 기준으로 다시 만들었다.
 * **Update**: `2026-09-30-네이밍-규칙.md` 2026-10-14 고침을 [네이밍 규칙](/conventions/naming.md) 에 옮겼다 — 메일 템플릿 표의 「운영 알림 짝」을 걷고 운영 알림 · 메일 분리(운영 정책 NTF-03), 알림 템플릿의 기본 문구 칸(`default_*`, NOTIFY-17 · 18)을 적었다(재영).
 
 ## 2026-10-13
