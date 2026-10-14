@@ -124,7 +124,8 @@ function LinkPasswordForm() {
           confirmationError={state.field === "newPassword" ? undefined : state.error}
         />
         <Notice>
-          새로 정하면 <strong>다른 기기의 로그인이 모두 끊기고</strong> 잠금도 함께 풀립니다.
+          새로 정하면 <strong>다른 기기의 로그인이 모두 끊기고</strong> 잠금도 함께 풀립니다. 로그인 화면에서 새 비밀번호로 로그인해
+          주세요.
         </Notice>
       </AuthScreen>
     </form>
