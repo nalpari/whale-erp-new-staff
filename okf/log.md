@@ -1,5 +1,11 @@
 # Bundle history
 
+## 2026-10-14
+* **Update**: 링크 화면 2차 리뷰 반영 — 예상 밖 400 로그, 서버 액션 요청이 끊기면 다시 시도 화면, 확인하지 못함의 범위를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+* **Update**: 쓸 수 없는 링크 안내에 「메일에서 받은 링크를 다시 눌러 보세요」를 더했다(앱 · 데모 `link-used`, 2026-10-14 노영주) — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 링크 화면 리뷰 반영 — 빈 `#token=` 은 쿠키로 넘어가지 않음, 결과 화면마다 제목 초점, 핀 흐름 성공 때 링크 쿠키도 지움을 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+* **Update**: 관리자 재설정 링크 화면 `/password-reset/link`(WHALEERP-173)와 링크 토큰 쿠키 `password_reset_link`, 핀 · 링크가 같이 쓰는 새 비밀번호 칸 `new-password-fields.tsx` 를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다. api 타입은 api main(#28) 기준으로 다시 만들었다.
+
 ## 2026-10-13
 * **Update**: [네이밍](/conventions/naming.md) — 기본 템플릿 코드 37건 → 40건. 표에 빠져 있던 `PUSH_PAYSLIP_RESENT` · `EMAIL_PAYSLIP_SENT` · `EMAIL_PAYSLIP_RESENT` 를 더했다(마이그레이션 `20261007000100_team3_initial_data` 와 맞춤).
 * **Update**: 핀 요청 화면에 가입 전 직원 안내(WHALEERP-174)를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.

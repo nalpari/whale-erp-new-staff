@@ -42,6 +42,19 @@ export function resetPassword(body: Schemas["ResetPasswordDto"], clientIp: Clien
   return request<void>("/auth/account/password-reset", { method: "POST", json: body, clientIp });
 }
 
+/** 관리자가 보낸 재설정 링크를 쓸 수 있으면 204. 없음 · 만료 · 사용 · 대체 · 탈퇴는 모두 같은 401, 토큰이 비었거나 200자를 넘으면 400. 링크를 소진하지 않는다. */
+export function verifyPasswordResetLink(body: Schemas["VerifyPasswordResetLinkDto"], clientIp: ClientIp | undefined) {
+  return request<void>("/auth/account/password-reset-links/verify", { method: "POST", json: body, clientIp });
+}
+
+/**
+ * 링크로 새 비밀번호를 정한다. 204 면 남은 링크 · 핀을 닫고 모든 기기 접속을 끊고 잠금을 푼다. 400 은 규칙 위반(링크는 그대로),
+ * 401 은 쓸 수 없는 링크.
+ */
+export function resetPasswordWithLink(body: Schemas["ResetPasswordWithLinkDto"], clientIp: ClientIp | undefined) {
+  return request<void>("/auth/account/password-reset-links/reset", { method: "POST", json: body, clientIp });
+}
+
 /**
  * 이름 · 휴대전화번호 · 생년월일로 로그인 이메일을 찾는다. 200 이면 가린 이메일 목록(탈퇴 계정 제외). 맞는 계정이 없으면 어느 값이
  * 틀렸든 404. 같은 번호로 5번 틀리면 5분 막혀 429 와 본문 lockExpiresAt(요청 제한의 429 에는 없음). 찾은 이메일을 보내지는 않는다.
