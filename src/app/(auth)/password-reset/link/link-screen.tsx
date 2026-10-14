@@ -8,7 +8,7 @@ import { openLinkAction, resetPasswordWithLinkAction, type LinkPasswordState, ty
 
 // 기준: 데모 docs/demo/src/pages/login 의 temp(새 비밀번호) · link-used(쓸 수 없는 링크).
 // 열리면 주소의 #token= 을 읽어 확인한다. 쓸 수 있으면 토큰을 서버 쿠키로 옮기고, 확인이 끝나면(쓸 수 있든 없든) 주소에서 지운다
-// (화면 기록 · 공유 · 어깨너머로 남지 않게) — 연결 실패일 때만 남긴다. 확인을 마친 뒤 새로고침하면 주소에 토큰이 없으므로 서버 액션이
+// (화면 기록 · 공유 · 어깨너머로 남지 않게) — 확인하지 못했을 때(429 · 5xx · 연결 실패)만 남긴다. 확인을 마친 뒤 새로고침하면 주소에 토큰이 없으므로 서버 액션이
 // 쿠키의 토큰으로 다시 확인한다.
 export function LinkScreen() {
   const [link, setLink] = useState<OpenLinkState | null>(null);
@@ -28,7 +28,7 @@ export function LinkScreen() {
         console.error("[password-reset-link] 서버 액션 요청 실패", error);
         result = { status: "error", error: CONNECTION_FAILED_MESSAGE };
       }
-      // 연결 실패면 주소의 토큰을 남겨 「다시 시도」 · 새로고침으로 이어 갈 수 있게 한다.
+      // 확인하지 못했으면(429 · 5xx · 연결 실패) 주소의 토큰을 남겨 「다시 시도」 · 새로고침으로 이어 갈 수 있게 한다.
       // state 는 null 로 넘긴다 — Next 가 이 호출을 라우터 주소에 반영한다. 라우터의 state 를 그대로 넘기면 라우터는 옛 주소(#token 포함)를
       // 들고 있다가 서버 액션 응답을 반영할 때 되돌려 놓는다.
       if (result.status !== "error" && window.location.hash) {

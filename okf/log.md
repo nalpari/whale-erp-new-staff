@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-14
+* **Update**: PR #6 리뷰 반영 — 주소의 토큰을 남기는 경우를 「연결 실패」에서 「확인하지 못함(429 · 5xx · 연결 실패)」으로 바로잡았다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 링크 화면 2차 리뷰 반영 — 예상 밖 400 로그, 서버 액션 요청이 끊기면 다시 시도 화면, 확인하지 못함의 범위를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
 * **Update**: 쓸 수 없는 링크 안내에 「메일에서 받은 링크를 다시 눌러 보세요」를 더했다(앱 · 데모 `link-used`, 2026-10-14 노영주) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 링크 화면 리뷰 반영 — 빈 `#token=` 은 쿠키로 넘어가지 않음, 결과 화면마다 제목 초점, 핀 흐름 성공 때 링크 쿠키도 지움을 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
