@@ -5,6 +5,7 @@ import { RedirectType, redirect } from "next/navigation";
 import { ApiError, NetworkError, logUnexpected } from "@/lib/api";
 import { login } from "@/lib/auth";
 import { clientIpFrom } from "@/lib/client-ip";
+import { HOME_PATH, safeNextPath } from "@/lib/login-return";
 import { getDeviceId, saveLogin } from "@/lib/session";
 import { CONNECTION_FAILED_MESSAGE } from "../_components/auth-screen";
 
@@ -51,6 +52,7 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
   }
   // 저장은 try 밖이다. 여기서 나는 오류는 api 응답 모양이 바뀐 결함이라 연결 실패로 숨기지 않고 오류 화면으로 보낸다.
   await saveLogin(result);
+  // 보던 화면으로 돌려보낸다(WHALEERP-166). 폼 값은 누구나 고쳐 보낼 수 있어 화면에서 거른 값도 다시 거른다.
   // 서버 액션의 redirect 는 기본이 push 다. 로그인 화면을 히스토리에 남기지 않는다.
-  redirect("/home", RedirectType.replace);
+  redirect(safeNextPath(String(formData.get("next") ?? "")) ?? HOME_PATH, RedirectType.replace);
 }

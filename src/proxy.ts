@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { ApiError, NetworkError } from "@/lib/api";
 import { refreshAccessToken } from "@/lib/auth";
 import { clientIpFrom } from "@/lib/client-ip";
+import { CURRENT_PATH_HEADER, HOME_PATH, NEXT_PARAM, isPublic, safeNextPath, withNext } from "@/lib/login-return";
 import {
   ACCESS_TOKEN_COOKIE,
   ACCOUNT_COOKIE,
@@ -11,12 +12,6 @@ import {
   parseAccountCookie,
   untilCookie,
 } from "@/lib/session-cookies";
-
-// 로그인 없이 여는 화면. 폴더((auth))가 아니라 이 경로 목록으로 판정한다 — (auth) 에 화면을 더하면 여기에도 더한다.
-const PUBLIC_PATHS = ["/login", "/password-reset", "/email-find"];
-
-const isPublic = (pathname: string) =>
-  PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 
 /** 갱신이 필요한 화면 요청(액세스 토큰 쿠키가 없을 때 등)은 응답 전에 갱신을 기다리므로 api 가 멈춰도 오래 붙잡지 않는다. */
 const REFRESH_TIMEOUT_MS = 5_000;
@@ -29,6 +24,7 @@ const UNAVAILABLE_LOGIN_PATH = "/login?unavailable=1";
  * 같은 요청을 처리할 서버 컴포넌트도 새 토큰을 보도록 요청 쿠키에도 넣는다.
  * 갱신이 401 · 400 이면 접속이 끝난 것이라 쿠키를 지우고 만료 안내로 보낸다(로그인 없이 여는 화면은 쿠키만 지우고 그대로 연다).
  * 그 밖의 실패(api 미기동 · 시간 초과 · 429 · 5xx)는 쿠키를 두고 「확인하지 못했다」 안내로 보낸다.
+ * 로그인 화면으로 보낼 때는 보던 경로를 next 로 싣고, 로그인돼 있으면 next 로 보낸다(login-return.ts).
  */
 export async function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
@@ -39,6 +35,8 @@ export async function proxy(request: NextRequest) {
   // api 가 이미 거절한 토큰으로 /home 에 갔다가 401 로 다시 만료 안내 → 확인 실패 → /home 을 돈다.
   const expiredNotice = pathname === "/login" && searchParams.has("expired");
   const recheck = expiredNotice || (pathname === "/login" && searchParams.has("unavailable"));
+  // 로그인 화면으로 보낼 때 실을 돌아갈 곳. 로그인이 필요한 화면이면 지금 경로, 로그인 화면이면 이미 실린 next 를 이어 간다.
+  const returnTo = isPublic(pathname) ? searchParams.get(NEXT_PARAM) : pathname + request.nextUrl.search;
 
   let accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
   const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
@@ -75,7 +73,7 @@ export async function proxy(request: NextRequest) {
     // 접속이 끝난 직원이 「비밀번호를 잊으셨나요」를 눌렀을 때 만료 안내로 한 번 튕기지 않게 한다.
     const response = expiredNotice || isPublic(pathname)
       ? NextResponse.next()
-      : NextResponse.redirect(new URL("/login?expired=1", request.url));
+      : NextResponse.redirect(new URL(withNext("/login?expired=1", returnTo), request.url));
     clearSessionCookies(response.cookies);
     return response;
   }
@@ -83,15 +81,21 @@ export async function proxy(request: NextRequest) {
   // 갱신이 401 · 400 아닌 이유로 실패했으면 끝났다고 단정하지 않고 「확인하지 못했다」 안내로 보낸다. 로그인이 필요한
   // 화면과 만료 안내만 해당하고, 그 밖의 공개 화면(/login · /password-reset · /email-find)은 그대로 연다.
   if (unavailable && (expiredNotice || !isPublic(pathname))) {
-    return NextResponse.redirect(new URL(UNAVAILABLE_LOGIN_PATH, request.url));
+    return NextResponse.redirect(new URL(withNext(UNAVAILABLE_LOGIN_PATH, returnTo), request.url));
   }
 
   // 만료 · 확인 실패 안내에서는 방금 갱신에 성공해야 로그인된 것으로 본다(남은 액세스 토큰은 api 가 이미 거절한 것일 수 있다).
   const loggedIn = Boolean(accessToken && account) && (!recheck || refreshedUntil !== null);
   let response: NextResponse;
-  if (!loggedIn && !isPublic(pathname)) response = NextResponse.redirect(new URL("/login", request.url));
-  else if (loggedIn && pathname === "/login") response = NextResponse.redirect(new URL("/home", request.url));
-  else response = NextResponse.next({ request: { headers: request.headers } });
+  if (!loggedIn && !isPublic(pathname)) response = NextResponse.redirect(new URL(withNext("/login", returnTo), request.url));
+  else if (loggedIn && pathname === "/login") {
+    response = NextResponse.redirect(new URL(safeNextPath(searchParams.get(NEXT_PARAM)) ?? HOME_PATH, request.url));
+  } else {
+    // 화면 · 액션이 만료 안내의 next 를 만들 수 있게 지금 경로를 넘긴다. 브라우저가 보낸 같은 이름의 헤더는 덮어쓴다.
+    const headers = new Headers(request.headers);
+    headers.set(CURRENT_PATH_HEADER, pathname + request.nextUrl.search);
+    response = NextResponse.next({ request: { headers } });
+  }
 
   if (accessToken && refreshedUntil && refreshToken && account) {
     response.cookies.set(ACCESS_TOKEN_COOKIE, accessToken, accessTokenCookie());
