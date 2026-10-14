@@ -1,6 +1,7 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ApiError, request, type RequestOptions, type Schemas } from "./api";
+import { CURRENT_PATH_HEADER, withNext } from "./login-return";
 import {
   ACCESS_TOKEN_COOKIE,
   ACCOUNT_COOKIE,
@@ -27,6 +28,11 @@ export interface Session {
  */
 export const EXPIRED_LOGIN_PATH = "/login?expired=1";
 
+/** 만료 안내 주소에 지금 경로(proxy 가 넘긴 헤더)를 next 로 붙인다 — 다시 로그인하면 보던 화면으로 돌아간다(WHALEERP-166). */
+async function expiredLoginPath(): Promise<string> {
+  return withNext(EXPIRED_LOGIN_PATH, (await headers()).get(CURRENT_PATH_HEADER));
+}
+
 /** 로그인에 성공하면 서버 액션에서 부른다. */
 export async function saveLogin(result: Schemas["LoginResponseDto"]): Promise<void> {
   const jar = await cookies();
@@ -52,7 +58,7 @@ export async function getSession(): Promise<Session | null> {
  */
 export async function requireSession(): Promise<Session> {
   const session = await getSession();
-  if (!session) redirect(EXPIRED_LOGIN_PATH);
+  if (!session) redirect(await expiredLoginPath());
   return session;
 }
 
@@ -83,7 +89,7 @@ export async function authedRequest<T>(
   try {
     return await request<T>(path, { ...options, accessToken });
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) redirect(EXPIRED_LOGIN_PATH);
+    if (error instanceof ApiError && error.status === 401) redirect(await expiredLoginPath());
     throw error;
   }
 }

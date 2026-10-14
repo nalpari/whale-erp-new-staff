@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-14
+* **Update**: 로그인 뒤 보던 화면으로 돌려보내기(WHALEERP-166)를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다 — proxy 와 만료 안내가 `next` 를 싣고, `src/lib/login-return.ts` 의 `safeNextPath` 로 거른다. `PUBLIC_PATHS` 를 그 파일로 옮겼다.
 * **Update**: `2026-09-30-네이밍-규칙.md` 2026-10-14 고침을 [네이밍 규칙](/conventions/naming.md) 에 옮겼다 — 메일 템플릿 표의 「운영 알림 짝」을 걷고 운영 알림 · 메일 분리(운영 정책 NTF-03), 알림 템플릿의 기본 문구 칸(`default_*`, NOTIFY-17 · 18)을 적었다(재영).
 
 ## 2026-10-13
