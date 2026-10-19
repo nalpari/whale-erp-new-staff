@@ -37,7 +37,7 @@ function useStatusChange() {
         setError("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요");
       }
     });
-  return { pending, error, change };
+  return { pending, error, change, clearError: () => setError(undefined) };
 }
 
 type StatusChange = ReturnType<typeof useStatusChange>;
@@ -66,7 +66,10 @@ function TodoRows({ todos, now, status, onOpen }: { todos: MyTodo[]; now: string
   );
 }
 
-/** 홈 TO-DO 카드(#316)의 목록 — 체크로 완료만 하고 상세는 열지 않는다. */
+/**
+ * 홈 TO-DO 카드(#316)의 목록 — 체크로 완료만 하고 상세는 열지 않는다. 빈 목록 안내도 여기서 그린다 — 마지막 건이 404 로
+ * 사라져도 이 컴포넌트가 그대로 남아 실패 문구가 보인다.
+ */
 export function TodoChecklist({ todos, now }: { todos: MyTodo[]; now: string }) {
   const status = useStatusChange();
   return (
@@ -76,7 +79,11 @@ export function TodoChecklist({ todos, now }: { todos: MyTodo[]; now: string }) 
           <Alert tone="warning">{status.error}</Alert>
         </div>
       )}
-      <TodoRows todos={todos} now={now} status={status} />
+      {todos.length === 0 ? (
+        <p className="py-[14px] text-[13px] text-staff-text-sub">남은 TO-DO 가 없습니다</p>
+      ) : (
+        <TodoRows todos={todos} now={now} status={status} />
+      )}
     </>
   );
 }
@@ -122,6 +129,8 @@ export function TodoPanel({ todos, now }: { todos: MyTodo[]; now: string }) {
   const current = picked && todos.find((t) => t.todoId === picked.todoId);
   const open = sheetOpen && Boolean(current);
   const handleOpen = (todoId: number) => {
+    // 다른 TO-DO 를 열면 앞 TO-DO 의 실패 문구를 비운다(목록 · 시트가 한 상태를 쓴다).
+    if (picked?.todoId !== todoId) status.clearError();
     setPicked(todos.find((t) => t.todoId === todoId) ?? null);
     setSheetOpen(true);
   };

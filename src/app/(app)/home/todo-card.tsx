@@ -22,8 +22,6 @@ export async function TodoCard() {
       <div className="rounded-[18px] border border-staff-border-light bg-white px-[16px] leading-[1.5]">
         {!todos ? (
           <p className="py-[14px] text-[13px] text-staff-text-sub">TO-DO 를 불러오지 못했습니다</p>
-        ) : todos.items.length === 0 ? (
-          <p className="py-[14px] text-[13px] text-staff-text-sub">남은 TO-DO 가 없습니다</p>
         ) : (
           <TodoChecklist todos={todos.items} now={new Date().toISOString()} />
         )}
