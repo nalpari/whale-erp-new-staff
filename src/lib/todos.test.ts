@@ -85,7 +85,7 @@ test("공유 완료는 먼저 완료한 직원과 시각", () => {
     executionMode: "ANY_ONE",
     status: "DONE",
     completedAt: "2026-10-19T07:40:00.000Z",
-    performer: { staffMemberId: 7, staffMemberName: "김하은" },
+    performer: { staffMemberId: 7, staffMemberName: "김하은", isMasked: false },
   });
   assert.equal(performerLine(shared), "김하은님이 완료 · 10월 19일(월) 16:40");
   assert.equal(performerLine(todo({ performer: shared.performer })), null);

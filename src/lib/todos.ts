@@ -79,7 +79,8 @@ export function isOverdue(item: Pick<MyTodo, "status" | "dueDate" | "dueTime">, 
 export function performerLine(item: Pick<MyTodo, "status" | "performer" | "completedAt">): string | null {
   if (item.status !== "DONE" || !item.performer) return null;
   const at = item.completedAt ? ` · ${kstLabel(item.completedAt)}` : "";
-  return `${item.performer.staffMemberName}님이 완료${at}`;
+  // 직원 근무 앱 응답은 가리지 않는다(isMasked 늘 false). 이름이 비면 「다른 직원」으로 둔다.
+  return `${item.performer.staffMemberName ? `${item.performer.staffMemberName}님이` : "다른 직원이"} 완료${at}`;
 }
 
 /** 목록 한 줄의 아래 글자(목업 07.근무 정보_list). */
