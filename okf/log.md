@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-10-19
+* **Update**: 근무정보 `/work` 뼈대와 TO-DO 탭 · 상세 시트 · 홈 TO-DO 카드(#119·#120·#121·#316)를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다. api 타입은 api TO-DO 브랜치 기준으로 다시 만들었다.
+
 ## 2026-10-14
 * **Update**: staff #7 리뷰 반영 — `safeNextPath` 가 정규화한 뒤 `//` 로 시작하는 값(`/.//evil.com`)을 버려 오픈 리다이렉트를 막았다. proxy 의 만료 안내 설명을 `next`(없으면 `/home`)로, `x-staff-path` 를 덮어쓰는 범위를 로그인 필요 화면으로 고쳤다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 로그인 뒤 보던 화면으로 돌려보내기(WHALEERP-166)를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다 — proxy 와 만료 안내가 `next` 를 싣고, `src/lib/login-return.ts` 의 `safeNextPath` 로 거른다. `PUBLIC_PATHS` 를 그 파일로 옮겼다.
