@@ -76,7 +76,7 @@ export default async function PayslipPage({ params }: PageProps<"/pay/[payslipId
         </ul>
       </Card>
 
-      <ExportButton />
+      <ExportButton payslipId={payslip.payslipId} />
       {!resent && <Tiny>급여 지급은 이 화면에서 처리하지 않습니다. 실제 지급은 회사의 지급 절차를 따릅니다.</Tiny>}
     </PayFrame>
   );
