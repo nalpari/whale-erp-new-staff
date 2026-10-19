@@ -71,7 +71,8 @@ const loginView = (fail) =>
     desc: "근무 정보와 출퇴근을 확인하려면 로그인하세요.",
     // 기본 로그인은 /design/login(Figma 01.Login)과 같게 둔다 — 버튼 둘, 비밀번호 칸 비움(2026-10-12 재영).
     // 이메일 찾기(LOGIN-8)는 이 화면에 버튼이 없어 상태 전환 도구로만 들어간다.
-    dock: button(`미리보기 로그인${arrow()}`, go("splash")) + ghost("비밀번호를 잊으셨나요", go("forgot")),
+    // 「초대 코드로 가입」은 진입·가입 데모의 초대 코드 입력으로 간다(JOIN-7, 2026-10-19).
+    dock: button(`미리보기 로그인${arrow()}`, go("splash")) + ghost("비밀번호를 잊으셨나요", go("forgot")) + ghost("초대 코드로 가입", { href: page("join") }),
     children: `<div class="flex flex-col gap-[16px]">${textField({
       label: "이메일",
       type: "email",
