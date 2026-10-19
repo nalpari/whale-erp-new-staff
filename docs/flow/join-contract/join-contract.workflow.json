@@ -35,11 +35,13 @@
         "label": "이미 계정이 있을 때",
         "focus": [
           "token",
+          "has-account",
+          "relogin",
           "addsite",
           "sign",
           "done"
         ],
-        "note": "그 번호로 계정이 있으면 가입을 다시 하지 않는다. 로그인한 뒤 앱 안에서 소속 추가 확인이 뜬다(운영 정책 JOI-02). 수락은 소속 연결까지이고 조건은 계약서에서 날인한다."
+        "note": "그 번호로 계정이 있으면 가입을 다시 하지 않는다. 초대 확인에서 「이미 계정이 있습니다」와 로그인 버튼만 보이고, 로그인한 뒤 앱 안에서 소속 추가 확인이 뜬다(운영 정책 JOI-02). 수락은 소속 연결까지이고 조건은 계약서에서 날인한다."
       },
       {
         "id": "rrn",
@@ -122,8 +124,8 @@
       "id": "g-addsite",
       "label": "JOIN-5 · 거절 사유는 선택",
       "lane": "multi",
-      "fromCol": 2,
-      "toCol": 2,
+      "fromCol": 4,
+      "toCol": 4,
       "variant": "dashed"
     },
     {
@@ -201,13 +203,31 @@
       "width": 170
     },
     {
-      "id": "addsite",
+      "id": "has-account",
       "lane": "multi",
       "col": 2,
       "type": "frontend",
+      "label": "이미 계정 있음",
+      "sublabel": "로그인 버튼만",
+      "width": 130
+    },
+    {
+      "id": "relogin",
+      "lane": "multi",
+      "col": 3,
+      "type": "frontend",
+      "label": "로그인",
+      "sublabel": "기존 계정으로",
+      "width": 110
+    },
+    {
+      "id": "addsite",
+      "lane": "multi",
+      "col": 4,
+      "type": "frontend",
       "label": "소속 추가 확인",
-      "sublabel": "로그인 뒤 앱 안에서",
-      "width": 160
+      "sublabel": "수락 · 거절",
+      "width": 140
     },
     {
       "id": "send",
@@ -292,10 +312,22 @@
       "role": "error"
     },
     {
-      "id": "e-token-addsite",
+      "id": "e-token-has",
       "from": "token",
-      "to": "addsite",
+      "to": "has-account",
       "label": "계정 있음",
+      "role": "branch"
+    },
+    {
+      "id": "e-has-relogin",
+      "from": "has-account",
+      "to": "relogin",
+      "role": "branch"
+    },
+    {
+      "id": "e-relogin-addsite",
+      "from": "relogin",
+      "to": "addsite",
       "role": "branch"
     },
     {
@@ -332,7 +364,8 @@
       "to": "reject",
       "label": "거부 · 기한 경과",
       "variant": "security",
-      "role": "error"
+      "role": "error",
+      "toSide": "left"
     },
     {
       "id": "e-reject-send",

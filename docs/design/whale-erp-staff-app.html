@@ -545,7 +545,7 @@ p{margin:0}
   <h2 class="doc-h2">가입과 계약</h2>
   <p class="doc-lede" style="margin-bottom:44px">
     초대를 받은 사람이 직원이 되기까지. 이 흐름은 한 번만 지나가지만, 앱에서 가장 무거운 결정이 여기 있다.
-    본인인증까지는 조용하게 끌고 가다가, 날인 한 장면에서만 인주색을 쓴다.
+    초대 코드 입력부터 계정 등록까지는 조용하게 끌고 가다가, 날인 한 장면에서만 인주색을 쓴다.
   </p>
 
   <div class="frames">
@@ -589,11 +589,11 @@ p{margin:0}
               <div><dt>근무지</dt><dd>온담베이커리 합정점</dd></div>
               <div><dt>초대한 사람</dt><dd>배수현 점장</dd></div>
               <div><dt>이름</dt><dd>서지우</dd></div>
-              <div><dt>연락처</dt><dd>010-4127-8830</dd></div>
+              <div><dt>휴대전화번호</dt><dd>010-4127-8830</dd></div>
               <div><dt>유효 기간</dt><dd>9월 4일 18:00까지</dd></div>
             </div>
           </div>
-          <div class="banner info"><i class="ph ph-info"></i><span>계정을 만든 뒤 본인인증까지 마쳐야 근로계약서를 확인할 수 있습니다.</span></div>
+          <div class="banner info"><i class="ph ph-info"></i><span>계정을 만들면 근로계약서가 바로 도착합니다.</span></div>
           <div style="margin-top:auto;padding-top:16px">
             <button class="btn pri">계정 만들기</button>
             <button class="btn ghost" style="margin-top:4px;height:44px;font-size:14px">이미 가입했습니다</button>
@@ -612,8 +612,8 @@ p{margin:0}
           <div class="steps"><span class="on"></span><span class="on"></span><span></span></div>
           <h2 style="font-size:25px;font-weight:800;letter-spacing:-.032em;margin-top:6px">계정 만들기</h2>
           <div style="display:flex;flex-direction:column;gap:18px;margin-top:6px">
-            <div class="fld"><label for="a3id">아이디</label><input id="a3id" type="text" value="seojiwoo" readonly style="background:var(--sunken);color:var(--ink-2)"><span class="help">초대에 사용된 연락처로 자동 지정됩니다</span></div>
-            <div class="fld"><label for="a3pw">비밀번호</label><input id="a3pw" type="password" value="••••••••••" ><span class="help">영문, 숫자, 기호 중 두 종류 이상으로 10자 이상</span></div>
+            <div class="fld"><label for="a3id">이메일</label><input id="a3id" type="email" value="seojiwoo@example.com"><span class="help">로그인할 때 쓰는 아이디입니다</span></div>
+            <div class="fld"><label for="a3pw">비밀번호</label><input id="a3pw" type="password" value="••••••••••" ><span class="help">영문·숫자·기호 세 종류면 8자, 두 종류면 10자 이상 (20자까지)</span></div>
             <div class="fld bad"><label for="a3pw2">비밀번호 확인</label><input id="a3pw2" type="password" value="•••••••••"><span class="err"><i class="ph ph-warning-circle"></i>비밀번호가 서로 다릅니다. 다시 입력하세요.</span></div>
           </div>
           <div style="margin-top:auto;padding-top:16px">
@@ -623,25 +623,23 @@ p{margin:0}
       </div>
     </div>
 
-    <!-- A4 본인인증 -->
+    <!-- A4 초대 코드 입력 (2026-10-19 본인인증 화면을 바꿈, JOIN-7) -->
     <div class="fr">
-      <div class="fr-cap"><b>본인인증</b><span>근로계약서를 열기 위한 마지막 관문. 왜 필요한지를 한 줄로 말한다. <code>n43 n44</code></span></div>
+      <div class="fr-cap"><b>초대 코드 입력</b><span>앱을 직접 열었을 때 가입의 첫 단계. 초대 링크로 들어오면 건너뛴다. 본인인증은 1차에 두지 않는다(2026-10-19).</span></div>
       <div class="phone">
         <div class="sb"><span>08:46</span><div class="sb-r"><i class="ph ph-cell-signal-full"></i><i class="ph ph-wifi-high"></i><i class="ph ph-battery-high"></i></div></div>
         <div class="ab"><span class="ab-b"><i class="ph ph-arrow-left"></i></span></div>
         <div class="bd">
-          <div class="steps"><span class="on"></span><span class="on"></span><span class="on"></span></div>
-          <h2 style="font-size:25px;font-weight:800;letter-spacing:-.032em;margin-top:6px">본인인증</h2>
-          <p style="font-size:14.5px;color:var(--ink-2);line-height:1.6">근로계약서는 법적 효력이 있는 문서라서, 계약서를 열기 전에 본인 확인이 필요합니다.</p>
-          <div class="card" style="margin-top:8px;padding:6px 0">
-            <div class="rows">
-              <a class="row" href="#"><i class="ph ph-device-mobile" style="font-size:22px;color:var(--accent)"></i><span class="row-m"><span class="row-t">휴대폰 인증</span><span class="row-s">본인 명의 휴대폰으로 확인</span></span><i class="ph ph-caret-right row-c"></i></a>
-              <a class="row" href="#"><i class="ph ph-identification-card" style="font-size:22px;color:var(--accent)"></i><span class="row-m"><span class="row-t">공동인증서</span><span class="row-s">금융인증서 포함</span></span><i class="ph ph-caret-right row-c"></i></a>
-            </div>
+          <div class="steps"><span class="on"></span><span></span><span></span></div>
+          <h2 style="font-size:25px;font-weight:800;letter-spacing:-.032em;margin-top:6px">초대 코드 입력</h2>
+          <p style="font-size:14.5px;color:var(--ink-2);line-height:1.6">근무지에서 보낸 알림톡·문자의 초대 코드와, 초대를 받은 휴대전화번호를 넣어 주세요.</p>
+          <div style="display:flex;flex-direction:column;gap:18px;margin-top:6px">
+            <div class="fld"><label for="a4ph">휴대전화번호</label><input id="a4ph" type="tel" value="010-4127-8830"></div>
+            <div class="fld"><label for="a4cd">초대 코드</label><input id="a4cd" type="text" value="K7QX 4MPA"><span class="help">8자리 · 영문 대문자와 숫자</span></div>
           </div>
-          <p class="doc-note" style="font-size:12.5px;margin-top:4px">인증 정보는 확인 용도로만 쓰이고 저장하지 않습니다.</p>
+          <p class="doc-note" style="font-size:12.5px;margin-top:4px">초대 코드를 받지 못했으면 근무지에 다시 보내 달라고 요청해 주세요.</p>
           <div style="margin-top:auto;padding-top:16px">
-            <button class="btn ghost" style="height:44px;font-size:14px">나중에 하기</button>
+            <button class="btn pri">다음</button>
           </div>
         </div>
       </div>

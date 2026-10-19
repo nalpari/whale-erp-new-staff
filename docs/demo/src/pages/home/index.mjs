@@ -8,7 +8,7 @@
 // 그 밖 상태(처리할 일 카드 · 휴무 · 가입 직후 · 퇴직 후 · 날인 요청 팝업)는 Figma 없음 — DESIGN.md 기준 초안.
 import { bottomNav, bottomSheet, button, empty, img, infoRow, maskIcon, page, sectionTitle, sheetOption, state, statusChip, todoItem, todoList, topBar, weekSelector } from "../../ui.mjs";
 
-// 목업 오른쪽 상태 목록 순서 그대로. store 는 목업의 「시트 열기」라 뒤에 평상시를, sign-req 는 처리할 일 쌓임 화면을 깐다.
+// 목업 오른쪽 상태 목록 순서 그대로. store 는 목업의 「시트 열기」라 뒤에 평상시를, sign-req 는 가입 직후 빈 홈을 깐다(체결 완료 계약이 없어 점포 정보를 보이지 않음, 운영 정책 CTR-29).
 // 연결 보류는 없다 — 가입하면 계정이 초대의 직원 레코드에 바로 이어진다(운영 정책 JOI-05 · ACC-15, 2026-10-19).
 const STATES = [
   { id: "today", label: "평상시", note: "오늘 근무 있음" },
@@ -16,10 +16,10 @@ const STATES = [
   { id: "off", label: "오늘 휴무", note: "근무 없음" },
   { id: "empty", label: "가입 직후", note: "정보 없음" },
   { id: "retired", label: "퇴직 후", note: "연결된 근무지 없음" },
-  { id: "sign-req", label: "날인 요청 팝업", note: "서명 대기 도착" },
+  { id: "sign-req", label: "날인 요청 팝업", note: "가입 직후 빈 홈 위" },
   { id: "store", label: "근무지 고르기", note: "근무지 전환" },
 ];
-const SHEET_VIEW = { store: "today", "sign-req": "todo" };
+const SHEET_VIEW = { store: "today", "sign-req": "empty" };
 
 const CHECK_IN = page("check-in");
 const CONTRACT = page("contract", "detail"); // 목업 contract.html#detail — 그 계약서 화면에서 날인한다
@@ -135,7 +135,7 @@ const CONTENT = {
     empty(
       maskIcon("nav-work.svg", 24, true),
       "아직 쌓인 근무 정보가 없습니다",
-      `<p>웨일카페 홍대점과 연결되었습니다. 관리자가 근무스케줄을 등록하면 이 화면에 오늘 근무와 이번 주 근무가 표시됩니다.</p>`,
+      `<p>웨일카페 강남역점과 연결되었습니다. 관리자가 근무스케줄을 등록하면 이 화면에 오늘 근무와 이번 주 근무가 표시됩니다.</p>`,
     ),
 
   retired: () =>
@@ -153,7 +153,7 @@ const CONTENT = {
 const header = (view) =>
   view === "today" || view === "todo" || view === "off"
     ? topBar({ store: STORE, storeAttrs: { "data-open": "store" }, alarmHref: NOTIFY, hasNewAlarm: view === "todo" })
-    : plainTopBar(view === "empty" ? "웨일카페 홍대점" : undefined, view === "retired");
+    : plainTopBar(view === "empty" ? "웨일카페 강남역점" : undefined, view === "retired");
 
 // 하단 메뉴는 모든 상태에서 그대로(HOME-5). 화면 아래에 붙여 둔다.
 const screen = (view) =>
@@ -206,7 +206,7 @@ const BLOCKS = {
   todo: () => screen("todo") + storeSheet(),
   off: () => screen("off") + storeSheet(),
   store: () => screen(SHEET_VIEW.store) + storeSheet({ "data-sheet-auto": true, "data-on-close": "#today" }),
-  "sign-req": () => screen(SHEET_VIEW["sign-req"]) + storeSheet() + signReqSheet({ "data-sheet-auto": true, "data-on-close": "#todo" }),
+  "sign-req": () => screen(SHEET_VIEW["sign-req"]) + signReqSheet({ "data-sheet-auto": true, "data-on-close": "#empty" }),
 };
 
 export default () => ({

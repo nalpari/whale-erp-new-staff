@@ -196,7 +196,6 @@ const sheets = (mode, ids) =>
     },
     `<ul class="flex flex-col divide-y divide-staff-border-light">${[
       ["이메일 변경", "haeun98@gmail.com → haeun.lee@gmail.com", "2026-07-02"],
-      ["휴대전화번호 변경", "010-2231-9944 → 010-4821-7736", "2026-05-14"],
       ["비밀번호 변경", "본인이 직접 변경", "2026-06-02"],
       ["주소 변경", "서울 마포구 동교로 5 → 서울 마포구 양화로 12", "2026-04-18"],
     ]

@@ -2,7 +2,7 @@
 // 계정 등록 · 계정 등록(링크) · 가입 완료 · 만 19세 미만 · 소속 추가 확인 · 소속 추가 완료 · 초대 만료 · 로그인)와 시트 2개(본사 제공 동의 · 소속 추가 거절),
 // 화면 문구·가짜 값·하단 버튼의 이동(data-go)을 그대로 옮겼다. 화면 순서는 docs/plans/2026-10-19-진입-가입-화면-가이드.md.
 // 본인인증과 연결 보류는 없다 — 가입하면 계정이 초대의 직원 레코드에 바로 이어진다(운영 정책 JOI-04, 2026-10-19).
-// 계정 등록의 휴대전화번호는 읽기 전용이다 — 코드로 오면 코드와 함께 확인된 번호, 링크로 오면 그 초대의 번호(JOIN-7, 2026-10-19 재영).
+// 계정 등록의 휴대전화번호는 읽기 전용이다 — 코드로 오면 코드 확인으로 확정된 번호, 링크로 오면 그 초대의 번호(JOIN-7, 2026-10-19 재영).
 // 초대 코드 입력(JOIN-7)은 두 칸을 다 채워야, 계정 등록의 약관 동의(JOIN-6)는 필수 둘을 모두 체크해야 버튼이 켜진다.
 // Figma 없음 — DESIGN.md 기준 초안.
 import { FIELD, alert, badge, body, bottomSheet, button, card, checkBox, dock, iconRow, img, maskIcon, notice, page, pageHeader, seal, segmentedControl, state, sunken, textField, uid, values } from "../../ui.mjs";
@@ -137,13 +137,13 @@ const VIEWS = {
   code: () => codeView(false),
   "code-fail": () => codeView(true),
 
-  // JOIN-7 잠금 — 같은 번호로 5회 틀리면 30분, 접속 IP 기준 제한도 더한다. 재발송을 받으면 새 코드로 바로 다시 시작한다. 남은 시간은 고정 값.
+  // JOIN-7 잠금 — 같은 번호로 5회 틀리면 30분, 접속 IP 기준 제한도 더한다. IP 제한에 걸려도 맞도록 「30분 뒤 다시 시도」와 재발송을 함께 안내한다. 남은 시간은 고정 값.
   "code-locked": () =>
     pageHeader("초대 코드로 가입", { backHref: LOGIN }) +
     body(
       lead("잠시 뒤 다시 시도해 주세요", "휴대전화번호나 초대 코드를 여러 번 잘못 넣어 입력을 잠갔습니다.", { align: "left", heading: "h2" }) +
         alert("warning", `<p class="text-[14px] font-semibold">남은 시간</p><p class="text-[28px] font-bold tabular-nums">28:41</p>`) +
-        notice("근무지 관리자에게 재발송을 요청해 주세요. 새 코드를 받으면 바로 다시 시작할 수 있습니다."),
+        notice("30분 뒤 다시 시도하거나, 근무지 관리자에게 재발송을 요청해 주세요."),
     ) +
     dock(button("다음", { disabled: true }) + ghost("로그인 화면으로", { href: LOGIN })),
 
@@ -188,7 +188,7 @@ const VIEWS = {
         readOnlyField({
           label: "휴대전화번호*",
           value: "010-9284-5521",
-          help: `${link ? "이 초대(근로계약서)에 적힌" : "초대 코드와 함께 확인한"} 번호라 고칠 수 없습니다. ${PHONE_FIX}`,
+          help: `${link ? "이 초대(근로계약서)에 적힌" : "초대 코드 확인으로 확정된"} 번호라 고칠 수 없습니다. ${PHONE_FIX}`,
         }) +
         textField({ label: "생년월일*", inputmode: "numeric", maxlength: 8, placeholder: "YYYYMMDD", required: true, value: "19980412", help: "8자리로 넣어 주세요. 가입한 뒤에는 고칠 수 없습니다." }) +
         pick("성별*", [{ value: "m", label: "남" }, { value: "f", label: "여" }], "f") +

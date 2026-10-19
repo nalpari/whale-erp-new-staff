@@ -31,7 +31,9 @@
          연결 보류 상태는 없다(운영 정책 JOI-05·ACC-15, 2026-10-19).
 
          sign-req 는 날인 요청 팝업이 홈 위에 뜬 상태다. 가입 완료 화면의 「홈으로」가
-         home.html#sign-req 로 들어온다.
+         home.html#sign-req 로 들어온다. 아직 체결 완료 계약이 없어 배경은 빈 홈(empty)이고
+         오늘 근무·출근하기·근무지 선택기를 보이지 않는다(운영 정책 CTR-29). 「나중에」를 누르면
+         빈 홈으로 돌아간다.
 
          공지사항과 FAQ는 여기 없다 — 직원 근무 앱 노출 대상이 아니다.
 
@@ -83,7 +85,7 @@
             <div class="abar">
               <button
                 data-sheet="store"
-                data-when="today todo off sign-req"
+                data-when="today todo off"
                 style="
                   background: none;
                   border: none;
@@ -99,10 +101,10 @@
                 <span class="abar__title">웨일카페 강남역점</span>
                 <i class="ph ph-caret-down" style="font-size: 13px; color: var(--ink-3)"></i>
               </button>
-              <span class="abar__title" data-when="empty">웨일카페 홍대점</span>
-              <a class="abar__end" href="notify.html" data-unless="empty">
+              <span class="abar__title" data-when="empty sign-req">웨일카페 강남역점</span>
+              <a class="abar__end" href="notify.html" data-unless="empty sign-req">
                 <i class="ph ph-bell" style="font-size: 20px"></i>
-                <span class="badge badge--seal" data-when="todo sign-req" style="margin-left: 2px">3</span>
+                <span class="badge badge--seal" data-when="todo" style="margin-left: 2px">3</span>
               </a>
             </div>
 
@@ -232,7 +234,7 @@
             </div>
 
             <!-- ── 처리할 일이 쌓인 상태 ────────────────────────── -->
-            <div class="view" data-when="todo sign-req">
+            <div class="view" data-when="todo">
               <div class="scroll">
                 <div class="stack stack-14">
                   <div class="card card--pen">
@@ -486,12 +488,12 @@
             </div>
 
             <!-- ── 가입 직후, 아무 정보도 없는 상태 ─────────────── -->
-            <div class="view view--center" data-when="empty">
+            <div class="view view--center" data-when="empty sign-req">
               <div class="empty">
                 <i class="ph ph-tray"></i>
                 <p class="h-md">아직 쌓인 근무 정보가 없습니다</p>
                 <p class="p--sm" style="max-width: 260px">
-                  웨일카페 홍대점과 연결되었습니다. 관리자가 근무스케줄을 등록하면 이 화면에 오늘
+                  웨일카페 강남역점과 연결되었습니다. 관리자가 근무스케줄을 등록하면 이 화면에 오늘
                   근무와 이번 주 근무가 표시됩니다.
                 </p>
               </div>
@@ -555,7 +557,8 @@
             </div>
 
             <!-- 날인 요청 팝업 — 서명 대기 계약서가 도착하면 홈 위에 띄운다 (HOME-1).
-                 시트가 아니라 상태(sign-req)로 둬서 가입 완료 화면이 home.html#sign-req 로 바로 연다. -->
+                 시트가 아니라 상태(sign-req)로 둬서 가입 완료 화면이 home.html#sign-req 로 바로 연다.
+                 배경은 가입 직후 빈 홈(empty)이다 — 체결 완료 계약이 없어 점포 정보를 보이지 않는다(운영 정책 CTR-29). -->
             <div class="scrim" data-when="sign-req"></div>
             <div class="sheet" data-when="sign-req">
               <div class="sheet__grab"></div>
@@ -585,7 +588,7 @@
               <a class="btn" href="contract.html#detail"
                 ><i class="ph-fill ph-seal-check"></i>날인하러 가기</a
               >
-              <button class="btn btn--ghost" data-go="todo">나중에</button>
+              <button class="btn btn--ghost" data-go="empty">나중에</button>
             </div>
           </div>
         </div>
@@ -628,7 +631,7 @@
                 <span class="sw-b__k">6</span>
                 <span
                   ><span class="sw-b__t">날인 요청 팝업</span>
-                  <span class="sw-b__d">· 서명 대기 도착</span></span
+                  <span class="sw-b__d">· 가입 직후 빈 홈 위</span></span
                 >
               </button>
             </div>
