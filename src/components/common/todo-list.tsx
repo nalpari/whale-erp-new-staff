@@ -13,12 +13,14 @@ export function TodoList({ children }: { children: ReactNode }) {
 // 완료하면 체크칸이 남보라로 차고 제목은 흐린 글자가 된다. overdue(기한 지남)면 일시를 갈색(#956013)으로.
 // 체크 표시는 Figma 의 두 그림(빈 칸·찬 칸)을 그대로 쓴다. onToggle 이 없으면 보기 전용이다.
 // 보이는 칸은 28px 이지만 체크박스는 사방 8px 더 넓혀 44px 로 눌린다.
+// onOpen 을 주면 제목 · 일시 칸이 상세를 여는 버튼이 된다(체크칸과 따로 눌린다).
 export function TodoItem({
   title,
   meta,
   done,
   overdue = false,
   onToggle,
+  onOpen,
   badges,
 }: {
   title: string;
@@ -26,8 +28,17 @@ export function TodoItem({
   done: boolean;
   overdue?: boolean;
   onToggle?: (done: boolean) => void;
+  onOpen?: () => void;
   badges?: ReactNode;
 }) {
+  // 버튼 안에는 <p> 를 둘 수 없어 onOpen 이면 <span> 으로 그린다. flex 칸의 자식이라 모양은 같다.
+  const Line = onOpen ? "span" : "p";
+  const text = (
+    <>
+      <Line className={`truncate text-[15px] font-semibold ${done ? "text-staff-text-muted" : "text-staff-text"}`}>{title}</Line>
+      <Line className={`truncate pt-[2px] text-[12px] ${overdue ? "text-[#956013]" : "text-staff-text-sub"}`}>{meta}</Line>
+    </>
+  );
   return (
     <li className="flex items-center gap-[12px] py-[17px] leading-[1.5]">
       <label
@@ -45,10 +56,13 @@ export function TodoItem({
         />
         <Image src={done ? "/icons/todo-check-on.svg" : "/icons/todo-check-off.svg"} alt="" width={12} height={9} className="pointer-events-none" />
       </label>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <p className={`truncate text-[15px] font-semibold ${done ? "text-staff-text-muted" : "text-staff-text"}`}>{title}</p>
-        <p className={`truncate pt-[2px] text-[12px] ${overdue ? "text-[#956013]" : "text-staff-text-sub"}`}>{meta}</p>
-      </div>
+      {onOpen ? (
+        <button type="button" onClick={onOpen} className="flex min-w-0 flex-1 flex-col text-left">
+          {text}
+        </button>
+      ) : (
+        <div className="flex min-w-0 flex-1 flex-col">{text}</div>
+      )}
       {badges && <div className="flex shrink-0 gap-[4px]">{badges}</div>}
     </li>
   );

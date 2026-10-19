@@ -67,13 +67,25 @@ export function BottomSheet({
 
 // 시트 안의 고르기 버튼(Figma node 12:677): 52px · radius 12 · #E4E8EF 테두리 · 15px semibold 보조 글자.
 // 지금 고른 것은 글자 옆에 19px 체크(사이 9). 색이 아니라 체크와 aria-pressed 로 고른 것을 알린다.
-export function SheetOption({ selected = false, onClick, children }: { selected?: boolean; onClick: () => void; children: ReactNode }) {
+// disabled 면(보내는 중 등) 흐리게 하고 누르지 못한다.
+export function SheetOption({
+  selected = false,
+  disabled = false,
+  onClick,
+  children,
+}: {
+  selected?: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
   return (
     <button
       type="button"
       aria-pressed={selected}
+      disabled={disabled}
       onClick={onClick}
-      className="flex min-h-[52px] items-center justify-center gap-[9px] rounded-[12px] border border-[#e4e8ef] bg-white px-[18px] text-[15px] font-semibold text-staff-text-sub transition-colors duration-150 ease-out active:bg-staff-primary-inactive"
+      className="flex min-h-[52px] items-center justify-center gap-[9px] rounded-[12px] border border-[#e4e8ef] bg-white px-[18px] text-[15px] font-semibold text-staff-text-sub transition-colors duration-150 ease-out active:bg-staff-primary-inactive disabled:opacity-40"
     >
       {children}
       {selected && <Image src="/icons/check-sub.svg" alt="" width={19} height={19} className="-scale-y-100" />}
