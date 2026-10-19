@@ -1,5 +1,9 @@
 # Bundle history
 
+## 2026-10-19
+* **Update**: 급여 화면을 실제 api(`GET /me/payslips` · `/me/payslips/:id`, WHALEERP-330)로 바꿨다 — `payslips.mock.ts` · `isViewable` · `splitLatest` · 화면용 `display` 값(계산 근거 · 해당 없음 · 정정됨)을 지우고, 원천징수 줄은 관리자 화면과 같은 `isItemShown` 으로 고른다. `api-types.d.ts` 를 다시 만들었다([Whale ERP Staff](/whale-erp-staff.md)).
+* **Update**: 직원 앱 급여 화면 `/pay` · `/pay/[payslipId]`(데모 pay 이식, 가짜 값 `src/lib/payslips.mock.ts`), 순수 함수 `src/lib/payslip-rules.ts` 를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다.
+
 ## 2026-10-14
 * **Update**: staff #7 리뷰 반영 — `safeNextPath` 가 정규화한 뒤 `//` 로 시작하는 값(`/.//evil.com`)을 버려 오픈 리다이렉트를 막았다. proxy 의 만료 안내 설명을 `next`(없으면 `/home`)로, `x-staff-path` 를 덮어쓰는 범위를 로그인 필요 화면으로 고쳤다([Whale ERP Staff](/whale-erp-staff.md)).
 * **Update**: 로그인 뒤 보던 화면으로 돌려보내기(WHALEERP-166)를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다 — proxy 와 만료 안내가 `next` 를 싣고, `src/lib/login-return.ts` 의 `safeNextPath` 로 거른다. `PUBLIC_PATHS` 를 그 파일로 옮겼다.
