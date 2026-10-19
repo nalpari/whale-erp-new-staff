@@ -3,6 +3,7 @@ import { Alert, Card, Dock } from "@/components/common";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { requireSession } from "@/lib/session";
 import { LogoutSheet } from "./logout-sheet";
+import { TodoCard } from "./todo-card";
 
 export const metadata: Metadata = { title: "홈 · Whale ERP" };
 
@@ -27,6 +28,7 @@ export default async function HomePage() {
           <p className="pt-[6px] text-[14px]">{account.email}</p>
           <p className="text-[13px] text-staff-text-sub">{labelOf(statuses, account.status)}</p>
         </Card>
+        <TodoCard />
       </div>
       <Dock>
         <LogoutSheet />
