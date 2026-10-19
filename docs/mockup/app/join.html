@@ -22,7 +22,11 @@
          초대 코드 입력부터 초대 확인·계정 등록·가입 완료까지 한 화면에 그렸다
          (docs/plans/2026-10-19-진입-가입-화면-가이드.md).
          앱을 직접 열면 code → invite → signup → done 이고, 초대 링크
-         (/invite#token=…)로 열면 code 를 건너뛰고 invite 에서 시작한다.
+         (/invite#token=…)로 열면 code 를 건너뛰고 invite 에서 시작한다. 링크로 온
+         계정 등록은 단계가 셋이라 signup-link 로 따로 그렸다. 두 경로 모두
+         휴대전화번호는 읽기 전용이다(JOIN-7). 그 번호로 계정이 이미 있으면
+         has-account 에서 로그인으로 보내고, 소속 추가 확인은 로그인 뒤에 뜬다
+         (운영 정책 JOI-02).
          코드가 틀릴 때(code-fail)와 잠길 때(code-locked)는 오른쪽 상태 목록만이
          아니라 code 화면 아래 버튼으로도 갈 수 있게 뒀다.
 
@@ -166,7 +170,8 @@
               <div class="grow"></div>
             </div>
 
-            <!-- ── 1-1 · 초대 코드 입력 잠금 (JOIN-7 미정 · 후보: 같은 번호 5회 틀리면 30분) ── -->
+            <!-- ── 1-1 · 초대 코드 입력 잠금 (JOIN-7 · 같은 번호로 5회 틀리면 30분, 접속 IP 기준 제한도 더함) ──
+                 관리자에게 재발송을 받으면 새 코드로 바로 다시 시작한다. -->
             <div class="view" data-when="code-locked">
               <div style="height: 20px"></div>
               <div class="stack stack-6">
@@ -189,8 +194,8 @@
               <div class="note">
                 <i class="ph ph-chat-circle-text"></i>
                 <div>
-                  초대 코드는 근무지에서 보낸 알림톡·문자에 있습니다. 받지 못했으면 근무지에 다시
-                  보내 달라고 요청해 주세요.
+                  근무지 관리자에게 재발송을 요청해 주세요. 새 코드를 받으면 바로 다시 시작할 수
+                  있습니다.
                 </div>
               </div>
 
@@ -236,11 +241,41 @@
               <div class="grow"></div>
             </div>
 
+            <!-- ── 2-1 · 이 번호로 계정이 이미 있음 (운영 정책 JOI-02) ── -->
+            <!-- 새로 가입하지 않고 로그인한다. 소속 추가 확인·복귀 확인은 로그인 뒤 앱 안의 확인 화면이다.
+                 코드와 번호가 맞았거나 링크의 토큰이 맞은 사람에게만 보이고, 기존 계정의 이메일은 보이지 않는다. -->
+            <div class="view" data-when="has-account">
+              <div class="center stack-8" style="padding: 10px 0 4px">
+                <i class="ph-fill ph-user-circle-check" style="font-size: 30px; color: var(--pen)"></i>
+                <p class="h-lg">이미 계정이 있습니다</p>
+                <p class="p">이 휴대전화번호로 가입한 계정이 있습니다. 새로 가입하지 않고 로그인해 주세요.</p>
+              </div>
+
+              <div class="note note--pen">
+                <i class="ph ph-sign-in"></i>
+                <div>
+                  로그인하면 이 초대의 <strong>소속 추가 확인</strong>이 앱 안에 뜹니다. 전에 이
+                  근무지에서 일했다면 복귀 확인이 뜹니다. 수락하기 전까지는 초대한 근무지와 고용
+                  형태만 보입니다.
+                </div>
+              </div>
+
+              <div class="grow"></div>
+            </div>
+
             <!-- ── 3 · 계정 등록 (/join/signup) ─────────────────── -->
-            <div class="view" data-when="signup">
-              <p class="lab">3 / 4 · 계정 등록</p>
-              <div class="steps">
+            <!-- signup 은 초대 코드로 온 경로(4단계), signup-link 는 초대 링크로 온 경로(코드 입력이 없어 3단계)다.
+                 휴대전화번호는 두 경로 모두 읽기 전용이다(JOIN-7). -->
+            <div class="view" data-when="signup signup-link">
+              <p class="lab" data-when="signup">3 / 4 · 계정 등록</p>
+              <div class="steps" data-when="signup">
                 <div class="steps__i is-done"></div>
+                <div class="steps__i is-done"></div>
+                <div class="steps__i is-on"></div>
+                <div class="steps__i"></div>
+              </div>
+              <p class="lab" data-when="signup-link">2 / 3 · 계정 등록</p>
+              <div class="steps" data-when="signup-link">
                 <div class="steps__i is-done"></div>
                 <div class="steps__i is-on"></div>
                 <div class="steps__i"></div>
@@ -249,8 +284,10 @@
               <p class="h-lg" style="margin-top: 4px">계정을 등록해 주세요</p>
               <p class="p--sm">웨일카페 강남역점 근무를 위한 계정입니다.</p>
 
-              <!-- 인적사항 다섯 가지(운영 정책 ACC-23). 계약서와 다르면 날인 전 본인 대조에서 수정 요청으로
-                   이어지고(운영 정책 JOI-10), 가입을 막지는 않는다. -->
+              <!-- 인적사항 다섯 가지(운영 정책 ACC-23). 이름·생년월일·성별·외국인 여부가 계약서와 다르면 날인 전
+                   본인 대조에서 수정 요청으로 이어지고(운영 정책 JOI-10), 가입을 막지는 않는다.
+                   휴대전화번호는 계정의 매칭 키라 고치지 못하게 한다 — 고칠 수 있으면 남의 번호로 가입해
+                   그 사람의 다음 초대를 막을 수 있다(JOIN-7). -->
               <p class="lab">인적사항</p>
               <div class="field">
                 <label class="field__lab">이름<span class="req">*</span></label>
@@ -258,10 +295,14 @@
               </div>
               <div class="field">
                 <label class="field__lab">휴대전화번호<span class="req">*</span></label>
-                <input class="input input--mono" type="tel" inputmode="numeric" value="010-9284-5521" />
-                <p class="field__help">
-                  초대 코드와 함께 넣은 번호를 채워 두었습니다. 근로계약서의 번호와 다르면 날인 전에
-                  근무지에 수정 요청을 보내게 됩니다.
+                <input class="input input--ro input--mono" type="tel" value="010-9284-5521" readonly />
+                <p class="field__help" data-when="signup">
+                  초대 코드와 함께 확인한 번호라 고칠 수 없습니다. 번호가 틀렸으면 근무지 관리자에게
+                  알려 주세요. 관리자가 근로계약서의 번호를 고쳐 다시 초대합니다.
+                </p>
+                <p class="field__help" data-when="signup-link">
+                  이 초대(근로계약서)에 적힌 번호라 고칠 수 없습니다. 번호가 틀렸으면 근무지 관리자에게
+                  알려 주세요. 관리자가 근로계약서의 번호를 고쳐 다시 초대합니다.
                 </p>
               </div>
               <div class="field">
@@ -503,7 +544,7 @@
               <div class="note">
                 <i class="ph ph-shield-check"></i>
                 <div>
-                  수락하면 <strong>이름·생년월일·연락처만</strong> 새 소속에 복사됩니다. 다른
+                  수락하면 <strong>이름·휴대전화번호·생년월일·성별·외국인 여부만</strong> 새 소속에 복사됩니다. 다른
                   소속의 계약·급여·출퇴근 기록은 넘어가지 않습니다.
                 </div>
               </div>
@@ -551,15 +592,15 @@
               <div class="stack stack-6">
                 <p class="h-lg">웨일카페 홍대점 소속이 추가되었습니다</p>
                 <p class="p">
-                  기존 계정은 그대로이고, 계정의 이름·생년월일·연락처만 이 근무지의 새 직원 레코드에
-                  이어졌습니다.
+                  기존 계정은 그대로이고, 계정의 이름·휴대전화번호·생년월일·성별·외국인 여부만 이
+                  근무지의 새 직원 레코드에 이어졌습니다.
                 </p>
               </div>
               <div class="card card--sunken" style="text-align: left; width: 100%">
                 <div class="rows">
                   <div class="row" style="padding: 9px 0">
                     <span class="row__title" style="font-weight: 500; font-size: 13.5px">넘어간 것</span>
-                    <span class="push num" style="font-size: 13px">이름 · 생년월일 · 연락처</span>
+                    <span class="push num" style="font-size: 13px; text-align: right">이름 · 휴대전화번호 · 생년월일 · 성별 · 외국인 여부</span>
                   </div>
                   <div class="row" style="padding: 9px 0">
                     <span class="row__title" style="font-weight: 500; font-size: 13.5px"
@@ -673,12 +714,23 @@
               <button class="btn" data-go="signup">
                 <i class="ph-fill ph-arrow-right"></i>가입 시작
               </button>
-              <button class="btn btn--quiet" data-go="addsite">이 번호로 계정이 이미 있으면?</button>
+              <button class="btn btn--quiet" data-go="has-account">이 번호로 계정이 이미 있으면?</button>
               <button class="btn btn--quiet" data-go="login">이미 가입을 마친 초대면?</button>
               <button class="btn btn--quiet" data-go="expired">만료된 초대면?</button>
             </div>
 
+            <div class="dock" data-when="has-account">
+              <a class="btn" href="login.html"><i class="ph ph-sign-in"></i>로그인하러 가기</a>
+              <button class="btn btn--quiet" data-go="addsite" data-toast="로그인했습니다">로그인한 뒤 · 소속 추가 확인</button>
+            </div>
+
             <div class="dock" data-when="signup">
+              <button class="btn" data-go="done" data-toast="가입을 마쳤습니다">가입하기</button>
+              <button class="btn btn--quiet" data-go="minor">만 19세 미만이면?</button>
+              <button class="btn btn--quiet" data-go="signup-link">초대 링크로 왔으면?</button>
+            </div>
+
+            <div class="dock" data-when="signup-link">
               <button class="btn" data-go="done" data-toast="가입을 마쳤습니다">가입하기</button>
               <button class="btn btn--quiet" data-go="minor">만 19세 미만이면?</button>
             </div>
@@ -688,7 +740,7 @@
             </div>
 
             <div class="dock" data-when="done">
-              <a class="btn" href="home.html">홈으로</a>
+              <a class="btn" href="home.html#sign-req">홈으로</a>
               <a class="btn btn--quiet" href="tax.html">종이 계약이면 · 신고 정보 입력</a>
             </div>
 
@@ -809,7 +861,7 @@
                 <span class="sw-b__k">3</span>
                 <span
                   ><span class="sw-b__t">입력 잠금</span>
-                  <span class="sw-b__d">· 남은 시간 · JOIN-7 미정</span></span
+                  <span class="sw-b__d">· 남은 시간 · 재발송 안내</span></span
                 >
               </button>
               <button class="sw-b" data-state="invite">
@@ -819,15 +871,29 @@
                   <span class="sw-b__d">· 가입 시작 전</span></span
                 >
               </button>
-              <button class="sw-b" data-state="signup">
+              <button class="sw-b" data-state="has-account">
                 <span class="sw-b__k">5</span>
                 <span
+                  ><span class="sw-b__t">계정 있음</span>
+                  <span class="sw-b__d">· 로그인 뒤 소속 추가 확인</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="signup">
+                <span class="sw-b__k">6</span>
+                <span
                   ><span class="sw-b__t">계정 등록</span>
-                  <span class="sw-b__d">· 인적사항·로그인 정보·약관</span></span
+                  <span class="sw-b__d">· 초대 코드로 옴 · 번호 읽기 전용</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="signup-link">
+                <span class="sw-b__k">7</span>
+                <span
+                  ><span class="sw-b__t">계정 등록 · 링크</span>
+                  <span class="sw-b__d">· 초대 링크로 옴 · 초대의 번호</span></span
                 >
               </button>
               <button class="sw-b" data-state="done">
-                <span class="sw-b__k">6</span>
+                <span class="sw-b__k">8</span>
                 <span
                   ><span class="sw-b__t">가입 완료</span>
                   <span class="sw-b__d">· 날인 요청 팝업 · 종이 계약은 신고 정보</span></span
@@ -841,21 +907,21 @@
                 >
               </button>
               <button class="sw-b" data-state="minor">
-                <span class="sw-b__k">7</span>
+                <span class="sw-b__k">9</span>
                 <span
                   ><span class="sw-b__t">만 19세 미만</span>
                   <span class="sw-b__d">· 가입 중단</span></span
                 >
               </button>
               <button class="sw-b" data-state="addsite">
-                <span class="sw-b__k">8</span>
+                <span class="sw-b__k">·</span>
                 <span
                   ><span class="sw-b__t">소속 추가 확인</span>
                   <span class="sw-b__d">· 수락 전</span></span
                 >
               </button>
               <button class="sw-b" data-state="addsite-done">
-                <span class="sw-b__k">9</span>
+                <span class="sw-b__k">·</span>
                 <span
                   ><span class="sw-b__t">소속 추가 완료</span>
                   <span class="sw-b__d">· 수락 후</span></span
@@ -897,17 +963,19 @@
             열면 토큰이 <code>/invite#token=…</code> 에 실려 와 코드 입력을 건너뛴다. 토큰을
             <code>#</code> 뒤에 두는 것은 재설정 링크와 같은 방식으로, 서버 접근 기록에 토큰이 남지
             않게 하려는 것이다. 초대 토큰(43자)은 사람이 칠 수 없어 짧은 코드를 따로 둔다 — JOIN-7.
+            링크로 오면 코드 입력이 없어 단계가 셋(초대 확인 · 계정 등록 · 가입 완료)이다.
           </p>
           <p class="p" style="margin-top: 10px">
             초대를 확인하고 계정을 등록하면 계정은 <strong>초대의 직원 레코드에 바로 이어진다</strong>
             (운영 정책 JOI-04·05). 본인인증도, 번호가 어긋날 때 관리자 확인을 기다리는 단계도 없다.
             가입과 함께 근로계약서가 자동으로 발송되고(운영 정책 JOI-09) 홈 위에 날인 요청 팝업이
-            뜬다. 가입 때 넣은 번호가 계약서와 다르면 날인 전 본인 대조에서 걸려 수정 요청으로
-            이어진다(운영 정책 JOI-10).
+            뜬다. 가입 때 넣은 이름·생년월일·성별·외국인 여부가 계약서와 다르면 날인 전 본인
+            대조에서 걸려 수정 요청으로 이어진다(운영 정책 JOI-10).
           </p>
           <p class="p" style="margin-top: 10px">
-            이미 계정이 있는 사람은 이 경로를 타지 않는다. 다른 점포에서 새로 부른 것뿐이므로
-            소속 추가 확인만 뜨고, 가입을 이미 마친 초대를 다시 열면 로그인 화면이 대신 뜬다.
+            이미 계정이 있는 사람은 새로 가입하지 않는다. 초대를 확인하면 「이미 계정이 있습니다」와
+            로그인 버튼이 뜨고, 로그인한 뒤 앱 안에서 소속 추가 확인(전에 일한 근무지면 복귀 확인)이
+            뜬다(운영 정책 JOI-02). 가입을 이미 마친 초대를 다시 열면 로그인 화면이 대신 뜬다.
           </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">초대 코드는 틀린 쪽을 알려 주지 않는다</h2>
@@ -915,14 +983,15 @@
             번호와 코드가 맞지 않으면 「휴대전화번호나 초대 코드를 다시 확인해 주세요」 한 줄만
             보인다. <b>어느 칸이 틀렸는지, 그 번호로 초대가 있는지는 알리지 않는다</b> — 알려 주면
             남의 번호로 초대가 있는지 떠볼 수 있다. 같은 이유로 두 칸을 함께 빨갛게 한다. 여러 번
-            틀리면 입력을 잠그고 남은 시간을 보인다. 몇 번에 몇 분인지는 아직 정하지 않았다(JOIN-7).
+            틀리면 입력을 잠그고 남은 시간을 보인다. 같은 번호로 5회 틀리면 30분 잠그고, 접속 IP 기준
+            제한도 따로 둔다. 관리자에게 재발송을 받으면 새 코드로 바로 다시 시작한다(JOIN-7).
           </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">개인정보는 수락 전과 후 모두 선을 긋는다</h2>
           <p class="p">
             소속 추가 확인은 수락하기 전까지 상대가 어느 계정인지 알려 주지 않는다. 보이는 건
-            초대한 사업자·점포와 고용 형태뿐이다. 수락해도 넘어가는 건 계정의
-            이름·생년월일·연락처뿐이고, 다른 데서 어떤 계약을 맺었고 얼마를 받았고 언제
+            초대한 사업자·점포와 고용 형태뿐이다. 수락해도 넘어가는 건 계정 가입 정보 다섯
+            가지(이름·휴대전화번호·생년월일·성별·외국인 여부)뿐이고(운영 정책 JOI-08), 다른 데서 어떤 계약을 맺었고 얼마를 받았고 언제
             출근했는지는 이 점포로 옮겨지지 않는다. 관리자 쪽도 마찬가지다 — 소속 확인 대상
             계정의 실명과 다른 소속은 관리자도 볼 수 없다. <strong>두 화면이 같은 선을 지킨다.</strong>
           </p>
@@ -930,8 +999,10 @@
           <h2 class="h-lg" style="margin: 26px 0 10px">인적사항, 이제는 직원이 적는다</h2>
           <p class="p">
             계정 등록 화면에서 <b>이름·휴대전화번호·생년월일(8자리)·성별·외국인 여부</b>를 직원이
-            직접 넣는다(운영 정책 ACC-23). 휴대전화번호는 초대 코드와 함께 넣은 값을 채워 두고
-            직원이 고칠 수 있다. 생년월일은 가입한 뒤 고칠 수 없어 칸 아래에 적어 둔다(운영 정책
+            직접 넣는다(운영 정책 ACC-23). 휴대전화번호만은 <b>읽기 전용</b>이다 — 코드로 왔으면
+            코드와 함께 확인된 번호, 링크로 왔으면 그 초대(근로계약서)의 번호를 채운다. 계정 번호는
+            매칭 키라, 고칠 수 있으면 남의 번호로 가입해 그 사람의 다음 초대를 막을 수 있다. 번호가
+            틀리면 관리자가 날인 전에 당사자 정보를 고쳐 다시 초대한다(운영 정책 CTR-28). 생년월일은 가입한 뒤 고칠 수 없어 칸 아래에 적어 둔다(운영 정책
             ACC-13). 근로계약서에 들어갈 주소도 관리자가 적지 않고 직원이 검색으로 골라 상세주소만
             넣는다(운영 정책 ACC-20) — 아래 JOIN-4.
           </p>
@@ -968,15 +1039,16 @@
             <div class="gap__head">
               <span class="gap__no">JOIN-1</span>
               <span class="gap__t">자동 연결 조건</span>
-              <span class="gap__st gap__st--fixed">변경(2026-10-19) · 가입하면 초대의 직원 레코드에 잇는다</span>
+              <span class="gap__st gap__st--fixed">확정 2026-10-19 재영</span>
               <span class="gap__ref">운영 정책 JOI-04</span>
             </div>
             <div class="gap__one">
               <p>
                 가입하면 계정을 <b>초대의 직원 레코드에 바로 잇는다</b> (운영 정책 JOI-04,
                 2026-10-19 재영). 번호를 따로 맞춰 보지 않고, 관리자 확인을 기다리는 연결 보류도 없다.
-                가입 때 넣은 번호가 계약서와 다르면 날인 전 본인 대조에서 걸려 수정 요청으로
-                바로잡는다(운영 정책 JOI-10).
+                가입 때 넣은 이름·생년월일·성별·외국인 여부가 계약서와 다르면 날인 전 본인 대조에서
+                걸려 수정 요청으로 바로잡는다(운영 정책 JOI-10). 휴대전화번호는 읽기 전용이라
+                어긋나지 않는다(JOIN-7).
               </p>
               <ul>
                 <li>
@@ -1008,7 +1080,7 @@
             <div class="gap__head">
               <span class="gap__no">JOIN-3</span>
               <span class="gap__t">연결 보류 화면에서 직원에게 무엇까지 알릴 것인가</span>
-              <span class="gap__st gap__st--fixed">확정 · 최소 안내 → 2026-10-19 대상 없어짐</span>
+              <span class="gap__st gap__st--fixed">확정 2026-10-19 재영</span>
               <span class="gap__ref">S-VZBTHL</span>
             </div>
             <div class="gap__one">
@@ -1017,9 +1089,10 @@
                 계약서에 적힌 휴대전화번호는 끝자리도 보여 주지 않는다 (2026-09-17 재영 확정).
               </p>
               <p>
-                <b>2026-10-19 대상이 없어졌다.</b> 연결 보류가 없어져(JOIN-1 변경) 연결 보류 화면도
-                지웠다. 계약서의 휴대전화번호를 직원에게 보이지 않는다는 선은 초대 확인·초대 코드
-                입력 화면이 그대로 이어받는다.
+                <b>2026-10-19 대상이 없어졌다.</b> 연결 보류가 없어져(JOIN-1) 연결 보류 화면도
+                지웠다. 초대 확인 화면은 근무지와 고용 형태만 보이고 직원 레코드 값을 보이지 않는다.
+                계정 등록의 휴대전화번호는 JOIN-7 에 따라 읽기 전용으로 채운다 — 코드로 왔으면 직원이
+                넣은 번호, 링크로 왔으면 그 초대의 번호다.
               </p>
             </div>
           </div>
@@ -1079,12 +1152,11 @@
             </div>
           </div>
 
-          <div class="gap">
+          <div class="gap is-decided">
             <div class="gap__head">
               <span class="gap__no">JOIN-7</span>
               <span class="gap__t">초대 코드로 가입을 시작한다</span>
               <span class="gap__st gap__st--fixed">확정 2026-10-19 재영</span>
-              <span class="gap__st gap__st--open">세부 미정 · 기획 세션에 넘김</span>
               <span class="gap__ref">운영 정책 JOI-02·03</span>
             </div>
             <div class="gap__one">
@@ -1094,30 +1166,25 @@
                 코드 입력을 건너뛴다. 링크의 토큰은 <code>/invite#token=…</code> 에 싣는다
                 (2026-10-19 재영 확정).
               </p>
+              <ul>
+                <li><b>코드 모양</b> — 8자리 대문자 + 숫자. 헷갈리는 0 · O · 1 · I 는 뺀다</li>
+                <li><b>함께 받는 값</b> — 휴대전화번호. 둘이 모두 맞아야 열린다</li>
+                <li>
+                  <b>잠금</b> — 같은 번호로 5회 틀리면 30분 잠근다. 접속 IP 기준 제한도 더한다. 관리자에게
+                  재발송을 받으면 새 코드로 바로 다시 시작한다
+                </li>
+                <li><b>관리자 웹</b> — 코드를 보이지 않는다(해시 저장). 필요하면 재발송한다</li>
+                <li>
+                  <b>계정 등록의 휴대전화번호는 읽기 전용</b> — 코드로 오면 코드와 함께 확인된 번호, 링크로
+                  오면 그 초대(근로계약서)의 번호를 채운다. 번호가 틀리면 관리자가 날인 전에 당사자 정보를
+                  고쳐 다시 초대한다(운영 정책 CTR-28). 계정 번호는 매칭 키라, 고칠 수 있으면 남의 번호로
+                  가입해 그 사람의 다음 초대를 막을 수 있다
+                </li>
+              </ul>
               <p>
-                아래 세부는 <b>미정</b>이다. 알림톡 문구·api·운영 정책(JOI-02·03)에 번지므로 이 화면에서
-                확정하지 않고 기획 세션에 넘긴다. 화면은 후보 안으로 그렸다.
+                운영 정책 JOI-02·03, 용어집(초대 코드), Manyfast 명세는 기획 세션이 고친다. api 일감은
+                기획 세션이 Plane 에 올린다.
               </p>
-            </div>
-            <div class="gap__opts">
-              <div class="gap__opt">
-                <div class="gap__label">코드 모양 · 미정</div>
-                <p>후보: 8자리 대문자 + 숫자. 헷갈리는 0 · O · 1 · I 는 뺀다.</p>
-              </div>
-              <div class="gap__opt">
-                <div class="gap__label">함께 받는 값 · 미정</div>
-                <p>후보: 휴대전화번호. 코드만 받으면 맞힐 때까지 넣어 보는 공격에 약하다.</p>
-              </div>
-            </div>
-            <div class="gap__opts" style="border-top: 1px solid var(--rule-soft)">
-              <div class="gap__opt">
-                <div class="gap__label">잠금 · 미정</div>
-                <p>후보: 같은 번호로 5회 틀리면 30분 잠금(핀 재설정과 같은 틀).</p>
-              </div>
-              <div class="gap__opt">
-                <div class="gap__label">관리자 웹 표시 · 미정</div>
-                <p>후보: 보이지 않는다(해시 저장). 다시 보내려면 재발송한다.</p>
-              </div>
             </div>
           </div>
 
@@ -1157,11 +1224,15 @@
               >
             </li>
             <li>
-              <span class="pol__src">S-RFOEAG</span>
+              <span class="pol__src">운영 정책 JOI-08</span>
               <span
-                >소속 확인을 수락하면 계정의 이름·생년월일·연락처만 새 레코드로
-                복사하고, 다른 소속의 정보는 옮기지 않는다.</span
+                >소속 확인을 수락하면 계정 가입 정보 다섯 가지(이름·휴대전화번호·생년월일·성별·외국인
+                여부)만 새 레코드로 복사하고, 다른 소속의 정보는 옮기지 않는다.</span
               >
+            </li>
+            <li>
+              <span class="pol__src">운영 정책 JOI-02</span>
+              <span>이미 계정이 있는 직원의 소속 추가 확인은 로그인한 뒤 앱 안의 확인 화면에서 한다.</span>
             </li>
             <li>
               <span class="pol__src">S-RFOEAG</span>
@@ -1170,7 +1241,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 진입·가입 · 2026년 10월 19일 · 상태 11개 · 시트 2개 · 쟁점 7건
+            직원 근무 앱 목업 · 진입·가입 · 2026년 10월 19일 · 상태 13개 · 시트 2개 · 쟁점 7건
           </footer>
         </div>
       </div>

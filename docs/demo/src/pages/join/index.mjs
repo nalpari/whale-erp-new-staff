@@ -1,18 +1,21 @@
-// 진입·가입 데모. 기준 목업: docs/mockup/app/join.html — 상태 11개(초대 코드 입력 · 코드 틀림 · 입력 잠금 · 초대 확인 ·
-// 계정 등록 · 가입 완료 · 만 19세 미만 · 소속 추가 확인 · 소속 추가 완료 · 초대 만료 · 로그인)와 시트 2개(본사 제공 동의 · 소속 추가 거절),
+// 진입·가입 데모. 기준 목업: docs/mockup/app/join.html — 상태 13개(초대 코드 입력 · 코드 틀림 · 입력 잠금 · 초대 확인 · 계정 있음 ·
+// 계정 등록 · 계정 등록(링크) · 가입 완료 · 만 19세 미만 · 소속 추가 확인 · 소속 추가 완료 · 초대 만료 · 로그인)와 시트 2개(본사 제공 동의 · 소속 추가 거절),
 // 화면 문구·가짜 값·하단 버튼의 이동(data-go)을 그대로 옮겼다. 화면 순서는 docs/plans/2026-10-19-진입-가입-화면-가이드.md.
 // 본인인증과 연결 보류는 없다 — 가입하면 계정이 초대의 직원 레코드에 바로 이어진다(운영 정책 JOI-04, 2026-10-19).
+// 계정 등록의 휴대전화번호는 읽기 전용이다 — 코드로 오면 코드와 함께 확인된 번호, 링크로 오면 그 초대의 번호(JOIN-7, 2026-10-19 재영).
 // 초대 코드 입력(JOIN-7)은 두 칸을 다 채워야, 계정 등록의 약관 동의(JOIN-6)는 필수 둘을 모두 체크해야 버튼이 켜진다.
 // Figma 없음 — DESIGN.md 기준 초안.
-import { FIELD, alert, badge, body, bottomSheet, button, card, checkBox, dock, iconRow, img, maskIcon, notice, page, pageHeader, seal, segmentedControl, state, sunken, textField, values } from "../../ui.mjs";
+import { FIELD, alert, badge, body, bottomSheet, button, card, checkBox, dock, iconRow, img, maskIcon, notice, page, pageHeader, seal, segmentedControl, state, sunken, textField, uid, values } from "../../ui.mjs";
 
 // 목업 오른쪽 상태 목록 순서 그대로. bpshare·reject 는 목업의 「시트 열기」라 소속 추가 확인 위에 시트를 띄운다.
 const STATES = [
   { id: "code", label: "초대 코드 입력", note: "휴대전화번호 + 8자리" },
   { id: "code-fail", label: "코드 틀림", note: "어느 칸인지 알리지 않음" },
-  { id: "code-locked", label: "입력 잠금", note: "남은 시간 · JOIN-7 미정" },
+  { id: "code-locked", label: "입력 잠금", note: "남은 시간 · 재발송 안내" },
   { id: "invite", label: "초대 확인", note: "가입 시작 전" },
-  { id: "signup", label: "계정 등록", note: "인적사항·로그인 정보·약관" },
+  { id: "has-account", label: "계정 있음", note: "로그인 뒤 소속 추가 확인" },
+  { id: "signup", label: "계정 등록", note: "초대 코드로 옴 · 번호 읽기 전용" },
+  { id: "signup-link", label: "계정 등록 · 링크", note: "초대 링크로 옴 · 초대의 번호" },
   { id: "done", label: "가입 완료", note: "날인 요청 팝업 · 종이 계약은 신고 정보" },
   { id: "bpshare", label: "본사 제공 동의", note: "가맹 점포 · 선택" },
   { id: "minor", label: "만 19세 미만", note: "가입 중단" },
@@ -29,6 +32,7 @@ const CONTRACT = page("contract", "detail");
 const LOGIN = page("login");
 
 const CODE_HELP = "초대 코드는 근무지에서 보낸 알림톡·문자에 있습니다. 받지 못했으면 근무지에 다시 보내 달라고 요청해 주세요.";
+const PHONE_FIX = "번호가 틀렸으면 근무지 관리자에게 알려 주세요. 관리자가 근로계약서의 번호를 고쳐 다시 초대합니다.";
 
 // 초대 코드 입력(code · code-fail). 틀려도 어느 칸인지 알리지 않으므로 두 칸을 함께 빨갛게 하고 문구는 코드 칸 아래 한 줄만.
 const codeView = (fail) =>
@@ -71,11 +75,17 @@ const ghost = (label, a = {}) => button(label, { variant: "ghost", ...a });
 const lead = (title, children, { large = false, align = "center", heading = "h1" } = {}) =>
   `<div class="flex flex-col gap-[6px] ${align === "center" ? "items-center text-center" : ""}"><${heading} class="font-bold ${large ? "text-[28px]" : "text-[22px]"}">${title}</${heading}><p class="text-[14px] text-staff-text-sub">${children}</p></div>`;
 
-// 4단계 막대. 지난 단계·지금 단계는 남보라(지금 진행 중), 남은 단계는 탭 판 회색(#EDF0F6).
-const steps = (label, step) =>
-  `<div class="flex flex-col gap-[8px]"><p class="text-[13px] font-semibold text-staff-text-sub">${label}</p><div class="flex gap-[6px]" aria-hidden="true">${[1, 2, 3, 4]
+// 단계 막대(코드로 오면 4단계, 링크로 오면 3단계). 지난 단계·지금 단계는 남보라(지금 진행 중), 남은 단계는 탭 판 회색(#EDF0F6).
+const steps = (label, step, total = 4) =>
+  `<div class="flex flex-col gap-[8px]"><p class="text-[13px] font-semibold text-staff-text-sub">${label}</p><div class="flex gap-[6px]" aria-hidden="true">${Array.from({ length: total }, (_, i) => i + 1)
     .map((n) => `<span class="h-[4px] flex-1 rounded-full ${n <= step ? "bg-staff-primary" : "bg-[#edf0f6]"}"></span>`)
     .join("")}</div></div>`;
+
+// 읽기 전용 칸(목업 input--ro). me 화면의 readOnlyField 와 같은 모양 — 안내 바탕·옅은 테두리·보조 글자.
+const readOnlyField = ({ label, value, help }) => {
+  const id = uid("ro");
+  return `<div class="flex flex-col gap-[8px]"><label for="${id}" class="text-[13px] font-semibold text-staff-text-sub">${label}</label><input id="${id}" type="tel" readonly value="${value}" aria-describedby="${id}-help" class="h-[52px] w-full min-w-0 rounded-[12px] border border-staff-border-light bg-staff-info-bg px-[14px] text-[16px] text-staff-text-sub outline-none!"><p id="${id}-help" class="text-[12px] text-staff-text-muted">${help}</p></div>`;
+};
 
 const rows = (children) => `<div class="flex flex-col divide-y divide-staff-border-light">${children}</div>`;
 
@@ -127,13 +137,13 @@ const VIEWS = {
   code: () => codeView(false),
   "code-fail": () => codeView(true),
 
-  // JOIN-7 잠금 — 후보(같은 번호 5회 틀리면 30분)로 그렸다. 남은 시간은 고정 값.
+  // JOIN-7 잠금 — 같은 번호로 5회 틀리면 30분, 접속 IP 기준 제한도 더한다. 재발송을 받으면 새 코드로 바로 다시 시작한다. 남은 시간은 고정 값.
   "code-locked": () =>
     pageHeader("초대 코드로 가입", { backHref: LOGIN }) +
     body(
       lead("잠시 뒤 다시 시도해 주세요", "휴대전화번호나 초대 코드를 여러 번 잘못 넣어 입력을 잠갔습니다.", { align: "left", heading: "h2" }) +
         alert("warning", `<p class="text-[14px] font-semibold">남은 시간</p><p class="text-[28px] font-bold tabular-nums">28:41</p>`) +
-        notice(CODE_HELP),
+        notice("근무지 관리자에게 재발송을 요청해 주세요. 새 코드를 받으면 바로 다시 시작할 수 있습니다."),
     ) +
     dock(button("다음", { disabled: true }) + ghost("로그인 화면으로", { href: LOGIN })),
 
@@ -151,25 +161,34 @@ const VIEWS = {
     ) +
     dock(
       button(`가입 시작${img("arrow-right.svg", 14, 12)}`, go("signup")) +
-        ghost("이 번호로 계정이 이미 있으면?", go("addsite")) +
+        ghost("이 번호로 계정이 이미 있으면?", go("has-account")) +
         ghost("이미 가입을 마친 초대면?", go("login")) +
         ghost("만료된 초대면?", go("expired")),
     ),
 
-  signup: () =>
+  // 이 번호로 계정이 이미 있으면 가입하지 않고 로그인한다. 소속 추가 확인·복귀 확인은 로그인 뒤 앱 안의 확인 화면이다(운영 정책 JOI-02).
+  // 기존 계정의 이메일은 보이지 않는다.
+  "has-account": () =>
     body(
-      steps("3 / 4 · 계정 등록", 3) +
+      lead("이미 계정이 있습니다", "이 휴대전화번호로 가입한 계정이 있습니다. 새로 가입하지 않고 로그인해 주세요.") +
+        notice(
+          "로그인하면 이 초대의 <strong>소속 추가 확인</strong>이 앱 안에 뜹니다. 전에 이 근무지에서 일했다면 복귀 확인이 뜹니다. 수락하기 전까지는 초대한 근무지와 고용 형태만 보입니다.",
+        ),
+    ) + dock(button("로그인하러 가기", { href: LOGIN }) + ghost("로그인한 뒤 · 소속 추가 확인", go("addsite", "로그인했습니다"))),
+
+  // link: 초대 링크로 온 경로 — 코드 입력이 없어 3단계이고 번호는 그 초대(근로계약서)의 번호다.
+  signup: (link = false) =>
+    body(
+      (link ? steps("2 / 3 · 계정 등록", 2, 3) : steps("3 / 4 · 계정 등록", 3)) +
         lead("계정을 등록해 주세요", "웨일카페 강남역점 근무를 위한 계정입니다.", { align: "left" }) +
-        // 인적사항 다섯 가지(운영 정책 ACC-23). 계약서와 다르면 날인 전 본인 대조에서 수정 요청으로 이어지고(운영 정책 JOI-10), 가입을 막지는 않는다.
+        // 인적사항 다섯 가지(운영 정책 ACC-23). 이름·생년월일·성별·외국인 여부가 계약서와 다르면 날인 전 본인 대조에서 수정 요청으로 이어지고(운영 정책 JOI-10), 가입을 막지는 않는다.
+        // 휴대전화번호는 계정의 매칭 키라 읽기 전용이다 — 고칠 수 있으면 남의 번호로 가입해 그 사람의 다음 초대를 막을 수 있다(JOIN-7).
         `<p class="text-[15px] font-bold">인적사항</p>` +
         textField({ label: "이름*", autocomplete: "name", required: true, value: "김민서" }) +
-        textField({
+        readOnlyField({
           label: "휴대전화번호*",
-          type: "tel",
-          inputmode: "numeric",
-          required: true,
           value: "010-9284-5521",
-          help: "초대 코드와 함께 넣은 번호를 채워 두었습니다. 근로계약서의 번호와 다르면 날인 전에 근무지에 수정 요청을 보내게 됩니다.",
+          help: `${link ? "이 초대(근로계약서)에 적힌" : "초대 코드와 함께 확인한"} 번호라 고칠 수 없습니다. ${PHONE_FIX}`,
         }) +
         textField({ label: "생년월일*", inputmode: "numeric", maxlength: 8, placeholder: "YYYYMMDD", required: true, value: "19980412", help: "8자리로 넣어 주세요. 가입한 뒤에는 고칠 수 없습니다." }) +
         pick("성별*", [{ value: "m", label: "남" }, { value: "f", label: "여" }], "f") +
@@ -209,7 +228,12 @@ const VIEWS = {
         `<div class="flex flex-col gap-[8px]"><p class="text-[12px] text-staff-text-muted">가맹 점포로 가입할 때만 보입니다</p>${bpShareConsent()}</div>` +
         `<p class="text-[12px] text-staff-text-muted">필수 약관 두 개에 모두 동의해야 가입할 수 있습니다. 위치정보 동의는 첫 출근 등록 때 따로 받습니다.</p>`,
     ) +
-    dock(button("가입하기", { disabled: true, "data-gate": "terms", ...go("done", "가입을 마쳤습니다") }) + ghost("만 19세 미만이면?", go("minor"))),
+    dock(
+      button("가입하기", { disabled: true, "data-gate": "terms", ...go("done", "가입을 마쳤습니다") }) +
+        ghost("만 19세 미만이면?", go("minor")) +
+        (link ? "" : ghost("초대 링크로 왔으면?", go("signup-link"))),
+    ),
+  "signup-link": () => VIEWS.signup(true),
 
   minor: () =>
     body(
@@ -252,7 +276,7 @@ const VIEWS = {
           ),
         ) +
         notice(
-          "수락하면 <strong>이름·생년월일·연락처만</strong> 새 소속에 복사됩니다. 다른 소속의 계약·급여·출퇴근 기록은 넘어가지 않습니다.",
+          "수락하면 <strong>이름·휴대전화번호·생년월일·성별·외국인 여부만</strong> 새 소속에 복사됩니다. 다른 소속의 계약·급여·출퇴근 기록은 넘어가지 않습니다.",
           maskIcon("shield.svg", 14, true),
         ) +
         notice(
@@ -267,10 +291,10 @@ const VIEWS = {
     pageHeader("소속 추가 완료", { backHref: HOME }) +
     body(
       seal("연결<br>완료") +
-        lead("웨일카페 홍대점 소속이 추가되었습니다", "기존 계정은 그대로이고, 계정의 이름·생년월일·연락처만 이 근무지의 새 직원 레코드에 이어졌습니다.", { heading: "h2" }) +
+        lead("웨일카페 홍대점 소속이 추가되었습니다", "기존 계정은 그대로이고, 계정의 이름·휴대전화번호·생년월일·성별·외국인 여부만 이 근무지의 새 직원 레코드에 이어졌습니다.", { heading: "h2" }) +
         sunken(
           values([
-            ["넘어간 것", "이름 · 생년월일 · 연락처"],
+            ["넘어간 것", "이름 · 휴대전화번호 · 생년월일 · 성별 · 외국인 여부"],
             ["넘어가지 않은 것", "계약 · 급여 · 출퇴근"],
           ]),
         ) +
@@ -303,6 +327,7 @@ const SHEET_BACK = { "data-sheet-auto": true, "data-on-close": "#addsite" };
 // 시트는 React 판처럼 main 밖에 둔다. 소속 추가 확인은 두 시트를 모두 열 수 있다.
 const BLOCKS = {
   signup: () => main("signup") + bpShareSheet(),
+  "signup-link": () => main("signup-link") + bpShareSheet(),
   login: () => main("login") + bpShareSheet(),
   addsite: () => main("addsite") + bpShareSheet() + rejectSheet(),
   bpshare: () => main("addsite") + bpShareSheet(SHEET_BACK) + rejectSheet(),

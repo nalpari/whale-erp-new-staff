@@ -1,23 +1,23 @@
 // 직원 근무 앱 데모 · 홈. 기준 목업: docs/mockup/app/home.html — 상태 6개(평상시 · 처리할 일 쌓임 · 오늘 휴무 ·
-// 연결 보류 · 가입 직후 · 퇴직 후)와 시트 2개(근무지 고르기 · 날인 요청 팝업), 화면 문구·가짜 값을 옮겼다. 쟁점 HOME-1~5 는 모두 확정이다.
+// 가입 직후 · 퇴직 후 · 날인 요청 팝업)와 시트 1개(근무지 고르기), 화면 문구·가짜 값을 옮겼다. 쟁점 HOME-1~5 는 모두 확정이다.
 //   HOME-1 순서는 오늘·이번 주 먼저, 서명 대기 계약서는 날인 요청 팝업으로 따로 알리고 TO-DO 카드에서 TO-DO 목록으로 바로 간다.
 //   HOME-2 근무지 선택기는 홈 머리줄에만 둔다. HOME-3 출퇴근 등록은 오늘 근무 카드 안 버튼으로 간다(하단 메뉴에 출퇴근 칸 없음).
 //   HOME-4 날인 요청 팝업은 날인하기 전까지 앱을 열 때마다 띄운다 — 데모에서는 「날인 요청 팝업」 상태로 본다.
 //   HOME-5 퇴직 후에는 「근무지가 없습니다」, 하단 메뉴와 알림 버튼은 그대로 두고 급여 탭으로 간다.
 // 평상시(today)는 Figma 02.Main(node 8:3)을 따른다(오늘의 근무 node 9:152 · 이번 주 근무 node 9:242 · 근무지 시트 03.Sheet node 12:670).
-// 그 밖 상태(처리할 일 카드 · 휴무 · 연결 보류 · 가입 직후 · 퇴직 후 · 날인 요청 팝업)는 Figma 없음 — DESIGN.md 기준 초안.
+// 그 밖 상태(처리할 일 카드 · 휴무 · 가입 직후 · 퇴직 후 · 날인 요청 팝업)는 Figma 없음 — DESIGN.md 기준 초안.
 import { bottomNav, bottomSheet, button, empty, img, infoRow, maskIcon, page, sectionTitle, sheetOption, state, statusChip, todoItem, todoList, topBar, weekSelector } from "../../ui.mjs";
 
-// 목업 오른쪽 상태 목록 순서 그대로. store·sign-req 는 목업의 「시트 열기」라 뒤에 평상시·처리할 일 쌓임 화면을 깐다.
+// 목업 오른쪽 상태 목록 순서 그대로. store 는 목업의 「시트 열기」라 뒤에 평상시를, sign-req 는 처리할 일 쌓임 화면을 깐다.
+// 연결 보류는 없다 — 가입하면 계정이 초대의 직원 레코드에 바로 이어진다(운영 정책 JOI-05 · ACC-15, 2026-10-19).
 const STATES = [
   { id: "today", label: "평상시", note: "오늘 근무 있음" },
   { id: "todo", label: "처리할 일 쌓임", note: "계약·TO-DO·알림" },
   { id: "off", label: "오늘 휴무", note: "근무 없음" },
-  { id: "held", label: "연결 보류", note: "관리자 확인 중" },
   { id: "empty", label: "가입 직후", note: "정보 없음" },
   { id: "retired", label: "퇴직 후", note: "연결된 근무지 없음" },
-  { id: "store", label: "근무지 고르기", note: "근무지 전환" },
   { id: "sign-req", label: "날인 요청 팝업", note: "서명 대기 도착" },
+  { id: "store", label: "근무지 고르기", note: "근무지 전환" },
 ];
 const SHEET_VIEW = { store: "today", "sign-req": "todo" };
 
@@ -131,14 +131,6 @@ const CONTENT = {
         workInfo(),
     ),
 
-  // 연결 보류는 승인 전이라 계약서·근무 정보를 아예 보이지 않고, 가입 직후는 연결은 끝났고 근무만 아직 없다 — 다른 상태다.
-  held: () =>
-    empty(
-      maskIcon("history.svg", 24, true),
-      "관리자가 소속 연결을 확인하고 있습니다",
-      `<p>가입할 때 인증한 번호가 등록된 연락처와 달라 자동으로 연결되지 않았습니다. 담당 관리자가 연락해 확인한 뒤 연결을 승인합니다.</p><p class="text-[12px] text-staff-text-muted">연결이 승인되기 전에는 근로계약서와 근무 정보가 표시되지 않습니다</p>`,
-    ),
-
   empty: () =>
     empty(
       maskIcon("nav-work.svg", 24, true),
@@ -157,11 +149,11 @@ const CONTENT = {
     ),
 };
 
-// 근무지 선택기는 근무지가 정해진 상태에서만(HOME-2). 연결 보류·가입 직후는 이름만, 알림 버튼은 퇴직 후에도 남는다(HOME-5).
+// 근무지 선택기는 근무지가 정해진 상태에서만(HOME-2). 가입 직후는 이름만, 알림 버튼은 퇴직 후에도 남는다(HOME-5).
 const header = (view) =>
   view === "today" || view === "todo" || view === "off"
     ? topBar({ store: STORE, storeAttrs: { "data-open": "store" }, alarmHref: NOTIFY, hasNewAlarm: view === "todo" })
-    : plainTopBar(view === "held" ? "웨일카페" : view === "empty" ? "웨일카페 홍대점" : undefined, view === "retired");
+    : plainTopBar(view === "empty" ? "웨일카페 홍대점" : undefined, view === "retired");
 
 // 하단 메뉴는 모든 상태에서 그대로(HOME-5). 화면 아래에 붙여 둔다.
 const screen = (view) =>

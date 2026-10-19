@@ -1,7 +1,8 @@
-// 직원 근무 앱 데모 · 내 정보. src/app/demo/me/page.tsx 를 옮겼다. 기준 목업: docs/mockup/app/me.html — 상태 9개(내 정보 · 번호 변경 · 번호 변경 완료 ·
-// 이미 인증된 번호 · 비밀번호 변경 · 이메일 변경 · 새 이메일 인증 · 주소 검색 · 소속 근무지)와 시트 9개(변경 이력 · 약관 보기 · 잠시 멈춤 ·
+// 직원 근무 앱 데모 · 내 정보. src/app/demo/me/page.tsx 를 옮겼다. 기준 목업: docs/mockup/app/me.html — 상태 6개(내 정보 ·
+// 비밀번호 변경 · 이메일 변경 · 새 이메일 인증 · 주소 검색 · 소속 근무지)와 시트 9개(변경 이력 · 약관 보기 · 잠시 멈춤 ·
 // 일시 중지 동안의 카드 · 철회한 뒤의 카드 · 본사 제공 동의 내용 · 본사 제공 동의 철회 · 위치정보 동의 철회 · 로그아웃), 화면 문구·가짜 값·이동(data-go)·알림(data-toast)을 옮겼다.
-// 이름·생년월일은 본인인증으로 확정된 값이고 소속 근무지·고용 형태는 근로계약으로만 바뀌어 읽기 전용이다. 직원이 고치는 건 휴대전화번호·이메일·주소·비밀번호뿐이다.
+// 생년월일은 가입한 뒤 고치지 않고(운영 정책 ACC-13), 휴대전화번호는 계정의 신원 기준이라 1차에 바꾸지 않으며(2026-10-19),
+// 소속 근무지·고용 형태는 근로계약으로만 바뀌어 읽기 전용이다. 직원이 고치는 건 이메일·주소·비밀번호다. 번호 변경 상태 셋은 없앴다.
 // 위치정보 동의 카드: 동의 상태·일시·버전, 약관 보기 · 잠시 멈춤 · 동의 철회(운영 정책 ATT-23·26). 일시 중지 중이면 같은 카드가 「다시 켜기」로 바뀐다.
 // 본사 제공 동의 카드: 가맹 점포 직원의 선택 동의, 내용 보기 · 동의 철회(운영 정책 ATT-30). 동의 문구는 법무 검토 중(ATT-8).
 // 두 카드 모두 철회하면 같은 자리에서 「동의하지 않음 · 철회 일시」와 「다시 동의하기」로 바뀐다(ME-5, 2026-10-08). 목업의 「철회한 뒤의 카드」 시트는
@@ -15,14 +16,11 @@
 //
 // HTML 판에서 다른 점: 화면 안에서 철회하거나 다시 동의하면 두 모양(동의함·철회 등)을 미리 그려 두고 data-pick·data-show 로 바꾼다.
 // 그래서 숨긴 카드가 DOM 에 함께 있고, 그 버튼은 <div data-pick> 하나로 감싸여 있다. 주소 검색에서 고른 도로명은 내 정보로 옮겨지지 않는다(토스트만).
-import { alert, backHeader, badge, body, bottomNav, bottomSheet, button, card, dangerButton, dock, FIELD, img, label, maskIcon, notice, page, seal, state, sunken, textField, uid, values } from "../../ui.mjs";
+import { alert, backHeader, badge, body, bottomNav, bottomSheet, button, card, dangerButton, dock, FIELD, img, label, maskIcon, notice, page, state, sunken, textField, uid, values } from "../../ui.mjs";
 
 // 목업 오른쪽 상태 목록 순서 그대로. 뒤의 둘은 목업의 「시트 열기」라 내 정보 화면을 뒤에 깐다.
 const STATES = [
   { id: "view", label: "내 정보", note: "기본 화면" },
-  { id: "phone", label: "번호 변경", note: "본인인증 재실행" },
-  { id: "phone-done", label: "번호 변경 완료", note: "성공" },
-  { id: "phone-taken", label: "이미 인증된 번호", note: "막힘" },
   { id: "password", label: "비밀번호 변경", note: "본인이 직접" },
   { id: "email", label: "이메일 변경", note: "아이디가 바뀐다" },
   { id: "email-pin", label: "새 이메일 인증", note: "10분 · 5회" },
@@ -34,9 +32,6 @@ const STATES = [
 ];
 
 const TITLE = {
-  phone: "휴대전화번호 변경",
-  "phone-done": "휴대전화번호 변경",
-  "phone-taken": "휴대전화번호 변경",
   password: "비밀번호 변경",
   email: "이메일 변경",
   "email-pin": "새 이메일 인증",
@@ -146,7 +141,7 @@ const meView = (mode, ids) => {
     `${label("기본 정보")}<div class="flex flex-col gap-[10px] pt-[8px]">${readOnlyField({ label: "이름", value: "이하은" })}${readOnlyField({ label: "생년월일", value: "1998-04-12" })}${readOnlyField({
       label: "입사일",
       value: "2025-11-03",
-    })}</div>${tinyLine("이름과 생년월일은 본인인증으로 확정된 값이라 앱에서 고칠 수 없습니다.")}`,
+    })}</div>${tinyLine("생년월일은 가입한 뒤 고칠 수 없습니다.")}`,
   )}<div class="flex flex-col gap-[6px]"><button type="button" data-go="sites" class="flex w-full items-center gap-[12px] rounded-[16px] border border-staff-border-light bg-staff-info-bg p-[16px] text-left transition-colors duration-150 ease-out active:bg-staff-primary-inactive"><span class="min-w-0 flex-1">${label(
     "소속 근무지",
   )}<span class="block pt-[4px] text-[15px] font-bold">웨일카페 강남역점 외 1곳</span></span>${badge("plain", "파트타이머")}${img(
@@ -166,8 +161,7 @@ const meView = (mode, ids) => {
     `${label("연락처")}<div class="flex flex-col gap-[10px] pt-[8px]">${readOnlyField({
       label: "휴대전화번호",
       value: "010-4821-7736",
-      help: "번호를 바꾸려면 새 번호로 본인인증을 다시 거칩니다.",
-      action: smallButton("번호 변경", go("phone")),
+      help: "가입 때 넣은 번호로, 앱에서 바꿀 수 없습니다.",
     })}${readOnlyField({
       label: "이메일 · 로그인 아이디",
       value: "haeun.lee@gmail.com",
@@ -268,32 +262,6 @@ const sheets = (mode, ids) =>
   );
 
 const VIEWS = {
-  phone: () =>
-    body(
-      `${sunken(`${label("현재 번호")}<p class="pt-[4px] text-[16px] font-bold tabular-nums">010-4821-7736</p>`)}${textField({
-        label: "새 번호",
-        type: "tel",
-        inputmode: "tel",
-        value: "010-9938-2015",
-      })}<div class="flex flex-col gap-[8px]"><label for="me-phone-pin" class="text-[13px] font-semibold text-staff-text-sub">인증번호</label><div class="flex items-center gap-[8px]"><input id="me-phone-pin" inputmode="numeric" value="482913" class="${FIELD}"><div class="w-[96px] shrink-0">${outline(
-        "재전송",
-        { "data-toast": "인증번호를 다시 보냈습니다" },
-      )}</div></div></div>${notice("본인인증에 성공해야 번호가 바뀝니다. 인증된 번호만 초대 연결과 소속 확인의 매칭 키로 쓰입니다.")}`,
-    ) + dock(button("인증 확인", go("phone-done", "번호를 변경했습니다")) + ghost("이미 인증된 번호로 시도해 보기", go("phone-taken")) + ghost("취소", back("view"))),
-
-  "phone-done": () =>
-    body(
-      `${seal("인증<br>완료")}<div class="flex flex-col gap-[6px]">${label("변경된 번호")}<p class="text-[28px] font-bold tabular-nums">010-9938-2015</p></div><p class="text-[12px] text-staff-text-muted">이 번호가 앞으로 본인 확인과 알림에 쓰입니다.</p>`,
-      { center: true },
-    ) + dock(ghost("내 정보로 돌아가기", back("view"))),
-
-  "phone-taken": () =>
-    body(
-      `${alert("danger", "<strong>이미 다른 계정에 인증된 번호입니다.</strong><br>본인 명의라면 그 계정에서 먼저 번호를 해지한 뒤 다시 시도해 주세요.")}${sunken(
-        `${label("시도한 번호")}<p class="pt-[4px] text-[16px] font-bold tabular-nums">010-7788-3210</p>`,
-      )}<p class="text-[12px] text-staff-text-muted">기존 번호 010-4821-7736 은 그대로 유지됩니다.</p>`,
-    ) + dock(button("다른 번호로 다시 시도", back("phone")) + ghost("취소", back("view"))),
-
   password: () =>
     body(
       `${textField({ label: "현재 비밀번호", type: "password", autocomplete: "current-password", value: "********" })}${textField({

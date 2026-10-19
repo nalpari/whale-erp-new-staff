@@ -76,7 +76,7 @@ const VIEWS = {
           values([
             ["이름", "김민서"],
             ["생년월일", "1990-01-01"],
-          ]) + `<p class="pt-[8px] text-[12px] text-staff-text-muted">본인인증으로 확정된 값입니다. 앞자리가 다르면 넣을 수 없습니다.</p>`,
+          ]) + `<p class="pt-[8px] text-[12px] text-staff-text-muted">가입 때 넣은 계정 값입니다. 앞자리가 다르면 넣을 수 없습니다.</p>`,
         ) +
         notice(
           "이 정보는 <strong>강남역점(사업주)</strong>이 받으며, WHALE ERP 는 강남역점의 위탁을 받아 암호화해 보관합니다. 둘 다 동의로 받고 말고를 정하는 값이 아니라 <strong>동의 항목이 없습니다.</strong>",
