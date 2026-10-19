@@ -129,8 +129,8 @@ export function TodoPanel({ todos, now }: { todos: MyTodo[]; now: string }) {
   const current = picked && todos.find((t) => t.todoId === picked.todoId);
   const open = sheetOpen && Boolean(current);
   const handleOpen = (todoId: number) => {
-    // 다른 TO-DO 를 열면 앞 TO-DO 의 실패 문구를 비운다(목록 · 시트가 한 상태를 쓴다).
-    if (picked?.todoId !== todoId) status.clearError();
+    // 시트를 열 때마다 실패 문구를 비운다(목록 · 시트가 한 상태를 쓴다) — 시트 안의 실패는 시트가 열려 있는 동안만 보인다.
+    status.clearError();
     setPicked(todos.find((t) => t.todoId === todoId) ?? null);
     setSheetOpen(true);
   };
