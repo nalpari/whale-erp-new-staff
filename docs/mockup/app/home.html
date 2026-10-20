@@ -445,10 +445,6 @@
                     </p>
                   </div>
 
-                  <div class="card card--sunken" style="text-align: center; padding: 18px 14px">
-                    <p class="tiny">오늘은 처리할 TO-DO가 없습니다</p>
-                  </div>
-
                   <div class="card">
                     <p class="lab">근무 정보</p>
                     <div class="rows" style="margin-top: 4px">
@@ -509,6 +505,20 @@
             </div>
 
             <!-- ── 퇴직해서 연결된 근무지가 없는 상태 (HOME-5) ──── -->
+            <!-- 근무지 없음 · 계약 전: 가입한 뒤 첫 근로계약서를 거부했거나, 날인 기한이 지나 만료됐거나, 관리자가 종료로
+                 닫아 날인 대기도 체결 완료도 없는 때. 점포 정보는 보이지 않는다(운영 정책 CTR-29). 퇴직 후와 달리 근무한 적이 없다. -->
+            <div class="view view--center" data-when="no-site">
+              <div class="empty">
+                <i class="ph ph-file-text"></i>
+                <p class="h-md">아직 근무 중인 근무지가 없습니다</p>
+                <p class="p--sm" style="max-width: 260px">
+                  근무지에서 근로계약서를 다시 보내면 여기에 표시됩니다. 거부했거나 기한이 지난 계약서는
+                  근로계약 목록에서 볼 수 있습니다.
+                </p>
+              </div>
+              <a class="btn btn--quiet" href="contract.html#list"><i class="ph ph-file-text"></i>근로계약서 보기</a>
+            </div>
+
             <div class="view view--center" data-when="retired">
               <div class="empty">
                 <i class="ph ph-door-open"></i>
@@ -629,6 +639,13 @@
                 <span class="sw-b__k">4</span>
                 <span><span class="sw-b__t">가입 직후</span> <span class="sw-b__d">· 날인 대기 계약서만</span></span>
               </button>
+              <button class="sw-b" data-state="no-site">
+                <span class="sw-b__k">·</span>
+                <span
+                  ><span class="sw-b__t">근무지 없음 · 계약 전</span>
+                  <span class="sw-b__d">· 거부·만료·종료 뒤</span></span
+                >
+              </button>
               <button class="sw-b" data-state="retired">
                 <span class="sw-b__k">5</span>
                 <span
@@ -711,17 +728,20 @@
             <div class="gap__head">
               <span class="gap__no">HOME-2</span>
               <span class="gap__t">근무지 전환을 어디에 둘 것인가</span>
-              <span class="gap__st gap__st--fixed">확정 · 앱 전역 선택기</span>
+              <span class="gap__st gap__st--fixed">확정 · 앱 전역 근무지 · 홈과 근무 정보 두 곳에서 고름</span>
               <span class="gap__ref">S-EWVMGC</span>
             </div>
             <div class="gap__one">
               <p>
-                근무지는 <b>앱 전역에서 하나</b>로 고른다. 선택기는 <b>홈 상단</b>에만 두고, 근무스케줄·출퇴근
-                현황·급여명세서·알림 화면이 모두 그 근무지를 따른다 (HOME-2·WORK-4 함께 확정, 2026-09-17 재영).
+                근무지는 <b>앱 전역에서 하나</b>로 고른다. 고르는 자리는 <b>홈 상단 선택기</b>와 <b>근무 정보의 근무지 카드</b> 두 곳이고,
+                둘 다 같은 「근무지 고르기」 시트를 열어 앱 전체 근무지를 바꾼다. 근무스케줄·출퇴근 현황·알림 화면이
+                모두 그 근무지를 따른다. 급여명세서는 근무지와 관계없이 모두 보이고 점포를 적는다(PAY-8, 2026-10-20) (HOME-2·WORK-4, 2026-09-17 재영 확정 · 2026-10-20 재영이 근무 정보 카드를 더함).
               </p>
               <ul>
-                <li>근무지가 둘 이상인 직원도 화면마다 다른 근무지를 보는 일이 없다</li>
-                <li><b>근무 정보 화면 오른쪽 위의 전환 아이콘은 없앤다.</b> 그 자리에는 지금 근무지 이름만 보여 준다</li>
+                <li>근무지가 둘 이상인 직원도 화면마다 다른 근무지를 보는 일이 없다 — 근무 정보에서 바꿔도 홈이 함께 바뀐다</li>
+                <li>근무 정보 상단 오른쪽의 근무지 이름은 뺐다. 근무지 카드는 근무스케줄·TO-DO 두 탭 위에 둔다</li>
+                <li>근무지가 하나뿐인 직원이면 카드를 누를 수 없게 두고 펼침 표시를 뺀다</li>
+                <li>고를 수 있는 근무지는 체결 완료 계약이 있는 곳뿐이다(운영 정책 CTR-29) — 홈 시트와 같은 목록</li>
               </ul>
             </div>
           </div>
@@ -831,7 +851,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 홈 · 2026년 10월 19일 · 상태 6개 · 시트 1개 · 쟁점 5건
+            직원 근무 앱 목업 · 홈 · 2026년 10월 19일 · 상태 7개 · 시트 1개 · 쟁점 5건
           </footer>
         </div>
       </div>

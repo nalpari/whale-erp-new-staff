@@ -2,11 +2,12 @@
 // 기준 목업: docs/mockup/app/work.html — 상태 6개(월 달력 · TO-DO 목록 · 완료 처리 직후 · 공유 TO-DO 선점됨 · 근무지 없음 · 등록된 근무 없음)와
 // 시트 2개(긴급 TO-DO 상세 · 공유 TO-DO 안내). 쟁점 WORK-1~4 는 모두 확정이고 그대로 따른다:
 //   WORK-1 근무스케줄은 월 달력, 고른 날 상세는 달력 아래 · WORK-2 근무 화면 안에서 근무스케줄·TO-DO 탭으로 나눔
-//   WORK-3 공유 TO-DO 수행자 이름 공개 · WORK-4 근무지 전환은 홈 상단 선택기 하나, 이 화면은 근무지 이름만 보이고 카드도 읽기 전용
+//   WORK-3 공유 TO-DO 수행자 이름 공개 · WORK-4 근무지 전환은 홈 상단과 이 화면의 근무지 카드 두 곳, 같은 앱 전역 근무지(2026-10-20)
 // 화면 틀은 Figma 06.근무 정보(node 15:183 · 본문 15:193), TO-DO 목록은 Figma 07.근무 정보_list(node 17:602~)를 따른다.
 // 월 달력 · 고른 날 상세 · 근무지 없음 · 등록된 근무 없음 · 시트 2개는 Figma 없음 — DESIGN.md 기준 초안. 하단 메뉴는 다섯 칸(2026-10-08 재영 결정).
 // React 판과 다른 점: 미완료 TO-DO 체크칸을 켜도 체크칸·제목 색만 바뀌고 줄 순서·개수·상태 칩은 그대로다(React 판은 다시 정렬했다).
 import {
+  STORES,
   bottomNav,
   bottomSheet,
   button,
@@ -18,6 +19,7 @@ import {
   notice,
   page,
   pageHeader,
+  storeSheet,
   periodNav,
   segmentedControl,
   segmentTabId,
@@ -131,10 +133,14 @@ const todoPanel = (s) => {
   )}</b></span><span>완료 <b class="text-[#13785e]">${count("done")}</b></span></p>${todoList(todos.map(todoRow).join(""))}</div>`;
 };
 
+// 근무지 카드: 두 탭 위에 두고 누르면 홈과 같은 근무지 고르기 시트를 연다(WORK-4, 2026-10-20 재영). 고른 근무지는 앱 전체가 따른다.
+// 근무지가 하나뿐인 직원이면 누를 수 없는 표시로 두고 펼침 표시를 뺀다.
+const storeCard = () =>
+  `<button type="button" data-open="store" aria-label="근무지 바꾸기, 지금 ${STORE}" class="flex w-full items-center gap-[14px] rounded-[18px] border border-staff-border-light bg-[#eef2ff] px-[20px] py-[18px] text-left">${storeSmall()}<span class="flex min-w-0 flex-1 flex-col gap-[2px]"><span class="truncate text-[16px] font-bold" data-slot="store">${STORE}</span><span class="text-[12px] text-staff-text-sub">연결된 근무지 ${STORES.length}곳 · 눌러서 바꾸기</span></span>${img("chevron-down.svg", 15, 15, "-scale-y-100")}</button>`;
+
 // ── 근무스케줄 탭(week) ──
 const storeSmall = () => img("store-small.svg", 14.625, 13.5);
 const schedule = () =>
-  `<div class="flex items-center gap-[14px] rounded-[18px] border border-staff-border-light bg-[#eef2ff] px-[20px] pt-[20px] pb-[24px]">${storeSmall()}<div class="flex min-w-0 flex-1 flex-col gap-[2px]"><p class="truncate text-[16px] font-bold">${STORE}</p><p class="text-[12px] text-staff-text-sub">연결된 근무지 2곳 · 전환은 홈 상단에서</p></div></div>` +
   `<section class="flex flex-col gap-[8px]">${periodNav({
     label: "2026년 9월",
     prevLabel: "이전 달",
@@ -224,11 +230,9 @@ const view = (s) => {
         }${v === "week" ? schedule() : ""}</div>`;
   return `<div class="flex flex-1 flex-col">${pageHeader("근무 정보", {
     backHref: page("home"),
-    // WORK-4: 전환 아이콘 대신 지금 근무지 이름만. 근무지가 없으면 비운다.
-    action: v !== "nosite" ? `<span class="shrink-0 text-[12px] text-staff-text-muted">${STORE}</span>` : "",
-  })}<main class="flex flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px] leading-[1.5] ${v === "nosite" ? "flex-1" : ""}">${tabs}${content}</main><div class="sticky bottom-0 mt-auto">${bottomNav(
+  })}<main class="flex flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px] leading-[1.5] ${v === "nosite" ? "flex-1" : ""}">${v === "nosite" ? "" : storeCard()}${tabs}${content}</main><div class="sticky bottom-0 mt-auto">${bottomNav(
     "work",
-  )}</div></div>${v === "nosite" || v === "empty" || v === "week" ? "" : sheets(s)}`;
+  )}</div></div>${v === "nosite" || v === "empty" || v === "week" ? "" : sheets(s)}${v === "nosite" ? "" : storeSheet()}`;
 };
 
 export default () => ({

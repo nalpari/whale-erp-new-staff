@@ -19,17 +19,17 @@
   </head>
   <body data-area="app" data-screen="notify">
     <!-- 직원 근무 앱 · 알림
-         알림 유형은 넷뿐이다 — 근로계약서 발송, 근무스케줄 변경, TO-DO 배정,
+         알림 유형은 넷뿐이다 — 근로계약서 발송, 근무스케줄 변경, TO-DO 수행 임박,
          급여명세서 발송(S-AYBNWF). 수신은 수신 설정 묶음(근로계약서·근무스케줄·TO-DO·
-         급여명세서) 단위로 켜고 끄며, 근로계약서·급여명세서는 끌 수 없고, 꺼 둔 묶음의
+         급여명세서) 단위로 켜고 끄며(넷 모두 끌 수 있다, NOTI-8), 꺼 둔 묶음의
          알림도 알림함에는 남는다(S-SIGZJQ). 알림을 눌러 관련 화면으로
          이동하면 자동으로 읽음 처리된다 — 관리자 웹 알림함(S-GDUNIT)은 항목별
          읽음 버튼 없이 "모두 읽음"만 두는데, 직원 알림함은 항목별로도 읽음을
          바꿀 수 있다(S-IMFWJT). 두 알림함이 일부러 다르게 동작한다는 뜻이라
          해설에 이 대비를 적었다.
 
-         TO-DO 배정은 앱 푸시를 보내지 않는다. 홈과 근무 탭에서 보고, 알림함에
-         한 줄이 쌓인다. 근무시간 외 보류 규칙은 대상이 사라져 통째로 없어졌다
+         TO-DO 는 배정 알림이 없다. 수행 예정 일시가 다가오면 수행 임박 알림을 앱 푸시와
+         알림함으로 한 번 보낸다. 근무시간 외 보류 규칙은 대상이 사라져 통째로 없어졌다
          — NOTI-1.
 
          이 파일은 화면 하나다. 오른쪽 목록으로 상태를 바꾸거나 폰 안의 버튼을
@@ -44,9 +44,9 @@
         <h1>알림</h1>
         <p>
           직원에게 발송된 알림을 모아 보는 화면이다. 알림 유형은 근로계약서 발송·근무스케줄
-          변경·TO-DO 배정·급여명세서 발송 넷뿐이다. 알림을 누르면 관련 화면으로 이동하며
+          변경·TO-DO 수행 임박·급여명세서 발송 넷뿐이다. 알림을 누르면 관련 화면으로 이동하며
           <strong>자동으로 읽음 처리</strong>된다. 수신은 <strong>수신 설정 묶음</strong>(근로계약서·근무스케줄·TO-DO·급여명세서) 단위로
-          켜고 끈다. 근로계약서와 급여명세서는 끌 수 없고, 꺼 둔 묶음의 알림도 알림함에는 그대로 남는다.
+          켜고 끈다. 네 묶음 모두 끌 수 있고, 꺼 둔 묶음의 알림도 알림함에는 그대로 남는다.
         </p>
         <nav class="docnav">
           <a href="../index.html">← 목업 허브</a>
@@ -154,8 +154,8 @@
                     <span class="dot" style="background: var(--pen); margin-top: 6px"></span>
                     <i class="ph-fill ph-list-checks" style="font-size: 19px; color: var(--ink-2)"></i>
                     <div class="row__main">
-                      <p class="row__title">TO-DO가 배정되었습니다 · 긴급</p>
-                      <p class="row__sub">환불 요청 처리 · 지금 바로</p>
+                      <p class="row__title">곧 수행할 TO-DO가 있습니다 · 긴급</p>
+                      <p class="row__sub">환불 요청 처리 · 오늘 15:00</p>
                     </div>
                     <div class="row__end">
                       <span class="tiny">3시간 전</span>
@@ -170,8 +170,8 @@
                     <span class="dot" style="background: var(--pen); margin-top: 6px"></span>
                     <i class="ph-fill ph-receipt" style="font-size: 19px; color: var(--pen)"></i>
                     <div class="row__main">
-                      <p class="row__title">8월 급여명세서가 다시 발송되었습니다</p>
-                      <p class="row__sub">금액이 바뀌었을 수 있습니다</p>
+                      <p class="row__title">8월 급여명세서가 도착했습니다</p>
+                      <p class="row__sub">급여 기간 2026-08-01 ~ 08-31</p>
                     </div>
                     <div class="row__end">
                       <span class="tiny">5시간 전</span>
@@ -181,11 +181,11 @@
                   <div class="row row--top" style="opacity: 0.7">
                     <i class="ph ph-list-checks" style="font-size: 19px; color: var(--ink-4)"></i>
                     <div class="row__main">
-                      <p class="row__title" style="color: var(--ink-3)">TO-DO가 배정되었습니다</p>
-                      <p class="row__sub">유통기한 라벨 점검 · 내일 14:00까지 · 읽음</p>
+                      <p class="row__title" style="color: var(--ink-3)">곧 수행할 TO-DO가 있습니다</p>
+                      <p class="row__sub">유통기한 라벨 점검 · 어제 14:00 · 읽음</p>
                     </div>
                     <div class="row__end">
-                      <span class="tiny">어제 23:40</span>
+                      <span class="tiny">어제 13:00</span>
                     </div>
                   </div>
 
@@ -247,7 +247,7 @@
                 <i class="ph ph-bell-slash"></i>
                 <p class="h-md">확인할 알림이 없습니다</p>
                 <p class="p--sm" style="max-width: 240px">
-                  근로계약서, 근무스케줄 변경, TO-DO 배정, 급여명세서가 도착하면 여기에 표시됩니다.
+                  근로계약서, 근무스케줄 변경, 곧 수행할 TO-DO, 급여명세서가 도착하면 여기에 표시됩니다.
                 </p>
               </div>
             </div>
@@ -262,9 +262,9 @@
                   <div class="row">
                     <div class="row__main">
                       <p class="row__title">근로계약서 발송</p>
-                      <p class="row__sub">항상 켜져 있습니다 · 계약 확인은 놓치면 안 됩니다</p>
+                      <p class="row__sub">근로계약서가 도착하면 알립니다</p>
                     </div>
-                    <div class="sw is-on is-lock" data-tick></div>
+                    <div class="sw is-on" data-tick></div>
                   </div>
                   <div class="row">
                     <div class="row__main">
@@ -275,17 +275,17 @@
                   </div>
                   <div class="row">
                     <div class="row__main">
-                      <p class="row__title" style="color: var(--ink-3)">TO-DO 배정</p>
-                      <p class="row__sub">푸시를 보내지 않습니다 · 홈과 근무 탭에서 봅니다</p>
+                      <p class="row__title">TO-DO 수행 임박</p>
+                      <p class="row__sub">수행 예정 일시가 다가오면 알립니다</p>
                     </div>
-                    <span class="tiny">알림함만</span>
+                    <div class="sw is-on" data-tick></div>
                   </div>
                   <div class="row">
                     <div class="row__main">
                       <p class="row__title">급여명세서 발송</p>
-                      <p class="row__sub">항상 켜져 있습니다 · 급여 확인은 놓치면 안 됩니다</p>
+                      <p class="row__sub">급여명세서가 발송되면 알립니다</p>
                     </div>
-                    <div class="sw is-on is-lock" data-tick></div>
+                    <div class="sw is-on" data-tick></div>
                   </div>
                 </div>
               </div>
@@ -356,22 +356,12 @@
 
           <h2 class="h-lg" style="margin: 30px 0 10px">이 화면이 하는 일</h2>
           <p class="p">
-            직원에게 오는 알림은 근로계약서 발송, 근무스케줄 변경, TO-DO 배정, 급여명세서 발송
-            넷뿐이다. 다른 유형은 만들지 않는다. 그중 <b>TO-DO 배정만 푸시 없이</b> 알림함에 줄만
-            쌓인다(NOTI-1). 미확인은 왼쪽에 파란 점, 놓치면 안 되는 긴급
+            직원에게 오는 알림은 근로계약서 발송, 근무스케줄 변경, TO-DO 수행 임박, 급여명세서 발송
+            넷뿐이다. 다른 유형은 만들지 않는다. TO-DO 는 <b>배정 알림이 없고</b> 수행 예정 일시가
+            다가올 때 한 번만 알린다(NOTI-1). 미확인은 왼쪽에 파란 점, 놓치면 안 되는 긴급
             TO-DO는 빨간 점으로 구분하고, 읽은 알림은 옅게 가라앉힌다. 알림을 누르면 관련 화면으로
             이동하면서 그 알림을 자동으로 읽음 처리한다 — 따로 읽음 버튼을 누를 필요가 없다. 알림함은
             14일 동안 보관하고(NOTI-3), 줄마다 그 알림이 어떻게 발송되었는지까지 함께 적는다(NOTI-4).
-          </p>
-
-          <h2 class="h-lg" style="margin: 26px 0 10px">다시 보낸 급여명세서는 다르게 적는다</h2>
-          <p class="p">
-            급여명세서 알림은 처음 발송과 다시 발송의 문구가 다르다(NOTI-6). 목록 위쪽의 「8월
-            급여명세서가 다시 발송되었습니다 · 금액이 바뀌었을 수 있습니다」가 그 경우다. 같은 8월분이
-            8일 전에 한 번 도착했고 오늘 다시 왔다 — 두 줄이 어떻게 갈리는지 그대로 보인다. 같은
-            문구로 두 번 오면 이미 본 것이라 여기고 넘기는데, 확정 취소로 금액이 달라지는 일이 실제로
-            있다. 그렇다고 「금액이 바뀌었습니다」로 단정하지는 않는다 — 다시 보내는 이유가 늘 금액
-            변경은 아니기 때문이다.
           </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">관리자 알림함과 반대로 움직인다</h2>
@@ -385,32 +375,30 @@
 
           <h2 class="h-lg" style="margin: 26px 0 10px">정할 것</h2>
 
-          <div class="gap">
+          <div class="gap is-decided">
             <div class="gap__head">
               <span class="gap__no">NOTI-1</span>
-              <span class="gap__t">TO-DO 배정 알림을 근무시간 외에 어떻게 다룰 것인가</span>
-              <span class="gap__st gap__st--fixed">확정 · 푸시를 보내지 않음</span>
+              <span class="gap__t">TO-DO 를 언제 알릴 것인가</span>
+              <span class="gap__st gap__st--fixed">확정 · 배정 알림 없음 · 수행 임박만</span>
               <span class="gap__ref">S-AYBNWF</span>
             </div>
             <div class="gap__one">
               <p>
-                TO-DO 배정은 <b>앱 푸시를 보내지 않는다</b> (2026-09-28 재영 확정). 직원은 홈의 TO-DO
-                카드와 근무 탭에서 보고, 알림함에는 「TO-DO가 배정되었습니다」 줄이 그대로 쌓여 종의
-                미확인 건수에 잡힌다.
+                TO-DO 는 <b>배정 알림을 보내지 않는다</b>. 앱 푸시도, 알림함 줄도 없다. 대신 대기·진행 중
+                TO-DO 의 수행 예정 일시가 다가오면 배정된 직원에게 <b>수행 임박 알림</b>을 앱 푸시와
+                알림함으로 <b>한 번</b> 보낸다 (2026-10-19 재영 확정. 2026-09-28 「배정은 푸시 없이 알림함에
+                한 줄」을 바꿈).
               </p>
               <ul>
+                <li>시간이 있으면 1시간 전, 날짜만 있으면 당일 09:00 에 보낸다</li>
+                <li>한 명 수행은 대상 전원에게 보내고, 이미 완료됐으면 보내지 않는다</li>
+                <li>문구는 기본 템플릿 「곧 수행할 TO-DO가 있습니다」(PUSH_TODO_DUE_SOON)</li>
                 <li>
-                  근무시간 외에 보내는 것이 업무 지시로 읽힐 여지가 있었는데, 푸시를 없애니 그 여지가
-                  사라진다. <b>근무시간 외 보류 규칙도 통째로 없어졌다</b> — 보류 대상이 TO-DO뿐이었다
+                  <b>근무시간 외 보류 규칙은 없다</b> — 보류 대상이던 배정 알림이 사라졌다
                 </li>
                 <li>
-                  <b>긴급</b>은 강조용으로만 남는다. <b>완료되지 않은 긴급 건</b>이 수행 예정 일시와
-                  관계없이 목록 맨 위에 서고, 완료되지 않은 나머지가 그 아래에 일시 오름차순으로
-                  붙는다. 완료된 건은 긴급 여부와 관계없이 그 뒤로 물러난다. 알림함에서는 빨간 점을
-                  붙인다.
-                  "근무시간 외에도 즉시 푸시"라는 뜻은 사라졌다
+                  <b>긴급</b>은 강조용으로만 남는다. 홈·근무 탭 맨 위에 서고, 알림함에서는 빨간 점을 붙인다
                 </li>
-                <li>노무사·법무 검토 대상에서 빠졌다. 보낼 것이 없으면 통지 시각을 다툴 일도 없다</li>
               </ul>
             </div>
           </div>
@@ -490,28 +478,22 @@
             <div class="gap__head">
               <span class="gap__no">NOTI-6</span>
               <span class="gap__t">급여명세서를 다시 보냈을 때 알림 문구를 어떻게 하는가</span>
-              <span class="gap__st gap__st--fixed">확정 · 처음 발송과 다르게</span>
+              <span class="gap__st gap__st--fixed">확정 · 처음 발송과 같게</span>
               <span class="gap__ref">S-AYBNWF</span>
             </div>
             <div class="gap__one">
               <p>
-                처음 발송은 <b>「7월 급여명세서가 도착했습니다」</b>, 다시 발송은 <b>「7월 급여명세서가
-                다시 발송되었습니다」</b>에 <b>「금액이 바뀌었을 수 있습니다」</b> 한 줄을 붙인다 (운영 정책
-                NTF-20, 2026-09-18 재영 확정). 앱 푸시와 이메일이 같은 기준을 쓴다.
+                다시 보내도 처음 발송과 같은 <b>「7월 급여명세서가 도착했습니다」</b>를 쓰고, 「다시
+                발송되었습니다 · 금액이 바뀌었을 수 있습니다」로 따로 적지 않는다 (2026-10-20 재영 확정.
+                2026-09-18 「처음 발송과 다르게」를 바꿈, 운영 정책 NTF-20).
               </p>
               <ul>
-                <li>같은 문구로 두 번 오면 직원이 이미 본 명세서라 여기고 넘긴다. 확정 취소로 금액이 바뀌는 일이 실제로 있으므로 두 번째는 다르게 읽혀야 한다</li>
-                <li>둘째 줄은 <b>「바뀌었습니다」가 아니라 「바뀌었을 수 있습니다」</b>다. 다시 보내는 이유가 늘 금액 변경은 아니다</li>
-                <li>「확인하세요」 같은 지시형은 쓰지 않는다(NTF-13). 알림은 무슨 일이 있었는지만 적고 판단은 직원에게 맡긴다</li>
                 <li>
                   문구의 달은 <b>급여 기간 기준</b>으로 적는다 (2026-09-18 확정). 7월 근무분이면 지급이
                   8월이어도 「7월 급여명세서」이고, 기간이 두 달에 걸치면 <b>시작 월</b>을 쓴다
                 </li>
-                <li>누르면 그 명세서 상세로 가는 것은 두 경우가 같다</li>
-                <li>
-                  그림의 두 줄은 <b>같은 8월분</b>이다. 8일 전에 도착한 것이 오늘 다시 왔다. 알림함이
-                  14일 보관이라(NOTI-3) 그보다 오래된 발송은 목록에 남지 않는다
-                </li>
+                <li>「확인하세요」 같은 지시형은 쓰지 않는다(NTF-13)</li>
+                <li>누르면 그 명세서 상세로 간다</li>
               </ul>
             </div>
           </div>
@@ -531,13 +513,33 @@
             </div>
           </div>
 
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">NOTI-8</span>
+              <span class="gap__t">알림 수신 설정에서 끌 수 없는 묶음을 둘 것인가</span>
+              <span class="gap__st gap__st--fixed">확정 · 모두 끌 수 있음</span>
+              <span class="gap__ref">S-SIGZJQ</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                근로계약서·근무스케줄·TO-DO·급여명세서 <b>네 묶음 모두 직원이 앱 푸시를 켜고 끈다</b>
+                (2026-10-20 재영 확정). 근로계약서·급여명세서를 잠가 두던 규칙은 없앤다.
+              </p>
+              <ul>
+                <li>꺼 둔 묶음의 알림도 알림함에는 그대로 남는다</li>
+                <li>앱 안에서 띄우는 날인 요청 팝업(HOME-1)은 앱 푸시가 아니라 이 설정과 관계없다</li>
+                <li>TO-DO 묶음은 수행 임박 알림(2026-10-19)의 앱 푸시를 켜고 끈다</li>
+              </ul>
+            </div>
+          </div>
+
           <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
           <ul class="pol">
             <li>
               <span class="pol__src">S-AYBNWF</span>
               <span
                 >알림 유형은 <strong>근로계약서 발송, 근무스케줄 변경, TO-DO 배정, 급여명세서
-                발송</strong> 넷으로 한정한다.</span
+                발송</strong> 넷으로 한정한다. — TO-DO 배정은 2026-10-19 재영 결정으로 TO-DO 수행 임박으로 바뀌었다(NOTI-1).</span
               >
             </li>
             <li>
@@ -545,7 +547,8 @@
               <span
                 >근로계약서·급여명세서·근무스케줄 변경 알림은 시간과 관계없이 즉시 발송한다.
                 <strong>TO-DO 배정은 앱 푸시를 보내지 않고</strong> 알림함에만 남긴다. 근무시간 외
-                보류 규칙은 없앴다(NOTI-1).</span
+                보류 규칙은 없앴다(NOTI-1). — 2026-10-19 재영 결정으로 배정 알림은 알림함 줄도 없어지고
+                수행 임박 알림으로 바뀌었다.</span
               >
             </li>
             <li>
@@ -564,7 +567,7 @@
               <span class="pol__src">S-SIGZJQ</span>
               <span
                 ><strong>근로계약서와 급여명세서 알림은 수신을 끌 수 없다.</strong> 설정 화면에서
-                토글을 잠그고 그 이유를 함께 보여준다.</span
+                토글을 잠그고 그 이유를 함께 보여준다. — 2026-10-20 재영 결정으로 모두 끌 수 있게 바뀌었다(NOTI-8).</span
               >
             </li>
             <li>
@@ -588,7 +591,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 알림 · 2026년 10월 8일 · 상태 4개 · 쟁점 7건
+            직원 근무 앱 목업 · 알림 · 2026년 10월 8일 · 상태 4개 · 쟁점 8건
           </footer>
         </div>
       </div>

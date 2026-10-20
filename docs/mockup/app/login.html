@@ -92,26 +92,9 @@
               </span>
             </div>
 
-            <!-- ── 앱 시작 ──────────────────────────────────────── -->
-            <div class="view view--center" data-when="splash">
-              <div class="grow"></div>
-              <div class="stack stack-10" style="align-items: center">
-                <i class="ph-fill ph-clock-user" style="font-size: 44px; color: var(--pen)"></i>
-                <p class="h-xl">WHALE</p>
-                <p class="lab">직원 근무 앱</p>
-              </div>
-              <div class="grow"></div>
-              <p class="tiny">저장된 로그인을 확인하는 중입니다</p>
-            </div>
-
             <!-- ── 로그인 · 실패 ────────────────────────────────── -->
             <div class="view" data-when="login fail">
               <div style="height: 20px"></div>
-              <div class="stack stack-6">
-                <p class="h-xl">다시 오셨네요</p>
-                <p class="p">근무 정보와 출퇴근을 확인하려면 로그인하세요.</p>
-              </div>
-
               <div class="stack stack-14" style="margin-top: 8px">
                 <div class="field">
                   <label class="field__lab" for="lg-id">이메일</label>
@@ -134,10 +117,24 @@
 
                 <div class="field">
                   <label class="field__lab" for="lg-pw">비밀번호</label>
-                  <input class="input" id="lg-pw" type="password" value="••••••••" />
+                  <div class="pw">
+                    <input class="input" id="lg-pw" type="password" value="••••••••" />
+                    <button class="pw__eye" type="button" data-pw aria-label="비밀번호 표시"><i class="ph ph-eye"></i></button>
+                  </div>
                   <p class="field__err" data-when="fail">
                     <i class="ph-fill ph-warning-circle"></i>이메일이나 비밀번호가 맞지 않습니다
                   </p>
+                </div>
+              </div>
+
+              <div class="line" style="gap: 20px">
+                <div class="line" style="gap: 8px">
+                  <button class="check__box is-on" data-tick aria-label="아이디 저장하기"></button>
+                  <span class="p">아이디 저장하기</span>
+                </div>
+                <div class="line" style="gap: 8px">
+                  <button class="check__box" data-tick aria-label="자동로그인"></button>
+                  <span class="p">자동로그인</span>
                 </div>
               </div>
 
@@ -149,11 +146,6 @@
                     <b class="num">3</b>회.
                   </p>
                 </div>
-              </div>
-
-              <div class="note" data-unless="fail">
-                <i class="ph ph-shield-check"></i>
-                <div>한 번 로그인하면 <strong>30일</strong> 동안 다시 묻지 않습니다.</div>
               </div>
 
               <div class="grow"></div>
@@ -460,11 +452,17 @@
               <div class="stack stack-14" style="margin-top: 8px">
                 <div class="field">
                   <label class="field__lab" for="np1">새 비밀번호</label>
-                  <input class="input" id="np1" type="password" value="••••••••••" />
+                  <div class="pw">
+                    <input class="input" id="np1" type="password" value="••••••••••" />
+                    <button class="pw__eye" type="button" data-pw aria-label="비밀번호 표시"><i class="ph ph-eye"></i></button>
+                  </div>
                 </div>
                 <div class="field">
                   <label class="field__lab" for="np2">새 비밀번호 확인</label>
-                  <input class="input" id="np2" type="password" value="••••••••••" />
+                  <div class="pw">
+                    <input class="input" id="np2" type="password" value="••••••••••" />
+                    <button class="pw__eye" type="button" data-pw aria-label="비밀번호 표시"><i class="ph ph-eye"></i></button>
+                  </div>
                 </div>
               </div>
 
@@ -550,11 +548,17 @@
               <div class="stack stack-14" style="margin-top: 4px">
                 <div class="field">
                   <label class="field__lab" for="tp1">새 비밀번호</label>
-                  <input class="input" id="tp1" type="password" value="••••••••••" />
+                  <div class="pw">
+                    <input class="input" id="tp1" type="password" value="••••••••••" />
+                    <button class="pw__eye" type="button" data-pw aria-label="비밀번호 표시"><i class="ph ph-eye"></i></button>
+                  </div>
                 </div>
                 <div class="field">
                   <label class="field__lab" for="tp2">새 비밀번호 확인</label>
-                  <input class="input" id="tp2" type="password" value="••••••••••" />
+                  <div class="pw">
+                    <input class="input" id="tp2" type="password" value="••••••••••" />
+                    <button class="pw__eye" type="button" data-pw aria-label="비밀번호 표시"><i class="ph ph-eye"></i></button>
+                  </div>
                 </div>
               </div>
 
@@ -610,39 +614,10 @@
               </div>
             </div>
 
-            <!-- ── 세션 만료 ────────────────────────────────────── -->
-            <div class="view" data-when="expired">
-              <div style="height: 20px"></div>
-              <div class="stack stack-6">
-                <p class="h-xl">로그인이 만료되었습니다</p>
-                <p class="p">마지막 접속으로부터 30일이 지나 다시 로그인해야 합니다.</p>
-              </div>
-
-              <div class="card card--amber">
-                <div class="line">
-                  <i class="ph-fill ph-clock-countdown" style="color: var(--amber); font-size: 18px"></i>
-                  <div class="grow">
-                    <p class="h-md" style="color: #6f4608">출근을 찍으려던 중이었습니다</p>
-                    <p class="tiny" style="color: var(--amber)">로그인하면 하던 자리로 돌아갑니다</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="field" style="margin-top: 4px">
-                <label class="field__lab" for="ex-pw">비밀번호</label>
-                <input class="input" id="ex-pw" type="password" value="••••••••" />
-              </div>
-
-              <div class="grow"></div>
-            </div>
-
             <!-- ── 하단 버튼 ────────────────────────────────────── -->
             <div class="dock" data-when="login fail">
-              <button class="btn" data-go="splash" data-toast="로그인했습니다">
-                <i class="ph-fill ph-sign-in"></i>로그인
-              </button>
+              <a class="btn" href="home.html"><i class="ph-fill ph-sign-in"></i>로그인</a>
               <button class="btn btn--quiet" data-go="forgot">비밀번호를 잊으셨나요</button>
-              <button class="btn btn--quiet" data-go="find">이메일이 기억나지 않나요</button>
               <a class="btn btn--quiet" href="join.html">초대 코드로 가입</a>
             </div>
 
@@ -717,16 +692,6 @@
             <div class="dock" data-when="link-used">
               <button class="btn" data-go="forgot">인증번호로 직접 정하기</button>
               <button class="btn btn--quiet" data-go="login">로그인으로 돌아가기</button>
-            </div>
-
-            <div class="dock" data-when="expired">
-              <button class="btn" data-go="splash" data-toast="다시 로그인했습니다">
-                <i class="ph-fill ph-sign-in"></i>로그인
-              </button>
-            </div>
-
-            <div class="dock" data-when="splash">
-              <a class="btn btn--ghost" href="home.html">홈으로 들어가기</a>
             </div>
 
             <!-- ── 시트 ─────────────────────────────────────────── -->
@@ -852,16 +817,6 @@
               <p class="lab">그 밖에</p>
             </div>
             <div class="switcher__body">
-              <button class="sw-b" data-state="expired">
-                <span class="sw-b__k">·</span>
-                <span
-                  ><span class="sw-b__t">세션 만료</span> <span class="sw-b__d">· 30일 지남</span></span
-                >
-              </button>
-              <button class="sw-b" data-state="splash">
-                <span class="sw-b__k">·</span>
-                <span><span class="sw-b__t">앱 시작</span> <span class="sw-b__d">· 자동 로그인</span></span>
-              </button>
               <button class="sw-b" data-sheet="logout">
                 <span class="sw-b__k">·</span>
                 <span
@@ -1220,7 +1175,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 로그인 · 2026년 10월 8일 · 상태 17개 · 시트 1개 · 쟁점 11건 모두 확정 ·
+            직원 근무 앱 목업 · 로그인 · 2026년 10월 8일 · 상태 15개 · 시트 1개 · 쟁점 11건 모두 확정 ·
             F-WBHYLR
           </footer>
         </div>

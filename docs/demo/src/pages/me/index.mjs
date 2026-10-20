@@ -1,5 +1,5 @@
 // 직원 근무 앱 데모 · 내 정보. src/app/demo/me/page.tsx 를 옮겼다. 기준 목업: docs/mockup/app/me.html — 상태 6개(내 정보 ·
-// 비밀번호 변경 · 이메일 변경 · 새 이메일 인증 · 주소 검색 · 소속 근무지)와 시트 9개(변경 이력 · 약관 보기 · 잠시 멈춤 ·
+// 비밀번호 변경 · 이메일 변경 · 새 이메일 인증 · 주소 검색 · 소속 근무지)와 시트 8개(약관 보기 · 잠시 멈춤 ·
 // 일시 중지 동안의 카드 · 철회한 뒤의 카드 · 본사 제공 동의 내용 · 본사 제공 동의 철회 · 위치정보 동의 철회 · 로그아웃), 화면 문구·가짜 값·이동(data-go)·알림(data-toast)을 옮겼다.
 // 생년월일은 가입한 뒤 고치지 않고(운영 정책 ACC-13), 휴대전화번호는 계정의 신원 기준이라 1차에 바꾸지 않으며(2026-10-19),
 // 소속 근무지·고용 형태는 근로계약으로만 바뀌어 읽기 전용이다. 직원이 고치는 건 이메일·주소·비밀번호다. 번호 변경 상태 셋은 없앴다.
@@ -26,7 +26,6 @@ const STATES = [
   { id: "email-pin", label: "새 이메일 인증", note: "10분 · 5회" },
   { id: "addr", label: "주소 검색", note: "도로명 고르기" },
   { id: "sites", label: "소속 근무지", note: "조회만" },
-  { id: "history", label: "변경 이력", note: "항목·일시·전후" },
   { id: "revoked", label: "동의 철회 뒤", note: "다시 동의하기" },
   { id: "paused", label: "위치 수집 일시 중지", note: "다시 켜기" },
 ];
@@ -72,7 +71,7 @@ const cardHead = (title, right) => `<div class="flex items-center justify-betwee
 // 카드 안 안내 한 줄(Caption 12px). muted 는 한 단계 더 흐린 끝줄.
 const tinyLine = (text, muted = false) => `<p class="pt-[8px] text-[12px] ${muted ? "text-staff-placeholder" : "text-staff-text-muted"}">${text}</p>`;
 
-// 비밀번호·신고 정보 줄: 아이콘 · 제목 14px semibold · 설명 12px · 오른쪽 버튼(96px).
+// 비밀번호 줄: 아이콘 · 제목 14px semibold · 설명 12px · 오른쪽 버튼(96px).
 const iconLine = ({ icon, title, sub, flipY = false }, right) =>
   `<div class="flex items-center gap-[12px] py-[12px] first:pt-0 last:pb-0"><span class="flex size-[20px] shrink-0 items-center justify-center text-staff-text-sub">${maskIcon(
     icon,
@@ -91,7 +90,7 @@ const rule = (ok, text) =>
       : `<span aria-hidden="true" class="size-[16px] shrink-0 rounded-full border-[1.5px] border-staff-placeholder"></span>`
   }<span class="sr-only">${ok ? "충족" : "미충족"}</span><span>${text}</span></li>`;
 
-// 내 정보 화면(view·history·revoked·paused 공통). 위치정보·본사 제공 카드는 바꿀 모양을 함께 그린다.
+// 내 정보 화면(view·revoked·paused 공통). 위치정보·본사 제공 카드는 바꿀 모양을 함께 그린다.
 // ids: 같은 상태 블록 안 시트의 철회 버튼이 이 id 로 카드를 바꾼다.
 const meView = (mode, ids) => {
   const paused = mode === "paused";
@@ -137,7 +136,7 @@ const meView = (mode, ids) => {
     })}${smallButton("동의 철회", { "data-open": "bprevoke" })}</div>${tinyLine("철회해도 가입과 근무는 그대로입니다. 본사에는 점포별 숫자로만 보입니다.", true)}`,
   );
 
-  return `<header class="flex min-h-[72px] w-full items-center bg-white px-[22px] py-[14px]"><h1 class="min-w-0 flex-1 text-[18px] font-bold">내 정보</h1><button type="button" data-open="history" class="-mr-[10px] flex min-h-[44px] items-center rounded-[10px] px-[10px] text-[13px] font-semibold text-staff-text-sub transition-colors duration-150 ease-out active:bg-staff-primary-inactive">변경 이력</button></header><main class="flex flex-col gap-[14px] px-[16px] pt-[16px] pb-[24px]">${card(
+  return `<header class="flex min-h-[72px] w-full items-center bg-white px-[22px] py-[14px]"><h1 class="min-w-0 flex-1 text-[18px] font-bold">내 정보</h1></header><main class="flex flex-col gap-[14px] px-[16px] pt-[16px] pb-[24px]">${card(
     `${label("기본 정보")}<div class="flex flex-col gap-[10px] pt-[8px]">${readOnlyField({ label: "이름", value: "이하은" })}${readOnlyField({ label: "생년월일", value: "1998-04-12" })}${readOnlyField({
       label: "입사일",
       value: "2025-11-03",
@@ -176,35 +175,14 @@ const meView = (mode, ids) => {
       { "data-toast": "변경사항을 저장했습니다" },
     )}</div>`,
   )}${card(
-    `<div class="flex flex-col divide-y divide-staff-border-light">${iconLine({ icon: "shield.svg", flipY: true, title: "비밀번호", sub: "마지막 변경 2026년 6월 2일" }, outline("변경", go("password")))}${iconLine(
-      { icon: "contract.svg", title: "신고 정보", sub: "900101-1****** · 국민 ******-01-234567" },
-      outline("보기", { href: page("tax", "view") }),
-    )}</div>`,
+    `<div class="flex flex-col divide-y divide-staff-border-light">${iconLine({ icon: "shield.svg", flipY: true, title: "비밀번호", sub: "마지막 변경 2026년 6월 2일" }, outline("변경", go("password")))}</div>`,
   )}<!-- 로그아웃은 내 정보 맨 아래(S-PHHICH 확정). 자주 누를 것이 아니고 실수로 눌리면 곤란해서 가장 아래다. --><hr class="my-[4px] border-staff-border-light">${ghost("로그아웃", {
     "data-open": "logout",
   })}</main><div class="sticky bottom-0 mt-auto">${bottomNav("me")}</div>`;
 };
 
-// 내 정보 위에 뜨는 시트들. history 상태에서는 변경 이력 시트가 바로 열리고 닫으면 내 정보로 돌아간다.
+// 내 정보 위에 뜨는 시트들.
 const sheets = (mode, ids) =>
-  bottomSheet(
-    "history",
-    {
-      title: "변경 이력",
-      description: "연락처·주소·비밀번호를 바꾼 기록입니다. 비밀번호는 바뀐 사실만 남고 값은 남지 않습니다.",
-      ...(mode === "history" ? { "data-sheet-auto": true, "data-on-close": "#view" } : {}),
-    },
-    `<ul class="flex flex-col divide-y divide-staff-border-light">${[
-      ["이메일 변경", "haeun98@gmail.com → haeun.lee@gmail.com", "2026-07-02"],
-      ["비밀번호 변경", "본인이 직접 변경", "2026-06-02"],
-      ["주소 변경", "서울 마포구 동교로 5 → 서울 마포구 양화로 12", "2026-04-18"],
-    ]
-      .map(
-        ([title, sub, date]) =>
-          `<li class="flex items-start gap-[12px] py-[12px]"><span class="min-w-0 flex-1"><span class="block text-[14px] font-semibold">${title}</span><span class="block text-[12px] text-staff-text-sub">${sub}</span></span><span class="shrink-0 text-[12px] text-staff-text-muted tabular-nums">${date}</span></li>`,
-      )
-      .join("")}</ul>${outline("더 보기", { "data-toast": "20건을 더 불러왔습니다" })}`,
-  ) +
   bottomSheet(
     "terms",
     { title: "위치정보 수집·이용 동의" },
@@ -320,24 +298,33 @@ const VIEWS = {
       ).join("")}</ul>${notice("고른 주소는 <strong>그대로 저장</strong>되고 상세주소만 직접 적습니다. 오타나 형식이 어긋나는 일을 막기 위해서입니다.")}`,
     ),
 
+  // 소속 근무지(ME-7, 2026-10-20 재영): 근무지를 누르면 아래로 펼쳐 근로계약서 · 급여명세서 · 신고 정보로 간다.
+  // 세 화면은 누른 근무지의 것만 걸러 연다(앱 상단에서 고른 근무지와 관계없다). 데모 링크는 거르지 못해 화면만 연다.
   sites: () =>
     body(
-      `<ul class="flex flex-col divide-y divide-staff-border-light rounded-[16px] border border-staff-border-light bg-white px-[16px]">${[
-        ["웨일카페 강남역점", "파트타이머 · 2025년 11월 3일부터"],
-        ["웨일카페 홍대점", "파트타이머 · 2026년 3월 16일부터"],
+      `<div class="flex flex-col gap-[10px]">${[
+        ["웨일카페 강남역점", "파트타이머 · 2025년 11월 3일부터", true],
+        ["웨일카페 홍대점", "파트타이머 · 2026년 3월 16일부터", false],
+        // 퇴직한 근무지도 둔다(ME-7, 2026-10-20 재영). 흐리게 · 「퇴직」 표시 · 근무 기간.
+        ["웨일베이커리 합정점", "파트타이머 · 2025년 3월 2일 ~ 2025년 12월 31일", false, true],
       ]
         .map(
-          ([name, sub]) =>
-            `<li class="flex items-start gap-[12px] py-[14px]"><span class="flex pt-[3px] text-staff-text-sub">${maskIcon("store-small.svg", 18)}</span><span class="min-w-0 flex-1"><span class="block text-[15px] font-semibold">${name}</span><span class="block text-[12px] text-staff-text-sub">${sub}</span></span>${badge(
-              "working",
-              "근무 중",
-            )}</li>`,
+          ([name, sub, open, retired]) =>
+            `<details${open ? " open" : ""} class="group rounded-[16px] border border-staff-border-light bg-white"><summary class="flex cursor-pointer list-none items-start gap-[12px] p-[16px] [&::-webkit-details-marker]:hidden"><span class="flex pt-[3px] text-staff-text-sub">${maskIcon("store-small.svg", 18)}</span><span class="min-w-0 flex-1"><span class="block text-[15px] font-semibold ${retired ? "text-staff-text-muted" : ""}">${name}</span><span class="block text-[12px] text-staff-text-sub">${sub}</span></span>${
+              retired ? badge("neutral", "퇴직") : badge("working", "근무 중")
+            }${img("chevron-down.svg", 15, 15, "mt-[4px] -scale-y-100 transition-transform group-open:rotate-180")}</summary><div class="flex flex-col gap-[8px] px-[16px] pb-[16px]">${[
+              ["근로계약서", page("contract", "list")],
+              ["급여명세서", page("pay", "list")],
+              ["신고 정보", page("tax", "view")],
+            ]
+              .map(([label, href]) => outline(label, { href }))
+              .join("")}</div></details>`,
         )
-        .join("")}</ul><p class="text-[12px] text-staff-text-muted">소속과 고용 형태는 근로계약이 새로 체결되어야 바뀝니다. 여기서는 고칠 수 없습니다.</p>`,
+        .join("")}</div><p class="text-[12px] text-staff-text-muted">소속과 고용 형태는 근로계약이 새로 체결되어야 바뀝니다. 여기서는 고칠 수 없습니다.</p>`,
     ),
 };
 
-const ME_MODES = ["view", "history", "revoked", "paused"];
+const ME_MODES = ["view", "revoked", "paused"];
 
 const block = (id) => {
   if (ME_MODES.includes(id)) {

@@ -14,6 +14,7 @@
      data-sheet-close          시트를 닫는다
      data-clock                실시간 시계 (상태바)
      data-tick                 누르면 켜지고 꺼지는 스위치·체크
+     data-pw                   비밀번호 칸의 눈 버튼. 누르면 보이고 다시 누르면 가린다
      …#상태이름               주소 끝에 붙이면 그 상태로 시작한다
    ──────────────────────────────────────────────────────────────── */
 (function () {
@@ -155,6 +156,20 @@
       closeSheet(phone);
       setState(phone, t.dataset.go);
     }
+  });
+
+  /* 비밀번호 표시 — 누르는 동안 칸의 커서를 빼앗지 않는다 */
+  document.addEventListener("pointerdown", function (e) {
+    if (e.target.closest("[data-pw]")) e.preventDefault();
+  });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-pw]");
+    if (!b) return;
+    var input = b.parentElement.querySelector("input");
+    var show = input.type === "password";
+    input.type = show ? "text" : "password";
+    b.setAttribute("aria-label", show ? "비밀번호 숨기기" : "비밀번호 표시");
+    b.firstElementChild.className = show ? "ph ph-eye-slash" : "ph ph-eye";
   });
 
   /* 상태 고르는 버튼 (폰 바깥) */
