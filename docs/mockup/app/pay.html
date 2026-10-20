@@ -24,7 +24,7 @@
          쓰지 않는다.
 
          다시 보낸 명세서는 최신 값으로 덮고, 이전 금액과 나란히 비교하지 않는다.
-         대신 상세에 처리 이력을 둬 발송·확정 취소·재발송 시각을 남긴다(PAY-1).
+         대신 상세에 처리 이력을 둬 확정 취소와 가장 최근 발송 시각을 남긴다(PAY-1).
          이력은 관리자 웹과 같은 한 줄 형식이되 관리자 이름은 적지 않는다.
          퇴직한 뒤에도 이 급여 탭에서 생성일부터 3년 동안 조회한다. 계정을 탈퇴하면
          앱에서 볼 수 없고, 다시 가입해도 새 계정이라 옛 명세서를 보지 못한다(PAY-4).
@@ -35,8 +35,8 @@
          붙이는 추가 공제 열이 더해진다. 확정 취소는 발송 후에도 되므로
          이미 본 명세서가 조용히 바뀔 수 있다 — resent 상태가 그 경우다.
 
-         다시 보낸 명세서도 이전 금액을 나란히 보여 주지 않는다. 표의 「· 정정됨」
-         꼬리표만 어느 줄이 바뀌었는지 짚는다.
+         다시 보낸 명세서도 이전 금액을 나란히 보여 주지 않고, 어느 줄이 바뀌었는지도
+         표시하지 않는다(PAY-1, 2026-10-20).
 
          발송된 명세서는 상세 화면에서 처리 완료본 PDF 를 공유 시트로 내보낸다
          — PAY-2. 목록에는 버튼을 두지 않는다. 근로계약서 완료본 내보내기와
@@ -86,7 +86,7 @@
             </div>
 
             <!-- ── 앱바 ─────────────────────────────────────────── -->
-            <div class="abar" data-when="list empty">
+            <div class="abar" data-when="list empty filter-empty">
               <a class="abar__back" href="home.html"><i class="ph ph-caret-left"></i></a>
               <span class="abar__title">급여</span>
               <button
@@ -111,25 +111,51 @@
 
             <!-- ── 목록 ─────────────────────────────────────────── -->
             <div class="view" data-when="list">
-              <div class="card card--pen" data-go="detail" style="cursor: pointer">
-                <div class="line">
-                  <i class="ph-fill ph-file-text" style="color: var(--pen); font-size: 18px"></i>
-                  <div class="grow">
-                    <p class="h-md">2026년 8월 급여명세서</p>
-                    <p class="tiny" style="color: var(--pen)">9월 10일 발송 · 실지급액 844,430원</p>
-                  </div>
-                  <i class="ph ph-caret-right" style="color: var(--pen)"></i>
-                </div>
+              <!-- 이번 달에 받은(발송된) 명세서 전체의 실지급액 합. 근무지와 관계없이 모두 셈한다. 합계·건수·점포는 api 가 내려 준 값이고 앱은 더하지 않는다(PAY-9). 누르는 곳은 없다 -->
+              <div class="card card--pen">
+                <p class="tiny" style="color: var(--pen)">9월에 받은 급여명세서 · 실지급액 합계</p>
+                <p class="num num--lg" style="color: var(--pen); margin-top: 6px">1,156,430<span class="u">원</span></p>
+                <p class="tiny" style="margin-top: 6px">명세서 2건 · 웨일카페 강남역점, 웨일카페 홍대점</p>
               </div>
 
               <div class="card">
-                <p class="lab">지난 명세서</p>
+                <div class="line line--between">
+                  <p class="lab">명세서</p>
+                  <span class="tiny">5건</span>
+                </div>
+                <!-- 필터 칩: 점포 · 연도(급여 기간 기준). 처음은 전체 점포 · 올해. 바꾼 칩은 남보라로 강조 (PAY-10) -->
+                <div class="line" style="gap: 8px; margin-top: 8px">
+                  <button class="btn btn--sm btn--ghost" data-sheet="pf-store">
+                    전체 점포<i class="ph ph-caret-down"></i>
+                  </button>
+                  <button class="btn btn--sm btn--ghost" data-sheet="pf-year">
+                    2026년<i class="ph ph-caret-down"></i>
+                  </button>
+                </div>
                 <div class="scroll" style="margin-top: 4px">
                   <div class="rows">
+                    <div class="row" data-go="detail" style="cursor: pointer">
+                      <div class="row__main">
+                        <p class="row__title">2026년 8월</p>
+                        <p class="row__sub">웨일카페 강남역점 · 9월 10일 발송</p>
+                      </div>
+                      <div class="row__end">
+                        <span class="num" style="font-size: 13.5px">844,430원</span>
+                      </div>
+                    </div>
+                    <div class="row" data-go="detail" style="cursor: pointer">
+                      <div class="row__main">
+                        <p class="row__title">2026년 8월</p>
+                        <p class="row__sub">웨일카페 홍대점 · 9월 5일 발송</p>
+                      </div>
+                      <div class="row__end">
+                        <span class="num" style="font-size: 13.5px">312,000원</span>
+                      </div>
+                    </div>
                     <div class="row" data-go="resent" style="cursor: pointer">
                       <div class="row__main">
                         <p class="row__title">2026년 7월</p>
-                        <p class="row__sub">8월 20일 발송</p>
+                        <p class="row__sub">웨일카페 강남역점 · 8월 20일 발송</p>
                       </div>
                       <div class="row__end">
                         <span class="num" style="font-size: 13.5px">835,430원</span>
@@ -138,7 +164,7 @@
                     <div class="row" data-go="detail" style="cursor: pointer">
                       <div class="row__main">
                         <p class="row__title">2026년 6월</p>
-                        <p class="row__sub">7월 3일 발송</p>
+                        <p class="row__sub">웨일카페 홍대점 · 7월 3일 발송</p>
                       </div>
                       <div class="row__end">
                         <span class="num" style="font-size: 13.5px">745,340원</span>
@@ -148,7 +174,7 @@
                     <div class="row" data-go="detail" style="cursor: pointer">
                       <div class="row__main">
                         <p class="row__title">2026년 5월</p>
-                        <p class="row__sub">6월 3일 발송</p>
+                        <p class="row__sub">웨일카페 강남역점 · 6월 3일 발송</p>
                       </div>
                       <div class="row__end">
                         <span class="num" style="font-size: 13.5px">889,490원</span>
@@ -277,13 +303,6 @@
 
             <!-- ── 다시 보낸 명세서 · 2026년 7월 ────────────────── -->
             <div class="view" data-when="resent">
-              <div class="note note--amber">
-                <i class="ph-fill ph-arrows-clockwise"></i>
-                <div>
-                  <strong>8월 20일 다시 발송되었습니다.</strong>
-                </div>
-              </div>
-
               <div class="card card--sunken">
                 <div class="line line--between">
                   <div>
@@ -312,7 +331,7 @@
                       <td class="num">123,840</td>
                     </tr>
                     <tr>
-                      <td>연장수당<br /><span class="sub">소정근로시간을 넘긴 날 없음 · 정정됨</span></td>
+                      <td>연장수당<br /><span class="sub">소정근로시간을 넘긴 날 없음</span></td>
                       <td class="num" style="color: var(--ink-3)">해당 없음</td>
                     </tr>
                     <tr>
@@ -376,15 +395,43 @@
               <div class="card">
                 <p class="lab">처리 이력</p>
                 <div class="stack stack-4" style="margin-top: 7px">
-                  <p class="tiny" style="margin: 0"><span class="num">08-20 10:05</span> · 재발송</p>
+                  <p class="tiny" style="margin: 0"><span class="num">08-20 10:05</span> · 발송</p>
                   <p class="tiny" style="margin: 0"><span class="num">08-19 17:40</span> · 확정 취소</p>
-                  <p class="tiny" style="margin: 0"><span class="num">08-03 09:12</span> · 발송</p>
                 </div>
               </div>
 
               <button class="btn btn--quiet" data-toast="처리 완료본 PDF 를 공유합니다">
                 <i class="ph ph-share-network"></i>명세서 내보내기
               </button>
+            </div>
+
+            <!-- ── 필터 결과 없음 (PAY-10) ── -->
+            <div class="view" data-when="filter-empty">
+              <div class="card card--pen">
+                <p class="tiny" style="color: var(--pen)">9월에 받은 급여명세서 · 실지급액 합계</p>
+                <p class="num num--lg" style="color: var(--pen); margin-top: 6px">1,156,430<span class="u">원</span></p>
+                <p class="tiny" style="margin-top: 6px">명세서 2건 · 웨일카페 강남역점, 웨일카페 홍대점</p>
+              </div>
+              <div class="card">
+                <div class="line line--between">
+                  <p class="lab">명세서</p>
+                  <span class="tiny">0건</span>
+                </div>
+                <!-- 필터 칩: 점포 · 연도(급여 기간 기준). 처음은 전체 점포 · 올해. 바꾼 칩은 남보라로 강조 (PAY-10) -->
+                <div class="line" style="gap: 8px; margin-top: 8px">
+                  <button class="btn btn--sm btn--ghost" data-sheet="pf-store" style="border-color: var(--pen); color: var(--pen)">
+                    웨일베이커리 합정점<i class="ph ph-caret-down"></i>
+                  </button>
+                  <button class="btn btn--sm btn--ghost" data-sheet="pf-year">
+                    2026년<i class="ph ph-caret-down"></i>
+                  </button>
+                </div>
+                <div class="empty" style="padding: 22px 0 6px">
+                  <p class="p--sm">조건에 맞는 명세서가 없습니다</p>
+                  <button class="btn btn--sm btn--ghost" data-go="list">필터 지우기</button>
+                </div>
+              </div>
+              <div class="grow"></div>
             </div>
 
             <!-- ── 빈 상태 ──────────────────────────────────────── -->
@@ -408,6 +455,57 @@
             </nav>
 
             <!-- ── 시트 ─────────────────────────────────────────── -->
+            <div class="sheet" data-sheet-id="pf-store" hidden>
+              <div class="sheet__grab"></div>
+              <p class="h-lg">점포</p>
+              <p class="p--sm">명세서를 받은 적이 있는 점포를 모두 보입니다. 퇴직한 곳도 들어갑니다.</p>
+              <div class="rows">
+                <div class="row" data-sheet-close data-go="list" style="cursor: pointer">
+                  <i class="ph-fill ph-check-circle" style="color: var(--pen); font-size: 19px"></i>
+                  <div class="row__main"><p class="row__title">전체 점포</p></div>
+                </div>
+                <div class="row" data-sheet-close data-toast="웨일카페 강남역점 명세서만 보입니다" style="cursor: pointer">
+                  <i class="ph ph-circle" style="color: var(--ink-4); font-size: 19px"></i>
+                  <div class="row__main"><p class="row__title">웨일카페 강남역점</p></div>
+                </div>
+                <div class="row" data-sheet-close data-toast="웨일카페 홍대점 명세서만 보입니다" style="cursor: pointer">
+                  <i class="ph ph-circle" style="color: var(--ink-4); font-size: 19px"></i>
+                  <div class="row__main"><p class="row__title">웨일카페 홍대점</p></div>
+                </div>
+                <div class="row" data-sheet-close data-go="filter-empty" style="cursor: pointer">
+                  <i class="ph ph-circle" style="color: var(--ink-4); font-size: 19px"></i>
+                  <div class="row__main">
+                    <p class="row__title">웨일베이커리 합정점</p>
+                    <p class="row__sub">퇴직 · 2025년 명세서만 있음</p>
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn--ghost" data-sheet-close>닫기</button>
+            </div>
+            <div class="sheet" data-sheet-id="pf-year" hidden>
+              <div class="sheet__grab"></div>
+              <p class="h-lg">연도</p>
+              <p class="p--sm">급여 기간 기준입니다. 보관 기간 3년에 맞춰 올해부터 3년 전까지 고릅니다.</p>
+              <div class="rows">
+                <div class="row" data-sheet-close style="cursor: pointer">
+                  <i class="ph-fill ph-check-circle" style="color: var(--pen); font-size: 19px"></i>
+                  <div class="row__main"><p class="row__title">2026년</p></div>
+                </div>
+                <div class="row" data-sheet-close data-toast="2025년 명세서를 보여 줍니다" style="cursor: pointer">
+                  <i class="ph ph-circle" style="color: var(--ink-4); font-size: 19px"></i>
+                  <div class="row__main"><p class="row__title">2025년</p></div>
+                </div>
+                <div class="row" data-sheet-close data-toast="2024년 명세서를 보여 줍니다" style="cursor: pointer">
+                  <i class="ph ph-circle" style="color: var(--ink-4); font-size: 19px"></i>
+                  <div class="row__main"><p class="row__title">2024년</p></div>
+                </div>
+                <div class="row" data-sheet-close data-toast="2023년 명세서를 보여 줍니다" style="cursor: pointer">
+                  <i class="ph ph-circle" style="color: var(--ink-4); font-size: 19px"></i>
+                  <div class="row__main"><p class="row__title">2023년</p></div>
+                </div>
+              </div>
+              <button class="btn btn--ghost" data-sheet-close>닫기</button>
+            </div>
             <div class="sheet" data-sheet-id="about" hidden>
               <div class="sheet__grab"></div>
               <p class="h-lg">급여명세서는 이렇게 만들어집니다</p>
@@ -455,11 +553,23 @@
                 <span class="sw-b__k">4</span>
                 <span><span class="sw-b__t">빈 상태</span> <span class="sw-b__d">· 발송된 것 없음</span></span>
               </button>
+              <button class="sw-b" data-state="filter-empty">
+                <span class="sw-b__k">5</span>
+                <span><span class="sw-b__t">필터 결과 없음</span> <span class="sw-b__d">· 퇴직한 점포 고름</span></span>
+              </button>
             </div>
             <div class="switcher__head" style="border-top: 1px solid var(--rule); border-bottom: none">
               <p class="lab">시트 열기</p>
             </div>
             <div class="switcher__body">
+              <button class="sw-b" data-sheet="pf-store">
+                <span class="sw-b__k">·</span>
+                <span><span class="sw-b__t">점포 필터</span> <span class="sw-b__d">· 퇴직한 곳 포함</span></span>
+              </button>
+              <button class="sw-b" data-sheet="pf-year">
+                <span class="sw-b__k">·</span>
+                <span><span class="sw-b__t">연도 필터</span> <span class="sw-b__d">· 급여 기간 기준</span></span>
+              </button>
               <button class="sw-b" data-sheet="about">
                 <span class="sw-b__k">·</span>
                 <span
@@ -551,20 +661,21 @@
             <div class="gap__one">
               <p>
                 다시 보낸 명세서는 <b>최신 값으로 덮는다</b>. 이전 금액과 나란히 비교하지 않고, 대신 상세에
-                <b>처리 이력</b> 항목을 따로 둬 발송 · 확정 취소 · 재발송이 언제 있었는지 보여 준다 (2026-09-17 재영 확정).
+                <b>처리 이력</b> 항목을 따로 둬 발송 · 확정 취소가 언제 있었는지 보여 준다 (2026-09-17 재영 확정).
               </p>
               <ul>
                 <li>
                   이력은 <b>시각과 짧은 꼬리표</b>만으로 끝낸다. 관리자 웹 급여명세서 상세의 처리
                   이력과 같은 형식이다 (2026-09-18 재영 지시). 금액이 늘 최신 값이라는 것은 이력 줄만
-                  봐도 읽혀 설명 문단은 뺐고, 다시 보낸 사유는 화면 위쪽 안내에 이미 있어 이력에는
-                  적지 않는다
+                  봐도 읽혀 설명 문단은 뺐다. 화면 위쪽의 「다시 발송되었습니다」 안내도 두지 않는다
+                  (2026-10-20 재영, 알림 NOTI-6 과 같이 다시 보낸 것을 따로 적지 않는다)
                 </li>
                 <li>
                   저장하는 유형은 <b>초안 생성 · 수정 · 확정 · 확정 취소 · 발송</b> 다섯이고 재발송은
-                  별도 유형이 아니다. 두 번째 발송부터 「발송」 줄이 한 번 더 쌓인다. 화면에서는 그
-                  두 번째 줄을 <b>「재발송」</b>으로 적는다 (2026-09-18 기획 세션 확인) — 같은 말이 두 줄
-                  쌓이면 직원이 무엇이 다른지 읽어 낼 수 없기 때문이다
+                  별도 유형이 아니다. 앱에서는 <b>「재발송」 줄을 두지 않는다</b>. 발송 줄이 여럿이면 <b>가장 최근
+                  발송 한 줄만</b> 「발송」으로 보이고 앞의 발송 줄은 보이지 않는다. 확정 취소 줄은 그대로 보인다
+                  (2026-10-20 재영, 운영 정책 PAY-20. 2026-09-18 「두 번째 발송 줄을 「재발송」으로 적는다」를
+                  바꿈). 다시 보낸 것을 따로 적지 않는 것은 알림 NOTI-6 과 같다
                 </li>
                 <li>
                   앱에는 다섯 가운데 <b>발송과 확정 취소만</b> 내려온다 (운영 정책 PAY-20, 2026-09-18 확정).
@@ -575,8 +686,8 @@
                 </li>
                 <li>
                   다시 보낸 명세서에서도 <b>이전 금액을 나란히 보여 주지 않는다</b>. 취소선으로 옛 금액을
-                  짚던 「처음 보낸 것과 달라진 부분」 카드는 뺐다 (2026-09-18 재영 확정). 표의
-                  <b>「· 정정됨」</b> 꼬리표만 남겨 어느 줄이 바뀌었는지 짚되 옛 값은 드러내지 않는다
+                  짚던 「처음 보낸 것과 달라진 부분」 카드는 뺐다 (2026-09-18 재영 확정). 바뀐 줄에 붙이던
+                  <b>「· 정정됨」</b> 꼬리표도 뺐다 — 정정되어 와도 바뀐 부분을 표시하지 않고 최신 값만 보인다 (2026-10-20 재영)
                 </li>
                 <li>
                   관리자 웹은 누가 했는지까지 적지만 <b>앱에서는 관리자 이름을 적지 않는다</b>. 직원이
@@ -713,6 +824,70 @@
             </div>
           </div>
 
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">PAY-8</span>
+              <span class="gap__t">급여명세서 목록이 고른 근무지를 따르는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 근무지와 관계없이 모두, 점포 표기</span>
+              <span class="gap__ref">HOME-2 · WORK-4</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                급여 탭은 <b>앱에서 고른 근무지와 관계없이 내가 받은 급여명세서를 모두</b> 보인다. 그래서 목록의 명세서마다
+                <b>점포 이름을 반드시 적는다</b> (2026-10-20 재영).
+              </p>
+              <ul>
+                <li>근무지가 여럿이면 같은 달 명세서가 점포마다 따로 온다. 점포가 없으면 어느 곳 급여인지 가릴 수 없다</li>
+                <li>근무스케줄·출퇴근 현황·알림은 지금처럼 고른 근무지를 따른다(HOME-2·WORK-4). 급여만 예외다</li>
+                <li>상세 머리의 「웨일카페 강남역점 · 파트타이머 · 발송일」 줄은 그대로 둔다</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">PAY-9</span>
+              <span class="gap__t">급여 탭 맨 위에 무엇을 보이는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 이번 달에 받은 명세서의 실지급액 합</span>
+              <span class="gap__ref">PAY-8</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                맨 위 카드는 <b>이번 달에 받은(발송된) 명세서 전체의 실지급액 합계</b>를 보인다. 근무지와 관계없이 모두
+                더하고(PAY-8), 건수와 점포를 함께 적는다. 「명세서 확인하기」 링크는 없다 — 명세서는 아래 목록에서 연다 (2026-10-20 재영).
+              </p>
+              <ul>
+                <li>기준은 발송일이다. 시스템은 급여 지급(입금)을 다루지 않아 지급일이 없다</li>
+                <li>이번 달에 받은 명세서가 없으면 0원이 아니라 「이번 달에 받은 명세서가 없습니다」로 적는다</li>
+                <li>다시 보낸 명세서는 최신 발송일로 센다(PAY-1·PAY-20)</li>
+                <li>합계·건수·점포는 <b>api 가 계산해 목록 응답에 함께 내려 준 값</b>을 그대로 보인다. 앱은 목록을 더하지 않는다 (2026-10-20 재영, 운영 정책 PAY-08)</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">PAY-10</span>
+              <span class="gap__t">명세서 목록을 어떻게 걸러 보는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 점포 · 연도 필터</span>
+              <span class="gap__ref">PAY-8 · ATT-7</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                목록 이름은 <b>「명세서」</b>이고 받은 명세서를 <b>모두</b> 보인다. 목록 위에 <b>점포</b>와 <b>연도</b> 필터 칩을 두고,
+                누르면 시트에서 고른다 (2026-10-20 재영).
+              </p>
+              <ul>
+                <li>처음은 전체 점포 · 올해. 바꾼 칩은 강조색으로 보인다. 제목 오른쪽에 걸러진 건수를 적는다</li>
+                <li>점포 시트는 <b>명세서를 받은 적이 있는 점포 모두</b>다. 퇴직한 곳도 들어간다 — 앱 상단 근무지 목록(체결 완료 계약이 있는 곳, 운영 정책 CTR-29)과 다르다</li>
+                <li>연도는 <b>급여 기간 기준</b>이다. 2025년 12월 근무분을 2026년 1월에 받아도 2025년에 든다. 고를 수 있는 연도는 <b>올해부터 3년 전까지</b>다(2026년이면 2026~2023년). 명세서 보관이 3년이라(PAY-4) 그 범위는 늘 고를 수 있게 둔다</li>
+                <li>연도로 끊으므로 「더 보기」는 두지 않는다(ATT-7: 기간이 있는 목록은 기간으로 끊는다). 순서는 발송일 최신순</li>
+                <li>걸러진 것이 없으면 「조건에 맞는 명세서가 없습니다」와 「필터 지우기」</li>
+                <li>맨 위 이번 달 합계 카드(PAY-9)는 필터와 관계없다</li>
+              </ul>
+            </div>
+          </div>
+
           <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
           <ul class="pol">
             <li>
@@ -770,7 +945,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 급여명세서 · 2026년 10월 8일 · 상태 4개 · 시트 1개 · 쟁점 7건 · 확정 4건 · 외부 검토 3건
+            직원 근무 앱 목업 · 급여명세서 · 2026년 10월 8일 · 상태 5개 · 시트 3개 · 쟁점 10건 · 확정 7건 · 외부 검토 3건
           </footer>
         </div>
       </div>

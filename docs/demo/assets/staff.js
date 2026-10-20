@@ -167,6 +167,21 @@
 });
 })();
 
+// ── 비밀번호 표시: 입력 칸 오른쪽 눈 버튼. 누르는 동안 칸의 커서를 빼앗지 않는다. ──
+(() => {
+  document.addEventListener("pointerdown", (e) => e.target.closest("[data-pw-toggle]") && e.preventDefault());
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-pw-toggle]");
+    if (!b) return;
+    const input = b.parentElement.querySelector("input");
+    const show = input.type === "password";
+    input.type = show ? "text" : "password";
+    b.setAttribute("aria-label", show ? "비밀번호 숨기기" : "비밀번호 표시");
+    b.children[0].classList.toggle("hidden", show);
+    b.children[1].classList.toggle("hidden", !show);
+  });
+})();
+
 // ── 공통 동작 ──
 (() => {
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];

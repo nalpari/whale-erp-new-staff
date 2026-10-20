@@ -8,7 +8,7 @@
 // 목업과 다른 점: 주민등록번호 입력칸은 앞 6자리와 뒤 7자리로 나누고 뒷자리를 가려 보인다(목업은 한 칸에 그대로 보임).
 // Figma 없음 — DESIGN.md 기준 초안.
 // 입력 화면의 뒤로 가기는 들어온 곳(안내 또는 등록된 값)으로 돌아간다(목업 data-go-back) — assets/staff.js 가 맞춘다.
-import { FIELD, backHeader, body, bottomSheet, button, card, dock, iconRow, label, maskIcon, notice, page, pageHeader, seal, state, sunken, textField, values } from "../../ui.mjs";
+import { FIELD, backHeader, body, bottomSheet, button, card, dock, iconRow, label, maskIcon, notice, page, pageHeader, state, sunken, textField, values } from "../../ui.mjs";
 
 // 목업 오른쪽 상태 목록 순서 그대로. why 는 목업의 안내 화면 시트라 안내 위에 띄운다.
 const STATES = [
@@ -51,7 +51,7 @@ const sheet = (a = {}) =>
 const intro = () =>
   pageHeader("신고 정보", { backHref: page("contract", "signed") }) +
   body(
-    `<div class="flex flex-col items-center gap-[8px] text-center"><span class="text-staff-text-sub">${maskIcon("contract.svg", 28)}</span><h2 class="text-[22px] font-bold">한 가지만 더 받습니다</h2><p class="text-[14px] text-staff-text-sub">계약이 체결되었습니다. 신고와 급여에 쓸 정보를 넣어야 앱을 쓸 수 있습니다.</p></div>` +
+    `<div class="flex flex-col items-center gap-[8px] text-center"><span class="text-staff-text-sub">${maskIcon("contract.svg", 28)}</span><h2 class="text-[22px] font-bold">한 가지만 더 받습니다</h2><p class="text-[14px] text-staff-text-sub">웨일카페 강남역점과 계약이 체결되었습니다. 이 근무지의 신고와 급여에 쓸 정보를 넣어야 앱을 쓸 수 있습니다.</p></div>` +
       card(
         label("이 값들을 쓰는 곳") +
           `<div class="flex flex-col divide-y divide-staff-border-light pt-[10px]">${iconRow({ icon: "shield.svg", flipY: true, title: "4대보험 자격취득 신고", sub: "국민연금 · 건강보험 · 고용보험 · 산재보험" })}${iconRow({
@@ -96,8 +96,7 @@ const VIEWS = {
 
   done: () =>
     body(
-      seal("등록<br>완료") +
-        `<div class="flex flex-col gap-[6px]"><h1 class="text-[22px] font-bold">신고 정보를 받았습니다</h1><p class="text-[14px] text-staff-text-sub">4대보험 취득 신고가 진행됩니다. 이제 근무를 시작할 수 있습니다.</p></div>` +
+      `<div class="flex flex-col gap-[6px]"><h1 class="text-[22px] font-bold">신고 정보를 받았습니다</h1><p class="text-[14px] text-staff-text-sub">4대보험 취득 신고가 진행됩니다. 이제 근무를 시작할 수 있습니다.</p></div>` +
         sunken(
           values([
             ["주민등록번호", "900101-1******"],
@@ -111,8 +110,10 @@ const VIEWS = {
     ) + dock(button("근무 시작하기", { href: page("home") })),
 
   view: () =>
-    pageHeader("등록된 신고 정보", { backHref: page("me") }) +
+    pageHeader("등록된 신고 정보", { backHref: page("me", "sites") }) +
     body(
+      // 신고 정보는 근무지(직원 레코드)마다 따로다(TAX-8, 2026-10-20). 어느 근무지에 낸 값인지 맨 위에 적는다.
+      `<p class="flex items-center gap-[8px] text-[16px] font-bold">${maskIcon("store-small.svg", 17)}웨일카페 강남역점</p>` +
       card(
         `${label("주민등록번호")}<p class="pt-[4px] text-[18px] font-bold">900101-1******</p><p class="pt-[6px] text-[12px] text-staff-text-muted">뒷자리는 본인에게도 다시 보여주지 않습니다. 고치려면 새로 넣습니다.</p>`,
       ) +

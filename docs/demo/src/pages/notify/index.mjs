@@ -1,13 +1,13 @@
 // 직원 근무 앱 데모 · 알림. 기준 목업: docs/mockup/app/notify.html — 상태 4개(알림함 · 알림 없음 · 수신 설정 · 연결 끊김),
-// 화면 문구·가짜 값·버튼의 이동(data-go)·알림(data-toast)을 옮겼다. 목업에 시트는 없다. 쟁점 NOTI-1~7 은 모두 확정이다.
-//   직원 알림은 근로계약서 발송 · 근무스케줄 변경 · TO-DO 배정 · 급여명세서 발송 넷뿐이다(S-AYBNWF).
-//   NOTI-1 TO-DO 배정은 앱 푸시를 보내지 않고 알림함에만 한 줄 쌓인다. 근무시간 외 보류 규칙은 없어졌다. 긴급 TO-DO 는 빨간 점.
+// 화면 문구·가짜 값·버튼의 이동(data-go)·알림(data-toast)을 옮겼다. 목업에 시트는 없다. 쟁점 NOTI-1~8 은 모두 확정이다.
+//   직원 알림은 근로계약서 발송 · 근무스케줄 변경 · TO-DO 수행 임박 · 급여명세서 발송 넷뿐이다(S-AYBNWF).
+//   NOTI-1 TO-DO 배정 알림은 없고 수행 예정 일시가 다가오면 수행 임박 알림을 한 번 보낸다(2026-10-19). 근무시간 외 보류 규칙은 없다. 긴급 TO-DO 는 빨간 점.
 //   NOTI-2 알림톡은 자동 대체 없이 프로세스별로 함께 보낸다. NOTI-3 알림함은 14일 보관. NOTI-4 한 줄에 발송 결과까지 적는다.
-//   NOTI-5 알림함은 머리줄 알림 버튼으로 들어온다(홈 데모). NOTI-6 다시 보낸 급여명세서는 「다시 발송되었습니다 · 금액이 바뀌었을 수 있습니다」.
+//   NOTI-5 알림함은 머리줄 알림 버튼으로 들어온다(홈 데모). NOTI-6 다시 보낸 급여명세서도 처음과 같은 「도착했습니다」(2026-10-20).
 //   알림을 누르면 관련 화면으로 가며 자동으로 읽음 처리된다. 직원 알림함은 줄마다 읽음을 바꿀 수 있고(S-IMFWJT), 머리에 「모두 읽음」도 둔다(NOTI-7,
 //   2026-10-08) — 관리자 웹 운영 알림함은 모두 읽음만 둔다.
-//   수신은 수신 설정 묶음(근로계약서 · 근무스케줄 · TO-DO · 급여명세서) 단위로 켜고 끈다. 근로계약서 · 급여명세서는 잠긴 스위치, 꺼 둔 묶음의 알림도
-//   알림함에는 남는다(S-SIGZJQ). TO-DO 묶음은 보낼 앱 푸시가 없어 스위치 대신 「알림함만」(목업 그대로).
+//   수신은 수신 설정 묶음(근로계약서 · 근무스케줄 · TO-DO · 급여명세서) 단위로 켜고 끈다. 네 묶음 모두 끌 수 있고(NOTI-8, 2026-10-20), 꺼 둔 묶음의 알림도
+//   알림함에는 남는다(S-SIGZJQ). TO-DO 묶음은 수행 임박 알림의 앱 푸시다.
 // 수신 설정(settings)은 Figma 09.알림설정(node 17:1097)을 따른다. 알림함 · 알림 없음 · 연결 끊김은 Figma 없음 — DESIGN.md 기준 초안.
 // 목업과 다른 점: 목업 btn--quiet(더 보기)는 outline 버튼이다. 하단 메뉴는 목업처럼 다섯 칸이다(2026-10-08 재영 결정).
 // 목업에서 링크가 없던 읽은 줄도 같은 규칙으로 관련 화면에 잇는다. 줄마다 읽음을 바꾸는 동작은 목업에 그려져 있지 않아 왼쪽 점을 누르는 것으로 그렸다.
@@ -42,9 +42,9 @@ const NOTIFICATIONS = [
     unread: true,
   },
   { id: "n2", kind: "schedule", title: "이번 주 근무스케줄이 바뀌었습니다", sub: "9/12(토) 근무가 13:00–22:00으로 바뀌었습니다", time: "1시간 전", unread: true },
-  { id: "n3", kind: "todo", title: "TO-DO가 배정되었습니다 · 긴급", sub: "환불 요청 처리 · 지금 바로", time: "3시간 전", unread: true, urgent: true },
-  { id: "n4", kind: "payslip", title: "8월 급여명세서가 다시 발송되었습니다", sub: "금액이 바뀌었을 수 있습니다", time: "5시간 전", unread: true, href: () => page("pay", "resent") },
-  { id: "n5", kind: "todo", title: "TO-DO가 배정되었습니다", sub: "유통기한 라벨 점검 · 내일 14:00까지 · 읽음", time: "어제 23:40" },
+  { id: "n3", kind: "todo", title: "곧 수행할 TO-DO가 있습니다 · 긴급", sub: "환불 요청 처리 · 오늘 15:00", time: "3시간 전", unread: true, urgent: true },
+  { id: "n4", kind: "payslip", title: "8월 급여명세서가 도착했습니다", sub: "급여 기간 2026-08-01 ~ 08-31", time: "5시간 전", unread: true, href: () => page("pay", "resent") },
+  { id: "n5", kind: "todo", title: "곧 수행할 TO-DO가 있습니다", sub: "유통기한 라벨 점검 · 어제 14:00 · 읽음", time: "어제 13:00" },
   { id: "n6", kind: "payslip", title: "8월 급여명세서가 도착했습니다", sub: "읽음", time: "8일 전" },
   { id: "n7", kind: "schedule", title: "근무스케줄이 바뀌었습니다", sub: "9/9(수) 근무가 휴무로 바뀌었습니다 · 읽음", time: "4일 전" },
   { id: "n8", kind: "contract", title: "근로계약서가 도착했습니다", sub: "2026년 8월 근로계약서 · 날인 완료 · 읽음", time: "12일 전" },
@@ -89,20 +89,21 @@ const MAIN = {
     )}</main>`,
 
   "inbox-empty": () =>
-    `<main class="flex flex-1 flex-col">${empty(maskIcon("bell.svg", 24, true), "확인할 알림이 없습니다", "근로계약서, 근무스케줄 변경, TO-DO 배정, 급여명세서가 도착하면 여기에 표시됩니다.")}</main>`,
+    `<main class="flex flex-1 flex-col">${empty(maskIcon("bell.svg", 24, true), "확인할 알림이 없습니다", "근로계약서, 근무스케줄 변경, 곧 수행할 TO-DO, 급여명세서가 도착하면 여기에 표시됩니다.")}</main>`,
 
   // 수신 설정 — Figma 09.알림설정(node 17:1097)의 여백·목록·안내 블록, 문구는 목업.
   settings: () =>
     `<main class="flex flex-1 flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px]"><p class="pb-[4px] text-[14px]">유형별로 받을 앱 푸시를 고릅니다.<br>꺼 둔 유형도 알림함에서는 확인할 수 있습니다.</p><ul class="divide-y divide-[#e8edf3]">${switchRow({
       title: "근로계약서 발송",
-      description: "항상 켜져 있습니다 · 계약 확인은 놓치면 안 됩니다",
+      description: "근로계약서가 도착하면 알립니다",
       checked: true,
-      locked: true,
     })}${switchRow({ title: "근무스케줄 변경", description: "근무 시간이나 근무일이 바뀌면 알립니다", checked: true })}` +
-    // TO-DO 묶음은 앱 푸시가 없어(NOTI-1) 켜고 끌 것이 없다. SwitchRow 와 같은 줄에 스위치 대신 「알림함만」.
-    `<li class="flex items-center gap-[12px] py-[17px]"><div class="flex min-w-0 flex-1 flex-col"><p class="text-[15px] font-semibold text-staff-text-muted">TO-DO 배정</p><p class="pt-[2px] text-[12px] text-staff-text-sub">푸시를 보내지 않습니다 · 홈과 근무 탭에서 봅니다</p></div><span class="shrink-0 text-[12px] text-staff-text-muted">알림함만</span></li>${switchRow(
-      { title: "급여명세서 발송", description: "항상 켜져 있습니다 · 급여 확인은 놓치면 안 됩니다", checked: true, locked: true },
-    )}</ul>` +
+    // 네 묶음 모두 직원이 끈다(NOTI-8, 2026-10-20). TO-DO 묶음은 수행 임박 알림의 앱 푸시다.
+    `${switchRow({ title: "TO-DO 수행 임박", description: "수행 예정 일시가 다가오면 알립니다", checked: true })}${switchRow({
+      title: "급여명세서 발송",
+      description: "급여명세서가 발송되면 알립니다",
+      checked: true,
+    })}</ul>` +
     // 채널 안내(node 17:1241): #F9FBFD 바탕 · 옅은 테두리 · radius 14 · 안쪽 14. 문구는 NOTI-2 확정 뒤의 목업 문구.
     `<p class="mt-auto rounded-[14px] border border-staff-border-light bg-[#f9fbfd] p-[14px] text-[12px] text-staff-text-sub">기본 채널은 앱 푸시입니다. 근로계약서처럼 꼭 확인해야 하는 알림은 카카오 알림톡을 함께 보내는 경우가 있습니다.</p></main>`,
 

@@ -1,16 +1,14 @@
 // 직원 근무 앱 데모 · 출퇴근 등록. 옛 React 판 src/app/demo/check-in(page.tsx · geo-map.tsx)을 옮겼다.
-// 기준 목업: docs/mockup/app/attendance.html — 상태 13개와 시트 9개, 화면 문구·가짜 값·버튼의 이동(data-go)·알림(data-toast).
+// 기준 목업: docs/mockup/app/attendance.html — 상태 11개와 시트 8개, 화면 문구·가짜 값·버튼의 이동(data-go)·알림(data-toast).
 // 확정 쟁점: GPS 판정 — 휴대전화에서 판정하고 좌표는 보내지 않는다(ATT-1·5) · 근무지 반경 100m(ATT-2) · 위치 권한 꺼짐은 등록 불가(ATT-3) ·
-// 오차가 반경보다 크면 확인 필요로 받는다(ATT-4) · 근무지 여럿이면 가장 가까운 곳 자동 선택, 바꿀 수 있음(ATT-6) · 퇴근만 확인 시트(ATT-9) ·
-// 퇴근 되돌리기 없음(ATT-10) · 반경 밖은 퇴근만, 확인 필요로(ATT-11) · 위치 조작 감지는 출근 막고 퇴근은 확인 필요(운영 정책 ATT-21) ·
+// 위치 오차는 따로 판정하지 않는다(ATT-4, 2026-10-20) · 출퇴근은 앱에서 고른 근무지로만, 이 화면에서 근무지를 고르거나 자동으로 바꾸지 않음(ATT-6, 운영 정책 ATT-07, 2026-10-20) · 퇴근만 확인 시트(ATT-9) ·
+// 퇴근 되돌리기 없음(ATT-10) · 반경 밖도 출근·퇴근 모두 확인 필요로(ATT-11, 2026-10-20) · 위치 조작 감지는 출근 막고 퇴근은 확인 필요(운영 정책 ATT-21) ·
 // 위치정보 동의는 첫 출근 등록 때 필수, 거부·철회 시 「근무지 관리자에게 문의」(운영 정책 ATT-06·20) · 일시 중지 중엔 대신 등록 안내,
 // 「다시 켜기」로 재동의 없이 복귀(운영 정책 ATT-26) · 등록 화면의 「○○점 관리자가 확인합니다」 한 줄(운영 정책 ATT-25).
 // 동의 문구는 법무 검토 중이라(ATT-8) 시트에 그대로 적었다.
 // 모양: 매장 안(ready)은 Figma 04.출퇴근(node 12:756)을 따른다. 나머지 상태와 시트는 Figma 없음 — DESIGN.md 기준 초안.
 // 목업과 다른 점: 퇴근하기는 목업의 테두리 버튼 대신 DESIGN.md 의 주 버튼이다. 하단 메뉴 「출퇴근」 칸 화면이다(2026-10-08 다섯 칸).
-// 근무지 여럿의 근무지 고르기: React 판은 고른 근무지로 카드·목록·출근 토스트를 다시 그렸다. 여기서는 근무지마다 화면을 미리 그려 두고
-// 시트의 칸(data-show)으로 바꿔 보인다.
-import { alert, body, bottomNav, bottomSheet, button, dock, img, maskIcon, page, pageHeader, seal, sheetOption, state, sunken, values, workTimeBar } from "../../ui.mjs";
+import { alert, body, bottomNav, bottomSheet, button, dock, img, maskIcon, page, pageHeader, state, sunken, values, workTimeBar } from "../../ui.mjs";
 
 // 목업 오른쪽 목록 순서 그대로. 뒤 아홉은 목업의 「시트 열기」라 SHEET_BASE 의 화면 위에 시트를 띄운다.
 const STATES = [
@@ -18,10 +16,8 @@ const STATES = [
   { id: "working", label: "근무 중", note: "퇴근 가능" },
   { id: "done", label: "퇴근 완료", note: "기록 확정" },
   { id: "far-out", label: "근무 중 · 범위 밖", note: "퇴근만 가능" },
-  { id: "far", label: "매장 범위 밖", note: "240m" },
+  { id: "far", label: "매장 범위 밖", note: "확인 필요로 출근" },
   { id: "denied", label: "위치 권한 없음", note: "등록 불가" },
-  { id: "vague", label: "위치 흐림", note: "오차 ±180m" },
-  { id: "multi", label: "근무지 여럿", note: "자동 판정" },
   { id: "spoof", label: "위치 조작 감지 · 출근", note: "막음" },
   { id: "spoof-out", label: "위치 조작 감지 · 퇴근", note: "확인 필요로 받음" },
   { id: "paused", label: "위치 수집 일시 중지", note: "다시 켜기로 복귀" },
@@ -30,8 +26,8 @@ const STATES = [
   { id: "consent", label: "위치정보 동의", note: "첫 등록 때 · v1.2" },
   { id: "byespoof", label: "위치 조작 퇴근 확인", note: "확인 필요" },
   { id: "bye", label: "퇴근 확인", note: "한 번 더 묻기" },
+  { id: "hifar", label: "범위 밖 출근 확인", note: "240m" },
   { id: "byefar", label: "범위 밖 퇴근 확인", note: "240m" },
-  { id: "byeflag", label: "확인 필요 등록 확인", note: "위치 흐림" },
   { id: "dup", label: "이미 출근함", note: "열린 출근이 있을 때" },
   { id: "nopunch", label: "출근 기록 없음", note: "퇴근만 찍을 때" },
   { id: "nocontract", label: "계약 미체결", note: "서명 대기 계약 있음" },
@@ -41,22 +37,15 @@ const SHEET_BASE = {
   consent: "ready",
   byespoof: "spoof-out",
   bye: "working",
+  hifar: "far",
   byefar: "far-out",
-  byeflag: "vague",
   dup: "ready",
   nopunch: "ready",
   nocontract: "ready",
   noperiod: "ready",
 };
 // 화면에서 버튼으로 여는 시트
-const VIEW_SHEETS = { ready: ["dup"], working: ["bye"], "far-out": ["byefar"], "spoof-out": ["byespoof"], vague: ["byeflag"], multi: ["pick"] };
-
-// 근무지 여럿(ATT-6): 가까운 순서. 첫 줄이 자동으로 고른 곳이다.
-const SITES = [
-  { name: "웨일카페 홍대점", address: "서울 마포구 양화로", distance: "6m" },
-  { name: "웨일베이커리 합정점", address: "서울 마포구 독막로", distance: "1.4km" },
-  { name: "웨일카페 강남역점", address: "서울 강남구 테헤란로", distance: "7.2km" },
-];
+const VIEW_SHEETS = { far: ["hifar"], ready: ["dup"], working: ["bye"], "far-out": ["byefar"], "spoof-out": ["byespoof"] };
 
 // 운영 정책 ATT-25: 등록 화면마다 받는 사람·목적을 알리는 한 줄.
 const ADMIN_NOTE = "출퇴근 기록은 근태 확인을 위해 강남역점 관리자가 확인합니다.";
@@ -65,9 +54,9 @@ const go = (id, toast) => ({ "data-go": id, "data-toast": toast });
 const ghost = (label, a = {}) => button(label, { variant: "ghost", ...a });
 const arrow = () => img("arrow-right.svg", 14, 12);
 
-// ── 지도(geo-map.tsx). Figma 04.출퇴근 지도(node 12:948)와 같은 가짜 그림. out·vague 는 DESIGN.md 기준 초안 ──
+// ── 지도(geo-map.tsx). Figma 04.출퇴근 지도(node 12:948)와 같은 가짜 그림. out 은 DESIGN.md 기준 초안 ──
 const geoMap = (tone, caption) => {
-  const label = { in: "매장 반경 안의 내 위치", out: "매장 반경 밖의 내 위치", vague: "오차가 반경보다 넓은 내 위치" }[tone];
+  const label = { in: "매장 반경 안의 내 위치", out: "매장 반경 밖의 내 위치" }[tone];
   return `<div role="img" aria-label="${label}. ${caption}" class="relative h-[205px] w-full shrink-0 overflow-clip rounded-[18px] border border-[#e1ebec] bg-[#eef3f7] bg-[linear-gradient(#e1ebec_1px,transparent_1px),linear-gradient(90deg,#e1ebec_1px,transparent_1px)] bg-[size:44.64px_41.25px] bg-position-[-1px_-1px]">${img(
     "map-road-1.svg",
     164,
@@ -75,11 +64,7 @@ const geoMap = (tone, caption) => {
     "absolute top-[-0.5px] left-[calc(50%-116px)]",
   )}${img("map-road-2.svg", 364, 136.5, "absolute top-[62.5px] left-[-1px] h-[136.5px] w-[calc(100%+6px)] max-w-none")}<div class="absolute top-[36.5px] left-[calc(50%-27px)] size-[130px] rounded-full border border-dashed ${
     tone === "out" ? "border-[#b6c1d5] bg-[rgba(182,193,213,0.12)]" : "border-[rgba(49,93,245,0.44)] bg-[rgba(49,93,245,0.07)]"
-  }"></div>${
-    tone === "vague"
-      ? `<div class="absolute top-[3px] left-[calc(50%-57px)] size-[240px] rounded-full border border-dashed border-[rgba(245,158,11,0.55)] bg-[rgba(245,158,11,0.12)]"></div>`
-      : ""
-  }<div class="absolute top-[79.5px] left-[calc(50%+16px)] rounded-[14px] bg-white p-[12px] drop-shadow-[0_4px_8px_rgba(25,48,101,0.08)] ${tone === "out" ? "opacity-60" : ""}">${img(
+  }"></div><div class="absolute top-[79.5px] left-[calc(50%+16px)] rounded-[14px] bg-white p-[12px] drop-shadow-[0_4px_8px_rgba(25,48,101,0.08)] ${tone === "out" ? "opacity-60" : ""}">${img(
     "store.svg",
     20,
     20,
@@ -92,8 +77,6 @@ const geoMap = (tone, caption) => {
     tone === "out"
       ? `<div class="absolute top-[24px] left-[calc(50%+120px)] size-[15px] rounded-full border-2 border-white bg-[#f59e0b] shadow-[0_0_0_5px_rgba(245,158,11,0.22)]"></div>`
       : ""
-  }${
-    tone === "vague" ? `<div class="absolute top-[115.84px] left-[calc(50%+55.44px)] size-[15px] rounded-full border-2 border-white bg-[#f59e0b]/70"></div>` : ""
   }<p class="absolute bottom-[13px] left-[13px] rounded-[8px] border border-[#e4e8ef] bg-white/93 px-[10px] py-[6px] text-[12px] leading-[1.5] text-staff-text-sub">${caption}</p></div>`;
 };
 // 위치를 읽지 못하거나 읽지 않는 상태의 빈 지도 자리. 격자를 지우고 가운데에 아이콘과 한 줄만 둔다.
@@ -132,34 +115,6 @@ const punchSummary = () =>
     ]),
   );
 
-// 근무지 목록의 고름 표시
-const picked = (on) =>
-  on
-    ? `<span class="flex size-[16px] shrink-0 items-center justify-center rounded-full bg-staff-primary">${img("check.svg", 10, 10)}</span>`
-    : `<span class="size-[16px] shrink-0 rounded-full border border-staff-placeholder"></span>`;
-
-// 근무지 여럿 화면 하나(site 번째를 고른 모양).
-const multi = (site) =>
-  body(
-    geoMap("in", "오차 ±9m · 매장까지 6m") +
-      siteCard(
-        SITES[site].name,
-        site === 0 ? "가장 가까운 근무지로 골랐습니다" : "직접 고른 근무지입니다",
-        `<button type="button" data-open="pick" class="-my-[10px] h-[44px] shrink-0 rounded-[12px] px-[12px] text-[14px] font-semibold text-staff-text-sub transition-colors duration-150 ease-out active:bg-staff-primary-inactive">변경</button>`,
-      ) +
-      sunken(
-        `<ul class="flex flex-col divide-y divide-staff-border-light pt-[4px]">${SITES.map(
-          (s, i) =>
-            `<li class="flex items-center gap-[10px] py-[8px] last:pb-0">${picked(i === site)}<span class="min-w-0 flex-1 text-[14px] ${
-              i === site ? "font-semibold text-staff-text" : "text-staff-text-muted"
-            }">${s.name}</span><span class="text-[12px] text-staff-text-muted">${s.distance}</span></li>`,
-        ).join("")}</ul>`,
-        { label: "내 근무지 3곳", prose: true },
-      ) +
-      clock("현재 시각", "13:58"),
-    { variant: "detail" },
-  ) + dock(button(`출근하기${arrow()}`, go("working", `${SITES[site].name.split(" ")[1]}으로 출근했습니다`)), 30);
-
 const VIEWS = {
   ready: () =>
     body(
@@ -188,8 +143,7 @@ const VIEWS = {
 
   done: () =>
     body(
-      seal("퇴근<br>완료") +
-        clock("퇴근 기록", "18:04") +
+      clock("퇴근 기록", "18:04") +
         sunken(
           values([
             ["근무지", "웨일카페 강남역점"],
@@ -206,12 +160,12 @@ const VIEWS = {
       geoMap("out", "오차 ±14m · 매장까지 240m") +
         alert(
           "warning",
-          "<strong>매장에서 240m 떨어져 있습니다.</strong><br>출근은 매장 안이나 바로 앞에서 등록해 주세요. <strong>퇴근은 범위 밖에서도 등록할 수 있습니다</strong> — 근무 중일 때 나타납니다.",
+          "<strong>매장에서 240m 떨어져 있습니다.</strong><br>이대로 출근하면 기록에 <strong>확인 필요</strong>가 붙고 관리자가 확인합니다. 근무지가 맞는지 한 번 더 확인해 주세요.",
         ) +
         `<section class="flex flex-col rounded-[18px] border border-staff-border-light bg-white p-[20px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">근무지</h2><p class="pt-[6px] text-[16px] font-bold">웨일카페 강남역점</p><p class="pt-[3px] text-[12px] text-staff-text-muted">서울 강남구 테헤란로 1길</p></section>` +
         clock("현재 시각", "08:47", { dim: true }),
       { variant: "detail" },
-    ) + dock(button("출근하기", { disabled: true }) + ghost("위치 다시 확인", go("ready", "매장 범위 안입니다")), 30),
+    ) + dock(button("출근하기", { "data-open": "hifar" }) + ghost("위치 다시 확인", go("ready", "매장 범위 안입니다")), 30),
 
   "far-out": () =>
     body(
@@ -281,16 +235,6 @@ const VIEWS = {
       { variant: "detail" },
     ),
 
-  vague: () =>
-    body(
-      geoMap("vague", "오차 ±180m") +
-        alert("warning", "<strong>위치가 흐릿합니다.</strong><br>지하나 건물 안에서는 오차가 커집니다. 오차가 매장 범위보다 넓어 매장 안인지 확인하지 못했습니다.") +
-        alert("warning", "그대로 등록하면 <strong>확인 필요</strong>로 표시되어 관리자가 검토합니다."),
-      { variant: "detail" },
-    ) + dock(button("다시 확인", go("ready", "위치를 다시 잡았습니다")) + ghost("확인 필요로 등록하기", { "data-open": "byeflag" }), 30),
-
-  // 근무지마다 미리 그린 화면. 근무지 고르기 시트의 칸이 data-show 로 하나만 보인다.
-  multi: () => SITES.map((_, i) => `<div id="multi-${i}" class="contents"${i ? " hidden" : ""}>${multi(i)}</div>`).join(""),
 
   nosite: () =>
     body(
@@ -312,6 +256,23 @@ const SHEETS = {
       "bye",
       { title: "퇴근할까요", description: "퇴근을 등록하면 오늘 근무가 끝납니다. 뒤에 다시 출근하려면 새로 등록해야 합니다.", closeLabel: "아직 아닙니다", ...a },
       punchSummary() + button("퇴근 확정", close(go("done", "퇴근을 등록했습니다"))),
+    ),
+  // 범위 밖 출근(ATT-11, 2026-10-20 재영): 확인 필요로 받는다. 근무지 자동 선택이 없어(ATT-07) 출근할 근무지 이름을 크게 보인다.
+  hifar: (a) =>
+    bottomSheet(
+      "hifar",
+      {
+        title: "매장 범위 밖에서 출근할까요",
+        description: "이대로 등록하면 기록에 확인 필요가 붙고 관리자가 확인합니다.",
+        closeLabel: "아직 아닙니다",
+        ...a,
+      },
+      sunken(
+        `<p class="text-[16px] font-bold">웨일카페 강남역점</p><p class="pt-[3px] text-[12px] text-staff-text-muted">근무지가 다르면 닫고 홈이나 근무 정보에서 바꿔 주세요</p>`,
+        { label: "출근할 근무지", prose: true },
+      ) +
+        alert("warning", "매장까지 240m · 범위 100m 밖입니다") +
+        button("출근 확정", close(go("working", "확인 필요로 출근을 등록했습니다"))),
     ),
   byefar: (a) =>
     bottomSheet(
@@ -335,12 +296,6 @@ const SHEETS = {
         ...a,
       },
       punchSummary() + alert("warning", "확인 필요 사유 · 위치 조작 감지") + button("퇴근 확정", close(go("done", "확인 필요로 퇴근을 등록했습니다"))),
-    ),
-  byeflag: (a) =>
-    bottomSheet(
-      "byeflag",
-      { title: "확인 필요로 등록할까요", description: "매장 안인지 확인하지 못한 채로 출근을 등록합니다. 기록에 확인 필요가 붙고 관리자가 검토합니다.", ...a },
-      alert("warning", "위치 오차 ±180m · 매장 범위 100m 보다 넓습니다") + button("이대로 등록", close(go("working", "확인 필요로 등록했습니다"))),
     ),
   // 위치정보 동의(운영 정책 ATT-06): 서비스 약관과 따로, 첫 출근 등록 때 필수. 닫기는 다음에 정하는 것이고 거부는 「동의하지 않음」이다.
   consent: (a) =>
@@ -393,18 +348,6 @@ const SHEETS = {
       "noperiod",
       { title: "오늘은 근로계약 기간이 아닙니다", description: "오늘 날짜가 들어간 체결 완료 근로계약이 있어야 출퇴근을 등록할 수 있습니다.", ...a },
       sunken("근무지 관리자에게 문의해 주세요.", { prose: true }),
-    ),
-  // 근무지 고르기(ATT-6): 목업 상태 목록에는 없고 근무지 여럿의 「변경」으로만 연다. 고르면 그 근무지 화면(multi-i)이 보인다.
-  pick: (a) =>
-    bottomSheet(
-      "pick",
-      { title: "근무지 고르기", description: "가까운 순서로 보여 줍니다. 자동 판정이 틀렸으면 직접 고르세요.", closeLabel: "고르기", ...a },
-      `<div data-pick class="contents">${SITES.map((s, i) =>
-        sheetOption(`<span class="flex flex-col"><span>${s.name}</span><span class="text-[12px] font-normal text-staff-text-muted">${s.address} · ${s.distance}</span></span>`, {
-          selected: i === 0,
-          "data-show": `multi-${i}`,
-        }),
-      ).join("")}</div>`,
     ),
 };
 

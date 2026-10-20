@@ -1,12 +1,12 @@
 // 직원 근무 앱 데모 · 홈. 기준 목업: docs/mockup/app/home.html — 상태 6개(평상시 · 처리할 일 쌓임 · 오늘 휴무 ·
 // 가입 직후 · 퇴직 후 · 날인 요청 팝업)와 시트 1개(근무지 고르기), 화면 문구·가짜 값을 옮겼다. 쟁점 HOME-1~5 는 모두 확정이다.
 //   HOME-1 순서는 오늘·이번 주 먼저, 서명 대기 계약서는 날인 요청 팝업으로 따로 알리고 TO-DO 카드에서 TO-DO 목록으로 바로 간다.
-//   HOME-2 근무지 선택기는 홈 머리줄에만 둔다. HOME-3 출퇴근 등록은 오늘 근무 카드 안 버튼으로 간다(하단 메뉴에 출퇴근 칸 없음).
+//   HOME-2 근무지 선택기는 홈 머리줄과 근무 정보의 근무지 카드 두 곳, 같은 앱 전역 근무지(2026-10-20). HOME-3 출퇴근 등록은 오늘 근무 카드 안 버튼으로 간다(하단 메뉴에 출퇴근 칸 없음).
 //   HOME-4 날인 요청 팝업은 날인하기 전까지 앱을 열 때마다 띄운다 — 데모에서는 「날인 요청 팝업」 상태로 본다.
 //   HOME-5 퇴직 후에는 「근무지가 없습니다」, 하단 메뉴와 알림 버튼은 그대로 두고 급여 탭으로 간다.
 // 평상시(today)는 Figma 02.Main(node 8:3)을 따른다(오늘의 근무 node 9:152 · 이번 주 근무 node 9:242 · 근무지 시트 03.Sheet node 12:670).
 // 그 밖 상태(처리할 일 카드 · 휴무 · 가입 직후 · 퇴직 후 · 날인 요청 팝업)는 Figma 없음 — DESIGN.md 기준 초안.
-import { bottomNav, bottomSheet, button, empty, img, infoRow, maskIcon, page, sectionTitle, sheetOption, state, statusChip, todoItem, todoList, topBar, weekSelector } from "../../ui.mjs";
+import { bottomNav, bottomSheet, button, empty, img, infoRow, maskIcon, page, sectionTitle, state, statusChip, storeSheet, STORES, todoItem, todoList, topBar, weekSelector } from "../../ui.mjs";
 
 // 목업 오른쪽 상태 목록 순서 그대로. store 는 목업의 「시트 열기」라 뒤에 평상시를, sign-req 는 가입 직후 빈 홈을 깐다(체결 완료 계약이 없어 점포 정보를 보이지 않음, 운영 정책 CTR-29).
 // 빈 홈에는 날인을 기다리는 근로계약서 카드만 있어 「나중에」로 닫은 뒤에도 그 카드로 서명 대기 계약서에 간다.
@@ -16,6 +16,7 @@ const STATES = [
   { id: "todo", label: "처리할 일 쌓임", note: "계약·TO-DO·알림" },
   { id: "off", label: "오늘 휴무", note: "근무 없음" },
   { id: "empty", label: "가입 직후", note: "날인 대기 계약서만" },
+  { id: "no-site", label: "근무지 없음 · 계약 전", note: "거부·만료·종료 뒤" },
   { id: "retired", label: "퇴직 후", note: "연결된 근무지 없음" },
   { id: "sign-req", label: "날인 요청 팝업", note: "가입 직후 빈 홈 위" },
   { id: "store", label: "근무지 고르기", note: "근무지 전환" },
@@ -25,7 +26,6 @@ const SHEET_VIEW = { store: "today", "sign-req": "empty" };
 const CHECK_IN = page("check-in");
 const CONTRACT = page("contract", "detail"); // 목업 contract.html#detail — 그 계약서 화면에서 날인한다
 const NOTIFY = page("notify");
-const STORES = ["웨일카페 강남역점", "웨일카페 홍대점", "웨일베이커리 합정점"];
 const STORE = STORES[0];
 
 // 2026년 9월 둘째 주, 오늘은 10일(목). 근무일은 셋째 줄에 근무 시간을 쓰고, 쉬는 날은 흐리게 낮춘다.
@@ -69,7 +69,7 @@ const thisWeek = (days) =>
     selected: "09-10",
   })}<p class="border-t border-staff-border-light pt-[12px] text-[12px] text-staff-text-sub">이번 주는 월요일부터 일요일까지, 한국 표준시 기준입니다</p></div></section>`;
 
-// TO-DO 카드. 오른쪽 위 「전체보기」로 근무 화면의 TO-DO 쪽에 바로 간다(HOME-1).
+// TO-DO 카드. 오른쪽 위 「전체보기」로 근무 화면의 TO-DO 쪽에 바로 간다(HOME-1). TO-DO 가 없으면 섹션을 그리지 않는다(2026-10-20 재영).
 const todoSection = (count, children) =>
   `<section class="flex flex-col gap-[12px]">${sectionTitle("TO-DO", {
     count,
@@ -132,13 +132,23 @@ const CONTENT = {
     sections(
       `<div class="flex flex-col gap-[2px] rounded-[18px] border border-staff-border-light bg-staff-info-bg px-[20px] py-[18px]"><p class="text-[16px] font-bold">오늘은 근무가 없는 날입니다</p><p class="text-[12px] text-staff-text-sub">이번 주 다른 근무일은 아래에서 확인하세요</p></div>` +
         thisWeek(weekWith(off("09-10", "목", 10))) +
-        `<section class="flex flex-col gap-[12px]">${sectionTitle("TO-DO")}<p class="rounded-[18px] border border-staff-border-light bg-staff-info-bg px-[16px] py-[18px] text-center text-[12px] text-staff-text-muted">오늘은 처리할 TO-DO가 없습니다</p></section>` +
         workInfo(),
     ),
 
   // 체결 완료 계약이 없으면 점포 정보를 보이지 않고 날인을 기다리는 근로계약서만 보인다(운영 정책 CTR-29). 근무스케줄은 체결 전에는 없다.
   empty: () =>
     `<section class="flex flex-col gap-[12px]">${sectionTitle("날인을 기다리는 근로계약서")}${contractCard("웨일카페 강남역점", "서명 대기 · 날인 기한 2026-10-11")}</section>`,
+
+  // 첫 근로계약서를 거부·만료·종료로 잃어 날인 대기도 체결 완료도 없는 때. 퇴직 후와 달리 근무한 적이 없다(운영 정책 CTR-29).
+  "no-site": () =>
+    empty(
+      maskIcon("contract.svg", 24, true),
+      "아직 근무 중인 근무지가 없습니다",
+      `<p>근무지에서 근로계약서를 다시 보내면 여기에 표시됩니다. 거부했거나 기한이 지난 계약서는 근로계약 목록에서 볼 수 있습니다.</p><div class="flex flex-col gap-[8px] pt-[8px]">${button(
+        `${maskIcon("contract.svg", 16, true)}근로계약서 보기`,
+        { variant: "outline", href: page("contract", "list") },
+      )}</div>`,
+    ),
 
   retired: () =>
     empty(
@@ -155,7 +165,7 @@ const CONTENT = {
 const header = (view) =>
   view === "today" || view === "todo" || view === "off"
     ? topBar({ store: STORE, storeAttrs: { "data-open": "store" }, alarmHref: NOTIFY, hasNewAlarm: view === "todo" })
-    : plainTopBar(view === "retired");
+    : plainTopBar(view === "retired" || view === "no-site");
 
 // 하단 메뉴는 모든 상태에서 그대로(HOME-5). 화면 아래에 붙여 둔다.
 const screen = (view) =>
@@ -164,22 +174,6 @@ const screen = (view) =>
   )}<div class="flex flex-col gap-[5px] pt-[24px] pb-[20px]"><h1 class="text-[26px] font-bold">하은님, 좋은 아침이에요</h1><p class="text-[12px] text-staff-text-sub">9월 10일 목요일 · 오늘도 기분 좋은 하루 되세요</p></div>${CONTENT[
     view
   ]()}</main><div class="sticky bottom-0 mt-auto">${bottomNav("home")}</div></div>`;
-
-// 근무지 고르기(Figma 03.Sheet). 제목·설명·선택지는 /design 과 같다(2026-10-12 재영). 고른 근무지를 근무·출퇴근 현황·급여·알림이 모두 따른다(HOME-2). 최근 선택이 곧 지금 근무지다.
-// 고르면 머리줄 점포 이름(data-slot="store")을 바꾸고 닫는다. 체크는 data-pick 묶음이 고른 칸으로 옮긴다.
-const storeSheet = (a = {}) =>
-  bottomSheet(
-    "store",
-    { title: "어디에서 근무하시나요?", description: "선택한 근무지의 정보를 보여드려요.", ...a },
-    `<div data-pick class="contents">${STORES.map((s) =>
-      sheetOption(s, {
-        selected: s === STORE,
-        "data-set": `store=${s}`,
-        "data-toast": s === STORE ? undefined : `${s}으로 전환했습니다`,
-        "data-close": true,
-      }),
-    ).join("")}</div>`,
-  );
 
 // 날인 요청 팝업(HOME-1·4). 서명 대기 근로계약서가 도착하면 홈 위에 띄우고, 날인하기 전까지 앱을 열 때마다 다시 띄운다.
 const signReqSheet = (a = {}) =>

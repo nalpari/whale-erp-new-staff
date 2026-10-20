@@ -6,7 +6,6 @@
 // 노무사 검토 중: 제4조 휴일(CON-6) · 제7조 연차유급휴가(CON-7)는 「문구 확정 전」, 제6조·제8조는 「문구는 노무사 검토 중(PAY-5)」 그대로.
 // Figma 없음 — DESIGN.md 기준 초안.
 // 목업과 다른 점: 목업 btn--quiet(완료본 내보내기 등)는 홈 데모처럼 outline 버튼이다. 종이 계약에도 목업에 없는 뒤로 가기를 둬 목록으로 간다.
-// 목업 seal(인주색 도장)은 데모 조각 Seal 로 그린다. 날인 완료는 정상·완료 색(success), 거부 완료는 거부 배지와 같은 오류 색(danger)이다.
 // 서명란 캔버스 그리기·견본 서명·다시 그리기와, 거부 사유가 거부 완료 화면에 들어가는 것은 assets/staff.js 가 맡는다.
 import {
   backHeader,
@@ -20,7 +19,6 @@ import {
   notice,
   page,
   pageHeader,
-  seal,
   state,
   sunken,
   tiny,
@@ -204,7 +202,7 @@ const VIEWS = {
 
   signed: () =>
     `${body(
-      `${seal("날인<br>완료", "success")}${clock("날인 기록", "14:07")}${sunken(
+      `${clock("날인 기록", "14:07")}${sunken(
         values([
           ["근무지", "웨일카페 강남역점"],
           ["고용 형태", "파트타이머"],
@@ -270,7 +268,7 @@ const VIEWS = {
   // 거부 사유 칸은 처음엔 견본, 거부 확정으로 왔으면 적은 사유(비었으면 「사유를 남기지 않았습니다.」)를 contract.js 가 넣는다.
   rejected: () =>
     `${body(
-      `${seal("거부<br>완료", "danger")}${clock("거부 처리", "14:11")}${sunken(REJECT_SAMPLE, { prose: true, label: "거부 사유" })}${tiny(
+      `${clock("거부 처리", "14:11")}${sunken(REJECT_SAMPLE, { prose: true, label: "거부 사유" })}${tiny(
         "담당 관리자에게 이메일과 운영 알림함 알림이 함께 생성됩니다. 관리자가 계약서를 다시 보내야 새로 처리할 수 있습니다.",
       )}`,
       { variant: "detail", center: true },

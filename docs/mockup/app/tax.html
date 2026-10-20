@@ -100,7 +100,7 @@
               <div class="center stack-8" style="padding: 6px 0 2px">
                 <i class="ph-fill ph-identification-card" style="font-size: 28px; color: var(--pen)"></i>
                 <p class="h-xl">한 가지만 더 받습니다</p>
-                <p class="p">계약이 체결되었습니다. 신고와 급여에 쓸 정보를 넣어야 앱을 쓸 수 있습니다.</p>
+                <p class="p">웨일카페 강남역점과 계약이 체결되었습니다. 이 근무지의 신고와 급여에 쓸 정보를 넣어야 앱을 쓸 수 있습니다.</p>
               </div>
 
               <div class="card card--pen">
@@ -211,9 +211,6 @@
 
             <!-- ── 3 · 완료 ─────────────────────────────────────── -->
             <div class="view view--center" data-when="done">
-              <div style="display: grid; place-items: center">
-                <div class="seal">등록<br />완료</div>
-              </div>
               <div class="stack stack-6">
                 <p class="h-lg">신고 정보를 받았습니다</p>
                 <p class="p">4대보험 취득 신고가 진행됩니다. 이제 근무를 시작할 수 있습니다.</p>
@@ -243,6 +240,11 @@
 
             <!-- ── 4 · 등록된 값 보기 ───────────────────────────── -->
             <div class="view" data-when="view">
+              <!-- 신고 정보는 근무지(직원 레코드)마다 따로다(TAX-8). 어느 근무지에 낸 값인지 맨 위에 적는다 -->
+              <div class="line" style="gap: 8px">
+                <i class="ph-fill ph-storefront" style="color: var(--pen); font-size: 17px"></i>
+                <p class="h-md">웨일카페 강남역점</p>
+              </div>
               <div class="card">
                 <p class="lab">주민등록번호</p>
                 <p class="num num--lg" style="margin-top: 4px">900101-1******</p>
@@ -549,6 +551,27 @@
             </div>
           </div>
 
+          <div class="gap is-decided">
+            <div class="gap__head">
+              <span class="gap__no">TAX-8</span>
+              <span class="gap__t">신고 정보를 계정 하나로 둘 것인가, 근무지마다 둘 것인가</span>
+              <span class="gap__st gap__st--fixed">확정 · 근무지마다</span>
+              <span class="gap__ref">운영 정책 TAX-08 · ME-7</span>
+            </div>
+            <div class="gap__one">
+              <p>
+                신고 정보(주민등록번호 · 급여 계좌)는 <b>근무지마다 따로</b> 받고 관리한다 (2026-10-20 재영). 근무지가 둘이면 둘 다 넣는다.
+                화면에는 어느 근무지의 신고 정보인지 맨 위에 적고, 내 정보 → 소속 근무지 → 그 근무지 → 「신고 정보」로 연다(ME-7).
+              </p>
+              <ul>
+                <li>받는 사람이 그 근무지의 사업주이고 플랫폼은 위탁받아 보관한다(운영 정책 TAX-08). 근무지마다 사업주가 다르니 따로 받는 것이 맞다</li>
+                <li>저장은 지금도 직원 레코드(근무지) 하나에 하나다(<code>staff_tax_profiles.staff_member_id</code>). 데이터 구조는 바뀌지 않는다</li>
+                <li>급여 계좌를 근무지마다 다르게 둘 수 있다. 한 근무지에서 고쳐도 다른 근무지 값은 그대로다</li>
+                <li><b>두 번째 근무지의 신고 정보도 그 근무지와 근로계약을 맺을 때 받는다</b> — 날인을 마치면 「신고 정보 넣기」로 이어지고(첫 근무지와 같은 흐름), 앞 근무지 값을 불러오지 않고 새로 넣는다 (2026-10-20 재영)</li>
+              </ul>
+            </div>
+          </div>
+
           <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
           <ul class="pol">
             <li>
@@ -589,7 +612,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 신고 정보 · 2026년 10월 19일 · 상태 5개 · 시트 1개 · 쟁점 7건
+            직원 근무 앱 목업 · 신고 정보 · 2026년 10월 19일 · 상태 5개 · 시트 1개 · 쟁점 8건
           </footer>
         </div>
       </div>

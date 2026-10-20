@@ -2,7 +2,7 @@
 // 목업의 data-when 뷰·dock 버튼(data-go)·화면 문구·가짜 값을 그대로 옮겼다. 남은 시간 같은 숫자는 목업의 고정 값이다.
 // 기본 로그인(login)은 Figma 01.Login(node 3:1965)을 따른다. 그 밖 상태는 Figma 없음 — DESIGN.md 기준 초안.
 // 목업의 토스트(data-toast)는 옮기지 않았다.
-import { alert, bottomSheet, brandLogo, button, card, dangerButton, dock, img, notice, page, state, textField } from "../../ui.mjs";
+import { alert, bottomSheet, brandLogo, button, card, checkBox, dangerButton, dock, img, notice, page, state, textField } from "../../ui.mjs";
 
 const STATES = [
   { id: "login", label: "로그인", note: "평상시" },
@@ -20,8 +20,6 @@ const STATES = [
   { id: "newpw-out", label: "새 비밀번호 저장 실패", note: "10분 지남·핀 닫힘" },
   { id: "temp", label: "관리자 초기화 링크", note: "24시간" },
   { id: "link-used", label: "쓸 수 없는 링크", note: "사유 구분 없음" },
-  { id: "expired", label: "세션 만료", note: "30일 지남" },
-  { id: "splash", label: "앱 시작", note: "자동 로그인" },
   // 목업에서는 상태가 아니라 시트(data-sheet="logout")다. 데모 도구에서 열 수 있게 상태로 두고, 뒤에는 로그인 화면을 깐다.
   { id: "logout", label: "로그아웃", note: "내 정보 맨 아래에 둔다" },
 ];
@@ -33,9 +31,13 @@ const arrow = () => img("arrow-right.svg", 14, 12);
 
 // 상태 화면 한 장: 제목(28px) · 설명(14px) · 내용, 아래 버튼 줄. 버튼 줄은 Figma 01.Login 의 Btns(흰 바탕, 위 14 · 아래 24 · 좌우 30)를 따른다.
 const screen = ({ top, title, desc, children = "", dock: d }) =>
-  `<div class="flex flex-col gap-[16px] px-[30px] pt-[52px] pb-[24px] leading-[1.5]">${top ? `<div class="pt-[10px] pb-[60px]">${top}</div>` : ""}<div class="flex flex-col gap-[6px] pb-[8px]"><h1 class="text-[28px] font-bold">${title}</h1>${
-    desc ? `<p class="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">${desc}</p>` : ""
-  }</div>${children}</div>${dock(d, 30)}`;
+  `<div class="flex flex-col gap-[16px] px-[30px] pt-[52px] pb-[24px] leading-[1.5]">${top ? `<div class="pt-[10px] pb-[60px]">${top}</div>` : ""}${
+    title
+      ? `<div class="flex flex-col gap-[6px] pb-[8px]"><h1 class="text-[28px] font-bold">${title}</h1>${
+          desc ? `<p class="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">${desc}</p>` : ""
+        }</div>`
+      : ""
+  }${children}</div>${dock(d, 30)}`;
 
 // 핀 입력 · 새 비밀번호가 함께 쓰는 남은 시간(LOGIN-11 한 시계).
 const remaining = (time) => `<span>남은 시간 <b class="text-staff-text tabular-nums">${time}</b></span>`;
@@ -67,12 +69,10 @@ const newPasswordFields = () =>
 const loginView = (fail) =>
   screen({
     top: brandLogo(),
-    title: "다시 오셨네요",
-    desc: "근무 정보와 출퇴근을 확인하려면 로그인하세요.",
     // 기본 로그인은 /design/login(Figma 01.Login)과 같게 둔다 — 버튼 둘, 비밀번호 칸 비움(2026-10-12 재영).
-    // 이메일 찾기(LOGIN-8)는 이 화면에 버튼이 없어 상태 전환 도구로만 들어간다.
+    // 이메일 찾기(LOGIN-8)는 이 화면에 버튼이 없고 비밀번호 찾기 화면의 이메일 칸 아래에서 들어간다(2026-10-20 재영).
     // 「초대 코드로 가입」은 진입·가입 데모의 초대 코드 입력으로 간다(JOIN-7, 2026-10-19).
-    dock: button(`미리보기 로그인${arrow()}`, go("splash")) + ghost("비밀번호를 잊으셨나요", go("forgot")) + ghost("초대 코드로 가입", { href: page("join") }),
+    dock: button(`로그인${arrow()}`, { href: page("home") }) + ghost("비밀번호를 잊으셨나요", go("forgot")) + ghost("초대 코드로 가입", { href: page("join") }),
     children: `<div class="flex flex-col gap-[16px]">${textField({
       label: "이메일",
       type: "email",
@@ -85,11 +85,13 @@ const loginView = (fail) =>
       autocomplete: "current-password",
       ...(fail ? { value: "haeun2026" } : { placeholder: "비밀번호를 입력해 주세요" }),
       error: fail ? "이메일이나 비밀번호가 맞지 않습니다" : undefined,
-    })}</div>${
-      fail
-        ? notice("연속 <strong>5</strong>회 틀리면 5분 동안 잠깁니다. 남은 횟수 <strong>3</strong>회.")
-        : notice("한 번 로그인하면 <strong>30일</strong> 동안 다시 묻지 않습니다.", img("shield.svg", 12, 12.5, "-scale-y-100"))
-    }`,
+    })}</div><div class="flex items-center gap-[20px]">${[
+      ["아이디 저장하기", true],
+      // 자동로그인을 켜고 로그인하면 30일, 끄고 로그인하면 7일 유지. 처음은 꺼짐(LOGIN-4, 운영 정책 ACC-05 v170, 2026-10-20 재영).
+      ["자동로그인", false],
+    ]
+      .map(([label, checked]) => `<div class="flex items-center gap-[8px]">${checkBox({ label, checked })}<span class="text-[14px]">${label}</span></div>`)
+      .join("")}</div>${fail ? notice("연속 <strong>5</strong>회 틀리면 5분 동안 잠깁니다. 남은 횟수 <strong>3</strong>회.") : ""}`,
   });
 
 const VIEWS = {
@@ -178,6 +180,7 @@ const VIEWS = {
       dock: button("인증번호 받기", go("pin")) + ghost("로그인으로 돌아가기", back("login")),
       children:
         textField({ label: "이메일", type: "email", autocomplete: "username", value: "haeun.lee@gmail.com", help: "가입할 때 정한 아이디를 넣어 주세요" }) +
+        `<button type="button" data-go="find" class="-mt-[8px] flex min-h-[44px] items-center self-start text-[14px] font-semibold text-staff-text-sub underline underline-offset-2">이메일이 기억나지 않나요</button>` +
         notice("인증번호는 보낸 때부터 <strong>10분</strong> 동안 쓸 수 있습니다. 새 비밀번호도 이 10분 안에 정해 주세요.") +
         card(
           `<p class="text-[13px] font-semibold text-staff-text-sub">이메일을 쓸 수 없다면</p><p class="pt-[6px] text-[13px] text-staff-text-sub">관리자에게 알리면 관리자가 초기화를 요청합니다. 그때는 재설정 링크가 이메일로 갑니다. <strong class="font-bold text-staff-text">그 메일함 자체를 쓸 수 없으면 근무지 점포에 직접 방문해 물어 주세요</strong> — 관리자가 이메일을 대신 고치지는 못합니다.</p>`,
@@ -269,23 +272,6 @@ const VIEWS = {
       desc: "메일에서 받은 링크를 다시 눌러 보세요. 그래도 안 되면 관리자에게 재설정 링크를 다시 청하거나, 비밀번호 찾기에서 인증번호를 받아 직접 정해 주세요. 기억나는 비밀번호가 있으면 그대로 로그인하셔도 됩니다.",
       dock: button("인증번호로 직접 정하기", go("forgot")) + ghost("로그인으로 돌아가기", back("login")),
     }),
-
-  // LOGIN-4: 30일 유지, 만료되면 하던 자리로 돌아간다.
-  expired: () =>
-    screen({
-      title: "로그인이 만료되었습니다",
-      desc: "마지막 접속으로부터 30일이 지나 다시 로그인해야 합니다.",
-      dock: button(`로그인${arrow()}`, go("splash")),
-      children:
-        alert("warning", `<p class="text-[14px] font-semibold">출근을 찍으려던 중이었습니다</p><p class="text-[12px]">로그인하면 하던 자리로 돌아갑니다</p>`) +
-        textField({ label: "비밀번호", type: "password", autocomplete: "current-password", value: "haeun2026" }),
-    }),
-
-  splash: () =>
-    `<div class="flex flex-1 flex-col"><div class="flex flex-1 flex-col items-center justify-center gap-[14px]">${brandLogo()}<p class="text-[13px] font-semibold text-staff-text-sub">직원 근무 앱</p></div><p class="pb-[14px] text-center text-[12px] text-staff-text-muted">저장된 로그인을 확인하는 중입니다</p>${dock(
-      button("홈으로 들어가기", { variant: "ghost", href: page("home") }),
-      30,
-    )}</div>`,
 
   // 뒤에 로그인 화면을 깔고 시트를 띄운다. 「그대로 두기」는 들어온 곳인 내 정보로 돌아간다.
   // 목업 btn--seal(빨강). 되돌리기 어려운 동작이라 남보라 대신 오류색을 쓴다.
