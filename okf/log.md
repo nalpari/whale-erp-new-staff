@@ -1,5 +1,20 @@
 # Bundle history
 
+## 2026-10-20
+* **Update**: 이메일 변경 뒤 저장된 아이디는 내 정보에서 다시 읽은 값으로 바꾼다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: api 2차 리뷰(kyoto-61)에 맞춰 이메일 인증번호 받기 500 의 한글 사유(메일 설정 문제)를 그대로 보인다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: PR 리뷰(review-pr) 반영 — 위치정보 약관 없음(404)과 일시 장애를 나누고 약관 캐시를 끔, 동의 버튼의 서버 오류는 오류 번호와 함께, 이메일 확인 500 문구, 오류 문구를 자리와 묶은 상태 타입(`Problem`)과 실패 처리 순수 함수 · 테스트(`action-errors` · `email-change` · `password-change` · `login-input` · `session-cookies`), 약관 파서 경계(날짜 줄 · 빈 제목 · 표 칸 수 · 목록 시작 번호), 홈 이메일을 내 정보에서, 견본 · 목업의 30일 안내 정리, 낡은 주석 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: api 리뷰 반영(kyoto-61)에 맞춰 이메일 핀 요청 500(다시 해도 안 풀림) · 위치정보 동의 500(약관 없음, 한글 사유) 문구를 나눴다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 위치정보 · 본사 제공 동의를 약관(내용) 시트 안의 「동의합니다」로만 받게 바꿨다(고지 후 동의, 노영주) — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 로그인한 화면의 오류 화면에 로그아웃을 두고, 내 정보 · 신고 정보의 날짜를 「2025년 11월 3일」로 통일했다(노영주) — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 코드 리뷰 반영 — 약관 Markdown 파서 무한 루프(깨진 표) 수정과 `src/lib/terms-markdown.ts` 분리 · 테스트, 내 정보 수정 호출에 클라이언트 IP, 이메일 변경 뒤 저장된 아이디 갱신, 주소는 바뀌었을 때만 저장 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 공통 `TextField` 의 비밀번호 칸에 보이기 · 감추기 눈 버튼을 더했다(로그인 · 재설정 · 비밀번호 변경 모두, 노영주) — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 신고 정보 화면을 데모 `docs/demo/tax` 의 view 대로 다시 만들었다(받은 근거 · 사업주 위탁 안내 · 새로 넣기 준비 중, 노영주) — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 로그인에 아이디 저장(`saved_email`) · 자동 로그인(`rememberMe`, 켜면 30일 · 끄면 7일, 쿠키도 api 만료 시각 그대로, api dragonite) 체크 박스와 공통 `CheckBox` 를 더했다(노영주) — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 로그인 화면(기본 · `?expired=1` 만료 안내)에서 「30일 동안 다시 묻지 않습니다」 안내 판을 모두 뺐다(노영주) — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 비밀번호 변경 `/me/password`(WHALEERP-194, 6개월 권유)와 이메일 변경 `/me/email`(WHALEERP-195)을 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다. 새 비밀번호 칸 · 남은 시간 시계를 `src/app/_components/` 로 옮겼다.
+* **Update**: 내 정보 `/me`(WHALEERP-193, 데모 me 의 view 순서)와 소속 근무지 `/me/memberships` · 소속별 신고 정보 `/me/memberships/[staffMemberId]/tax-profile`, 주소 검색 · 저장, 위치정보 · 본사 제공 동의 바꾸기, 로그아웃 이동(WHALEERP-167), 공통 `Toast`, `getCodes` 를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다. api 타입은 api dragonite 브랜치(확정된 내 정보 수정 · 동의 경로) 기준으로 다시 만들었다.
+
 ## 2026-10-19
 * **Update**: 근무정보 `/work` 뼈대와 TO-DO 탭 · 상세 시트 · 홈 TO-DO 카드(#119·#120·#121·#316)를 [Whale ERP Staff](/whale-erp-staff.md) 에 적었다. api 타입은 api TO-DO 브랜치 기준으로 다시 만들었다.
 * **Update**: staff #8 리뷰 반영 — 하단 메뉴의 화면 없는 칸을 「준비 중」으로 막았다(`ready: false`), [Whale ERP Staff](/whale-erp-staff.md).
