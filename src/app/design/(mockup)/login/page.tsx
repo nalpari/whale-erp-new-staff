@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { BrandLogo, Button, Notice, TextField } from "@/components/common";
+import { BrandLogo, Button, TextField } from "@/components/common";
 import { PageSlide } from "../page-slide";
 
 // Figma 01.Login(node 3:1965). 목업이라 실제 로그인은 하지 않고 다음 화면으로 넘어간다.
@@ -22,9 +22,7 @@ export default function MockupLoginPage() {
             <TextField label="비밀번호" type="password" placeholder="비밀번호를 입력해 주세요" />
           </div>
 
-          <Notice icon={<Image src="/icons/shield.svg" alt="" width={12} height={12.5} className="-scale-y-100" />}>
-            한 번 로그인하면 <strong>30일</strong> 동안 다시 묻지 않습니다.
-          </Notice>
+          {/* 「30일 동안 다시 묻지 않습니다」 안내는 실제 로그인 화면과 같이 뺐다(2026-10-20 노영주). */}
         </div>
 
         {/* 버튼 줄(Figma Btns 4:2030): 흰 바탕, 위 14 · 아래 24 · 좌우 30. 고정하지 않고 본문과 함께 스크롤한다.

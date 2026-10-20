@@ -2,26 +2,33 @@
 
 import Image from "next/image";
 import { useActionState, useState } from "react";
-import { Alert, BrandLogo, Button, Notice, TextField } from "@/components/common";
+import { Alert, BrandLogo, Button, CheckBox, Notice, TextField } from "@/components/common";
 import { AuthScreen } from "../_components/auth-screen";
 import { loginAction, type LoginState } from "./actions";
 
 // 기준: 데모 docs/demo/src/pages/login 의 login · fail · locked · expired.
-// 남은 횟수와 남은 잠금 시간은 api 가 주지 않아 보이지 않는다. 이메일 찾기(WHALEERP-178·179)는 API 가 생기면 더한다.
+// 남은 횟수와 남은 잠금 시간은 api 가 주지 않아 보이지 않는다. 이메일 찾기(`/email-find`)로 가는 링크는 자리가 정해지면 더한다
+// (Figma 01.Login 은 버튼 둘).
 // unavailable 은 proxy 의 갱신이 401 · 400 아닌 이유(연결 실패 · 시간 초과 · 429 · 5xx)로 실패한 경우다(접속이 끝났는지 모른다).
 // next 는 로그인한 뒤 돌아갈 화면이다(WHALEERP-166, 없으면 홈). 숨은 칸으로 액션에 넘긴다.
+// 아이디 저장 · 자동 로그인 체크 박스는 기본이 끔이다(2026-10-20 노영주). 저장된 이메일(savedEmail)이 있으면 칸을 채우고 아이디 저장을 켠다.
 export function LoginForm({
   expired,
   reset,
   unavailable,
   next,
+  savedEmail,
 }: {
   expired: boolean;
   reset: boolean;
   unavailable: boolean;
   next: string | null;
+  savedEmail: string | null;
 }) {
-  const [state, formAction, pending] = useActionState<LoginState, FormData>(loginAction, { email: "" });
+  const [state, formAction, pending] = useActionState<LoginState, FormData>(loginAction, { email: savedEmail ?? "" });
+  // React 19 폼 액션은 제출 뒤 칸을 처음 값으로 되돌린다. 실패한 뒤에도 고른 값이 남도록 상태로 든다.
+  const [saveEmail, setSaveEmail] = useState(savedEmail !== null);
+  const [autoLogin, setAutoLogin] = useState(false);
   // 「5분 뒤 다시 시도」로 걷어 낸 잠금 결과. 같은 경로로 가는 링크는 화면을 새로 그리지 않아 상태가 남는다.
   const [dismissed, setDismissed] = useState<LoginState | null>(null);
 
@@ -61,7 +68,7 @@ export function LoginForm({
         title={expired ? "로그인이 만료되었습니다" : "다시 오셨네요"}
         description={
           expired
-            ? "접속이 끝나 다시 로그인해야 합니다. 30일 동안 쓰지 않았거나 다른 곳에서 비밀번호를 바꾼 경우입니다."
+            ? "접속이 끝나 다시 로그인해야 합니다. 오래 쓰지 않았거나 다른 곳에서 비밀번호를 바꾼 경우입니다."
             : "근무 정보와 출퇴근을 확인하려면 로그인하세요."
         }
         dock={
@@ -84,6 +91,7 @@ export function LoginForm({
             autoComplete="username"
             required
             maxLength={254}
+            placeholder="이메일을 입력해 주세요"
             defaultValue={state.email}
             help={state.error ? undefined : "가입할 때 정한 아이디입니다"}
             error={state.field === "email" ? state.error : undefined}
@@ -98,7 +106,16 @@ export function LoginForm({
             placeholder="비밀번호를 입력해 주세요"
             error={state.field === "password" ? state.error : undefined}
           />
+          <div className="-my-[8px] flex flex-wrap gap-x-[20px]">
+            <CheckBox name="saveEmail" checked={saveEmail} onChange={setSaveEmail}>
+              아이디 저장
+            </CheckBox>
+            <CheckBox name="autoLogin" checked={autoLogin} onChange={setAutoLogin}>
+              자동 로그인
+            </CheckBox>
+          </div>
         </div>
+        {/* 아무 일도 없을 때는 판을 두지 않는다 — 「30일 동안 다시 묻지 않습니다」 안내는 기본 · 만료 화면 모두 뺐다(2026-10-20 노영주). */}
         {state.field === "form" ? (
           <Alert tone="danger">{state.error}</Alert>
         ) : state.field === "password" ? (
@@ -113,13 +130,7 @@ export function LoginForm({
           <Notice>
             비밀번호를 바꿨습니다. <strong>새 비밀번호로 로그인해 주세요.</strong> 다른 기기는 모두 로그아웃되었습니다.
           </Notice>
-        ) : expired ? (
-          <Alert tone="warning">로그인하면 다시 30일 동안 묻지 않습니다.</Alert>
-        ) : (
-          <Notice icon={<Image src="/icons/shield.svg" alt="" width={12} height={12.5} className="-scale-y-100" />}>
-            한 번 로그인하면 <strong>30일</strong> 동안 다시 묻지 않습니다.
-          </Notice>
-        )}
+        ) : null}
       </AuthScreen>
     </form>
   );

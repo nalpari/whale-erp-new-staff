@@ -214,8 +214,9 @@ export default function DesignPage() {
           </GuideBox>
         </div>
         <div className="max-w-[448px] pt-[16px]">
+          {/* 로그인 화면의 「30일 동안 다시 묻지 않습니다」는 2026-10-20 에 뺐다(자동 로그인을 끄면 7일). 앱에 남은 안내로 견본을 든다. */}
           <Notice icon={<Image src="/icons/shield.svg" alt="" width={12} height={12.5} className="-scale-y-100" />}>
-            한 번 로그인하면 <strong>30일</strong> 동안 다시 묻지 않습니다.
+            연속 <strong>5</strong>회 틀리면 5분 동안 잠깁니다.
           </Notice>
         </div>
         <div className="pt-[12px]">
