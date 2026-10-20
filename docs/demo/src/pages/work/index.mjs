@@ -163,12 +163,8 @@ const schedule = () =>
       ["실제 출근", "09:02"],
     ]),
   )}</section>` +
-  notice("근무스케줄은 관리자가 등록합니다. 이 화면에서는 조회만 할 수 있습니다.") +
-  // Figma 06 의 TO-DO 요약 카드. 오늘(9월 10일) 남은 건 = 긴급 「냉장고 온도 점검」 + 진행 중 「신메뉴 시식」.
-  `<button type="button" data-go="todo" class="flex items-center gap-[8px] rounded-[18px] border border-staff-border-light bg-[#f9fbfd] p-[20px] text-left transition-colors duration-150 ease-out active:bg-staff-info-bg"><span class="flex min-w-0 flex-1 flex-col gap-[3px]"><span class="text-[13px] font-semibold text-staff-text-sub">TO-DO</span><span class="text-[16px] font-bold">오늘 2건 남음</span></span>${statusChip(
-    "warning",
-    "긴급 1",
-  )}${img("chevron-right-15.svg", 15, 15, "-scale-y-100")}</button>`;
+  notice("근무스케줄은 관리자가 등록합니다. 이 화면에서는 조회만 할 수 있습니다.");
+// TO-DO 요약 카드(Figma 06)는 뺐다. TO-DO 는 같은 화면의 TO-DO 탭에서 본다(WORK-5, 2026-10-20 재영).
 // 출퇴근 등록으로 가는 버튼은 두지 않는다. 출퇴근은 하단 메뉴의 출퇴근 칸으로 간다(2026-10-12 재영).
 
 // 빈 상태: 가운데 정렬 아이콘 · 제목(18px) · 설명 13px.
