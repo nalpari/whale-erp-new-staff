@@ -31,6 +31,8 @@ pipeline {
       steps {
         script {
           def cfg = PROFILES[params.PROFILE]
+          // 잡에 파라미터가 아직 등록되지 않은 첫 실행은 params 에 기본값만 들어오고 sh 의 $PROFILE 은 비므로 직접 넣는다.
+          env.PROFILE = params.PROFILE
           env.ENV_FILE_CRED = cfg.envFile
           env.HOST_PORT = cfg.port
           env.TAG = "${params.PROFILE}-${env.GIT_COMMIT.take(8)}-${env.BUILD_NUMBER}"
