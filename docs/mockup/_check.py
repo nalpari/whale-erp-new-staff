@@ -187,7 +187,11 @@ def main():
         if 꼬리:
             적은 = dict(re.findall(r"(상태|시트|쟁점) (\d+)[개건]", 꼬리.group(0)))
             실제 = {
-                "상태": len(re.findall(r'<div class="view', text)),
+                # 한 화면을 여러 상태가 같이 쓰면(data-when="empty sign-req") 상태마다 센다
+                "상태": len({
+                    s for m in re.findall(r'<div class="view[^"]*"[^>]*?data-when="([^"]*)"', text)
+                    for s in m.split()
+                }),
                 "시트": len(re.findall(r"data-sheet-id=", text)),
                 "쟁점": len(re.findall(r'class="gap__no"(?![^>]*data-ref)', text)),
             }

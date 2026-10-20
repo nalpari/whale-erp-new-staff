@@ -150,7 +150,7 @@ const detailBody = () =>
         ["휴대전화", "010-****-5521"],
         ["주소", "서울 강남구 역삼로 12 (가입 시 입력)"],
       ]),
-      { prose: true, label: "본인인증으로 확인된 정보" },
+      { prose: true, label: "가입 때 넣은 계정 정보" },
     )}${tiny("날인 또는 거부하면 담당 관리자에게 이메일과 운영 알림함 알림이 함께 생성됩니다.")}`,
     { variant: "detail" },
   )}${dock(button("날인하기", go("sign")) + button("거부하기", { variant: "ghost", "data-open": "reject" }), 30)}`;

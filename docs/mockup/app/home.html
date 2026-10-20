@@ -26,17 +26,24 @@
          카드에서 TO-DO 목록으로 바로 가는 길을 뒀다. 팝업을 닫은 뒤 다시
          띄울지는 아직 정하지 않았다 — HOME-4.
 
-         상태 6개 중 held 와 empty 를 구분한 게 이 화면의 핵심이다. held 는 가입은
-         했지만 번호 불일치로 소속 연결이 관리자 승인을 기다리는 중이라 계약서와
-         근무 정보를 아예 보여주지 않는다(S-VZBTHL). empty 는 연결까지 끝났지만
-         아직 아무 근무도 배정되지 않은, 완전히 다른 상태다.
+         empty 는 가입은 끝났지만 그 점포에 체결 완료 계약이 아직 없는 상태다. 점포 정보는
+         체결 완료 계약이 있어야 보이므로(운영 정책 CTR-29) 상단의 점포 이름·근무지 선택기도,
+         근무스케줄 안내도 두지 않고 「날인을 기다리는 근로계약서」 목록만 보인다. 카드를 누르면
+         그 계약서로 간다. 근무스케줄은 체결 전에는 생기지 않는다(work.html).
+         가입하면 계정이 초대의 직원 레코드에 바로 이어지므로 관리자 승인을 기다리는
+         연결 보류 상태는 없다(운영 정책 JOI-05·ACC-15, 2026-10-19).
+
+         sign-req 는 날인 요청 팝업이 홈 위에 뜬 상태다. 가입 완료 화면의 「홈으로」가
+         home.html#sign-req 로 들어온다. 아직 체결 완료 계약이 없어 배경은 빈 홈(empty)이고
+         오늘 근무·출근하기·근무지 선택기를 보이지 않는다(운영 정책 CTR-29). 「나중에」를 누르면
+         빈 홈으로 돌아가고, 빈 홈의 계약서 카드로 같은 서명 대기 계약서에 다시 간다.
 
          공지사항과 FAQ는 여기 없다 — 직원 근무 앱 노출 대상이 아니다.
 
          이 파일은 화면 하나다. 오른쪽 목록으로 상태를 바꾸거나 폰 안의 버튼을
-         직접 눌러 본다. 숫자키 1~5 로도 넘어간다.
+         직접 눌러 본다. 숫자키 1~6 으로도 넘어간다.
 
-         근거 : S-EWVMGC · S-IMFWJT · S-VZBTHL -->
+         근거 : S-EWVMGC · S-IMFWJT · 운영 정책 JOI-05 · 운영 정책 CTR-29 -->
     <a class="skip" href="#main">본문으로 건너뛰기</a>
 
     <div class="doc" id="main">
@@ -97,9 +104,7 @@
                 <span class="abar__title">웨일카페 강남역점</span>
                 <i class="ph ph-caret-down" style="font-size: 13px; color: var(--ink-3)"></i>
               </button>
-              <span class="abar__title" data-when="empty">웨일카페 홍대점</span>
-              <span class="abar__title" data-when="held">웨일카페</span>
-              <a class="abar__end" href="notify.html" data-unless="held empty">
+              <a class="abar__end" href="notify.html" data-unless="empty sign-req">
                 <i class="ph ph-bell" style="font-size: 20px"></i>
                 <span class="badge badge--seal" data-when="todo" style="margin-left: 2px">3</span>
               </a>
@@ -484,28 +489,22 @@
               </div>
             </div>
 
-            <!-- ── 연결 보류 계정 ───────────────────────────────── -->
-            <div class="view view--center" data-when="held">
-              <div class="empty">
-                <i class="ph ph-hourglass-medium"></i>
-                <p class="h-md">관리자가 소속 연결을 확인하고 있습니다</p>
-                <p class="p--sm" style="max-width: 260px">
-                  가입할 때 인증한 번호가 등록된 연락처와 달라 자동으로 연결되지 않았습니다. 담당
-                  관리자가 연락해 확인한 뒤 연결을 승인합니다.
-                </p>
-                <p class="tiny">연결이 승인되기 전에는 근로계약서와 근무 정보가 표시되지 않습니다</p>
-              </div>
-            </div>
-
-            <!-- ── 가입 직후, 아무 정보도 없는 상태 ─────────────── -->
-            <div class="view view--center" data-when="empty">
-              <div class="empty">
-                <i class="ph ph-tray"></i>
-                <p class="h-md">아직 쌓인 근무 정보가 없습니다</p>
-                <p class="p--sm" style="max-width: 260px">
-                  웨일카페 홍대점과 연결되었습니다. 관리자가 근무스케줄을 등록하면 이 화면에 오늘
-                  근무와 이번 주 근무가 표시됩니다.
-                </p>
+            <!-- ── 가입 직후, 체결 완료 계약이 없는 상태 (운영 정책 CTR-29) ── -->
+            <div class="view" data-when="empty sign-req">
+              <div class="scroll">
+                <div class="stack stack-14">
+                  <p class="lab">날인을 기다리는 근로계약서</p>
+                  <a class="card card--amber" href="contract.html#detail" style="text-decoration: none">
+                    <div class="line">
+                      <i class="ph-fill ph-file-text" style="color: var(--amber); font-size: 19px"></i>
+                      <div class="grow">
+                        <p class="h-md" style="color: #6f4608">웨일카페 강남역점</p>
+                        <p class="tiny">서명 대기 · 날인 기한 2026-10-11</p>
+                      </div>
+                      <i class="ph ph-caret-right" style="color: var(--amber)"></i>
+                    </div>
+                  </a>
+                </div>
               </div>
             </div>
 
@@ -566,8 +565,11 @@
               <button class="btn btn--ghost" data-sheet-close>닫기</button>
             </div>
 
-            <!-- 날인 요청 팝업 — 서명 대기 계약서가 도착하면 홈 위에 띄운다 (HOME-1) -->
-            <div class="sheet" data-sheet-id="sign-req" hidden>
+            <!-- 날인 요청 팝업 — 서명 대기 계약서가 도착하면 홈 위에 띄운다 (HOME-1).
+                 시트가 아니라 상태(sign-req)로 둬서 가입 완료 화면이 home.html#sign-req 로 바로 연다.
+                 배경은 가입 직후 빈 홈(empty)이다 — 체결 완료 계약이 없어 점포 정보를 보이지 않는다(운영 정책 CTR-29). -->
+            <div class="scrim" data-when="sign-req"></div>
+            <div class="sheet" data-when="sign-req">
               <div class="sheet__grab"></div>
               <div class="line">
                 <i class="ph-fill ph-file-text" style="color: var(--amber); font-size: 21px"></i>
@@ -595,7 +597,7 @@
               <a class="btn" href="contract.html#detail"
                 ><i class="ph-fill ph-seal-check"></i>날인하러 가기</a
               >
-              <button class="btn btn--ghost" data-sheet-close>나중에</button>
+              <button class="btn btn--ghost" data-go="empty">나중에</button>
             </div>
           </div>
         </div>
@@ -623,21 +625,22 @@
                 <span class="sw-b__k">3</span>
                 <span><span class="sw-b__t">오늘 휴무</span> <span class="sw-b__d">· 근무 없음</span></span>
               </button>
-              <button class="sw-b" data-state="held">
-                <span class="sw-b__k">4</span>
-                <span
-                  ><span class="sw-b__t">연결 보류</span> <span class="sw-b__d">· 관리자 확인 중</span></span
-                >
-              </button>
               <button class="sw-b" data-state="empty">
-                <span class="sw-b__k">5</span>
-                <span><span class="sw-b__t">가입 직후</span> <span class="sw-b__d">· 정보 없음</span></span>
+                <span class="sw-b__k">4</span>
+                <span><span class="sw-b__t">가입 직후</span> <span class="sw-b__d">· 날인 대기 계약서만</span></span>
               </button>
               <button class="sw-b" data-state="retired">
-                <span class="sw-b__k">6</span>
+                <span class="sw-b__k">5</span>
                 <span
                   ><span class="sw-b__t">퇴직 후</span>
                   <span class="sw-b__d">· 연결된 근무지 없음</span></span
+                >
+              </button>
+              <button class="sw-b" data-state="sign-req">
+                <span class="sw-b__k">6</span>
+                <span
+                  ><span class="sw-b__t">날인 요청 팝업</span>
+                  <span class="sw-b__d">· 가입 직후 빈 홈 위</span></span
                 >
               </button>
             </div>
@@ -648,13 +651,6 @@
               <button class="sw-b" data-sheet="store">
                 <span class="sw-b__k">·</span>
                 <span><span class="sw-b__t">근무지 고르기</span> <span class="sw-b__d">· 근무지 전환</span></span>
-              </button>
-              <button class="sw-b" data-sheet="sign-req">
-                <span class="sw-b__k">·</span>
-                <span
-                  ><span class="sw-b__t">날인 요청 팝업</span>
-                  <span class="sw-b__d">· 서명 대기 도착</span></span
-                >
               </button>
             </div>
           </div>
@@ -678,13 +674,14 @@
             직원 근무 앱 노출 대상이 아니라 홈에 넣지 않았다.
           </p>
 
-          <h2 class="h-lg" style="margin: 26px 0 10px">연결 보류와 가입 직후는 다르다</h2>
+          <h2 class="h-lg" style="margin: 26px 0 10px">가입 직후에는 날인할 계약서만 보인다</h2>
           <p class="p">
-            둘 다 화면이 텅 비어 보이지만 이유가 다르다. <strong>연결 보류</strong>는 가입 때 인증한
-            번호와 등록된 연락처가 달라 관리자 승인을 기다리는 중이라, 승인 전까지는 근로계약서와
-            근무 정보를 아예 보여주지 않는다(S-VZBTHL). <strong>가입 직후</strong>는 연결까지 끝났지만
-            아직 관리자가 근무를 배정하지 않은 것뿐이라 곧 채워질 화면이라는 인상을 준다. 두 상태를
-            같은 빈 화면으로 뭉뚱그리면 직원이 스스로 무엇을 기다리는지 알기 어렵다.
+            가입하면 계정은 초대의 직원 레코드에 바로 이어진다(운영 정책 JOI-05). 관리자 승인을
+            기다리는 연결 보류 상태는 없다(운영 정책 ACC-15, 2026-10-19). 다만 점포 정보는 그 점포에
+            체결 완료 계약이 있어야 보이므로(운영 정책 CTR-29) <strong>가입 직후</strong> 홈에는 점포
+            이름도 근무스케줄 안내도 없고, <b>날인을 기다리는 근로계약서</b> 목록만 있다. 근무스케줄은
+            체결 전에는 생기지 않는다. 카드에는 근무지·서명 대기·날인 기한을 적고, 누르면 그 계약서로
+            간다. 날인 요청 팝업에서 「나중에」를 눌러도 이 카드로 언제든 다시 간다.
           </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">정할 것</h2>
@@ -824,16 +821,17 @@
               <span>앱 홈에는 <strong>미확인 알림 건수</strong>를 표시하는 알림 진입점을 둔다.</span>
             </li>
             <li>
-              <span class="pol__src">S-VZBTHL</span>
-              <span
-                >연결이 보류된 동안에는 계약서를 발송하지 않는다. 관리자가 연결을 승인해야 근로계약서와
-                근무 정보가 열린다.</span
-              >
+              <span class="pol__src">운영 정책 JOI-05</span>
+              <span>가입하면 계정을 초대의 직원 레코드에 바로 잇는다. 연결 보류는 두지 않는다(2026-10-19).</span>
+            </li>
+            <li>
+              <span class="pol__src">운영 정책 CTR-29</span>
+              <span>점포 정보는 그 점포에 체결 완료 계약이 있어야 보인다. 그 전에는 날인을 기다리는 근로계약서만 보인다.</span>
             </li>
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 홈 · 2026년 9월 17일 · 상태 6개 · 시트 2개 · 쟁점 5건
+            직원 근무 앱 목업 · 홈 · 2026년 10월 19일 · 상태 6개 · 시트 1개 · 쟁점 5건
           </footer>
         </div>
       </div>
