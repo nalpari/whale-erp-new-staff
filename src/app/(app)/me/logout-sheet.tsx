@@ -4,7 +4,7 @@ import { useState } from "react";
 import { BottomSheet, Button, DangerButton } from "@/components/common";
 import { logoutAction } from "./actions";
 
-// 기준: 데모 docs/demo/src/pages/login 의 logout 시트. 실제 자리는 내 정보 맨 아래(WHALEERP-193)이고, 그때까지 임시 홈에 둔다.
+// 기준: 데모 docs/demo/src/pages/me 의 logout 시트. 내 정보 맨 아래에 둔다(S-PHHICH 확정, WHALEERP-193 · 167).
 export function LogoutSheet() {
   const [open, setOpen] = useState(false);
   return (
