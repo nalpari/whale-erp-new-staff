@@ -44,3 +44,15 @@ next-env.d.ts
 # archify visual-check 스크린샷 (영수증 JSON·HTML 은 커밋한다)
 docs/flow/**/*.visual-check.*.png
 .playwright-mcp/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+.ignore
+
+# graft 로컬 설치물 (훅·스테이터스라인·스킬·MCP). 설치한 사람만 쓴다.
+.mcp.json
+.claude/helpers/
+.claude/skills/graft/
+
+# 개인 설정. graft 훅과 스테이터스라인이 여기 있다.
+.claude/settings.local.json
