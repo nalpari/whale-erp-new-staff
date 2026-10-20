@@ -19,23 +19,24 @@
   </head>
   <body data-area="app" data-screen="me">
     <!-- 직원 근무 앱 · 내 정보
-         이름·생년월일은 본인인증으로 확정된 값이라 직원도 못 고친다. 소속
-         근무지·고용 형태도 근로계약으로만 바뀐다 — 직원이 고칠 수 있는 건
-         휴대전화번호·이메일·주소·비밀번호뿐이다.
+         생년월일은 가입한 뒤 고치지 않는다(운영 정책 ACC-13). 휴대전화번호는
+         계정의 신원 기준이자 초대 연결과 소속 확인의 매칭 키라 1차에는 바꾸지
+         않는다(2026-10-19). 소속 근무지·고용 형태는 근로계약으로만 바뀐다 —
+         직원이 여기서 고치는 건 이메일·주소·비밀번호다.
 
-         휴대전화번호를 바꾸려면 새 번호로 본인인증을 다시 거쳐야 반영된다.
          주소는 외부 주소 검색으로 도로명을 고르고 상세주소만 직접 적는다
-         — ME-2. 가입의 계정 등록 화면도 같은 방식이다. 그 번호가 초대 연결과
-         소속 확인의 매칭 키이기 때문이다. 주소는 이미
+         — ME-2. 가입의 계정 등록 화면도 같은 방식이다. 주소는 이미
          쓴 계약서에는 반영되지 않고 다음 계약부터 적용된다 — 이 안내를 빼면
          안 된다.
+
+         번호 변경 상태(phone · phone-done · phone-taken)는 2026-10-19 에 없앴다.
 
          reset 상태는 없앴다. 관리자 초기화는 비밀번호 재설정 링크를 직원의
          이메일 아이디로 보내는 방식이라, 그 뒤 흐름은 로그인 화면에서 다룬다.
          대신 이메일 아이디 변경 흐름을 여기에 두었다.
 
          이 파일은 화면 하나다. 오른쪽 목록으로 상태를 바꾸거나 폰 안의 버튼을
-         직접 눌러 본다. 숫자키 1~7 로도 넘어간다.
+         직접 눌러 본다. 숫자키 1~6 으로도 넘어간다.
 
          근거 : S-YWYTJY -->
     <a class="skip" href="#main">본문으로 건너뛰기</a>
@@ -45,9 +46,9 @@
         <p class="dochead__kicker">직원 근무 앱 · 내 정보 · /me</p>
         <h1>내 정보</h1>
         <p>
-          본인인증으로 확정된 이름·생년월일과 근로계약으로만 바뀌는 소속·고용 형태는 읽기 전용으로
-          둔다. 직원이 직접 고치는 건 <strong>연락처와 비밀번호</strong>뿐이고, 그중 휴대전화번호는
-          바꿀 때마다 본인인증을 한 번 더 거친다.
+          가입한 뒤 고치지 않는 생년월일, 1차에 바꾸지 않는 휴대전화번호, 근로계약으로만 바뀌는
+          소속·고용 형태는 읽기 전용으로 둔다. 직원이 직접 고치는 건 <strong>이메일·주소와
+          비밀번호</strong>다.
         </p>
         <nav class="docnav">
           <a href="../index.html">← 목업 허브</a>
@@ -87,28 +88,6 @@
               >
                 변경 이력
               </button>
-            </div>
-
-            <div class="abar" data-when="phone">
-              <button
-                class="abar__back"
-                data-go="view"
-                style="background: none; border: none; padding: 0; cursor: pointer"
-              >
-                <i class="ph ph-caret-left"></i>
-              </button>
-              <span class="abar__title">휴대전화번호 변경</span>
-            </div>
-
-            <div class="abar" data-when="phone-done phone-taken">
-              <button
-                class="abar__back"
-                data-go="view"
-                style="background: none; border: none; padding: 0; cursor: pointer"
-              >
-                <i class="ph ph-caret-left"></i>
-              </button>
-              <span class="abar__title">휴대전화번호 변경</span>
             </div>
 
             <div class="abar" data-when="password">
@@ -154,7 +133,7 @@
                       </div>
                     </div>
                     <p class="tiny" style="margin-top: 8px">
-                      이름과 생년월일은 본인인증으로 확정된 값이라 앱에서 고칠 수 없습니다.
+                      생년월일은 가입한 뒤 고칠 수 없습니다.
                     </p>
                   </div>
 
@@ -230,9 +209,8 @@
                             value="010-4821-7736"
                             disabled
                           />
-                          <button class="btn btn--sm btn--ghost" data-go="phone">번호 변경</button>
                         </div>
-                        <p class="field__help">번호를 바꾸려면 새 번호로 본인인증을 다시 거칩니다.</p>
+                        <p class="field__help">가입 때 넣은 번호로, 앱에서 바꿀 수 없습니다.</p>
                       </div>
                       <div class="field">
                         <label class="field__lab">이메일 · 로그인 아이디</label>
@@ -301,81 +279,6 @@
                   </button>
                 </div>
               </div>
-            </div>
-
-            <!-- ── 휴대전화번호 변경 ─────────────────────────────── -->
-            <div class="view" data-when="phone">
-              <div class="card card--sunken">
-                <p class="lab">현재 번호</p>
-                <p class="num num--md" style="margin-top: 4px">010-4821-7736</p>
-              </div>
-              <div class="field">
-                <label class="field__lab">새 번호</label>
-                <input class="input input--mono" type="tel" value="010-9938-2015" />
-              </div>
-              <div class="field">
-                <label class="field__lab">인증번호</label>
-                <div class="line">
-                  <input class="input input--mono" style="flex: 1" value="482913" />
-                  <button class="btn btn--sm btn--ghost" data-toast="인증번호를 다시 보냈습니다">
-                    재전송
-                  </button>
-                </div>
-              </div>
-              <div class="note note--pen">
-                <i class="ph ph-info"></i>
-                <div>
-                  본인인증에 성공해야 번호가 바뀝니다. 인증된 번호만 초대 연결과 소속 확인의 매칭
-                  키로 쓰입니다.
-                </div>
-              </div>
-              <div class="grow"></div>
-            </div>
-
-            <div class="dock" data-when="phone">
-              <button class="btn" data-go="phone-done" data-toast="번호를 변경했습니다">인증 확인</button>
-              <button class="btn btn--quiet" data-go="phone-taken">
-                이미 인증된 번호로 시도해 보기
-              </button>
-              <button class="btn btn--ghost" data-go="view">취소</button>
-            </div>
-
-            <!-- ── 번호 변경 완료 ───────────────────────────────── -->
-            <div class="view view--center" data-when="phone-done">
-              <div style="display: grid; place-items: center">
-                <div class="seal">인증<br />완료</div>
-              </div>
-              <div class="stack stack-6">
-                <p class="lab">변경된 번호</p>
-                <p class="num num--lg">010-9938-2015</p>
-              </div>
-              <p class="tiny">이 번호가 앞으로 본인 확인과 알림에 쓰입니다.</p>
-            </div>
-
-            <div class="dock" data-when="phone-done">
-              <button class="btn btn--ghost" data-go="view">내 정보로 돌아가기</button>
-            </div>
-
-            <!-- ── 이미 인증된 번호 ─────────────────────────────── -->
-            <div class="view" data-when="phone-taken">
-              <div class="note note--seal">
-                <i class="ph-fill ph-prohibit"></i>
-                <div>
-                  <strong>이미 다른 계정에 인증된 번호입니다.</strong><br />
-                  본인 명의라면 그 계정에서 먼저 번호를 해지한 뒤 다시 시도해 주세요.
-                </div>
-              </div>
-              <div class="card card--sunken">
-                <p class="lab">시도한 번호</p>
-                <p class="num num--md" style="margin-top: 4px">010-7788-3210</p>
-              </div>
-              <p class="tiny">기존 번호 010-4821-7736 은 그대로 유지됩니다.</p>
-              <div class="grow"></div>
-            </div>
-
-            <div class="dock" data-when="phone-taken">
-              <button class="btn" data-go="phone">다른 번호로 다시 시도</button>
-              <button class="btn btn--ghost" data-go="view">취소</button>
             </div>
 
             <!-- ── 주소 검색 (ME-2) ─────────────────────────────── -->
@@ -605,13 +508,6 @@
                 </div>
                 <div class="row row--top">
                   <div class="row__main">
-                    <p class="row__title">휴대전화번호 변경</p>
-                    <p class="row__sub">010-2231-9944 → 010-4821-7736</p>
-                  </div>
-                  <span class="tiny push">2026-05-14</span>
-                </div>
-                <div class="row row--top">
-                  <div class="row__main">
                     <p class="row__title">비밀번호 변경</p>
                     <p class="row__sub">본인이 직접 변경</p>
                   </div>
@@ -833,56 +729,40 @@
           <div class="switcher">
             <div class="switcher__head">
               <p class="lab">상태 바꾸기</p>
-              <span class="switcher__hint">숫자키 1–9</span>
+              <span class="switcher__hint">숫자키 1–6</span>
             </div>
             <div class="switcher__body">
               <button class="sw-b" data-state="view" aria-pressed="true">
                 <span class="sw-b__k">1</span>
                 <span><span class="sw-b__t">내 정보</span> <span class="sw-b__d">· 기본 화면</span></span>
               </button>
-              <button class="sw-b" data-state="phone">
-                <span class="sw-b__k">2</span>
-                <span
-                  ><span class="sw-b__t">번호 변경</span> <span class="sw-b__d">· 본인인증 재실행</span></span
-                >
-              </button>
-              <button class="sw-b" data-state="phone-done">
-                <span class="sw-b__k">3</span>
-                <span><span class="sw-b__t">번호 변경 완료</span> <span class="sw-b__d">· 성공</span></span>
-              </button>
-              <button class="sw-b" data-state="phone-taken">
-                <span class="sw-b__k">4</span>
-                <span
-                  ><span class="sw-b__t">이미 인증된 번호</span> <span class="sw-b__d">· 막힘</span></span
-                >
-              </button>
               <button class="sw-b" data-state="password">
-                <span class="sw-b__k">5</span>
+                <span class="sw-b__k">2</span>
                 <span><span class="sw-b__t">비밀번호 변경</span> <span class="sw-b__d">· 본인이 직접</span></span>
               </button>
               <button class="sw-b" data-state="email">
-                <span class="sw-b__k">6</span>
+                <span class="sw-b__k">3</span>
                 <span
                   ><span class="sw-b__t">이메일 변경</span>
                   <span class="sw-b__d">· 아이디가 바뀐다</span></span
                 >
               </button>
               <button class="sw-b" data-state="email-pin">
-                <span class="sw-b__k">7</span>
+                <span class="sw-b__k">4</span>
                 <span
                   ><span class="sw-b__t">새 이메일 인증</span>
                   <span class="sw-b__d">· 10분 · 5회</span></span
                 >
               </button>
               <button class="sw-b" data-state="addr">
-                <span class="sw-b__k">8</span>
+                <span class="sw-b__k">5</span>
                 <span
                   ><span class="sw-b__t">주소 검색</span>
                   <span class="sw-b__d">· 도로명 고르기</span></span
                 >
               </button>
               <button class="sw-b" data-state="sites">
-                <span class="sw-b__k">9</span>
+                <span class="sw-b__k">6</span>
                 <span><span class="sw-b__t">소속 근무지</span> <span class="sw-b__d">· 조회만</span></span>
               </button>
             </div>
@@ -913,14 +793,14 @@
 
           <h2 class="h-lg" style="margin: 30px 0 10px">이 화면이 하는 일</h2>
           <p class="p">
-            직원이 고칠 수 있는 건 딱 넷 — 휴대전화번호, 이메일, 주소, 비밀번호다. 이름과 생년월일은
-            본인인증으로 확정됐고, 소속과 고용 형태는 근로계약이 정하니 여기서는 회색 배경의 읽기
-            전용 칸으로만 둔다. 손댈 수 없는 것과 손댈 수 있는 것을 한 화면에서 시각적으로 나눈다.
+            직원이 여기서 고치는 건 이메일, 주소, 비밀번호다. 생년월일은 가입한 뒤 고치지 않고(운영
+            정책 ACC-13), 소속과 고용 형태는 근로계약이 정하니 여기서는 회색 배경의 읽기 전용 칸으로만
+            둔다. 손댈 수 없는 것과 손댈 수 있는 것을 한 화면에서 시각적으로 나눈다.
           </p>
           <p class="p" style="margin-top: 10px">
-            휴대전화번호는 이메일·주소와 다르게 취급한다. 그냥 입력칸이 아니라
-            <strong>번호 변경 버튼을 눌러 별도 흐름</strong>으로 들어가는 이유는, 저장만으로 끝나지
-            않고 새 번호로 본인인증을 다시 통과해야 반영되기 때문이다.
+            휴대전화번호도 읽기 전용이다. 계정의 신원 기준이자 초대 연결과 소속 확인의 매칭 키라
+            <strong>1차에는 직원도 관리자도 바꾸지 않는다</strong>(2026-10-19). 번호 변경 흐름은
+            없앴다.
           </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">관리자는 대신 고치지 못한다</h2>
@@ -928,7 +808,7 @@
             관리자는 직원의 연락처·주소·비밀번호를 조회만 하고 대신 고칠 수 없다. 유일한 예외가
             비밀번호 초기화 요청이고, 그마저도 관리자가 새 비밀번호를 정하지 못한다. 직원의 이메일
             아이디로 재설정 링크가 가고 직원이 직접 정한다 — 그 화면은 로그인 화면에서 다룬다.
-            가입을 안 마쳤거나 인증된 번호가 없는 직원에게는 초기화 대신 재초대로 처리한다.
+            가입을 안 마친 직원에게는 초기화 대신 재초대로 처리한다.
           </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">동의는 두 가지다</h2>
@@ -964,6 +844,10 @@
             앱에서 계정을 탈퇴하는 화면은 아직 그리지 않았다. 그릴 때는 <b>탈퇴해도 근로계약·급여명세서·
             근무스케줄·출퇴근 기록은 보존 기간대로 남는다</b>는 안내를 함께 넣는다 (운영 정책 RET-07,
             2026-09-17 재영 확정).
+          </p>
+          <p class="p" style="margin-top: 10px">
+            이름·성별·외국인 여부를 직원이 고치는 칸(운영 정책 ACC-13)은 <b>보류(본인인증 도입 검토 중)</b>다.
+            지금 이름은 읽기 전용 칸으로 남아 있다.
           </p>
 
           <h2 class="h-lg" style="margin: 26px 0 10px">정할 것</h2>
@@ -1019,7 +903,7 @@
                 못하고, <b>새 이메일로 인증번호를 받아 일치를 확인한 뒤에만</b> 바뀐다. 비밀번호를
                 잊었을 때 인증번호가 가는 곳이라 받을 수 있는 주소인지 확인해야 한다.
               </p>
-              <p>휴대전화번호는 여전히 본인인증을 다시 거친다. 초대 연결의 매칭 키이기 때문이다.</p>
+              <p>휴대전화번호는 1차에 바꾸지 않는다(2026-10-19). 계정의 신원 기준이자 초대 연결의 매칭 키이기 때문이다.</p>
             </div>
           </div>
 
@@ -1072,10 +956,11 @@
           <h2 class="h-lg" style="margin: 26px 0 10px">근거</h2>
           <ul class="pol">
             <li>
-              <span class="pol__src">S-YWYTJY</span>
+              <span class="pol__src">운영 정책 ACC-13</span>
               <span
-                >이름과 생년월일은 본인인증으로 확정된 값이라 <strong>직원이 수정할 수 없다</strong
-                >.</span
+                >이름·성별·외국인 여부의 직원 수정은 <strong>본인인증 도입 검토가 끝날 때까지
+                보류</strong>한다. 생년월일은 직원이 고치지 않고 관리자가 정정한다(운영 정책
+                TAX-09).</span
               >
             </li>
             <li>
@@ -1083,10 +968,10 @@
               <span>소속 근무지와 고용 형태는 근로계약으로만 바뀐다.</span>
             </li>
             <li>
-              <span class="pol__src">S-YWYTJY</span>
+              <span class="pol__src">운영 정책 ACC-13</span>
               <span
-                >휴대전화번호를 바꾸려면 새 번호로 <strong>본인인증을 다시</strong> 수행해야 하며,
-                인증된 번호만 초대 연결과 소속 확인의 매칭 키로 쓴다.</span
+                >휴대전화번호는 계정의 신원 기준이라 <strong>1차에는 직원도 관리자도 바꾸지
+                않는다</strong>. 이 번호가 초대 연결과 소속 확인의 매칭 키다.</span
               >
             </li>
             <li>
@@ -1108,7 +993,7 @@
           </ul>
 
           <footer class="docfoot">
-            직원 근무 앱 목업 · 내 정보 · 2026년 10월 8일 · 상태 9개 · 시트 9개 · 쟁점 5건 모두 확정
+            직원 근무 앱 목업 · 내 정보 · 2026년 10월 19일 · 상태 6개 · 시트 9개 · 쟁점 5건 모두 확정
           </footer>
         </div>
       </div>

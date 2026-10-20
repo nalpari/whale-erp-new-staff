@@ -71,7 +71,8 @@ const loginView = (fail) =>
     desc: "근무 정보와 출퇴근을 확인하려면 로그인하세요.",
     // 기본 로그인은 /design/login(Figma 01.Login)과 같게 둔다 — 버튼 둘, 비밀번호 칸 비움(2026-10-12 재영).
     // 이메일 찾기(LOGIN-8)는 이 화면에 버튼이 없어 상태 전환 도구로만 들어간다.
-    dock: button(`미리보기 로그인${arrow()}`, go("splash")) + ghost("비밀번호를 잊으셨나요", go("forgot")),
+    // 「초대 코드로 가입」은 진입·가입 데모의 초대 코드 입력으로 간다(JOIN-7, 2026-10-19).
+    dock: button(`미리보기 로그인${arrow()}`, go("splash")) + ghost("비밀번호를 잊으셨나요", go("forgot")) + ghost("초대 코드로 가입", { href: page("join") }),
     children: `<div class="flex flex-col gap-[16px]">${textField({
       label: "이메일",
       type: "email",
@@ -112,14 +113,14 @@ const VIEWS = {
   find: () =>
     screen({
       title: "로그인 이메일을 찾습니다",
-      desc: "가입할 때 <strong>본인인증으로 확인된 세 가지</strong>를 넣으면 그 이메일을 찾아 드립니다.",
+      desc: "가입할 때 넣은 <strong>이름·휴대전화번호·생년월일</strong>을 그대로 넣으면 그 이메일을 찾아 드립니다.",
       dock: button("이메일 찾기", go("found")) + ghost("맞지 않는 경우 보기", go("find-fail")),
       children: `<div class="flex flex-col gap-[16px]">${textField({ label: "이름", type: "text", autocomplete: "name", value: "김민서" })}${textField({
         label: "휴대전화번호",
         type: "tel",
         autocomplete: "tel",
         value: "010-2841-5521",
-      })}${textField({ label: "생년월일", type: "text", value: "1999-04-12", help: "가입 때 본인인증으로 확정된 값과 같아야 합니다." })}</div>${notice(
+      })}${textField({ label: "생년월일", type: "text", value: "1999-04-12", help: "가입 때 넣은 값과 같아야 합니다." })}</div>${notice(
         "세 값이 모두 맞아야 알려 드립니다. 하나라도 다르면 어느 값이 틀렸는지는 알려 주지 않습니다.",
       )}`,
     }),

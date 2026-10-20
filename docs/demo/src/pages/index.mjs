@@ -6,7 +6,7 @@ const CHAPTERS = [
     title: "1 · 로그인·가입",
     screens: [
       { name: "로그인", href: "login", desc: "이메일 찾기 · 비밀번호 재설정 · 잠금 5분" },
-      { name: "가입", href: "join", desc: "가입 초대 · 본인인증 · 연결 보류 · 가입 불가" },
+      { name: "가입", href: "join", desc: "초대 코드 · 초대 확인 · 계정 등록 · 가입 불가" },
     ],
   },
   {

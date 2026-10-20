@@ -1,4 +1,4 @@
-// 신고 정보 데모. 기준 목업: docs/mockup/app/tax.html — 상태 4개(안내 · 입력 · 완료 · 등록된 값)와 시트 1개(계약서에는 왜 없나요),
+// 신고 정보 데모. 기준 목업: docs/mockup/app/tax.html — 상태 5개(안내 · 입력 · 완료 · 등록된 값 · 앞자리 불일치)와 시트 1개(계약서에는 왜 없나요),
 // 화면 문구·가짜 값·하단 버튼의 이동(data-go)·알림(data-toast)을 그대로 옮겼다.
 // 신고 정보는 날인을 마친 직원이 직접 넣는 4대보험 취득 신고·원천징수용 값이고 계약서와 따로 받는다(STAFF-16).
 // 확정 쟁점: 주민등록번호는 계약서에 넣지 않는다(TAX-1) · 날인 직후 본인이 넣는다, 관리자가 대신 받는 길 없음(TAX-2) ·
@@ -16,6 +16,7 @@ const STATES = [
   { id: "form", label: "입력", note: "동의 체크 없음" },
   { id: "done", label: "완료", note: "수집 일시·목적" },
   { id: "view", label: "등록된 값", note: "내 정보에서" },
+  { id: "mismatch", label: "앞자리 불일치", note: "생년월일과 다름, 저장 막힘" },
   { id: "why", label: "계약서에는 왜 없나요", note: "안내 시트" },
 ];
 
@@ -27,8 +28,16 @@ const ACCOUNT_BASIS = "<b>근로계약에 따라</b> 급여를 보내기 위해 
 const basis = (children) => `<p class="pt-[6px] text-[12px] text-staff-text-sub first:pt-0 [&_b]:font-bold [&_b]:text-staff-text">${children}</p>`;
 
 // 주민등록번호: 앞 6자리는 보이고 뒤 7자리는 가린다(type=password). textField 는 한 칸이라 FIELD 로 두 칸을 그린다.
-const rrnField = () =>
-  `<fieldset class="flex flex-col gap-[8px]"><legend class="pb-[8px] text-[13px] font-semibold text-staff-text-sub">주민등록번호*</legend><div class="flex items-center gap-[8px]"><input aria-label="주민등록번호 앞 6자리" inputmode="numeric" maxlength="6" required value="900101" class="${FIELD}"><span aria-hidden="true" class="text-staff-text-muted">–</span><input aria-label="주민등록번호 뒤 7자리" type="password" inputmode="numeric" maxlength="7" autocomplete="off" required value="1234567" aria-describedby="tax-rrn-help" class="${FIELD}"></div><p id="tax-rrn-help" class="text-[12px] text-staff-text-muted">본인의 번호만 넣을 수 있습니다.</p></fieldset>`;
+// mismatch: 앞자리가 계정 생년월일과 다를 때만 앞칸을 빨갛게 하고 칸 아래 오류를 띄운다. 오류 문구에 생년월일 값은 넣지 않는다(운영 정책 TAX-09).
+const rrnField = (mismatch) => {
+  const id = mismatch ? "tax-rrn-err" : "tax-rrn-help";
+  const invalid = mismatch ? ' aria-invalid="true"' : "";
+  return `<fieldset class="flex flex-col gap-[8px]"><legend class="pb-[8px] text-[13px] font-semibold text-staff-text-sub">주민등록번호*</legend><div class="flex items-center gap-[8px]"><input aria-label="주민등록번호 앞 6자리" inputmode="numeric" maxlength="6" required value="${mismatch ? "950101" : "900101"}"${invalid} aria-describedby="${id}" class="${FIELD}"><span aria-hidden="true" class="text-staff-text-muted">–</span><input aria-label="주민등록번호 뒤 7자리" type="password" inputmode="numeric" maxlength="7" autocomplete="off" required value="1234567" aria-describedby="${id}" class="${FIELD}"></div>${
+    mismatch
+      ? `<p id="${id}" role="alert" class="text-[12px] text-staff-error">주민등록번호 앞자리가 가입 때 넣은 생년월일과 다릅니다. 근무지 관리자에게 생년월일 정정을 요청해 주세요.</p>`
+      : `<p id="${id}" class="text-[12px] text-staff-text-muted">본인의 번호만 넣을 수 있습니다.</p>`
+  }</fieldset>`;
+};
 
 const sheet = (a = {}) =>
   bottomSheet(
@@ -60,12 +69,12 @@ const intro = () =>
 const VIEWS = {
   intro: () => intro() + sheet(),
 
-  form: () =>
+  form: (mismatch = false) =>
     backHeader("신고 정보", "intro") +
     body(
       `<div class="flex flex-col gap-[6px]"><h2 class="text-[22px] font-bold">주민등록번호와 급여 계좌</h2><p class="text-[14px] text-staff-text-sub">신고 서류와 급여 이체에 그대로 쓰입니다. 다시 한 번 확인해 주세요.</p></div>` +
         // 동의 체크 없이 칸마다 받은 근거를 적는다(TAX-3 · 운영 정책 TAX-08).
-        `<div class="flex flex-col gap-[8px]">${basis(RRN_BASIS)}${rrnField()}</div>` +
+        `<div class="flex flex-col gap-[8px]">${basis(RRN_BASIS)}${rrnField(mismatch)}</div>` +
         `<div class="flex flex-col gap-[8px]">${basis(ACCOUNT_BASIS)}${textField({
           label: "급여 계좌*",
           required: true,
@@ -76,13 +85,14 @@ const VIEWS = {
           values([
             ["이름", "김민서"],
             ["생년월일", "1990-01-01"],
-          ]) + `<p class="pt-[8px] text-[12px] text-staff-text-muted">본인인증으로 확정된 값입니다. 앞자리가 다르면 넣을 수 없습니다.</p>`,
+          ]) + // 앞자리가 다르면 저장하지 않고 관리자 정정으로 보낸다(운영 정책 TAX-09) — 그때만 mismatch 상태로 알린다.
+            `<p class="pt-[8px] text-[12px] text-staff-text-muted">가입 때 넣은 계정 값입니다. 앞자리가 다르면 넣을 수 없습니다.</p>`,
         ) +
         notice(
           "이 정보는 <strong>강남역점(사업주)</strong>이 받으며, WHALE ERP 는 강남역점의 위탁을 받아 암호화해 보관합니다. 둘 다 동의로 받고 말고를 정하는 값이 아니라 <strong>동의 항목이 없습니다.</strong>",
         ),
     ) +
-    dock(button("등록하기", { "data-go": "done", "data-toast": "신고 정보를 받았습니다" })),
+    dock(mismatch ? button("등록하기", { disabled: true }) : button("등록하기", { "data-go": "done", "data-toast": "신고 정보를 받았습니다" })),
 
   done: () =>
     body(
@@ -121,6 +131,8 @@ const VIEWS = {
         notice("관리자 화면에도 <strong>가려진 형태로만</strong> 보입니다. 원본은 신고 서류를 만들 때만 꺼내 씁니다.", maskIcon("shield.svg", 14, true)),
     ) +
     dock(button("새로 넣기", { variant: "ghost", "data-go": "form" })),
+
+  mismatch: () => VIEWS.form(true),
 
   why: () => intro() + sheet({ "data-sheet-auto": true, "data-on-close": "#intro" }),
 };
