@@ -133,7 +133,8 @@ export const sheetOption = (label, { selected = false, ...a } = {}) =>
 // 근무지 고르기 시트(Figma 03.Sheet, HOME-2·WORK-4). 제목·설명·선택지는 /design 과 같다(2026-10-12 재영). 홈 상단 선택기와
 // 근무 정보의 근무지 카드가 같은 시트를 열고, 고른 근무지를 앱 전체가 따른다. 최근 선택이 곧 지금 근무지다.
 // 고르면 화면의 근무지 이름(data-slot="store")을 바꾸고 닫는다. 체크는 data-pick 묶음이 고른 칸으로 옮긴다.
-export const STORES = ["웨일카페 강남역점", "웨일카페 홍대점", "웨일베이커리 합정점"];
+// 고를 수 있는 근무지는 체결 완료 계약이 있는 곳뿐이다(운영 정책 CTR-29). 퇴직한 합정점은 내 정보·급여 필터에만 남는다.
+export const STORES = ["웨일카페 강남역점", "웨일카페 홍대점"];
 export const storeSheet = (a = {}) =>
   bottomSheet(
     "store",

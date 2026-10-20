@@ -343,6 +343,9 @@
   .my-\[4px\] {
     margin-block: 4px;
   }
+  .-mt-\[8px\] {
+    margin-top: calc(8px * -1);
+  }
   .-mt-\[12px\] {
     margin-top: calc(12px * -1);
   }
@@ -716,6 +719,9 @@
   }
   :where(.divide-staff-border-light > :not(:last-child)) {
     border-color: var(--color-staff-border-light);
+  }
+  .self-start {
+    align-self: flex-start;
   }
   .self-stretch {
     align-self: stretch;

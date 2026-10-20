@@ -70,7 +70,7 @@ const loginView = (fail) =>
   screen({
     top: brandLogo(),
     // 기본 로그인은 /design/login(Figma 01.Login)과 같게 둔다 — 버튼 둘, 비밀번호 칸 비움(2026-10-12 재영).
-    // 이메일 찾기(LOGIN-8)는 이 화면에 버튼이 없어 상태 전환 도구로만 들어간다.
+    // 이메일 찾기(LOGIN-8)는 이 화면에 버튼이 없고 비밀번호 찾기 화면의 이메일 칸 아래에서 들어간다(2026-10-20 재영).
     // 「초대 코드로 가입」은 진입·가입 데모의 초대 코드 입력으로 간다(JOIN-7, 2026-10-19).
     dock: button(`로그인${arrow()}`, { href: page("home") }) + ghost("비밀번호를 잊으셨나요", go("forgot")) + ghost("초대 코드로 가입", { href: page("join") }),
     children: `<div class="flex flex-col gap-[16px]">${textField({
@@ -87,6 +87,7 @@ const loginView = (fail) =>
       error: fail ? "이메일이나 비밀번호가 맞지 않습니다" : undefined,
     })}</div><div class="flex items-center gap-[20px]">${[
       ["아이디 저장하기", true],
+      // 자동로그인을 켜고 로그인하면 30일, 끄고 로그인하면 7일 유지. 처음은 꺼짐(LOGIN-4, 운영 정책 ACC-05 v170, 2026-10-20 재영).
       ["자동로그인", false],
     ]
       .map(([label, checked]) => `<div class="flex items-center gap-[8px]">${checkBox({ label, checked })}<span class="text-[14px]">${label}</span></div>`)
@@ -179,6 +180,7 @@ const VIEWS = {
       dock: button("인증번호 받기", go("pin")) + ghost("로그인으로 돌아가기", back("login")),
       children:
         textField({ label: "이메일", type: "email", autocomplete: "username", value: "haeun.lee@gmail.com", help: "가입할 때 정한 아이디를 넣어 주세요" }) +
+        `<button type="button" data-go="find" class="-mt-[8px] flex min-h-[44px] items-center self-start text-[14px] font-semibold text-staff-text-sub underline underline-offset-2">이메일이 기억나지 않나요</button>` +
         notice("인증번호는 보낸 때부터 <strong>10분</strong> 동안 쓸 수 있습니다. 새 비밀번호도 이 10분 안에 정해 주세요.") +
         card(
           `<p class="text-[13px] font-semibold text-staff-text-sub">이메일을 쓸 수 없다면</p><p class="pt-[6px] text-[13px] text-staff-text-sub">관리자에게 알리면 관리자가 초기화를 요청합니다. 그때는 재설정 링크가 이메일로 갑니다. <strong class="font-bold text-staff-text">그 메일함 자체를 쓸 수 없으면 근무지 점포에 직접 방문해 물어 주세요</strong> — 관리자가 이메일을 대신 고치지는 못합니다.</p>`,
