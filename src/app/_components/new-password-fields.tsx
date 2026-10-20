@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Card, TextField } from "@/components/common";
 import { checkPasswordRules } from "@/lib/password-rules";
 
-// 새 비밀번호 두 칸 + 조건 목록. 핀으로 들어온 새 비밀번호(데모 newpw)와 관리자 재설정 링크(temp)가 같이 쓴다.
+// 새 비밀번호 두 칸 + 조건 목록. 핀으로 들어온 새 비밀번호(데모 newpw), 관리자 재설정 링크(temp), 내 정보의 비밀번호 변경(194)이 같이 쓴다.
 // email 이 null 이면(링크 흐름, 이메일을 모른다) 「이메일 아이디와 겹치지 않기」는 맞음 · 아직을 보이지 않고 안내로만 둔다 — 판정은 api 의 400 사유다.
 export function NewPasswordFields({
   email,
