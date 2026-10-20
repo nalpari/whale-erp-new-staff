@@ -5,7 +5,7 @@
 // 계정 등록의 휴대전화번호는 읽기 전용이다 — 코드로 오면 코드 확인으로 확정된 번호, 링크로 오면 그 초대의 번호(JOIN-7, 2026-10-19 재영).
 // 초대 코드 입력(JOIN-7)은 두 칸을 다 채워야, 계정 등록의 약관 동의(JOIN-6)는 필수 둘을 모두 체크해야 버튼이 켜진다.
 // Figma 없음 — DESIGN.md 기준 초안.
-import { FIELD, alert, badge, body, bottomSheet, button, card, checkBox, dock, iconRow, img, maskIcon, notice, page, pageHeader, seal, segmentedControl, state, sunken, textField, uid, values } from "../../ui.mjs";
+import { FIELD, alert, badge, body, bottomSheet, button, card, checkBox, dock, iconRow, img, maskIcon, notice, page, pageHeader, segmentedControl, state, sunken, textField, uid, values } from "../../ui.mjs";
 
 // 목업 오른쪽 상태 목록 순서 그대로. bpshare·reject 는 목업의 「시트 열기」라 소속 추가 확인 위에 시트를 띄운다.
 const STATES = [
@@ -137,7 +137,7 @@ const VIEWS = {
   code: () => codeView(false),
   "code-fail": () => codeView(true),
 
-  // JOIN-7 잠금 — 같은 번호로 5회 틀리면 30분, 접속 IP 기준 제한도 더한다. IP 제한에 걸려도 맞도록 「30분 뒤 다시 시도」와 재발송을 함께 안내한다. 남은 시간은 고정 값.
+  // JOIN-7 잠금 — 같은 번호로 5회 틀리면 30분. 「30분 뒤 다시 시도」와 재발송(그 번호의 잠금이 풀린다)을 함께 안내한다. IP 기준 제한은 없다(2026-10-20). 남은 시간은 고정 값.
   "code-locked": () =>
     pageHeader("초대 코드로 가입", { backHref: LOGIN }) +
     body(
@@ -247,8 +247,7 @@ const VIEWS = {
   // 로그인된 상태로 홈에 간다. 전자계약은 홈 위에 날인 요청 팝업(HOME-1), 종이 계약은 신고 정보 입력(CON-8).
   done: () =>
     body(
-      seal("가입<br>완료") +
-        lead("가입을 마쳤습니다", "웨일카페 강남역점 근무지에 계정이 이어졌습니다.") +
+      lead("가입을 마쳤습니다", "웨일카페 강남역점 근무지에 계정이 이어졌습니다.") +
         sunken(
           values([
             ["이름", "김민서"],
@@ -290,8 +289,7 @@ const VIEWS = {
   "addsite-done": () =>
     pageHeader("소속 추가 완료", { backHref: HOME }) +
     body(
-      seal("연결<br>완료") +
-        lead("웨일카페 홍대점 소속이 추가되었습니다", "기존 계정은 그대로이고, 계정의 이름·휴대전화번호·생년월일·성별·외국인 여부만 이 근무지의 새 직원 레코드에 이어졌습니다.", { heading: "h2" }) +
+      lead("웨일카페 홍대점 소속이 추가되었습니다", "기존 계정은 그대로이고, 계정의 이름·휴대전화번호·생년월일·성별·외국인 여부만 이 근무지의 새 직원 레코드에 이어졌습니다.", { heading: "h2" }) +
         sunken(
           values([
             ["넘어간 것", "이름 · 휴대전화번호 · 생년월일 · 성별 · 외국인 여부"],

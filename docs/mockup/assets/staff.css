@@ -790,6 +790,29 @@ body {
   color: var(--ink);
 }
 
+/* 비밀번호 칸 오른쪽 끝의 눈 버튼. 가린 채로 시작한다(app.js data-pw). */
+.pw {
+  position: relative;
+}
+.pw .input {
+  padding-right: 48px;
+}
+.pw__eye {
+  position: absolute;
+  top: 0;
+  right: 2px;
+  bottom: 0;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  font-size: 20px;
+  cursor: pointer;
+}
+
 .input::placeholder {
   color: var(--ink-4);
 }
@@ -1109,24 +1132,6 @@ body {
   font-size: 12px;
 }
 
-/* ── 도장 ──────────────────────────────────────────────────────── */
-.seal {
-  width: 74px;
-  height: 74px;
-  border: 2.5px solid var(--seal);
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: var(--seal);
-  font-weight: 800;
-  font-size: 15px;
-  letter-spacing: 0.06em;
-  line-height: 1.25;
-  text-align: center;
-  transform: rotate(-8deg);
-  opacity: 0.86;
-}
-
 /* ── 단계 표시 ─────────────────────────────────────────────────── */
 .steps {
   display: flex;
@@ -1273,11 +1278,6 @@ body {
 .geo__me--out {
   background: var(--amber);
   box-shadow: 0 0 0 5px rgb(168 106 18 / 0.2);
-}
-
-.geo__me--vague {
-  background: var(--ink-4);
-  box-shadow: 0 0 0 26px rgb(118 125 136 / 0.18);
 }
 
 .geo__cap {

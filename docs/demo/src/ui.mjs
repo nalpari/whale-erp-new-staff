@@ -130,6 +130,25 @@ export const bottomSheet = (name, { title, description, closeLabel = "닫기", .
 export const sheetOption = (label, { selected = false, ...a } = {}) =>
   `<button type="button" aria-pressed="${selected}"${attrs(a)} class="flex min-h-[52px] items-center justify-center gap-[9px] rounded-[12px] border border-[#e4e8ef] bg-white px-[18px] text-[15px] font-semibold text-staff-text-sub transition-colors duration-150 ease-out active:bg-staff-primary-inactive disabled:opacity-40">${label}${img("check-sub.svg", 19, 19, `-scale-y-100${selected ? "" : " hidden"}`)}</button>`;
 
+// 근무지 고르기 시트(Figma 03.Sheet, HOME-2·WORK-4). 제목·설명·선택지는 /design 과 같다(2026-10-12 재영). 홈 상단 선택기와
+// 근무 정보의 근무지 카드가 같은 시트를 열고, 고른 근무지를 앱 전체가 따른다. 최근 선택이 곧 지금 근무지다.
+// 고르면 화면의 근무지 이름(data-slot="store")을 바꾸고 닫는다. 체크는 data-pick 묶음이 고른 칸으로 옮긴다.
+// 고를 수 있는 근무지는 체결 완료 계약이 있는 곳뿐이다(운영 정책 CTR-29). 퇴직한 합정점은 내 정보·급여 필터에만 남는다.
+export const STORES = ["웨일카페 강남역점", "웨일카페 홍대점"];
+export const storeSheet = (a = {}) =>
+  bottomSheet(
+    "store",
+    { title: "어디에서 근무하시나요?", description: "선택한 근무지의 정보를 보여드려요.", ...a },
+    `<div data-pick class="contents">${STORES.map((s) =>
+      sheetOption(s, {
+        selected: s === STORES[0],
+        "data-set": `store=${s}`,
+        "data-toast": s === STORES[0] ? undefined : `${s}으로 전환했습니다`,
+        "data-close": true,
+      }),
+    ).join("")}</div>`,
+  );
+
 // button.tsx. href 를 주면 링크. a: 그 밖 속성(data-go · disabled 등)
 const BTN = {
   primary: "h-[52px] rounded-[12px] bg-staff-primary text-[15px] font-bold text-white active:bg-[#3e3fc6]",
@@ -147,7 +166,13 @@ export function button(label, { variant = "primary", href, ...a } = {}) {
 export function textField({ label, help, error, ...a }) {
   const id = uid("f");
   const note = error || help;
-  return `<div class="flex w-full flex-col gap-[8px]"><label for="${id}" class="text-[13px] font-semibold text-staff-text-sub">${label}</label><input${attrs(a)} id="${id}"${error ? ' aria-invalid="true"' : ""}${note ? ` aria-describedby="${id}-note"` : ""} class="${FIELD}">${
+  const pw = a.type === "password";
+  const input = `<input${attrs(a)} id="${id}"${error ? ' aria-invalid="true"' : ""}${note ? ` aria-describedby="${id}-note"` : ""} class="${FIELD}${pw ? " pr-[52px]" : ""}">`;
+  // 비밀번호 칸은 오른쪽 끝에 눈 버튼을 붙인다. 가린 채로 시작하고 누를 때마다 바뀐다(staff.js).
+  const field = pw
+    ? `<div class="relative">${input}<button type="button" data-pw-toggle aria-label="비밀번호 표시" class="absolute inset-y-0 right-[4px] flex w-[44px] items-center justify-center">${img("eye.svg", 20, 20)}${img("eye-slash.svg", 20, 20, "hidden")}</button></div>`
+    : input;
+  return `<div class="flex w-full flex-col gap-[8px]"><label for="${id}" class="text-[13px] font-semibold text-staff-text-sub">${label}</label>${field}${
     note ? `<p id="${id}-note" class="text-[12px] ${error ? "text-staff-error" : "text-staff-text-muted"}">${note}</p>` : ""
   }</div>`;
 }
@@ -275,11 +300,6 @@ export const empty = (icon, title, children) =>
 // icon-row.tsx
 export const iconRow = ({ icon, title, sub, flipY = false }) =>
   `<div class="flex items-center gap-[12px] py-[8px] text-left first:pt-0 last:pb-0"><span class="flex size-[20px] shrink-0 items-center justify-center text-staff-text-sub">${maskIcon(icon, 16, flipY)}</span><div class="min-w-0 flex-1"><p class="text-[14px] font-semibold">${title}</p><p class="text-[12px] text-staff-text-sub">${sub}</p></div></div>`;
-
-// seal.tsx
-const SEAL = { success: "border-[#13785e] bg-[#eaf8f2] text-[#13785e]", danger: "border-[#dc2626] bg-[#fee2e2] text-[#dc2626]" };
-export const seal = (children, tone = "success") =>
-  `<div class="mx-auto flex size-[88px] items-center justify-center rounded-full border-2 text-[15px] leading-[1.3] font-bold ${SEAL[tone]}">${children}</div>`;
 
 // sunken.tsx. rows: [이름, 값 HTML]
 export const sunken = (children, { label, prose = false } = {}) =>
