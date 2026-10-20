@@ -561,7 +561,7 @@ p{margin:0}
             <p style="font-size:14.5px;color:var(--ink-2);margin-top:10px;line-height:1.55">근무스케줄, 출퇴근, 급여명세서, 근로계약서.</p>
           </div>
           <div style="display:flex;flex-direction:column;gap:14px">
-            <div class="fld"><label for="a1id">아이디</label><input id="a1id" type="text" placeholder="휴대폰 번호 또는 이메일"></div>
+            <div class="fld"><label for="a1id">이메일</label><input id="a1id" type="email" placeholder="이메일"></div>
             <div class="fld"><label for="a1pw">비밀번호</label><input id="a1pw" type="password" placeholder="비밀번호"></div>
           </div>
           <button class="btn pri" style="margin-top:20px">로그인</button>
@@ -576,7 +576,7 @@ p{margin:0}
 
     <!-- A2 초대 확인 -->
     <div class="fr">
-      <div class="fr-cap"><b>초대 확인</b><span>누가, 어디로 부르는지를 먼저 보여준다. 만료된 초대는 이 화면에서 걸러진다. <code>n40 n41</code></span></div>
+      <div class="fr-cap"><b>초대 확인</b><span>어느 근무지가 어떤 고용 형태로 부르는지를 먼저 보여준다. 직원 레코드 값(이름·휴대전화번호)은 보이지 않는다. 만료된 초대는 이 화면에서 걸러진다. <code>n40 n41</code></span></div>
       <div class="phone">
         <div class="sb"><span>08:42</span><div class="sb-r"><i class="ph ph-cell-signal-full"></i><i class="ph ph-wifi-high"></i><i class="ph ph-battery-high"></i></div></div>
         <div class="ab"><span class="ab-b"><i class="ph ph-arrow-left"></i></span></div>
@@ -587,9 +587,7 @@ p{margin:0}
           <div class="card" style="margin-top:8px">
             <div class="dl">
               <div><dt>근무지</dt><dd>온담베이커리 합정점</dd></div>
-              <div><dt>초대한 사람</dt><dd>배수현 점장</dd></div>
-              <div><dt>이름</dt><dd>서지우</dd></div>
-              <div><dt>휴대전화번호</dt><dd>010-4127-8830</dd></div>
+              <div><dt>고용 형태</dt><dd>파트타이머</dd></div>
               <div><dt>유효 기간</dt><dd>9월 4일 18:00까지</dd></div>
             </div>
           </div>
@@ -1043,7 +1041,7 @@ p{margin:0}
 
     <!-- B7 내 정보 -->
     <div class="fr">
-      <div class="fr-cap"><b>내 정보</b><span>직원이 고칠 수 있는 것은 연락처뿐이다. 나머지는 읽기 전용이라고 말한다. <code>n59</code></span></div>
+      <div class="fr-cap"><b>내 정보</b><span>휴대전화번호도 앱에서 바꾸지 않는다(운영 정책 ACC-13). 읽기 전용이라고 말한다. <code>n59</code></span></div>
       <div class="phone tall">
         <div class="sb"><span>21:18</span><div class="sb-r"><i class="ph ph-cell-signal-full"></i><i class="ph ph-wifi-high"></i><i class="ph ph-battery-high"></i></div></div>
         <div class="ab"><span class="ab-t">내 정보</span></div>
@@ -1064,8 +1062,7 @@ p{margin:0}
 
           <div class="sh"><h3>연락처</h3></div>
           <div class="card">
-            <div class="fld"><label for="b7p">휴대폰 번호</label><input id="b7p" type="tel" value="010-4127-8830"><span class="help">이 번호로 계약서와 급여명세서 알림을 받습니다</span></div>
-            <button class="btn sm sec" style="margin-top:14px;width:100%">연락처 저장</button>
+            <div class="fld"><label for="b7p">휴대전화번호</label><input id="b7p" type="tel" value="010-4127-8830" readonly aria-describedby="b7p-help" style="background:var(--sunken);color:var(--ink-2)"><span class="help" id="b7p-help">휴대전화번호는 앱에서 바꿀 수 없습니다. 이 번호로 계약서와 급여명세서 알림을 받습니다</span></div>
           </div>
 
           <div class="sh"><h3>계정</h3></div>

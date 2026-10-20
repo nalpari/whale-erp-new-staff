@@ -9,12 +9,13 @@
 import { bottomNav, bottomSheet, button, empty, img, infoRow, maskIcon, page, sectionTitle, sheetOption, state, statusChip, todoItem, todoList, topBar, weekSelector } from "../../ui.mjs";
 
 // 목업 오른쪽 상태 목록 순서 그대로. store 는 목업의 「시트 열기」라 뒤에 평상시를, sign-req 는 가입 직후 빈 홈을 깐다(체결 완료 계약이 없어 점포 정보를 보이지 않음, 운영 정책 CTR-29).
+// 빈 홈에는 날인을 기다리는 근로계약서 카드만 있어 「나중에」로 닫은 뒤에도 그 카드로 서명 대기 계약서에 간다.
 // 연결 보류는 없다 — 가입하면 계정이 초대의 직원 레코드에 바로 이어진다(운영 정책 JOI-05 · ACC-15, 2026-10-19).
 const STATES = [
   { id: "today", label: "평상시", note: "오늘 근무 있음" },
   { id: "todo", label: "처리할 일 쌓임", note: "계약·TO-DO·알림" },
   { id: "off", label: "오늘 휴무", note: "근무 없음" },
-  { id: "empty", label: "가입 직후", note: "정보 없음" },
+  { id: "empty", label: "가입 직후", note: "날인 대기 계약서만" },
   { id: "retired", label: "퇴직 후", note: "연결된 근무지 없음" },
   { id: "sign-req", label: "날인 요청 팝업", note: "가입 직후 빈 홈 위" },
   { id: "store", label: "근무지 고르기", note: "근무지 전환" },
@@ -37,14 +38,14 @@ const weekWith = (today) => [...WEEK_HEAD, today, ...WEEK_TAIL];
 // 묶음 사이 20(Figma 02.Main), 하단 메뉴와는 24.
 const sections = (children) => `<div class="flex flex-col gap-[20px]">${children}</div>`;
 
-// 근무지 선택기가 없는 상태의 머리줄. TopBar 와 같은 자리·크기로 로고 · 이름(누를 수 없음) · 알림 버튼(있을 때만)을 둔다.
-const plainTopBar = (title, bell) =>
+// 근무지 선택기가 없는 상태의 머리줄. TopBar 와 같은 자리·크기로 로고 · 알림 버튼(있을 때만)을 둔다.
+const plainTopBar = (bell) =>
   `<header class="flex min-h-[44px] w-full items-center gap-[10px]"><span class="relative size-[36px] shrink-0">${img("logo-whale-small.svg", 36.193, 27.446, "absolute top-[8.75px] left-0")}${img(
     "logo-stars-small.svg",
     17.494,
     12.668,
     "absolute top-0 left-[5.43px]",
-  )}</span><p class="min-w-0 flex-1 truncate text-[15px] font-bold">${title ?? ""}</p>${
+  )}</span><p class="min-w-0 flex-1"></p>${
     bell
       ? `<a href="${NOTIFY}" aria-label="알림" class="flex size-[44px] shrink-0 items-center justify-center rounded-[14px] border border-[#e9edf3] bg-white transition-colors duration-150 ease-out active:bg-staff-info-bg">${img("bell.svg", 21, 21, "-scale-y-100")}</a>`
       : ""
@@ -84,6 +85,17 @@ const workInfo = () =>
     description: "이번 달 출근 9회 · 지각 0회",
   })}${infoRow({ href: page("pay"), icon: "menu-payslip.svg", title: "급여명세서", description: "2026년 8월분 발송됨" })}</section>`;
 
+// 날인 대기 계약서 카드. 누르면 그 계약서로 간다.
+const contractCard = (title, sub) =>
+  `<a href="${CONTRACT}" class="flex items-center gap-[12px] rounded-[18px] bg-[#fff6e5] px-[16px] py-[14px] text-[#956013] transition-opacity duration-150 ease-out active:opacity-80">${maskIcon(
+    "contract.svg",
+    18,
+  )}<span class="flex min-w-0 flex-1 flex-col gap-[2px]"><span class="text-[14px] font-semibold">${title}</span><span class="text-[12px]">${sub}</span></span>${maskIcon(
+    "chevron-right-muted.svg",
+    12,
+    true,
+  )}</a>`;
+
 const CONTENT = {
   today: () =>
     sections(
@@ -99,14 +111,7 @@ const CONTENT = {
     sections(
       todayCard(["13:00", "22:00"]) +
         thisWeek(weekWith(work("09-10", "목", 10, "13–22"))) +
-        `<a href="${CONTRACT}" class="flex items-center gap-[12px] rounded-[18px] bg-[#fff6e5] px-[16px] py-[14px] text-[#956013] transition-opacity duration-150 ease-out active:opacity-80">${maskIcon(
-          "contract.svg",
-          18,
-        )}<span class="flex min-w-0 flex-1 flex-col gap-[2px]"><span class="text-[14px] font-semibold">강남역점 근로계약서 대기</span><span class="text-[12px]">남은 기한 26일</span></span>${maskIcon(
-          "chevron-right-muted.svg",
-          12,
-          true,
-        )}</a>` +
+        contractCard("강남역점 근로계약서 대기", "남은 기한 26일") +
         todoSection(
           2,
           todoList(
@@ -131,12 +136,9 @@ const CONTENT = {
         workInfo(),
     ),
 
+  // 체결 완료 계약이 없으면 점포 정보를 보이지 않고 날인을 기다리는 근로계약서만 보인다(운영 정책 CTR-29). 근무스케줄은 체결 전에는 없다.
   empty: () =>
-    empty(
-      maskIcon("nav-work.svg", 24, true),
-      "아직 쌓인 근무 정보가 없습니다",
-      `<p>웨일카페 강남역점과 연결되었습니다. 관리자가 근무스케줄을 등록하면 이 화면에 오늘 근무와 이번 주 근무가 표시됩니다.</p>`,
-    ),
+    `<section class="flex flex-col gap-[12px]">${sectionTitle("날인을 기다리는 근로계약서")}${contractCard("웨일카페 강남역점", "서명 대기 · 날인 기한 2026-10-11")}</section>`,
 
   retired: () =>
     empty(
@@ -149,11 +151,11 @@ const CONTENT = {
     ),
 };
 
-// 근무지 선택기는 근무지가 정해진 상태에서만(HOME-2). 가입 직후는 이름만, 알림 버튼은 퇴직 후에도 남는다(HOME-5).
+// 근무지 선택기는 근무지가 정해진 상태에서만(HOME-2). 가입 직후는 점포 이름도 두지 않고(운영 정책 CTR-29), 알림 버튼은 퇴직 후에도 남는다(HOME-5).
 const header = (view) =>
   view === "today" || view === "todo" || view === "off"
     ? topBar({ store: STORE, storeAttrs: { "data-open": "store" }, alarmHref: NOTIFY, hasNewAlarm: view === "todo" })
-    : plainTopBar(view === "empty" ? "웨일카페 강남역점" : undefined, view === "retired");
+    : plainTopBar(view === "retired");
 
 // 하단 메뉴는 모든 상태에서 그대로(HOME-5). 화면 아래에 붙여 둔다.
 const screen = (view) =>
