@@ -2,13 +2,18 @@
 
 import Image from "next/image";
 import { useActionState, useState } from "react";
-import { Alert, BrandLogo, Button, CheckBox, Notice, TextField } from "@/components/common";
+import { Alert, BrandLogo, Button, Card, CheckBox, Notice, TextField } from "@/components/common";
+import { useNow } from "@/app/_components/countdown";
+import { type AttemptLock, lockCountdown } from "@/lib/attempt-lock";
 import { AuthScreen } from "../_components/auth-screen";
+import { useFocusedTitle } from "../_components/use-focused-title";
 import { loginAction, type LoginState } from "./actions";
 
 // 기준: 데모 docs/demo/src/pages/login 의 login · fail · locked · expired.
-// 남은 횟수와 남은 잠금 시간은 api 가 주지 않아 보이지 않는다. 이메일 찾기(`/email-find`)로 가는 링크는 자리가 정해지면 더한다
-// (Figma 01.Login 은 버튼 둘).
+// 잠긴 화면은 api 429 의 해제 시각(lockExpiresAt)까지 남은 시간을 보인다. 남은 횟수는 api 가 주지 않아 보이지 않는다.
+// 잠긴 화면은 데모 locked 와 달리 이메일 찾기 막힘 화면의 배치를 따른다 — 남은 시간 판 · 주 버튼 「다시 로그인」 · 보조 버튼
+// 「비밀번호 재설정」(2026-10-21 노영주).
+// 이메일 찾기(`/email-find`)는 이 화면에 버튼이 없고 비밀번호 재설정 화면의 이메일 칸 아래에서 들어간다(데모, 2026-10-20 재영).
 // unavailable 은 proxy 의 갱신이 401 · 400 아닌 이유(연결 실패 · 시간 초과 · 429 · 5xx)로 실패한 경우다(접속이 끝났는지 모른다).
 // next 는 로그인한 뒤 돌아갈 화면이다(WHALEERP-166, 없으면 홈). 숨은 칸으로 액션에 넘긴다.
 // 아이디 저장 · 자동 로그인 체크 박스는 기본이 끔이다(2026-10-20 노영주). 저장된 이메일(savedEmail)이 있으면 칸을 채우고 아이디 저장을 켠다.
@@ -29,35 +34,11 @@ export function LoginForm({
   // React 19 폼 액션은 제출 뒤 칸을 처음 값으로 되돌린다. 실패한 뒤에도 고른 값이 남도록 상태로 든다.
   const [saveEmail, setSaveEmail] = useState(savedEmail !== null);
   const [autoLogin, setAutoLogin] = useState(false);
-  // 「5분 뒤 다시 시도」로 걷어 낸 잠금 결과. 같은 경로로 가는 링크는 화면을 새로 그리지 않아 상태가 남는다.
+  // 「다시 로그인」으로 걷어 낸 잠금 결과. 같은 결과 객체로는 잠금 화면을 다시 그리지 않는다(새로 제출해 잠기면 새 객체다).
   const [dismissed, setDismissed] = useState<LoginState | null>(null);
 
   if (state.locked && state !== dismissed) {
-    return (
-      <AuthScreen
-        title="잠시 잠겼습니다"
-        description={
-          <>
-            비밀번호를 연속 다섯 번 틀려 계정이 잠겼습니다. <strong>5분 뒤에 다시 시도하거나 비밀번호를 재설정하세요.</strong>
-          </>
-        }
-        dock={
-          <>
-            <Button href="/password-reset" transitionTypes={["nav-forward"]}>
-              비밀번호 재설정
-            </Button>
-            <Button variant="ghost" onClick={() => setDismissed(state)}>
-              5분 뒤 다시 시도
-            </Button>
-          </>
-        }
-      >
-        <Notice>
-          기다리기 어려우면 <strong>비밀번호를 다시 정하면</strong> 바로 들어올 수 있습니다. 새로 정하면 잠금도 함께 풀립니다. 잠긴
-          동안에는 비밀번호가 맞아도 들어갈 수 없습니다.
-        </Notice>
-      </AuthScreen>
-    );
+    return <Locked lock={state} onRetry={() => setDismissed(state)} />;
   }
 
   return (
@@ -133,5 +114,48 @@ export function LoginForm({
         ) : null}
       </AuthScreen>
     </form>
+  );
+}
+
+function Locked({ lock, onRetry }: { lock: AttemptLock; onRetry: () => void }) {
+  const titleRef = useFocusedTitle();
+  // 버튼을 언제 여는지는 lockCountdown 이 정한다. 이 버튼은 submit 이 아니라 화면만 닫는 onClick 이라, 하이드레이션 전에는
+  // 열려 있어도 눌러 아무 일이 없고 JS 가 없으면 끝까지 그렇다(그때는 비밀번호 재설정으로 간다). 잠긴 채 다시 제출해도
+  // api 가 다시 잠금으로 답할 뿐이다.
+  const { text, waiting } = lockCountdown(lock, useNow(lock.serverNow));
+  return (
+    <AuthScreen
+      titleRef={titleRef}
+      title="잠시 잠겼습니다"
+      // 잠긴 뒤 다시 시도한 경우도 이 화면이라 「5분 뒤」라고 적지 않고 아래 남은 시간으로 말한다.
+      description={
+        <>
+          비밀번호를 연속 다섯 번 틀려 계정이 잠겼습니다. <strong>잠금이 풀린 뒤에 다시 시도하거나 비밀번호를 재설정하세요.</strong>
+        </>
+      }
+      dock={
+        <>
+          <Button disabled={waiting} onClick={onRetry}>
+            {waiting ? `다시 로그인 · ${text} 뒤` : "다시 로그인"}
+          </Button>
+          <Button variant="ghost" href="/password-reset" transitionTypes={["nav-forward"]}>
+            비밀번호 재설정
+          </Button>
+        </>
+      }
+    >
+      {/* 남은 시간 판과 버튼 배치는 이메일 찾기의 막힘 화면(email-find-form.tsx Locked)과 맞춘다(2026-10-21 노영주). */}
+      <Card>
+        <div className="flex flex-col items-center text-center">
+          <p className="text-[13px] font-semibold text-staff-text-sub">다시 시도까지</p>
+          <p className="pt-[4px] text-[32px] font-bold tabular-nums">{text}</p>
+          <p className="pt-[6px] text-[12px] text-staff-text-muted">잠그는 시간은 5분입니다.</p>
+        </div>
+      </Card>
+      <Notice>
+        기다리기 어려우면 <strong>비밀번호를 다시 정하면</strong> 바로 들어올 수 있습니다. 새로 정하면 잠금도 함께 풀립니다. 잠긴
+        동안에는 비밀번호가 맞아도 들어갈 수 없습니다.
+      </Notice>
+    </AuthScreen>
   );
 }
