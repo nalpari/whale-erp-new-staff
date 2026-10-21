@@ -16,7 +16,7 @@ import {
   type EmailChangeState,
   type PinState,
 } from "@/lib/email-change";
-import { getMyProfileOrNull } from "@/lib/my-profile";
+import { getMyProfile } from "@/lib/my-profile";
 import { authedRequest, getSavedLoginEmail, saveLoginEmail } from "@/lib/session";
 
 /** 새 이메일로 인증번호 보내기(`POST /me/profile/email-change-pins`). 성공하면 인증번호 단계로. 실패 처리는 lib/email-change.ts. */
@@ -50,11 +50,19 @@ async function confirmPin(pin: string, previous: PinState): Promise<EmailChangeS
     return state;
   }
   // 「아이디 저장」을 켜 두었으면 저장된 아이디도 새 이메일로 바꾼다 — 남겨 두면 다음 로그인 화면에 옛 이메일이 채워진다.
-  // api 는 바꾼 이메일을 돌려주지 않아(204) 내 정보에서 다시 읽는다(화면이 보낸 이전 상태의 값은 믿지 않는다). 못 읽으면
-  // 이메일은 이미 바뀌었으니 저장된 아이디만 지운다 — 옛 이메일이 채워지는 것보다 빈 칸이 낫다.
+  // api 는 바꾼 이메일을 돌려주지 않아(204) 내 정보에서 다시 읽는다(화면이 보낸 이전 상태의 값은 믿지 않는다).
+  // 읽기 전에 먼저 지운다 — 다시 읽다 401 로 만료 안내로 빠져도 옛 이메일이 남지 않는다. 옛 이메일이 채워지는 것보다 빈 칸이 낫다.
+  // 그 밖의 실패는 삼킨다 — 이메일은 이미 바뀌었으니 오류 화면 대신 바꿨다는 알림으로 간다.
   if (await getSavedLoginEmail()) {
-    const profile = await getMyProfileOrNull();
-    await saveLoginEmail(profile?.email ?? null);
+    await saveLoginEmail(null);
+    try {
+      await saveLoginEmail((await getMyProfile()).email);
+    } catch (error) {
+      const failure = failureOf(error);
+      if (!failure) throw error;
+      // 5xx · 연결 실패는 request() 가 이미 남겼다.
+      if (failure !== "network" && failure.status < 500) logFailure("email-change", failure);
+    }
   }
   // replace — 뒤로 가기로 인증번호 칸에 다시 들르지 않게 한다.
   redirect("/me?changed=email", RedirectType.replace);
