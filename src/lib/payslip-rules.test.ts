@@ -1,7 +1,7 @@
 // node --test src/lib/payslip-rules.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { filterYears, historyEntries, isItemShown, itemAmount, parsePayFilter, receivedMonthLabel } from "./payslip-rules.ts";
+import { filterYears, historyEntries, isItemShown, itemAmount, parsePayFilter, parsePayslipId, receivedMonthLabel } from "./payslip-rules.ts";
 import type { PayslipItem, PayslipLog } from "./payslips.ts";
 
 const log = (payslipLogId: number, logType: PayslipLog["logType"], changedAt: string): PayslipLog => ({ payslipLogId, logType, changedAt });
@@ -54,4 +54,12 @@ test("줄 금액은 조정 값 → 계산 값 → 0", () => {
   assert.equal(itemAmount(item("A", "EARNING", { adjustedAmount: 0, calculatedAmount: 500 })), 0);
   assert.equal(itemAmount(item("A", "EARNING", { calculatedAmount: 500 })), 500);
   assert.equal(itemAmount(item("A", "EARNING")), 0);
+});
+
+test("명세서 번호는 1..2147483647 의 맨 숫자만 — 주소를 더럽히는 값은 null", () => {
+  assert.equal(parsePayslipId("1"), 1);
+  assert.equal(parsePayslipId("2147483647"), 2147483647);
+  for (const raw of ["0", "01", "-1", "1.5", "1e3", " 1", "", "2147483648", "../me", "1/pdf", "1?x", "1\n"]) {
+    assert.equal(parsePayslipId(raw), null, JSON.stringify(raw));
+  }
 });
