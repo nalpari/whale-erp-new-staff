@@ -6,9 +6,9 @@
   "status": "pass",
   "visualReview": "pending",
   "artifact": {
-    "path": "/Users/jaeyounglee/.whale-erp-worktrees/whale-erp-staff/angkorwat/docs/flow/notify-me/notify-me.html",
-    "sha256": "5d2bfcadd9799d7977e6d3062af592f58145b9867a6558a368773f3dac59fcb4",
-    "bytes": 816461
+    "path": "/Users/jaeyounglee/.whale-erp-worktrees/whale-erp-staff/borobudur/docs/flow/notify-me/notify-me.html",
+    "sha256": "e650996487a15334ee6a7040e000f451005d24f5d88d9479b0fb4615b3cfa914",
+    "bytes": 816462
   },
   "state": {
     "detail": "read",

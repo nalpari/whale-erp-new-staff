@@ -255,7 +255,7 @@ const VIEWS = {
             ["근무지", "웨일카페 강남역점"],
           ]),
         ) +
-        `<p class="text-[12px] text-staff-text-muted">생년월일은 가입한 뒤 고칠 수 없습니다. 이름·성별·외국인 여부는 내 정보에서 고칩니다.</p>` +
+        `<p class="text-[12px] text-staff-text-muted">인적사항은 가입한 뒤 직접 고칠 수 없습니다.</p>` +
         card(iconRow({ icon: "contract.svg", title: "근로계약서가 자동 발송되었습니다", sub: "서명 대기 · 홈에 들어가면 날인 요청 팝업이 뜹니다" })) +
         `<div class="text-left">${notice(
           "<strong>종이로 계약을 맺었다면</strong> 날인할 것이 없습니다. 관리자가 올린 날인본이 계약서 화면에 체결 완료로 보이고, 여기서 바로 신고 정보 입력으로 넘어갑니다.",
