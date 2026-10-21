@@ -83,6 +83,22 @@ body {
     translate: 0;
   }
 }
+/* 토스트(공통 Toast): 떠오르며 나타나 2초 머문 뒤 흐려져 사라진다. */
+@keyframes staff-toast {
+  0% {
+    opacity: 0;
+    translate: 0 8px;
+  }
+  8%,
+  85% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(*),
   ::view-transition-new(*),

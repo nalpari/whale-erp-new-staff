@@ -6,33 +6,34 @@ import { ApiError, NetworkError, logUnexpected } from "@/lib/api";
 import { login } from "@/lib/auth";
 import { clientIpFrom } from "@/lib/client-ip";
 import { HOME_PATH, safeNextPath } from "@/lib/login-return";
-import { getDeviceId, saveLogin } from "@/lib/session";
+import { readLoginForm } from "@/lib/login-input";
+import { getDeviceId, saveLogin, saveLoginEmail } from "@/lib/session";
 import { CONNECTION_FAILED_MESSAGE } from "../_components/auth-screen";
 
-export interface LoginState {
-  email: string;
-  error?: string;
-  /**
-   * 오류를 붙일 자리. email 은 형식(400), password 는 틀림(401 — 이때만 잠금 안내를 함께 보인다),
-   * form 은 서버 · 연결 · 요청 제한처럼 입력과 상관없는 오류(화면 위 안내).
-   */
-  field?: "email" | "password" | "form";
-  /** 5번 틀려 5분 잠김. 요청 제한(429)과 메시지로 가른다. */
-  locked?: boolean;
-}
+/**
+ * 로그인 결과 — 넣은 이메일은 늘 들고, 그 위에 잠김 · 오류(붙일 자리와 함께) 중 하나만 온다.
+ * - field: email 은 형식(400), password 는 틀림(401 — 이때만 잠금 안내를 함께 보인다), form 은 서버 · 연결 · 요청 제한처럼
+ *   입력과 상관없는 오류(화면 위 안내).
+ * - locked: 5번 틀려 5분 잠김. 요청 제한(429)과 메시지로 가른다.
+ */
+export type LoginState = { email: string } & (
+  | { locked?: never; error?: never; field?: never }
+  | { locked: true; error?: never; field?: never }
+  | { locked?: never; error: string; field: "email" | "password" | "form" }
+);
 
 // api 의 잠금 메시지 앞부분(account-auth.service.ts LOCKED_MESSAGE). 요청 제한 429 는 Nest 기본 메시지다.
 const LOCKED_MESSAGE_PREFIX = "로그인이 잠겼습니다";
 
 export async function loginAction(_previous: LoginState, formData: FormData): Promise<LoginState> {
-  const email = String(formData.get("email") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
+  const { email, password, saveEmail, autoLogin } = readLoginForm(formData);
   if (!email) return { email, error: "이메일을 넣어 주세요", field: "email" };
   if (!password) return { email, error: "비밀번호를 넣어 주세요", field: "password" };
 
   let result;
   try {
-    result = await login({ email, password, deviceIdentifier: await getDeviceId() }, clientIpFrom(await headers()));
+    // 자동 로그인 = rememberMe. 켜면 세션이 마지막 사용 후 30일, 끄면 7일이고 갱신도 그 길이로만 민다(api, 2026-10-20 노영주).
+    result = await login({ email, password, deviceIdentifier: await getDeviceId(), rememberMe: autoLogin }, clientIpFrom(await headers()));
   } catch (error) {
     if (error instanceof ApiError) {
       if (error.status === 429 && error.message.startsWith(LOCKED_MESSAGE_PREFIX)) return { email, locked: true };
@@ -51,7 +52,10 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
     throw error;
   }
   // 저장은 try 밖이다. 여기서 나는 오류는 api 응답 모양이 바뀐 결함이라 연결 실패로 숨기지 않고 오류 화면으로 보낸다.
+  // 쿠키 만료는 api 가 준 refreshTokenExpiresAt(30일 · 7일)을 그대로 쓴다.
   await saveLogin(result);
+  // 아이디 저장 — api 와 같이 소문자로 둔다.
+  await saveLoginEmail(saveEmail ? email.toLowerCase() : null);
   // 보던 화면으로 돌려보낸다(WHALEERP-166). 폼 값은 누구나 고쳐 보낼 수 있어 화면에서 거른 값도 다시 거른다.
   // 서버 액션의 redirect 는 기본이 push 다. 로그인 화면을 히스토리에 남기지 않는다.
   redirect(safeNextPath(String(formData.get("next") ?? "")) ?? HOME_PATH, RedirectType.replace);

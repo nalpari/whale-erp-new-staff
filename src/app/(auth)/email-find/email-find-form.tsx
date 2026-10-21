@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef, type ReactNode } from "react";
 import { Alert, Button, Card, Notice, TextField } from "@/components/common";
 import { AuthScreen } from "../_components/auth-screen";
-import { formatLeft, useNow } from "../_components/countdown";
+import { formatLeft, useNow } from "@/app/_components/countdown";
 import { findEmailAction, type EmailFindState, type EmailFindValues } from "./actions";
 
 // 기준: 데모 docs/demo/src/pages/login 의 find · found · find-fail · find-lock (LOGIN-8 · 9 · 10).

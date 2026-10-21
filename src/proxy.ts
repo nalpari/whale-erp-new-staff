@@ -99,7 +99,7 @@ export async function proxy(request: NextRequest) {
 
   if (accessToken && refreshedUntil && refreshToken && account) {
     response.cookies.set(ACCESS_TOKEN_COOKIE, accessToken, accessTokenCookie());
-    // 갱신 토큰은 회전하지 않는다. 값은 그대로, 만료만 api 가 준 새 시각으로 민다.
+    // 갱신 토큰은 회전하지 않는다. 값은 그대로, 만료만 api 가 준 새 시각으로 민다(자동 로그인이면 30일, 아니면 7일).
     response.cookies.set(REFRESH_TOKEN_COOKIE, refreshToken, untilCookie(refreshedUntil));
     response.cookies.set(ACCOUNT_COOKIE, account, untilCookie(refreshedUntil));
   }
