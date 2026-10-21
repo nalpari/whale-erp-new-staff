@@ -1,6 +1,8 @@
 # Bundle history
 
 ## 2026-10-21
+* **Update**: 165 리뷰 반영 — 429 판정 · 남은 시간 판정을 `attempt-lock.ts`(`lockOf` · `lockCountdown` · `AttemptLock`)로 모으고 해제 시각을 읽지 못하면 남김, `formatLeft` 를 `time-left.ts` 로 옮겨 테스트, 잠금 화면 제목 초점, 재설정 화면의 이메일 찾기 링크를 본문에 적음 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 로그인 잠금 화면에 api 429 의 `lockExpiresAt` 까지 남은 시간을 보이고 잠금 판정을 메시지 대신 그 값으로, 이메일 찾기 진입을 비밀번호 재설정 화면의 이메일 칸 아래에 붙였다(WHALEERP-165) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 이메일 아이디 변경 첫 단계에 지금 비밀번호를 받는다(WHALEERP-607, api 계약 kyoto-61) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: PR #11 리뷰 반영 — api main(115ad5f) 기준으로 타입 재생성, 우편번호 스크립트는 「검색」을 누른 뒤에만, 이메일 변경 뒤 저장된 아이디는 먼저 지우고 다시 읽기 실패는 삼킴 — [Whale ERP Staff](/whale-erp-staff.md).
 
