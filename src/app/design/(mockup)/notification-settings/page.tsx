@@ -19,7 +19,7 @@ export default function MockupNotificationSettingsPage() {
 
           {/* 채널 안내(node 17:1241): #F9FBFD 바탕 · 옅은 테두리 · radius 14 · 안쪽 14. 화면 아래에 놓인다. */}
           <p className="mt-auto rounded-[14px] border border-staff-border-light bg-[#f9fbfd] p-[14px] text-[12px] text-staff-text-sub">
-            기본 채널은 앱 푸시입니다. 근로계약서처럼 놓치면 안 되는 알림은 푸시가 닿지 않으면 카카오 알림톡으로 대신 보냅니다.
+            기본 채널은 앱 푸시입니다.
           </p>
         </main>
       </div>
