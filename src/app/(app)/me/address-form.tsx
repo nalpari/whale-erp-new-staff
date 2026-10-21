@@ -10,6 +10,7 @@ import { ReadOnlyField } from "./read-only-field";
 
 // 카카오(Daum) 우편번호 서비스(ME-2, 2026-10-20 결정). 키 없이 쓰는 공개 스크립트이고, 화면 안 시트에 embed 로 띄운다
 // (휴대전화에서 popup 은 새 창이 떠 돌아오기 어렵다). https://postcode.map.daum.net/guide
+// integrity 를 걸 수 없는 바깥 스크립트라 「검색」을 처음 누른 뒤에만 넣는다 — 내 정보를 열기만 해서는 받지 않는다.
 const POSTCODE_SCRIPT = "https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
 
 /** 우편번호 서비스가 oncomplete 에 넘기는 값 중 쓰는 것. roadAddress 가 비면(지번을 고름 등) autoRoadAddress 가 대신한다. */
@@ -42,6 +43,8 @@ export function AddressForm({ zipCode, address, addressDetail }: { zipCode: stri
   const [picked, setPicked] = useState({ zipCode: zipCode ?? "", address: address ?? "" });
   const [detail, setDetail] = useState(addressDetail ?? "");
   const [searching, setSearching] = useState(false);
+  // 한 번 넣으면 시트를 닫아도 빼지 않는다(다시 열 때 또 받지 않게).
+  const [scriptWanted, setScriptWanted] = useState(false);
   const [scriptReady, setScriptReady] = useState(false);
   const [scriptFailed, setScriptFailed] = useState(false);
   // next/script 는 받는 도중 화면을 떠났다 돌아오면 onReady 대신 onLoad 만 부르고, 한 번 실패한 뒤에는 onError 없이 onLoad ·
@@ -71,7 +74,9 @@ export function AddressForm({ zipCode, address, addressDetail }: { zipCode: stri
 
   return (
     <form action={formAction} className="flex flex-col gap-[8px]">
-      <Script src={POSTCODE_SCRIPT} strategy="lazyOnload" onLoad={checkScript} onReady={checkScript} onError={() => setScriptFailed(true)} />
+      {scriptWanted && (
+        <Script src={POSTCODE_SCRIPT} strategy="afterInteractive" onLoad={checkScript} onReady={checkScript} onError={() => setScriptFailed(true)} />
+      )}
       <input type="hidden" name="zipCode" value={picked.zipCode} />
       <input type="hidden" name="address" value={picked.address} />
       <ReadOnlyField
@@ -79,7 +84,13 @@ export function AddressForm({ zipCode, address, addressDetail }: { zipCode: stri
         value={shown}
         wrap
         action={
-          <Button variant="outline" onClick={() => setSearching(true)}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setScriptWanted(true);
+              setSearching(true);
+            }}
+          >
             검색
           </Button>
         }
