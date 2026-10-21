@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-10-21
+* **Update**: PR #11 리뷰 반영 — api main(115ad5f) 기준으로 타입 재생성, 우편번호 스크립트는 「검색」을 누른 뒤에만, 이메일 변경 뒤 저장된 아이디는 먼저 지우고 다시 읽기 실패는 삼킴 — [Whale ERP Staff](/whale-erp-staff.md).
+
 ## 2026-10-20
 * **Update**: 이메일 변경 뒤 저장된 아이디는 내 정보에서 다시 읽은 값으로 바꾼다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: api 2차 리뷰(kyoto-61)에 맞춰 이메일 인증번호 받기 500 의 한글 사유(메일 설정 문제)를 그대로 보인다 — [Whale ERP Staff](/whale-erp-staff.md).
