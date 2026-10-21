@@ -17,6 +17,7 @@ export function AboutSheet() {
       >
         <InfoIcon />
       </button>
+      {/* 첫 문단은 데모 문구(완성 기준)다 — 출퇴근 연결(WHALEERP-227) 전이라 기본급 · 주휴 · 연장은 아직 계산되지 않고 관리자가 넣는다 */}
       <BottomSheet open={open} onClose={() => setOpen(false)} title="급여명세서는 이렇게 만들어집니다">
         <p className="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">
           <strong>기본급·주휴수당·연장수당</strong>은 근로계약과 출퇴근 기록으로 시스템이 계산하고 관리자가 확인합니다.{" "}
