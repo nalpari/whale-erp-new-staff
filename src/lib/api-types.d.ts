@@ -1400,8 +1400,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 재발송 — 발송 대기(가입 초대를 받지 못함) · 서명 대기에서 가입 초대 알림톡을 새 링크 · 새 서명 기한(30일)으로 다시
-         *     보낸다. 상태는 그대로이고 앞서 나간 링크는 무효다. 앱으로 받는 직원(가입 · 계정 있음)은 앱 알림이 아직 없어 409.
+         * 재발송 — 발송 대기(가입 초대를 받지 못함) · 서명 대기에서 가입 초대 알림톡을 새 초대 코드 · 새 서명 기한(30일)으로 다시
+         *     보낸다. 상태는 그대로이고 앞서 나간 초대 코드는 무효다. 앱으로 받는 직원(가입 · 계정 있음)은 앱 알림이 아직 없어 409.
          */
         post: operations["ContractSendController_send"];
         delete?: never;
@@ -1549,10 +1549,8 @@ export interface paths {
          * 대표 이미지 올리기 · 바꾸기(점포당 1장). multipart 의 `file` 한 개, JPG · PNG 5MB 이하 — 종류는 확장자가
          *     아니라 내용으로 본다. 등록 화면은 점포를 등록한 뒤 이 경로로 올린다. 수정 권한이 있어야 한다.
          *
-         *     수정 권한은 가드(@MenuPermission)가 먼저 본다 — 가드는 인터셉터보다 먼저 돌므로, 권한 없는 관리자의 요청은
-         *     AttachmentsInterceptor 가 multipart 본문(최대 5MB)을 받기 전에 403 이다. 핸들러의 allow() 는 같은 판정을
-         *     한 번 더 하지만 지우지 않는다 — 서비스가 받는 MenuCaller(권한 유형 · 권한 그룹)를 그 판정이 돌려주고, 업로드를
-         *     받는 사이 권한이 거둬졌으면 그것도 여기서 막는다.
+         *     가드는 인터셉터보다 먼저 돌므로, 권한 없는 관리자의 요청은 AttachmentsInterceptor 가 multipart 본문
+         *     (최대 5MB)을 받기 전에 403 이다.
          */
         put: operations["StoresController_putImage"];
         post?: never;
@@ -2236,6 +2234,57 @@ export interface paths {
         head?: never;
         /** 대기 ↔ 진행 중 ↔ 완료. 한 명 수행은 먼저 저장된 완료만 인정한다 */
         patch: operations["MyTodosController_changeStatus"];
+        trace?: never;
+    };
+    "/me/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 내 정보 — 계정 칸, 본사 제공 동의(계정에 하나), 위치정보 동의. 소속 근무지는 `GET /me/memberships` */
+        get: operations["MyProfileController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/memberships": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 내 소속 근무지 — TO-DO 와 같은 재직 직원 기준. 체결 완료 근로계약이 있고 가입 완료 · 퇴직 전인 직원 레코드. 퇴직 예정은 퇴직일과 함께 */
+        get: operations["MyMembershipsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/memberships/{staffMemberId}/tax-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 그 소속의 신고 정보 (TAX-8). 주민등록번호 · 계좌번호는 가린 값만 준다 */
+        get: operations["MyMembershipsController_taxProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
 }
@@ -3819,6 +3868,20 @@ export interface components {
             /** @description 상세 응답의 updatedAt 그대로 — 그사이 누가 고쳤으면 409 */
             updatedAt: string;
         };
+        MyPayslipThisMonthDto: {
+            /** @description YYYY-MM — 한국 시간 기준 이번 달 */
+            month: string;
+            /** @description 받은 명세서 수. 0 이면 앱이 「이번 달에 받은 명세서가 없습니다」를 적는다 */
+            count: number;
+            /** @description 실지급액 합계 */
+            totalNetPayAmount: number;
+            /** @description 받은 명세서의 점포 이름 — 겹치지 않게, 최근에 받은 것부터 */
+            storeNames: string[];
+        };
+        MyPayslipStoreDto: {
+            storeId: number;
+            storeName: string;
+        };
         MyPayslipLogDto: {
             /** @description SEND · CANCEL_CONFIRMATION 만 온다 */
             logType: components["schemas"]["PayslipLogType"];
@@ -3843,13 +3906,23 @@ export interface components {
              * @description 만든 일시 — 보존 기간(3년)의 기준
              */
             createdAt: string;
+            /** @description 근무지 점포 ID */
+            storeId: number;
             /** @description 근무지 점포 이름 */
             storeName: string;
+            /**
+             * Format: date-time
+             * @description 받은 날 — 가장 최근 발송 시각(다시 보냈으면 그때). 발송 이력이 없으면 null
+             */
+            sentAt: string | null;
             /** @description 발송 · 확정 취소 이력, 최근 것이 위 */
             logs: components["schemas"]["MyPayslipLogDto"][];
         };
         MyPayslipListResponseDto: {
-            /** @description 급여 기간이 늦은 것이 위 */
+            thisMonth: components["schemas"]["MyPayslipThisMonthDto"];
+            /** @description 이름순 */
+            stores: components["schemas"]["MyPayslipStoreDto"][];
+            /** @description 점포 · 연도로 거른 명세서, 최근에 받은(발송일) 것이 위 */
             items: components["schemas"]["MyPayslipSummaryDto"][];
         };
         MyPayslipItemDto: {
@@ -3881,8 +3954,15 @@ export interface components {
              * @description 만든 일시 — 보존 기간(3년)의 기준
              */
             createdAt: string;
+            /** @description 근무지 점포 ID */
+            storeId: number;
             /** @description 근무지 점포 이름 */
             storeName: string;
+            /**
+             * Format: date-time
+             * @description 받은 날 — 가장 최근 발송 시각(다시 보냈으면 그때). 발송 이력이 없으면 null
+             */
+            sentAt: string | null;
             /** @description 발송 · 확정 취소 이력, 최근 것이 위 */
             logs: components["schemas"]["MyPayslipLogDto"][];
             /** @description 3.3% 원천징수 적용 — 원천징수 · 소득세 줄을 어떻게 보일지 화면이 정한다 */
@@ -5354,6 +5434,91 @@ export interface components {
         TodoItemListResponseDto: {
             items: components["schemas"]["TodoItemDto"][];
             total: number;
+        };
+        MyHqSharingConsentDto: {
+            isConsented: boolean;
+            /** @description 동의한 문구의 버전 */
+            consentVersion: string | null;
+            /** Format: date-time */
+            agreedAt: string | null;
+            /**
+             * Format: date-time
+             * @description 철회 일시. 철회하지 않았으면 null
+             */
+            withdrawnAt: string | null;
+        };
+        /** @enum {string} */
+        LocationConsentState: "NOT_AGREED" | "AGREED" | "PAUSED" | "WITHDRAWN";
+        MyLocationConsentDto: {
+            state: components["schemas"]["LocationConsentState"];
+            /** @description 동의한 약관 버전. 미동의면 null */
+            consentVersion: string | null;
+            /** Format: date-time */
+            agreedAt: string | null;
+            /**
+             * Format: date-time
+             * @description 일시 중지 시각. 일시 중지가 아니면 null
+             */
+            pausedAt: string | null;
+            /** Format: date-time */
+            withdrawnAt: string | null;
+        };
+        MyProfileResponseDto: {
+            status: components["schemas"]["AccountStatus"];
+            accountId: number;
+            email: string;
+            /** @description 이름 — 고칠 수 없다 */
+            realName: string;
+            /** @description 생년월일(YYYY-MM-DD) — 고칠 수 없다 */
+            birthDate: string;
+            /** @description 휴대전화번호 — 1차는 읽기 전용 */
+            phone: string;
+            zipCode: string | null;
+            address: string | null;
+            addressDetail: string | null;
+            hqSharingConsent: components["schemas"]["MyHqSharingConsentDto"];
+            locationConsent: components["schemas"]["MyLocationConsentDto"];
+        };
+        MyStoreDto: {
+            storeId: number;
+            storeName: string;
+            /** @description 점포 유형 — 공통코드 `STORE_TYPE`(DIRECT 직영 · FRANCHISE 가맹) */
+            storeTypeCode: string;
+        };
+        MyMembershipDto: {
+            employmentType: components["schemas"]["EmploymentType"];
+            staffMemberId: number;
+            store: components["schemas"]["MyStoreDto"];
+            jobTitle: string;
+            /** @description 입사일(YYYY-MM-DD) */
+            hiredDate: string | null;
+            /** @description 퇴직일(YYYY-MM-DD). 값이 있으면 퇴직 예정 */
+            retiredDate: string | null;
+        };
+        MyMembershipListResponseDto: {
+            /** @description 체결 완료 근로계약이 있고 가입 완료 · 퇴직 전인 직원 레코드. 입사일(없으면 뒤) · id 순 */
+            items: components["schemas"]["MyMembershipDto"][];
+            total: number;
+        };
+        MyTaxProfileDto: {
+            /** @description 가린 주민등록번호 — `980304-1******` */
+            rrnMasked: string;
+            /** @description 은행 코드 */
+            bankCode: string;
+            /** @description 가린 급여 계좌 — 끝 4자리만, `********6789` */
+            payrollAccountNumberMasked: string;
+            /** @description 수집 목적 */
+            purpose: string;
+            /**
+             * Format: date-time
+             * @description 수집 일시
+             */
+            collectedAt: string;
+        };
+        MyTaxProfileResponseDto: {
+            staffMemberId: number;
+            /** @description 이 소속에 낸 신고 정보. 아직 내지 않았으면 null */
+            taxProfile: components["schemas"]["MyTaxProfileDto"] | null;
         };
     };
     responses: never;
@@ -8388,7 +8553,12 @@ export interface operations {
     };
     MyPayslipsController_findAll: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 점포 ID. 명세서를 받은 적 없는 점포면 빈 목록이다 */
+                storeId?: number;
+                /** @description 연도 — 급여 기간 기준(2025년 12월 근무분을 2026년 1월에 받아도 2025년) */
+                year?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -8575,7 +8745,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 같은 번호의 다른 저장이 길어져 시간 초과(잠시 뒤 다시) · 가입 초대를 보낼 수 없음(직원 앱 주소 STAFF_APP_URL · 대체 문자 발신번호 BIZPPURIO_SMS_FROM 없음, 가입 초대 템플릿 꺼짐 — 저장하지 않음) */
+            /** @description 같은 번호의 다른 저장이 길어져 시간 초과(잠시 뒤 다시) · 가입 초대를 보낼 수 없음(직원 앱 주소 STAFF_APP_URL 없음, 대체 문자 발신번호 BIZPPURIO_SMS_FROM 없음, 가입 초대 템플릿 꺼짐 — 저장하지 않음) */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -8748,7 +8918,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 같은 번호의 다른 저장이 길어져 시간 초과(잠시 뒤 다시) · 가입 초대를 보낼 수 없음(직원 앱 주소 STAFF_APP_URL · 대체 문자 발신번호 BIZPPURIO_SMS_FROM 없음, 가입 초대 템플릿 꺼짐 — 저장하지 않음) */
+            /** @description 같은 번호의 다른 저장이 길어져 시간 초과(잠시 뒤 다시) · 가입 초대를 보낼 수 없음(직원 앱 주소 STAFF_APP_URL 없음, 대체 문자 발신번호 BIZPPURIO_SMS_FROM 없음, 가입 초대 템플릿 꺼짐 — 저장하지 않음) */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -8856,7 +9026,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 같은 번호의 다른 저장이 길어져 시간 초과(잠시 뒤 다시) · 가입 초대를 보낼 수 없음(직원 앱 주소 STAFF_APP_URL · 대체 문자 발신번호 BIZPPURIO_SMS_FROM 없음, 가입 초대 템플릿 꺼짐 — 저장하지 않음) */
+            /** @description 같은 번호의 다른 저장이 길어져 시간 초과(잠시 뒤 다시) · 가입 초대를 보낼 수 없음(직원 앱 주소 STAFF_APP_URL 없음, 대체 문자 발신번호 BIZPPURIO_SMS_FROM 없음, 가입 초대 템플릿 꺼짐 — 저장하지 않음) */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -9027,7 +9197,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 직원 앱 주소(STAFF_APP_URL) · 대체 문자 발신번호(BIZPPURIO_SMS_FROM)가 없음 · 가입 초대 템플릿이 없거나 꺼짐 */
+            /** @description 직원 앱 주소(STAFF_APP_URL)가 없음 · 대체 문자 발신번호(BIZPPURIO_SMS_FROM)가 없음 · 가입 초대 템플릿이 없거나 꺼짐 */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -11644,6 +11814,128 @@ export interface operations {
             };
             /** @description TODO_ALREADY_DONE(다른 직원이 먼저 완료 — performer 에 그 직원, 또는 본인이 완료한 것이 아닌 한 명 수행을 다시 열려 함) · TODO_STATUS_CONFLICT(그사이 상태가 바뀜) */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyProfileController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyProfileResponseDto"];
+                };
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyMembershipsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyMembershipListResponseDto"];
+                };
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyMembershipsController_taxProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                staffMemberId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyTaxProfileResponseDto"];
+                };
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 소속이 아님 — 없는 id · 범위 밖 id, 남의 레코드, 퇴직했거나 체결 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 저장된 신고 정보를 풀 수 없음(키가 다름 · 다른 행의 값 · 손상) — 서버 로그에 레코드 · 칸 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 신고 정보가 있는데 서버에 암호화 키가 없음 */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
