@@ -9,10 +9,18 @@ export type PayslipDetail = Schemas["MyPayslipDetailResponseDto"];
 export type PayslipItem = Schemas["MyPayslipItemDto"];
 export type PayslipLog = Schemas["MyPayslipLogDto"];
 
-/** 로그인한 직원의 명세서 목록. 급여 기간이 늦은 것이 위(api 순서). */
-export async function getPayslips(): Promise<PayslipSummary[]> {
-  const { items } = await authedRequest<Schemas["MyPayslipListResponseDto"]>("/me/payslips");
-  return items;
+export type PayslipList = Schemas["MyPayslipListResponseDto"];
+
+/**
+ * 로그인한 직원의 명세서 목록(PAY-8 · 9 · 10). 점포 · 연도(급여 기간)는 items 만 거른다 — 맨 위 이번 달 합계(thisMonth)와
+ * 점포 목록(stores)은 api 가 필터 전 전체로 센 값이라 앱은 다시 더하지 않는다. items 는 받은 날 최신순(api 순서).
+ */
+export async function getPayslips(filter: { storeId?: number; year?: number } = {}): Promise<PayslipList> {
+  const query = new URLSearchParams();
+  if (filter.storeId !== undefined) query.set("storeId", String(filter.storeId));
+  if (filter.year !== undefined) query.set("year", String(filter.year));
+  const qs = query.toString();
+  return authedRequest<PayslipList>(`/me/payslips${qs ? `?${qs}` : ""}`);
 }
 
 /** 명세서 한 장. 없거나 남의 것 · 발송 전 · 3년이 지났으면(api 404) null. */

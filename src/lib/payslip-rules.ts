@@ -31,8 +31,6 @@ const sends = (logs: readonly PayslipLog[]) => logs.filter((l) => l.logType === 
 
 export const isResent = (logs: readonly PayslipLog[]) => sends(logs).length > 1;
 
-export const lastSentAt = (logs: readonly PayslipLog[]) => sends(logs).at(-1)?.changedAt ?? null;
-
 const parts = (iso: string, options: Intl.DateTimeFormatOptions) =>
   Object.fromEntries(
     new Intl.DateTimeFormat("en-US", { timeZone: TIME_ZONE, hourCycle: "h23", ...options })
@@ -53,20 +51,42 @@ export function sentDateLabel(iso: string): string {
 }
 
 /**
- * PAY-1 처리 이력: 발송 · 확정 취소만 보이고(api 가 이 둘만 준다), 두 번째 발송부터 「재발송」이다. 관리자 이름은 적지 않는다.
- * 최근 것이 위.
+ * 처리 이력(PAY-1 · PAY-20): 발송 · 확정 취소만 보인다(api 가 이 둘만 준다). 발송이 여럿이면 가장 최근 발송 한 줄만
+ * 「발송」으로 보이고 앞의 발송은 보이지 않는다 — 「재발송」 줄은 두지 않는다. 확정 취소는 모두 보인다. 관리자 이름은
+ * 적지 않는다. 최근 것이 위.
  */
 export function historyEntries(logs: readonly PayslipLog[]): { at: string; label: string }[] {
-  let sendCount = 0;
-  const entries: { at: string; label: string }[] = [];
-  for (const l of [...logs].sort(byTime)) {
-    if (l.logType === "SEND") entries.push({ at: formatHistoryTime(l.changedAt), label: sendCount++ === 0 ? "발송" : "재발송" });
-    else if (l.logType === "CANCEL_CONFIRMATION") entries.push({ at: formatHistoryTime(l.changedAt), label: "확정 취소" });
-  }
-  return entries.reverse();
+  const latestSend = sends(logs).at(-1);
+  return [...logs]
+    .sort(byTime)
+    .filter((l) => l.logType === "CANCEL_CONFIRMATION" || l === latestSend)
+    .map((l) => ({ at: formatHistoryTime(l.changedAt), label: l.logType === "SEND" ? "발송" : "확정 취소" }))
+    .reverse();
 }
 
 const ymd = (date: string) => date.split("-").map(Number) as [number, number, number];
+
+/** 「9월」 — api 의 이번 달(YYYY-MM, 한국 시간) */
+export function receivedMonthLabel(month: string): string {
+  return `${Number(month.slice(5, 7))}월`;
+}
+
+/** 고를 수 있는 연도 — 한국 시간 올해부터 3년 전까지(보관 3년, PAY-4 · PAY-10). */
+export function filterYears(now: Date = new Date()): number[] {
+  const thisYear = Number(parts(now.toISOString(), { year: "numeric" }).year);
+  return [0, 1, 2, 3].map((n) => thisYear - n);
+}
+
+/** 주소의 점포 · 연도 필터. 숫자가 아니거나 고를 수 없는 연도면 없는 것으로 본다(연도는 올해). */
+export function parsePayFilter(
+  raw: { store?: string | string[]; year?: string | string[] },
+  years: readonly number[],
+): { storeId?: number; year: number } {
+  const one = (v: string | string[] | undefined) => (typeof v === "string" ? v : undefined);
+  const storeId = parsePayslipId(one(raw.store) ?? "") ?? undefined;
+  const year = Number(one(raw.year));
+  return { storeId, year: years.includes(year) ? year : years[0] };
+}
 
 /** 「2026년 8월」 */
 export function monthLabel(periodStartDate: string): string {
