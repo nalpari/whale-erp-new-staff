@@ -2,9 +2,10 @@
 
 import { headers } from "next/headers";
 import { ApiError, NetworkError, logUnexpected } from "@/lib/api";
+import { type AttemptLock, lockOf } from "@/lib/attempt-lock";
 import { findEmails } from "@/lib/auth";
 import { clientIpFrom } from "@/lib/client-ip";
-import { lockExpiresAtOf, normalizeBirthDate, normalizePhone } from "@/lib/email-find";
+import { normalizeBirthDate, normalizePhone } from "@/lib/email-find";
 import { CONNECTION_FAILED_MESSAGE } from "../_components/auth-screen";
 
 /** 넣은 값. 다시 넣을 때 칸에 되돌려 놓는다. */
@@ -25,7 +26,7 @@ export type EmailFindState =
   | { step: "input"; values: EmailFindValues; error?: string; field?: "name" | "phone" | "birthDate" | "form" }
   | { step: "found"; emails: string[] }
   | { step: "not-found"; values: EmailFindValues }
-  | { step: "locked"; values: EmailFindValues; lockExpiresAt: number; serverNow: number };
+  | ({ step: "locked"; values: EmailFindValues } & AttemptLock);
 
 const RATE_LIMITED_MESSAGE = "시도가 많아 잠시 막았습니다. 잠시 뒤에 다시 시도해 주세요";
 const BAD_BIRTH_DATE = "생년월일을 확인해 주세요. 1999-04-12 처럼 넣어 주세요";
@@ -62,10 +63,11 @@ export async function findEmailAction(_previous: EmailFindState, formData: FormD
     if (error instanceof ApiError) {
       if (error.status === 404) return { step: "not-found", values };
       if (error.status === 429) {
-        const lockExpiresAt = lockExpiresAtOf(error);
-        return lockExpiresAt === null
-          ? input("form", RATE_LIMITED_MESSAGE)
-          : { step: "locked", values, lockExpiresAt, serverNow: Date.now() };
+        const lock = lockOf(error);
+        if (lock.kind === "locked") return { step: "locked", values, ...lock.attemptLock };
+        // 해제 시각 칸이 있는데 읽지 못하면 api 계약이 어긋난 것이다. 요청 제한 문구로 버티고 남긴다.
+        if (lock.kind === "malformed") logUnexpected("email-find", error);
+        return input("form", RATE_LIMITED_MESSAGE);
       }
       // 이름 · 번호 · 날짜 모양은 위에서 걸렀으니 남는 400 은 없는 날짜(2월 30일 등)다.
       if (error.status === 400) return input("birthDate", BAD_BIRTH_DATE);
