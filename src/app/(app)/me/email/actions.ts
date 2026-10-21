@@ -8,6 +8,7 @@ import {
   badEmailShape,
   confirmPinFailure,
   intentOf,
+  invalidCurrentPassword,
   invalidPin,
   isEmailShape,
   normalizeNewEmail,
@@ -19,12 +20,21 @@ import {
 import { getMyProfile } from "@/lib/my-profile";
 import { authedRequest, getSavedLoginEmail, saveLoginEmail } from "@/lib/session";
 
-/** 새 이메일로 인증번호 보내기(`POST /me/profile/email-change-pins`). 성공하면 인증번호 단계로. 실패 처리는 lib/email-change.ts. */
-async function requestPin(newEmail: string, previous: EmailChangeState): Promise<EmailChangeState> {
+/**
+ * 새 이메일로 인증번호 보내기(`POST /me/profile/email-change-pins`). 지금 비밀번호가 맞아야 보낸다(WHALEERP-607).
+ * 성공하면 인증번호 단계로. 실패 처리는 lib/email-change.ts.
+ */
+async function requestPin(newEmail: string, currentPassword: string, previous: EmailChangeState): Promise<EmailChangeState> {
   if (!isEmailShape(newEmail)) return badEmailShape(newEmail);
+  const invalid = invalidCurrentPassword(currentPassword, newEmail);
+  if (invalid) return invalid;
   try {
     // api 의 요청 한도는 계정과 IP 로 센다 — 직원의 실제 IP 를 넘긴다.
-    await authedRequest("/me/profile/email-change-pins", { method: "POST", json: { newEmail }, clientIp: clientIpFrom(await headers()) });
+    await authedRequest("/me/profile/email-change-pins", {
+      method: "POST",
+      json: { newEmail, currentPassword },
+      clientIp: clientIpFrom(await headers()),
+    });
   } catch (error) {
     const failure = failureOf(error);
     // 401 의 만료 안내 redirect 와 코드 결함은 그대로 던진다.
@@ -70,12 +80,13 @@ async function confirmPin(pin: string, previous: PinState): Promise<EmailChangeS
 
 /**
  * 이메일 변경 화면의 서버 액션 하나. intent 로 가른다 — request(인증번호 받기) · resend(다시 받기) · confirm(확인) ·
- * edit(이메일 다시 입력, api 를 부르지 않음).
+ * edit(이메일 다시 입력, api 를 부르지 않음). 지금 비밀번호는 상태에 없고 화면이 request · resend 때 폼 값으로 붙인다.
  */
 export async function emailChangeAction(previous: EmailChangeState, formData: FormData): Promise<EmailChangeState> {
   const intent = intentOf(formData.get("intent"), previous);
   if (intent === "edit") return { step: "email", newEmail: previous.newEmail };
   if (previous.step === "pin" && intent === "confirm") return confirmPin(String(formData.get("pin") ?? "").trim(), previous);
-  if (previous.step === "pin" && intent === "resend") return requestPin(previous.newEmail, previous);
-  return requestPin(normalizeNewEmail(String(formData.get("newEmail") ?? "")), { step: "email", newEmail: "" });
+  const currentPassword = String(formData.get("currentPassword") ?? "");
+  if (previous.step === "pin" && intent === "resend") return requestPin(previous.newEmail, currentPassword, previous);
+  return requestPin(normalizeNewEmail(String(formData.get("newEmail") ?? "")), currentPassword, { step: "email", newEmail: "" });
 }

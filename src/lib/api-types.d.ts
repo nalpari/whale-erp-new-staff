@@ -2142,8 +2142,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 이메일 변경 핀 요청 (WHALEERP-191). 새 이메일로 15분짜리 핀을 보낸다. 이메일은 아직 바뀌지 않는다 — 지금 이메일로
-         *     계속 로그인된다. 새 핀 메일이 나가면 앞의 핀은 무효다(보내지 못하면 앞의 핀을 그대로 쓴다)
+         * 이메일 변경 핀 요청 (WHALEERP-191). 지금 비밀번호가 맞으면 새 이메일로 15분짜리 핀을 보낸다. 이메일은 아직 바뀌지
+         *     않는다 — 지금 이메일로 계속 로그인된다. 새 핀 메일이 나가면 앞의 핀은 무효다(보내지 못하면 앞의 핀을 그대로 쓴다)
          */
         post: operations["MyProfileController_requestEmailChangePin"];
         delete?: never;
@@ -5155,6 +5155,11 @@ export interface components {
              * @description 바꿀 새 이메일. 대소문자는 가리지 않고 소문자로 저장한다
              */
             newEmail: string;
+            /**
+             * @description 지금 비밀번호. 맞아야 새 이메일로 핀을 보낸다 — 토큰만 손에 넣은 사람(오염된 바깥 스크립트 등)이 자기 메일로 핀을
+             *     받아 아이디를 바꾸지 못하게(WHALEERP-607, ACC-13). 상한은 비밀번호 변경과 같다
+             */
+            currentPassword: string;
         };
         ChangeMyEmailDto: {
             /** @description 새 이메일로 받은 6자리 핀. 대소문자 · 앞뒤 공백은 가리지 않는다 */
@@ -11290,7 +11295,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 이메일 형식 · 지금 이메일과 같음 */
+            /** @description 지금 비밀번호가 맞지 않음(「지금 비밀번호가 맞지 않습니다」) · 이메일 형식 · 지금 이메일과 같음 */
             400: {
                 headers: {
                     [name: string]: unknown;

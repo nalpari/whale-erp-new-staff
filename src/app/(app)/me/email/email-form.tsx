@@ -8,6 +8,7 @@ import { emailChangeAction } from "./actions";
 
 // 기준: 데모 docs/demo/me 의 email · email-pin(ME-3). 이메일이 로그인 아이디라 새 이메일로 받은 인증번호를 확인한 뒤에만 바뀐다.
 // 두 단계를 한 화면의 서버 액션 상태로 바꿔 그린다. 데모의 「남은 시도 5회」는 api 가 주지 않아 보이지 않는다.
+// 지금 비밀번호(WHALEERP-607, 운영 정책 ACC-13)는 데모에 없어 새 이메일 아래에 더했다.
 
 /** 단계가 바뀔 때 제목에 초점을 옮긴다. 같은 화면에서 바뀌어 경로 알림이 없고, 누른 버튼이 사라져 초점이 body 로 떨어진다. */
 function Lead({ title, children }: { title: string; children: ReactNode }) {
@@ -27,12 +28,19 @@ const BODY = "flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.
 
 export function EmailForm({ currentEmail }: { currentEmail: string }) {
   const [state, formAction, pending] = useActionState<EmailChangeState, FormData>(emailChangeAction, INITIAL_EMAIL_STATE);
+  // 지금 비밀번호는 서버 액션 상태에 싣지 않고(화면으로 되돌아가는 값이다) 여기서 들고, 보낼 때마다 붙인다 — 인증번호 단계의
+  // 다시 받기도 비밀번호가 있어야 한다. 상태로 들어 실패한 뒤 · 인증번호 단계에서 돌아온 뒤에도 남는다.
+  const [currentPassword, setCurrentPassword] = useState("");
+  const send = (formData: FormData) => {
+    formData.set("currentPassword", currentPassword);
+    formAction(formData);
+  };
 
   // 다시 받으면(deadline 이 바뀜) 새로 붙여 앞서 넣은 옛 번호를 비운다 — 새 번호를 보내면 옛 번호는 더 쓸 수 없다.
-  if (state.step === "pin") return <PinStep key={state.deadline} state={state} action={formAction} pending={pending} />;
+  if (state.step === "pin") return <PinStep key={state.deadline} state={state} action={send} pending={pending} />;
 
   return (
-    <form action={formAction} className="flex flex-1 flex-col">
+    <form action={send} className="flex flex-1 flex-col">
       <div className={BODY}>
         <Lead title="이메일을 바꾸면 아이디가 바뀝니다">
           새 이메일로 인증번호를 보냅니다. 확인이 끝나면 다음 로그인부터 새 이메일을 씁니다.
@@ -52,6 +60,18 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
           placeholder="새로 쓸 이메일"
           defaultValue={state.newEmail}
           error={state.problem?.field === "newEmail" ? state.problem.message : undefined}
+        />
+        <TextField
+          label="지금 비밀번호"
+          name="currentPassword"
+          type="password"
+          autoComplete="current-password"
+          required
+          maxLength={128}
+          placeholder="본인 확인을 위해 넣어 주세요"
+          value={currentPassword}
+          onChange={(event) => setCurrentPassword(event.target.value)}
+          error={state.problem?.field === "currentPassword" ? state.problem.message : undefined}
         />
         {state.problem?.field === "form" ? (
           <Alert tone="danger">

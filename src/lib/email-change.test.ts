@@ -7,6 +7,7 @@ import {
   PIN_VALID_MS,
   confirmPinFailure,
   intentOf,
+  invalidCurrentPassword,
   invalidPin,
   isEmailShape,
   normalizeNewEmail,
@@ -105,4 +106,30 @@ test("invalidPin — 비었거나 20자를 넘으면 인증번호 칸 오류", (
   assert.equal(invalidPin("123456", pin), null);
   assert.equal(invalidPin("", pin)?.feedback?.kind, "error");
   assert.notEqual(invalidPin("1".repeat(21), pin), null);
+});
+
+test("인증번호 받기 실패 — 지금 비밀번호가 틀리면 다시 받기 중이어도 이메일 단계의 비밀번호 칸으로", () => {
+  const mismatch = { status: 400, message: "지금 비밀번호가 맞지 않습니다" };
+  const first = requestPinFailure(mismatch, INITIAL_EMAIL_STATE, "x@y.z");
+  assert.deepEqual(first, {
+    state: { step: "email", newEmail: "x@y.z", problem: { field: "currentPassword", message: "지금 비밀번호가 맞지 않습니다" } },
+    log: false,
+  });
+  const resent = requestPinFailure(mismatch, pin, pin.newEmail);
+  assert.deepEqual(resent.state, { step: "email", newEmail: pin.newEmail, problem: { field: "currentPassword", message: "지금 비밀번호가 맞지 않습니다" } });
+  // 다른 한글 400(지금 이메일과 같음)은 그대로 이메일 칸이다.
+  const same = requestPinFailure({ status: 400, message: "지금 쓰는 이메일과 같습니다" }, INITIAL_EMAIL_STATE, "x@y.z");
+  assert.equal(same.state.step === "email" && same.state.problem?.field, "newEmail");
+});
+
+test("invalidCurrentPassword — 비었으면 넣어 달라고, 128자를 넘으면 틀렸다고, 그 밖은 api 가 본다", () => {
+  assert.equal(invalidCurrentPassword("Whale1234!", "x@y.z"), null);
+  assert.equal(invalidCurrentPassword("a".repeat(128), "x@y.z"), null);
+  assert.deepEqual(invalidCurrentPassword("", "x@y.z"), {
+    step: "email",
+    newEmail: "x@y.z",
+    problem: { field: "currentPassword", message: "지금 비밀번호를 넣어 주세요" },
+  });
+  const long = invalidCurrentPassword("a".repeat(129), "x@y.z");
+  assert.equal(long?.step === "email" && long.problem?.message, "지금 비밀번호가 맞지 않습니다");
 });

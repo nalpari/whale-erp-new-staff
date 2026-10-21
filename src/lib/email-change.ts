@@ -9,6 +9,7 @@ import {
   type ApiFailure,
   type Problem,
 } from "./action-errors.ts";
+import { CURRENT_PASSWORD_MISMATCH } from "./password-change.ts";
 
 /** api 의 이메일 변경 핀 유효 시간(MyEmailChangeService PIN_LIFETIME_MS)과 다시 받기 간격(REISSUE_INTERVAL_MS). 안내용이고 판정은 api 가 한다. */
 export const PIN_VALID_MS = 15 * 60 * 1000;
@@ -20,11 +21,12 @@ export type PinFeedback = ({ kind: "error" } & Problem<"pin" | "form">) | { kind
 /**
  * 이메일 변경 화면 상태. 넣은 새 이메일은 쿠키에 두지 않고 이 상태로만 들고 있다 — 새로 고치면 처음부터 다시 받는다
  * (새 번호를 받으면 앞서 받은 번호는 더 쓸 수 없다).
- * - email: 새 이메일 입력. problem 은 이메일 칸 아래(newEmail) 또는 버튼 위 알림(form).
+ * - email: 새 이메일 · 지금 비밀번호 입력. problem 은 이메일 칸 아래(newEmail) · 비밀번호 칸 아래(currentPassword) 또는 버튼 위 알림(form).
+ * 지금 비밀번호는 이 상태에 두지 않는다 — 서버 액션 상태는 화면으로 되돌아가므로, 화면이 들고 있다가 보낼 때마다 붙인다(WHALEERP-607).
  * - pin: 인증번호 입력. deadline · resendAt · serverNow 는 이 Next 서버의 시각이다(남은 시간 · 다시 받기 시계).
  */
 export type EmailChangeState =
-  | { step: "email"; newEmail: string; problem?: Problem<"newEmail" | "form"> }
+  | { step: "email"; newEmail: string; problem?: Problem<"newEmail" | "currentPassword" | "form"> }
   | { step: "pin"; newEmail: string; serverNow: number; deadline: number; resendAt: number; feedback?: PinFeedback };
 
 export type PinState = Extract<EmailChangeState, { step: "pin" }>;
@@ -66,6 +68,8 @@ function reasonOf(failure: { status: number; message: string }, fallback: string
 /**
  * 인증번호 받기(`POST /me/profile/email-change-pins`)의 실패. previous 가 인증번호 단계면 다시 받기다 — 그때는 시계를 그대로 두고
  * 버튼 위에 알린다(칸의 값이 틀린 것이 아니다). 400 형식 · 지금 이메일과 같음, 409 다른 계정이 씀은 이메일 단계의 칸으로 돌려보낸다.
+ * 지금 비밀번호가 틀리면(400, 비밀번호 변경과 같은 사유) 이메일 단계의 비밀번호 칸이다. api 는 비밀번호를 이메일보다 먼저 본다.
+ * 다시 받기 중이어도 같다 — 그 사이 다른 곳에서 비밀번호를 바꿨으면 다시 넣어야 한다.
  */
 export function requestPinFailure(failure: ApiFailure, previous: EmailChangeState, newEmail: string): FailureResult {
   const form = (message: string, log: boolean): FailureResult => ({
@@ -77,6 +81,9 @@ export function requestPinFailure(failure: ApiFailure, previous: EmailChangeStat
   });
   if (failure === "network") return form(CONNECTION_FAILED, false);
   const { status } = failure;
+  if (status === 400 && failure.message === CURRENT_PASSWORD_MISMATCH) {
+    return { state: { step: "email", newEmail, problem: { field: "currentPassword", message: CURRENT_PASSWORD_MISMATCH } }, log: false };
+  }
   if (status === 400 || status === 409) {
     const reason = reasonOf(failure, "이메일을 확인해 주세요");
     return { state: { step: "email", newEmail, problem: { field: "newEmail", message: reason.message } }, log: reason.log };
@@ -125,6 +132,16 @@ export function confirmPinFailure(failure: ApiFailure, previous: PinState): Fail
 export function invalidPin(pin: string, previous: PinState): PinState | null {
   if (pin && pin.length <= 20) return null;
   return { ...previous, feedback: { kind: "error", field: "pin", message: "받은 인증번호를 넣어 주세요" } };
+}
+
+/**
+ * 넣은 지금 비밀번호를 거른다. 맞으면 null, 아니면 비밀번호 칸 오류 상태. 128자는 api RequestEmailChangePinDto 의 상한이고,
+ * 그보다 긴 값은 지금 비밀번호일 수 없어 틀렸다고 알린다(비밀번호 변경과 같다).
+ */
+export function invalidCurrentPassword(currentPassword: string, newEmail: string): EmailChangeState | null {
+  if (currentPassword && currentPassword.length <= 128) return null;
+  const message = currentPassword ? CURRENT_PASSWORD_MISMATCH : "지금 비밀번호를 넣어 주세요";
+  return { step: "email", newEmail, problem: { field: "currentPassword", message } };
 }
 
 /** 형식이 틀린 새 이메일 — api 를 부르지 않고 이메일 칸에 알린다. */
