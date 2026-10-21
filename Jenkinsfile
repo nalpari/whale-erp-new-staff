@@ -3,7 +3,8 @@
 //                 APP_DIR 에 놓아 컨테이너의 /app/.env.production 으로 마운트한다. 이미지에는 들어가지 않는다.
 //                 next start 는 두 프로파일 모두 NODE_ENV=production 이라 컨테이너 안 경로는 같다.
 //   port        → 이 서버에서 열 포트. dev · prod 가 한 서버에 같이 뜨므로 겹치면 안 된다(api 는 8001 · 8000).
-// 배포 방식: Jenkins 가 설치된 서버에서 이미지를 빌드하고 그 자리에서 컨테이너를 띄운다(레지스트리 · SSH 없음).
+// 배포 방식: Jenkins 가 설치된 서버에서 이미지를 빌드해 ECR 에 올리고, 같은 서버에서 그 ECR 이미지를 받아 컨테이너를 띄운다(SSH 없음).
+//   ECR 로그인은 AWS credential(AWS_CRED)로 받은 토큰을 쓴다. Jenkins 에 aws CLI 와 AWS Credentials 플러그인이 있어야 한다.
 def PROFILES = [
   dev : [envFile: 'whale-erp-staff-env-dev',  port: '4001'],
   prod: [envFile: 'whale-erp-staff-env-prod', port: '4000'],
@@ -17,8 +18,11 @@ pipeline {
   }
 
   environment {
-    IMAGE   = 'whale-erp-staff'
-    APP_DIR = '/opt/whale-erp-staff'
+    AWS_DEFAULT_REGION = 'ap-northeast-2'
+    REGISTRY = '494501706948.dkr.ecr.ap-northeast-2.amazonaws.com'
+    IMAGE    = "${REGISTRY}/interplug/whale-erp-staff"
+    AWS_CRED = 'whale-erp-aws'
+    APP_DIR  = '/opt/whale-erp-staff'
   }
 
   options {
@@ -47,6 +51,18 @@ pipeline {
       }
     }
 
+    stage('Push') {
+      steps {
+        withCredentials([aws(credentialsId: env.AWS_CRED)]) {
+          sh '''
+            aws ecr get-login-password | docker login --username AWS --password-stdin "$REGISTRY"
+            docker push $IMAGE:$TAG
+            docker push $IMAGE:$PROFILE-latest
+          '''
+        }
+      }
+    }
+
     stage('Approve') {
       when { expression { params.PROFILE == 'prod' } }
       steps {
@@ -56,13 +72,20 @@ pipeline {
 
     stage('Deploy') {
       steps {
-        withCredentials([file(credentialsId: env.ENV_FILE_CRED, variable: 'ENV_FILE')]) {
+        withCredentials([
+          file(credentialsId: env.ENV_FILE_CRED, variable: 'ENV_FILE'),
+          aws(credentialsId: env.AWS_CRED),
+        ]) {
           // 디렉터리는 700 으로 서버의 다른 사용자를 막고, 파일은 644 로 둔다 — 컨테이너의 node 사용자(uid 1000)가
           // 마운트된 파일을 읽어야 하기 때문이다.
           // 마운트하는 이유: docker run --env-file 은 따옴표를 벗기지 않아, dotenv 로 읽던 따옴표 값이 다르게 들어간다.
           sh '''
             mkdir -p $APP_DIR && chmod 700 $APP_DIR
             install -m 644 "$ENV_FILE" $APP_DIR/.env.$PROFILE
+
+            # 운영 승인을 기다리는 동안 토큰(12시간)이 끝날 수 있어 다시 로그인한다.
+            aws ecr get-login-password | docker login --username AWS --password-stdin "$REGISTRY"
+            docker pull $IMAGE:$TAG
 
             (docker rm -f whale-erp-staff-$PROFILE || true)
             docker run -d --name whale-erp-staff-$PROFILE --restart unless-stopped \
