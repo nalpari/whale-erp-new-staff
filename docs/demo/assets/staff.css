@@ -1858,6 +1858,21 @@ body {
     translate: 0;
   }
 }
+@keyframes staff-toast {
+  0% {
+    opacity: 0;
+    translate: 0 8px;
+  }
+  8%,
+  85% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(*),
   ::view-transition-new(*),

@@ -44,13 +44,11 @@ export function SwitchRow({
   description,
   checked,
   onChange,
-  locked = false,
 }: {
   title: string;
   description: string;
   checked: boolean;
   onChange?: (checked: boolean) => void;
-  locked?: boolean;
 }) {
   const id = useId();
   return (
@@ -61,7 +59,7 @@ export function SwitchRow({
           {description}
         </p>
       </div>
-      <Switch checked={checked} onChange={onChange} disabled={locked} label={title} describedBy={id} />
+      <Switch checked={checked} onChange={onChange} label={title} describedBy={id} />
     </li>
   );
 }
