@@ -268,6 +268,7 @@ components:
 ### Inputs — `TextField`
 - 라벨(13px semibold, 보조) · 입력칸(52px, radius 12, 테두리 #dbe1eb, 안쪽 14, 16px) · 안내(12px, 흐림). 사이 8px.
 - **Focus:** 테두리만 남보라. **Error:** 테두리 #ef4444 + 안내 자리에 오류 문구.
+- **Password:** `type="password"` 면 칸 오른쪽 끝에 눈 버튼(아이콘 20px `eye.svg` · `eye-off.svg`, 보조 글자색, 누르는 칸 44px · radius 10)이 붙어 비밀번호를 보이고 감춘다. 글자가 버튼 밑으로 가지 않게 오른쪽 안쪽 여백은 52.
 
 ### Notice — `Notice`
 안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14. 아이콘은 20px 칸 가운데, 글과 사이 6. 강조할 말은 `<strong>` (기본 글자색 bold).
@@ -297,11 +298,13 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **BottomSheet:** 네이티브 `<dialog>`. 흰 바탕 · 위 모서리 26 · 위 그림자 · 40×4 손잡이 · 제목 20px bold · 설명 14px · 좌우 24. 뒤 화면 #17253D 38% + 1.5px 흐림. 아래에서 260ms 로 올라오고 200ms 로 내려간다. 뒤 화면·Esc·「닫기」로 닫는다.
 - **SheetOption:** 52px · radius 12 · #E4E8EF 테두리 · 15px semibold. 고른 것은 19px 체크.
 
-### Dock · Alert · DangerButton
+### Dock · Alert · DangerButton · Toast · CheckBox
 데모 조각에서 공통 부품으로 올린 것이다(데모 `docs/demo/src/ui.mjs` 의 같은 이름 함수는 따로 고친다).
 - **Dock:** 화면 아래 버튼 줄. 흰 바탕 · 위 14 · 사이 8 · 아래 safe area 와 24 중 큰 쪽 · 본문이 짧으면 맨 아래에 붙는다. 좌우 24, 로그인 · 비밀번호 재설정은 30.
 - **Alert:** 경고 안내 판. radius 12 · 안쪽 14 · 13px · `<strong>` bold. `warning` #FFF6E5/#956013 · `danger` #FEE2E2/#DC2626.
 - **DangerButton:** 되돌리기 어려운 확정. 52px · radius 12 · 15px bold · 오류색 바탕, 누르면 #DC2626. 로그아웃 시트.
+- **Toast:** 끝난 일을 알리는 한 줄. 짙은 남색 90% · radius 12 · 13px semibold 흰 글자 · 화면 아래 120px 위 · `role="status"`. 떠올라 2초쯤 머문 뒤 사라진다(`staff-toast`, 2.4s). 상태를 들지 않아 다시 띄우려면 쓰는 쪽이 `key` 를 바꾼다. 내 정보의 저장 · 동의 바꾸기, 비밀번호 · 이메일 변경 뒤 돌아왔을 때(`me/changed-toast.tsx`).
+- **CheckBox:** TO-DO 체크칸 모양의 체크박스. 28px · radius 2 · 꺼짐 옅은 남보라 · 켜짐 남보라에 흰 체크, 글자 14px 보조 글자까지 눌리고 누르는 칸 44px. 폼 값은 숨은 칸으로 싣는다(React 19 폼 초기화가 체크를 되돌려도 값이 남게). 로그인의 아이디 저장 · 자동 로그인.
 
 ### Header — `TopBar` · `SectionTitle` · `PageHeader`
 - **PageHeader:** 하위 화면 머리줄. 흰 바탕 · 최소 72px · 뒤로(19px) · 제목 18px bold · 오른쪽 아이콘 하나. 뒤로 가기는 보이는 24px 칸 대신 44px 로 눌린다(-10px 여백). 오른쪽 `action` 도 쓰는 쪽이 같은 방식으로 44px 칸을 만들어 넘긴다.
@@ -331,7 +334,7 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 ## Do's and Don'ts
 
 ### Do:
-- **Do** 직원앱 화면은 `StaffRoot` 안에 둔다. 밝은 테마·글꼴·포커스색·자동완성 바탕은 `StaffRoot` 가 걸고, 루트 `globals.css` 는 토큰과 바탕색·화면 이동 슬라이드만 둔다.
+- **Do** 직원앱 화면은 `StaffRoot` 안에 둔다. 밝은 테마·글꼴·포커스색·자동완성 바탕은 `StaffRoot` 가 걸고, 루트 `globals.css` 는 토큰과 바탕색·화면 이동 슬라이드·토스트 애니메이션(`staff-toast`)만 둔다.
 - **Do** 색은 `--color-staff-*` 토큰에서 가져온다. 배지 색처럼 한 곳에만 나오는 색은 쓰는 자리에 직접 적고 주석을 단다.
 - **Do** 누를 것은 44px 이상으로 둔다. 주 동작은 52px.
 - **Do** 색·누름 전환은 150~200ms, `cubic-bezier(0.23,1,0.32,1)` 하나로 맞춘다. 자리를 옮기는 움직임(바텀시트 260ms, 화면 슬라이드 320ms)은 더 길게 둔다.

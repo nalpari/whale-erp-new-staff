@@ -3,7 +3,7 @@
 import { useActionState, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { Alert, Button, Notice } from "@/components/common";
 import { AuthScreen, CONNECTION_FAILED_MESSAGE } from "../../_components/auth-screen";
-import { NewPasswordFields } from "../_components/new-password-fields";
+import { NewPasswordFields } from "@/app/_components/new-password-fields";
 import { openLinkAction, resetPasswordWithLinkAction, type LinkPasswordState, type OpenLinkState } from "../actions";
 
 // 기준: 데모 docs/demo/src/pages/login 의 temp(새 비밀번호) · link-used(쓸 수 없는 링크).

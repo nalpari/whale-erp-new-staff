@@ -7,10 +7,12 @@ import {
   ACCOUNT_COOKIE,
   DEVICE_ID_COOKIE,
   REFRESH_TOKEN_COOKIE,
+  SAVED_EMAIL_COOKIE,
   accessTokenCookie,
   clearSessionCookies,
   deviceIdCookie,
   parseAccountCookie,
+  savedEmailCookie,
   untilCookie,
   type Account,
 } from "./session-cookies";
@@ -42,6 +44,18 @@ export async function saveLogin(result: Schemas["LoginResponseDto"]): Promise<vo
   jar.set(ACCOUNT_COOKIE, JSON.stringify(result.account), until);
 }
 
+/** 「아이디 저장」. 이메일이 있으면 1년 동안 두고, null 이면 지운다. 서버 액션에서만 부른다. */
+export async function saveLoginEmail(email: string | null): Promise<void> {
+  const jar = await cookies();
+  if (email) jar.set(SAVED_EMAIL_COOKIE, email, savedEmailCookie());
+  else jar.delete(SAVED_EMAIL_COOKIE);
+}
+
+/** 로그인 화면이 이메일 칸을 채울 저장된 이메일. */
+export async function getSavedLoginEmail(): Promise<string | null> {
+  return (await cookies()).get(SAVED_EMAIL_COOKIE)?.value || null;
+}
+
 export async function getSession(): Promise<Session | null> {
   const jar = await cookies();
   const accessToken = jar.get(ACCESS_TOKEN_COOKIE)?.value;
@@ -62,7 +76,7 @@ export async function requireSession(): Promise<Session> {
   return session;
 }
 
-/** 서버 액션 · 라우트 핸들러에서만 부른다. device_id 는 남긴다. */
+/** 서버 액션 · 라우트 핸들러에서만 부른다. device_id · saved_email(아이디 저장)은 남긴다. */
 export async function clearSession(): Promise<void> {
   clearSessionCookies(await cookies());
 }

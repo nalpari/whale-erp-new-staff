@@ -9,12 +9,14 @@ export const ACCESS_TOKEN_COOKIE = "access_token";
 export const REFRESH_TOKEN_COOKIE = "refresh_token";
 /**
  * 로그인 응답의 account({ accountId, email, realName, status }) JSON. **로그인한 순간의 값**이다 — 갱신 응답에는 계정이
- * 없고 api 에 계정 조회도 없어, 관리자가 상태를 바꾸거나 이메일이 바뀌어도 다시 로그인할 때까지 그대로다. 상태처럼 바뀌는
- * 값으로 화면 동작을 가르려면 그 화면의 API 로 다시 읽는다.
+ * 없어, 관리자가 상태를 바꾸거나 내 정보에서 이메일을 바꿔도 다시 로그인할 때까지 그대로다. 지금 값이 필요한 화면은
+ * `GET /me/profile`(getMyProfile)로 다시 읽는다.
  */
 export const ACCOUNT_COOKIE = "account";
 /** 로그인의 deviceIdentifier. 같은 기기로 다시 로그인하면 그 기기의 이전 접속만 끊긴다. 로그아웃해도 남긴다. */
 export const DEVICE_ID_COOKIE = "device_id";
+/** 「아이디 저장」을 켜고 로그인한 이메일. 로그인 화면이 칸을 채운다. 로그아웃해도 남기고, 끄고 로그인하면 지운다. */
+export const SAVED_EMAIL_COOKIE = "saved_email";
 
 /**
  * 액세스 토큰 쿠키 수명. 토큰(JWT)은 api 가 낸 때부터 15분인데 쿠키는 브라우저가 받은 때부터 세므로,
@@ -23,6 +25,7 @@ export const DEVICE_ID_COOKIE = "device_id";
  */
 const ACCESS_TOKEN_SECONDS = 15 * 60 - 60;
 const DEVICE_ID_SECONDS = 365 * 24 * 60 * 60;
+const SAVED_EMAIL_SECONDS = 365 * 24 * 60 * 60;
 
 const BASE = {
   httpOnly: true, // 브라우저 JS 가 토큰을 읽지 못하게 한다
@@ -32,9 +35,13 @@ const BASE = {
 };
 
 export const accessTokenCookie = () => ({ ...BASE, maxAge: ACCESS_TOKEN_SECONDS });
-/** 갱신 토큰 · account 쿠키. 갱신할 때마다 api 가 알려 주는 새 만료 시각까지 민다. */
+/**
+ * 갱신 토큰 · account 쿠키. 갱신할 때마다 api 가 알려 주는 새 만료 시각까지 민다. 그 시각은 로그인 때 고른 자동 로그인으로
+ * 정해진다 — 켜면 마지막 사용 후 30일, 끄면 7일(api rememberMe, 2026-10-20 노영주). 쿠키도 같은 시각을 그대로 쓴다.
+ */
 export const untilCookie = (expires: Date) => ({ ...BASE, expires });
 export const deviceIdCookie = () => ({ ...BASE, maxAge: DEVICE_ID_SECONDS });
+export const savedEmailCookie = () => ({ ...BASE, maxAge: SAVED_EMAIL_SECONDS });
 
 /**
  * account 쿠키를 읽는다. 읽히지 않거나 모양이 다르면(손상 · `"null"` · 필드 이름이 바뀐 배포 전의 옛 쿠키) null.

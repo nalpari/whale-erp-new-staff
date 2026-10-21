@@ -12,7 +12,7 @@ export const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
   { href: "/work", label: "근무", icon: "/icons/nav-work.svg", activeIcon: "/icons/nav-work-on.svg" },
   { href: "/check-in", label: "출퇴근", icon: "/icons/nav-attendance.svg", ready: false },
   { href: "/pay", label: "급여", icon: "/icons/nav-pay.svg" },
-  { href: "/me", label: "내 정보", icon: "/icons/nav-me.svg", ready: false },
+  { href: "/me", label: "내 정보", icon: "/icons/nav-me.svg" },
 ];
 
 // Figma 02.Main 하단 메뉴(node 19:2077): 흰 바탕 · 위 1px #EFF2F6 · 위로 아주 옅은 그림자 · 안쪽 좌우 12 위아래 9.

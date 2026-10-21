@@ -25,3 +25,5 @@ export { TodoList, TodoItem } from "./todo-list";
 export { Dock } from "./dock";
 export { Alert } from "./alert";
 export { DangerButton } from "./danger-button";
+export { Toast } from "./toast";
+export { CheckBox } from "./check-box";

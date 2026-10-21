@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { NEXT_PARAM, safeNextPath } from "@/lib/login-return";
+import { getSavedLoginEmail } from "@/lib/session";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "로그인 · Whale ERP" };
@@ -15,6 +16,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       reset={reset !== undefined}
       unavailable={unavailable !== undefined}
       next={safeNextPath(typeof next === "string" ? next : undefined)}
+      savedEmail={await getSavedLoginEmail()}
     />
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Alert, Button, Dock } from "@/components/common";
+import { LogoutSheet } from "./me/logout-sheet";
 
 // 로그인한 화면의 예상하지 못한 오류. 기본 영문 오류 화면 대신 한글 안내와 「다시 시도」를 보인다.
 // 서버 쪽 원문은 instrumentation.ts 가 남기고, 화면에는 digest(서버 로그를 찾는 번호)만 보인다.
@@ -22,6 +23,8 @@ export default function AppError({ error, retry }: { error: Error & { digest?: s
         <Button variant="ghost" href="/home">
           홈으로
         </Button>
+        {/* 로그아웃은 내 정보 맨 아래에만 있어, 내 정보를 열지 못해도 여기서 나갈 수 있게 둔다(공용 기기, 2026-10-20 노영주). */}
+        <LogoutSheet />
       </Dock>
     </>
   );

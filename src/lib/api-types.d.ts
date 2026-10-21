@@ -48,7 +48,7 @@ export interface paths {
         put?: never;
         /**
          * 액세스 토큰 재발급. 갱신 토큰은 회전하지 않으므로 쓰던 것을 계속 쓴다.
-         *     갱신할 때마다 접속 상태의 만료가 지금부터 30일 뒤로 밀린다. 만료되었거나
+         *     갱신할 때마다 접속 상태의 만료가 지금부터 30일(자동 로그인을 끈 접속은 7일) 뒤로 밀린다. 만료되었거나
          *     종료된 접속이면 401 이고, 앱은 로그인 화면으로 보낸다.
          *
          *     요청 제한: 갱신 토큰마다 10분에 10번, IP 는 1분에 600번(throttle.ts).
@@ -530,9 +530,10 @@ export interface paths {
         };
         /** 공통코드 그룹 목록. 플랫폼고정 · 플랫폼제공 그룹을 표시 순서대로. */
         get: operations["CodeGroupsController_listGroups"];
-        /** 그룹 목록 패널 저장. 기존 그룹 수정(`updates`)과 새 그룹(`creates`)을 한 번에. */
-        put: operations["CodeGroupsController_saveGroups"];
-        post?: never;
+        /** 그룹 수정. 기존 그룹 여러 개를 한 번에 — 하나라도 없으면 아무것도 고치지 않는다. */
+        put: operations["CodeGroupsController_updateGroups"];
+        /** 그룹 등록. 새 그룹 여러 개를 한 번에 — 하나라도 막히면 아무것도 생기지 않는다. */
+        post: operations["CodeGroupsController_createGroups"];
         delete?: never;
         options?: never;
         head?: never;
@@ -548,9 +549,10 @@ export interface paths {
         };
         /** 고른 그룹의 상세 코드(플랫폼 원본). BP전용 코드는 나오지 않는다. */
         get: operations["CodeGroupsController_listItems"];
-        /** 상세 코드 목록 패널 저장. 기존 코드 수정(`updates`)과 새 코드(`creates`)를 한 번에. */
-        put: operations["CodeGroupsController_saveItems"];
-        post?: never;
+        /** 상세 코드 수정. 기존 코드 여러 개를 한 번에 — 하나라도 없으면 아무것도 고치지 않는다. */
+        put: operations["CodeGroupsController_updateItems"];
+        /** 상세 코드 등록. 새 코드 여러 개를 한 번에 — 하나라도 막히면 아무것도 생기지 않는다. */
+        post: operations["CodeGroupsController_createItems"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1561,50 +1563,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/posts": {
+    "/platform-notices": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** 공지사항 또는 FAQ 목록. 최근 수정일 내림차순. */
-        get: operations["PostsController_list"];
+        /** 목록. 최근 수정일 내림차순. */
+        get: operations["PlatformNoticesController_list"];
         put?: never;
-        /**
-         * 등록. 임시저장 · 게시 · 비공개 어느 상태로든 만든다. 게시하려면 노출 대상이 있어야 한다.
-         *     JSON 이나, 첨부가 있으면 multipart(텍스트 칸 + `files`)로 보낸다. 첨부는 공지사항만이다.
-         */
-        post: operations["PostsController_create"];
+        /** 등록. 임시저장 · 게시 · 비공개 어느 상태로든 만든다. 게시하려면 노출 대상이 있어야 한다. */
+        post: operations["PlatformNoticesController_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/posts/{postId}": {
+    "/platform-notices/{postId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["PostsController_get"];
+        get: operations["PlatformNoticesController_get"];
         /**
          * 수정. 게시 상태 · 상단 고정 · 노출 대상 · 첨부도 이 요청으로 바꾼다. 게시된 글이면 바로 사용자에게 보인다.
          *     첨부는 `files` 로 더하고 `removeAttachmentIds` 로 뺀다 — 남는 것과 더한 것이 합쳐 5개까지다.
          *     읽은 뒤 다른 관리자가 고쳤으면 409 — 다시 읽어 최신 내용을 본다.
          */
-        put: operations["PostsController_update"];
+        put: operations["PlatformNoticesController_update"];
         post?: never;
         /** 지운다(지움 표시). 사용자에게 보이지 않고 행은 남는다. */
-        delete: operations["PostsController_remove"];
+        delete: operations["PlatformNoticesController_remove"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/posts/{postId}/attachments/{postAttachmentId}/download-url": {
+    "/platform-notices/{postId}/attachments/{postAttachmentId}/download-url": {
         parameters: {
             query?: never;
             header?: never;
@@ -1612,7 +1611,7 @@ export interface paths {
             cookie?: never;
         };
         /** 첨부 내려받기 주소. 300초 동안 쓸 수 있는 서명 주소이고, 받으면 원래 파일 이름으로 저장된다. */
-        get: operations["PostsController_attachmentDownloadUrl"];
+        get: operations["PlatformNoticesController_attachmentDownloadUrl"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1621,14 +1620,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/public-posts": {
+    "/platform-faqs": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["PublicPostsController_list"];
+        /** 목록. 최근 수정일 내림차순. */
+        get: operations["PlatformFaqsController_list"];
+        put?: never;
+        /** 등록. 임시저장 · 게시 · 비공개 어느 상태로든 만든다. 게시하려면 노출 대상이 있어야 한다. */
+        post: operations["PlatformFaqsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform-faqs/{postId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PlatformFaqsController_get"];
+        /** 수정. 게시된 글이면 바로 사용자에게 보인다. 읽은 뒤 다른 관리자가 고쳤으면 409 — 다시 읽어 최신 내용을 본다. */
+        put: operations["PlatformFaqsController_update"];
+        post?: never;
+        /** 지운다(지움 표시). 사용자에게 보이지 않고 행은 남는다. */
+        delete: operations["PlatformFaqsController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/support-notices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SupportNoticesController_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1637,14 +1672,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/public-posts/{postId}": {
+    "/support-notices/{postId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["PublicPostsController_get"];
+        /** 가드가 권한을 본 뒤에 이전 · 다음을 읽어 붙인다 — 권한 없는 사람에게 다른 글 제목을 읽지 않는다. */
+        get: operations["SupportNoticesController_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1653,15 +1689,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/public-posts/{postId}/attachments/{postAttachmentId}/download-url": {
+    "/support-notices/{postId}/attachments/{postAttachmentId}/download-url": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** 공지사항 첨부 내려받기 주소. 300초 동안 쓸 수 있고, 받으면 원래 파일 이름으로 저장된다. */
-        get: operations["PublicPostsController_attachmentDownloadUrl"];
+        /** 첨부 내려받기 주소(#282). 그 관리자에게 보이는 공지사항(상세와 같은 판정)의 첨부가 아니면 404. */
+        get: operations["SupportNoticesController_attachmentDownloadUrl"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1670,14 +1706,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/support-posts": {
+    "/support-faqs": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["SupportPostsController_list"];
+        get: operations["SupportFaqsController_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1686,14 +1722,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/support-posts/{postId}": {
+    "/public-notices": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["SupportPostsController_get"];
+        get: operations["PublicNoticesController_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1702,18 +1738,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/support-posts/{postId}/attachments/{postAttachmentId}/download-url": {
+    "/public-notices/{postId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * 공지사항 첨부 내려받기 주소(#282). 첨부는 공지사항에만 있으므로 공지사항(MN000035) 조회 권한을 먼저 본다.
-         *     그 관리자에게 보이는 공지사항(상세와 같은 판정)의 첨부가 아니면 404.
-         */
-        get: operations["SupportPostsController_attachmentDownloadUrl"];
+        get: operations["PublicNoticesController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/public-notices/{postId}/attachments/{postAttachmentId}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 첨부 내려받기 주소. 300초 동안 쓸 수 있고, 받으면 원래 파일 이름으로 저장된다. */
+        get: operations["PublicNoticesController_attachmentDownloadUrl"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/public-faqs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicFaqsController_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1851,8 +1916,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 도입문의 목록. 접수 최신순. */
-        get: operations["LeadsAdminController_list"];
+        get?: never;
         put?: never;
         /** 도입문의 접수. 본문 없이 201 을 돌려준다 — 문의자가 상태를 조회하는 화면은 없다. */
         post: operations["LeadsController_create"];
@@ -1862,7 +1926,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/leads/{leadId}": {
+    "/platform-leads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 도입문의 목록. 접수 최신순. */
+        get: operations["LeadsAdminController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform-leads/{leadId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1880,7 +1961,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/leads/{leadId}/processing": {
+    "/platform-leads/{leadId}/processing": {
         parameters: {
             query?: never;
             header?: never;
@@ -1897,7 +1978,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/leads/{leadId}/reply": {
+    "/platform-leads/{leadId}/reply": {
         parameters: {
             query?: never;
             header?: never;
@@ -1914,7 +1995,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/leads/{leadId}/reply-mail/resend": {
+    "/platform-leads/{leadId}/reply-mail/resend": {
         parameters: {
             query?: never;
             header?: never;
@@ -1934,7 +2015,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/leads/{leadId}/internal-memo": {
+    "/platform-leads/{leadId}/internal-memo": {
         parameters: {
             query?: never;
             header?: never;
@@ -1951,7 +2032,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/inquiries": {
+    "/platform-inquiries": {
         parameters: {
             query?: never;
             header?: never;
@@ -1968,7 +2049,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/inquiries/{inquiryId}": {
+    "/platform-inquiries/{inquiryId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1985,7 +2066,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/inquiries/{inquiryId}/attachments/{inquiryAttachmentId}/download-url": {
+    "/platform-inquiries/{inquiryId}/attachments/{inquiryAttachmentId}/download-url": {
         parameters: {
             query?: never;
             header?: never;
@@ -2005,7 +2086,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/inquiries/{inquiryId}/processing": {
+    "/platform-inquiries/{inquiryId}/processing": {
         parameters: {
             query?: never;
             header?: never;
@@ -2022,7 +2103,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/inquiries/{inquiryId}/replies": {
+    "/platform-inquiries/{inquiryId}/replies": {
         parameters: {
             query?: never;
             header?: never;
@@ -2042,7 +2123,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/inquiries/{inquiryId}/internal-memo": {
+    "/platform-inquiries/{inquiryId}/internal-memo": {
         parameters: {
             query?: never;
             header?: never;
@@ -2253,6 +2334,87 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/profile/address": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * 주소 수정 (WHALEERP-189). 계정에 하나라 모든 소속에 같이 보인다. 이미 보낸 근로계약서에는 반영하지 않는다. 주소 세
+         *     칸을 통째로 바꾸므로 상세 주소를 빼고 보내면 비워진다. 변경 전후 값을 계정 변경 이력에 남긴다. 같은 값이면 아무것도
+         *     쓰지 않는다
+         */
+        put: operations["MyProfileController_updateAddress"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/profile/password-change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 비밀번호 변경 (WHALEERP-192). 지금 비밀번호가 틀리거나 새 비밀번호가 규칙에 어긋나면 400 과 사유이고 바꾸지
+         *     않는다. 바꾸면 이 기기는 로그인을 잇고 다른 기기는 다시 로그인한다
+         */
+        post: operations["MyProfileController_changePassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/profile/email-change-pins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 이메일 변경 핀 요청 (WHALEERP-191). 지금 비밀번호가 맞으면 새 이메일로 15분짜리 핀을 보낸다. 이메일은 아직 바뀌지
+         *     않는다 — 지금 이메일로 계속 로그인된다. 새 핀 메일이 나가면 앞의 핀은 무효다(보내지 못하면 앞의 핀을 그대로 쓴다)
+         */
+        post: operations["MyProfileController_requestEmailChangePin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/profile/email-change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 이메일 변경 (WHALEERP-191). 받은 핀이 맞으면 계정 이메일을 핀을 낸 새 이메일로 바꾼다. 다음 로그인부터 새 이메일이고,
+         *     지금 접속은 이어진다
+         */
+        post: operations["MyProfileController_changeEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/memberships": {
         parameters: {
             query?: never;
@@ -2279,8 +2441,196 @@ export interface paths {
         };
         /** 그 소속의 신고 정보 (TAX-8). 주민등록번호 · 계좌번호는 가린 값만 준다 */
         get: operations["MyMembershipsController_taxProfile"];
-        put?: never;
+        /**
+         * 신고 정보 작성 · 수정 (WHALEERP-334). 직원 본인만 — 관리자 토큰은 403. 처음에는 주민등록번호 · 은행 · 계좌번호를 모두,
+         *     고칠 때는 주민등록번호만 또는 급여 계좌(은행 · 계좌번호 함께)만 보낸다. 주민등록번호를 새로 받으면 수집 일시가 바뀌고
+         *     이전 값은 남기지 않는다. 급여 계좌는 다음 급여부터 쓴다. 응답은 조회와 같다(가린 값만).
+         */
+        put: operations["MyMembershipsController_saveTaxProfile"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/location-consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 위치정보 동의 — 미동의 · 철회 상태에서. 지금 시행 중인 위치정보 약관 버전에 동의한 것으로 남는다 (ATT-23) */
+        post: operations["MyConsentController_agreeLocation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/location-consent/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 위치정보 잠시 멈춤 (ATT-26) */
+        post: operations["MyConsentController_pauseLocation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/location-consent/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 위치정보 다시 켜기 (ATT-26) — 새로 동의하지 않는다 */
+        post: operations["MyConsentController_resumeLocation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/location-consent/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 위치정보 동의 철회 (ATT-23). 멈춘 동안에도 된다 */
+        post: operations["MyConsentController_withdrawLocation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/hq-sharing-consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 본사 제공 동의 — 처음이든 철회 뒤든 (ATT-30). 계정에 하나라 소속 가맹 점포 모두에 같이 적용된다 */
+        post: operations["MyConsentController_agreeHqSharing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/hq-sharing-consent/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 본사 제공 동의 철회 (ATT-30) */
+        post: operations["MyConsentController_withdrawHqSharing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/account/invitations/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 초대 확인(WHALEERP-141, 진입 · 가입 화면 가이드 ①·②). 초대 링크의 토큰, 또는 휴대전화번호와 초대 코드 가운데 하나로
+         *     살아 있는 가입 초대를 찾아 근무지 · 고용 형태 · 유효 기간 · 화면이 채울 번호를 준다.
+         */
+        post: operations["StaffSignupController_check"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/account/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 직원 앱 가입(WHALEERP-601 · 142, 가이드 ③·④). 초대를 다시 확인하고 계정을 만들어 직원 레코드에 잇고(가입 완료) 초대를
+         *     수락으로 둔다. 가입을 기다리던 근로계약서는 서명 대기가 된다. 계정 번호는 초대의 번호다. 마치면 로그인 응답과 같은
+         *     모양으로 접속 상태를 준다. 가입하는 날 만 19세 미만이면 계정을 만들지 않고 초대를 「가입 불가」로 둔 뒤 400 이다.
+         */
+        post: operations["StaffSignupController_signup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/invitations/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 초대 확인 — 앱 안에서 넣은 초대 코드(계정의 번호로 찾는다) 또는 로그인한 채 연 초대 링크의 토큰. 근무지 · 고용 형태 ·
+         *     유효 기간과 본사 제공 동의를 물을지(직영이 아니고 계정이 아직 동의하지 않았을 때) 준다.
+         */
+        post: operations["MyInvitationsController_check"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/invitations/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 근무지 더하기 — 초대를 다시 확인하고 그 근무지의 직원 레코드를 이 계정에 잇는다(가입 완료 · 초대 수락). 가입을 기다리던
+         *     근로계약서는 서명 대기가 된다.
+         */
+        post: operations["MyInvitationsController_accept"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2303,6 +2653,11 @@ export interface components {
              *     종료된다. 없으면 기기 단위로 접속을 정리하지 못한다.
              */
             deviceIdentifier?: string;
+            /**
+             * @description 자동 로그인 (2026-10-20). 켜면(또는 빠지면) 접속을 마지막 사용 후 30일, 끄면 7일 유지한다. 갱신해도 그 길이로만
+             *     민다 — 갱신 응답의 `refreshTokenExpiresAt` 이 그 기준이다.
+             */
+            rememberMe?: boolean;
         };
         /**
          * @description 가입 연결이 보류된 계정(`LINK_HOLD`)도 로그인된다. 이 값이 보류이면 앱은
@@ -2327,7 +2682,7 @@ export interface components {
             refreshToken: string;
             /**
              * Format: date-time
-             * @description 마지막으로 사용한 때부터 30일이 되는 시각. 사용할 때마다 뒤로 밀린다.
+             * @description 마지막으로 사용한 때부터 30일(로그인 때 `rememberMe: false` 면 7일)이 되는 시각. 사용할 때마다 같은 길이로 뒤로 밀린다.
              */
             refreshTokenExpiresAt: string;
             account: components["schemas"]["LoginAccountResponseDto"];
@@ -2342,7 +2697,7 @@ export interface components {
             /**
              * Format: date-time
              * @description 갱신 토큰은 새로 주지 않는다. 쓰던 것을 계속 쓰고, 이 시각이 마지막으로
-             *     사용한 때부터 30일이 되는 새 만료 시각이다.
+             *     사용한 때부터 30일(자동 로그인을 끄고 로그인한 접속은 7일)이 되는 새 만료 시각이다.
              */
             refreshTokenExpiresAt: string;
         };
@@ -2754,46 +3109,50 @@ export interface components {
             /** @description 조건에 맞는 전체 건수. */
             total: number;
         };
-        UpdateCodeGroupDto: {
-            /**
-             * @description 그룹 코드. 수정이면 대상을 가리킬 뿐 바뀌지 않는다.
-             * @example EMP_TYPE
-             */
-            groupCode: string;
-            /** @description 그룹명. 앞뒤 공백을 지우고 1~50자. */
-            groupName: string;
-            /**
-             * @description 사용 상태.
-             * @enum {string}
-             */
-            status: "ACTIVE" | "INACTIVE";
-            /** @description 표시 순서. 화면이 끌어 옮긴 뒤 1부터 다시 매긴 값. */
-            sortOrder: number;
-        };
         CreateCodeGroupDto: {
-            /**
-             * @description 그룹 코드. 수정이면 대상을 가리킬 뿐 바뀌지 않는다.
-             * @example EMP_TYPE
-             */
-            groupCode: string;
-            /** @description 그룹명. 앞뒤 공백을 지우고 1~50자. */
-            groupName: string;
-            /**
-             * @description 사용 상태.
-             * @enum {string}
-             */
-            status: "ACTIVE" | "INACTIVE";
-            /** @description 표시 순서. 화면이 끌어 옮긴 뒤 1부터 다시 매긴 값. */
-            sortOrder: number;
             /**
              * @description 관리 주체. 플랫폼고정 · 플랫폼제공만. 등록 뒤 바꾸지 않는다.
              * @enum {string}
              */
             manageOwnerCode: "PLATFORM_FIXED" | "PLATFORM_PROVIDED";
+            /**
+             * @description 그룹 코드. 등록 뒤 바뀌지 않는다 — 수정 본문에서는 대상을 가리킬 뿐이다.
+             * @example EMP_TYPE
+             */
+            groupCode: string;
+            /** @description 그룹명. 앞뒤 공백을 지우고 1~50자. */
+            groupName: string;
+            /**
+             * @description 사용 상태.
+             * @enum {string}
+             */
+            status: "ACTIVE" | "INACTIVE";
+            /** @description 표시 순서. 화면이 끌어 옮긴 뒤 1부터 다시 매긴 값. */
+            sortOrder: number;
         };
-        SaveCodeGroupsDto: {
-            updates: components["schemas"]["UpdateCodeGroupDto"][];
-            creates: components["schemas"]["CreateCodeGroupDto"][];
+        CreateCodeGroupsDto: {
+            /** @description 만들 그룹. 1~200행. 한 요청 안에서 그룹 코드가 겹치면 409. */
+            items: components["schemas"]["CreateCodeGroupDto"][];
+        };
+        CodeGroupInputDto: {
+            /**
+             * @description 그룹 코드. 등록 뒤 바뀌지 않는다 — 수정 본문에서는 대상을 가리킬 뿐이다.
+             * @example EMP_TYPE
+             */
+            groupCode: string;
+            /** @description 그룹명. 앞뒤 공백을 지우고 1~50자. */
+            groupName: string;
+            /**
+             * @description 사용 상태.
+             * @enum {string}
+             */
+            status: "ACTIVE" | "INACTIVE";
+            /** @description 표시 순서. 화면이 끌어 옮긴 뒤 1부터 다시 매긴 값. */
+            sortOrder: number;
+        };
+        UpdateCodeGroupsDto: {
+            /** @description 고칠 그룹. 1~200행. 한 요청 안에서 그룹 코드가 겹치면 409. */
+            items: components["schemas"]["CodeGroupInputDto"][];
         };
         CodeItemResponseDto: {
             /** @description 사용 상태. */
@@ -2818,7 +3177,7 @@ export interface components {
         };
         CodeItemInputDto: {
             /**
-             * @description 상세 코드. 기존 행이면 대상을 가리킬 뿐 바뀌지 않는다. SERVICE 그룹이면 서비스 코드다.
+             * @description 상세 코드. 등록 뒤 바뀌지 않는다 — 수정 본문에서는 대상을 가리킬 뿐이다. SERVICE 그룹이면 서비스 코드다.
              * @example FULL
              */
             itemCode: string;
@@ -2835,9 +3194,13 @@ export interface components {
             /** @description 표시 순서. 화면이 끌어 옮긴 뒤 1부터 다시 매긴 값. */
             sortOrder: number;
         };
-        SaveCodeItemsDto: {
-            updates: components["schemas"]["CodeItemInputDto"][];
-            creates: components["schemas"]["CodeItemInputDto"][];
+        CreateCodeItemsDto: {
+            /** @description 만들 상세 코드. 1~500행. 한 요청 안에서 코드가 겹치면 409. */
+            items: components["schemas"]["CodeItemInputDto"][];
+        };
+        UpdateCodeItemsDto: {
+            /** @description 고칠 상세 코드. 1~500행. 한 요청 안에서 코드가 겹치면 409. */
+            items: components["schemas"]["CodeItemInputDto"][];
         };
         BpApplicationResponseDto: {
             /** @description 적용 대상 BP 수(사용 중인 고객 BP). */
@@ -4568,11 +4931,6 @@ export interface components {
          * @enum {string}
          */
         NoticeType: "MAINTENANCE" | "FEATURE" | "TERMS" | "GENERAL";
-        /**
-         * @description 공지사항 · FAQ. 등록 뒤 바꾸지 않는다.
-         * @enum {string}
-         */
-        PostContentType: "NOTICE" | "FAQ";
         CreatePostDto: {
             /** @description 게시 상태. 게시하려면 노출 대상이 하나 이상 있어야 한다. */
             status: components["schemas"]["PostStatus"];
@@ -4583,8 +4941,6 @@ export interface components {
              * @default []
              */
             audiences: ("GUEST" | "MEMBER" | "BP" | "STORE")[];
-            /** @description 공지사항 · FAQ. 등록 뒤 바꾸지 않는다. */
-            contentType: components["schemas"]["PostContentType"];
             /** @description 제목. 200자까지. */
             title: string;
             /**
@@ -4645,6 +5001,8 @@ export interface components {
             /** @description FAQ 카테고리 — 공통코드 FAQ_CATEGORY 의 플랫폼 원본 중 사용 중인 상세코드. FAQ 면 필수. */
             faqCategoryCode?: string | null;
         };
+        /** @enum {string} */
+        PostContentType: "NOTICE" | "FAQ";
         PostListItemDto: {
             contentType: components["schemas"]["PostContentType"];
             status: components["schemas"]["PostStatus"];
@@ -4721,20 +5079,6 @@ export interface components {
             items: components["schemas"]["PublishedPostResponseDto"][];
             total: number;
         };
-        PublishedPostDetailResponseDto: {
-            contentType: components["schemas"]["PostContentType"];
-            noticeType: components["schemas"]["NoticeType"] | null;
-            postId: number;
-            title: string;
-            /** @description 평문. 화면은 HTML 로 그리지 않고 이스케이프해 보인다. */
-            body: string;
-            faqCategoryCode: string | null;
-            /** @description 상단 고정. 목록은 고정 글을 먼저 준다. */
-            isPinned: boolean;
-            /** @description 게시일(YYYY-MM-DD) — 게시 시작일, 없으면 등록 일시의 한국 날짜. */
-            postedDate: string;
-            attachments: components["schemas"]["PostAttachmentDto"][];
-        };
         PostNeighborDto: {
             postId: number;
             title: string;
@@ -4753,14 +5097,28 @@ export interface components {
             isPinned: boolean;
             /** @description 게시일(YYYY-MM-DD) — 게시 시작일, 없으면 등록 일시의 한국 날짜. */
             postedDate: string;
-            attachments: components["schemas"]["PostAttachmentDto"][];
             /**
              * @description 이전 — 목록에서 바로 아래 글(대개 더 오래된 글. 상단 고정 글의 맨 아래에서는 그보다 새 일반 글일 수 있다).
-             *     맨 아래이거나 FAQ 면 null.
+             *     맨 아래면 null.
              */
             prev: components["schemas"]["PostNeighborDto"] | null;
-            /** @description 다음 — 목록에서 바로 위 글(대개 더 새 글). 맨 위이거나 FAQ 면 null. */
+            /** @description 다음 — 목록에서 바로 위 글(대개 더 새 글). 맨 위면 null. */
             next: components["schemas"]["PostNeighborDto"] | null;
+            attachments: components["schemas"]["PostAttachmentDto"][];
+        };
+        PublishedPostDetailResponseDto: {
+            contentType: components["schemas"]["PostContentType"];
+            noticeType: components["schemas"]["NoticeType"] | null;
+            postId: number;
+            title: string;
+            /** @description 평문. 화면은 HTML 로 그리지 않고 이스케이프해 보인다. */
+            body: string;
+            faqCategoryCode: string | null;
+            /** @description 상단 고정. 목록은 고정 글을 먼저 준다. */
+            isPinned: boolean;
+            /** @description 게시일(YYYY-MM-DD) — 게시 시작일, 없으면 등록 일시의 한국 날짜. */
+            postedDate: string;
+            attachments: components["schemas"]["PostAttachmentDto"][];
         };
         /** @enum {string} */
         NotificationRelatedType: "CONTRACT" | "INQUIRY" | "LEAD" | "STAFF_MEMBER";
@@ -5478,6 +5836,45 @@ export interface components {
             addressDetail: string | null;
             hqSharingConsent: components["schemas"]["MyHqSharingConsentDto"];
             locationConsent: components["schemas"]["MyLocationConsentDto"];
+            /**
+             * Format: date-time
+             * @description 비밀번호를 마지막으로 정한 시각 — 바꾼 적이 없으면 가입 시각. 오래되면 화면이 변경을 권한다(WHALEERP-194). 몇 달을
+             *     「오래」로 볼지는 화면이 정한다
+             */
+            passwordChangedAt: string;
+        };
+        UpdateMyAddressDto: {
+            /** @description 우편번호 — 도로명 주소 체계의 5자리 */
+            zipCode: string;
+            /** @description 도로명 주소 — 주소 검색에서 고른 값 */
+            address: string;
+            /** @description 상세 주소. 비우거나 빼면 null 로 저장한다 — 주소 세 칸을 통째로 바꾼다 */
+            addressDetail?: string | null;
+        };
+        ChangeMyPasswordDto: {
+            /** @description 지금 비밀번호 */
+            currentPassword: string;
+            /**
+             * @description 새 비밀번호. 규칙상 20자까지이고, 문자 종류 · 길이 · 이메일 규칙은 서버가 보고 어긋나면 사유를 준다. 여기 128 은 규칙이
+             *     아니라 터무니없이 긴 입력(scrypt 에 큰 값을 먹이는 일)을 막는 상한이다 — 20 으로 내리면 사유 대신 검증 문구가 나간다.
+             */
+            newPassword: string;
+        };
+        RequestEmailChangePinDto: {
+            /**
+             * Format: email
+             * @description 바꿀 새 이메일. 대소문자는 가리지 않고 소문자로 저장한다
+             */
+            newEmail: string;
+            /**
+             * @description 지금 비밀번호. 맞아야 새 이메일로 핀을 보낸다 — 토큰만 손에 넣은 사람(오염된 바깥 스크립트 등)이 자기 메일로 핀을
+             *     받아 아이디를 바꾸지 못하게(WHALEERP-607, ACC-13). 상한은 비밀번호 변경과 같다
+             */
+            currentPassword: string;
+        };
+        ChangeMyEmailDto: {
+            /** @description 새 이메일로 받은 6자리 핀. 대소문자 · 앞뒤 공백은 가리지 않는다 */
+            pin: string;
         };
         MyStoreDto: {
             storeId: number;
@@ -5519,6 +5916,101 @@ export interface components {
             staffMemberId: number;
             /** @description 이 소속에 낸 신고 정보. 아직 내지 않았으면 null */
             taxProfile: components["schemas"]["MyTaxProfileDto"] | null;
+        };
+        SaveMyTaxProfileDto: {
+            /** @description 주민등록번호 13자리(외국인등록번호 포함). 앞 7자리가 가입한 생년월일과 맞아야 한다 */
+            rrn?: string;
+            /** @description 은행 — 공통코드 BANK 의 코드 */
+            bankCode?: string;
+            /** @description 급여 계좌번호 — 숫자 10~16자리(하이픈은 지운다). 예금주는 본인이어야 한다 */
+            payrollAccountNumber?: string;
+        };
+        InvitationLookupDto: {
+            /** @description 초대 링크의 토큰(base64url 43자) */
+            token?: string;
+            /** @description 초대를 받은 휴대전화번호 — 숫자 10~11자리(하이픈은 지운다) */
+            phone?: string;
+            /** @description 초대 코드 — 대문자 · 숫자 8자리, 0 · O · 1 · I 는 없다. 소문자로 넣어도 대문자로 맞춰 본다 */
+            code?: string;
+        };
+        InvitationCheckResponseDto: {
+            /**
+             * @description 고용 형태 — 정직원 · 파트타이머
+             * @enum {string}
+             */
+            employmentType: "FULL_TIME" | "PART_TIME";
+            /** @description 초대한 근무지(점포) 이름 */
+            storeName: string;
+            /**
+             * Format: date-time
+             * @description 초대가 끝나는 시각(보낸 때부터 30일)
+             */
+            expiresAt: string;
+            /** @description 가입 화면이 채울 휴대전화번호(읽기 전용) — 초대(근로계약서)의 번호 */
+            phone: string;
+            /** @description 본사 제공 동의를 물을지 — 직영이 아닌 점포이고 아직 동의하지 않았다(운영 정책 ATT-30) */
+            asksHqSharingConsent: boolean;
+        };
+        StaffSignupDto: {
+            /**
+             * @description 성별 — 남 · 여
+             * @enum {string}
+             */
+            gender?: "MALE" | "FEMALE";
+            /**
+             * Format: email
+             * @description 로그인 아이디. 소문자로 맞춰 저장한다(accounts_email_lower). 핀으로 확인하지 않는다
+             */
+            email: string;
+            /** @description 영문 대문자 · 소문자 · 숫자 · 특수문자 중 3가지 이상이면 8자, 2가지면 10자 이상, 20자까지 */
+            password: string;
+            name: string;
+            /** @description YYYY-MM-DD. 가입하는 날(한국 시간) 만 19세 미만이면 가입하지 않는다(운영 정책 ACC-22). 가입한 뒤 고칠 수 없다 */
+            birthDate: string;
+            /** @description 외국인 여부 — 체크하지 않으면 내국인(false) */
+            isForeigner?: boolean;
+            /** @description 우편번호 5자리 — 주소 검색 API 값(ACC-20) */
+            zipCode: string;
+            /** @description 기본주소(도로명) — 주소 검색 API 값 */
+            address: string;
+            /** @description 상세주소 — 직접 입력 */
+            addressDetail?: string;
+            /**
+             * @description 본사 제공 동의(운영 정책 ATT-30, 선택). 초대 확인의 asksHqSharingConsent 가 true 일 때만 쓴다 — 직영 점포면 보내도
+             *     저장하지 않는다. 동의는 계정에 하나다(api #78). 동의하지 않아도 가입과 근무는 그대로다
+             */
+            hqSharingConsented?: boolean;
+            /** @description 이 기기 — 로그인과 같다. 같은 기기의 앞 접속을 끝낸다 */
+            deviceIdentifier?: string;
+            /** @description 초대 링크의 토큰(base64url 43자) */
+            token?: string;
+            /** @description 초대를 받은 휴대전화번호 — 숫자 10~11자리(하이픈은 지운다) */
+            phone?: string;
+            /** @description 초대 코드 — 대문자 · 숫자 8자리, 0 · O · 1 · I 는 없다. 소문자로 넣어도 대문자로 맞춰 본다 */
+            code?: string;
+        };
+        MyInvitationLookupDto: {
+            /** @description 초대 링크의 토큰(base64url 43자) */
+            token?: string;
+            /** @description 초대 코드 — 대문자 · 숫자 8자리, 0 · O · 1 · I 는 없다. 소문자로 넣어도 대문자로 맞춰 본다 */
+            code?: string;
+        };
+        AcceptMyInvitationDto: {
+            /** @description 초대 링크의 토큰(base64url 43자) */
+            token?: string;
+            /** @description 초대 코드 — 대문자 · 숫자 8자리, 0 · O · 1 · I 는 없다. 소문자로 넣어도 대문자로 맞춰 본다 */
+            code?: string;
+            /**
+             * @description 본사 제공 동의(운영 정책 ATT-30, 선택). 확인의 asksHqSharingConsent 가 true 일 때만 쓴다 — 직영 점포이거나 계정이
+             *     이미 동의했으면 보내도 바꾸지 않는다. 동의는 계정에 하나다(api #78)
+             */
+            hqSharingConsented?: boolean;
+        };
+        AcceptMyInvitationResponseDto: {
+            /** @description 이 계정에 이어진 직원 레코드 */
+            staffMemberId: number;
+            /** @description 근무지(점포) 이름 */
+            storeName: string;
         };
     };
     responses: never;
@@ -5856,7 +6348,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 링크 주소 · 발송기가 없거나 발송 실패 */
+            /** @description 보내기 전에 막힘(메일 템플릿 꺼짐 · 제목 없음 · DB 오류) — 「메일 설정 문제로 … 플랫폼 관리자에게 문의해 주세요」 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 링크 주소(STAFF_APP_URL) · 메일 설정(MAIL_*)이 없거나 메일 서버에 보내지 못함 — 잠시 뒤 다시 */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -6330,7 +6829,7 @@ export interface operations {
             };
         };
     };
-    CodeGroupsController_saveGroups: {
+    CodeGroupsController_updateGroups: {
         parameters: {
             query?: never;
             header?: never;
@@ -6339,7 +6838,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SaveCodeGroupsDto"];
+                "application/json": components["schemas"]["UpdateCodeGroupsDto"];
             };
         };
         responses: {
@@ -6363,7 +6862,42 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 이미 있는 그룹 코드 */
+            /** @description 한 요청에 같은 그룹 코드가 두 번 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CodeGroupsController_createGroups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCodeGroupsDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 쓸 수 없는 계정 · 메뉴 권한 없음 · 플랫폼 관리자가 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 이미 있는(지운 것 포함) 그룹 코드 · 요청 안에서 겹친 그룹 코드 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -6407,7 +6941,7 @@ export interface operations {
             };
         };
     };
-    CodeGroupsController_saveItems: {
+    CodeGroupsController_updateItems: {
         parameters: {
             query?: never;
             header?: never;
@@ -6418,7 +6952,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SaveCodeItemsDto"];
+                "application/json": components["schemas"]["UpdateCodeItemsDto"];
             };
         };
         responses: {
@@ -6442,7 +6976,51 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 이 그룹에 이미 있는 상세 코드 */
+            /** @description 한 요청에 같은 상세 코드가 두 번 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CodeGroupsController_createItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                groupCode: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCodeItemsDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 쓸 수 없는 계정 · 메뉴 권한 없음 · 플랫폼 관리자가 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 그룹 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 이 그룹에 이미 있는(BP별 · BP전용 · 지운 행 포함) 상세 코드 · 요청 안에서 겹친 상세 코드 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -7338,7 +7916,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 같거나 겹치는 URL 을 쓰는 사용 중 메뉴 · 메뉴 코드를 더 만들 수 없음 */
+            /** @description 같거나 겹치는 URL 을 쓰는 사용 중 메뉴 · API 권한 주소(경로 방식 @MenuPermission 컨트롤러의 경로)인 URL · 메뉴 코드를 더 만들 수 없음 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -7431,7 +8009,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 같거나 겹치는 URL 을 쓰는 사용 중 메뉴 · 동시 수정 */
+            /** @description 같거나 겹치는 URL 을 쓰는 사용 중 메뉴 · API 권한 주소인 URL 을 바꾸거나 다른 메뉴가 가져가려 함 · 동시 수정 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -9758,10 +10336,9 @@ export interface operations {
             };
         };
     };
-    PostsController_list: {
+    PlatformNoticesController_list: {
         parameters: {
-            query: {
-                contentType: components["schemas"]["PostContentType"];
+            query?: {
                 /** @description 게시 상태로 거른다. 없으면 전부. */
                 status?: components["schemas"]["PostStatus"];
                 /** @description 쪽 번호. 1부터, 최대 10,000,000 — 건너뛸 행 수가 integer 범위를 넘지 않게. */
@@ -9783,7 +10360,7 @@ export interface operations {
                     "application/json": components["schemas"]["PostListResponseDto"];
                 };
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -9792,7 +10369,7 @@ export interface operations {
             };
         };
     };
-    PostsController_create: {
+    PlatformNoticesController_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -9802,11 +10379,11 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["CreatePostDto"] & {
-                    /** @description 첨부파일 — 공지사항만, JPG · PNG · PDF, 5개 · 파일당 10MB */
+                    /** @description 첨부파일 — JPG · PNG · PDF, 5개 · 파일당 10MB */
                     files?: string[];
                 };
                 "multipart/form-data": components["schemas"]["CreatePostDto"] & {
-                    /** @description 첨부파일 — 공지사항만, JPG · PNG · PDF, 5개 · 파일당 10MB */
+                    /** @description 첨부파일 — JPG · PNG · PDF, 5개 · 파일당 10MB */
                     files?: string[];
                 };
             };
@@ -9820,14 +10397,14 @@ export interface operations {
                     "application/json": components["schemas"]["PostResponseDto"];
                 };
             };
-            /** @description 노출 대상 없이 게시 · 공지사항 유형 없음 · FAQ 카테고리 없음 · 게시 종료일이 시작일보다 앞섬 · FAQ 에 첨부 · 파일 종류 · 크기 · 개수 */
+            /** @description 노출 대상 없이 게시 · 게시 종료일이 시작일보다 앞섬 · 공지사항 유형 없음 · 파일 종류 · 크기 · 개수 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -9843,7 +10420,7 @@ export interface operations {
             };
         };
     };
-    PostsController_get: {
+    PlatformNoticesController_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -9862,14 +10439,14 @@ export interface operations {
                     "application/json": components["schemas"]["PostResponseDto"];
                 };
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없거나 지운 게시물 */
+            /** @description 없거나 지운 공지사항 */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -9878,7 +10455,7 @@ export interface operations {
             };
         };
     };
-    PostsController_update: {
+    PlatformNoticesController_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -9890,11 +10467,11 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["UpdatePostDto"] & {
-                    /** @description 첨부파일 — 공지사항만, JPG · PNG · PDF, 5개 · 파일당 10MB */
+                    /** @description 첨부파일 — JPG · PNG · PDF, 5개 · 파일당 10MB */
                     files?: string[];
                 };
                 "multipart/form-data": components["schemas"]["UpdatePostDto"] & {
-                    /** @description 첨부파일 — 공지사항만, JPG · PNG · PDF, 5개 · 파일당 10MB */
+                    /** @description 첨부파일 — JPG · PNG · PDF, 5개 · 파일당 10MB */
                     files?: string[];
                 };
             };
@@ -9915,14 +10492,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없거나 지운 게시물 */
+            /** @description 없거나 지운 공지사항 */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -9945,7 +10522,7 @@ export interface operations {
             };
         };
     };
-    PostsController_remove: {
+    PlatformNoticesController_remove: {
         parameters: {
             query?: never;
             header?: never;
@@ -9962,21 +10539,21 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 게시물 */
+            /** @description 없는 공지사항 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 이미 지운 게시물 */
+            /** @description 이미 지운 공지사항 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -9985,7 +10562,7 @@ export interface operations {
             };
         };
     };
-    PostsController_attachmentDownloadUrl: {
+    PlatformNoticesController_attachmentDownloadUrl: {
         parameters: {
             query?: never;
             header?: never;
@@ -10005,14 +10582,14 @@ export interface operations {
                     "application/json": components["schemas"]["DownloadUrlResponseDto"];
                 };
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없거나 지운 게시물 · 그 글의 첨부가 아님 · 뺀 첨부 */
+            /** @description 없거나 지운 공지사항 · 그 글의 첨부가 아님 · 뺀 첨부 */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -10028,10 +10605,359 @@ export interface operations {
             };
         };
     };
-    PublicPostsController_list: {
+    PlatformFaqsController_list: {
         parameters: {
-            query: {
-                contentType: components["schemas"]["PostContentType"];
+            query?: {
+                /** @description 게시 상태로 거른다. 없으면 전부. */
+                status?: components["schemas"]["PostStatus"];
+                /** @description 쪽 번호. 1부터, 최대 10,000,000 — 건너뛸 행 수가 integer 범위를 넘지 않게. */
+                page?: number;
+                /** @description 한 쪽 건수. 기본 20, 최대 200. */
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostListResponseDto"];
+                };
+            };
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformFaqsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePostDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostResponseDto"];
+                };
+            };
+            /** @description 노출 대상 없이 게시 · 게시 종료일이 시작일보다 앞섬 · FAQ 카테고리 없음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformFaqsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostResponseDto"];
+                };
+            };
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없거나 지운 FAQ */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformFaqsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePostDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostResponseDto"];
+                };
+            };
+            /** @description 등록과 같음 · 첨부 ID 를 뺌 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없거나 지운 FAQ */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 그사이 다른 관리자가 고침 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformFaqsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 FAQ */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 이미 지운 FAQ */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SupportNoticesController_list: {
+        parameters: {
+            query?: {
+                /** @description 쪽 번호. 1부터, 최대 10,000,000 — 건너뛸 행 수가 integer 범위를 넘지 않게. */
+                page?: number;
+                /** @description 한 쪽 건수. 기본 20, 최대 200. */
+                pageSize?: number;
+                /** @description 공지사항 구분으로 거른다. FAQ 에는 쓰지 않는다. */
+                noticeType?: components["schemas"]["NoticeType"];
+                /** @description FAQ 카테고리(공통코드 FAQ_CATEGORY 상세코드)로 거른다. */
+                faqCategoryCode?: string;
+                /** @description 제목(FAQ 는 제목 또는 본문)에 든 글자로 찾는다. 대소문자는 가리지 않는다. */
+                keyword?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublishedPostListResponseDto"];
+                };
+            };
+            /** @description 관리자 토큰이 아니거나 사용 중인 관리자 계정이 아님 · 그 메뉴의 조회 권한 없음 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SupportNoticesController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportPostResponseDto"];
+                };
+            };
+            /** @description 관리자 토큰이 아니거나 사용 중인 관리자 계정이 아님 · 그 메뉴의 조회 권한 없음 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없음 · 비공개 · 지움 · 게시 기간 밖 · 노출 대상 아님 · FAQ */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SupportNoticesController_attachmentDownloadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postId: string;
+                postAttachmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadUrlResponseDto"];
+                };
+            };
+            /** @description 관리자 토큰이 아니거나 사용 중인 관리자 계정이 아님 · 그 메뉴의 조회 권한 없음 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 글이 보이지 않음(상세와 같음) · 그 글의 첨부가 아님 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 첨부파일 저장소 설정 없음 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SupportFaqsController_list: {
+        parameters: {
+            query?: {
+                /** @description 쪽 번호. 1부터, 최대 10,000,000 — 건너뛸 행 수가 integer 범위를 넘지 않게. */
+                page?: number;
+                /** @description 한 쪽 건수. 기본 20, 최대 200. */
+                pageSize?: number;
+                /** @description 공지사항 구분으로 거른다. FAQ 에는 쓰지 않는다. */
+                noticeType?: components["schemas"]["NoticeType"];
+                /** @description FAQ 카테고리(공통코드 FAQ_CATEGORY 상세코드)로 거른다. */
+                faqCategoryCode?: string;
+                /** @description 제목(FAQ 는 제목 또는 본문)에 든 글자로 찾는다. 대소문자는 가리지 않는다. */
+                keyword?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublishedPostListResponseDto"];
+                };
+            };
+            /** @description 관리자 토큰이 아니거나 사용 중인 관리자 계정이 아님 · 그 메뉴의 조회 권한 없음 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicNoticesController_list: {
+        parameters: {
+            query?: {
                 /** @description 쪽 번호. 1부터, 최대 10,000,000 — 건너뛸 행 수가 integer 범위를 넘지 않게. */
                 page?: number;
                 /** @description 한 쪽 건수. 기본 20, 최대 200. */
@@ -10059,7 +10985,7 @@ export interface operations {
             };
         };
     };
-    PublicPostsController_get: {
+    PublicNoticesController_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -10078,7 +11004,7 @@ export interface operations {
                     "application/json": components["schemas"]["PublishedPostDetailResponseDto"];
                 };
             };
-            /** @description 없음 · 비공개 · 지움 · 게시 기간 밖 · 비회원 대상 아님 */
+            /** @description 없음 · 비공개 · 지움 · 게시 기간 밖 · 비회원 대상 아님 · FAQ */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -10087,7 +11013,7 @@ export interface operations {
             };
         };
     };
-    PublicPostsController_attachmentDownloadUrl: {
+    PublicNoticesController_attachmentDownloadUrl: {
         parameters: {
             query?: never;
             header?: never;
@@ -10123,10 +11049,9 @@ export interface operations {
             };
         };
     };
-    SupportPostsController_list: {
+    PublicFaqsController_list: {
         parameters: {
-            query: {
-                contentType: components["schemas"]["PostContentType"];
+            query?: {
                 /** @description 쪽 번호. 1부터, 최대 10,000,000 — 건너뛸 행 수가 integer 범위를 넘지 않게. */
                 page?: number;
                 /** @description 한 쪽 건수. 기본 20, 최대 200. */
@@ -10151,91 +11076,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PublishedPostListResponseDto"];
                 };
-            };
-            /** @description 관리자 토큰이 아니거나 사용 중인 관리자 계정이 아님 · 그 글 종류 메뉴의 조회 권한 없음 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    SupportPostsController_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                postId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SupportPostResponseDto"];
-                };
-            };
-            /** @description 관리자 토큰이 아니거나 사용 중인 관리자 계정이 아님 · 그 글 종류 메뉴의 조회 권한 없음 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 없음 · 비공개 · 지움 · 게시 기간 밖 · 노출 대상 아님 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    SupportPostsController_attachmentDownloadUrl: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                postId: string;
-                postAttachmentId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DownloadUrlResponseDto"];
-                };
-            };
-            /** @description 관리자 토큰이 아니거나 사용 중인 관리자 계정이 아님 · 그 글 종류 메뉴의 조회 권한 없음 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 글이 보이지 않음(상세와 같음) · 그 글의 첨부가 아님 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 첨부파일 저장소 설정 없음 */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -10627,46 +11467,6 @@ export interface operations {
             };
         };
     };
-    LeadsAdminController_list: {
-        parameters: {
-            query: {
-                /** @description 답변 대기(접수 · 처리중) 또는 답변 완료. */
-                answerStatus?: components["schemas"]["InquiryAnswerStatus"];
-                /** @description 쪽 번호. 1부터, 최대 10,000,000 — 건너뛸 행 수가 integer 범위를 넘지 않게. */
-                page: number;
-                /** @description 한 쪽 건수. 기본 20, 최대 200. */
-                pageSize: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LeadListResponseDto"];
-                };
-            };
-            /** @description 플랫폼 관리자가 아님 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 없는 도입문의 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     LeadsController_create: {
         parameters: {
             query?: never;
@@ -10695,6 +11495,46 @@ export interface operations {
             };
         };
     };
+    LeadsAdminController_list: {
+        parameters: {
+            query: {
+                /** @description 답변 대기(접수 · 처리중) 또는 답변 완료. */
+                answerStatus?: components["schemas"]["InquiryAnswerStatus"];
+                /** @description 쪽 번호. 1부터, 최대 10,000,000 — 건너뛸 행 수가 integer 범위를 넘지 않게. */
+                page: number;
+                /** @description 한 쪽 건수. 기본 20, 최대 200. */
+                pageSize: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadListResponseDto"];
+                };
+            };
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 도입문의 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     LeadsAdminController_get: {
         parameters: {
             query?: never;
@@ -10714,7 +11554,7 @@ export interface operations {
                     "application/json": components["schemas"]["LeadResponseDto"];
                 };
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10748,7 +11588,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10790,7 +11630,7 @@ export interface operations {
                     "application/json": components["schemas"]["LeadStateResponseDto"];
                 };
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10836,7 +11676,7 @@ export interface operations {
                     "application/json": components["schemas"]["LeadStateResponseDto"];
                 };
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10878,7 +11718,7 @@ export interface operations {
                     "application/json": components["schemas"]["LeadReplyMailResponseDto"];
                 };
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10931,7 +11771,7 @@ export interface operations {
                     "application/json": components["schemas"]["LeadStateResponseDto"];
                 };
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10982,7 +11822,7 @@ export interface operations {
                     "application/json": components["schemas"]["InquiryListResponseDto"];
                 };
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11017,7 +11857,7 @@ export interface operations {
                     "application/json": components["schemas"]["InquiryResponseDto"];
                 };
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11053,7 +11893,7 @@ export interface operations {
                     "application/json": components["schemas"]["DownloadUrlResponseDto"];
                 };
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11095,7 +11935,7 @@ export interface operations {
                     "application/json": components["schemas"]["InquiryStateResponseDto"];
                 };
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11141,7 +11981,7 @@ export interface operations {
                     "application/json": components["schemas"]["InquiryStateResponseDto"];
                 };
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11187,7 +12027,7 @@ export interface operations {
                     "application/json": components["schemas"]["InquiryStateResponseDto"];
                 };
             };
-            /** @description 플랫폼 관리자가 아님 */
+            /** @description 플랫폼 관리자가 아님 · 그 메뉴의 그 동작 권한 없음 */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11854,6 +12694,227 @@ export interface operations {
             };
         };
     };
+    MyProfileController_updateAddress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMyAddressDto"];
+            };
+        };
+        responses: {
+            /** @description 저장함 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 우편번호 · 주소 형식 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyProfileController_changePassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeMyPasswordDto"];
+            };
+        };
+        responses: {
+            /** @description 바꿈 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 지금 비밀번호가 맞지 않음 · 새 비밀번호 규칙 위반(사유) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 계정 · IP 요청 한도 */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyProfileController_requestEmailChangePin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestEmailChangePinDto"];
+            };
+        };
+        responses: {
+            /** @description 보냄 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 지금 비밀번호가 맞지 않음(「지금 비밀번호가 맞지 않습니다」) · 이메일 형식 · 지금 이메일과 같음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 다른 계정이 쓰는 이메일 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 1분 재발급 간격 · 하루 10회 · 요청 한도 */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 보내기 전에 막힘(메일 템플릿 꺼짐 · 제목 없음 · DB 오류) — 「메일 설정 문제로 … 관리자에게 문의해 주세요」 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 메일 설정(MAIL_*)이 없거나 메일 서버에 보내지 못함 — 잠시 뒤 다시 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyProfileController_changeEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeMyEmailDto"];
+            };
+        };
+        responses: {
+            /** @description 바꿈 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 핀이 틀림 · 만료 · 5회로 닫힘 · 받은 핀 없음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 그 사이 다른 계정이 그 이메일을 씀 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 계정 · IP 요청 한도 */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     MyMembershipsController_list: {
         parameters: {
             query?: never;
@@ -11936,6 +12997,546 @@ export interface operations {
             };
             /** @description 신고 정보가 있는데 서버에 암호화 키가 없음 */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyMembershipsController_saveTaxProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                staffMemberId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveMyTaxProfileDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyTaxProfileResponseDto"];
+                };
+            };
+            /** @description 형식 오류 · 바꿀 값 없음(TAX_PROFILE_EMPTY) · 처음인데 셋 중 빠짐(TAX_PROFILE_INCOMPLETE) · 은행 · 계좌번호 한쪽만(TAX_PROFILE_ACCOUNT_INCOMPLETE) · 주민등록번호 앞자리와 가입 생년월일이 다름(RRN_BIRTH_MISMATCH — 관리자에게 정정 요청) · 없는 은행(BANK_CODE_UNKNOWN) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 소속이 아님 — 조회와 같은 본문 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 고칠 때 비교하려고 저장된 신고 정보를 풀 수 없음(키가 다름 · 다른 행의 값 · 손상) — 서버 로그에 레코드 · 칸 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 서버에 암호화 키가 없음 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyConsentController_agreeLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 동의함 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 지금 동의 상태에서 할 수 없는 동작 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 시행 중인 위치정보 약관이 없음(운영자가 모두 끄거나 지움) — 「지금은 위치정보 동의를 받을 수 없습니다 …」 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyConsentController_pauseLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 멈춤 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 지금 동의 상태에서 할 수 없는 동작 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyConsentController_resumeLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 다시 켬 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 지금 동의 상태에서 할 수 없는 동작 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyConsentController_withdrawLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 철회함 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 지금 동의 상태에서 할 수 없는 동작 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyConsentController_agreeHqSharing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 동의함 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 지금 동의 상태에서 할 수 없는 동작 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyConsentController_withdrawHqSharing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 철회함 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 지금 동의 상태에서 할 수 없는 동작 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StaffSignupController_check: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvitationLookupDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationCheckResponseDto"];
+                };
+            };
+            /** @description 형식 오류 · 토큰과 번호 · 코드를 함께 보내거나 둘 다 없음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 맞는 초대가 없음(INVITATION_NOT_FOUND — 번호나 코드가 틀림) · 끝난 초대(INVITATION_ENDED — 기한 · 다시 보냄 · 번호 변경 · 퇴직 · 가입 불가) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 이미 가입을 마친 초대(INVITATION_ALREADY_JOINED) · 그 번호로 계정이 있음(ACCOUNT_EXISTS) — 둘 다 로그인으로 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 같은 번호로 번호 + 코드를 5번 틀려 30분 잠김(INVITATION_CODE_LOCKED, 본문 lockExpiresAt — 재발송하면 풀림) · 공개 경로 기본 요청 제한 */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StaffSignupController_signup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffSignupDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResponseDto"];
+                };
+            };
+            /** @description 형식 오류 · 비밀번호 규칙 · 만 19세 미만(SIGNUP_UNDER_AGE, 초대는 가입 불가가 됨) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description INVITATION_NOT_FOUND · INVITATION_ENDED — 초대 확인과 같다 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description INVITATION_ALREADY_JOINED · ACCOUNT_EXISTS · 이미 쓰는 이메일(ACCOUNT_EMAIL_TAKEN) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 같은 번호로 번호 + 코드를 5번 틀려 30분 잠김(INVITATION_CODE_LOCKED, 본문 lockExpiresAt — 재발송하면 풀림) · 공개 경로 기본 요청 제한 */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyInvitationsController_check: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MyInvitationLookupDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationCheckResponseDto"];
+                };
+            };
+            /** @description 형식 오류 · 토큰과 코드를 함께 보내거나 둘 다 없음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 맞는 초대가 없음(INVITATION_NOT_FOUND — 코드가 틀림, 링크의 초대 번호가 계정 번호와 다름) · 끝난 초대(INVITATION_ENDED) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 이미 가입을 마친 초대(INVITATION_ALREADY_JOINED) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 계정 번호로 코드를 5번 틀려 30분 잠김(INVITATION_CODE_LOCKED, 본문 lockExpiresAt — 재발송하면 풀림) · 기본 요청 제한 */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyInvitationsController_accept: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptMyInvitationDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcceptMyInvitationResponseDto"];
+                };
+            };
+            /** @description 형식 오류 · 토큰과 코드를 함께 보내거나 둘 다 없음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description INVITATION_NOT_FOUND · INVITATION_ENDED — 확인과 같다 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description INVITATION_ALREADY_JOINED — 먼저 더했거나 같은 초대로 동시에 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 계정 번호로 코드를 5번 틀려 30분 잠김(INVITATION_CODE_LOCKED, 본문 lockExpiresAt — 재발송하면 풀림) · 기본 요청 제한 */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
