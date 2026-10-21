@@ -1,5 +1,3 @@
-import { ApiError } from "./api";
-
 /**
  * 생년월일 칸의 값을 api 모양(YYYY-MM-DD)으로. 숫자 8자리(19990412)도 받는다 — 휴대폰에서는 숫자 키보드로 넣는 편이 빨라서다.
  * 점 · 빗금 · 공백으로 나눈 흔한 모양(1999.04.12 · 1999/4/12 · 1999. 4. 12.)도 월 · 일을 두 자리로 맞춰 받는다.
@@ -17,13 +15,3 @@ export function normalizePhone(raw: string): string {
   return raw.replace(/[\s-]/g, "");
 }
 
-/**
- * 이메일 찾기 429 가 번호 잠금이면 해제 시각(ms), 요청 제한이면 null. 둘은 본문의 lockExpiresAt 이 있는지로 가른다
- * (api EmailFindTooManyRequestsResponseDto).
- */
-export function lockExpiresAtOf(error: ApiError): number | null {
-  if (error.status !== 429) return null;
-  const raw = (error.body as { lockExpiresAt?: unknown } | null)?.lockExpiresAt;
-  const at = typeof raw === "string" ? Date.parse(raw) : NaN;
-  return Number.isFinite(at) ? at : null;
-}

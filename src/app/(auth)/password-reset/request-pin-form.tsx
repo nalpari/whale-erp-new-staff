@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { Alert, Button, Card, Notice, TextField } from "@/components/common";
 import { AuthScreen } from "../_components/auth-screen";
 import { requestPinAction, type RequestPinState } from "./actions";
 
-// 기준: 데모 docs/demo/src/pages/login 의 forgot · newpw-out(새 비밀번호 화면을 열거나 저장할 때 10분이 지났거나,
+// 기준: 데모 docs/demo/src/pages/login 의 forgot(이메일 칸 아래 이메일 찾기 링크 포함) · newpw-out(새 비밀번호 화면을 열거나 저장할 때 10분이 지났거나,
 // 저장할 때 핀이 닫혔거나 이미 써서 돌아온 경우). 데모 문구는 「바꾸지 않았습니다」라고 단정하지만, 첫 저장이 성공했는데
 // 응답만 끊겨 다시 저장한 경우에도 여기로 오므로 단정하지 않게 고쳤다.
 export function RequestPinForm({ timedOut }: { timedOut: boolean }) {
@@ -65,6 +66,14 @@ export function RequestPinForm({ timedOut }: { timedOut: boolean }) {
           help="가입할 때 정한 아이디를 넣어 주세요"
           error={state.error}
         />
+        {/* 이메일 찾기(LOGIN-8)는 로그인 화면이 아니라 여기 이메일 칸 아래에서 들어간다(데모 forgot, 2026-10-20 재영). */}
+        <Link
+          href="/email-find"
+          transitionTypes={["nav-forward"]}
+          className="-mt-[8px] flex min-h-[44px] items-center self-start text-[14px] font-semibold text-staff-text-sub underline underline-offset-2"
+        >
+          이메일이 기억나지 않나요
+        </Link>
         <Notice>
           인증번호는 보낸 때부터 <strong>10분</strong> 동안 쓸 수 있습니다. 새 비밀번호도 이 10분 안에 정해 주세요.
         </Notice>

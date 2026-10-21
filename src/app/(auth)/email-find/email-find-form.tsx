@@ -1,9 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useRef, type ReactNode } from "react";
+import { useActionState, type ReactNode } from "react";
 import { Alert, Button, Card, Notice, TextField } from "@/components/common";
 import { AuthScreen } from "../_components/auth-screen";
-import { formatLeft, useNow } from "@/app/_components/countdown";
+import { useFocusedTitle } from "../_components/use-focused-title";
+import { useNow } from "@/app/_components/countdown";
+import { type AttemptLock, lockCountdown } from "@/lib/attempt-lock";
 import { findEmailAction, type EmailFindState, type EmailFindValues } from "./actions";
 
 // 기준: 데모 docs/demo/src/pages/login 의 find · found · find-fail · find-lock (LOGIN-8 · 9 · 10).
@@ -27,7 +29,7 @@ export function EmailFindForm() {
   if (state.step === "locked")
     return (
       <RetryForm action={formAction} values={state.values}>
-        <Locked lockExpiresAt={state.lockExpiresAt} serverNow={state.serverNow} pending={pending} />
+        <Locked lock={state} pending={pending} />
       </RetryForm>
     );
 
@@ -114,13 +116,6 @@ function RetryForm({ action, values, children }: { action: (formData: FormData) 
   );
 }
 
-/** 결과 화면이 붙을 때 제목에 초점을 옮긴다. 같은 화면에서 바뀌어 경로 알림이 없고, 누른 버튼이 사라져 초점이 body 로 떨어진다. */
-function useFocusedTitle() {
-  const ref = useRef<HTMLHeadingElement>(null);
-  useEffect(() => ref.current?.focus(), []);
-  return ref;
-}
-
 function Found({ emails }: { emails: string[] }) {
   const titleRef = useFocusedTitle();
   return (
@@ -192,14 +187,10 @@ function NotFound({ pending }: { pending: boolean }) {
   );
 }
 
-function Locked({ lockExpiresAt, serverNow, pending }: { lockExpiresAt: number; serverNow: number; pending: boolean }) {
+function Locked({ lock, pending }: { lock: AttemptLock; pending: boolean }) {
   const titleRef = useFocusedTitle();
-  const now = useNow(serverNow);
-  // 시계가 돌기 전(서버가 그린 화면 · JS 없음 · 하이드레이션 전)은 서버가 그린 순간의 남은 시간을 한 번 보이고 버튼을 열어 둔다 —
-  // 시계가 없으면 버튼을 풀어 줄 수 없어서다. 일찍 누르면 api 가 다시 막힘으로 답할 뿐이다. 시계가 돌면 시간이 다 될 때까지 잠근다.
-  const left = lockExpiresAt - (now ?? serverNow);
-  const text = formatLeft(left);
-  const waiting = now !== null && left > 0;
+  // 버튼을 언제 여는지는 lockCountdown 이 정한다. 이 버튼은 submit 이라 JS 가 없어도 동작하고, 일찍 누르면 api 가 다시 막힘으로 답할 뿐이다.
+  const { text, waiting } = lockCountdown(lock, useNow(lock.serverNow));
   return (
     <AuthScreen
       titleRef={titleRef}

@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
+import { formatLeft } from "@/lib/time-left";
+
+export { formatLeft };
 
 // 1초마다 바뀌는 지금 시각. 서버와 하이드레이션 때는 null 이라 시계를 비워 두고, 그 뒤부터 센다.
 const subscribe = (onChange: () => void) => {
@@ -12,7 +15,7 @@ const getSnapshot = () => Math.floor(Date.now() / 1000) * 1000;
 const getServerSnapshot = () => null;
 
 /**
- * 서버 시계로 옮긴 지금 시각. 서버가 정한 기한(재설정 핀의 발급 시각 issuedAt, 이메일 변경의 deadline · resendAt)은 서버 시계라
+ * 서버 시계로 옮긴 지금 시각. 서버가 정한 기한(재설정 핀의 발급 시각 issuedAt, 이메일 변경의 deadline · resendAt, 로그인 · 이메일 찾기 잠금의 lockExpiresAt)은 서버 시계라
  * 휴대폰 시계와 바로 비교하면, 휴대폰 시계가 틀린 만큼 만료 · 다시 받기 판정이 어긋난다(기한보다 더 앞서면 받자마자 만료로 보인다). 화면을 그린 순간의 서버 시각
  * `serverNow` 와 휴대폰 시각의 차이를 처음 한 번 재 두고 그만큼 옮긴다. 오차는 서버가 그린 때부터
  * 화면이 하이드레이션될 때까지의 시간이고, 남은 시간이 그만큼 길게 보인다(안내용이라 판정은 api 가 한다).
@@ -32,10 +35,4 @@ export function Countdown({ deadline, serverNow }: { deadline: number; serverNow
       남은 시간 <b className="text-staff-text tabular-nums">{text}</b>
     </span>
   );
-}
-
-/** 남은 시간을 mm:ss 로. 지났으면 00:00. */
-export function formatLeft(ms: number): string {
-  const left = Math.max(0, ms);
-  return `${String(Math.floor(left / 60_000)).padStart(2, "0")}:${String(Math.floor((left % 60_000) / 1000)).padStart(2, "0")}`;
 }
