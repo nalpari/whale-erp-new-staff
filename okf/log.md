@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-10-21
+* **Update**: 급여 화면을 바뀐 데모(PAY-8 · 9 · 10 · 20)에 맞췄다 — 맨 위 이번 달에 받은 실지급액 합계 카드, 점포 · 연도 필터 칩, 줄마다 점포 · 발송일(api `sentAt`), 처리 이력은 가장 최근 발송 한 줄과 확정 취소만, 다시 발송 안내 삭제, 「발송 완료」 칩은 늘 보인다(사용자 결정). 안내 시트에 맨 위 금액의 기준을 더했다. 기본급 · 주휴수당 · 연장수당의 출퇴근 데이터 연결은 아직 없다(추후 작업). 알려진 한계: 「명세서 내보내기」가 `download` 링크라 세션 만료 · 오류 응답이 화면에 보이지 않는다(후속). [Whale ERP Staff](/whale-erp-staff.md).
+
 ## 2026-10-19
 * **Update**: PAY-2 「명세서 내보내기」가 실제 PDF 를 받는다 — 버튼을 `download` 링크로 바꾸고(가짜 알림 삭제), 라우트 핸들러 `src/app/(app)/pay/[payslipId]/pdf/route.ts` 가 api `GET /me/payslips/:id/pdf` 를 직원 토큰으로 불러 그대로 내려준다(401 → 만료 로그인, 404 → 404). [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 급여 화면을 실제 api(`GET /me/payslips` · `/me/payslips/:id`, WHALEERP-330)로 바꿨다 — `payslips.mock.ts` · `isViewable` · `splitLatest` · 화면용 `display` 값(계산 근거 · 해당 없음 · 정정됨)을 지우고, 원천징수 줄은 관리자 화면과 같은 `isItemShown` 으로 고른다. `api-types.d.ts` 를 다시 만들었다([Whale ERP Staff](/whale-erp-staff.md)).
