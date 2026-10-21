@@ -35,8 +35,8 @@ export async function GET(_request: Request, ctx: RouteContext<"/pay/[payslipId]
   }
   if (response.status === 401) redirect(withNext(EXPIRED_LOGIN_PATH, back));
   if (response.status === 404) return text("급여명세서를 찾을 수 없습니다.", 404);
-  // 상세를 연 사이 관리자가 확정을 취소했다(정정 중) — 오류가 아니라 다시 받을 때까지 내려받을 수 없는 것이다
-  if (response.status === 409) return text("관리자가 명세서를 정정하고 있습니다. 다시 받은 뒤에 내려받을 수 있습니다.", 409);
+  // 상세를 연 사이 관리자가 확정을 취소했다(검토 중) — 오류가 아니라 다시 받을 때까지 내려받을 수 없는 것이다
+  if (response.status === 409) return text("관리자가 명세서를 다시 검토하고 있습니다. 다시 받은 뒤에 내려받을 수 있습니다.", 409);
   if (!response.ok || !response.body) {
     console.error(`[pay-pdf] ${payslipId} api 응답 ${response.status}`);
     return text("명세서를 내려받지 못했습니다. 잠시 뒤 다시 시도해 주세요.", 502);

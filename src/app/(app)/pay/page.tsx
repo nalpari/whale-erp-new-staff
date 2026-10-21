@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "급여 · Whale ERP" };
 // 맨 위는 이번 달(한국 시간)에 받은 명세서 전체의 실지급액 합계 카드(PAY-9) — 근무지 · 필터와 관계없고 누르는 곳이 없다.
 // 아래 「명세서」는 받은 명세서 모두를 점포 · 연도(급여 기간) 칩으로 거른다(PAY-10). 고른 근무지와 관계없이 보이므로 줄마다
 // 점포를 적는다(PAY-8). 맨 위 카드의 합계 · 건수 · 점포 이름(thisMonth)은 api 가 센 값이다 — 앱은 더하지 않는다.
-// 보낸 뒤 확정을 취소한 명세서는 빠지지 않고 「정정 중」으로 금액 없이 남는다(api correcting, 2026-10-21 사용자 결정).
+// 보낸 뒤 확정을 취소한 명세서는 빠지지 않고 「검토 중」으로 금액 없이 남는다(api correcting, 2026-10-21 사용자 결정).
 // 명세서 내보내기는 상세에만 있다(PAY-2). 이 화면에 「입금」이라는 말은 쓰지 않는다(급여 지급은 이 시스템 밖).
 export default async function PayPage({ searchParams }: PageProps<"/pay">) {
   await requireSession();

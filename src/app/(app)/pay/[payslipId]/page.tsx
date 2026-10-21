@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "급여명세서 · Whale ERP" };
 // 다시 보낸 명세서(PAY-1)는 따로 화면이 없다 — 발송이 두 번 이상인 명세서다. 최신 값으로 덮어 이전 금액은 보이지 않는다.
 // 위쪽 「다시 발송되었습니다」 안내도, 바뀐 줄 표시(「· 정정됨」)도 두지 않는다(2026-10-20 재영, 알림 NOTI-6 과 같다).
 // 데모 resent 와 같이 다시 보낸 명세서는 머리 메타에서 발송일을, 아래에서 「급여 지급은 …」 안내를 뺀다 — 발송 시각은 처리 이력에 있다.
-// 보낸 뒤 확정을 취소해 고치는 중이면(api correcting) 「정정 중」과 안내만 — 금액 · 항목 · 내보내기는 다시 받을 때까지 없다
+// 보낸 뒤 확정을 취소해 고치는 중이면(api correcting) 「검토 중」과 안내만 — 금액 · 항목 · 내보내기는 다시 받을 때까지 없다
 // (2026-10-21 사용자 결정, 고치는 중인 값을 보이지 않게).
 export default async function PayslipPage({ params }: PageProps<"/pay/[payslipId]">) {
   await requireSession();
@@ -54,7 +54,7 @@ export default async function PayslipPage({ params }: PageProps<"/pay/[payslipId
 
       {correcting ? (
         <Notice icon={<Image src="/icons/pencil.svg" alt="" width={11.719} height={13.719} />}>
-          <strong>관리자가 이 명세서를 정정하고 있습니다.</strong> 다시 받으면 바뀐 금액과 항목을 볼 수 있습니다.
+          <strong>관리자가 이 명세서를 다시 검토하고 있습니다.</strong> 다시 받으면 바뀐 금액과 항목을 볼 수 있습니다.
         </Notice>
       ) : (
         <>
