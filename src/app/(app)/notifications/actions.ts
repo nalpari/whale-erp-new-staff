@@ -33,6 +33,7 @@ function failure(where: string, error: unknown, notFound: string): NotificationA
 
 /**
  * 알림을 눌렀을 때(#267) — 읽음으로 바꾸고 관련 화면으로 간다. 그 업무가 속한 소속을 앱 전역 근무지로 맞춘 뒤 연다(WORK-4).
+ * 급여명세서는 근무지와 상관없어(PAY-8) 소속이 없다 — 근무지를 바꾸지 않고 연다.
  * 열 곳이 없으면 읽음만 바꾸고 「열 수 없습니다」를 알린다. 읽음 바꾸기에 실패하면 이동하지 않는다.
  */
 export async function openNotificationAction(id: number): Promise<NotificationActionResult> {
@@ -49,7 +50,8 @@ export async function openNotificationAction(id: number): Promise<NotificationAc
     refresh();
     return { unavailable: true };
   }
-  (await cookies()).set(CURRENT_STAFF_MEMBER_COOKIE, String(item.target.staffMemberId), currentStaffMemberCookie());
+  if (item.target.staffMemberId)
+    (await cookies()).set(CURRENT_STAFF_MEMBER_COOKIE, String(item.target.staffMemberId), currentStaffMemberCookie());
   redirect(href);
 }
 

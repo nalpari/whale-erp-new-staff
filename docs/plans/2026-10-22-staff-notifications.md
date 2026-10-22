@@ -22,3 +22,10 @@ api: `/me/notifications` · `/me/notification-preferences`(whale-erp-api 브랜�
 
 - `node --test`: 갈 곳 경로, 받은 시각(한국 날짜 기준 어제), 수신 설정 묶음.
 - 화면: 일회용 DB 에 근무지 둘인 직원과 알림 넷(근무스케줄 · 긴급 TO-DO · 지운 TO-DO · 파기된 근무스케줄)을 넣어 로컬 api 에 붙여 확인한다. 공용 DB 는 쓰지 않는다.
+
+## 근로계약서 · 급여명세서 알림 갈 곳 (#259, 두 번째 PR)
+
+브랜치 `exeggcute`(origin/main `8e60092`). api 가 근로계약서 · 급여명세서 발송 알림을 만들고 갈 곳에 `CONTRACT` · `PAYSLIP` 을 더했다(api `voltorb`).
+
+- 급여명세서 → `/pay/{payslipId}`. 근무지와 상관없어(PAY-8) 갈 곳에 소속이 없다 — 앱 전역 근무지를 바꾸지 않고 연다.
+- 근로계약서 → 직원 앱 계약 화면(#146)이 아직 없어 「열 수 없습니다」. 그 화면이 생기면 경로를 잇는다.

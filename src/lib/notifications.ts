@@ -16,6 +16,8 @@ export function targetHref(target: NotificationTarget | null | undefined): strin
   if (target.type === "WORK_SCHEDULE")
     return target.workDate ? `/work?tab=schedule&month=${target.workDate.slice(0, 7)}&day=${target.workDate}` : null;
   if (target.type === "TODO") return "/work?tab=todo";
+  if (target.type === "PAYSLIP") return target.payslipId ? `/pay/${target.payslipId}` : null;
+  // 근로계약서(CONTRACT)는 직원 앱 계약 화면(#146)이 생기면 그 경로로 잇는다 — 지금은 「열 수 없습니다」
   return null;
 }
 

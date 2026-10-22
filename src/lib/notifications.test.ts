@@ -9,6 +9,10 @@ test("갈 곳 경로 — 근무스케줄은 그 달 · 그 날, TO-DO 는 근무
     "/work?tab=schedule&month=2026-11&day=2026-11-02",
   );
   assert.equal(targetHref({ type: "TODO", staffMemberId: 7, todoId: 3 }), "/work?tab=todo");
+  // 급여명세서는 명세서 상세로(근무지와 상관없다)
+  assert.equal(targetHref({ type: "PAYSLIP", payslipId: 9 }), "/pay/9");
+  // 근로계약서는 이 앱에 계약 화면이 아직 없어 열 수 없다
+  assert.equal(targetHref({ type: "CONTRACT", staffMemberId: 7, contractId: 4 }), null);
   assert.equal(targetHref(null), null);
   // 근무스케줄인데 근무일이 없으면 갈 수 없다
   assert.equal(targetHref({ type: "WORK_SCHEDULE", staffMemberId: 7 }), null);
