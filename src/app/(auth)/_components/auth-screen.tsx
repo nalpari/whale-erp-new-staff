@@ -9,6 +9,7 @@ export const CONNECTION_FAILED_MESSAGE = "서버에 연결하지 못했습니다
 // Dock 도 폼 안에서 그려지므로 제출 버튼이 폼에 든다.
 export function AuthScreen({
   top,
+  eyebrow,
   title,
   description,
   children,
@@ -16,6 +17,8 @@ export function AuthScreen({
   titleRef,
 }: {
   top?: ReactNode;
+  /** 제목 바로 위의 작은 줄(가입의 단계 막대). */
+  eyebrow?: ReactNode;
   title: string;
   /**
    * 주면 제목이 초점을 받을 수 있게 된다(tabIndex -1). 페이지 이동 없이 같은 화면에서 결과로 바뀔 때(이메일 찾기) 부른 쪽이 제목에
@@ -31,6 +34,7 @@ export function AuthScreen({
       <div className="flex flex-col gap-[16px] px-[30px] pt-[52px] pb-[24px] leading-[1.5]">
         {top && <div className="pt-[10px] pb-[60px]">{top}</div>}
         <div className="flex flex-col gap-[6px] pb-[8px]">
+          {eyebrow}
           <h1 ref={titleRef} tabIndex={titleRef ? -1 : undefined} className="text-[28px] font-bold outline-none">
             {title}
           </h1>

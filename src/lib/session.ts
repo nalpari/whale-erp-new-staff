@@ -83,12 +83,21 @@ export async function clearSession(): Promise<void> {
 
 /** 서버 액션에서만 부른다(없으면 만들어 굽는다). */
 export async function getDeviceId(): Promise<string> {
-  const jar = await cookies();
-  const existing = jar.get(DEVICE_ID_COOKIE)?.value;
+  const existing = await readDeviceId();
   if (existing) return existing;
   const created = crypto.randomUUID();
-  jar.set(DEVICE_ID_COOKIE, created, deviceIdCookie());
+  await saveDeviceId(created);
   return created;
+}
+
+/** 굽지 않고 읽기만 한다. 실패할 수 있는 요청 뒤에 굽고 싶을 때(가입) — 쿠키를 바꾼 액션 뒤에는 Next 가 화면을 서버에서 다시 그린다. */
+export async function readDeviceId(): Promise<string | null> {
+  return (await cookies()).get(DEVICE_ID_COOKIE)?.value || null;
+}
+
+/** 서버 액션에서만 부른다. */
+export async function saveDeviceId(deviceId: string): Promise<void> {
+  (await cookies()).set(DEVICE_ID_COOKIE, deviceId, deviceIdCookie());
 }
 
 /**

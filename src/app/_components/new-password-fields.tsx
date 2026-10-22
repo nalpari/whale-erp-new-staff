@@ -5,17 +5,21 @@ import { useState } from "react";
 import { Card, TextField } from "@/components/common";
 import { checkPasswordRules } from "@/lib/password-rules";
 
-// 새 비밀번호 두 칸 + 조건 목록. 핀으로 들어온 새 비밀번호(데모 newpw), 관리자 재설정 링크(temp), 내 정보의 비밀번호 변경(194)이 같이 쓴다.
+// 새 비밀번호 두 칸 + 조건 목록. 핀으로 들어온 새 비밀번호(데모 newpw), 관리자 재설정 링크(temp), 내 정보의 비밀번호 변경(194),
+// 가입의 계정 등록(142, 칸 이름만 「비밀번호」 · 「비밀번호 확인」)이 같이 쓴다.
 // email 이 null 이면(링크 흐름, 이메일을 모른다) 「이메일 아이디와 겹치지 않기」는 맞음 · 아직을 보이지 않고 안내로만 둔다 — 판정은 api 의 400 사유다.
 export function NewPasswordFields({
   email,
   newPasswordError,
   confirmationError,
+  labels = ["새 비밀번호", "새 비밀번호 확인"],
 }: {
   /** 빠뜨리지 못하게 필수로 둔다 — 핀 흐름에서 빠지면 이메일 조건 줄이 소리 없이 사라진다. */
   email: string | null;
   newPasswordError?: string;
   confirmationError?: string;
+  /** 두 칸의 이름(첫 칸 · 확인 칸). */
+  labels?: readonly [string, string];
 }) {
   // 400 뒤에도 입력한 새 비밀번호가 남고 조건 목록이 바로 반응하도록 첫 칸은 상태로 든다
   // (React 19 폼 액션은 제출 뒤 비제어 칸을 비운다).
@@ -38,7 +42,7 @@ export function NewPasswordFields({
     <>
       <div className="flex flex-col gap-[16px]">
         <TextField
-          label="새 비밀번호"
+          label={labels[0]}
           name="newPassword"
           type="password"
           autoComplete="new-password"
@@ -49,7 +53,7 @@ export function NewPasswordFields({
           error={newPasswordError}
         />
         <TextField
-          label="새 비밀번호 확인"
+          label={labels[1]}
           name="newPasswordConfirmation"
           type="password"
           autoComplete="new-password"

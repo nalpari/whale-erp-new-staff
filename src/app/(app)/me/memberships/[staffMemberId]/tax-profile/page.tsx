@@ -7,7 +7,7 @@ import { getCodesOrEmpty } from "@/lib/codes";
 import { labelOf } from "@/lib/enums";
 import { getMyMemberships, getMyTaxProfile } from "@/lib/my-profile";
 import { kstDateTimeLabel } from "@/lib/profile";
-import { CardLabel } from "../../../read-only-field";
+import { CardLabel } from "@/app/_components/read-only-field";
 
 export const metadata: Metadata = { title: "신고 정보 · Whale ERP" };
 

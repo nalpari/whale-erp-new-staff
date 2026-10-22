@@ -11,7 +11,7 @@ import { AddressForm } from "./address-form";
 import { ChangedToast } from "./changed-toast";
 import { HqSharingConsentCard, LocationConsentCard } from "./consent-cards";
 import { LogoutSheet } from "./logout-sheet";
-import { CardLabel, ReadOnlyField } from "./read-only-field";
+import { CardLabel, ReadOnlyField } from "@/app/_components/read-only-field";
 
 export const metadata: Metadata = { title: "내 정보 · Whale ERP" };
 
