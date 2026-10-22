@@ -8,7 +8,7 @@ import type { Schemas } from "@/lib/api";
 import type { CurrentTerms } from "@/lib/my-profile";
 import { CONSENT_CHANGES, dateLabel, kstDateTimeLabel, type ConsentChange, type LocationConsentState } from "@/lib/profile";
 import { changeConsentAction } from "./actions";
-import { CardLabel } from "./read-only-field";
+import { CardLabel } from "@/app/_components/read-only-field";
 import { TermsContent } from "./terms-content";
 
 
