@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-10-22
+* **Update**: 진입 · 가입 화면(WHALEERP-141 · 142)을 더했다 — 로그인 화면의 「초대 코드로 가입」 → `/join`(초대 코드 · 30분 잠금) · 초대 링크 `/invite#token=…` → `/join/invitation`(초대 확인) → `/join/signup`(계정 등록) → `/join/done`(가입 완료). 확인한 초대는 쿠키 `invitation`(Path `/join`)로 들고 다니고, 공개 경로에 `/join` · `/invite` 를 더했다. 약관 동의 칸은 api 가 받지 않아 뺐다. 주소 검색 시트와 읽기 전용 칸을 `src/app/_components/` 로 옮겨 내 정보와 같이 쓰고, api 타입을 api main(3e5a224) 기준으로 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
+
 ## 2026-10-21
 * **Update**: 확정 취소된 명세서의 배지 · 안내 이름을 「정정 중」에서 「검토 중」으로 바꿨다(2026-10-21 사용자 결정) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 보낸 뒤 확정을 취소한 명세서를 목록 · 상세에 「정정 중」(연필 아이콘)으로 남기고 금액 · 항목 · 내보내기를 숨긴다(api `correcting`, 2026-10-21 사용자 결정) — [Whale ERP Staff](/whale-erp-staff.md).

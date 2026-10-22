@@ -1,0 +1,79 @@
+// node --test src/lib/join.test.ts
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { formatPhone, invitationProblemOf, isInviteCode, normalizeInviteCode, parseInvitationLookup, signupFieldOf } from "./join.ts";
+
+const TOKEN = "A".repeat(42) + "_";
+
+test("formatPhone 은 숫자만 남겨 하이픈을 넣는다", () => {
+  assert.equal(formatPhone(""), "");
+  assert.equal(formatPhone("010"), "010");
+  assert.equal(formatPhone("0101"), "010-1");
+  assert.equal(formatPhone("010123"), "010-123");
+  assert.equal(formatPhone("0101234"), "010-123-4");
+  assert.equal(formatPhone("0111234567"), "011-123-4567");
+  assert.equal(formatPhone("01012345678"), "010-1234-5678");
+  assert.equal(formatPhone("010-1234-5678"), "010-1234-5678");
+  assert.equal(formatPhone("010 1234 5678 9"), "010-1234-5678");
+});
+
+test("normalizeInviteCode 는 공백을 빼고 대문자로 맞춘다", () => {
+  assert.equal(normalizeInviteCode(" k7q2 m9px "), "K7Q2M9PX");
+});
+
+test("isInviteCode 는 8자리 · 0 O 1 I 없음만 받는다", () => {
+  assert.equal(isInviteCode("K7Q2M9PX"), true);
+  for (const code of ["K7Q2M9P", "K7Q2M9PXX", "K7Q2M9P0", "K7Q2M9PO", "K7Q2M9P1", "K7Q2M9PI", "k7q2m9px"]) {
+    assert.equal(isInviteCode(code), false, code);
+  }
+});
+
+test("parseInvitationLookup 은 토큰이나 번호 + 코드만 받는다", () => {
+  assert.deepEqual(parseInvitationLookup(JSON.stringify({ token: TOKEN })), { token: TOKEN });
+  assert.deepEqual(parseInvitationLookup(JSON.stringify({ phone: "01012345678", code: "K7Q2M9PX" })), {
+    phone: "01012345678",
+    code: "K7Q2M9PX",
+  });
+  assert.equal(parseInvitationLookup(undefined), null);
+  assert.equal(parseInvitationLookup("not json"), null);
+  assert.equal(parseInvitationLookup("null"), null);
+  assert.equal(parseInvitationLookup(JSON.stringify({ token: "short" })), null);
+  assert.equal(parseInvitationLookup(JSON.stringify({ phone: "010-1234-5678", code: "K7Q2M9PX" })), null);
+  assert.equal(parseInvitationLookup(JSON.stringify({ phone: "01012345678", code: "K7Q2M9P0" })), null);
+});
+
+test("invitationProblemOf 는 본문의 code 로 가른다", () => {
+  const of = (status: number, code?: string, extra: object = {}) => invitationProblemOf({ status, body: { code, ...extra } }).kind;
+  assert.equal(of(404, "INVITATION_NOT_FOUND"), "not-found");
+  assert.equal(of(404, "INVITATION_ENDED"), "ended");
+  assert.equal(of(409, "INVITATION_ALREADY_JOINED"), "joined");
+  assert.equal(of(409, "ACCOUNT_EXISTS"), "has-account");
+  assert.equal(of(409, "ACCOUNT_EMAIL_TAKEN"), "email-taken");
+  assert.equal(of(400, "SIGNUP_UNDER_AGE"), "under-age");
+  assert.equal(of(400, "BIRTH_DATE_IN_FUTURE"), "birth-date-in-future");
+  // 형식 검증 400 · 코드 없는 404 · 5xx 는 부른 쪽이 다룬다
+  assert.equal(of(400), "unknown");
+  assert.equal(of(404), "unknown");
+  assert.equal(of(500), "unknown");
+  assert.equal(invitationProblemOf({ status: 404, body: null }).kind, "unknown");
+});
+
+test("invitationProblemOf 는 잠금의 429 와 요청 제한의 429 를 가른다", () => {
+  const lockExpiresAt = "2026-10-22T03:00:00.000Z";
+  assert.deepEqual(invitationProblemOf({ status: 429, body: { code: "INVITATION_CODE_LOCKED", lockExpiresAt } }, 1000), {
+    kind: "locked",
+    attemptLock: { lockExpiresAt: Date.parse(lockExpiresAt), serverNow: 1000 },
+  });
+  assert.equal(invitationProblemOf({ status: 429, body: { message: "ThrottlerException: Too Many Requests" } }).kind, "rate-limited");
+  // 잠금인데 해제 시각을 읽지 못하면 계약이 어긋난 것이다
+  assert.equal(invitationProblemOf({ status: 429, body: { code: "INVITATION_CODE_LOCKED", lockExpiresAt: "x" } }).kind, "unknown");
+});
+
+test("signupFieldOf 는 가입 400 사유를 붙일 칸을 고른다", () => {
+  assert.equal(signupFieldOf("아이디로 쓰는 이메일이나 그 앞부분은 비밀번호로 쓸 수 없습니다"), "newPassword");
+  assert.equal(signupFieldOf("비밀번호는 20자까지 쓸 수 있습니다"), "newPassword");
+  assert.equal(signupFieldOf("생년월일은 YYYY-MM-DD 형식의 날짜입니다"), "birthDate");
+  assert.equal(signupFieldOf("이메일 형식으로 입력해 주세요"), "email");
+  assert.equal(signupFieldOf("메일을 보낼 수 없는 형식의 이메일입니다"), "email");
+  assert.equal(signupFieldOf("우편번호는 숫자 5자리입니다"), "form");
+});

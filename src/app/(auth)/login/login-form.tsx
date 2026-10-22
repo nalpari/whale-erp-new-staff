@@ -61,6 +61,10 @@ export function LoginForm({
             <Button variant="ghost" href="/password-reset" transitionTypes={["nav-forward"]}>
               비밀번호를 잊으셨나요
             </Button>
+            {/* 앱을 직접 연 직원의 가입 시작(WHALEERP-141, 가이드 ①). 초대 링크로 오면 이 화면을 거치지 않는다. */}
+            <Button variant="ghost" href="/join" transitionTypes={["nav-forward"]}>
+              초대 코드로 가입
+            </Button>
           </>
         }
       >

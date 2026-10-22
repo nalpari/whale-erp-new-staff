@@ -62,3 +62,19 @@ export function resetPasswordWithLink(body: Schemas["ResetPasswordWithLinkDto"],
 export function findEmails(body: Schemas["EmailFindDto"], clientIp: ClientIp | undefined) {
   return request<Schemas["EmailFindResponseDto"]>("/auth/account/email-find-attempts", { method: "POST", json: body, clientIp });
 }
+
+/**
+ * 초대 확인(WHALEERP-141). 링크의 토큰, 또는 번호 + 초대 코드 가운데 하나로 살아 있는 가입 초대를 찾는다. 오류는 본문의 code 로
+ * 가른다(join.ts invitationProblemOf) — 404 틀림 · 끝남, 409 가입 마침 · 계정 있음, 같은 번호로 5번 틀리면 30분 잠겨 429 와 lockExpiresAt.
+ */
+export function checkInvitation(body: Schemas["InvitationLookupDto"], clientIp: ClientIp | undefined) {
+  return request<Schemas["InvitationCheckResponseDto"]>("/auth/account/invitations/check", { method: "POST", json: body, clientIp });
+}
+
+/**
+ * 가입(WHALEERP-142). 초대를 다시 확인하고 계정을 만들어 로그인 응답과 같은 모양을 준다. 계정 번호는 초대의 번호다(보내지 않는다).
+ * 초대 확인의 오류에 더해 400 만 19세 미만(SIGNUP_UNDER_AGE, 초대는 가입 불가가 됨) · 생년월일이 오늘 뒤 · 비밀번호 규칙, 409 이미 쓰는 이메일.
+ */
+export function signup(body: Schemas["StaffSignupDto"], clientIp: ClientIp | undefined) {
+  return request<Schemas["LoginResponseDto"]>("/auth/account/signup", { method: "POST", json: body, clientIp });
+}
