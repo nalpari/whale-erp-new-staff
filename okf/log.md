@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-22
+* **Update**: #22 리뷰 반영 — 로그인 상태 가입 화면 돌려보내기를 화면 요청(GET)만으로 좁히고 가입 액션이 스스로 세션을 보게 했다. 초대 링크는 토큰이 홈 주소에 남지 않게 액션이 보내고, 갱신을 확인하지 못한 로그인도 막는다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 로그인돼 있으면 가입 화면(`/join` · `/invite`, 가입 완료 빼고)을 홈으로 보낸다 — 로그인한 채로 가입하면 앞 계정 접속을 끊지 않고 쿠키만 덮어서다(#18 리뷰 참고 6, 2026-10-22 김민식) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: #18 리뷰 반영 — 계정 등록에서 만 19세 미만으로 보이는 생년월일은 보내기 전에 한 번 더 확인받고(ACC-22, 재영 2026-10-22), 가입 완료 화면에 넘기는 근무지 이름을 글자 단위로 잘라 이모지 경계 쿠키 오류를 막았다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 진입 · 가입 화면(WHALEERP-141 · 142)을 더했다 — 로그인 화면의 「초대 코드로 가입」 → `/join`(초대 코드 · 30분 잠금) · 초대 링크 `/invite#token=…` → `/join/invitation`(초대 확인) → `/join/signup`(계정 등록) → `/join/done`(가입 완료). 확인한 초대는 쿠키 `invitation`(Path `/join`)로 들고 다니고, 공개 경로에 `/join` · `/invite` 를 더했다. 약관 동의 칸은 api 가 받지 않아 뺐다. 주소 검색 시트와 읽기 전용 칸을 `src/app/_components/` 로 옮겨 내 정보와 같이 쓰고, api 타입을 api main(3e5a224) 기준으로 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).

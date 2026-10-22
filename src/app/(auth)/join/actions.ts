@@ -20,7 +20,7 @@ import {
   signupFieldProblem,
   type SignupField,
 } from "@/lib/join";
-import { readDeviceId, saveDeviceId, saveLogin } from "@/lib/session";
+import { getSession, readDeviceId, saveDeviceId, saveLogin } from "@/lib/session";
 import { CONNECTION_FAILED_MESSAGE } from "../_components/auth-screen";
 
 /** 번호 · 코드에 맞는 초대가 없다. 어느 쪽이 틀렸는지, 그 번호로 초대가 있는지 알리지 않는다(JOIN-7). */
@@ -28,6 +28,14 @@ const CODE_MISMATCH = "휴대전화번호나 초대 코드를 다시 확인해 �
 
 /** 초대가 끝났거나(ended) · 이미 가입을 마쳤거나(joined) · 그 번호로 계정이 있다(has-account). 화면이 각 안내로 바뀐다. */
 export type InvitationEnd = "ended" | "joined" | "has-account";
+
+/**
+ * 로그인돼 있으면 가입 액션을 하지 않고 홈으로 보낸다 — 가입하면 앞 계정의 접속을 끊지 않고 쿠키만 덮는다(#18 리뷰). proxy 가 가입
+ * 화면을 막지만 액션 요청은 막지 않으므로(열어 둔 가입 화면 · 다른 경로로 보낸 요청) 액션도 스스로 본다.
+ */
+async function leaveIfSignedIn(): Promise<void> {
+  if (await getSession()) redirect("/home", RedirectType.replace);
+}
 
 /**
  * 초대 코드 입력(가이드 ①) 결과. 맞으면 초대를 쿠키에 두고 초대 확인(/join/invitation)으로 가므로 상태로 돌아오지 않는다.
@@ -40,6 +48,7 @@ export type InviteCodeState =
   | { step: InvitationEnd };
 
 export async function checkInviteCodeAction(_previous: InviteCodeState, formData: FormData): Promise<InviteCodeState> {
+  await leaveIfSignedIn();
   const phone = normalizePhone(String(formData.get("phone") ?? ""));
   const code = normalizeInviteCode(String(formData.get("code") ?? ""));
   const input = (field: "phone" | "code" | "form", error: string): InviteCodeState => ({ step: "input", field, error });
@@ -72,6 +81,7 @@ export async function checkInviteCodeAction(_previous: InviteCodeState, formData
  * 화면이 한다), 없거나 모양이 틀리면 invalid 를 돌려준다. 링크 화면을 히스토리에 남기지 않는다 — 뒤로 가면 토큰 없는 주소가 된다.
  */
 export async function openInviteLinkAction(fromHash: string | null): Promise<{ status: "invalid" }> {
+  await leaveIfSignedIn();
   // 서버 액션은 누구나 아무 값으로 부를 수 있다. 문자열이 아니면 주소에 토큰이 없는 것으로 본다.
   if (typeof fromHash !== "string" || !isInvitationToken(fromHash)) return { status: "invalid" };
   await saveInvitation({ token: fromHash });
@@ -95,6 +105,7 @@ export type SignupState =
 const SIGNUP_UNKNOWN = "가입 결과를 확인하지 못했습니다. 잠시 뒤 「가입하기」를 다시 누르면 결과를 알려 드립니다";
 
 export async function signupAction(_previous: SignupState, formData: FormData): Promise<SignupState> {
+  await leaveIfSignedIn();
   const lookup = await readInvitation();
   if (!lookup) return { step: "expired" };
   // 기기 쿠키는 읽기만 하고, 없으면 가입에 성공한 뒤에 굽는다 — 실패에서 쿠키를 바꾸면 Next 가 화면을 서버에서 다시 그려

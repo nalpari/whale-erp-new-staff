@@ -25,7 +25,8 @@ const UNAVAILABLE_LOGIN_PATH = "/login?unavailable=1";
  * 갱신이 401 · 400 이면 접속이 끝난 것이라 쿠키를 지우고 만료 안내로 보낸다(로그인 없이 여는 화면은 쿠키만 지우고 그대로 연다).
  * 그 밖의 실패(api 미기동 · 시간 초과 · 429 · 5xx)는 쿠키를 두고 「확인하지 못했다」 안내로 보낸다.
  * 로그인 화면으로 보낼 때는 보던 경로를 next 로 싣고, 로그인돼 있으면 next 로 보낸다(login-return.ts).
- * 로그인돼 있으면 가입 화면(/join · /invite, 가입 완료 빼고)도 홈으로 보낸다(isSignupPath).
+ * 로그인돼 있으면 가입 화면(/join 아래, 가입 완료 빼고)도 홈으로 보낸다(isSignupPath) — 화면 요청(GET)만. 가입 액션은
+ * 스스로 세션을 보고 거절한다(join/actions.ts). 초대 링크(/invite)는 액션이 보낸다(isSignupPath 주석).
  */
 export async function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
@@ -87,12 +88,16 @@ export async function proxy(request: NextRequest) {
 
   // 만료 · 확인 실패 안내에서는 방금 갱신에 성공해야 로그인된 것으로 본다(남은 액세스 토큰은 api 가 이미 거절한 것일 수 있다).
   const loggedIn = Boolean(accessToken && account) && (!recheck || refreshedUntil !== null);
+  // 가입 화면을 막을 때는 갱신을 확인하지 못한 로그인(5xx · 연결 실패 · 429)도 로그인으로 본다 — 접속이 끝났는지 모르는데 가입하면
+  // 쿠키를 덮는다. 홈이 「확인하지 못했다」 안내로 이어 간다.
+  const signedIn = loggedIn || (unavailable && Boolean(account));
   let response: NextResponse;
   if (!loggedIn && !isPublic(pathname)) response = NextResponse.redirect(new URL(withNext("/login", returnTo), request.url));
   else if (loggedIn && pathname === "/login") {
     response = NextResponse.redirect(new URL(safeNextPath(searchParams.get(NEXT_PARAM)) ?? HOME_PATH, request.url));
-  } else if (loggedIn && isSignupPath(pathname)) response = NextResponse.redirect(new URL(HOME_PATH, request.url));
-  else {
+  } else if (signedIn && request.method === "GET" && isSignupPath(pathname)) {
+    response = NextResponse.redirect(new URL(HOME_PATH, request.url));
+  } else {
     // 화면 · 액션이 만료 안내의 next 를 만들 수 있게 지금 경로를 넘긴다. 브라우저가 보낸 같은 이름의 헤더는 덮어쓴다.
     const headers = new Headers(request.headers);
     headers.set(CURRENT_PATH_HEADER, pathname + request.nextUrl.search);
