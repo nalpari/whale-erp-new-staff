@@ -112,7 +112,7 @@ const ALL = "all";
 
 // TO-DO 탭(목업 node 17:602~). 위에 상태별 개수(12px, 숫자만 bold·상태 색), 아래 목록, 줄을 누르면 상세 시트.
 // 개수 색 #13785E(완료)·#315DF5(진행 중)는 이 줄에만 나와 토큰으로 두지 않는다(목업과 같다).
-// 근무지가 둘 이상이면 위에 근무지 칩을 둔다 — 홈 근무지 선택기(WORK-4, #311·#313)가 생기면 그 값을 따른다.
+// 근무지가 둘 이상이면 위에 근무지 칩을 둔다. 근무 탭은 앱 전역 근무지(WORK-4)로 걸러 넘기므로 칩이 나오지 않는다.
 export function TodoPanel({ todos, now }: { todos: MyTodo[]; now: string }) {
   const [store, setStore] = useState(ALL);
   // 시트는 늘 마운트해 두고 open 만 바꾼다(닫힘 애니메이션 · 초점 되돌리기는 <dialog> 가 맡는다).
