@@ -6,6 +6,8 @@ import {
   formatPhone,
   invitationProblemOf,
   isInviteCode,
+  kstToday,
+  needsBirthDateCheck,
   normalizeInviteCode,
   parseInvitationLookup,
   signupFieldOf,
@@ -131,4 +133,19 @@ test("clipChars 는 이모지를 반쪽으로 자르지 않는다", () => {
   const clipped = clipChars("a".repeat(99) + "🐳🐳", 100);
   assert.equal(clipped, "a".repeat(99) + "🐳");
   assert.doesNotThrow(() => encodeURIComponent(clipped));
+});
+
+test("needsBirthDateCheck 는 만 19세 미만일 때만 다시 묻는다", () => {
+  const today = "2026-10-22";
+  assert.equal(needsBirthDateCheck("2007-10-22", today), false, "오늘 만 19세");
+  assert.equal(needsBirthDateCheck("2007-10-23", today), true, "내일 만 19세");
+  assert.equal(needsBirthDateCheck("2019-04-12", today), true);
+  assert.equal(needsBirthDateCheck("1999-04-12", today), false);
+  assert.equal(needsBirthDateCheck("2026-10-23", today), false, "오늘 뒤 날짜는 api 가 돌려보낸다");
+  assert.equal(needsBirthDateCheck("20190412", today), false, "형식이 아니면 묻지 않는다");
+});
+
+test("kstToday 는 한국 날짜다", () => {
+  assert.equal(kstToday(Date.parse("2026-10-21T15:00:00Z")), "2026-10-22");
+  assert.equal(kstToday(Date.parse("2026-10-21T14:59:59Z")), "2026-10-21");
 });

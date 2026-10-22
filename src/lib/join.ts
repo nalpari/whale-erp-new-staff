@@ -106,6 +106,24 @@ export function signupFieldOf(message: string): SignupField {
 
 export const BAD_BIRTH_DATE = "생년월일 8자리를 넣어 주세요. 19990412 처럼 넣어 주세요";
 
+/** 가입할 수 있는 나이(만). api 는 가입하는 날(한국 날짜)에 이 나이가 안 되면 계정을 만들지 않고 초대를 「가입 불가」로 끝낸다. */
+export const SIGNUP_MIN_AGE = 19;
+
+/** 지금의 한국 날짜(YYYY-MM-DD). 한국은 서머타임이 없어 9시간만 민다. */
+export const kstToday = (now = Date.now()) => new Date(now + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+/**
+ * 보내기 전에 생년월일을 한 번 더 확인받을지(운영 정책 ACC-22, 재영 2026-10-22) — 만 19세 미만이면 초대가 끝나, 입력 실수 한 번에
+ * 근무지가 다시 초대해야 한다. birthDate 는 normalizeBirthDate 를 거친 값이다. 형식이 아니거나 오늘 뒤 날짜는 api 가 초대를 끝내지
+ * 않고 돌려보내므로 묻지 않는다. 판정은 api 가 다시 한다.
+ */
+export function needsBirthDateCheck(birthDate: string, today: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate) || birthDate > today) return false;
+  const [by, bm, bd] = birthDate.split("-").map(Number);
+  const [ty, tm, td] = today.split("-").map(Number);
+  return ty - by - (tm < bm || (tm === bm && td < bd) ? 1 : 0) < SIGNUP_MIN_AGE;
+}
+
 /** 계정 등록 칸의 값. 앞뒤 공백은 뗐고 생년월일은 normalizeBirthDate 를 거쳤다. */
 export interface SignupFields {
   name: string;

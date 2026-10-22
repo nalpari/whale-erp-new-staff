@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-22
+* **Update**: #18 리뷰 반영 — 계정 등록에서 만 19세 미만으로 보이는 생년월일은 보내기 전에 한 번 더 확인받고(ACC-22, 재영 2026-10-22), 가입 완료 화면에 넘기는 근무지 이름을 글자 단위로 잘라 이모지 경계 쿠키 오류를 막았다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 진입 · 가입 화면(WHALEERP-141 · 142)을 더했다 — 로그인 화면의 「초대 코드로 가입」 → `/join`(초대 코드 · 30분 잠금) · 초대 링크 `/invite#token=…` → `/join/invitation`(초대 확인) → `/join/signup`(계정 등록) → `/join/done`(가입 완료). 확인한 초대는 쿠키 `invitation`(Path `/join`)로 들고 다니고, 공개 경로에 `/join` · `/invite` 를 더했다. 약관 동의 칸은 api 가 받지 않아 뺐다. 주소 검색 시트와 읽기 전용 칸을 `src/app/_components/` 로 옮겨 내 정보와 같이 쓰고, api 타입을 api main(3e5a224) 기준으로 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
 
 ## 2026-10-21

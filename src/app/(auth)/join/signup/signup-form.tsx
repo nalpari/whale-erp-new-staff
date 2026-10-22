@@ -1,13 +1,14 @@
 "use client";
 
-import { useActionState, useState, type ReactNode } from "react";
-import { Alert, Button, CheckBox, Notice, SectionTitle, SegmentedControl, TextField } from "@/components/common";
+import { useActionState, useRef, useState, type ReactNode } from "react";
+import { Alert, BottomSheet, Button, CheckBox, Notice, SectionTitle, SegmentedControl, TextField } from "@/components/common";
 import { FIELD } from "@/components/common/theme";
 import { AddressSearchSheet } from "@/app/_components/address-search-sheet";
 import { NewPasswordFields } from "@/app/_components/new-password-fields";
 import { ReadOnlyField } from "@/app/_components/read-only-field";
-import { SIGNUP_NAME_MAX, formatPhone, type SignupField } from "@/lib/join";
-import { ADDRESS_DETAIL_MAX } from "@/lib/profile";
+import { normalizeBirthDate } from "@/lib/email-find";
+import { SIGNUP_NAME_MAX, formatPhone, kstToday, needsBirthDateCheck, type SignupField } from "@/lib/join";
+import { ADDRESS_DETAIL_MAX, dateLabel } from "@/lib/profile";
 import { AuthScreen } from "../../_components/auth-screen";
 import { signupAction, type SignupState } from "../actions";
 import {
@@ -55,6 +56,10 @@ export function SignupForm({
   const [detail, setDetail] = useState("");
   const [hqSharing, setHqSharing] = useState(false);
   const [searching, setSearching] = useState(false);
+  // 만 19세 미만으로 보이는 생년월일은 보내기 전에 한 번 더 확인받는다(needsBirthDateCheck). 확인한 값은 다시 묻지 않는다.
+  const formRef = useRef<HTMLFormElement>(null);
+  const confirmedBirthDate = useRef<string | null>(null);
+  const [birthCheck, setBirthCheck] = useState({ open: false, birthDate: "" });
 
   if (state.step === "ended") return <EndedInvitation />;
   if (state.step === "joined") return <JoinedInvitation />;
@@ -66,7 +71,17 @@ export function SignupForm({
   const failed = state.step === "input" ? state : null;
   const errorOf = (field: SignupField) => (failed?.field === field ? failed.error : undefined);
   return (
-    <form action={formAction} className="flex flex-1 flex-col">
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={(event) => {
+        const value = normalizeBirthDate(birthDate);
+        if (value === confirmedBirthDate.current || !needsBirthDateCheck(value, kstToday())) return;
+        event.preventDefault();
+        setBirthCheck({ open: true, birthDate: value });
+      }}
+      className="flex flex-1 flex-col"
+    >
       {/* 가입 완료 화면이 보일 근무지 이름(actions.ts saveJoinedStore). */}
       <input type="hidden" name="storeName" value={storeName} />
       <input type="hidden" name="gender" value={gender} />
@@ -192,6 +207,23 @@ export function SignupForm({
           <Notice>이름 · 생년월일 · 성별 · 외국인 여부가 근로계약서와 다르면 날인하기 전에 근무지에 고쳐 달라고 요청하게 됩니다.</Notice>
         )}
       </AuthScreen>
+      <BottomSheet
+        open={birthCheck.open}
+        onClose={() => setBirthCheck((check) => ({ ...check, open: false }))}
+        title={`생년월일이 ${birthCheck.birthDate && dateLabel(birthCheck.birthDate)} 맞습니까?`}
+        description="만 19세 미만은 가입할 수 없고, 이 초대도 다시 쓸 수 없게 됩니다. 잘못 넣었다면 고친 뒤 다시 가입해 주세요."
+        closeLabel="고치기"
+      >
+        <Button
+          onClick={() => {
+            confirmedBirthDate.current = birthCheck.birthDate;
+            setBirthCheck((check) => ({ ...check, open: false }));
+            formRef.current?.requestSubmit();
+          }}
+        >
+          맞습니다
+        </Button>
+      </BottomSheet>
       <AddressSearchSheet
         open={searching}
         onClose={() => setSearching(false)}
