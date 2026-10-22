@@ -22,17 +22,20 @@ const WEEKDAY_HEADS = ["월", "화", "수", "목", "금", "토", "일"];
 export function SchedulePanel({
   month,
   today,
+  day,
   items,
   storeName,
 }: {
   month: string;
   today: string;
+  /** 먼저 고를 날 — 알림에서 들어올 때 */
+  day?: string;
   items: MyWorkSchedule[];
   storeName: string;
 }) {
   const router = useRouter();
   // 달이 바뀌면(이 컴포넌트는 key={month} 로 다시 그린다) 처음 고른 날도 다시 정한다.
-  const [picked, setPicked] = useState(() => initialDay(month, today, items));
+  const [picked, setPicked] = useState(() => day ?? initialDay(month, today, items));
   const byDay = new Map<string, MyWorkSchedule[]>();
   for (const item of items) byDay.set(item.workDate, [...(byDay.get(item.workDate) ?? []), item]);
   const pickedItems = byDay.get(picked) ?? [];

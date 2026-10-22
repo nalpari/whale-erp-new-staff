@@ -7,6 +7,7 @@ import { getMyTodos } from "@/lib/my-todos";
 import { getMyWorkSchedules } from "@/lib/my-work-schedules";
 import { requireSession } from "@/lib/session";
 import { kstDate, parseMonth } from "@/lib/work-schedules";
+import { NotificationBell } from "../notification-bell";
 import { SchedulePanel } from "./schedule-panel";
 import { StoreCard } from "./store-card";
 import { TodoPanel } from "./todo-panel";
@@ -24,12 +25,14 @@ export default async function WorkPage({ searchParams }: PageProps<"/work">) {
   const tab: WorkTab = params.tab === "todo" ? "todo" : "schedule";
   const today = kstDate(new Date());
   const month = parseMonth(typeof params.month === "string" ? params.month : undefined, today);
+  // 알림에서 들어오면 그날을 먼저 고른다(?day=, 그 달의 날짜일 때만)
+  const day = typeof params.day === "string" && params.day.startsWith(`${month}-`) && /^\d{4}-\d{2}-\d{2}$/.test(params.day) ? params.day : undefined;
   const memberships = await getMyMemberships();
   const current = memberships && pickCurrentMembership(memberships.items, (await cookies()).get(CURRENT_STAFF_MEMBER_COOKIE)?.value);
 
   return (
     <div className="flex flex-1 flex-col">
-      <PageHeader title="근무정보" backHref="/home" />
+      <PageHeader title="근무정보" backHref="/home" action={<NotificationBell />} />
       <div className="flex flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px] leading-[1.5]">
         {!memberships ? (
           <Alert tone="warning">근무지를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>
@@ -48,7 +51,7 @@ export default async function WorkPage({ searchParams }: PageProps<"/work">) {
             />
             <WorkTabs tab={tab}>
               {tab === "schedule" ? (
-                <ScheduleTab staffMemberId={current.staffMemberId} storeName={current.store.storeName} month={month} today={today} />
+                <ScheduleTab staffMemberId={current.staffMemberId} storeName={current.store.storeName} month={month} today={today} day={day} />
               ) : (
                 <TodoTab storeId={current.store.storeId} />
               )}
@@ -64,11 +67,23 @@ export default async function WorkPage({ searchParams }: PageProps<"/work">) {
   );
 }
 
-async function ScheduleTab({ staffMemberId, storeName, month, today }: { staffMemberId: number; storeName: string; month: string; today: string }) {
+async function ScheduleTab({
+  staffMemberId,
+  storeName,
+  month,
+  today,
+  day,
+}: {
+  staffMemberId: number;
+  storeName: string;
+  month: string;
+  today: string;
+  day?: string;
+}) {
   const schedules = await getMyWorkSchedules(staffMemberId, month);
   if (!schedules) return <Alert tone="warning">근무스케줄을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>;
   // 근무지 · 달이 바뀌면 고른 날을 다시 정한다.
-  return <SchedulePanel key={`${staffMemberId}:${month}`} month={month} today={today} items={schedules.items} storeName={storeName} />;
+  return <SchedulePanel key={`${staffMemberId}:${month}:${day ?? ""}`} month={month} today={today} day={day} items={schedules.items} storeName={storeName} />;
 }
 
 // 고른 근무지의 TO-DO 만 — 근무지가 하나로 걸러지므로 TO-DO 패널의 근무지 칩은 나오지 않는다.
