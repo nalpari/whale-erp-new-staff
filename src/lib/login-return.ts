@@ -8,6 +8,14 @@ export const PUBLIC_PATHS = ["/login", "/password-reset", "/email-find", "/join"
 export const isPublic = (pathname: string) =>
   PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 
+/**
+ * 로그인돼 있으면 홈으로 돌려보내는 가입 화면(초대 코드 · 초대 링크 · 초대 확인 · 계정 등록). 로그인한 채로 가입하면 앞 계정의
+ * 접속을 끊지 않고 쿠키만 새 계정으로 덮기 때문이다(#18 리뷰, 2026-10-22 김민식). 가입 완료(/join/done)는 가입한 액션이 막
+ * 로그인시킨 뒤 보는 화면이라 뺀다. 이미 계정이 있는 직원의 새 근무지 초대는 로그인 뒤 근무지 추가(144 · 604)에서 받는다.
+ */
+export const isSignupPath = (pathname: string) =>
+  pathname !== "/join/done" && ["/join", "/invite"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
+
 /** 로그인 화면 주소의 돌아갈 곳 파라미터. */
 export const NEXT_PARAM = "next";
 
