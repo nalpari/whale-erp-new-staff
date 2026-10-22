@@ -6278,14 +6278,19 @@ export interface components {
          */
         PreferenceCategory: "CONTRACT" | "SCHEDULE" | "TODO" | "PAYSLIP";
         /** @enum {string} */
-        StaffNotificationTargetType: "WORK_SCHEDULE" | "TODO";
+        StaffNotificationTargetType: "WORK_SCHEDULE" | "TODO" | "CONTRACT" | "PAYSLIP";
         StaffNotificationTargetDto: {
             type: components["schemas"]["StaffNotificationTargetType"];
-            staffMemberId: number;
+            /** @description 그 업무가 속한 내 소속. 급여명세서는 없다 */
+            staffMemberId?: number;
             /** @description 근무스케줄 — 근무일 YYYY-MM-DD */
             workDate?: string;
             /** @description TO-DO */
             todoId?: number;
+            /** @description 근로계약 */
+            contractId?: number;
+            /** @description 급여명세서 */
+            payslipId?: number;
         };
         MyNotificationItemDto: {
             /** @description 수신 설정 묶음 — 지금 템플릿의 값. 템플릿이 없으면 null */
