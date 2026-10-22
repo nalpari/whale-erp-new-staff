@@ -3,6 +3,7 @@ import { Alert, BottomNav, Card } from "@/components/common";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { getMyProfileOrNull } from "@/lib/my-profile";
 import { requireSession } from "@/lib/session";
+import { NotificationBell } from "../notification-bell";
 import { TodoCard } from "./todo-card";
 
 export const metadata: Metadata = { title: "홈 · Whale ERP" };
@@ -19,7 +20,11 @@ export default async function HomePage() {
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex flex-col gap-[16px] px-[24px] pt-[52px] pb-[24px] leading-[1.5]">
-        <h1 className="text-[26px] font-bold">{account.realName}님</h1>
+        <div className="flex items-center gap-[12px]">
+          <h1 className="min-w-0 flex-1 text-[26px] font-bold">{account.realName}님</h1>
+          {/* 알림함은 화면 위쪽 종으로 들어간다(NOTI-5) */}
+          <NotificationBell />
+        </div>
         {account.status === "LINK_HOLD" && (
           <Alert tone="warning">
             <strong>관리자가 가입 연결을 확인하고 있습니다.</strong> 확인이 끝나면 근무 정보가 보입니다.

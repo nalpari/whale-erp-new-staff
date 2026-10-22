@@ -2185,6 +2185,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 목록 · 미확인 건수 · 줄마다 눌러 열 곳. 수신 설정으로 앱 푸시를 끈 알림도 보인다 */
+        get: operations["MyNotificationsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 14일 안의 미확인을 모두 읽음 */
+        post: operations["MyNotificationsController_readAll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 읽음 — 알림을 눌러 관련 화면으로 갈 때도 부른다 */
+        post: operations["MyNotificationsController_read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/notifications/{id}/unread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 안 읽음으로 되돌리기 */
+        post: operations["MyNotificationsController_unread"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/notification-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 네 묶음(근로계약서 · 근무스케줄 · TO-DO · 급여명세서). 바꾼 적 없으면 켜짐 */
+        get: operations["MyNotificationPreferencesController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/notification-preferences/{category}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** 한 묶음 켜고 끄기. 그 뒤에 생기는 알림부터 든다 */
+        put: operations["MyNotificationPreferencesController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/notification-templates": {
         parameters: {
             query?: never;
@@ -6170,10 +6272,62 @@ export interface components {
             /** @description 이번에 읽음으로 바뀐 건수 */
             updated: number;
         };
+        /**
+         * @description 수신 설정 묶음 — 지금 템플릿의 값. 템플릿이 없으면 null
+         * @enum {string}
+         */
+        PreferenceCategory: "CONTRACT" | "SCHEDULE" | "TODO" | "PAYSLIP";
+        /** @enum {string} */
+        StaffNotificationTargetType: "WORK_SCHEDULE" | "TODO";
+        StaffNotificationTargetDto: {
+            type: components["schemas"]["StaffNotificationTargetType"];
+            staffMemberId: number;
+            /** @description 근무스케줄 — 근무일 YYYY-MM-DD */
+            workDate?: string;
+            /** @description TO-DO */
+            todoId?: number;
+        };
+        MyNotificationItemDto: {
+            /** @description 수신 설정 묶음 — 지금 템플릿의 값. 템플릿이 없으면 null */
+            category: components["schemas"]["PreferenceCategory"] | null;
+            /** @description 눌러 열 곳. 관련 업무가 지워졌거나 내 재직 소속으로 닿을 수 없으면 null — 「열 수 없습니다」 */
+            target: components["schemas"]["StaffNotificationTargetDto"] | null;
+            /** @description 알림 ID(받는 사람별). 읽음 바꾸기에 쓴다 */
+            id: number;
+            /** @description 만들 때 쓴 템플릿 코드(PUSH_*) */
+            templateCode: string;
+            /** @description 제목 — 만들 때의 문구 */
+            title: string;
+            /** @description 둘째 줄 — 만들 때의 문구 */
+            body: string;
+            /** @description 긴급 TO-DO 의 수행 임박 알림 — 빨간 점 */
+            isUrgent: boolean;
+            isRead: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        MyNotificationListResponseDto: {
+            /** @description 만든 지 14일 안, 새것부터 */
+            items: components["schemas"]["MyNotificationItemDto"][];
+            total: number;
+            /** @description 14일 안의 미확인 건수 — 종 배지 */
+            unreadCount: number;
+        };
+        MyNotificationPreferenceDto: {
+            category: components["schemas"]["PreferenceCategory"];
+            /** @description 앱 푸시 받기. 꺼도 알림함에는 남는다 */
+            isEnabled: boolean;
+        };
+        MyNotificationPreferenceListResponseDto: {
+            /** @description 네 묶음 — 근로계약서 · 근무스케줄 · TO-DO · 급여명세서 */
+            items: components["schemas"]["MyNotificationPreferenceDto"][];
+        };
+        UpdateMyNotificationPreferenceDto: {
+            /** @description 앱 푸시 받기 */
+            isEnabled: boolean;
+        };
         /** @enum {string} */
         NotificationTemplateChannel: "NOTIFICATION" | "PUSH" | "EMAIL" | "ALIMTALK";
-        /** @enum {string} */
-        PreferenceCategory: "CONTRACT" | "SCHEDULE" | "TODO" | "PAYSLIP";
         TemplateListItemDto: {
             channel: components["schemas"]["NotificationTemplateChannel"];
             preferenceCategory: components["schemas"]["PreferenceCategory"] | null;
@@ -13836,6 +13990,205 @@ export interface operations {
             };
             /** @description 내 알림이 아니거나 지운 알림 */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyNotificationsController_list: {
+        parameters: {
+            query?: {
+                /** @description 페이지, 1부터. 상한은 OFFSET 이 DB 정수 범위를 넘어 500 이 되지 않게 둔다 */
+                page?: number;
+                /** @description 페이지당 건수, 기본 20 · 최대 200 */
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyNotificationListResponseDto"];
+                };
+            };
+            /** @description 쿼리 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyNotificationsController_readAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationReadAllResponseDto"];
+                };
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyNotificationsController_read: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyNotificationItemDto"];
+                };
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 알림이 아니거나 지웠거나 14일이 지났다 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyNotificationsController_unread: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyNotificationItemDto"];
+                };
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 알림이 아니거나 지웠거나 14일이 지났다 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyNotificationPreferencesController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyNotificationPreferenceListResponseDto"];
+                };
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyNotificationPreferencesController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category: components["schemas"]["PreferenceCategory"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMyNotificationPreferenceDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyNotificationPreferenceDto"];
+                };
+            };
+            /** @description 모르는 묶음 · isEnabled 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
