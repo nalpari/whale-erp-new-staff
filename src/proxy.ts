@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { ApiError, NetworkError } from "@/lib/api";
 import { refreshAccessToken } from "@/lib/auth";
 import { clientIpFrom } from "@/lib/client-ip";
-import { CURRENT_PATH_HEADER, HOME_PATH, NEXT_PARAM, isPublic, safeNextPath, withNext } from "@/lib/login-return";
+import { CURRENT_PATH_HEADER, HOME_PATH, NEXT_PARAM, isPublic, isSignupPath, safeNextPath, withNext } from "@/lib/login-return";
 import {
   ACCESS_TOKEN_COOKIE,
   ACCOUNT_COOKIE,
@@ -25,6 +25,7 @@ const UNAVAILABLE_LOGIN_PATH = "/login?unavailable=1";
  * 갱신이 401 · 400 이면 접속이 끝난 것이라 쿠키를 지우고 만료 안내로 보낸다(로그인 없이 여는 화면은 쿠키만 지우고 그대로 연다).
  * 그 밖의 실패(api 미기동 · 시간 초과 · 429 · 5xx)는 쿠키를 두고 「확인하지 못했다」 안내로 보낸다.
  * 로그인 화면으로 보낼 때는 보던 경로를 next 로 싣고, 로그인돼 있으면 next 로 보낸다(login-return.ts).
+ * 로그인돼 있으면 가입 화면(/join · /invite, 가입 완료 빼고)도 홈으로 보낸다(isSignupPath).
  */
 export async function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
@@ -90,7 +91,8 @@ export async function proxy(request: NextRequest) {
   if (!loggedIn && !isPublic(pathname)) response = NextResponse.redirect(new URL(withNext("/login", returnTo), request.url));
   else if (loggedIn && pathname === "/login") {
     response = NextResponse.redirect(new URL(safeNextPath(searchParams.get(NEXT_PARAM)) ?? HOME_PATH, request.url));
-  } else {
+  } else if (loggedIn && isSignupPath(pathname)) response = NextResponse.redirect(new URL(HOME_PATH, request.url));
+  else {
     // 화면 · 액션이 만료 안내의 next 를 만들 수 있게 지금 경로를 넘긴다. 브라우저가 보낸 같은 이름의 헤더는 덮어쓴다.
     const headers = new Headers(request.headers);
     headers.set(CURRENT_PATH_HEADER, pathname + request.nextUrl.search);
