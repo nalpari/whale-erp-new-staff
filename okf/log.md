@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-10-22
+* **Update**: 급여 탭 명세서 목록 순서가 급여 기간 최신순(같은 달이면 받은 날 최신순)으로 바뀌었다(api, PAY-8, 2026-10-22 재영) — 앱 코드는 api 순서를 그대로 써 주석 · 문서만 고쳤다 — [Whale ERP Staff](/whale-erp-staff.md).
+
 ## 2026-10-21
 * **Update**: 확정 취소된 명세서의 배지 · 안내 이름을 「정정 중」에서 「검토 중」으로 바꿨다(2026-10-21 사용자 결정) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 보낸 뒤 확정을 취소한 명세서를 목록 · 상세에 「정정 중」(연필 아이콘)으로 남기고 금액 · 항목 · 내보내기를 숨긴다(api `correcting`, 2026-10-21 사용자 결정) — [Whale ERP Staff](/whale-erp-staff.md).
