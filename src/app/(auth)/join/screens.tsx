@@ -49,7 +49,7 @@ export function InvitationScreen({
   via: JoinVia;
   storeName: string;
   employmentType: string;
-  /** 초대를 쓸 수 있는 마지막 날(「2026년 11월 18일」). */
+  /** 초대가 끝나는 시각(「2026년 11월 18일 18:00」) — 보낸 때부터 30일이라 날짜만 보이면 그날 저녁에 끝나는 초대가 하루 종일 되는 줄 안다. */
   expiresOn: string;
 }) {
   return (
@@ -186,6 +186,9 @@ export function CodeLocked({ lock, onRetry }: { lock: AttemptLock; onRetry?: () 
             <Button disabled={waiting} onClick={onRetry}>
               {label}
             </Button>
+          ) : waiting ? (
+            // 링크는 막을 수 없어 기다리는 동안은 막힌 버튼으로 그린다.
+            <Button disabled>{label}</Button>
           ) : (
             <Button href="/join" transitionTypes={["nav-back"]}>
               {label}

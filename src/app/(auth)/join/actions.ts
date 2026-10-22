@@ -20,7 +20,7 @@ import {
   signupFieldProblem,
   type SignupField,
 } from "@/lib/join";
-import { getDeviceId, saveLogin } from "@/lib/session";
+import { readDeviceId, saveDeviceId, saveLogin } from "@/lib/session";
 import { CONNECTION_FAILED_MESSAGE } from "../_components/auth-screen";
 
 /** 번호 · 코드에 맞는 초대가 없다. 어느 쪽이 틀렸는지, 그 번호로 초대가 있는지 알리지 않는다(JOIN-7). */
@@ -64,17 +64,7 @@ export async function checkInviteCodeAction(_previous: InviteCodeState, formData
     throw error;
   }
   await saveInvitation({ phone, code });
-  await prepareDeviceId();
   redirect("/join/invitation");
-}
-
-/**
- * 기기 쿠키(가입 요청의 deviceIdentifier)를 초대를 확인할 때 미리 굽는다. 처음 쓰는 휴대폰이면 계정 등록의 액션이 이 쿠키를 새로
- * 굽게 되는데, 쿠키를 바꾼 액션 뒤에는 Next 가 화면을 서버에서 다시 그려 초대를 다시 확인한다 — 만 19세 미만으로 끝난 초대는 그때
- * 「끝난 초대」로 보여 가입 불가 안내가 덮인다.
- */
-async function prepareDeviceId(): Promise<void> {
-  await getDeviceId();
 }
 
 /**
@@ -85,7 +75,6 @@ export async function openInviteLinkAction(fromHash: string | null): Promise<{ s
   // 서버 액션은 누구나 아무 값으로 부를 수 있다. 문자열이 아니면 주소에 토큰이 없는 것으로 본다.
   if (typeof fromHash !== "string" || !isInvitationToken(fromHash)) return { status: "invalid" };
   await saveInvitation({ token: fromHash });
-  await prepareDeviceId();
   redirect("/join/invitation", RedirectType.replace);
 }
 
@@ -108,8 +97,10 @@ const SIGNUP_UNKNOWN = "가입 결과를 확인하지 못했습니다. 잠시 �
 export async function signupAction(_previous: SignupState, formData: FormData): Promise<SignupState> {
   const lookup = await readInvitation();
   if (!lookup) return { step: "expired" };
-  // 초대를 확인할 때 구워 둔 기기 쿠키를 읽는다(prepareDeviceId).
-  const deviceIdentifier = await getDeviceId();
+  // 기기 쿠키는 읽기만 하고, 없으면 가입에 성공한 뒤에 굽는다 — 실패에서 쿠키를 바꾸면 Next 가 화면을 서버에서 다시 그려
+  // 초대를 다시 확인하고, 만 19세 미만으로 끝난 초대는 그때 「끝난 초대」로 보여 가입 불가 안내가 덮인다.
+  const existingDeviceId = await readDeviceId();
+  const deviceIdentifier = existingDeviceId ?? crypto.randomUUID();
   const text = (name: string) => String(formData.get(name) ?? "");
   const name = text("name").trim();
   const birthDate = normalizeBirthDate(text("birthDate"));
@@ -181,6 +172,7 @@ export async function signupAction(_previous: SignupState, formData: FormData): 
   }
   // 저장은 try 밖이다. 여기서 나는 오류는 api 응답 모양이 바뀐 결함이라 연결 실패로 숨기지 않는다.
   await saveLogin(result);
+  if (!existingDeviceId) await saveDeviceId(deviceIdentifier);
   await clearInvitation();
   // 계정 등록 화면이 숨은 칸에 실은 근무지 이름이다. 보낸 사람이 바꿀 수 있지만 자기 화면에만 보이고 글자로만 그린다.
   await saveJoinedStore(text("storeName"));

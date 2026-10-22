@@ -11,11 +11,11 @@ const INVITATION_PATH = "/join";
 /** 가입 화면을 채우는 동안만 이어 준다. 초대의 기한(30일)은 api 가 판정한다. */
 const COOKIE_SECONDS = 30 * 60;
 
-const cookieOptions = (maxAge: number) => ({
+const cookieOptions = (maxAge: number, path = INVITATION_PATH) => ({
   httpOnly: true,
   sameSite: "lax" as const,
   secure: process.env.NODE_ENV === "production",
-  path: INVITATION_PATH,
+  path,
   maxAge,
 });
 
@@ -42,13 +42,7 @@ const JOINED_STORE_MAX = 100;
 
 /** 서버 액션에서만 부른다. */
 export async function saveJoinedStore(storeName: string): Promise<void> {
-  (await cookies()).set(JOINED_STORE_COOKIE, storeName.slice(0, JOINED_STORE_MAX), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/join/done",
-    maxAge: JOINED_STORE_SECONDS,
-  });
+  (await cookies()).set(JOINED_STORE_COOKIE, storeName.slice(0, JOINED_STORE_MAX), cookieOptions(JOINED_STORE_SECONDS, "/join/done"));
 }
 
 export async function readJoinedStore(): Promise<string | null> {
