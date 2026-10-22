@@ -56,6 +56,14 @@ export async function getSavedLoginEmail(): Promise<string | null> {
   return (await cookies()).get(SAVED_EMAIL_COOKIE)?.value || null;
 }
 
+/**
+ * 로그인 흔적(account 쿠키)이 있는지. 액세스 토큰이 만료되고 갱신을 확인하지 못했어도(5xx · 연결 실패 · 429) 로그인한 것으로 본다 —
+ * proxy 가 가입 화면을 막는 판정(signedIn)과 같다. 갱신이 401 · 400 으로 끝난 접속은 proxy 가 요청 쿠키에서도 지운다.
+ */
+export async function hasLoginTrace(): Promise<boolean> {
+  return parseAccountCookie((await cookies()).get(ACCOUNT_COOKIE)?.value) !== null;
+}
+
 export async function getSession(): Promise<Session | null> {
   const jar = await cookies();
   const accessToken = jar.get(ACCESS_TOKEN_COOKIE)?.value;

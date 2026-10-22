@@ -20,7 +20,7 @@ import {
   signupFieldProblem,
   type SignupField,
 } from "@/lib/join";
-import { getSession, readDeviceId, saveDeviceId, saveLogin } from "@/lib/session";
+import { hasLoginTrace, readDeviceId, saveDeviceId, saveLogin } from "@/lib/session";
 import { CONNECTION_FAILED_MESSAGE } from "../_components/auth-screen";
 
 /** 번호 · 코드에 맞는 초대가 없다. 어느 쪽이 틀렸는지, 그 번호로 초대가 있는지 알리지 않는다(JOIN-7). */
@@ -31,10 +31,11 @@ export type InvitationEnd = "ended" | "joined" | "has-account";
 
 /**
  * 로그인돼 있으면 가입 액션을 하지 않고 홈으로 보낸다 — 가입하면 앞 계정의 접속을 끊지 않고 쿠키만 덮는다(#18 리뷰). proxy 가 가입
- * 화면을 막지만 액션 요청은 막지 않으므로(열어 둔 가입 화면 · 다른 경로로 보낸 요청) 액션도 스스로 본다.
+ * 화면을 막지만 액션 요청은 막지 않으므로(열어 둔 가입 화면 · 다른 경로로 보낸 요청) 액션도 스스로 본다. 판정은 proxy 와 같이
+ * 로그인 흔적이다 — 액세스 토큰만 보면 갱신을 확인하지 못한 로그인으로 가입해 쿠키를 덮는다(#22 재리뷰).
  */
 async function leaveIfSignedIn(): Promise<void> {
-  if (await getSession()) redirect("/home", RedirectType.replace);
+  if (await hasLoginTrace()) redirect("/home", RedirectType.replace);
 }
 
 /**
