@@ -6,7 +6,7 @@ import { FIELD } from "@/components/common/theme";
 import { AddressSearchSheet } from "@/app/_components/address-search-sheet";
 import { NewPasswordFields } from "@/app/_components/new-password-fields";
 import { ReadOnlyField } from "@/app/_components/read-only-field";
-import { formatPhone, type SignupField } from "@/lib/join";
+import { SIGNUP_NAME_MAX, formatPhone, type SignupField } from "@/lib/join";
 import { ADDRESS_DETAIL_MAX } from "@/lib/profile";
 import { AuthScreen } from "../../_components/auth-screen";
 import { signupAction, type SignupState } from "../actions";
@@ -94,7 +94,7 @@ export function SignupForm({
             name="name"
             autoComplete="name"
             required
-            maxLength={50}
+            maxLength={SIGNUP_NAME_MAX}
             value={name}
             onChange={(event) => setName(event.target.value)}
             error={errorOf("name")}

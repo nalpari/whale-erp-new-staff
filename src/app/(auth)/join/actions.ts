@@ -3,14 +3,23 @@
 import { headers } from "next/headers";
 import { RedirectType, redirect } from "next/navigation";
 import { RATE_LIMITED, isHangulReason } from "@/lib/action-errors";
-import { ApiError, NetworkError, logUnexpected, type Schemas } from "@/lib/api";
+import { ApiError, NetworkError, logUnexpected } from "@/lib/api";
 import type { AttemptLock } from "@/lib/attempt-lock";
 import { checkInvitation, signup } from "@/lib/auth";
 import { clientIpFrom } from "@/lib/client-ip";
 import { normalizeBirthDate, normalizePhone } from "@/lib/email-find";
 import { clearInvitation, readInvitation, saveInvitation, saveJoinedStore } from "@/lib/invitation-cookie";
-import { invitationProblemOf, isInvitationToken, isInviteCode, normalizeInviteCode, signupFieldOf, type SignupField } from "@/lib/join";
-import { checkPasswordRules } from "@/lib/password-rules";
+import {
+  BAD_BIRTH_DATE,
+  invitationProblemOf,
+  isGender,
+  isInvitationToken,
+  isInviteCode,
+  normalizeInviteCode,
+  signupFieldOf,
+  signupFieldProblem,
+  type SignupField,
+} from "@/lib/join";
 import { getDeviceId, saveLogin } from "@/lib/session";
 import { CONNECTION_FAILED_MESSAGE } from "../_components/auth-screen";
 
@@ -93,10 +102,8 @@ export type SignupState =
   | { step: InvitationEnd | "expired" | "under-age" }
   | ({ step: "locked" } & AttemptLock);
 
-const GENDERS = ["MALE", "FEMALE"] as const satisfies readonly Schemas["StaffSignupDto"]["gender"][];
-const isGender = (value: string): value is (typeof GENDERS)[number] => (GENDERS as readonly string[]).includes(value);
-/** api StaffSignupDto 의 이름 최대 길이. api 는 NFC 로 바꾼 뒤 센다. */
-const NAME_MAX = 50;
+/** 가입 요청의 결과를 모른다(5xx · 연결 실패 · 시간 초과). 다시 누르면 api 가 지금 상태로 답한다. */
+const SIGNUP_UNKNOWN = "가입 결과를 확인하지 못했습니다. 잠시 뒤 「가입하기」를 다시 누르면 결과를 알려 드립니다";
 
 export async function signupAction(_previous: SignupState, formData: FormData): Promise<SignupState> {
   const lookup = await readInvitation();
@@ -114,15 +121,19 @@ export async function signupAction(_previous: SignupState, formData: FormData): 
   const input = (field: SignupField, error: string): SignupState => ({ step: "input", field, error });
 
   // 화면 위에서 아래 순서로 먼저 칸별로 알린다. 판정은 api 가 다시 한다.
-  if (!name) return input("name", "이름을 넣어 주세요");
-  if (name.normalize("NFC").length > NAME_MAX) return input("name", `이름은 ${NAME_MAX}자까지 넣을 수 있습니다`);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return input("birthDate", "생년월일 8자리를 넣어 주세요. 19990412 처럼 넣어 주세요");
+  const invalid = signupFieldProblem({
+    name,
+    birthDate,
+    gender,
+    email,
+    newPassword,
+    newPasswordConfirmation: text("newPasswordConfirmation"),
+    zipCode,
+    address,
+  });
+  if (invalid) return input(invalid.field, invalid.error);
+  // 위에서 걸렀다 — 타입만 좁힌다.
   if (!isGender(gender)) return input("gender", "성별을 골라 주세요");
-  if (!email) return input("email", "이메일을 넣어 주세요");
-  const rules = checkPasswordRules(newPassword, email);
-  if (!rules.kinds || !rules.length || !rules.notEmail) return input("newPassword", "아래 비밀번호 조건을 확인해 주세요");
-  if (newPassword !== text("newPasswordConfirmation")) return input("newPasswordConfirmation", "두 칸의 비밀번호가 다릅니다");
-  if (!zipCode || !address) return input("address", "주소를 검색해 골라 주세요");
 
   let result;
   try {
@@ -155,16 +166,23 @@ export async function signupAction(_previous: SignupState, formData: FormData): 
       if (problem.kind === "birth-date-in-future") return input("birthDate", "생년월일을 다시 확인해 주세요");
       if (problem.kind === "email-taken") return input("email", "이미 가입한 이메일입니다. 다른 이메일을 쓰거나 로그인해 주세요");
       // 400 의 한글 사유(비밀번호 규칙 · 이메일 · 생년월일 형식)는 그 칸에 그대로 보인다. 영어 원문은 화면과 api 의 계약이 어긋난 신호다.
-      if (error.status === 400 && isHangulReason(error.message)) return input(signupFieldOf(error.message), error.message);
+      if (error.status === 400 && isHangulReason(error.message)) {
+        const field = signupFieldOf(error.message);
+        // 없는 날짜(19991340)의 api 사유는 YYYY-MM-DD 형식을 말한다. 화면은 8자리로 받으니 화면 문구로 바꾼다.
+        return input(field, field === "birthDate" ? BAD_BIRTH_DATE : error.message);
+      }
       if (error.status < 500) logUnexpected("join-signup", error);
-      return input("form", "가입하지 못했습니다. 잠시 뒤 다시 시도해 주세요");
+      // api 는 가입을 커밋한 뒤 접속 상태를 연다 — 5xx 여도 가입은 됐을 수 있다. 다시 누르면 「이미 가입을 마친 초대」로 알려 준다.
+      return input("form", error.status >= 500 ? SIGNUP_UNKNOWN : "가입하지 못했습니다. 잠시 뒤 다시 시도해 주세요");
     }
-    if (error instanceof NetworkError) return input("form", CONNECTION_FAILED_MESSAGE);
+    // 응답을 받지 못했다 — 연결 실패든 시간 초과든 가입이 됐는지 모른다.
+    if (error instanceof NetworkError) return input("form", SIGNUP_UNKNOWN);
     throw error;
   }
   // 저장은 try 밖이다. 여기서 나는 오류는 api 응답 모양이 바뀐 결함이라 연결 실패로 숨기지 않는다.
   await saveLogin(result);
   await clearInvitation();
+  // 계정 등록 화면이 숨은 칸에 실은 근무지 이름이다. 보낸 사람이 바꿀 수 있지만 자기 화면에만 보이고 글자로만 그린다.
   await saveJoinedStore(text("storeName"));
   // 계정 등록 화면을 히스토리에 남기지 않는다. 뒤로 가면 다 쓴 초대를 다시 확인하게 된다.
   redirect("/join/done", RedirectType.replace);

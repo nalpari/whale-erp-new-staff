@@ -1,6 +1,8 @@
 // 초대 코드 입력 · 초대 확인 · 가입(WHALEERP-141 · 142, 진입 · 가입 화면 가이드 JOIN-7)의 순수 계산.
 // node --test 가 직접 읽으므로 값 import 는 같은 폴더의 순수 모듈(.ts 확장자)만 둔다.
+import type { Schemas } from "./api";
 import { lockOf, type AttemptLock } from "./attempt-lock.ts";
+import { checkPasswordRules } from "./password-rules.ts";
 
 /**
  * 초대를 찾는 값 — 초대 링크의 토큰, 또는 휴대전화번호 + 초대 코드. 확인을 마치면 쿠키에 두고 가입까지 들고 간다
@@ -83,6 +85,12 @@ export function invitationProblemOf(error: { status: number; body: unknown }, se
   return { kind: "unknown" };
 }
 
+/** api StaffSignupDto 의 성별 값(어긋나면 타입 오류). 한글 이름은 enum `Gender` 로 받는다. */
+export const GENDERS = ["MALE", "FEMALE"] as const satisfies readonly Schemas["StaffSignupDto"]["gender"][];
+export const isGender = (value: string): value is (typeof GENDERS)[number] => (GENDERS as readonly string[]).includes(value);
+/** api StaffSignupDto 의 이름 최대 길이. api 는 NFC 로 바꾼 뒤 센다. */
+export const SIGNUP_NAME_MAX = 50;
+
 export type SignupField = "name" | "birthDate" | "gender" | "email" | "newPassword" | "newPasswordConfirmation" | "address" | "form";
 
 /**
@@ -94,4 +102,36 @@ export function signupFieldOf(message: string): SignupField {
   if (message.includes("생년월일")) return "birthDate";
   if (message.includes("이메일")) return "email";
   return "form";
+}
+
+export const BAD_BIRTH_DATE = "생년월일 8자리를 넣어 주세요. 19990412 처럼 넣어 주세요";
+
+/** 계정 등록 칸의 값. 앞뒤 공백은 뗐고 생년월일은 normalizeBirthDate 를 거쳤다. */
+export interface SignupFields {
+  name: string;
+  birthDate: string;
+  gender: string;
+  email: string;
+  newPassword: string;
+  newPasswordConfirmation: string;
+  zipCode: string;
+  address: string;
+}
+
+/**
+ * api 에 보내기 전에 칸별로 먼저 알릴 문제 — 화면 위에서 아래 순서로 처음 하나. 없으면 null. 비밀번호 규칙은 화면의 조건 목록과
+ * 같은 checkPasswordRules 다. 판정은 api 가 다시 한다(없는 날짜 · 오늘 뒤 날짜 · 이메일 형식 · 이메일 중복).
+ */
+export function signupFieldProblem(fields: SignupFields): { field: SignupField; error: string } | null {
+  const { name, birthDate, gender, email, newPassword } = fields;
+  if (!name) return { field: "name", error: "이름을 넣어 주세요" };
+  if (name.normalize("NFC").length > SIGNUP_NAME_MAX) return { field: "name", error: `이름은 ${SIGNUP_NAME_MAX}자까지 넣을 수 있습니다` };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return { field: "birthDate", error: BAD_BIRTH_DATE };
+  if (!isGender(gender)) return { field: "gender", error: "성별을 골라 주세요" };
+  if (!email) return { field: "email", error: "이메일을 넣어 주세요" };
+  const rules = checkPasswordRules(newPassword, email);
+  if (!rules.kinds || !rules.length || !rules.notEmail) return { field: "newPassword", error: "아래 비밀번호 조건을 확인해 주세요" };
+  if (newPassword !== fields.newPasswordConfirmation) return { field: "newPasswordConfirmation", error: "두 칸의 비밀번호가 다릅니다" };
+  if (!fields.zipCode || !fields.address) return { field: "address", error: "주소를 검색해 골라 주세요" };
+  return null;
 }

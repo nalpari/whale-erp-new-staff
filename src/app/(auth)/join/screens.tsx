@@ -97,8 +97,11 @@ const ToLogin = ({ primary = false }: { primary?: boolean }) => (
   </Button>
 );
 
-/** 기한이 지났거나 · 다시 보냄 · 번호 변경 · 퇴직 · 가입 불가로 끝난 초대. 링크와 코드가 똑같이 무효다. */
-export function EndedInvitation() {
+/**
+ * 기한이 지났거나 · 다시 보냄 · 번호 변경 · 퇴직 · 가입 불가로 끝난 초대. 링크와 코드가 똑같이 무효다. onRetry 가 있으면(초대 코드
+ * 입력 — 같은 /join 주소라 링크로는 입력 화면에 돌아가지 못한다) 입력 화면으로 돌아가고, 없으면 /join 으로 간다.
+ */
+export function EndedInvitation({ onRetry }: { onRetry?: () => void }) {
   const titleRef = useFocusedTitle();
   return (
     <AuthScreen
@@ -107,9 +110,13 @@ export function EndedInvitation() {
       description="초대가 만료되었거나 새 초대로 바뀌었습니다. 근무지에 다시 초대해 달라고 요청해 주세요."
       dock={
         <>
-          <Button href="/join" transitionTypes={["nav-back"]}>
-            새 초대 코드 넣기
-          </Button>
+          {onRetry ? (
+            <Button onClick={onRetry}>새 초대 코드 넣기</Button>
+          ) : (
+            <Button href="/join" transitionTypes={["nav-back"]}>
+              새 초대 코드 넣기
+            </Button>
+          )}
           <ToLogin />
         </>
       }
@@ -226,14 +233,14 @@ export function UnderAge() {
   );
 }
 
-/** 초대 쿠키(30분)가 지났거나 없다 — 확인한 초대를 다시 찾을 수 없어 처음부터 다시 한다. */
+/** 초대 쿠키(30분)가 지났거나 없다(주소로 바로 들어옴 등) — 확인한 초대를 다시 찾을 수 없어 처음부터 다시 한다. */
 export function InvitationExpired() {
   const titleRef = useFocusedTitle();
   return (
     <AuthScreen
       titleRef={titleRef}
       title="처음부터 다시 해 주세요"
-      description="초대를 확인한 지 30분이 지났습니다. 받은 초대 링크를 다시 누르거나 초대 코드를 넣어 주세요."
+      description="확인한 초대를 찾을 수 없습니다. 초대를 확인한 지 30분이 지났을 수 있습니다. 받은 초대 링크를 다시 누르거나 초대 코드를 넣어 주세요."
       dock={
         <>
           <Button href="/join" transitionTypes={["nav-back"]}>

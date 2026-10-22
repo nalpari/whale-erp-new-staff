@@ -1,7 +1,15 @@
 // node --test src/lib/join.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { formatPhone, invitationProblemOf, isInviteCode, normalizeInviteCode, parseInvitationLookup, signupFieldOf } from "./join.ts";
+import {
+  formatPhone,
+  invitationProblemOf,
+  isInviteCode,
+  normalizeInviteCode,
+  parseInvitationLookup,
+  signupFieldOf,
+  signupFieldProblem,
+} from "./join.ts";
 
 const TOKEN = "A".repeat(42) + "_";
 
@@ -76,4 +84,43 @@ test("signupFieldOf 는 가입 400 사유를 붙일 칸을 고른다", () => {
   assert.equal(signupFieldOf("이메일 형식으로 입력해 주세요"), "email");
   assert.equal(signupFieldOf("메일을 보낼 수 없는 형식의 이메일입니다"), "email");
   assert.equal(signupFieldOf("우편번호는 숫자 5자리입니다"), "form");
+  // api 가 여러 사유를 이어 붙이면(", ") 비밀번호 → 생년월일 → 이메일 순으로 먼저 걸리는 칸이다
+  assert.equal(signupFieldOf("이메일 형식으로 입력해 주세요, 생년월일은 YYYY-MM-DD 형식의 날짜입니다"), "birthDate");
+});
+
+const FIELDS = {
+  name: "김민서",
+  birthDate: "1998-04-12",
+  gender: "FEMALE",
+  email: "minseo@whale.test",
+  newPassword: "Whale#cafe25",
+  newPasswordConfirmation: "Whale#cafe25",
+  zipCode: "04001",
+  address: "서울 마포구 양화로 12",
+};
+
+test("signupFieldProblem 은 다 맞으면 null 이다", () => {
+  assert.equal(signupFieldProblem(FIELDS), null);
+});
+
+test("signupFieldProblem 은 화면 위에서 아래 순서로 처음 하나를 고른다", () => {
+  const field = (overrides: Partial<typeof FIELDS>) => signupFieldProblem({ ...FIELDS, ...overrides })?.field;
+  assert.equal(field({ name: "", birthDate: "", email: "" }), "name");
+  assert.equal(field({ birthDate: "19980412", gender: "" }), "birthDate");
+  assert.equal(field({ gender: "OTHER", email: "" }), "gender");
+  assert.equal(field({ email: "", newPassword: "" }), "email");
+  assert.equal(field({ newPassword: "short", newPasswordConfirmation: "x" }), "newPassword");
+  assert.equal(field({ newPasswordConfirmation: "Whale#cafe26", zipCode: "" }), "newPasswordConfirmation");
+  assert.equal(field({ zipCode: "" }), "address");
+  assert.equal(field({ address: "" }), "address");
+});
+
+test("signupFieldProblem 의 이름 길이는 NFC 로 센다", () => {
+  // 한글 50자를 자모로 풀어 넣어도(NFD) 50자로 센다
+  assert.equal(signupFieldProblem({ ...FIELDS, name: "가".repeat(50).normalize("NFD") }), null);
+  assert.equal(signupFieldProblem({ ...FIELDS, name: "가".repeat(51) })?.field, "name");
+});
+
+test("signupFieldProblem 은 이메일 아이디와 같은 비밀번호를 비밀번호 칸에서 막는다", () => {
+  assert.equal(signupFieldProblem({ ...FIELDS, email: "whale#cafe25@x.test", newPassword: "Whale#cafe25", newPasswordConfirmation: "Whale#cafe25" })?.field, "newPassword");
 });

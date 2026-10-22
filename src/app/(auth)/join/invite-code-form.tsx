@@ -15,11 +15,11 @@ export function InviteCodeForm() {
   const [state, formAction, pending] = useActionState<InviteCodeState, FormData>(checkInviteCodeAction, { step: "input" });
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
-  // 「다시 넣기」로 걷어 낸 잠금 결과. 같은 결과 객체로는 잠금 화면을 다시 그리지 않는다(로그인 잠금과 같다).
+  // 「다시 넣기」 · 「새 초대 코드 넣기」로 걷어 낸 결과. 같은 결과 객체로는 그 화면을 다시 그리지 않는다(로그인 잠금과 같다).
   const [dismissed, setDismissed] = useState<InviteCodeState | null>(null);
 
   if (state.step === "locked" && state !== dismissed) return <CodeLocked lock={state} onRetry={() => setDismissed(state)} />;
-  if (state.step === "ended") return <EndedInvitation />;
+  if (state.step === "ended" && state !== dismissed) return <EndedInvitation onRetry={() => setDismissed(state)} />;
   if (state.step === "joined") return <JoinedInvitation />;
   if (state.step === "has-account") return <AccountExists />;
 
