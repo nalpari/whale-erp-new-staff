@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { parseInvitationLookup, type InvitationLookup } from "./join";
+import { clipChars, parseInvitationLookup, type InvitationLookup } from "./join";
 
 // 확인을 마친 초대(WHALEERP-141 · 142). 초대 확인 → 계정 등록 사이에 들고 다니는 값이다 — 가입 요청에 다시 보내야 한다.
 // 링크의 토큰과 초대 코드는 그 초대로 가입할 수 있는 열쇠라 주소 · 브라우저 저장소에 두지 않고 httpOnly 쿠키에 둔다
@@ -42,7 +42,7 @@ const JOINED_STORE_MAX = 100;
 
 /** 서버 액션에서만 부른다. */
 export async function saveJoinedStore(storeName: string): Promise<void> {
-  (await cookies()).set(JOINED_STORE_COOKIE, storeName.slice(0, JOINED_STORE_MAX), cookieOptions(JOINED_STORE_SECONDS, "/join/done"));
+  (await cookies()).set(JOINED_STORE_COOKIE, clipChars(storeName, JOINED_STORE_MAX), cookieOptions(JOINED_STORE_SECONDS, "/join/done"));
 }
 
 export async function readJoinedStore(): Promise<string | null> {

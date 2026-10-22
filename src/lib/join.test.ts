@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  clipChars,
   formatPhone,
   invitationProblemOf,
   isInviteCode,
@@ -123,4 +124,11 @@ test("signupFieldProblem 의 이름 길이는 NFC 로 센다", () => {
 
 test("signupFieldProblem 은 이메일 아이디와 같은 비밀번호를 비밀번호 칸에서 막는다", () => {
   assert.equal(signupFieldProblem({ ...FIELDS, email: "whale#cafe25@x.test", newPassword: "Whale#cafe25", newPasswordConfirmation: "Whale#cafe25" })?.field, "newPassword");
+});
+
+test("clipChars 는 이모지를 반쪽으로 자르지 않는다", () => {
+  assert.equal(clipChars("가나다", 2), "가나");
+  const clipped = clipChars("a".repeat(99) + "🐳🐳", 100);
+  assert.equal(clipped, "a".repeat(99) + "🐳");
+  assert.doesNotThrow(() => encodeURIComponent(clipped));
 });

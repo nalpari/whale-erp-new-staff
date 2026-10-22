@@ -135,3 +135,6 @@ export function signupFieldProblem(fields: SignupFields): { field: SignupField; 
   if (!fields.zipCode || !fields.address) return { field: "address", error: "주소를 검색해 골라 주세요" };
   return null;
 }
+
+/** 글자(코드 포인트) 단위로 자른다 — UTF-16 단위로 자르면 경계의 이모지가 반쪽만 남아 쿠키에 넣을 때 URIError 가 난다. */
+export const clipChars = (text: string, max: number) => Array.from(text).slice(0, max).join("");
