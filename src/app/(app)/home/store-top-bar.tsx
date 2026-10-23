@@ -8,12 +8,11 @@ import { useStoreSheet, type StoreChoice } from "../store-sheet";
 export function StoreTopBar({ stores, currentId, hasNewAlarm }: { stores: StoreChoice[]; currentId: number | null; hasNewAlarm: boolean }) {
   const current = stores.find((s) => s.staffMemberId === currentId);
   const { openSheet, pending, error, sheet } = useStoreSheet(stores, current?.staffMemberId ?? 0);
-  const many = stores.length > 1 && !pending;
   return (
     <>
       <TopBar
         store={current?.storeName ?? "근무지가 없습니다"}
-        onStoreClick={many ? openSheet : undefined}
+        onStoreClick={stores.length > 1 ? () => !pending && openSheet() : undefined}
         alarmHref="/notifications"
         hasNewAlarm={hasNewAlarm}
       />
