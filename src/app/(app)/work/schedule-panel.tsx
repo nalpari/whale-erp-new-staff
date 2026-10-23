@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Notice, WorkTimeBar } from "@/components/common";
+import { WorkTimeBar } from "@/components/common";
 import {
   badgeOf,
   barOf,
@@ -160,7 +160,6 @@ export function SchedulePanel({
             </div>
           </section>
 
-      <Notice>근무스케줄은 관리자가 등록합니다. 이 화면에서는 조회만 할 수 있습니다.</Notice>
     </div>
   );
 }
