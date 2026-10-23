@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { Alert, BottomNav, Notice, PageHeader } from "@/components/common";
-import { CURRENT_STAFF_MEMBER_COOKIE, pickCurrentMembership } from "@/lib/current-store";
-import { getMyMemberships } from "@/lib/my-profile";
+import { getCurrentMembership } from "@/lib/current-membership";
 import { getMyTodos } from "@/lib/my-todos";
 import { getMyWorkSchedules } from "@/lib/my-work-schedules";
 import { requireSession } from "@/lib/session";
@@ -27,8 +25,8 @@ export default async function WorkPage({ searchParams }: PageProps<"/work">) {
   const month = parseMonth(typeof params.month === "string" ? params.month : undefined, today);
   // 알림에서 들어오면 그날을 먼저 고른다(?day=, 그 달의 날짜일 때만)
   const day = typeof params.day === "string" && params.day.startsWith(`${month}-`) && /^\d{4}-\d{2}-\d{2}$/.test(params.day) ? params.day : undefined;
-  const memberships = await getMyMemberships();
-  const current = memberships && pickCurrentMembership(memberships.items, (await cookies()).get(CURRENT_STAFF_MEMBER_COOKIE)?.value);
+  const memberships = await getCurrentMembership();
+  const current = memberships?.current;
 
   return (
     <div className="flex flex-1 flex-col">
