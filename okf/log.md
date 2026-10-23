@@ -1,5 +1,9 @@
 # Bundle history
 
+## 2026-10-23
+* **Update**: 1 · 2차 리뷰 반영 — 신고 정보 고치기 서버 액션이 먼저 조회해 신고 정보가 없으면 저장하지 않고(첫 입력은 150), 값을 고치거나 다시 보내는 동안 지난 서버 오류를 가린다. 주민등록번호 뒷자리 칸을 비밀번호 칸이 아닌 CSS 가림 칸으로 바꿔 브라우저 「비밀번호 저장」을 막고, 503 은 고정 문구, 로그에 api code 를 남긴다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 신고 정보 「새로 넣기」를 열었다(WHALEERP-333, api 334 `PUT /me/memberships/:staffMemberId/tax-profile`) — `/me/memberships/[staffMemberId]/tax-profile/edit` 에서 주민등록번호만 · 급여 계좌만 · 둘 다 고치고, 신고 정보가 없으면 버튼이 없다(첫 입력은 150). 입력 칸 · 보기 조각을 `src/app/_components/tax-profile-*` 로 나누고 `ApiFailure` 에 본문 `code` 를 더했다 — [Whale ERP Staff](/whale-erp-staff.md).
+
 ## 2026-10-22
 * **Update**: `getEnum` · `getCodes` 맨 앞에 `connection()` 을 두어 enum · 공통코드를 쓰는 화면(`/me/memberships` 등)을 요청 때 그린다 — 이 조회는 요청 API(쿠키 등)를 쓰지 않아, 같은 화면이 쿠키를 읽어도 그보다 먼저 프리렌더에서 api 를 불러 `API_BASE_URL` 없이 빌드하는 Jenkins 의 `pnpm build` 가 멈췄다(재영 2026-10-22). 캐시(enum 한 시간 · 공통코드 10분)는 그대로 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: #22 재리뷰 후속 — 가입 액션의 로그인 판정을 proxy 와 같은 로그인 흔적(account 쿠키)으로 맞췄다. 갱신을 확인하지 못한 로그인으로 가입해 쿠키를 덮지 않는다. 끝난 접속은 proxy 가 요청 쿠키에서도 지워 가입이 막히지 않는다 — [Whale ERP Staff](/whale-erp-staff.md).
