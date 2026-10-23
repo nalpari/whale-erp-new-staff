@@ -1,5 +1,11 @@
 # Bundle history
 
+## 2026-10-23
+* **Update**: 출퇴근 현황 확인 필요 시트 제목을 관리자 웹과 같은 「반경 밖 출근 · 퇴근」으로 바꿨다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 출퇴근 현황을 목업 · 데모와 대조해 연필 시트(보정은 바뀐 쪽만, 대신 등록은 시각만), 퇴근 기록 없는 날 막대, 기간별 「조회」 버튼(공통 Button)을 맞췄다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 급여 기본급 · 주휴 · 연장을 api 가 계산하게 되어(WHALEERP-227) 안내 시트 주석과 알려진 한계 문장을 고쳤다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 출퇴근 현황 `/attendance`(WHALEERP-221 · 222, 데모 attendance)를 더했다 — 이번 주 · 기간별 탭, 연필 · 확인 필요 · 퇴근 기록 없음 시트, 출퇴근 등록 머리줄에 현황 버튼. 출퇴근 등록 `/check-in`(214 · 215)도 문서에 적었다 — [Whale ERP Staff](/whale-erp-staff.md).
+
 ## 2026-10-22
 * **Update**: #22 리뷰 반영 — 로그인 상태 가입 화면 돌려보내기를 화면 요청(GET)만으로 좁히고 가입 액션이 스스로 세션을 보게 했다. 초대 링크는 토큰이 홈 주소에 남지 않게 액션이 보내고, 갱신을 확인하지 못한 로그인도 막는다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 로그인돼 있으면 가입 화면(`/join` · `/invite`, 가입 완료 빼고)을 홈으로 보낸다 — 로그인한 채로 가입하면 앞 계정 접속을 끊지 않고 쿠키만 덮어서다(#18 리뷰 참고 6, 2026-10-22 김민식) — [Whale ERP Staff](/whale-erp-staff.md).
