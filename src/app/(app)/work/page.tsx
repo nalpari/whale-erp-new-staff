@@ -5,7 +5,6 @@ import { getMyTodos } from "@/lib/my-todos";
 import { getMyWorkSchedules } from "@/lib/my-work-schedules";
 import { requireSession } from "@/lib/session";
 import { kstDate, parseMonth } from "@/lib/work-schedules";
-import { NotificationBell } from "../notification-bell";
 import { SchedulePanel } from "./schedule-panel";
 import { StoreCard } from "./store-card";
 import { TodoPanel } from "./todo-panel";
@@ -30,7 +29,8 @@ export default async function WorkPage({ searchParams }: PageProps<"/work">) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <PageHeader title="근무정보" backHref="/home" action={<NotificationBell />} />
+      {/* 종은 홈 머리줄에만 둔다(데모 · 목업 근무정보에 없음, 2026-10-23 재영). */}
+      <PageHeader title="근무정보" backHref="/home" />
       <div className="flex flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px] leading-[1.5]">
         {!memberships ? (
           <Alert tone="warning">근무지를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>

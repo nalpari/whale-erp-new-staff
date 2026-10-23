@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { BottomNav } from "@/components/common";
 import { getCurrentMembership } from "@/lib/current-membership";
 import { getMyNotifications } from "@/lib/my-notifications";
 import { requireSession } from "@/lib/session";
 import { NotificationBell } from "../notification-bell";
+import { MyWorkInfo } from "./my-work-info";
+import { ScheduleCards, ScheduleCardsSkeleton } from "./schedule-cards";
 import { StoreTopBar } from "./store-top-bar";
-import { TodoCard } from "./todo-card";
+import { TodoCard, TodoCardSkeleton } from "./todo-card";
 
 export const metadata: Metadata = { title: "홈 · Whale ERP" };
 
@@ -33,8 +36,22 @@ export default async function HomePage() {
           </div>
         )}
         <h1 className="text-[26px] font-bold">{account.realName}님</h1>
+        {/* 오늘 · 이번 주 근무를 먼저(HOME-1). 카드마다 따로 받아 받는 동안 그 자리에 스켈레톤을 보인다. */}
+        {current && (
+          <Suspense fallback={<ScheduleCardsSkeleton />}>
+            <ScheduleCards staffMemberId={current.staffMemberId} />
+          </Suspense>
+        )}
         {/* 고른 근무지의 TO-DO 만. 소속 목록을 못 받았으면 모든 근무지, 근무지가 없으면 카드를 두지 않는다. */}
-        {current !== null && <TodoCard storeId={current?.store.storeId} />}
+        {current !== null && (
+          <Suspense fallback={<TodoCardSkeleton />}>
+            <TodoCard storeId={current?.store.storeId} />
+          </Suspense>
+        )}
+        {/* 나의 근무 정보 바로가기(데모). 급여명세서는 근무지가 없어도 보인다(HOME-5). 받는 동안은 비워 둔다. */}
+        <Suspense>
+          <MyWorkInfo staffMemberId={current?.staffMemberId} />
+        </Suspense>
       </div>
       {/* 로그아웃이 내 정보로 옮겨 가 홈에서도 하단 메뉴로 내 정보에 간다. */}
       <div className="sticky bottom-0 mt-auto">
