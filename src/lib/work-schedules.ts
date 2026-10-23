@@ -88,3 +88,26 @@ export function barOf(item: MyWorkSchedule): { schedule: { start: string; end: s
     to: from + Math.ceil((reach - from) / 4) * 4,
   };
 }
+
+/** 그 날(YYYY-MM-DD)이 든 주의 월요일부터 일요일까지 7날 */
+export function weekDates(ymd: string): string[] {
+  const date = utcOf(ymd);
+  const monday = date.getTime() - ((date.getUTCDay() + 6) % 7) * DAY_MS;
+  return Array.from({ length: 7 }, (_, i) => ymdOf(new Date(monday + i * DAY_MS)));
+}
+
+/** 휴게를 뺀 근무 분. 종료가 시작보다 이르거나 같으면 다음 날이다(자정 넘김) */
+export function workMinutes(item: MyWorkSchedule): number {
+  const start = minutesOf(item.startTime);
+  let end = minutesOf(item.endTime);
+  if (end <= start) end += 24 * 60;
+  return Math.max(0, end - start - item.breakMinutes);
+}
+
+/** 8시간 · 7시간 30분 · 30분 */
+export function durationLabel(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m}분`;
+  return m === 0 ? `${h}시간` : `${h}시간 ${m}분`;
+}

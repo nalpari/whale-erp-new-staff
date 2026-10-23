@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+
 import { ApiError, NetworkError, request, type Schemas } from "./api";
 
 export type EnumValue = Schemas["EnumValueDto"];
@@ -7,6 +9,9 @@ export type EnumValue = Schemas["EnumValueDto"];
 const ENUM_REVALIDATE_SECONDS = 60 * 60;
 
 export async function getEnum(name: string): Promise<EnumValue[]> {
+  // enum 조회는 요청 API(쿠키 등)를 쓰지 않아, 같은 화면이 쿠키를 읽어도 그보다 먼저 빌드 프리렌더에서 api 를 부를 수 있다
+  // (빌드에는 API_BASE_URL 이 없다). 요청 때 그리도록 미룬다. 응답 캐시(ENUM_REVALIDATE_SECONDS)는 그대로 쓴다.
+  await connection();
   const { enums } = await request<Schemas["EnumCatalogResponseDto"]>(
     `/enums/${encodeURIComponent(name)}`,
     { revalidate: ENUM_REVALIDATE_SECONDS },

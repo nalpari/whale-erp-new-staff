@@ -5,12 +5,15 @@ import {
   badgeOf,
   barOf,
   dayTitle,
+  durationLabel,
   initialDay,
   kstDate,
   monthGrid,
   monthLabel,
   parseMonth,
   shiftMonth,
+  weekDates,
+  workMinutes,
   type MyWorkSchedule,
 } from "./work-schedules.ts";
 
@@ -96,4 +99,24 @@ test("근무 막대 — 기본 08~20시, 넘으면 넓히고 자정 넘김은 �
   });
   // 자정에 끝나면 24:00
   assert.deepEqual(barOf(shift({ startTime: "16:00", endTime: "00:00" })).schedule, { start: "16:00", end: "24:00" });
+});
+
+test("이번 주 — 월요일부터 일요일까지, 달 · 해를 넘는다", () => {
+  assert.deepEqual(weekDates("2026-10-23"), ["2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23", "2026-10-24", "2026-10-25"]);
+  assert.deepEqual(weekDates("2026-10-19"), weekDates("2026-10-25"));
+  assert.deepEqual(weekDates("2026-10-29"), ["2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-10-30", "2026-10-31", "2026-11-01"]);
+  assert.equal(weekDates("2027-01-01")[0], "2026-12-28");
+});
+
+test("근무 분 — 휴게를 빼고 자정 넘김은 다음 날로", () => {
+  assert.equal(workMinutes(shift({})), 8 * 60);
+  assert.equal(workMinutes(shift({ startTime: "22:00", endTime: "02:00", breakMinutes: 30 })), 210);
+  assert.equal(workMinutes(shift({ startTime: "18:00", endTime: "00:00", breakMinutes: 0 })), 360);
+});
+
+test("근무 시간 글자", () => {
+  assert.equal(durationLabel(480), "8시간");
+  assert.equal(durationLabel(450), "7시간 30분");
+  assert.equal(durationLabel(30), "30분");
+  assert.equal(durationLabel(0), "0분");
 });

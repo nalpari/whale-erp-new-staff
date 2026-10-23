@@ -73,8 +73,10 @@ export async function proxy(request: NextRequest) {
   if (sessionEnded) {
     // 로그인 없이 여는 화면(만료 안내 · 비밀번호 재설정 · 이메일 찾기 · 가입)은 쿠키만 지우고 그대로 연다. 다른 기기에서 비밀번호를 바꿔
     // 접속이 끝난 직원이 「비밀번호를 잊으셨나요」를 눌렀을 때 만료 안내로 한 번 튕기지 않게 한다.
+    // 이 요청의 화면 · 액션도 로그아웃으로 보게 요청 쿠키에서도 지운다 — 가입 액션은 로그인 흔적(account 쿠키)으로 거절한다.
+    for (const name of [ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE, ACCOUNT_COOKIE]) request.cookies.delete(name);
     const response = expiredNotice || isPublic(pathname)
-      ? NextResponse.next()
+      ? NextResponse.next({ request: { headers: request.headers } })
       : NextResponse.redirect(new URL(withNext("/login?expired=1", returnTo), request.url));
     clearSessionCookies(response.cookies);
     return response;

@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { Alert, BottomNav, Notice, PageHeader } from "@/components/common";
-import { CURRENT_STAFF_MEMBER_COOKIE, pickCurrentMembership } from "@/lib/current-store";
-import { getMyMemberships } from "@/lib/my-profile";
+import { getCurrentMembership } from "@/lib/current-membership";
 import { getMyTodos } from "@/lib/my-todos";
 import { getMyWorkSchedules } from "@/lib/my-work-schedules";
 import { requireSession } from "@/lib/session";
 import { kstDate, parseMonth } from "@/lib/work-schedules";
-import { NotificationBell } from "../notification-bell";
 import { SchedulePanel } from "./schedule-panel";
 import { StoreCard } from "./store-card";
 import { TodoPanel } from "./todo-panel";
@@ -27,12 +24,13 @@ export default async function WorkPage({ searchParams }: PageProps<"/work">) {
   const month = parseMonth(typeof params.month === "string" ? params.month : undefined, today);
   // 알림에서 들어오면 그날을 먼저 고른다(?day=, 그 달의 날짜일 때만)
   const day = typeof params.day === "string" && params.day.startsWith(`${month}-`) && /^\d{4}-\d{2}-\d{2}$/.test(params.day) ? params.day : undefined;
-  const memberships = await getMyMemberships();
-  const current = memberships && pickCurrentMembership(memberships.items, (await cookies()).get(CURRENT_STAFF_MEMBER_COOKIE)?.value);
+  const memberships = await getCurrentMembership();
+  const current = memberships?.current;
 
   return (
     <div className="flex flex-1 flex-col">
-      <PageHeader title="근무정보" backHref="/home" action={<NotificationBell />} />
+      {/* 종은 홈 머리줄에만 둔다(데모 · 목업 근무정보에 없음, 2026-10-23 재영). */}
+      <PageHeader title="근무정보" backHref="/home" />
       <div className="flex flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px] leading-[1.5]">
         {!memberships ? (
           <Alert tone="warning">근무지를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>

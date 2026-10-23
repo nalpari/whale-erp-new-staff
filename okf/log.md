@@ -5,8 +5,12 @@
 * **Update**: 출퇴근 현황을 목업 · 데모와 대조해 연필 시트(보정은 바뀐 쪽만, 대신 등록은 시각만), 퇴근 기록 없는 날 막대, 기간별 「조회」 버튼(공통 Button)을 맞췄다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 급여 기본급 · 주휴 · 연장을 api 가 계산하게 되어(WHALEERP-227) 안내 시트 주석과 알려진 한계 문장을 고쳤다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 출퇴근 현황 `/attendance`(WHALEERP-221 · 222, 데모 attendance)를 더했다 — 이번 주 · 기간별 탭, 연필 · 확인 필요 · 퇴근 기록 없음 시트, 출퇴근 등록 머리줄에 현황 버튼. 출퇴근 등록 `/check-in`(214 · 215)도 문서에 적었다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 1 · 2차 · PR #26 리뷰 반영 — 신고 정보 고치기 서버 액션이 먼저 조회해 신고 정보가 없으면 저장하지 않고(첫 입력은 150), 값을 고치거나 다시 보내는 동안 지난 서버 오류를 가린다. 주민등록번호 뒷자리 칸을 비밀번호 칸이 아닌 CSS 가림 칸으로 바꿔 브라우저 「비밀번호 저장」을 막고, 503 은 고정 문구, 로그에 api code 를 남긴다. 고치기 폼에 서버 액션 action 을 두어 하이드레이션 전 제출이 GET(원문이 주소에)이 아니라 POST 가 된다(소속 id bind 는 서버 화면으로 옮김 — 클라이언트 bind 는 그 POST 에 서버가 멈췄다). 고치기에 「지금 비밀번호」 확인을 더하고(api 334 후속 `currentPassword` · `CURRENT_PASSWORD_MISMATCH`, 노영주 10-23) api 타입을 api tentacool(machu) 기준으로 다시 만들었다. 주민등록번호 뒷자리 칸의 복사 · 잘라내기 · 끌어 옮기기를 막고, 저장 뒤 보기 조회가 실패해도 `?changed=1` 을 지우고 저장됐다고 알린다(#26 참고) — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 신고 정보 「새로 넣기」를 열었다(WHALEERP-333, api 334 `PUT /me/memberships/:staffMemberId/tax-profile`) — `/me/memberships/[staffMemberId]/tax-profile/edit` 에서 주민등록번호만 · 급여 계좌만 · 둘 다 고치고, 신고 정보가 없으면 버튼이 없다(첫 입력은 150). 입력 칸 · 보기 조각을 `src/app/_components/tax-profile-*` 로 나누고 `ApiFailure` 에 본문 `code` 를 더했다 — [Whale ERP Staff](/whale-erp-staff.md).
 
 ## 2026-10-22
+* **Update**: `getEnum` · `getCodes` 맨 앞에 `connection()` 을 두어 enum · 공통코드를 쓰는 화면(`/me/memberships` 등)을 요청 때 그린다 — 이 조회는 요청 API(쿠키 등)를 쓰지 않아, 같은 화면이 쿠키를 읽어도 그보다 먼저 프리렌더에서 api 를 불러 `API_BASE_URL` 없이 빌드하는 Jenkins 의 `pnpm build` 가 멈췄다(재영 2026-10-22). 캐시(enum 한 시간 · 공통코드 10분)는 그대로 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: #22 재리뷰 후속 — 가입 액션의 로그인 판정을 proxy 와 같은 로그인 흔적(account 쿠키)으로 맞췄다. 갱신을 확인하지 못한 로그인으로 가입해 쿠키를 덮지 않는다. 끝난 접속은 proxy 가 요청 쿠키에서도 지워 가입이 막히지 않는다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: #22 리뷰 반영 — 로그인 상태 가입 화면 돌려보내기를 화면 요청(GET)만으로 좁히고 가입 액션이 스스로 세션을 보게 했다. 초대 링크는 토큰이 홈 주소에 남지 않게 액션이 보내고, 갱신을 확인하지 못한 로그인도 막는다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 로그인돼 있으면 가입 화면(`/join` · `/invite`, 가입 완료 빼고)을 홈으로 보낸다 — 로그인한 채로 가입하면 앞 계정 접속을 끊지 않고 쿠키만 덮어서다(#18 리뷰 참고 6, 2026-10-22 김민식) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: #18 리뷰 반영 — 계정 등록에서 만 19세 미만으로 보이는 생년월일은 보내기 전에 한 번 더 확인받고(ACC-22, 재영 2026-10-22), 가입 완료 화면에 넘기는 근무지 이름을 글자 단위로 잘라 이모지 경계 쿠키 오류를 막았다 — [Whale ERP Staff](/whale-erp-staff.md).
