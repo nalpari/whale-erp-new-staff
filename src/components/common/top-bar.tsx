@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 // Figma 02.Main 머리줄(node 8:53): 작은 로고(36px) · 점포 이름 버튼(15px bold + 아래 꺾쇠) · 알림 버튼.
+// onStoreClick 이 없으면(근무지가 하나 · 없음) 꺾쇠를 그리지 않는다(#314, 2026-10-23 재영).
 // 알림 버튼은 흰 바탕 · #E9EDF3 테두리 · radius 14 · 44px, 새 알림이 있으면 오른쪽 위 8px 빨간 점(#C24242).
 // 두 색은 이 버튼에만 나와 토큰으로 두지 않는다. 아이콘은 Figma 가 뒤집어 내보내 -scale-y-100 으로 세운다.
 export function TopBar({
@@ -29,7 +30,7 @@ export function TopBar({
           className="flex min-h-[44px] max-w-full items-center gap-[7px] py-[10px] text-[15px] leading-[1.5] font-bold text-staff-text"
         >
           <span className="truncate">{store}</span>
-          <Image src="/icons/chevron-down.svg" alt="" width={15} height={15} className="-scale-y-100" />
+          {onStoreClick && <Image src="/icons/chevron-down.svg" alt="" width={15} height={15} className="-scale-y-100" />}
         </button>
       </div>
       <Link
