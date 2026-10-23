@@ -30,3 +30,13 @@ export async function TodoCard({ storeId }: { storeId?: number }) {
     </section>
   );
 }
+
+/** 불러오는 동안 TO-DO 카드 자리 */
+export function TodoCardSkeleton() {
+  return (
+    <div aria-hidden className="flex flex-col gap-[12px]">
+      <div className="h-[24px] w-[90px] animate-pulse rounded-[8px] bg-staff-border-light" />
+      <div className="h-[200px] animate-pulse rounded-[18px] bg-staff-border-light" />
+    </div>
+  );
+}

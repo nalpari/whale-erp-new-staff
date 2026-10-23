@@ -1,12 +1,13 @@
+import { cache } from "react";
 import { ApiError, NetworkError, type Schemas } from "./api";
 import { authedRequest } from "./session";
 
 /**
  * 내 소속 하나의 한 달 근무스케줄(`GET /me/work-schedules`, #205). api 가 잠시 실패하면(5xx · 연결 실패) null 을 주어
  * 그 탭만 「불러오지 못했다」로 보인다. 404 도 null 이다 — 소속 목록을 받은 뒤 그사이 퇴직 처리된 경우라 다시 열면 맞는다.
- * 그 밖(400 등 결함)은 던진다.
+ * 그 밖(400 등 결함)은 던진다. 홈은 근무 카드와 「나의 근무 정보」가 같은 달을 읽어 한 요청에 한 번만 받는다.
  */
-export async function getMyWorkSchedules(staffMemberId: number, month: string): Promise<Schemas["MyWorkScheduleListResponseDto"] | null> {
+export const getMyWorkSchedules = cache(async (staffMemberId: number, month: string): Promise<Schemas["MyWorkScheduleListResponseDto"] | null> => {
   try {
     return await authedRequest<Schemas["MyWorkScheduleListResponseDto"]>(`/me/work-schedules?staffMemberId=${staffMemberId}&month=${month}`);
   } catch (error) {
@@ -14,4 +15,4 @@ export async function getMyWorkSchedules(staffMemberId: number, month: string): 
     if (error instanceof NetworkError || (error instanceof ApiError && (error.status >= 500 || error.status === 404))) return null;
     throw error;
   }
-}
+});

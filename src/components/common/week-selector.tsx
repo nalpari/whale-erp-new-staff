@@ -3,6 +3,7 @@
 import { EASE_OUT } from "./theme";
 
 // work: 근무가 있는 날(아래 4px 점). note: 점 대신 셋째 줄에 쓰는 10px 글자(근무 시간 "09-18"·"휴무", 고르지 않은 날은 남보라).
+// note 의 줄바꿈(\n)은 그대로 줄을 바꾼다 — 홈 이번 주 근무가 시작 · 종료를 두 줄로 쓴다.
 // muted: 흰 바탕·흐린 글자로 낮춘 날(쉬는 날 등 — 어떤 날을 낮출지는 화면이 정한다).
 export type WeekDay = { key: string; weekday: string; date: number; work?: boolean; muted?: boolean; note?: string };
 
@@ -42,7 +43,7 @@ export function WeekSelector({
             <span className="text-[12px]">{day.weekday}</span>
             <span className="text-[16px] font-bold">{day.date}</span>
             {day.note ? (
-              <span className={`text-[10px] ${on ? "" : "text-staff-primary"}`}>{day.note}</span>
+              <span className={`text-[10px] whitespace-pre-line ${on ? "" : "text-staff-primary"}`}>{day.note}</span>
             ) : (
               day.work && <span className="size-[4px] rounded-[2px] bg-current" />
             )}
