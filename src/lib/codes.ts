@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+
 import { ApiError, NetworkError, request, type Schemas } from "./api";
 
 export type CodeValue = Schemas["CodeValueDto"];
@@ -7,6 +9,8 @@ const CODE_REVALIDATE_SECONDS = 10 * 60;
 
 /** 플랫폼 공통코드 한 그룹(`GET /public-code-items?groups=`). 없거나 쓰지 않는 그룹은 빈 목록이다. */
 export async function getCodes(group: string): Promise<CodeValue[]> {
+  // enum 조회와 같다 — 요청 API 를 쓰지 않아 빌드 프리렌더에서 api 를 먼저 부를 수 있다. 요청 때 그리도록 미룬다(캐시는 그대로).
+  await connection();
   const { codes } = await request<Schemas["CodeItemsResponseDto"]>(
     `/public-code-items?groups=${encodeURIComponent(group)}`,
     { revalidate: CODE_REVALIDATE_SECONDS },
