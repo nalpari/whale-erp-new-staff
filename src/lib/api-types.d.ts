@@ -6233,7 +6233,7 @@ export interface components {
             bpCodeId?: number;
             /** @description 점포명 — 1~50자 */
             name: string;
-            /** @description 점포 연락처 — 숫자 9~11자리 */
+            /** @description 점포 연락처 — 숫자 9~12자리(12자리는 050X 평생번호, 예 050720331334) */
             phone?: string | null;
             /** @description 우편번호 — 숫자 5자리, 주소 검색 결과 */
             zipCode?: string | null;
@@ -6280,7 +6280,7 @@ export interface components {
             storeStatus: "NOT_OPERATING" | "OPERATING" | "CLOSED";
             /** @description 점포명 — 1~50자 */
             name: string;
-            /** @description 점포 연락처 — 숫자 9~11자리 */
+            /** @description 점포 연락처 — 숫자 9~12자리(12자리는 050X 평생번호, 예 050720331334) */
             phone?: string | null;
             /** @description 우편번호 — 숫자 5자리, 주소 검색 결과 */
             zipCode?: string | null;
@@ -7557,8 +7557,8 @@ export interface components {
             payrollAccountNumber?: string;
             /**
              * @description 지금 비밀번호 — 이미 낸 신고 정보를 고칠 때 필수다. 없거나 틀리면 400 `CURRENT_PASSWORD_MISMATCH`(토큰만 손에 넣은
-             *     사람이 급여 계좌를 바꾸지 못하게, WHALEERP-333 · 334 후속 2026-10-23). 처음 작성할 때는 보내지 않는다 — 보내도 보지
-             *     않는다. 형식 · 상한은 이메일 변경 핀 요청(WHALEERP-607)과 같다
+             *     사람이 급여 계좌를 바꾸지 못하게, WHALEERP-333 · 334 후속 2026-10-23). 처음 작성할 때는 보내지 않는다 — 보내도 서버가 비교하지
+             *     않지만 형식은 본다(빈 문자열 · 128자 초과는 처음 작성에도 400). 형식 · 상한은 이메일 변경 핀 요청(WHALEERP-607)과 같다
              */
             currentPassword?: string;
         };
