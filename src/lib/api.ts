@@ -145,12 +145,16 @@ export function logUnexpected(scope: string, error: ApiError): void {
  * 부른 쪽이 그대로 다시 던진다(401 의 만료 안내 redirect 같은 Next 내부 오류와 코드 결함).
  */
 export function failureOf(error: unknown): ApiFailure | null {
-  if (error instanceof ApiError) return { status: error.status, message: error.message };
+  if (error instanceof ApiError) {
+    const code = (error.body as { code?: unknown } | null)?.code;
+    return typeof code === "string" ? { status: error.status, message: error.message, code } : { status: error.status, message: error.message };
+  }
   if (error instanceof NetworkError) return "network";
   return null;
 }
 
 /** 순수 함수가 「남겨라」고 한 예상 밖 응답을 남긴다. 연결 실패는 request() 가 이미 남겼다. */
 export function logFailure(scope: string, failure: ApiFailure): void {
-  if (failure !== "network") console.error(`[${scope}] 예상하지 못한 api 응답 ${failure.status}`, failure.message);
+  if (failure !== "network")
+    console.error(`[${scope}] 예상하지 못한 api 응답 ${failure.status}${failure.code ? ` ${failure.code}` : ""}`, failure.message);
 }

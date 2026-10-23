@@ -1,8 +1,11 @@
 // 서버 액션이 api 오류를 화면 문구로 바꿀 때 같이 쓰는 문구와 판정. 순수 계산이라 node --test 가 직접 읽는다(값 import 없음).
 // ApiError · NetworkError 를 이 모양으로 바꾸는 것은 src/lib/api.ts 의 failureOf 다.
 
-/** api 호출의 실패. 응답이 왔으면 상태 코드와 메시지, 닿지 못했으면(연결 실패 · 시간 초과) "network". */
-export type ApiFailure = { status: number; message: string } | "network";
+/**
+ * api 호출의 실패. 응답이 왔으면 상태 코드와 메시지(본문에 code 가 있으면 그것도), 닿지 못했으면(연결 실패 · 시간 초과) "network".
+ * code 는 api 가 사유를 가르라고 주는 값(예: RRN_BIRTH_MISMATCH)이다 — 메시지보다 이것으로 가른다.
+ */
+export type ApiFailure = { status: number; message: string; code?: string } | "network";
 
 /** 화면 문구와 붙일 자리. 오류 문구는 늘 자리와 함께 다녀 「문구는 있는데 아무 데도 안 보이는」 상태를 만들지 않는다. */
 export interface Problem<Field extends string> {
