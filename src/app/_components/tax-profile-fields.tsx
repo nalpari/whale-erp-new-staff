@@ -13,9 +13,15 @@ import { ACCOUNT_BASIS, Basis, RRN_BASIS } from "./tax-profile-parts";
 // action 없는 폼은 기본 GET 이라 원문이 주소 · 방문 기록 · 접근 로그에 남는다(PR #26 리뷰). 고치기 화면 tax-profile-form.tsx 가 예다.
 // 뒷자리 칸은 type="password" 가 아니다 — 저장 뒤 브라우저가 「비밀번호 저장」을 띄워 원문이 브라우저 · 동기화에 남을 수 있어,
 // 글자 칸에 CSS 로 가린다(-webkit-text-security) · 비밀번호 관리자 확장도 무시하게 한다(data-1p-ignore · data-lpignore).
+// CSS 가림은 값을 바꾸지 않아 복사 · 잘라내기 · 끌어 옮기기로 원문이 나간다(비밀번호 칸은 브라우저가 막는다) — 그래서 뒷자리 칸은
+// copy · cut · dragstart 를 막는다(PR #26 참고, 2026-10-23 노영주). 붙여넣기는 막지 않는다 — 본인이 다른 곳에서 옮겨 넣을 수 있게.
+// 화면 낭독기는 막지 않는다 — 넣는 본인에게 넣은 숫자를 읽어 주는 것이 입력 확인이고, 초점을 받는 입력 칸은 aria-hidden 으로 가릴 수
+// 없다(가리면 칸 이름조차 읽지 않는다). 이 칸은 본인의 기기에서 본인이 넣는 값이라 낭독기의 소리는 비밀번호 칸과 같은 정도로 본다.
 // required 는 처음 넣기(셋 다 필수)용이다. 고치기는 비워 둔 쪽을 그대로 두어 끈다.
 
 const LEGEND = "pb-[8px] text-[13px] font-semibold text-staff-text-sub";
+/** 뒷자리 칸의 복사 · 잘라내기 · 끌어 옮기기를 막는다(위 주석). */
+const blockCopy = (event: { preventDefault(): void }) => event.preventDefault();
 const noteClass = (error?: string) => `text-[12px] ${error ? "text-staff-error" : "text-staff-text-muted"}`;
 
 /**
@@ -75,6 +81,9 @@ export function RrnField({
             spellCheck={false}
             data-1p-ignore
             data-lpignore="true"
+            onCopy={blockCopy}
+            onCut={blockCopy}
+            onDragStart={blockCopy}
             maxLength={7}
             required={required}
             value={back}

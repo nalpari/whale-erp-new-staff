@@ -66,6 +66,24 @@ export const NOTHING_TO_CHANGE = "바꿀 주민등록번호나 급여 계좌를 
 
 const problem = (field: TaxProfileField, message: string): TaxProfileEditState => ({ problem: { field, message } });
 
+/** 보기 화면의 조회 실패(5xx · 연결 실패) 안내. */
+export const TAX_VIEW_UNAVAILABLE = "신고 정보를 지금 볼 수 없습니다. 잠시 뒤 다시 열어 주세요.";
+/** 저장하고 돌아왔는데 보기 화면 조회가 실패했을 때 — 저장은 됐다는 것을 같이 알린다. */
+export const TAX_VIEW_UNAVAILABLE_AFTER_SAVE = "신고 정보를 바꿨습니다. 바뀐 값은 지금 볼 수 없으니 잠시 뒤 다시 열어 주세요.";
+
+/**
+ * 보기 화면이 고치고 돌아온 뒤(`?changed=1`) 무엇을 보일지. 주소의 `?changed=` 는 changed 면 늘 지운다(ChangedToast).
+ * - toast: 「신고 정보를 바꿨습니다」 알림 — 조회가 실패했어도(tax 가 null) 띄운다. 저장은 끝났다.
+ * - unavailable: 조회 실패 안내 문구 — 고치고 돌아왔으면 저장된 것을 덧붙인 문구.
+ * 고치고 왔는데 신고 정보가 없으면(그사이 지워짐 등) 알림은 띄우지 않는다 — 「바꿨습니다」와 「내지 않았습니다」가 함께 보이지 않게.
+ */
+export function taxViewAfterChange(changed: boolean, tax: { taxProfile: unknown } | null): { toast: boolean; unavailable: string } {
+  return {
+    toast: changed && (tax === null || Boolean(tax.taxProfile)),
+    unavailable: changed ? TAX_VIEW_UNAVAILABLE_AFTER_SAVE : TAX_VIEW_UNAVAILABLE,
+  };
+}
+
 /** 이 소속에 낸 신고 정보가 없을 때 — 이 화면은 고치기만 한다(WHALEERP-333 첫 입력은 날인 뒤 흐름 150 몫, 2026-10-23 노영주). */
 export const TAX_PROFILE_MISSING = "이 근무지에 낸 신고 정보가 없어 여기서 고칠 수 없습니다. 신고 정보 화면에서 다시 열어 주세요";
 

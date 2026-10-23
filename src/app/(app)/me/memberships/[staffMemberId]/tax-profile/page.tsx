@@ -6,7 +6,7 @@ import { getCodesOrEmpty } from "@/lib/codes";
 import { labelOf } from "@/lib/enums";
 import { getMyMemberships, getMyTaxProfile } from "@/lib/my-profile";
 import { kstDateTimeLabel } from "@/lib/profile";
-import { parseStaffMemberId } from "@/lib/tax-profile";
+import { parseStaffMemberId, taxViewAfterChange } from "@/lib/tax-profile";
 import { CardLabel } from "@/app/_components/read-only-field";
 import { ACCOUNT_BASIS, Basis, RRN_BASIS, Sunken, TaxOwnerNotice, Values } from "@/app/_components/tax-profile-parts";
 import { ChangedToast } from "../../../changed-toast";
@@ -27,7 +27,7 @@ function ValueCard({ label, value, help }: { label: string; value: string; help:
 // 소속별 신고 정보(TAX-8). 기준: 데모 docs/demo/tax 의 view(「등록된 신고 정보」). 가린 값만 보인다(원문은 api 가 내려 주지 않는다).
 // 받은 근거 두 줄은 운영 정책 TAX-08 의 문구(데모와 같은 문장)이고, 사업주는 이 소속의 점포다.
 // 「새로 넣기」(데모 form)는 이미 낸 신고 정보가 있을 때만 보이고 `./edit` 로 간다(WHALEERP-333) — 첫 입력은 날인 뒤 흐름(150) 몫이다.
-// 고치고 돌아오면 `?changed=1` 로 와 알림을 띄우고 주소에서 지운다. 내 소속이 아니면(퇴직 · 남의 id) 404 다.
+// 고치고 돌아오면 `?changed=1` 로 와 알림을 띄우고 주소에서 지운다 — 다시 조회가 실패해도 지우고, 안내에 저장은 됐다고 덧붙인다(PR #26 참고). 내 소속이 아니면(퇴직 · 남의 id) 404 다.
 export default async function TaxProfilePage({ params, searchParams }: PageProps<"/me/memberships/[staffMemberId]/tax-profile">) {
   const staffMemberId = parseStaffMemberId((await params).staffMemberId);
   const changed = (await searchParams).changed === "1";
@@ -43,6 +43,7 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
   const [memberships, banks] = await Promise.all([getMyMemberships(), getCodesOrEmpty("BANK")]);
   const storeName = memberships?.items.find((m) => m.staffMemberId === staffMemberId)?.store.storeName ?? "근무지";
   const profile = tax?.taxProfile;
+  const after = taxViewAfterChange(changed, tax);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -50,7 +51,7 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
       <div className="flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
         {tax === null ? (
           <Alert tone="warning">
-            <p>신고 정보를 지금 볼 수 없습니다. 잠시 뒤 다시 열어 주세요.</p>
+            <p>{after.unavailable}</p>
           </Alert>
         ) : !profile ? (
           <Notice>
@@ -94,8 +95,8 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
           </Button>
         </Dock>
       )}
-      {changed && profile && (
-        <ChangedToast path={`/me/memberships/${staffMemberId}/tax-profile`}>신고 정보를 바꿨습니다</ChangedToast>
+      {changed && (
+        <ChangedToast path={`/me/memberships/${staffMemberId}/tax-profile`}>{after.toast ? "신고 정보를 바꿨습니다" : undefined}</ChangedToast>
       )}
     </div>
   );

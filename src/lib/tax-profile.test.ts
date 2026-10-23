@@ -11,6 +11,9 @@ import {
   RRN_BIRTH_MISMATCH,
   RRN_SHAPE,
   TAX_PROFILE_MISSING,
+  TAX_VIEW_UNAVAILABLE,
+  TAX_VIEW_UNAVAILABLE_AFTER_SAVE,
+  taxViewAfterChange,
   taxProfileEditBlocked,
   parseStaffMemberId,
   readTaxProfileForm,
@@ -221,4 +224,13 @@ test("taxProfileSaveFailure — 지금 비밀번호 불일치 · 형식 · 429",
     state: { problem: { field: "form", message: RATE_LIMITED } },
     log: false,
   });
+});
+
+test("taxViewAfterChange — 고치고 돌아온 뒤 조회가 실패해도 저장은 됐다고 알린다", () => {
+  const profile = { taxProfile: { rrnMasked: "900101-1******" } };
+  assert.deepEqual(taxViewAfterChange(true, profile), { toast: true, unavailable: TAX_VIEW_UNAVAILABLE_AFTER_SAVE });
+  assert.deepEqual(taxViewAfterChange(true, null), { toast: true, unavailable: TAX_VIEW_UNAVAILABLE_AFTER_SAVE });
+  assert.deepEqual(taxViewAfterChange(true, { taxProfile: null }), { toast: false, unavailable: TAX_VIEW_UNAVAILABLE_AFTER_SAVE });
+  assert.deepEqual(taxViewAfterChange(false, null), { toast: false, unavailable: TAX_VIEW_UNAVAILABLE });
+  assert.deepEqual(taxViewAfterChange(false, profile), { toast: false, unavailable: TAX_VIEW_UNAVAILABLE });
 });
