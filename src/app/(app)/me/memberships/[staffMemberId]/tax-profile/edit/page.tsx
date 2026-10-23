@@ -6,6 +6,7 @@ import { getCodesOrEmpty } from "@/lib/codes";
 import { getMyMemberships, getMyProfile, getMyTaxProfile } from "@/lib/my-profile";
 import { dateLabel } from "@/lib/profile";
 import { parseStaffMemberId } from "@/lib/tax-profile";
+import { saveTaxProfileAction } from "./actions";
 import { TaxProfileForm } from "./tax-profile-form";
 
 export const metadata: Metadata = { title: "신고 정보 새로 넣기 · Whale ERP" };
@@ -47,13 +48,14 @@ export default async function TaxProfileEditPage({ params }: PageProps<"/me/memb
         </>
       ) : (
         <TaxProfileForm
-          staffMemberId={String(staffMemberId)}
+          action={saveTaxProfileAction.bind(null, String(staffMemberId))}
           storeName={storeName}
           realName={profile.realName}
           birthDate={profile.birthDate}
           birthDateLabel={dateLabel(profile.birthDate)}
           banks={banks}
           backHref={viewHref}
+          email={profile.email}
         />
       )}
     </div>

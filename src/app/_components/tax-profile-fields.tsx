@@ -9,6 +9,8 @@ import { ACCOUNT_BASIS, Basis, RRN_BASIS } from "./tax-profile-parts";
 // 신고 정보 입력 칸(데모 docs/demo/tax 의 form). 고치기(WHALEERP-333)와 날인 뒤 처음 넣기(150)가 같이 쓴다.
 // 값은 쓰는 쪽이 상태로 들고, <form action> 대신 onSubmit 으로 보낸다 — React 19 폼 액션의 reset 은 제어 칸이어도 select 를 비워
 // 상태와 어긋난다. 서버 액션 상태로 되돌려 받으면 원문이 화면으로 다시 내려간다. 자동 완성은 모두 끈다.
+// 주의(150 등 쓰는 쪽): 이 칸을 담는 <form> 에는 onSubmit 만 두지 말고 action 에 서버 액션도 준다 — 하이드레이션 전에 누르면
+// action 없는 폼은 기본 GET 이라 원문이 주소 · 방문 기록 · 접근 로그에 남는다(PR #26 리뷰). 고치기 화면 tax-profile-form.tsx 가 예다.
 // 뒷자리 칸은 type="password" 가 아니다 — 저장 뒤 브라우저가 「비밀번호 저장」을 띄워 원문이 브라우저 · 동기화에 남을 수 있어,
 // 글자 칸에 CSS 로 가린다(-webkit-text-security) · 비밀번호 관리자 확장도 무시하게 한다(data-1p-ignore · data-lpignore).
 // required 는 처음 넣기(셋 다 필수)용이다. 고치기는 비워 둔 쪽을 그대로 두어 끈다.

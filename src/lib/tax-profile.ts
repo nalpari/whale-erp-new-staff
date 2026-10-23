@@ -2,7 +2,7 @@
 // 맞춰 보기(rrnBirthMismatch), 고치기 폼 값 읽기 · 거르기(readTaxProfileForm · validateTaxProfileEdit), 신고 정보가 없으면 고치지 않기
 // (taxProfileEditBlocked), 저장 실패를 화면 상태로 바꾸기(taxProfileSaveFailure). api 를 부르는 쪽은 me/memberships/[staffMemberId]/tax-profile/edit/actions.ts 다.
 // node --test 가 직접 읽으므로 값 import 는 같은 폴더의 순수 모듈(.ts 확장자)만 둔다.
-// 주민등록번호 원문은 api 본문(validateTaxProfileEdit 의 body)에만 싣고, 화면 상태(TaxProfileEditState) · 문구에는 싣지 않는다.
+// 주민등록번호 · 계좌번호 · 지금 비밀번호 원문은 api 본문(validateTaxProfileEdit 의 body)에만 싣고, 화면 상태(TaxProfileEditState) · 문구에는 싣지 않는다.
 import {
   CONNECTION_FAILED,
   RATE_LIMITED,
@@ -11,6 +11,7 @@ import {
   type ApiFailure,
   type Problem,
 } from "./action-errors.ts";
+import { CURRENT_PASSWORD_MISMATCH } from "./password-change.ts";
 import type { Schemas } from "./api";
 
 export type SaveTaxProfileBody = Schemas["SaveMyTaxProfileDto"];
@@ -35,8 +36,8 @@ export function rrnBirthMismatch(front: string, back: string, birthDate: string)
   return `${century + Number(front.slice(0, 2))}-${front.slice(2, 4)}-${front.slice(4, 6)}` !== birthDate;
 }
 
-/** 오류를 붙일 칸. 주민등록번호 두 칸은 한 묶음(rrn), 은행 · 계좌번호는 따로, 그 밖은 버튼 위(form). */
-export type TaxProfileField = "rrn" | "bank" | "account" | "form";
+/** 오류를 붙일 칸. 주민등록번호 두 칸은 한 묶음(rrn), 은행 · 계좌번호 · 지금 비밀번호는 따로, 그 밖은 버튼 위(form). */
+export type TaxProfileField = "rrn" | "bank" | "account" | "currentPassword" | "form";
 
 export interface TaxProfileEditState {
   problem?: Problem<TaxProfileField>;
@@ -47,7 +48,13 @@ export interface TaxProfileEditInput {
   rrnBack: string;
   bankCode: string;
   payrollAccountNumber: string;
+  /** 지금 비밀번호 — 고치기에서만 받는다(본인 확인, api 334 후속 2026-10-23). 공백을 지우지 않는다. */
+  currentPassword: string;
 }
+
+/** 지금 비밀번호를 비웠을 때 — 비밀번호 변경 화면(validatePasswordChange)과 같은 문구. */
+export const CURRENT_PASSWORD_EMPTY = "지금 비밀번호를 넣어 주세요";
+export { CURRENT_PASSWORD_MISMATCH };
 
 /** 은행 · 계좌번호 한쪽만 넣었을 때. api TAX_PROFILE_ACCOUNT_INCOMPLETE 의 화면 쪽 문구. */
 export const ACCOUNT_INCOMPLETE = "급여 계좌는 은행과 계좌번호를 함께 넣어 주세요";
@@ -75,15 +82,18 @@ const digitsOnly = (value: string) => value.replace(/[\s-]/g, "");
 
 /** 폼 값 읽기. 없는 칸은 빈 글자다. */
 export function readTaxProfileForm(formData: { get(name: string): unknown }): TaxProfileEditInput {
-  const text = (name: string) => {
+  const raw = (name: string) => {
     const value = formData.get(name);
-    return typeof value === "string" ? value.trim() : "";
+    return typeof value === "string" ? value : "";
   };
+  const text = (name: string) => raw(name).trim();
   return {
     rrnFront: text("rrnFront"),
     rrnBack: text("rrnBack"),
     bankCode: text("bankCode"),
     payrollAccountNumber: text("payrollAccountNumber"),
+    // 비밀번호는 공백도 글자다 — 지우지 않는다.
+    currentPassword: raw("currentPassword"),
   };
 }
 
@@ -91,6 +101,7 @@ export function readTaxProfileForm(formData: { get(name: string): unknown }): Ta
  * 고치기(이미 낸 신고 정보가 있을 때)의 값 거르기. 맞으면 api 본문, 아니면 화면 상태. 서버 액션은 누구나 직접 부를 수 있어
  * 화면이 막은 것도 다시 본다. 비워 둔 쪽은 보내지 않아 그대로 둔다 — 주민등록번호만 · 급여 계좌(은행 + 계좌번호)만 · 둘 다.
  * 둘 다 비었거나 은행 · 계좌번호 한쪽만이면 막는다(2026-10-23 노영주). 생년월일 맞춰 보기는 화면이 하고 api 가 다시 본다.
+ * 지금 비밀번호는 늘 필요하다(고치기의 본인 확인, 2026-10-23 노영주) — 비었으면 막고, api 상한(128자)을 넘으면 맞을 수 없어 불일치로 본다.
  */
 export function validateTaxProfileEdit(input: TaxProfileEditInput): { body: SaveTaxProfileBody } | TaxProfileEditState {
   const front = digitsOnly(input.rrnFront);
@@ -111,6 +122,9 @@ export function validateTaxProfileEdit(input: TaxProfileEditInput): { body: Save
     body.payrollAccountNumber = account;
   }
   if (body.rrn === undefined && body.bankCode === undefined) return problem("form", NOTHING_TO_CHANGE);
+  if (!input.currentPassword) return problem("currentPassword", CURRENT_PASSWORD_EMPTY);
+  if (input.currentPassword.length > 128) return problem("currentPassword", CURRENT_PASSWORD_MISMATCH);
+  body.currentPassword = input.currentPassword;
   return { body };
 }
 
@@ -123,6 +137,7 @@ export function taxProfileSaveFailure(failure: ApiFailure): { state: TaxProfileE
   if (failure === "network") return { state: problem("form", CONNECTION_FAILED), log: false };
   const { status, message, code } = failure;
   if (status === 400) {
+    if (code === "CURRENT_PASSWORD_MISMATCH") return { state: problem("currentPassword", CURRENT_PASSWORD_MISMATCH), log: false };
     if (code === "RRN_BIRTH_MISMATCH") return { state: problem("rrn", RRN_BIRTH_MISMATCH), log: false };
     if (code === "BANK_CODE_UNKNOWN") return { state: problem("bank", "은행을 다시 골라 주세요"), log: false };
     if (code === "TAX_PROFILE_ACCOUNT_INCOMPLETE") return { state: problem("account", ACCOUNT_INCOMPLETE), log: true };
@@ -132,6 +147,8 @@ export function taxProfileSaveFailure(failure: ApiFailure): { state: TaxProfileE
     // 형식 검증(class-validator)의 한글 사유 — 화면이 미리 걸러 대개 오지 않는다.
     if (message.includes("주민등록번호")) return { state: problem("rrn", RRN_SHAPE), log: true };
     if (message.includes("계좌번호")) return { state: problem("account", ACCOUNT_SHAPE), log: true };
+    // 지금 비밀번호의 형식 검증(빈 글자 · 129자 이상)은 영어 원문이다.
+    if (message.includes("currentPassword")) return { state: problem("currentPassword", CURRENT_PASSWORD_EMPTY), log: true };
     return { state: problem("form", "넣은 값을 다시 확인해 주세요"), log: true };
   }
   if (status === 404)

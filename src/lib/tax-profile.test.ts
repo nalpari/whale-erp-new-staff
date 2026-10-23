@@ -4,6 +4,8 @@ import { test } from "node:test";
 import { CONNECTION_FAILED, RATE_LIMITED, RETRY_LATER } from "./action-errors.ts";
 import {
   ACCOUNT_INCOMPLETE,
+  CURRENT_PASSWORD_EMPTY,
+  CURRENT_PASSWORD_MISMATCH,
   ACCOUNT_SHAPE,
   NOTHING_TO_CHANGE,
   RRN_BIRTH_MISMATCH,
@@ -17,11 +19,14 @@ import {
   validateTaxProfileEdit,
 } from "./tax-profile.ts";
 
-const input = (over: Partial<Record<"rrnFront" | "rrnBack" | "bankCode" | "payrollAccountNumber", string>> = {}) => ({
+/** 테스트용 지금 비밀번호 — 실패 상태에 남지 않는지도 이 글자로 본다. */
+const PW = "Petra-Secret 1234!";
+const input = (over: Partial<Record<"rrnFront" | "rrnBack" | "bankCode" | "payrollAccountNumber" | "currentPassword", string>> = {}) => ({
   rrnFront: "",
   rrnBack: "",
   bankCode: "",
   payrollAccountNumber: "",
+  currentPassword: PW,
   ...over,
 });
 const problemOf = (result: ReturnType<typeof validateTaxProfileEdit>) => ("problem" in result ? result.problem : null);
@@ -48,16 +53,18 @@ test("readTaxProfileForm 은 앞뒤 공백을 지우고 없는 칸은 빈 글자
   const form = new FormData();
   form.set("rrnFront", " 900101 ");
   form.set("bankCode", "KB");
-  assert.deepEqual(readTaxProfileForm(form), { rrnFront: "900101", rrnBack: "", bankCode: "KB", payrollAccountNumber: "" });
+  form.set("currentPassword", " pw ");
+  // 비밀번호는 공백도 글자라 그대로 둔다.
+  assert.deepEqual(readTaxProfileForm(form), { rrnFront: "900101", rrnBack: "", bankCode: "KB", payrollAccountNumber: "", currentPassword: " pw " });
 });
 
 test("validateTaxProfileEdit — 주민등록번호만 · 계좌만 · 둘 다", () => {
-  assert.deepEqual(validateTaxProfileEdit(input({ rrnFront: "900101", rrnBack: "1234567" })), { body: { rrn: "9001011234567" } });
+  assert.deepEqual(validateTaxProfileEdit(input({ rrnFront: "900101", rrnBack: "1234567" })), { body: { rrn: "9001011234567", currentPassword: PW } });
   assert.deepEqual(validateTaxProfileEdit(input({ bankCode: "KB", payrollAccountNumber: "123456-01-234567" })), {
-    body: { bankCode: "KB", payrollAccountNumber: "12345601234567" },
+    body: { bankCode: "KB", payrollAccountNumber: "12345601234567", currentPassword: PW },
   });
   assert.deepEqual(validateTaxProfileEdit(input({ rrnFront: "900101", rrnBack: "1234567", bankCode: "KB", payrollAccountNumber: "1234567890" })), {
-    body: { rrn: "9001011234567", bankCode: "KB", payrollAccountNumber: "1234567890" },
+    body: { rrn: "9001011234567", bankCode: "KB", payrollAccountNumber: "1234567890", currentPassword: PW },
   });
 });
 
@@ -116,19 +123,27 @@ test("validateTaxProfileEdit — 실패 상태에 넣은 숫자(원문)가 남�
     [input({ rrnFront: "900101", rrnBack: "2345678", bankCode: "B004" }), /900101|2345678/], // 맞는 주민번호 + 은행만
     [input({ rrnFront: "900101", rrnBack: "2345678", bankCode: "B004", payrollAccountNumber: "987654321" }), /900101|2345678|987654321/], // 9자리 계좌
   ];
+  // 지금 비밀번호가 비었거나 너무 긴 경우 — 다른 칸의 원문도 함께 넣어 둔다.
+  cases.push(
+    [input({ rrnFront: "900101", rrnBack: "2345678", currentPassword: "" }), /900101|2345678/],
+    [input({ bankCode: "B004", payrollAccountNumber: "9876543210", currentPassword: "x".repeat(129) }), /9876543210|x{129}/],
+    [input({ currentPassword: PW }), /900101/], // 바꿀 값 없음
+  );
   for (const [value, digits] of cases) {
     const result = validateTaxProfileEdit(value);
     assert.ok(!("body" in result));
-    assert.doesNotMatch(JSON.stringify(result), digits);
+    const text = JSON.stringify(result);
+    assert.doesNotMatch(text, digits);
+    if (value.currentPassword) assert.ok(!text.includes(value.currentPassword), "실패 상태에 지금 비밀번호가 남았다");
   }
 });
 
 test("validateTaxProfileEdit — 주민등록번호 뒷자리 · 공백 · 하이픈", () => {
   for (const back of ["234567", "23456789"]) assert.deepEqual(problemOf(validateTaxProfileEdit(input({ rrnFront: "900101", rrnBack: back }))), { field: "rrn", message: RRN_SHAPE });
   assert.deepEqual(problemOf(validateTaxProfileEdit(input({ rrnBack: "2345678" }))), { field: "rrn", message: RRN_SHAPE });
-  assert.deepEqual(validateTaxProfileEdit(input({ rrnFront: "90-01 01", rrnBack: "234 56-78" })), { body: { rrn: "9001012345678" } });
+  assert.deepEqual(validateTaxProfileEdit(input({ rrnFront: "90-01 01", rrnBack: "234 56-78" })), { body: { rrn: "9001012345678", currentPassword: PW } });
   assert.deepEqual(validateTaxProfileEdit(input({ bankCode: "B004", payrollAccountNumber: " 123 456-7890 " })), {
-    body: { bankCode: "B004", payrollAccountNumber: "1234567890" },
+    body: { bankCode: "B004", payrollAccountNumber: "1234567890", currentPassword: PW },
   });
 });
 
@@ -144,10 +159,10 @@ test("rrnBirthMismatch — 세기 표 각 자리와 2000년 경계", () => {
 
 test("validateTaxProfileEdit — 계좌 16자리 · 은행 코드 20자 경계", () => {
   assert.deepEqual(validateTaxProfileEdit(input({ bankCode: "B004", payrollAccountNumber: "1".repeat(16) })), {
-    body: { bankCode: "B004", payrollAccountNumber: "1".repeat(16) },
+    body: { bankCode: "B004", payrollAccountNumber: "1".repeat(16), currentPassword: PW },
   });
   assert.deepEqual(validateTaxProfileEdit(input({ bankCode: "B".repeat(20), payrollAccountNumber: "1234567890" })), {
-    body: { bankCode: "B".repeat(20), payrollAccountNumber: "1234567890" },
+    body: { bankCode: "B".repeat(20), payrollAccountNumber: "1234567890", currentPassword: PW },
   });
   assert.equal(problemOf(validateTaxProfileEdit(input({ bankCode: "B".repeat(21), payrollAccountNumber: "1234567890" })))?.field, "bank");
 });
@@ -175,4 +190,35 @@ test("taxProfileSaveFailure — 문구 · 남기기까지 확인", () => {
     log: true,
   });
   assert.deepEqual(taxProfileSaveFailure("network"), { state: { problem: { field: "form", message: CONNECTION_FAILED } }, log: false });
+});
+
+test("validateTaxProfileEdit — 지금 비밀번호는 늘 필요하고 본문에 싣는다", () => {
+  assert.deepEqual(problemOf(validateTaxProfileEdit(input({ bankCode: "B004", payrollAccountNumber: "1234567890", currentPassword: "" }))), {
+    field: "currentPassword",
+    message: CURRENT_PASSWORD_EMPTY,
+  });
+  assert.deepEqual(problemOf(validateTaxProfileEdit(input({ bankCode: "B004", payrollAccountNumber: "1234567890", currentPassword: "x".repeat(129) }))), {
+    field: "currentPassword",
+    message: CURRENT_PASSWORD_MISMATCH,
+  });
+  assert.deepEqual(validateTaxProfileEdit(input({ bankCode: "B004", payrollAccountNumber: "1234567890", currentPassword: "x".repeat(128) })), {
+    body: { bankCode: "B004", payrollAccountNumber: "1234567890", currentPassword: "x".repeat(128) },
+  });
+  // 칸 순서 — 바꿀 값이 없으면 비밀번호보다 먼저 알린다.
+  assert.equal(problemOf(validateTaxProfileEdit(input({ currentPassword: "" })))?.field, "form");
+});
+
+test("taxProfileSaveFailure — 지금 비밀번호 불일치 · 형식 · 429", () => {
+  assert.deepEqual(taxProfileSaveFailure({ status: 400, message: "지금 비밀번호가 맞지 않습니다", code: "CURRENT_PASSWORD_MISMATCH" }), {
+    state: { problem: { field: "currentPassword", message: CURRENT_PASSWORD_MISMATCH } },
+    log: false,
+  });
+  assert.deepEqual(taxProfileSaveFailure({ status: 400, message: "currentPassword should not be empty" }), {
+    state: { problem: { field: "currentPassword", message: CURRENT_PASSWORD_EMPTY } },
+    log: true,
+  });
+  assert.deepEqual(taxProfileSaveFailure({ status: 429, message: "ThrottlerException: Too Many Requests" }), {
+    state: { problem: { field: "form", message: RATE_LIMITED } },
+    log: false,
+  });
 });

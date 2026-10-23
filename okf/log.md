@@ -1,7 +1,7 @@
 # Bundle history
 
 ## 2026-10-23
-* **Update**: 1 · 2차 리뷰 반영 — 신고 정보 고치기 서버 액션이 먼저 조회해 신고 정보가 없으면 저장하지 않고(첫 입력은 150), 값을 고치거나 다시 보내는 동안 지난 서버 오류를 가린다. 주민등록번호 뒷자리 칸을 비밀번호 칸이 아닌 CSS 가림 칸으로 바꿔 브라우저 「비밀번호 저장」을 막고, 503 은 고정 문구, 로그에 api code 를 남긴다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 1 · 2차 · PR #26 리뷰 반영 — 신고 정보 고치기 서버 액션이 먼저 조회해 신고 정보가 없으면 저장하지 않고(첫 입력은 150), 값을 고치거나 다시 보내는 동안 지난 서버 오류를 가린다. 주민등록번호 뒷자리 칸을 비밀번호 칸이 아닌 CSS 가림 칸으로 바꿔 브라우저 「비밀번호 저장」을 막고, 503 은 고정 문구, 로그에 api code 를 남긴다. 고치기 폼에 서버 액션 action 을 두어 하이드레이션 전 제출이 GET(원문이 주소에)이 아니라 POST 가 된다(소속 id bind 는 서버 화면으로 옮김 — 클라이언트 bind 는 그 POST 에 서버가 멈췄다). 고치기에 「지금 비밀번호」 확인을 더하고(api 334 후속 `currentPassword` · `CURRENT_PASSWORD_MISMATCH`, 노영주 10-23) api 타입을 api tentacool(machu) 기준으로 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 신고 정보 「새로 넣기」를 열었다(WHALEERP-333, api 334 `PUT /me/memberships/:staffMemberId/tax-profile`) — `/me/memberships/[staffMemberId]/tax-profile/edit` 에서 주민등록번호만 · 급여 계좌만 · 둘 다 고치고, 신고 정보가 없으면 버튼이 없다(첫 입력은 150). 입력 칸 · 보기 조각을 `src/app/_components/tax-profile-*` 로 나누고 `ApiFailure` 에 본문 `code` 를 더했다 — [Whale ERP Staff](/whale-erp-staff.md).
 
 ## 2026-10-22
