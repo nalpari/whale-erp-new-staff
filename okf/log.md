@@ -1,5 +1,9 @@
 # Bundle history
 
+## 2026-10-26
+* **Fix**: 데모 · 목업 대조 결과 반영 — 출퇴근 등록은 위치 읽음(확인자료)을 api 에 먼저 남긴 뒤에 위치를 읽는다(ATT-22, 확인자료 없이 읽는 일이 없게). 출퇴근 현황의 확인 필요 시트에서 같은 날의 수정 이력 · 퇴근 기록 없음을 이어 연다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 재영 답(2026-10-26) 반영 — 출퇴근 등록은 출근 · 퇴근 버튼을 누를 때만 위치를 읽고 읽을 때마다 위치 읽음(api `POST /me/attendance/location-reads`)을 남긴다(ATT-22). 위치정보 동의 시트 문구를 「반경 밖이면 확인 필요 표시만 남고 관리자 검토 뒤 지웁니다」로(ATT-06). 급여 목업 · 주석의 가산 미적용 연장수당을 1배로(PAY-05). api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
+
 ## 2026-10-23
 * **Update**: 출퇴근 현황 확인 필요 시트 제목을 관리자 웹과 같은 「반경 밖 출근 · 퇴근」으로 바꿨다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 출퇴근 현황을 목업 · 데모와 대조해 연필 시트(보정은 바뀐 쪽만, 대신 등록은 시각만), 퇴근 기록 없는 날 막대, 기간별 「조회」 버튼(공통 Button)을 맞췄다 — [Whale ERP Staff](/whale-erp-staff.md).
