@@ -147,7 +147,8 @@ function DaySheets({ sheet, onClose, onOpen }: { sheet: Sheet; onClose: () => vo
   const edits = day?.edits ?? [];
   const proxy = edits[0]?.kind === "PROXY";
   const flags = day ? flagsOf(day) : [];
-  const firstIn = day?.pairs.find((p) => p.checkIn)?.checkIn?.time;
+  // 퇴근 기록 없음 시트는 퇴근이 빠진 짝의 출근을 말한다 — 하루에 짝이 여럿이면 앞 짝이 닫혀 있을 수 있다
+  const openIn = (day?.pairs.find((p) => p.checkIn && !p.checkOut) ?? day?.pairs.find((p) => p.checkIn))?.checkIn?.time;
   return (
     <>
       <BottomSheet
@@ -196,7 +197,7 @@ function DaySheets({ sheet, onClose, onOpen }: { sheet: Sheet; onClose: () => vo
         open={sheet?.kind === "missing-out"}
         onClose={onClose}
         title="퇴근 기록 없음"
-        description={`${firstIn ?? "-"}에 출근한 기록만 있고 퇴근 기록이 없습니다. 퇴근을 찍지 못했다면 근무지 관리자에게 문의해 주세요. 관리자가 퇴근 시각을 보정하면 이 표시는 사라집니다.`}
+        description={`${openIn ?? "-"}에 출근한 기록만 있고 퇴근 기록이 없습니다. 퇴근을 찍지 못했다면 근무지 관리자에게 문의해 주세요. 관리자가 퇴근 시각을 보정하면 이 표시는 사라집니다.`}
       >
         <Notice icon={<MaskIcon src="/icons/store-small.svg" size={16} />}>
           <strong>근무지 관리자에게 문의</strong>해 주세요. 앱에서 직접 고칠 수는 없습니다.
