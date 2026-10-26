@@ -118,7 +118,7 @@ const punchSummary = () =>
 const VIEWS = {
   ready: () =>
     body(
-      geoMap("in", "오차 ±12m · 매장까지 18m") +
+      geoMap("in", "매장까지 18m") +
         siteCard("웨일카페 강남역점", "매장 범위 안에 있습니다") +
         // 오늘 예정 근무(Figma node 12:957 아래 카드)
         `<section class="flex flex-col gap-[7px] rounded-[18px] border border-staff-border-light bg-white p-[20px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">오늘 예정 근무</h2><div class="flex items-center gap-[8px]"><p class="min-w-0 flex-1 text-[20px] font-bold tracking-[-0.42px]">09:00 – 18:00</p><span class="rounded-[8px] bg-staff-info-bg px-[10px] py-[4px] text-[12px] font-semibold text-staff-text-sub">휴게 60분</span></div></section>` +
@@ -157,7 +157,7 @@ const VIEWS = {
 
   far: () =>
     body(
-      geoMap("out", "오차 ±14m · 매장까지 240m") +
+      geoMap("out", "매장까지 240m") +
         alert(
           "warning",
           "<strong>매장에서 240m 떨어져 있습니다.</strong><br>이대로 출근하면 기록에 <strong>확인 필요</strong>가 붙고 관리자가 확인합니다. 근무지가 맞는지 한 번 더 확인해 주세요.",
@@ -170,7 +170,7 @@ const VIEWS = {
 
   "far-out": () =>
     body(
-      geoMap("out", "오차 ±14m · 매장까지 240m") +
+      geoMap("out", "매장까지 240m") +
         siteCard("근무 중", "09:02에 출근했습니다") +
         alert("warning", "<strong>매장 범위 밖입니다.</strong><br>퇴근은 여기서도 등록할 수 있습니다. 다만 기록에 <strong>확인 필요</strong>가 붙고 관리자가 확인합니다.") +
         elapsed(),
