@@ -280,6 +280,12 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
         <GeoBlank tone="muted" text="위치를 확인할 수 없습니다" />
         <Alert tone="warning">지금 위치를 읽지 못했습니다. 잠시 뒤 다시 확인해 주세요.</Alert>
       </>
+    ) : geo.mocked && !working ? (
+      // 위치 조작 감지 — 출근은 막는다(ATT-21). 다시 확인 버튼은 두지 않고 출근을 다시 누르게 한다(2026-10-26 재영, ATT-22)
+      <>
+        <GeoBlank tone="muted" text="위치 조작이 감지되었습니다" />
+        <Alert tone="danger">모의 위치를 끈 뒤 출근을 다시 눌러 주세요.</Alert>
+      </>
     ) : (
       <GeoMap tone={geo.inRange ? "in" : "out"} caption={distanceText} />
     );
