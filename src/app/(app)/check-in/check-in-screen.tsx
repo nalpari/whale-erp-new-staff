@@ -117,7 +117,8 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
     if (kind === "CHECK_OUT") setDone(result.record);
     else show(reason ? "확인 필요로 출근을 등록했습니다" : "출근을 등록했습니다");
   };
-  const register = (kind: AttendanceKind, reason: ReviewReason | null) => startTransition(() => registerNow(kind, reason, readId));
+  // 좌표 없는 근무지의 퇴근은 위치를 읽지 않으므로 위치 읽음도 보내지 않는다(api 가 위치 없이 받는다)
+  const register = (kind: AttendanceKind, reason: ReviewReason | null) => startTransition(() => registerNow(kind, reason, target ? readId : null));
 
   /**
    * 버튼을 눌러 위치를 읽는다(ATT-22). api 에 위치 읽음(확인자료)을 먼저 남기고 그다음에 읽는다 — 확인자료 없이 위치를 읽는 일이
@@ -153,7 +154,8 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
   };
 
   const pressCheckOut = () => {
-    if (!located) return setSheet("bye");
+    // 위치를 보지 않거나 근무지 좌표가 없으면 위치 없이 퇴근한다 — 열린 출근을 닫아야 다른 근무지 출근이 막히지 않는다(ATT-36)
+    if (!located || !target) return setSheet("bye");
     startTransition(async () => {
       if (await readLocation("CHECK_OUT")) setSheet("bye");
     });
@@ -325,7 +327,7 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
       );
       dock = (
         <>
-          <Button disabled={pending || !usable} onClick={pressCheckOut}>
+          <Button disabled={pending || !(usable || !target)} onClick={pressCheckOut}>
             퇴근하기
           </Button>
         </>
