@@ -22,7 +22,7 @@ export default function MockupCheckInPage() {
         />
 
         <main className="flex flex-col gap-[20px] px-[22px] pt-[22px] pb-[14px] leading-[1.5]">
-          <LocationMap caption="오차 ±12m · 매장까지 18m" />
+          <LocationMap caption="매장까지 18m" />
 
           {/* 근무지(node 12:957): 연한 남보라 바탕(#EEF2FF · #DCE4FF 테두리)은 주간 날짜 칸과 같은 짝이다. */}
           <section className="flex items-center gap-[8px] rounded-[18px] border border-[#dce4ff] bg-[#eef2ff] p-[20px]">
