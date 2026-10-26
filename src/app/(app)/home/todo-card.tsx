@@ -12,6 +12,8 @@ const homeTodoQuery = (storeId?: number) => `status=PENDING&status=IN_PROGRESS&p
 // 홈 파일은 다른 작업(#311 · #313)이 채울 자리라 카드만 따로 두고 홈에는 한 줄로 끼운다. storeId 는 앱 전역 근무지(#314).
 export async function TodoCard({ storeId }: { storeId?: number }) {
   const todos = await getMyTodos(homeTodoQuery(storeId));
+  // 미완료 TO-DO 가 없으면 섹션째 숨긴다(2026-10-26 재영). 불러오지 못한 때는 안내를 보인다.
+  if (todos?.total === 0) return null;
   return (
     <section className="flex flex-col gap-[12px]">
       <SectionTitle title="TO-DO" count={todos?.total}>
