@@ -207,7 +207,7 @@ function DaySheets({ sheet, onClose, onOpen }: { sheet: Sheet; onClose: () => vo
 }
 
 function PeriodView({ records, today }: { records: MyAttendanceRecords; today: string }) {
-  const totals = periodTotals(records.items.filter((d) => d.date <= today));
+  const totals = periodTotals(records, today);
   return (
     <>
       <PeriodPicker from={records.from} to={records.to} />
@@ -227,7 +227,7 @@ function PeriodView({ records, today }: { records: MyAttendanceRecords; today: s
         <EmptyRecords />
       ) : (
         <ul className="flex flex-col divide-y divide-staff-border-light rounded-[16px] border border-staff-border-light bg-white px-[16px]">
-          {weekRows(records.from, records.to, records.items, today).map((w) => (
+          {weekRows(records, today).map((w) => (
             <li key={w.title} className={`flex flex-col gap-[2px] py-[14px] ${w.upcoming ? "opacity-55" : ""}`}>
               <p className={`text-[14px] font-semibold ${w.upcoming ? "text-staff-text-muted" : ""}`}>{w.title}</p>
               <p className={`text-[12px] ${w.current ? "text-staff-primary" : "text-staff-text-sub"}`}>{w.sub}</p>

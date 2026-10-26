@@ -2,6 +2,7 @@
 import type { components } from "./api-types";
 
 export type MyAttendanceDay = components["schemas"]["MyAttendanceDayDto"];
+type MyAttendanceRecords = components["schemas"]["MyAttendanceRecordsResponseDto"];
 type Tone = "success" | "warning" | "working" | "progress" | "neutral";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -126,23 +127,21 @@ export function barOf(d: MyAttendanceDay, now: Date = new Date()) {
   };
 }
 
-/** 닫힌 짝의 근무 분 합 — 휴게는 빼지 않는다 */
-export function workedMinutes(d: MyAttendanceDay): number {
-  return d.pairs.reduce((sum, p) => (p.checkIn && p.checkOut ? sum + Math.max(0, Math.round((Date.parse(p.checkOut.recordedAt) - Date.parse(p.checkIn.recordedAt)) / 60_000)) : sum), 0);
-}
-/** 연장 — 근무 분에서 그날 근무스케줄 휴게를 빼고 8시간을 넘긴 분 */
-const overtimeOf = (d: MyAttendanceDay) => Math.max(0, workedMinutes(d) - d.schedules.reduce((s, x) => s + x.breakMinutes, 0) - 8 * 60);
-
 export interface PeriodTotals {
   workedMinutes: number;
   late: number;
   overtimeMinutes: number;
 }
-export function periodTotals(days: readonly MyAttendanceDay[]): PeriodTotals {
-  return days.reduce<PeriodTotals>(
-    (t, d) => ({ workedMinutes: t.workedMinutes + workedMinutes(d), late: t.late + (d.status === "LATE" ? 1 : 0), overtimeMinutes: t.overtimeMinutes + overtimeOf(d) }),
-    { workedMinutes: 0, late: 0, overtimeMinutes: 0 },
-  );
+/**
+ * 기간 누계 — 근무 · 연장은 api 가 급여 계산과 같은 규칙(휴게 뺌, 주 40시간 초과 포함)으로 센 값을 그대로 쓴다(2026-10-26 재영).
+ * 지각은 오늘까지의 날에서 센다.
+ */
+export function periodTotals(records: Pick<MyAttendanceRecords, "items" | "totals">, today: string): PeriodTotals {
+  return {
+    workedMinutes: records.totals.workedMinutes,
+    overtimeMinutes: records.totals.overtimeMinutes,
+    late: records.items.filter((d) => d.date <= today && d.status === "LATE").length,
+  };
 }
 
 /** 「63시간 16분」 · 「1시간 20분」 · 「40시간」 */
@@ -155,12 +154,13 @@ export interface WeekRow {
   upcoming: boolean;
 }
 
-/** 기간별 주별 줄(데모 weekRow) — 「9월 1주 · 8/31 – 9/6」, 「근무 5일 · 40시간 12분 · 지각 0 · 연장 1시간 20분」 */
-export function weekRows(from: string, to: string, days: readonly MyAttendanceDay[], today: string): WeekRow[] {
+/** 기간별 주별 줄(데모 weekRow) — 「9월 1주 · 8/31 – 9/6」, 「근무 5일 · 40시간 12분 · 지각 0 · 연장 1시간 20분」. 근무 · 연장은 api 의 주 값 */
+export function weekRows(records: Pick<MyAttendanceRecords, "items" | "weeks">, today: string): WeekRow[] {
   const rows: WeekRow[] = [];
-  for (let monday = mondayOf(from); monday <= to; monday = addDays(monday, 7)) {
+  for (const week of records.weeks) {
+    const monday = week.monday;
     const sunday = addDays(monday, 6);
-    const inWeek = days.filter((d) => d.date >= monday && d.date <= sunday);
+    const inWeek = records.items.filter((d) => d.date >= monday && d.date <= sunday);
     // 주의 이름은 그 주 목요일이 든 달 기준(달력 주 차)
     const thu = addDays(monday, 3);
     const nth = Math.floor((Number(thu.slice(8, 10)) - 1) / 7) + 1;
@@ -168,7 +168,7 @@ export function weekRows(from: string, to: string, days: readonly MyAttendanceDa
     const current = monday <= today && today <= sunday;
     const upcoming = monday > today;
     const worked = inWeek.filter((d) => d.date <= today && d.pairs.some((p) => p.checkIn));
-    const t = periodTotals(inWeek);
+    const t = { workedMinutes: week.workedMinutes, overtimeMinutes: week.overtimeMinutes, late: inWeek.filter((d) => d.status === "LATE").length };
     const sub = upcoming
       ? "예정 · 아직 근무 전입니다"
       : `${current ? "이번 주 · 진행 중 · " : `근무 ${worked.length}일 · `}${durationLabel(t.workedMinutes)} · 지각 ${t.late}${current ? "회" : ""}${t.overtimeMinutes ? ` · 연장 ${durationLabel(t.overtimeMinutes)}` : ""}`;

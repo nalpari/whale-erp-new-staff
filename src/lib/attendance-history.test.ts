@@ -71,8 +71,10 @@ test("이번 주 7일 · 날 라벨 · 주별 줄 · 누계", () => {
   assert.equal(week[0].day, null);
   assert.equal(week[1].day?.date, "2026-10-20");
   const days = [day("2026-10-13"), day("2026-10-14", { status: "LATE", pairs: [{ checkIn: punch("2026-10-14", "09:10"), checkOut: punch("2026-10-14", "19:10") }] })];
-  assert.deepEqual(periodTotals(days), { workedMinutes: 19 * 60, late: 1, overtimeMinutes: 60 });
-  const rows = weekRows("2026-10-12", "2026-10-31", days, TODAY);
+  // 근무 · 연장은 api 값(급여 계산 규칙)을 그대로 — 지각만 날에서 센다
+  assert.deepEqual(periodTotals({ items: days, totals: { workedMinutes: 17 * 60, overtimeMinutes: 60 } }, TODAY), { workedMinutes: 17 * 60, late: 1, overtimeMinutes: 60 });
+  const weeks = ["2026-10-12", "2026-10-19", "2026-10-26"].map((monday, i) => ({ monday, workedMinutes: i ? 0 : 19 * 60, overtimeMinutes: i ? 0 : 60 }));
+  const rows = weekRows({ items: days, weeks }, TODAY);
   assert.equal(rows[0].title, "10월 3주 · 10/12 – 10/18");
   assert.equal(rows[0].sub, "근무 2일 · 19시간 · 지각 1 · 연장 1시간");
   assert.equal(rows[1].current, true);
