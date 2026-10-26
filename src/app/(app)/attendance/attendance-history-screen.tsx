@@ -64,7 +64,7 @@ export function AttendanceHistoryScreen({ tab, records, today, weekStart, now }:
           <PeriodView records={records} today={today} />
         )}
       </div>
-      <DaySheets sheet={sheet} onClose={close} />
+      <DaySheets sheet={sheet} onClose={close} onOpen={setSheet} />
     </main>
   );
 }
@@ -142,7 +142,7 @@ function DayCard({ day, store, today, now, onOpen }: { day: MyAttendanceDay; sto
   );
 }
 
-function DaySheets({ sheet, onClose }: { sheet: Sheet; onClose: () => void }) {
+function DaySheets({ sheet, onClose, onOpen }: { sheet: Sheet; onClose: () => void; onOpen: (s: Sheet) => void }) {
   const day = sheet?.day;
   const edits = day?.edits ?? [];
   const proxy = edits[0]?.kind === "PROXY";
@@ -180,6 +180,17 @@ function DaySheets({ sheet, onClose }: { sheet: Sheet; onClose: () => void }) {
             </Sunken>
           ))}
         <Notice icon={<MaskIcon src="/icons/store-small.svg" size={16} />}>{STORE_NOTICE}</Notice>
+        {/* 확인 필요 카드가 그날을 통째로 덮으므로, 같은 날의 수정 이력(HIST-1) · 퇴근 기록 없음(HIST-4)은 여기서 이어 연다 */}
+        {day && isEdited(day) && (
+          <Button variant="ghost" onClick={() => onOpen({ kind: "edits", day })}>
+            수정 이력 보기
+          </Button>
+        )}
+        {day?.status === "MISSING_CHECK_OUT" && (
+          <Button variant="ghost" onClick={() => onOpen({ kind: "missing-out", day })}>
+            퇴근 기록 없음 보기
+          </Button>
+        )}
       </BottomSheet>
       <BottomSheet
         open={sheet?.kind === "missing-out"}
