@@ -1,5 +1,5 @@
 // 직원 근무 앱 데모 · 출퇴근 현황. 기준 목업: docs/mockup/app/attendance-history.html —
-// 상태 5개(이번 주 · 기간별 · 확인 필요 섞임 · 기록 없음 · 근무지 없음)와 시트 4개(보정 · 대신 등록 · 출근 위치 확인 실패 · 퇴근 기록 없음),
+// 상태 5개(이번 주 · 기간별 · 확인 필요 섞임 · 기록 없음 · 근무지 없음)와 시트 4개(보정 · 대신 등록 · 반경 밖 출근 · 퇴근 기록 없음),
 // 화면 문구·가짜 값을 옮겼다. 쟁점 HIST-1(보정·대신 등록은 연필 표시 + 상세 시트), HIST-2(이번 주 / 기간별 탭, 기간별은 이번 달 기본 ·
 // 한 번에 최대 1년), HIST-3(확인 필요는 보기만 + 점포 안내), HIST-4(퇴근 기록 없음은 확인 필요가 아닌 별도 표시, 2026-10-08)는
 // 모두 확정이고 목업이 그린 그대로다.
@@ -39,7 +39,7 @@ const STATES = [
   { id: "nosite", label: "근무지 없음", note: "퇴직 후" },
   { id: "editInfo", label: "보정 기록", note: "시트 · 수 9/9 연필 표시" },
   { id: "proxyInfo", label: "대신 등록 기록", note: "시트 · 월 9/7 연필 표시" },
-  { id: "flagTue", label: "출근 위치 확인 실패", note: "시트 · 확인 필요" },
+  { id: "flagTue", label: "반경 밖 출근", note: "시트 · 확인 필요" },
   { id: "flagWed", label: "퇴근 기록 없음", note: "시트 · 수 9/9" },
 ];
 // 시트마다 뒤에 깔리는 상태.
@@ -152,7 +152,7 @@ const flaggedDayCard = ({ day, summary, worked, sheet }) =>
 const flaggedView = () =>
   `<div class="flex gap-[6px] rounded-[12px] border border-[#f6e3bd] bg-[#fff6e5] p-[14px] text-[13px] text-[#6f4608] [&_strong]:font-bold">${warningIcon()}<p class="min-w-0 flex-1"><strong>확인이 필요한 기록이 1건 있습니다.</strong><br>관리자가 확인 중입니다. 기록이 다르면 <strong>근무지 점포에 말씀해 주세요.</strong> 확인이 끝나면 이 표시와 사유는 사라집니다.</p></div><div class="flex flex-col gap-[8px]">${dayOffRow(
     "월 9/7 · 휴무",
-  )}${flaggedDayCard({ day: "화 9/8", summary: "출근 위치 확인 실패 · 09:58 등록됨", worked: { start: "09:58", end: "18:00" }, sheet: "flagTue" })}${pressable(
+  )}${flaggedDayCard({ day: "화 9/8", summary: "반경 밖 출근 · 09:58 등록됨", worked: { start: "09:58", end: "18:00" }, sheet: "flagTue" })}${pressable(
     "수 9/9 퇴근 기록 없음 보기",
     "flagWed",
     attendanceDayCard({
@@ -221,8 +221,8 @@ const SHEETS = {
     bottomSheet(
       "flagTue",
       {
-        title: "출근 위치 확인 실패",
-        description: "오차가 매장 범위보다 넓어 매장 안인지 자동으로 확인하지 못했습니다. 출근 시각 09:58은 등록되었고 관리자가 검토하고 있습니다.",
+        title: "반경 밖 출근",
+        description: "매장 범위 밖에서 출근을 등록해 확인 필요가 붙었습니다. 출근 시각 09:58은 등록되었고 관리자가 검토하고 있습니다.",
         ...a,
       },
       storeNotice(),
