@@ -183,11 +183,12 @@ const meView = (mode, ids) => {
 
 // 내 정보 위에 뜨는 시트들.
 const sheets = (mode, ids) =>
+  // 약관 문구는 운영 정책 ATT-06(2026-10-26) — 출퇴근 등록 동의 시트와 같은 뜻
   bottomSheet(
     "terms",
     { title: "위치정보 수집·이용 동의" },
     `<p class="-mt-[12px] text-[12px] text-staff-text-muted">v1.2 · 2026년 3월 1일부터</p>${sunken(
-      `<p class="text-[14px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text">출퇴근을 등록할 때 근무지 반경 안인지를 확인하는 데만 씁니다. <b>위치는 휴대전화 안에서만 확인하고 서버로 보내지 않으며</b> 기록에는 출퇴근 시각만 남습니다. 동의는 내 정보에서 언제든 철회할 수 있고, 철회하면 앱으로 등록할 수 없습니다.</p>`,
+      `<p class="text-[14px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text">출근 · 퇴근 버튼을 누를 때 매장 안인지를 위치로 확인하는 데만 씁니다. <b>위치는 휴대전화 안에서만 확인하고 서버로 보내지 않으며</b> 기록에는 출퇴근 시각이 남습니다. 반경 밖이면 확인 필요 표시만 남고 관리자 검토 뒤 지웁니다. 동의는 내 정보에서 언제든 철회할 수 있고, 철회하면 앱으로 등록할 수 없습니다.</p>`,
     )}<p class="text-[12px] text-staff-text-muted">약관 버전이 바뀌면 다음 출퇴근 등록 때 새 버전으로 다시 동의를 받습니다.</p>`,
   ) +
   // 일시 중지(운영 정책 ATT-26). 버튼 이름은 「잠시 멈춤」「다시 켜기」. 동의는 남고 수집만 멎어 다시 켤 때 동의 절차가 없다.
@@ -202,7 +203,7 @@ const sheets = (mode, ids) =>
     "revoke",
     { title: "위치정보 동의를 철회할까요", closeLabel: "그대로 두기" },
     `<p class="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">철회하면 <strong>앱으로 출퇴근을 등록할 수 없습니다. 출퇴근 기록은 근무지 관리자에게 문의해 주세요.</strong></p>${sunken(
-      `<p class="text-[14px] text-staff-text-sub">다시 등록하려면 다음 출퇴근 등록 때 새로 동의하면 됩니다. 이미 남은 기록은 그대로 보존됩니다.</p>`,
+      `<p class="text-[14px] text-staff-text-sub">다시 등록하려면 내 정보의 「다시 동의하기」나 다음 출퇴근 등록 때 새로 동의하면 됩니다. 이미 남은 기록은 그대로 보존됩니다.</p>`,
     )}${swapButton("철회합니다", ids.locOff, ids.locOn, { "data-toast": "위치정보 동의를 철회했습니다", "data-close": true })}<!-- 데모용: 철회 뒤의 출퇴근 등록 화면(「위치정보 동의 없음」, 운영 정책 ATT-20) -->${outline(
       "출퇴근 등록 화면 보기",
       { href: page("check-in", "no-consent") },

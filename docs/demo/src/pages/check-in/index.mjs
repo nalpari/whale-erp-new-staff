@@ -3,7 +3,8 @@
 // 확정 쟁점: GPS 판정 — 휴대전화에서 판정하고 좌표는 보내지 않는다(ATT-1·5) · 근무지 반경 100m(ATT-2) · 위치 권한 꺼짐은 등록 불가(ATT-3) ·
 // 위치 오차는 따로 판정하지 않는다(ATT-4, 2026-10-20) · 출퇴근은 앱에서 고른 근무지로만, 이 화면에서 근무지를 고르거나 자동으로 바꾸지 않음(ATT-6, 운영 정책 ATT-07, 2026-10-20) · 퇴근만 확인 시트(ATT-9) ·
 // 퇴근 되돌리기 없음(ATT-10) · 반경 밖도 출근·퇴근 모두 확인 필요로(ATT-11, 2026-10-20) · 위치 조작 감지는 출근 막고 퇴근은 확인 필요(운영 정책 ATT-21) ·
-// 위치정보 동의는 첫 출근 등록 때 필수, 거부·철회 시 「근무지 관리자에게 문의」(운영 정책 ATT-06·20) · 일시 중지 중엔 대신 등록 안내,
+// 위치는 출근·퇴근 버튼을 누를 때만 읽고 읽을 때마다 확인자료를 남긴다 · 「위치 다시 확인」 버튼 없음(운영 정책 ATT-22, 2026-10-26) ·
+// 위치정보 동의는 첫 출근 등록 때 필수, 거부·철회 시 「근무지 관리자에게 문의」, 다시 동의는 직원이 직접(운영 정책 ATT-06·20, ME-5) · 일시 중지 중엔 대신 등록 안내,
 // 「다시 켜기」로 재동의 없이 복귀(운영 정책 ATT-26) · 등록 화면의 「○○점 관리자가 확인합니다」 한 줄(운영 정책 ATT-25).
 // 동의 문구는 법무 검토 중이라(ATT-8) 시트에 그대로 적었다.
 // 모양: 매장 안(ready)은 Figma 04.출퇴근(node 12:756)을 따른다. 나머지 상태와 시트는 Figma 없음 — DESIGN.md 기준 초안.
@@ -12,7 +13,7 @@ import { alert, body, bottomNav, bottomSheet, button, dock, img, maskIcon, page,
 
 // 목업 오른쪽 목록 순서 그대로. 뒤 아홉은 목업의 「시트 열기」라 SHEET_BASE 의 화면 위에 시트를 띄운다.
 const STATES = [
-  { id: "ready", label: "매장 안", note: "출근 가능" },
+  { id: "ready", label: "출근 전", note: "누를 때 위치 확인" },
   { id: "working", label: "근무 중", note: "퇴근 가능" },
   { id: "done", label: "퇴근 완료", note: "기록 확정" },
   { id: "far-out", label: "근무 중 · 범위 밖", note: "퇴근만 가능" },
@@ -118,8 +119,9 @@ const punchSummary = () =>
 const VIEWS = {
   ready: () =>
     body(
-      geoMap("in", "오차 ±12m · 매장까지 18m") +
-        siteCard("웨일카페 강남역점", "매장 범위 안에 있습니다") +
+      // 위치는 출근하기를 누를 때만 읽는다 — 화면을 열 때는 읽지 않는다(운영 정책 ATT-22, 2026-10-26)
+      geoBlank("text-staff-placeholder", "출근하기를 누르면 위치를 확인합니다") +
+        siteCard("웨일카페 강남역점", "출근하기를 누를 때 매장 안인지 확인합니다") +
         // 오늘 예정 근무(Figma node 12:957 아래 카드)
         `<section class="flex flex-col gap-[7px] rounded-[18px] border border-staff-border-light bg-white p-[20px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">오늘 예정 근무</h2><div class="flex items-center gap-[8px]"><p class="min-w-0 flex-1 text-[20px] font-bold tracking-[-0.42px]">09:00 – 18:00</p><span class="rounded-[8px] bg-staff-info-bg px-[10px] py-[4px] text-[12px] font-semibold text-staff-text-sub">휴게 60분</span></div></section>` +
         clock("현재 시각", "08:52", { note: "기록 시각은 서버가 요청을 받은 때로 정해집니다" }),
@@ -157,7 +159,7 @@ const VIEWS = {
 
   far: () =>
     body(
-      geoMap("out", "오차 ±14m · 매장까지 240m") +
+      geoMap("out", "매장까지 240m · 반경 100m") +
         alert(
           "warning",
           "<strong>매장에서 240m 떨어져 있습니다.</strong><br>이대로 출근하면 기록에 <strong>확인 필요</strong>가 붙고 관리자가 확인합니다. 근무지가 맞는지 한 번 더 확인해 주세요.",
@@ -165,16 +167,16 @@ const VIEWS = {
         `<section class="flex flex-col rounded-[18px] border border-staff-border-light bg-white p-[20px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">근무지</h2><p class="pt-[6px] text-[16px] font-bold">웨일카페 강남역점</p><p class="pt-[3px] text-[12px] text-staff-text-muted">서울 강남구 테헤란로 1길</p></section>` +
         clock("현재 시각", "08:47", { dim: true }),
       { variant: "detail" },
-    ) + dock(button("출근하기", { "data-open": "hifar" }) + ghost("위치 다시 확인", go("ready", "매장 범위 안입니다")), 30),
+    ) + dock(button("출근하기", { "data-open": "hifar" }), 30),
 
   "far-out": () =>
     body(
-      geoMap("out", "오차 ±14m · 매장까지 240m") +
+      geoMap("out", "매장까지 240m · 반경 100m") +
         siteCard("근무 중", "09:02에 출근했습니다") +
         alert("warning", "<strong>매장 범위 밖입니다.</strong><br>퇴근은 여기서도 등록할 수 있습니다. 다만 기록에 <strong>확인 필요</strong>가 붙고 관리자가 확인합니다.") +
         elapsed(),
       { variant: "detail" },
-    ) + dock(button("퇴근하기", { "data-open": "byefar" }) + ghost("위치 다시 확인", go("working", "매장 범위 안입니다")), 30),
+    ) + dock(button("퇴근하기", { "data-open": "byefar" }), 30),
 
   denied: () =>
     body(
@@ -225,7 +227,7 @@ const VIEWS = {
       geoBlank("text-staff-placeholder", "위치정보 동의가 없습니다") +
         alert("danger", "<strong>위치정보 이용에 동의하지 않으면 앱으로 출퇴근을 등록할 수 없습니다.</strong><br>출퇴근 기록은 근무지 관리자에게 문의해 주세요.") +
         sunken(
-          "휴대전화 위치 권한은 설정에서 켜면 바로 등록할 수 있습니다. 여기는 <b>위치정보 수집 동의 자체를 하지 않았거나 철회한</b> 경우라, 설정을 바꿔도 앱에서는 등록되지 않습니다. 다시 동의하려면 근무지 관리자에게 말씀해 주세요.",
+          "휴대전화 위치 권한은 설정에서 켜면 바로 등록할 수 있습니다. 여기는 <b>위치정보 수집 동의 자체를 하지 않았거나 철회한</b> 경우라, 설정을 바꿔도 앱에서는 등록되지 않습니다. 내 정보의 「다시 동의하기」에서 직접 다시 동의할 수 있습니다.",
           { prose: true, label: "권한을 끈 것과 다릅니다" },
         ) +
         `<section class="flex flex-col gap-[8px] rounded-[18px] border border-staff-border-light bg-white p-[20px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">기록은 이렇게 남습니다</h2><div class="flex gap-[8px] text-[13px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text"><span class="flex pt-[3px]">${maskIcon(
@@ -302,10 +304,10 @@ const SHEETS = {
     bottomSheet(
       "consent",
       { title: "위치정보 수집에 동의해 주세요", ...a },
-      `<p class="text-[14px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text">출퇴근을 등록할 때 <b>매장 안인지</b>를 위치로 확인합니다. <b>위치는 휴대전화 안에서만 확인하고 서버로 보내지 않습니다.</b> 기록에는 <b>출퇴근 시각만</b> 남고 위치와 판정 결과는 남지 않습니다.</p>${sunken(
+      `<p class="text-[14px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text">출근 · 퇴근 버튼을 누를 때 <b>매장 안인지</b>를 위치로 확인합니다. <b>위치는 휴대전화 안에서만 확인하고 서버로 보내지 않습니다.</b> 기록에는 <b>출퇴근 시각</b>이 남습니다. 반경 밖이면 <b>확인 필요 표시만</b> 남고 관리자 검토 뒤 지웁니다.</p>${sunken(
         values([
           ["쓰는 곳", "출퇴근 등록 판정"],
-          ["남기는 것", "출퇴근 시각만 · 위치와 판정 결과는 남기지 않음"],
+          ["남기는 것", "출퇴근 시각 · 반경 밖이면 확인 필요 표시(관리자 검토 뒤 지움)"],
           ["동의 철회", "내 정보에서 언제든"],
         ]),
       )}<p class="text-[12px] font-bold text-staff-text-sub">동의해야 앱으로 출퇴근을 등록할 수 있습니다.</p><p class="text-[12px] text-staff-text-sub">서비스 약관과 따로 받는 동의입니다. 동의하지 않으면 출퇴근 기록을 근무지 관리자에게 문의해야 합니다. <span class="text-staff-text-muted">위치정보 수집·이용 동의 v1.2</span></p><p class="text-[12px] text-staff-text-muted">동의서 항목·문구는 법무 검토 중(ATT-8)</p>${button(
@@ -324,10 +326,11 @@ const SHEETS = {
       "nopunch",
       {
         title: "출근 기록이 없습니다",
-        description: "퇴근은 열려 있는 출근 기록이 있어야 등록할 수 있습니다. 오늘 출근을 찍지 않았다면 관리자에게 알려 주세요.",
+        description: "퇴근은 열려 있는 출근 기록이 있어야 등록할 수 있습니다. 오늘 출근을 찍지 않았다면 근무지 관리자에게 문의해 주세요.",
         ...a,
       },
-      sunken("관리자는 최근 3개월 안의 기록을 수정할 수 있습니다.", { prose: true }) + button("관리자에게 알리기", close({ "data-toast": "관리자에게 알렸습니다" })),
+      // 「관리자에게 알리기」는 1차에 두지 않는다(HIST-3)
+      sunken("관리자는 최근 3개월 안의 기록을 수정할 수 있습니다.", { prose: true }),
     ),
   // 경고 판: 상태 칩의 지각·긴급 색(#FFF6E5 · #956013). 카드 전체가 계약서로 가는 링크.
   nocontract: (a) =>
