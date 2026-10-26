@@ -192,13 +192,15 @@ const VIEWS = {
   spoof: () =>
     body(
       geoBlank("text-staff-error", "위치를 믿을 수 없습니다") +
-        alert("danger", "<strong>모의 위치가 켜져 있습니다.</strong><br>모의 위치 설정이나 가상 위치 앱을 끄고 다시 시도하세요.") +
+        alert("danger", "<strong>모의 위치가 켜져 있습니다.</strong><br>모의 위치를 끈 뒤 출근을 다시 눌러 주세요.") +
         sunken(
           "출근은 매장에 실제로 왔는지를 위치로만 확인합니다. 기기가 꾸며 낸 위치로는 그것을 확인할 수 없어 등록을 받지 않습니다. <b>퇴근은 막지 않습니다</b> — 이미 일한 사실이 있어 기록을 남기는 편이 낫고, 대신 확인 필요가 붙습니다.",
           { prose: true, label: "왜 막나요" },
         ),
       { variant: "detail" },
-    ) + dock(button("출근하기", { disabled: true }) + ghost("껐습니다 · 다시 확인", go("ready", "모의 위치를 껐습니다")), 30),
+    ) +
+    // 모의 위치를 끈 뒤 누르는 확인 버튼은 두지 않는다 — 위치는 출근하기를 누를 때만 읽으므로, 모의 위치를 끄고 출근하기를 다시 누르면 된다(운영 정책 ATT-22, 2026-10-26).
+    dock(button(`출근하기${arrow()}`, go("working", "출근을 등록했습니다")), 30),
 
   "spoof-out": () =>
     body(

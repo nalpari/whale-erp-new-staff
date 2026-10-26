@@ -284,7 +284,7 @@
                 <i class="ph-fill ph-prohibit"></i>
                 <div>
                   <strong>모의 위치가 켜져 있습니다.</strong><br />
-                  모의 위치 설정이나 가상 위치 앱을 끄고 다시 시도하세요.
+                  모의 위치를 끈 뒤 출근을 다시 눌러 주세요.
                 </div>
               </div>
 
@@ -432,9 +432,9 @@
                 <i class="ph-fill ph-play"></i>다시 켜기
               </button>
 
-              <button class="btn is-off" data-when="spoof"><i class="ph-fill ph-sign-in"></i>출근하기</button>
-              <button class="btn btn--quiet" data-when="spoof" data-go="ready" data-toast="모의 위치를 껐습니다">
-                껐습니다 · 다시 확인
+              <!-- 위치는 출근하기를 누를 때만 읽는다 — 모의 위치를 끄고 출근하기를 다시 누르면 된다. 끈 뒤 누르는 확인 버튼은 두지 않는다(ATT-22) -->
+              <button class="btn" data-when="spoof" data-go="working" data-toast="출근을 등록했습니다">
+                <i class="ph-fill ph-sign-in"></i>출근하기
               </button>
 
               <button class="btn btn--ghost" data-when="spoof-out" data-sheet="byespoof">
