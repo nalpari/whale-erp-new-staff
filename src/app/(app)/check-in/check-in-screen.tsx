@@ -3,17 +3,29 @@
 import Image from "next/image";
 import { useCallback, useEffect, useState, useTransition, type ReactNode } from "react";
 import { Alert, BottomSheet, Button, Dock, Toast, WorkTimeBar } from "@/components/common";
-import { distanceMeters, elapsedLabel, elapsedOf, kstTime, REVIEW_REASON_LABELS, reviewReasonOf, type AttendanceKind, type ReviewReason } from "@/lib/attendance-rules";
+import {
+  distanceMeters,
+  elapsedLabel,
+  elapsedOf,
+  kstTime,
+  REVIEW_REASON_LABELS,
+  reviewReasonOf,
+  type AttendanceKind,
+  type RegisterProblem,
+  type ReviewReason,
+} from "@/lib/attendance-rules";
 import type { AttendanceRecordResult, MyAttendance } from "@/lib/my-attendance";
 import { changeConsentAction } from "../me/actions";
-import { registerAttendanceAction } from "./actions";
+import { recordLocationReadAction, registerAttendanceAction } from "./actions";
 import { Clock, GeoBlank, GeoMap, SiteCard, Sunken, Values } from "./check-in-parts";
 
 /**
- * 휴대전화 위치. 판정은 여기서 끝난다 — 좌표는 서버로 보내지 않는다(ATT-05). 위치 조작 감지(ATT-21)는 운영체제가 알려 줄 때만
- * 판정하는데, 브라우저 위치(Geolocation API)는 모의 위치 여부를 알려 주지 않아 지금은 늘 false 다. 오차도 따로 판정하지 않는다(ATT-4).
+ * 휴대전화 위치. 출근 · 퇴근 버튼을 누를 때만 읽는다 — 화면을 열 때는 읽지 않는다(ATT-22, 2026-10-26 재영). 판정은 여기서 끝난다 —
+ * 좌표는 서버로 보내지 않는다(ATT-05). 위치 조작 감지(ATT-21)는 운영체제가 알려 줄 때만 판정하는데, 브라우저 위치(Geolocation API)는
+ * 모의 위치 여부를 알려 주지 않아 지금은 늘 false 다. 오차도 따로 판정하지 않는다(ATT-4).
  */
 type Geo =
+  | { status: "idle" }
   | { status: "loading" }
   | { status: "denied" }
   | { status: "unavailable" }
@@ -34,7 +46,9 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
   const canLocate = located && target !== null && !paused && !needsConsent;
   const working = openCheckIn?.staffMemberId === data.staffMemberId ? openCheckIn : null;
 
-  const [geo, setGeo] = useState<Geo>({ status: "loading" });
+  const [geo, setGeo] = useState<Geo>({ status: "idle" });
+  // 이번 버튼에서 읽은 위치 읽음 — 범위 밖 출근 · 퇴근 확인 시트가 등록할 때 함께 보낸다
+  const [readId, setReadId] = useState<number | null>(null);
   const [sheet, setSheet] = useState<Sheet>(needsConsent ? "consent" : null);
   const [declined, setDeclined] = useState(false);
   const [done, setDone] = useState<AttendanceRecordResult | null>(null);
@@ -51,71 +65,98 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
 
   const { latitude, longitude, radiusMeters } = store;
   // 위치는 콜백으로만 받는다 — 브라우저가 위치를 주지 않는 기기도 오류 콜백으로 같은 「읽지 못함」이 된다
-  const locate = useCallback(() => {
-    if (latitude === null || longitude === null) return;
-    const fail = (denied: boolean) => setGeo({ status: denied ? "denied" : "unavailable" });
-    if (!navigator.geolocation) return void Promise.resolve().then(() => fail(false));
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const distance = distanceMeters(position.coords, { latitude, longitude });
-        setGeo({ status: "ok", distance, inRange: distance <= radiusMeters, mocked: false });
-      },
-      (failure) => fail(failure.code === failure.PERMISSION_DENIED),
-      GEO_OPTIONS,
-    );
-  }, [latitude, longitude, radiusMeters]);
+  const locate = useCallback(
+    () =>
+      new Promise<Geo>((resolve) => {
+        if (latitude === null || longitude === null) return resolve({ status: "unavailable" });
+        if (!navigator.geolocation) return resolve({ status: "unavailable" });
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const distance = distanceMeters(position.coords, { latitude, longitude });
+            resolve({ status: "ok", distance, inRange: distance <= radiusMeters, mocked: false });
+          },
+          (failure) => resolve({ status: failure.code === failure.PERMISSION_DENIED ? "denied" : "unavailable" }),
+          GEO_OPTIONS,
+        );
+      }),
+    [latitude, longitude, radiusMeters],
+  );
 
-  useEffect(() => {
-    if (canLocate) locate();
-  }, [canLocate, locate]);
-
-  const relocate = () => {
-    setGeo({ status: "loading" });
-    locate();
-  };
   const show = (text: string) => setToast({ key: Date.now(), text });
 
   const judged = located ? (geo.status === "ok" ? geo : null) : { inRange: true, mocked: false };
   const reasonFor = (kind: AttendanceKind) => (judged ? reviewReasonOf(kind, judged) : null);
 
-  const register = (kind: AttendanceKind, reason: ReviewReason | null) =>
-    startTransition(async () => {
-      setError(null);
-      const result = await registerAttendanceAction(kind, data.staffMemberId, reason);
-      if (result.ok) {
+  /** api 가 막은 까닭에 맞는 시트 · 상태로 */
+  const fail = (problem: RegisterProblem) => {
+    switch (problem.kind) {
+      case "already-checked-in":
+        return setSheet("dup");
+      case "no-open-check-in":
+        return setSheet("nopunch");
+      case "contract-pending":
+        return setSheet("nocontract");
+      case "no-contract":
+        return setSheet("noperiod");
+      case "consent-required":
+        setDeclined(false);
+        return setSheet("consent");
+      case "paused":
+        return setSheet(null); // 화면을 다시 받아 일시 중지 화면으로 바뀐다
+      default:
         setSheet(null);
-        if (kind === "CHECK_OUT") setDone(result.record);
-        else show(reason ? "확인 필요로 출근을 등록했습니다" : "출근을 등록했습니다");
-        return;
-      }
-      const { problem } = result;
-      switch (problem.kind) {
-        case "already-checked-in":
-          return setSheet("dup");
-        case "no-open-check-in":
-          return setSheet("nopunch");
-        case "contract-pending":
-          return setSheet("nocontract");
-        case "no-contract":
-          return setSheet("noperiod");
-        case "consent-required":
-          setDeclined(false);
-          return setSheet("consent");
-        case "paused":
-          return setSheet(null); // 화면을 다시 받아 일시 중지 화면으로 바뀐다
-        default:
-          setSheet(null);
-          return setError(problem.message);
-      }
-    });
+        return setError(problem.message);
+    }
+  };
+
+  const registerNow = async (kind: AttendanceKind, reason: ReviewReason | null, locationReadId: number | null) => {
+    setError(null);
+    const result = await registerAttendanceAction(kind, data.staffMemberId, reason, locationReadId);
+    if (!result.ok) return fail(result.problem);
+    setSheet(null);
+    if (kind === "CHECK_OUT") setDone(result.record);
+    else show(reason ? "확인 필요로 출근을 등록했습니다" : "출근을 등록했습니다");
+  };
+  const register = (kind: AttendanceKind, reason: ReviewReason | null) => startTransition(() => registerNow(kind, reason, readId));
+
+  /**
+   * 버튼을 눌러 위치를 읽는다(ATT-22). api 에 위치 읽음(확인자료)을 먼저 남기고 그다음에 읽는다 — 확인자료 없이 위치를 읽는 일이
+   * 없게(다른 기기에서 멈췄거나 철회했으면 api 가 막는다). 읽기가 실패해도 확인자료는 남아 있다. 읽은 위치로 판정한 확인 필요 사유와
+   * 위치 읽음을 돌려주고, 남기지 못했거나 읽지 못했으면 null(화면이 까닭을 보인다).
+   */
+  const readLocation = async (kind: AttendanceKind): Promise<{ reason: ReturnType<typeof reviewReasonOf>; locationReadId: number } | null> => {
+    setError(null);
+    setGeo({ status: "loading" });
+    const read = await recordLocationReadAction(data.staffMemberId);
+    if (!read.ok) {
+      setGeo({ status: "idle" });
+      fail(read.problem);
+      return null;
+    }
+    setReadId(read.locationReadId);
+    const next = await locate();
+    setGeo(next);
+    if (next.status !== "ok") return null;
+    return { reason: reviewReasonOf(kind, next), locationReadId: read.locationReadId };
+  };
 
   const pressCheckIn = () => {
     if (checkInBlock) return setSheet(checkInBlock.reason === "CONTRACT_PENDING_SIGNATURE" ? "nocontract" : "noperiod");
     if (openCheckIn) return setSheet("dup");
-    const reason = reasonFor("CHECK_IN");
-    if (reason === "blocked") return;
-    if (reason) return setSheet("hifar");
-    register("CHECK_IN", null);
+    if (!located) return register("CHECK_IN", null);
+    startTransition(async () => {
+      const read = await readLocation("CHECK_IN");
+      if (!read || read.reason === "blocked") return;
+      if (read.reason) return setSheet("hifar");
+      await registerNow("CHECK_IN", null, read.locationReadId);
+    });
+  };
+
+  const pressCheckOut = () => {
+    if (!located) return setSheet("bye");
+    startTransition(async () => {
+      if (await readLocation("CHECK_OUT")) setSheet("bye");
+    });
   };
 
   const consentChange = (change: "location-agree" | "location-resume", done: string) =>
@@ -221,6 +262,8 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
       </>
     ) : needsConsent ? (
       <GeoBlank tone="muted" text="위치정보 동의 뒤에 위치를 확인합니다" />
+    ) : geo.status === "idle" ? (
+      <GeoBlank tone="muted" text={`${working ? "퇴근하기" : "출근하기"}를 누르면 위치를 확인합니다`} />
     ) : geo.status === "loading" ? (
       <GeoBlank tone="muted" text="위치를 확인하는 중입니다" />
     ) : geo.status === "denied" ? (
@@ -241,7 +284,8 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
       <GeoMap tone={geo.inRange ? "in" : "out"} caption={distanceText} />
     );
     const out = geo.status === "ok" && !geo.inRange;
-    const usable = !located || geo.status === "ok";
+    // 위치를 보는 근무지는 근무지 좌표가 있어야 버튼을 눌러 위치를 읽을 수 있다
+    const usable = !located || canLocate;
 
     if (working && elapsed) {
       body = (
@@ -275,14 +319,9 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
       );
       dock = (
         <>
-          <Button disabled={pending || !usable} onClick={() => setSheet("bye")}>
+          <Button disabled={pending || !usable} onClick={pressCheckOut}>
             퇴근하기
           </Button>
-          {located && target && geo.status !== "loading" && (
-            <Button variant="ghost" onClick={relocate}>
-              위치 다시 확인
-            </Button>
-          )}
         </>
       );
     } else {
@@ -303,7 +342,15 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
               </section>
             </>
           ) : (
-            <SiteCard title={store.name} sub={!located ? "위치를 확인하지 않는 근무지입니다" : geo.status === "ok" ? "매장 범위 안에 있습니다" : "위치를 확인하고 있습니다"} />
+            <SiteCard title={store.name} sub={
+                !located
+                  ? "위치를 확인하지 않는 근무지입니다"
+                  : geo.status === "ok"
+                    ? "매장 범위 안에 있습니다"
+                    : geo.status === "loading"
+                      ? "위치를 확인하고 있습니다"
+                      : "출근하기를 누르면 위치를 확인합니다"
+              } />
           )}
           {schedule && (
             <section className="flex flex-col gap-[7px] rounded-[18px] border border-staff-border-light bg-white p-[20px]">
@@ -338,11 +385,6 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
               <Image src="/icons/arrow-right.svg" alt="" width={14} height={12} />
             </Button>
           )}
-          {located && target && !needsConsent && geo.status !== "loading" && (
-            <Button variant="ghost" onClick={relocate}>
-              위치 다시 확인
-            </Button>
-          )}
         </>
       );
     }
@@ -359,17 +401,17 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
       </main>
       {dock && <Dock inset={30}>{dock}</Dock>}
 
-      {/* 위치정보 동의(운영 정책 ATT-06 · ATT-23): 서비스 약관과 따로, 첫 출근 등록 때 · 약관 버전이 바뀌면 다시. 문구는 법무 검토 중(ATT-8). */}
+      {/* 위치정보 동의(운영 정책 ATT-06 · ATT-23): 서비스 약관과 따로, 첫 출근 등록 때 · 약관 버전이 바뀌면 다시. 문구는 법무 검토 중(ATT-8) — 반경 밖 확인 필요 표시 문장은 2026-10-26 재영 안. */}
       <BottomSheet open={sheet === "consent"} onClose={() => setSheet(null)} title="위치정보 수집에 동의해 주세요">
         <p className="text-[14px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text">
-          출퇴근을 등록할 때 <b>매장 안인지</b>를 위치로 확인합니다. <b>위치는 휴대전화 안에서만 확인하고 서버로 보내지 않습니다.</b> 기록에는{" "}
-          <b>출퇴근 시각만</b> 남고 위치와 판정 결과는 남지 않습니다.
+          출근 · 퇴근 버튼을 누를 때 <b>매장 안인지</b>를 위치로 확인합니다. <b>위치는 휴대전화 안에서만 확인하고 서버로 보내지 않습니다.</b>{" "}
+          기록에는 <b>출퇴근 시각</b>이 남습니다. 반경 밖이면 <b>확인 필요 표시만</b> 남고 관리자 검토 뒤 지웁니다.
         </p>
         <Sunken>
           <Values
             rows={[
               ["쓰는 곳", "출퇴근 등록 판정"],
-              ["남기는 것", "출퇴근 시각만 · 위치와 판정 결과는 남기지 않음"],
+              ["남기는 것", "출퇴근 시각 · 반경 밖이면 확인 필요 표시(관리자 검토 뒤 지움)"],
               ["동의 철회", "내 정보에서 언제든"],
             ]}
           />
