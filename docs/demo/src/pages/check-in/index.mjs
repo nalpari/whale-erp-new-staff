@@ -165,7 +165,8 @@ const VIEWS = {
         `<section class="flex flex-col rounded-[18px] border border-staff-border-light bg-white p-[20px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">근무지</h2><p class="pt-[6px] text-[16px] font-bold">웨일카페 강남역점</p><p class="pt-[3px] text-[12px] text-staff-text-muted">서울 강남구 테헤란로 1길</p></section>` +
         clock("현재 시각", "08:47", { dim: true }),
       { variant: "detail" },
-    ) + dock(button("출근하기", { "data-open": "hifar" }) + ghost("위치 다시 확인", go("ready", "매장 범위 안입니다")), 30),
+    // 「위치 다시 확인」은 두지 않는다 — 위치는 출근·퇴근 버튼을 누를 때만 읽는다(운영 정책 ATT-22, 2026-10-23 재영).
+    ) + dock(button("출근하기", { "data-open": "hifar" }), 30),
 
   "far-out": () =>
     body(
@@ -174,7 +175,7 @@ const VIEWS = {
         alert("warning", "<strong>매장 범위 밖입니다.</strong><br>퇴근은 여기서도 등록할 수 있습니다. 다만 기록에 <strong>확인 필요</strong>가 붙고 관리자가 확인합니다.") +
         elapsed(),
       { variant: "detail" },
-    ) + dock(button("퇴근하기", { "data-open": "byefar" }) + ghost("위치 다시 확인", go("working", "매장 범위 안입니다")), 30),
+    ) + dock(button("퇴근하기", { "data-open": "byefar" }), 30),
 
   denied: () =>
     body(
