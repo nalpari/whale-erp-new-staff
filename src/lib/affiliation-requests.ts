@@ -22,7 +22,7 @@ export const INITIAL_ANSWER_STATE: AnswerState = {};
  * 결과가 사라진다. 하이드레이션 전 제출(폼 POST)도 같다.
  */
 export type AnswerResult =
-  | { kind: "accepted"; storeName: string; contractCount: number }
+  | { kind: "accepted"; contractCount: number }
   | { kind: "rejected" }
   | { kind: "closed"; reason: ClosedReason };
 
@@ -80,22 +80,17 @@ export function answerFailure(
   return retry(`요청을 처리하지 못했습니다. ${RETRY_LATER}`, status < 500);
 }
 
-/** 결과 경로에 싣는 점포 이름의 상한(글자). api 점포 이름보다 넉넉하고, 주소로 남이 만든 긴 값은 자른다. */
-export const RESULT_STORE_MAX = 100;
 /** 결과 경로에 싣는 계약 수의 상한 — 「발송되었습니다」 갈래만 가르므로 크게 받을 일이 없다. */
 const RESULT_CONTRACTS_MAX = 99;
 const CLOSED_REASONS = Object.keys(CLOSED) as ClosedReason[];
 
-/** 글자(코드 포인트) 단위로 자른다 — 이모지 한가운데를 자르지 않게. */
-const clip = (value: string, max: number) => [...value].slice(0, max).join("");
-
-/** 답한 결과의 경로(`/affiliations/done?…`). 값은 URLSearchParams 가 이스케이프한다. */
+/**
+ * 답한 결과의 경로(`/affiliations/done?…`). 점포 이름은 싣지 않는다 — 주소 · 기록에 남고, 남이 만든 링크로 가짜 「○○ 소속이
+ * 추가되었습니다」를 보일 수 있어서다. 결과 갈래 · 사유 · 계약 수(0~99)만 싣는다.
+ */
 export function resultHref(result: AnswerResult): string {
   const params = new URLSearchParams({ result: result.kind });
-  if (result.kind === "accepted") {
-    params.set("store", clip(result.storeName, RESULT_STORE_MAX));
-    params.set("contracts", String(Math.min(Math.max(result.contractCount, 0), RESULT_CONTRACTS_MAX)));
-  }
+  if (result.kind === "accepted") params.set("contracts", String(Math.min(Math.max(result.contractCount, 0), RESULT_CONTRACTS_MAX)));
   if (result.kind === "closed") params.set("reason", result.reason);
   return `/affiliations/done?${params}`;
 }
@@ -103,10 +98,7 @@ export function resultHref(result: AnswerResult): string {
 type SearchParams = Record<string, string | string[] | undefined>;
 const one = (value: string | string[] | undefined) => (typeof value === "string" ? value : undefined);
 
-/**
- * 결과 경로의 쿼리를 결과로. 주소로 들어오는 값이라 정한 것만 받는다 — 모르는 result · reason, 빈 점포 이름, 숫자가 아닌 계약 수는
- * null(부른 쪽이 확인 화면으로 보낸다). 점포 이름은 다듬고 자른다(화면은 글자로만 그린다).
- */
+/** 결과 경로의 쿼리를 결과로. 주소로 들어오는 값이라 정한 것만 받는다 — 모르는 result · reason, 0~99 가 아닌 계약 수는 null. */
 export function parseResult(params: SearchParams): AnswerResult | null {
   const kind = one(params.result);
   if (kind === "rejected") return { kind };
@@ -115,10 +107,8 @@ export function parseResult(params: SearchParams): AnswerResult | null {
     return CLOSED_REASONS.includes(reason as ClosedReason) ? { kind, reason: reason as ClosedReason } : null;
   }
   if (kind === "accepted") {
-    const storeName = clip((one(params.store) ?? "").trim(), RESULT_STORE_MAX);
     const contracts = one(params.contracts) ?? "";
-    if (!storeName || !/^\d{1,2}$/.test(contracts)) return null;
-    return { kind, storeName, contractCount: Number(contracts) };
+    return /^\d{1,2}$/.test(contracts) ? { kind, contractCount: Number(contracts) } : null;
   }
   return null;
 }

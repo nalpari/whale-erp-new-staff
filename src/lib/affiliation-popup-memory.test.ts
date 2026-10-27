@@ -3,11 +3,13 @@ import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
 import { forgetAffiliationPopup, readSeen, rememberSeen } from "./affiliation-popup-memory.ts";
 
-/** 꾸민 sessionStorage. failing 이면 쓰기를 막는다(사생활 보호 모드 · 용량 초과). */
+/** 꾸민 sessionStorage. failing 이면 쓰기를, readFailing 이면 읽기를 막는다(사생활 보호 모드 · 용량 초과 · 보안 설정). */
 class FakeStorage {
   values = new Map<string, string>();
   failing = false;
+  readFailing = false;
   getItem(key: string) {
+    if (this.readFailing) throw new Error("SecurityError");
     return this.values.get(key) ?? null;
   }
   setItem(key: string, value: string) {
@@ -48,4 +50,10 @@ test("forgetAffiliationPopup 은 저장소와 화면 기억을 모두 지운다"
   rememberSeen("3");
   forgetAffiliationPopup();
   assert.equal(readSeen(), null);
+});
+
+test("쓰기는 되는데 읽기가 던지는 저장소에서도 닫은 요청을 기억한다", () => {
+  storage.readFailing = true;
+  rememberSeen("3,9");
+  assert.equal(readSeen(), "3,9");
 });

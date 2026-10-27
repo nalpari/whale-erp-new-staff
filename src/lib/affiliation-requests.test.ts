@@ -4,7 +4,6 @@ import { test } from "node:test";
 import { CONNECTION_FAILED, RATE_LIMITED } from "./action-errors.ts";
 import {
   ALREADY_EMPLOYED,
-  RESULT_STORE_MAX,
   answerFailure,
   employmentLine,
   invitationTypeLabel,
@@ -67,8 +66,8 @@ const query = (href: string) => Object.fromEntries(new URL(href, "http://x").sea
 
 test("resultHref · parseResult 는 결과를 주소로 실었다 그대로 되읽는다", () => {
   const results: AnswerResult[] = [
-    { kind: "accepted", storeName: "웨일카페 홍대점 & <2호>", contractCount: 1 },
-    { kind: "accepted", storeName: "강남역점", contractCount: 0 },
+    { kind: "accepted", contractCount: 1 },
+    { kind: "accepted", contractCount: 0 },
     { kind: "rejected" },
     { kind: "closed", reason: "answered" },
     { kind: "closed", reason: "ended" },
@@ -81,10 +80,9 @@ test("resultHref · parseResult 는 결과를 주소로 실었다 그대로 되�
   }
 });
 
-test("resultHref 는 긴 점포 이름을 글자 단위로 자르고 계약 수를 상한에 맞춘다", () => {
-  const long = "가".repeat(RESULT_STORE_MAX) + "😀";
-  const parsed = parseResult(query(resultHref({ kind: "accepted", storeName: long, contractCount: 500 })));
-  assert.deepEqual(parsed, { kind: "accepted", storeName: "가".repeat(RESULT_STORE_MAX), contractCount: 99 });
+test("resultHref 는 점포 이름을 싣지 않고 계약 수를 0~99 에 맞춘다", () => {
+  assert.equal(resultHref({ kind: "accepted", contractCount: 500 }), "/affiliations/done?result=accepted&contracts=99");
+  assert.equal(resultHref({ kind: "accepted", contractCount: -1 }), "/affiliations/done?result=accepted&contracts=0");
 });
 
 test("parseResult 는 정한 값만 받고 나머지는 null", () => {
@@ -92,14 +90,12 @@ test("parseResult 는 정한 값만 받고 나머지는 null", () => {
   assert.equal(parseResult({ result: "deleted" }), null);
   assert.equal(parseResult({ result: ["rejected", "rejected"] }), null);
   assert.equal(parseResult({ result: "closed", reason: "toString" }), null);
-  assert.equal(parseResult({ result: "accepted", store: "  ", contracts: "1" }), null);
-  assert.equal(parseResult({ result: "accepted", store: "홍대점", contracts: "-1" }), null);
-  assert.equal(parseResult({ result: "accepted", store: "홍대점", contracts: "1e2" }), null);
-  assert.equal(parseResult({ result: "accepted", store: "홍대점" }), null);
-  // 주소로 들어온 긴 이름도 자른다
-  assert.equal(parseResult({ result: "accepted", store: "나".repeat(300), contracts: "1" })?.kind, "accepted");
-  const clipped = parseResult({ result: "accepted", store: "나".repeat(300), contracts: "1" });
-  assert.equal(clipped?.kind === "accepted" && [...clipped.storeName].length, RESULT_STORE_MAX);
+  assert.equal(parseResult({ result: "accepted", contracts: "-1" }), null);
+  assert.equal(parseResult({ result: "accepted", contracts: "1e2" }), null);
+  assert.equal(parseResult({ result: "accepted", contracts: "100" }), null);
+  assert.equal(parseResult({ result: "accepted" }), null);
+  // 점포 이름은 받지 않는다 — 남이 만든 링크의 글이 결과에 실리지 않는다
+  assert.deepEqual(parseResult({ result: "accepted", store: "가짜 점포", contracts: "1" }), { kind: "accepted", contractCount: 1 });
 });
 
 test("invitationTypeLabel 은 복귀 확인과 소속 추가 요청을 가른다", () => {

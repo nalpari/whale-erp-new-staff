@@ -24,12 +24,12 @@ export function rememberSeen(key: string) {
   const seen = mergeSeenKey(key, readSeen());
   try {
     sessionStorage.setItem(STORAGE_KEY, seen);
-    // 앞서 저장소 쓰기가 실패해 남긴 값이 있으면 비운다 — 남겨 두면 readSeen 이 옛 값을 먼저 읽는다.
-    memory = null;
   } catch {
-    // 위와 같다. 이번 화면에서만 닫힌다.
-    memory = seen;
+    // 저장소를 막은 브라우저 — 아래에서 화면 안에만 둔다.
   }
+  // 저장소에서 같은 값을 다시 읽을 수 있을 때만 화면 안 값을 비운다 — 남겨 두면 readSeen 이 옛 값을 먼저 읽고, 쓰기는 되는데 읽기가
+  // 던지는 환경에서 비우면 닫은 팝업이 다시 뜬다.
+  memory = readStorage() === seen ? null : seen;
   listeners.forEach((listener) => listener());
 }
 

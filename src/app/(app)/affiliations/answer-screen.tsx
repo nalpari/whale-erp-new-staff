@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useActionState, useState, useSyncExternalStore } from "react";
 import { Alert, Button, Card, CheckBox, Dock, MaskIcon, Notice, PageHeader, ReasonSheet } from "@/components/common";
 import { INITIAL_ANSWER_STATE, REJECT_REASON_MAX, employmentLine, type AffiliationRequest, type AnswerState } from "@/lib/affiliation-requests";
 import { kstDateTimeLabel } from "@/lib/profile";
+import { BODY, Lead } from "./screen-parts";
 
 // 소속 추가 확인(WHALEERP-144). 기준: 데모 docs/demo/join 의 addsite · addsite-done · reject(시트).
 // 수락하기 전에는 초대한 사업자 · 점포와 고용 형태만 보인다 — 기존 계정 정보와 직원 레코드 값은 api 가 주지 않는다.
@@ -11,18 +12,6 @@ import { kstDateTimeLabel } from "@/lib/profile";
 // 답한 뒤의 화면(소속 추가 완료 · 거절 · 더 답할 수 없음)은 액션이 결과 경로(done/page.tsx)로 보낸다.
 
 const subscribeNothing = () => () => {};
-
-const BODY = "flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]";
-
-/** 화면 첫 제목 + 설명(데모 lead). */
-function Lead({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-[6px]">
-      <h2 className="text-[22px] font-bold">{title}</h2>
-      <p className="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">{children}</p>
-    </div>
-  );
-}
 
 /** 카드 안 한 줄(데모 iconRow): 20px 칸의 아이콘 · 제목 14px semibold · 설명 12px. */
 function IconRow({ icon, title, sub }: { icon: string; title: string; sub: string }) {

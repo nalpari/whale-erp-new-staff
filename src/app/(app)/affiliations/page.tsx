@@ -5,6 +5,7 @@ import { AffiliationRequestList } from "@/app/_components/affiliation-request-li
 import { getMyAffiliationRequests } from "@/lib/my-profile";
 import { acceptAffiliationAction, rejectAffiliationAction } from "./actions";
 import { AnswerScreen } from "./answer-screen";
+import { BODY, Lead } from "./screen-parts";
 
 export const metadata: Metadata = { title: "소속 추가 확인 · Whale ERP" };
 
@@ -40,22 +41,16 @@ export default async function AffiliationsPage({ searchParams }: PageProps<"/aff
   if (items.length === 0 || typeof id === "string")
     return (
       <Shell>
-        <div className="flex flex-col gap-[6px]">
-          <h2 className="text-[22px] font-bold">{items.length === 0 ? "확인할 요청이 없습니다" : "끝난 요청입니다"}</h2>
-          <p className="text-[14px] text-staff-text-sub">
-            이미 답했거나 확인 기한이 지난 요청은 여기에 보이지 않습니다. 수락한 근무지는 내 정보 - 소속 근무지에서 볼 수 있습니다.
-          </p>
-        </div>
+        <Lead title={items.length === 0 ? "확인할 요청이 없습니다" : "끝난 요청입니다"}>
+          이미 답했거나 확인 기한이 지난 요청은 여기에 보이지 않습니다. 수락한 근무지는 내 정보 - 소속 근무지에서 볼 수 있습니다.
+        </Lead>
         {items.length > 0 && <Button href="/affiliations">남은 요청 보기</Button>}
       </Shell>
     );
 
   return (
     <Shell>
-      <div className="flex flex-col gap-[6px]">
-        <h2 className="text-[22px] font-bold">확인할 요청 {items.length}건</h2>
-        <p className="text-[14px] text-staff-text-sub">근무지를 골라 수락하거나 거절해 주세요. 거절해도 기존 소속과 계정에는 영향이 없습니다.</p>
-      </div>
+      <Lead title={`확인할 요청 ${items.length}건`}>근무지를 골라 수락하거나 거절해 주세요. 거절해도 기존 소속과 계정에는 영향이 없습니다.</Lead>
       <AffiliationRequestList items={items} />
     </Shell>
   );
@@ -65,7 +60,7 @@ function Shell({ children }: { children: ReactNode }) {
   return (
     <>
       <PageHeader title="소속 추가 확인" backHref="/home" />
-      <div className="flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">{children}</div>
+      <div className={BODY}>{children}</div>
       <Dock>
         <Button variant="ghost" href="/home">
           홈으로

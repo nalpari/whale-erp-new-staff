@@ -1,7 +1,8 @@
 "use server";
 
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { RedirectType, redirect } from "next/navigation";
 import { failureOf, logFailure, type Schemas } from "@/lib/api";
 import { answerFailure, parseRejectReason, resultHref, type AnswerResult, type AnswerState } from "@/lib/affiliation-requests";
 import { clientIpFrom } from "@/lib/client-ip";
@@ -27,8 +28,11 @@ async function answer(kind: "accept" | "reject", run: () => Promise<AnswerResult
     if ("state" in handled) return handled.state;
     result = handled.result;
   }
+  // 답한 요청이 남은 화면(확인 · 홈 팝업 · 내 정보 배지 · 소속 근무지 요청 줄)을 무효화한다 — 뒤로 가기로 캐시된 확인 화면이 버튼이 산 채
+  // 돌아오지 않게. 결과 화면은 기록을 바꿔 넣어(replace) 뒤로 가기가 확인 화면에 들르지 않는다.
+  for (const path of ["/affiliations", "/home", "/me", "/me/memberships"]) revalidatePath(path);
   // redirect 는 던져서 알리므로 try 밖에서 부른다.
-  redirect(resultHref(result));
+  redirect(resultHref(result), RedirectType.replace);
 }
 
 /** 수락(`POST /me/affiliation-requests/:id/accept`). 본사 제공 동의는 켰을 때만 싣는다(가입과 같다). */
@@ -42,7 +46,7 @@ export async function acceptAffiliationAction(invitationId: number, _previous: A
       json,
       clientIp,
     });
-    return { kind: "accepted", storeName: result.storeName, contractCount: result.contractIds.length };
+    return { kind: "accepted", contractCount: result.contractIds.length };
   });
 }
 
