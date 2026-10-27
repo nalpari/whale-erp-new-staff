@@ -2,9 +2,11 @@
 
 import { useSyncExternalStore } from "react";
 import { Button, MaskIcon, RequestSheet } from "@/components/common";
+import { isPopupDismissed, mergeSeenKey } from "@/lib/affiliation-requests";
 
 // 소속 추가 요청 팝업(WHALEERP-144, 2026-10-26 재영). 답하지 않은 요청이 있으면 홈 위에 띄운다 — 날인 요청 팝업(데모 home 의 sign-req)과
-// 같은 모양이다. 「다음에 하기」를 누르면 이 탭(sessionStorage)에서는 다시 띄우지 않고, 앱을 새로 열거나 새 요청이 오면 다시 뜬다.
+// 같은 모양이다. 「다음에 하기」를 누르면 본 요청을 이 탭(sessionStorage)에 기억해 다시 띄우지 않는다 — 하나에 답해 줄어도 그대로 닫혀 있고,
+// 새 요청이 오거나 앱을 새로 열거나 로그아웃한 뒤 다시 로그인하면 다시 뜬다.
 // 닫아도 내 정보 - 소속 근무지에서 요청을 찾아 확인 화면(/affiliations)으로 갈 수 있다.
 
 const STORAGE_KEY = "staff:affiliation-popup-dismissed";
@@ -21,14 +23,27 @@ function readDismissed(): string | null {
   }
 }
 
+const readSeen = () => memory ?? readDismissed();
+
 function dismiss(key: string) {
+  const seen = mergeSeenKey(key, readSeen());
   try {
-    sessionStorage.setItem(STORAGE_KEY, key);
+    sessionStorage.setItem(STORAGE_KEY, seen);
   } catch {
     // 위와 같다. 이번 화면에서만 닫힌다.
-    memory = key;
+    memory = seen;
   }
   listeners.forEach((listener) => listener());
+}
+
+/** 로그아웃할 때 본 요청을 잊는다 — 같은 탭에서 다시 로그인하면 팝업이 다시 뜬다. */
+export function forgetAffiliationPopup() {
+  memory = null;
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // 저장소를 막은 브라우저 — 기억한 것도 없다.
+  }
 }
 
 const subscribe = (listener: () => void) => {
@@ -50,7 +65,7 @@ export function AffiliationPopup({
   others: number;
 }) {
   // 서버 그림에서는 닫아 두고(저장소를 모른다) 브라우저에서 읽어 연다 — 열 때 시트가 아래에서 올라온다.
-  const dismissed = useSyncExternalStore(subscribe, () => (memory ?? readDismissed()) === requestKey, () => true);
+  const dismissed = useSyncExternalStore(subscribe, () => isPopupDismissed(requestKey, readSeen()), () => true);
   return (
     <RequestSheet
       open={!dismissed}

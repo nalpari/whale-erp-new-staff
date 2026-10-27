@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Alert, Button, Card, CheckBox, Dock, MaskIcon, Notice, PageHeader, ReasonSheet } from "@/components/common";
 import { Sunken, Values } from "@/app/_components/tax-profile-parts";
 import { INITIAL_ANSWER_STATE, REJECT_REASON_MAX, employmentLine, type AffiliationRequest, type AnswerState } from "@/lib/affiliation-requests";
@@ -10,6 +10,8 @@ import { kstDateTimeLabel } from "@/lib/profile";
 // 수락하기 전에는 초대한 사업자 · 점포와 고용 형태만 보인다 — 기존 계정 정보와 직원 레코드 값은 api 가 주지 않는다.
 // 데모와 다른 점: 점포 주소는 api 가 주지 않아 사업자 이름을 대신 둔다. 수락 완료의 「계약서 날인하러 가기」는 직원 앱 계약 화면(#146)이
 // 아직 없어 홈으로 보내고 안내만 둔다(2026-10-27). 거절 확정은 근로계약서 거부와 같이 오류색 버튼이다.
+
+const subscribeNothing = () => () => {};
 
 const BODY = "flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]";
 
@@ -65,12 +67,17 @@ export function AnswerScreen({
   const [rejected, rejectAction, rejecting] = useActionState(reject, INITIAL_ANSWER_STATE);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [hqSharing, setHqSharing] = useState(false);
+  // 동의 칸은 상태로 들고 켰을 때만 숨은 칸으로 싣는다(CheckBox). 하이드레이션 전에 체크하고 수락하면 동의가 빠지므로, 동의를 묻는
+  // 요청은 하이드레이션 전에는 수락을 막는다(서버 그림은 막힌 버튼이다).
+  const hydrated = useSyncExternalStore(subscribeNothing, () => true, () => false);
 
   // 답이 끝났거나 더 답할 수 없는 요청이면 결과 화면이다. 거절 시트가 연 채 끝나도 화면이 바뀌며 시트는 사라진다.
   const done = [accepted, rejected].find((state) => state.step !== "input");
   if (done) return <Result state={done} hasOthers={hasOthers} />;
 
   const pending = accepting || rejecting;
+  // 이 점포에 이미 재직 중(409) — 수락은 막고 거절로 닫게 한다.
+  const acceptBlocked = accepted.step === "input" && accepted.acceptBlocked === true;
   const returning = request.invitationType === "RETURN_CONFIRM";
   return (
     <>
@@ -110,14 +117,14 @@ export function AnswerScreen({
           <p className="text-[12px] text-staff-text-muted">
             이 요청은 {kstDateTimeLabel(request.expiresAt)}까지 답할 수 있습니다. 거절해도 기존 소속과 계정에는 영향이 없습니다.
           </p>
-          {accepted.step === "input" && accepted.error && <Alert tone="danger">{accepted.error}</Alert>}
+          {accepted.step === "input" && accepted.error && <Alert tone={acceptBlocked ? "warning" : "danger"}>{accepted.error}</Alert>}
         </div>
         <Dock>
           <div className="grid grid-cols-2 gap-[8px]">
             <Button variant="ghost" disabled={pending} onClick={() => setRejectOpen(true)}>
               거절
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" disabled={pending || acceptBlocked || (request.asksHqSharingConsent && !hydrated)}>
               수락
             </Button>
           </div>

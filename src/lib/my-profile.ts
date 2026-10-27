@@ -1,4 +1,5 @@
-import { ApiError, NetworkError, logUnexpected, request, type Schemas } from "./api";
+import { requestsLoadFailure } from "./affiliation-requests";
+import { ApiError, NetworkError, failureOf, logFailure, logUnexpected, request, type Schemas } from "./api";
 import { authedRequest } from "./session";
 
 /** 내 정보(`GET /me/profile`). 이 화면의 뼈대라 실패하면 그대로 던져 error.tsx 가 받는다. */
@@ -22,9 +23,21 @@ export const getMyProfileOrNull = () => orNull(getMyProfile);
 export const getMyMemberships = () =>
   orNull(() => authedRequest<Schemas["MyMembershipListResponseDto"]>("/me/memberships"));
 
-/** 살아 있는 소속 추가 확인 요청(`GET /me/affiliation-requests`, WHALEERP-144). 없으면 빈 배열. */
-export const getMyAffiliationRequests = () =>
-  orNull(() => authedRequest<Schemas["AffiliationRequestDto"][]>("/me/affiliation-requests"));
+/**
+ * 살아 있는 소속 추가 확인 요청(`GET /me/affiliation-requests`, WHALEERP-144). 없으면 빈 배열. 401(만료 안내로 보냄) 밖의 실패는
+ * 모두 null 이다(requestsLoadFailure) — 다른 조회와 달리 4xx 도 화면을 깨지 않는다.
+ */
+export async function getMyAffiliationRequests(): Promise<Schemas["AffiliationRequestDto"][] | null> {
+  try {
+    return await authedRequest<Schemas["AffiliationRequestDto"][]>("/me/affiliation-requests");
+  } catch (error) {
+    const failure = failureOf(error);
+    const handling = requestsLoadFailure(failure);
+    if (handling === "throw") throw error;
+    if (handling === "log" && failure) logFailure("affiliation-requests", failure);
+    return null;
+  }
+}
 
 /**
  * 그 소속의 신고 정보(`GET /me/memberships/:staffMemberId/tax-profile`). 미제출이면 `taxProfile: null`(200)이다.
