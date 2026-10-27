@@ -1,7 +1,7 @@
 // node --test src/lib/attendance-rules.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { distanceMeters, elapsedLabel, elapsedOf, kstTime, registerProblemOf, reviewReasonOf } from "./attendance-rules.ts";
+import { distanceMeters, elapsedLabel, elapsedOf, kstMonthDayTime, kstTime, registerProblemOf, reviewReasonOf } from "./attendance-rules.ts";
 
 test("거리는 하버사인 — 위도 0.001도는 약 111m", () => {
   const d = distanceMeters({ latitude: 37.498, longitude: 127.0276 }, { latitude: 37.499, longitude: 127.0276 });
@@ -21,6 +21,7 @@ test("api 실패는 code 로 갈래를 나눈다", () => {
   const f = (status: number) => ({ status, message: "원문" });
   assert.equal(registerProblemOf(f(409), { code: "ALREADY_CHECKED_IN" }).kind, "already-checked-in");
   assert.equal(registerProblemOf(f(409), { code: "NO_OPEN_CHECK_IN" }).kind, "no-open-check-in");
+  assert.deepEqual(registerProblemOf(f(409), { code: "CHECK_OUT_EXPIRED" }), { kind: "error", message: "원문", log: false });
   assert.deepEqual(registerProblemOf(f(422), { code: "STORE_LOCATION_MISSING" }), { kind: "stale", message: "원문" });
   assert.deepEqual(registerProblemOf(f(400), { code: "LOCATION_READ_REQUIRED" }), { kind: "stale", message: "원문" });
   assert.deepEqual(registerProblemOf(f(422), { code: "CONTRACT_PENDING_SIGNATURE", contractId: 44 }), {
@@ -40,6 +41,7 @@ test("api 실패는 code 로 갈래를 나눈다", () => {
 test("시각은 한국 시각, 경과는 시간 · 두 자리 분", () => {
   assert.equal(kstTime(new Date("2026-10-22T00:02:00Z")), "09:02");
   assert.equal(kstTime(new Date("2026-10-22T15:30:00Z")), "00:30");
+  assert.equal(kstMonthDayTime(new Date("2026-10-22T15:30:00Z")), "10/23 00:30");
   const e = elapsedOf(new Date("2026-10-22T00:02:00Z"), new Date("2026-10-22T06:43:30Z"));
   assert.deepEqual(e, { hours: 6, minutes: 41 });
   assert.equal(elapsedLabel(e), "6시간 41분");

@@ -55,6 +55,8 @@ export function registerProblemOf(failure: ApiFailure, body: unknown): RegisterP
   const message = failure.message;
   if (failure.status === 409 && code === "ALREADY_CHECKED_IN") return { kind: "already-checked-in", message };
   if (failure.status === 409 && code === "NO_OPEN_CHECK_IN") return { kind: "no-open-check-in", message };
+  // 출근한 다음 날이 지난 열린 출근 — 다시 해도 안 되니 api 문구(관리자 보정 요청)를 그대로 보인다
+  if (failure.status === 409 && code === "CHECK_OUT_EXPIRED") return { kind: "error", message, log: false };
   if (failure.status === 422 && code === "CONTRACT_PENDING_SIGNATURE") {
     const contractId = (body as { contractId?: unknown }).contractId;
     return { kind: "contract-pending", message, contractId: typeof contractId === "number" ? contractId : null };
@@ -77,6 +79,12 @@ const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 export function kstTime(at: Date): string {
   const k = new Date(at.getTime() + KST_OFFSET_MS);
   return `${pad(k.getUTCHours())}:${pad(k.getUTCMinutes())}`;
+}
+
+/** 한국 날짜 · 시각 「10/24 09:02」 — 며칠 전 출근을 오늘 것으로 읽지 않게 */
+export function kstMonthDayTime(at: Date): string {
+  const k = new Date(at.getTime() + KST_OFFSET_MS);
+  return `${pad(k.getUTCMonth() + 1)}/${pad(k.getUTCDate())} ${kstTime(at)}`;
 }
 
 /** 근무 경과 — 시간 · 분(음수는 0). 「6시간 41분」 */

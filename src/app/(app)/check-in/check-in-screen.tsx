@@ -7,6 +7,7 @@ import {
   distanceMeters,
   elapsedLabel,
   elapsedOf,
+  kstMonthDayTime,
   kstTime,
   REVIEW_REASON_LABELS,
   reviewReasonOf,
@@ -295,7 +296,20 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
     // 위치를 보는 근무지는 근무지 좌표가 있어야 버튼을 눌러 위치를 읽을 수 있다
     const usable = !located || canLocate;
 
-    if (working && elapsed) {
+    if (working?.isCheckOutExpired) {
+      // 출근한 다음 날이 지난 열린 출근은 앱으로 닫을 수 없다(api 409 CHECK_OUT_EXPIRED) — 근무 경과 · 퇴근 버튼 대신 관리자 보정을
+      // 안내하고 위치도 읽지 않는다
+      body = (
+        <>
+          <SiteCard title="퇴근 등록 기한이 지났습니다" sub={`${kstMonthDayTime(new Date(working.recordedAt))}에 출근했습니다`} />
+          <Alert tone="warning">
+            퇴근은 출근한 다음 날까지 등록할 수 있습니다. <strong>근무지 관리자에게 퇴근 보정</strong>을 요청해 주세요. 보정되면 다시 출근할 수
+            있습니다.
+          </Alert>
+          <p className="text-center text-[12px] text-staff-text-muted">{adminNote}</p>
+        </>
+      );
+    } else if (working && elapsed) {
       body = (
         <>
           {geoBlock}
@@ -487,12 +501,14 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
         onClose={() => setSheet(null)}
         title="이미 출근해 있습니다"
         description={
-          openCheckIn
+          openCheckIn?.isCheckOutExpired
+            ? `${kstMonthDayTime(new Date(openCheckIn.recordedAt))}에 ${openCheckIn.storeName}으로 출근한 기록이 열려 있고 퇴근 등록 기한이 지났습니다. 그 근무지 관리자에게 퇴근 보정을 요청해 주세요.`
+            : openCheckIn
             ? `${kstTime(new Date(openCheckIn.recordedAt))}에 ${openCheckIn.storeName}으로 출근한 기록이 열려 있습니다. 퇴근을 먼저 등록해 주세요.`
             : "열린 출근 기록이 있습니다. 퇴근을 먼저 등록해 주세요."
         }
       >
-        {openCheckIn && openCheckIn.staffMemberId !== data.staffMemberId && (
+        {openCheckIn && !openCheckIn.isCheckOutExpired && openCheckIn.staffMemberId !== data.staffMemberId && (
           <Sunken prose>
             <b>{openCheckIn.storeName}</b>에서 퇴근하려면 홈이나 근무 정보에서 근무지를 그곳으로 바꿔 주세요.
           </Sunken>
