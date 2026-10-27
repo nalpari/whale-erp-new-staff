@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-26
+* **Fix**: 출퇴근 등록 — api 의 위치 읽음 422 `STORE_LOCATION_MISSING` · 400 `LOCATION_READ_REQUIRED`(그사이 근무지 좌표가 지워지거나 생긴 낡은 화면)를 「화면을 다시 받음」으로 처리해, 다시 받은 화면에서 퇴근할 수 있게 했다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Fix**: PR #33 머지 블로커 — 근무지 좌표가 없어도 근무 중이면 퇴근 버튼을 열고 위치 없이 퇴근한다(api 가 받는다). 화면을 연 뒤 좌표가 지워져 출근이 422 `STORE_LOCATION_MISSING` 이면 api 문구를 보이고 화면을 다시 받는다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 재영 답(2026-10-26 두 번째) 반영 — 출퇴근 현황의 근무 시간 · 연장을 api 값(`totals` · `weeks`, 급여 계산과 같은 규칙)으로. 위치 조작 감지 때 「모의 위치를 끈 뒤 출근을 다시 눌러 주세요」 안내(버튼 없음). 데모 · 목업의 「껐습니다 · 다시 확인」 버튼을 없앴다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Fix**: 데모 · 목업 대조 결과 반영 — 출퇴근 등록은 위치 읽음(확인자료)을 api 에 먼저 남긴 뒤에 위치를 읽는다(ATT-22, 확인자료 없이 읽는 일이 없게). 출퇴근 현황의 확인 필요 시트에서 같은 날의 수정 이력 · 퇴근 기록 없음을 이어 연다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
