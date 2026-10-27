@@ -33,7 +33,6 @@ export default async function AffiliationsPage({ searchParams }: PageProps<"/aff
         acceptAction={acceptAffiliationAction.bind(null, picked.invitationId)}
         rejectAction={rejectAffiliationAction.bind(null, picked.invitationId)}
         backHref={items.length > 1 ? "/affiliations" : "/home"}
-        hasOthers={items.length > 1}
       />
     );
 

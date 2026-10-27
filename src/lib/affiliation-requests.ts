@@ -9,19 +9,22 @@ export type AffiliationRequest = Schemas["AffiliationRequestDto"];
 export const REJECT_REASON_MAX = 500;
 
 /**
- * 수락 · 거절의 화면 상태.
- * - input: 답하기 전. error 가 있으면 다시 누를 수 있는 실패(요청 제한 · 연결 실패 등)다. acceptBlocked 면 수락은 막고 거절만 남긴다
- *   (이 점포에 이미 재직 중 — api 는 요청을 보냄으로 남겨 목록 · 팝업에 남으므로 거절로 닫게 한다).
- * - accepted / rejected: 답했다.
- * - closed: 더 답할 수 없는 요청 — 이미 답함 · 끝남.
+ * 확인 화면에 남는 상태 — 다시 누를 수 있는 실패(요청 제한 · 연결 실패 등)의 문구. acceptBlocked 면 수락은 막고 거절만 남긴다
+ * (이 점포에 이미 재직 중 — api 는 요청을 보냄으로 남겨 목록 · 팝업에 남으므로 거절로 닫게 한다).
  */
-export type AnswerState =
-  | { step: "input"; error?: string; acceptBlocked?: boolean }
-  | { step: "accepted"; storeName: string; contractCount: number }
-  | { step: "rejected" }
-  | { step: "closed"; title: string; message: string };
+export type AnswerState = { error?: string; acceptBlocked?: boolean };
 
-export const INITIAL_ANSWER_STATE: AnswerState = { step: "input" };
+export const INITIAL_ANSWER_STATE: AnswerState = {};
+
+/**
+ * 답한 결과 — 수락 · 거절했거나 더 답할 수 없는 요청(이미 답함 · 끝남 · 찾을 수 없음). 결과 경로(`/affiliations/done`)로 보내 그린다.
+ * 액션 상태로만 그리면 액션 요청에서 proxy 가 토큰을 갱신해 쿠키를 쓸 때 Next 가 화면을 다시 그려(답한 요청이 목록에서 빠져)
+ * 결과가 사라진다. 하이드레이션 전 제출(폼 POST)도 같다.
+ */
+export type AnswerResult =
+  | { kind: "accepted"; storeName: string; contractCount: number }
+  | { kind: "rejected" }
+  | { kind: "closed"; reason: ClosedReason };
 
 /** 거절 사유. api 와 같이 NFC · 앞뒤 공백을 지우고, 비면 보내지 않는다(undefined). 500자를 넘으면 오류 문구. */
 export function parseRejectReason(raw: string): { ok: true; reason: string | undefined } | { ok: false; error: string } {
@@ -45,27 +48,79 @@ const CLOSED = {
   },
 } as const;
 
+export type ClosedReason = keyof typeof CLOSED;
+
+/** 더 답할 수 없는 요청의 제목 · 설명. */
+export const closedMessage = (reason: ClosedReason) => CLOSED[reason];
+
 /** 이 점포에 이미 재직 중(code 없는 409)일 때의 문구. 수락은 막고 거절로 요청을 닫게 한다. */
 export const ALREADY_EMPLOYED =
   "이 점포의 소속이 이미 계정에 이어져 있어 수락할 수 없습니다. 이 요청은 거절해 닫아 주세요. 거절해도 지금 소속과 계정은 그대로입니다.";
 
-const closed = (key: keyof typeof CLOSED): AnswerState => ({ step: "closed", ...CLOSED[key] });
+const closed = (reason: ClosedReason): { result: AnswerResult; log: false } => ({ result: { kind: "closed", reason }, log: false });
+const retry = (error: string, log: boolean): { state: AnswerState; log: boolean } => ({ state: { error }, log });
 
 /**
- * 수락 · 거절 실패를 화면 상태로. log 는 계약 어긋남(예상 밖 4xx)으로 남길지다 — 5xx · 연결 실패는 request() 가 남겼다.
- * 404 · 409 는 code 로 가른다. 수락의 code 없는 409 만 「이 점포에 이미 재직 중」이라 수락을 막고 거절은 남긴다. 그 밖의 code 없는
- * 404 · 409(라우트 없음 · api 배포 전 등)는 예상 밖이라 다시 누를 수 있는 오류로 두고 남긴다.
+ * 수락 · 거절 실패를 결과(결과 경로로 보냄) 또는 확인 화면에 남는 상태로. log 는 계약 어긋남(예상 밖 4xx)으로 남길지다 — 5xx · 연결
+ * 실패는 request() 가 남겼다. 404 · 409 는 code 로 가른다. 수락의 code 없는 409 만 「이 점포에 이미 재직 중」이라 수락을 막고 거절은
+ * 남긴다. 그 밖의 code 없는 404 · 409(라우트 없음 · api 배포 전 등)는 예상 밖이라 다시 누를 수 있는 오류로 두고 남긴다.
  */
-export function answerFailure(failure: ApiFailure, answer: "accept" | "reject"): { state: AnswerState; log: boolean } {
-  if (failure === "network") return { state: { step: "input", error: CONNECTION_FAILED }, log: false };
+export function answerFailure(
+  failure: ApiFailure,
+  answer: "accept" | "reject",
+): { result: AnswerResult; log: boolean } | { state: AnswerState; log: boolean } {
+  if (failure === "network") return retry(CONNECTION_FAILED, false);
   const { status, code } = failure;
-  if (code === "AFFILIATION_REQUEST_ENDED") return { state: closed("ended"), log: false };
-  if (code === "AFFILIATION_REQUEST_NOT_FOUND") return { state: closed("notFound"), log: false };
-  if (code === "AFFILIATION_REQUEST_ANSWERED") return { state: closed("answered"), log: false };
+  if (code === "AFFILIATION_REQUEST_ENDED") return closed("ended");
+  if (code === "AFFILIATION_REQUEST_NOT_FOUND") return closed("notFound");
+  if (code === "AFFILIATION_REQUEST_ANSWERED") return closed("answered");
   if (status === 409 && answer === "accept" && code === undefined)
-    return { state: { step: "input", error: ALREADY_EMPLOYED, acceptBlocked: true }, log: false };
-  if (status === 429) return { state: { step: "input", error: RATE_LIMITED }, log: false };
-  return { state: { step: "input", error: `요청을 처리하지 못했습니다. ${RETRY_LATER}` }, log: status < 500 };
+    return { state: { error: ALREADY_EMPLOYED, acceptBlocked: true }, log: false };
+  if (status === 429) return retry(RATE_LIMITED, false);
+  return retry(`요청을 처리하지 못했습니다. ${RETRY_LATER}`, status < 500);
+}
+
+/** 결과 경로에 싣는 점포 이름의 상한(글자). api 점포 이름보다 넉넉하고, 주소로 남이 만든 긴 값은 자른다. */
+export const RESULT_STORE_MAX = 100;
+/** 결과 경로에 싣는 계약 수의 상한 — 「발송되었습니다」 갈래만 가르므로 크게 받을 일이 없다. */
+const RESULT_CONTRACTS_MAX = 99;
+const CLOSED_REASONS = Object.keys(CLOSED) as ClosedReason[];
+
+/** 글자(코드 포인트) 단위로 자른다 — 이모지 한가운데를 자르지 않게. */
+const clip = (value: string, max: number) => [...value].slice(0, max).join("");
+
+/** 답한 결과의 경로(`/affiliations/done?…`). 값은 URLSearchParams 가 이스케이프한다. */
+export function resultHref(result: AnswerResult): string {
+  const params = new URLSearchParams({ result: result.kind });
+  if (result.kind === "accepted") {
+    params.set("store", clip(result.storeName, RESULT_STORE_MAX));
+    params.set("contracts", String(Math.min(Math.max(result.contractCount, 0), RESULT_CONTRACTS_MAX)));
+  }
+  if (result.kind === "closed") params.set("reason", result.reason);
+  return `/affiliations/done?${params}`;
+}
+
+type SearchParams = Record<string, string | string[] | undefined>;
+const one = (value: string | string[] | undefined) => (typeof value === "string" ? value : undefined);
+
+/**
+ * 결과 경로의 쿼리를 결과로. 주소로 들어오는 값이라 정한 것만 받는다 — 모르는 result · reason, 빈 점포 이름, 숫자가 아닌 계약 수는
+ * null(부른 쪽이 확인 화면으로 보낸다). 점포 이름은 다듬고 자른다(화면은 글자로만 그린다).
+ */
+export function parseResult(params: SearchParams): AnswerResult | null {
+  const kind = one(params.result);
+  if (kind === "rejected") return { kind };
+  if (kind === "closed") {
+    const reason = one(params.reason);
+    return CLOSED_REASONS.includes(reason as ClosedReason) ? { kind, reason: reason as ClosedReason } : null;
+  }
+  if (kind === "accepted") {
+    const storeName = clip((one(params.store) ?? "").trim(), RESULT_STORE_MAX);
+    const contracts = one(params.contracts) ?? "";
+    if (!storeName || !/^\d{1,2}$/.test(contracts)) return null;
+    return { kind, storeName, contractCount: Number(contracts) };
+  }
+  return null;
 }
 
 /** 소속 추가 확인 · 복귀 확인을 가르는 배지 글자. 화면 용어는 둘 다 「소속 추가 확인 요청」이다. */

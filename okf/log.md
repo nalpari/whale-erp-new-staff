@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-27
+* **Update**: #38 Young Joo 리뷰 블로커 반영 — 소속 추가 확인에 답한 뒤 결과를 결과 경로 `/affiliations/done` 으로 보내 그린다. 액션 상태로만 그리면 proxy 의 토큰 갱신(쿠키 씀)이나 하이드레이션 전 제출로 화면이 다시 그려져 결과가 사라졌다. 팝업 기억은 저장소 쓰기가 다시 성공하면 화면 안 값을 비운다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: PR #38 code-review 반영 — 홈 팝업 · 내 정보 배지 · 소속 근무지 요청 줄을 따로 `Suspense` 로 받고, 재직 중 안내는 수락에만, code 없는 404 · 거절의 409 는 다시 누를 수 있는 오류로 남긴다. 팝업 기억은 로그인할 때 지우고, 팝업 줄에 직무를 더했다. 요청 줄을 공통 `AffiliationRequestList` 로 묶고 새 색을 Alert 경고 색으로 맞췄으며 「30일」 고정 문구를 뺐다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 144 리뷰 반영 — 소속 추가 요청 목록은 401 밖의 실패를 모두 null 로 받아 홈 · 내 정보가 깨지지 않고, 팝업은 본 요청의 부분집합이면 닫아 두며 로그아웃하면 기억을 지운다. 이 점포에 재직 중(409)이면 수락만 막고 거절로 닫게 하고, 동의를 묻는 요청은 하이드레이션 전 수락을 막는다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 소속 추가 확인 · 복귀 확인(WHALEERP-144, api #164)을 열었다 — `/affiliations` 확인 화면 · 거절 시트, 홈 팝업, 소속 근무지의 요청 줄, 공통 `RequestSheet` · `ReasonSheet`. api 타입을 api growlithe(lima) 기준으로 다시 만들었다. 계약 화면(#146)이 없어 수락 뒤 날인 이동은 후속으로 적었다 — [Whale ERP Staff](/whale-erp-staff.md).

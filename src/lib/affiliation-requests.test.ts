@@ -4,15 +4,19 @@ import { test } from "node:test";
 import { CONNECTION_FAILED, RATE_LIMITED } from "./action-errors.ts";
 import {
   ALREADY_EMPLOYED,
+  RESULT_STORE_MAX,
   answerFailure,
   employmentLine,
   invitationTypeLabel,
   isPopupDismissed,
   mergeSeenKey,
+  parseResult,
   parseRejectReason,
   popupSummary,
   requestsLoadFailure,
+  resultHref,
   type AffiliationRequest,
+  type AnswerResult,
 } from "./affiliation-requests.ts";
 
 test("parseRejectReason 은 다듬고, 비면 보내지 않는다", () => {
@@ -25,42 +29,77 @@ test("parseRejectReason 은 500자까지 받고 넘으면 막는다", () => {
   assert.deepEqual(parseRejectReason("가".repeat(501)), { ok: false, error: "거절 사유는 500자 이하로 입력해 주세요" });
 });
 
-const ERROR = { step: "input", error: "요청을 처리하지 못했습니다. 잠시 뒤 다시 시도해 주세요" };
+const ERROR = { state: { error: "요청을 처리하지 못했습니다. 잠시 뒤 다시 시도해 주세요" }, log: true };
 
-test("answerFailure 는 code 로 더 답할 수 없는 요청을 가른다 — 수락 · 거절 같다", () => {
+test("answerFailure 는 code 로 더 답할 수 없는 요청을 결과로 보낸다 — 수락 · 거절 같다", () => {
   for (const answer of ["accept", "reject"] as const) {
-    const title = (status: number, code?: string) => {
-      const { state } = answerFailure({ status, message: "", code }, answer);
-      return state.step === "closed" ? state.title : null;
-    };
-    assert.equal(title(409, "AFFILIATION_REQUEST_ANSWERED"), "이미 답한 요청입니다");
-    assert.equal(title(404, "AFFILIATION_REQUEST_ENDED"), "끝난 요청입니다");
-    assert.equal(title(404, "AFFILIATION_REQUEST_NOT_FOUND"), "요청을 찾을 수 없습니다");
+    const closed = (status: number, code: string) => answerFailure({ status, message: "", code }, answer);
+    assert.deepEqual(closed(409, "AFFILIATION_REQUEST_ANSWERED"), { result: { kind: "closed", reason: "answered" }, log: false });
+    assert.deepEqual(closed(404, "AFFILIATION_REQUEST_ENDED"), { result: { kind: "closed", reason: "ended" }, log: false });
+    assert.deepEqual(closed(404, "AFFILIATION_REQUEST_NOT_FOUND"), { result: { kind: "closed", reason: "notFound" }, log: false });
   }
 });
 
 test("answerFailure 는 수락의 code 없는 409(이 점포에 재직 중)만 수락을 막고 거절은 남긴다", () => {
   assert.deepEqual(answerFailure({ status: 409, message: "이 점포에 이미 재직 중입니다" }, "accept"), {
-    state: { step: "input", error: ALREADY_EMPLOYED, acceptBlocked: true },
+    state: { error: ALREADY_EMPLOYED, acceptBlocked: true },
     log: false,
   });
 });
 
 test("answerFailure 는 거절의 code 없는 409 를 재직 중 안내 없이 일반 오류로 두고 남긴다", () => {
-  assert.deepEqual(answerFailure({ status: 409, message: "Conflict" }, "reject"), { state: ERROR, log: true });
+  assert.deepEqual(answerFailure({ status: 409, message: "Conflict" }, "reject"), ERROR);
 });
 
 test("answerFailure 는 code 없는 404(라우트 없음 · api 배포 전)를 끝난 화면이 아니라 다시 누를 수 있는 오류로 두고 남긴다", () => {
   for (const answer of ["accept", "reject"] as const)
-    assert.deepEqual(answerFailure({ status: 404, message: "Cannot POST /me/affiliation-requests/3/accept" }, answer), { state: ERROR, log: true });
+    assert.deepEqual(answerFailure({ status: 404, message: "Cannot POST /me/affiliation-requests/3/accept" }, answer), ERROR);
 });
 
-test("answerFailure 는 다시 누를 수 있는 실패를 입력 상태로 두고, 예상 밖 4xx 만 남긴다", () => {
-  assert.deepEqual(answerFailure("network", "accept"), { state: { step: "input", error: CONNECTION_FAILED }, log: false });
-  assert.deepEqual(answerFailure({ status: 429, message: "" }, "reject"), { state: { step: "input", error: RATE_LIMITED }, log: false });
+test("answerFailure 는 다시 누를 수 있는 실패를 확인 화면 상태로 두고, 예상 밖 4xx 만 남긴다", () => {
+  assert.deepEqual(answerFailure("network", "accept"), { state: { error: CONNECTION_FAILED }, log: false });
+  assert.deepEqual(answerFailure({ status: 429, message: "" }, "reject"), { state: { error: RATE_LIMITED }, log: false });
   assert.equal(answerFailure({ status: 400, message: "" }, "reject").log, true);
-  assert.equal(answerFailure({ status: 503, message: "" }, "accept").log, false);
-  assert.equal(answerFailure({ status: 503, message: "" }, "accept").state.step, "input");
+  assert.deepEqual(answerFailure({ status: 503, message: "" }, "accept"), { ...ERROR, log: false });
+});
+
+const query = (href: string) => Object.fromEntries(new URL(href, "http://x").searchParams);
+
+test("resultHref · parseResult 는 결과를 주소로 실었다 그대로 되읽는다", () => {
+  const results: AnswerResult[] = [
+    { kind: "accepted", storeName: "웨일카페 홍대점 & <2호>", contractCount: 1 },
+    { kind: "accepted", storeName: "강남역점", contractCount: 0 },
+    { kind: "rejected" },
+    { kind: "closed", reason: "answered" },
+    { kind: "closed", reason: "ended" },
+    { kind: "closed", reason: "notFound" },
+  ];
+  for (const result of results) {
+    const href = resultHref(result);
+    assert.ok(href.startsWith("/affiliations/done?"));
+    assert.deepEqual(parseResult(query(href)), result);
+  }
+});
+
+test("resultHref 는 긴 점포 이름을 글자 단위로 자르고 계약 수를 상한에 맞춘다", () => {
+  const long = "가".repeat(RESULT_STORE_MAX) + "😀";
+  const parsed = parseResult(query(resultHref({ kind: "accepted", storeName: long, contractCount: 500 })));
+  assert.deepEqual(parsed, { kind: "accepted", storeName: "가".repeat(RESULT_STORE_MAX), contractCount: 99 });
+});
+
+test("parseResult 는 정한 값만 받고 나머지는 null", () => {
+  assert.equal(parseResult({}), null);
+  assert.equal(parseResult({ result: "deleted" }), null);
+  assert.equal(parseResult({ result: ["rejected", "rejected"] }), null);
+  assert.equal(parseResult({ result: "closed", reason: "toString" }), null);
+  assert.equal(parseResult({ result: "accepted", store: "  ", contracts: "1" }), null);
+  assert.equal(parseResult({ result: "accepted", store: "홍대점", contracts: "-1" }), null);
+  assert.equal(parseResult({ result: "accepted", store: "홍대점", contracts: "1e2" }), null);
+  assert.equal(parseResult({ result: "accepted", store: "홍대점" }), null);
+  // 주소로 들어온 긴 이름도 자른다
+  assert.equal(parseResult({ result: "accepted", store: "나".repeat(300), contracts: "1" })?.kind, "accepted");
+  const clipped = parseResult({ result: "accepted", store: "나".repeat(300), contracts: "1" });
+  assert.equal(clipped?.kind === "accepted" && [...clipped.storeName].length, RESULT_STORE_MAX);
 });
 
 test("invitationTypeLabel 은 복귀 확인과 소속 추가 요청을 가른다", () => {

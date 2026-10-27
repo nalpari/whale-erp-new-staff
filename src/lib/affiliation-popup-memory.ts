@@ -1,10 +1,10 @@
 // 소속 추가 요청 팝업(WHALEERP-144)의 「다음에 하기」 기억. 본 요청 id 를 이 탭(sessionStorage)에 둔다 — 앱을 새로 열면 잊는다.
-// 로그인 화면이 로그인할 때 잊게 하고(forgetAffiliationPopup) 홈 팝업이 읽고 쓴다. 브라우저에서만 부른다.
-import { mergeSeenKey } from "./affiliation-requests";
+// 로그인 화면이 로그인할 때 잊게 하고(forgetAffiliationPopup) 홈 팝업이 읽고 쓴다. 브라우저에서만 부른다(테스트는 sessionStorage 를 꾸며 넣는다).
+import { mergeSeenKey } from "./affiliation-requests.ts";
 
 const STORAGE_KEY = "staff:affiliation-popup-dismissed";
 const listeners = new Set<() => void>();
-/** 저장소를 쓸 수 없을 때 이 화면에서만 기억하는 값. */
+/** 저장소 쓰기가 실패했을 때 이 화면에서만 기억하는 값. 쓰기가 다시 성공하면 비운다. */
 let memory: string | null = null;
 
 function readStorage(): string | null {
@@ -24,6 +24,8 @@ export function rememberSeen(key: string) {
   const seen = mergeSeenKey(key, readSeen());
   try {
     sessionStorage.setItem(STORAGE_KEY, seen);
+    // 앞서 저장소 쓰기가 실패해 남긴 값이 있으면 비운다 — 남겨 두면 readSeen 이 옛 값을 먼저 읽는다.
+    memory = null;
   } catch {
     // 위와 같다. 이번 화면에서만 닫힌다.
     memory = seen;
