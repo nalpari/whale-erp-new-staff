@@ -9,7 +9,7 @@ import {
   elapsedOf,
   kstMonthDayTime,
   kstTime,
-  REVIEW_REASON_LABELS,
+  recordedReasonLabel,
   reviewReasonOf,
   type AttendanceKind,
   type RegisterProblem,
@@ -200,7 +200,7 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
             rows={[
               ["근무지", done.storeName],
               ...(checkedIn ? ([["출근", kstTime(checkedIn)], ["근무 시간", elapsedLabel(elapsedOf(checkedIn, new Date(done.recordedAt)))]] as [string, string][]) : []),
-              ...(done.reviewReason ? ([["확인 필요", REVIEW_REASON_LABELS[done.reviewReason as ReviewReason]]] as [string, string][]) : []),
+              ...(done.reviewReason ? ([["확인 필요", recordedReasonLabel(done.reviewReason) ?? "관리자 확인"]] as [string, string][]) : []),
             ]}
           />
         </Sunken>

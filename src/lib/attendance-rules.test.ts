@@ -1,7 +1,7 @@
 // node --test src/lib/attendance-rules.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { distanceMeters, elapsedLabel, elapsedOf, kstMonthDayTime, kstTime, registerProblemOf, reviewReasonOf } from "./attendance-rules.ts";
+import { distanceMeters, elapsedLabel, elapsedOf, kstMonthDayTime, kstTime, recordedReasonLabel, registerProblemOf, reviewReasonOf } from "./attendance-rules.ts";
 
 test("거리는 하버사인 — 위도 0.001도는 약 111m", () => {
   const d = distanceMeters({ latitude: 37.498, longitude: 127.0276 }, { latitude: 37.499, longitude: 127.0276 });
@@ -46,4 +46,10 @@ test("시각은 한국 시각, 경과는 시간 · 두 자리 분", () => {
   assert.deepEqual(e, { hours: 6, minutes: 41 });
   assert.equal(elapsedLabel(e), "6시간 41분");
   assert.deepEqual(elapsedOf(new Date(2000), new Date(1000)), { hours: 0, minutes: 0 });
+});
+
+test("등록된 기록의 사유 이름 — api 가 붙이는 근무 12시간 초과까지, 모르는 값은 null", () => {
+  assert.equal(recordedReasonLabel("LONG_SHIFT"), "근무 12시간 초과");
+  assert.equal(recordedReasonLabel("MOCK_LOCATION"), "위치 조작 감지");
+  assert.equal(recordedReasonLabel("ACCURACY_EXCEEDED"), null);
 });

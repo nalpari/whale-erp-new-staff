@@ -63,6 +63,8 @@ export function flagsOf(d: MyAttendanceDay): Flag[] {
 export function flagTitle(f: Flag): string {
   if (f.reason === "ACCURACY_EXCEEDED") return `${f.kind} 위치 확인 실패`;
   if (f.reason === "MOCK_LOCATION") return `${f.kind} 위치 조작 감지`;
+  // 출근부터 12시간이 넘은 퇴근에 api 가 붙인다(2026-10-27 재영) — 관리자 웹과 같은 말
+  if (f.reason === "LONG_SHIFT") return "근무 12시간 초과";
   return `반경 밖 ${f.kind}`;
 }
 export function flagDescription(f: Flag): string {
@@ -71,7 +73,9 @@ export function flagDescription(f: Flag): string {
       ? "오차가 매장 범위보다 넓어 매장 안인지 자동으로 확인하지 못했습니다."
       : f.reason === "MOCK_LOCATION"
         ? "휴대전화 위치가 조작된 것으로 감지되었습니다."
-        : "근무지 반경 밖에서 등록되었습니다.";
+        : f.reason === "LONG_SHIFT"
+          ? "출근부터 퇴근까지 12시간이 넘었습니다."
+          : "근무지 반경 밖에서 등록되었습니다.";
   return `${why} ${f.kind} 시각 ${f.time}은 등록되었고 관리자가 검토하고 있습니다.`;
 }
 

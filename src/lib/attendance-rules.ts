@@ -32,6 +32,12 @@ export const REVIEW_REASON_LABELS: Record<ReviewReason, string> = {
   MOCK_LOCATION: "위치 조작 감지",
 };
 
+/** 등록된 기록의 확인 필요 사유 — 앱이 보내는 셋에 api 가 붙이는 「근무 12시간 초과」(LONG_SHIFT, 2026-10-27 재영)까지. 모르는 값은 null */
+export function recordedReasonLabel(reason: string): string | null {
+  if (reason === "LONG_SHIFT") return "근무 12시간 초과";
+  return reason in REVIEW_REASON_LABELS ? REVIEW_REASON_LABELS[reason as ReviewReason] : null;
+}
+
 /** 등록이 막힌 까닭 — 화면이 띄울 시트 · 상태. message 는 화면에 그대로 보이는 한 줄이다 */
 export type RegisterProblem =
   | { kind: "already-checked-in"; message: string }

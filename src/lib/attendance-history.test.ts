@@ -88,6 +88,9 @@ test("확인 필요 사유(HIST-3)와 누계 기간 이름", () => {
   const flags = flagsOf(d);
   assert.deepEqual(flags.map(flagTitle), ["출근 위치 확인 실패", "반경 밖 퇴근"]);
   assert.equal(flagDescription(flags[0]), "오차가 매장 범위보다 넓어 매장 안인지 자동으로 확인하지 못했습니다. 출근 시각 09:58은 등록되었고 관리자가 검토하고 있습니다.");
+  const long = flagsOf(day("2026-10-21", { pairs: [{ checkIn: punch("2026-10-21", "06:00"), checkOut: punch("2026-10-21", "19:00", { reviewReason: "LONG_SHIFT" }) }] }))[0];
+  assert.equal(flagTitle(long), "근무 12시간 초과");
+  assert.equal(flagDescription(long), "출근부터 퇴근까지 12시간이 넘었습니다. 퇴근 시각 19:00은 등록되었고 관리자가 검토하고 있습니다.");
   assert.equal(summaryOf(day("2026-10-22", { status: "MISSING_CHECK_OUT", pairs: [{ checkIn: punch("2026-10-22", "09:14"), checkOut: null }] }), TODAY), "출근 09:14 · 퇴근 기록 없음 · 근무지 관리자에게 문의");
   assert.equal(rangeLabel("2026-09-01", "2026-09-30"), "9월 1일 – 30일");
   assert.equal(rangeLabel("2026-09-15", "2026-10-14"), "9월 15일 – 10월 14일");
