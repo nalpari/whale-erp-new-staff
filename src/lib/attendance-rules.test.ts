@@ -22,6 +22,7 @@ test("api 실패는 code 로 갈래를 나눈다", () => {
   assert.equal(registerProblemOf(f(409), { code: "ALREADY_CHECKED_IN" }).kind, "already-checked-in");
   assert.equal(registerProblemOf(f(409), { code: "NO_OPEN_CHECK_IN" }).kind, "no-open-check-in");
   assert.deepEqual(registerProblemOf(f(422), { code: "STORE_LOCATION_MISSING" }), { kind: "stale", message: "원문" });
+  assert.deepEqual(registerProblemOf(f(400), { code: "LOCATION_READ_REQUIRED" }), { kind: "stale", message: "원문" });
   assert.deepEqual(registerProblemOf(f(422), { code: "CONTRACT_PENDING_SIGNATURE", contractId: 44 }), {
     kind: "contract-pending",
     message: "원문",

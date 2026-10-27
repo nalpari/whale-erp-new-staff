@@ -62,6 +62,8 @@ export function registerProblemOf(failure: ApiFailure, body: unknown): RegisterP
   if (failure.status === 422 && code === "NO_CONTRACT") return { kind: "no-contract", message };
   // 화면을 연 뒤 근무지 좌표가 지워졌다 — 다시 해도 안 되니 api 문구(관리자 문의)를 그대로 보이고 화면을 다시 받는다
   if (failure.status === 422 && code === "STORE_LOCATION_MISSING") return { kind: "stale", message };
+  // 화면을 연 뒤 근무지 좌표가 생겨 위치 없이 보냈다 — 화면을 다시 받으면 위치를 읽고 등록한다
+  if (failure.status === 400 && code === "LOCATION_READ_REQUIRED") return { kind: "stale", message };
   if (failure.status === 403 && code === "LOCATION_CONSENT_REQUIRED") return { kind: "consent-required", message };
   if (failure.status === 403 && code === "LOCATION_PAUSED") return { kind: "paused", message };
   if (failure.status === 404) return { kind: "stale", message: "근무지가 바뀌었습니다. 화면을 다시 불러왔습니다" };
