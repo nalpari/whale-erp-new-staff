@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-10-27
+* **Fix**: 출퇴근 등록 — api 의 퇴근 409 `CHECK_OUT_EXPIRED`(출근한 다음 날이 지난 열린 출근)를 「잠시 뒤 다시 시도」가 아니라 api 문구(근무지 관리자에게 퇴근 보정 요청)로 보인다. 화면의 `openCheckIn.isCheckOutExpired` 면 근무 경과 · 퇴근 버튼 대신 「퇴근 등록 기한이 지났습니다」와 관리자 보정 안내를 보이고 위치를 읽지 않으며, 「이미 출근해 있습니다」 시트도 날짜와 보정 안내로 바꾼다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
+
 ## 2026-10-26
 * **Fix**: 출퇴근 등록 — api 의 위치 읽음 422 `STORE_LOCATION_MISSING` · 400 `LOCATION_READ_REQUIRED`(그사이 근무지 좌표가 지워지거나 생긴 낡은 화면)를 「화면을 다시 받음」으로 처리해, 다시 받은 화면에서 퇴근할 수 있게 했다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Fix**: PR #33 머지 블로커 — 근무지 좌표가 없어도 근무 중이면 퇴근 버튼을 열고 위치 없이 퇴근한다(api 가 받는다). 화면을 연 뒤 좌표가 지워져 출근이 422 `STORE_LOCATION_MISSING` 이면 api 문구를 보이고 화면을 다시 받는다 — [Whale ERP Staff](/whale-erp-staff.md).
