@@ -1,27 +1,65 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Alert, Badge, MaskIcon, Notice, PageHeader } from "@/components/common";
 import { PRESS } from "@/components/common/theme";
+import { employmentLine } from "@/lib/affiliation-requests";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
-import { getMyMemberships } from "@/lib/my-profile";
-import { dateLabel } from "@/lib/profile";
+import { getMyAffiliationRequests, getMyMemberships } from "@/lib/my-profile";
+import { dateLabel, kstDateLabel } from "@/lib/profile";
 
 export const metadata: Metadata = { title: "소속 근무지 · Whale ERP" };
 
 // 내 정보의 소속 근무지(데모 docs/demo/me 의 sites). 조회만 한다 — 소속과 고용 형태는 근로계약으로만 바뀐다.
 // 소속마다 근로계약서 · 급여명세서 · 신고 정보로 간다(2026-10-20 기획, api #79). 근로계약서 · 급여명세서는 계정 api 가 아직 없어
 // 「준비 중」으로 막아 둔다.
+// 답하지 않은 소속 추가 요청(WHALEERP-144)은 소속 위에 따로 보인다 — 홈 팝업을 닫아도 여기서 찾아 확인 화면으로 간다.
 // 소속 한 줄의 버튼 셋. 외곽선 버튼(Button outline)과 같은 44px · radius 12 · 14px semibold 지만, 세 칸이 한 줄(휴대전화에서 한 칸
 // 약 100px)에 들어가도록 좌우 여백만 18 → 8 로 줄였다. 공통 Button 은 className 을 받지 않아 여기서 그린다.
 const ROW_BUTTON = `inline-flex h-[44px] w-full items-center justify-center rounded-[12px] border border-staff-border bg-white px-[8px] text-[14px] font-semibold whitespace-nowrap text-staff-text active:bg-staff-primary-inactive ${PRESS}`;
 
 export default async function MembershipsPage() {
-  const [memberships, employmentTypes] = await Promise.all([getMyMemberships(), getEnumOrEmpty("EmploymentType")]);
+  const [memberships, employmentTypes, requests] = await Promise.all([
+    getMyMemberships(),
+    getEnumOrEmpty("EmploymentType"),
+    getMyAffiliationRequests(),
+  ]);
 
   return (
     <div className="flex flex-1 flex-col">
       <PageHeader title="소속 근무지" backHref="/me" />
       <div className="flex flex-col gap-[16px] px-[22px] pt-[22px] pb-[24px] leading-[1.5]">
+        {/* 못 받았으면 감춘다 — 홈 팝업 · 알림톡 링크로도 확인 화면에 갈 수 있다. */}
+        {requests && requests.length > 0 && (
+          <section aria-labelledby="affiliation-requests" className="flex flex-col gap-[8px]">
+            <h2 id="affiliation-requests" className="px-[4px] text-[13px] font-semibold text-staff-text-sub">
+              확인을 기다리는 요청
+            </h2>
+            <ul className="flex flex-col divide-y divide-[#f5e3c0] rounded-[16px] bg-[#fff6e5] px-[16px]">
+              {requests.map((r) => (
+                <li key={r.invitationId}>
+                  <Link
+                    href={requests.length > 1 ? `/affiliations?id=${r.invitationId}` : "/affiliations"}
+                    transitionTypes={["nav-forward"]}
+                    className={`-mx-[16px] flex items-center gap-[12px] px-[16px] py-[14px] active:bg-[#fcebc8] ${PRESS}`}
+                  >
+                    <span className="flex text-[#956013]">
+                      <MaskIcon src="/icons/store-small.svg" size={18} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[15px] font-semibold">{r.storeName}</span>
+                      <span className="block text-[12px] text-staff-text-sub">
+                        {employmentLine(r)} · {kstDateLabel(r.expiresAt)}까지 답할 수 있습니다
+                      </span>
+                    </span>
+                    <Badge tone="warning">{r.invitationType === "RETURN_CONFIRM" ? "복귀 확인" : "소속 추가 요청"}</Badge>
+                    <Image src="/icons/chevron-right-muted.svg" alt="" width={12} height={12} className="-scale-y-100" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         {memberships === null ? (
           <Alert tone="warning">
             <p>소속 근무지를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>

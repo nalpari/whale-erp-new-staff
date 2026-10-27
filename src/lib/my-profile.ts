@@ -22,6 +22,10 @@ export const getMyProfileOrNull = () => orNull(getMyProfile);
 export const getMyMemberships = () =>
   orNull(() => authedRequest<Schemas["MyMembershipListResponseDto"]>("/me/memberships"));
 
+/** 살아 있는 소속 추가 확인 요청(`GET /me/affiliation-requests`, WHALEERP-144). 없으면 빈 배열. */
+export const getMyAffiliationRequests = () =>
+  orNull(() => authedRequest<Schemas["AffiliationRequestDto"][]>("/me/affiliation-requests"));
+
 /**
  * 그 소속의 신고 정보(`GET /me/memberships/:staffMemberId/tax-profile`). 미제출이면 `taxProfile: null`(200)이다.
  * 내 소속이 아니면(퇴직 · 남의 id 등) 404 — 부른 쪽이 notFound 로 바꾼다. 키가 없거나(503) 풀 수 없으면(500) null.

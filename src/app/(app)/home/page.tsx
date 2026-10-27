@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BottomNav } from "@/components/common";
+import { popupSummary } from "@/lib/affiliation-requests";
 import { getCurrentMembership } from "@/lib/current-membership";
 import { getMyNotifications } from "@/lib/my-notifications";
+import { getMyAffiliationRequests } from "@/lib/my-profile";
 import { requireSession } from "@/lib/session";
 import { NotificationBell } from "../notification-bell";
+import { AffiliationPopup } from "./affiliation-popup";
 import { MyWorkInfo } from "./my-work-info";
 import { ScheduleCards, ScheduleCardsSkeleton } from "./schedule-cards";
 import { StoreTopBar } from "./store-top-bar";
@@ -17,8 +20,14 @@ export const metadata: Metadata = { title: "홈 · Whale ERP" };
 export default async function HomePage() {
   const { account } = await requireSession();
   // 머리줄의 근무지 · 새 알림 점(HOME-2). 소속 목록을 못 받으면 선택기만 감추고 종만 둔다 — 홈 나머지는 그대로 보인다.
-  const [memberships, notifications] = await Promise.all([getCurrentMembership(), getMyNotifications("pageSize=1")]);
+  // 소속 추가 요청(WHALEERP-144)은 팝업으로만 알린다 — 못 받으면 팝업 없이 홈을 그대로 보인다.
+  const [memberships, notifications, affiliationRequests] = await Promise.all([
+    getCurrentMembership(),
+    getMyNotifications("pageSize=1"),
+    getMyAffiliationRequests(),
+  ]);
   const current = memberships?.current;
+  const affiliation = popupSummary(affiliationRequests ?? []);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -57,6 +66,14 @@ export default async function HomePage() {
       <div className="sticky bottom-0 mt-auto">
         <BottomNav current="/" />
       </div>
+      {affiliation && (
+        <AffiliationPopup
+          requestKey={affiliation.key}
+          storeName={affiliation.storeName}
+          employmentTypeLabel={affiliation.employmentTypeLabel}
+          others={affiliation.others}
+        />
+      )}
     </div>
   );
 }

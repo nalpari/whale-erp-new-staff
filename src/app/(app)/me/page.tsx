@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { Alert, Badge, BottomNav, Button, Card, MaskIcon } from "@/components/common";
 import { PRESS } from "@/components/common/theme";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
-import { getCurrentTerms, getMyMemberships, getMyProfile } from "@/lib/my-profile";
+import { getCurrentTerms, getMyAffiliationRequests, getMyMemberships, getMyProfile } from "@/lib/my-profile";
 import { PASSWORD_STALE_MONTHS, dateLabel, hasFranchiseMembership, isPasswordStale, kstDateLabel } from "@/lib/profile";
 import { AddressForm } from "./address-form";
 import { ChangedToast } from "./changed-toast";
@@ -58,12 +58,15 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
   const { changed } = await searchParams;
   // 주소에서 오는 값이라 정한 키만 받는다(`?changed=toString` 같은 프로토타입 이름이 함수를 꺼내지 않게).
   const toast = typeof changed === "string" && Object.hasOwn(CHANGED_TOAST, changed) ? CHANGED_TOAST[changed] : undefined;
-  const [profile, memberships, employmentTypes, locationTerms] = await Promise.all([
+  const [profile, memberships, employmentTypes, locationTerms, affiliationRequests] = await Promise.all([
     getMyProfile(),
     getMyMemberships(),
     getEnumOrEmpty("EmploymentType"),
     getCurrentTerms("LOCATION"),
+    getMyAffiliationRequests(),
   ]);
+  // 답하지 않은 소속 추가 요청(WHALEERP-144) 수 — 소속 근무지 줄에 배지로 알린다. 못 받았으면 0 으로 둔다.
+  const requestCount = affiliationRequests?.length ?? 0;
   const items = memberships?.items ?? [];
   const first = items.at(0);
 
@@ -102,6 +105,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
                   {first ? `${first.store.storeName}${items.length > 1 ? ` 외 ${items.length - 1}곳` : ""}` : "아직 없습니다"}
                 </span>
               </span>
+              {requestCount > 0 && <Badge tone="warning">요청 {requestCount}건</Badge>}
               {first && <Badge tone="plain">{labelOf(employmentTypes, first.employmentType)}</Badge>}
               <Image src="/icons/chevron-right-muted.svg" alt="" width={12} height={12} className="-scale-y-100" />
             </Link>
