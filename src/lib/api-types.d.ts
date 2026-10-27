@@ -422,16 +422,36 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * 내 기본정보 저장 — 이름 · 연락처 · 이메일만. 이메일을 바꾸면 지금 비밀번호(currentPassword)도
-         *     받아 맞는지 본다(틀리거나 없으면 400) — 탈취한 접근 토큰만으로 로그인 이메일을 공격자 주소로
-         *     바꿔 비밀번호 찾기를 가로채는 계정 탈취를 막는다(ip-code-review-claude 적대적 리뷰로 찾음,
-         *     2026-10-21). 이메일이 다른 관리자 계정과 겹치면 409.
+         * 내 기본정보 저장 — 이름 · 연락처 · 이메일만. 이메일을 바꿔도 지금 비밀번호는 보지 않는다
+         *     (S-JXKHCM 사용자 결정, 2026-10-23 — 서비스 update 주석 참고). 이메일이 다른 관리자 계정과 겹치면 409.
          *     계정 축 기본 추적은 본문의 email 로 센다(throttle.ts accountTracker) — 저장할 새 이메일을
          *     호출자가 그대로 고를 수 있어, 매번 다른 값을 보내면 버킷을 계속 새로 만들어 계정 한도를
          *     비울 수 있었다(코드 리뷰로 찾음, 2026-10-21). my-profile.controller.ts 의 비밀번호 · 이메일
          *     변경과 같이 signedInUserTracker 로 로그인한 계정 자신으로 고정한다.
          */
         patch: operations["AdminAuthController_updateProfile"];
+        trace?: never;
+    };
+    "/auth/admin/me/password-change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 내 비밀번호 변경(MY PAGE, 1팀 S-PTWREE). 현재 비밀번호를 확인한 뒤 새 비밀번호로 바꾼다. 강제 비밀번호
+         *     변경(POST password-change)과 달리 로그인한 상태에서 스스로 비밀번호를 아는 채로 바꾸는 것이라
+         *     AllowPasswordChangePending 을 달지 않는다 — 강제 변경 대상이면 이 경로도 403 이다(updateProfile 과
+         *     같다). 바꿔도 이 기기 · 다른 기기의 로그인은 모두 이어진다(서비스 주석 참고).
+         */
+        post: operations["AdminAuthController_changeMyPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/auth/admin/me/email-availability": {
@@ -482,6 +502,8 @@ export interface paths {
          * 바로 고칠 수 있는 항목 저장(상호명 · 대표자 연락처 · 대표자 이메일 · 사업장주소 · 업태 · 종목).
          *     사업자등록번호 · 대표자명 · 개업일자는 여기 보내지 않는다 — business-verification 이 돌려준
          *     businessVerificationToken 을 이 PATCH 에 실어야 그 세 값이 바뀐다(검사와 저장이 나뉜 두 단계).
+         *     clearBusinessVerification 을 true 로 보내면 그 세 값과 인증일시를 지운다(점포와 달리 BP 자신은
+         *     지울 수 있다, 2026-10-23 사용자 결정) — businessVerificationToken 과 함께 보내면 400.
          *     계정 축은 PATCH me 와 같이 signedInUserTracker 로 로그인한 계정 자신으로 고정한다(코드 리뷰로
          *     찾음, 2026-10-22).
          */
@@ -1123,6 +1145,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/public-holidays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 공식 휴일 — 월을 주면 그 달(캘린더), 없으면 그 해 전체(목록). 날짜순, 페이지 없이. */
+        get: operations["PublicHolidaysController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/bp-codes": {
         parameters: {
             query?: never;
@@ -1382,6 +1421,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/staff-members/{id}/birth-date": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * 직원 생년월일 정정
+         * @description 가입 때 잘못 넣은 생년월일을 관리자가 확인해 정정한다(WHALEERP-602). 직원 레코드의 계정 생년월일을 바꾸므로 같은 사람의 다른 BP 소속에도 같이 바뀐다. 계약서에 적힌 생년월일은 바꾸지 않고, 날인 대기 중인 계약이 있어도 막지 않는다. 날인 대기 계약은 날인 때 계약서 생년월일과 계정 생년월일을 다시 대조하므로 정정으로 대조가 풀릴 수도 있고(보통) 새로 어긋날 수도 있다(계정 하나라 다른 BP 의 계약도 같다). 정정은 계정 변경 이력(BIRTH_DATE · ADMIN_CORRECTION)에 남는다. 오류 응답은 `code` 로 가른다.
+         */
+        put: operations["StaffBirthDateController_correct"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/payslips": {
         parameters: {
             query?: never;
@@ -1499,6 +1558,23 @@ export interface paths {
         get: operations["PayslipsController_previousValues"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/payslips/{id}/recalculate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 출퇴근으로 다시 계산 — 기본급 · 주휴수당 · 연장수당을 지금 출퇴근 기록으로 다시 계산하고 고친 값은 버린다(WHALEERP-227). */
+        post: operations["PayslipsController_recalculate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1754,10 +1830,33 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 재발송 — 발송 대기(가입 초대를 받지 못함) · 서명 대기에서 가입 초대 알림톡을 새 초대 코드 · 새 서명 기한(30일)으로 다시
-         *     보낸다. 상태는 그대로이고 앞서 나간 초대 코드는 무효다. 앱으로 받는 직원(가입 · 계정 있음)은 앱 알림이 아직 없어 409.
+         * 재발송 — 발송 대기 · 서명 대기에서 새 서명 기한(30일)으로 다시 보낸다. 가입 전 · 계정 없는 번호는 가입 초대 알림톡을 새
+         *     초대 코드로(상태 그대로, 앞서 나간 초대 코드는 무효), 가입한 직원은 앱 알림(근로계약서 발송 알림)으로 보낸다 — 발송 대기였으면
+         *     서명 대기로 넘긴다(WHALEERP-611). 가입한 직원의 알림은 알림함 알림이고(앱 푸시는 #261 전까지 나가지 않는다), 알림 템플릿을
+         *     쓸 수 없거나 탈퇴 계정이면 알림 없이 기한만 새로 잡는다. 계정은 있고 이 점포에 가입하지 않은 번호(소속 추가 확인 · 복귀
+         *     확인)는 409.
          */
         post: operations["ContractSendController_send"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/contracts/{contractId}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 발송 대기 계약 종료(WHALEERP-327). 채용을 접을 때 계약을 종료로 닫고 나간 초대(코드 · 링크)를 무효로 한다. 행은 남고 상태
+         *     이력에 남는다. 기존 계약을 바꾸므로 수정 권한이다.
+         */
+        post: operations["ContractSendController_end"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1846,6 +1945,160 @@ export interface paths {
         /** 내 근로계약 상세 — 계약서에 그릴 값 · 사용자 칸 · 본인 대조 미리보기(날인할 수 있는지 · 다른 항목) */
         get: operations["MyContractViewsController_findOne"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 목록과 미확인 건수. 종 팝오버는 pageSize=5 로 부른다. */
+        get: operations["NotificationsController_findAll"];
+        put?: never;
+        post?: never;
+        /** 선택 삭제. 내 것이 아닌 ID 는 조용히 빠진다. */
+        delete: operations["NotificationsController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 모두 읽음 */
+        post: operations["NotificationsController_readAll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 알림을 눌러 이동할 때 읽음으로 바꾸고, 갈 곳(관련 업무)을 담은 그 한 줄을 준다. */
+        post: operations["NotificationsController_read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 목록 · 미확인 건수 · 줄마다 눌러 열 곳. 수신 설정으로 앱 푸시를 끈 알림도 보인다 */
+        get: operations["MyNotificationsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 14일 안의 미확인을 모두 읽음 */
+        post: operations["MyNotificationsController_readAll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 읽음 — 알림을 눌러 관련 화면으로 갈 때도 부른다 */
+        post: operations["MyNotificationsController_read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/notifications/{id}/unread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 안 읽음으로 되돌리기 */
+        post: operations["MyNotificationsController_unread"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/notification-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 네 묶음(근로계약서 · 근무스케줄 · TO-DO · 급여명세서). 바꾼 적 없으면 켜짐 */
+        get: operations["MyNotificationPreferencesController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/notification-preferences/{category}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** 한 묶음 켜고 끄기. 그 뒤에 생기는 알림부터 든다 */
+        put: operations["MyNotificationPreferencesController_update"];
         post?: never;
         delete?: never;
         options?: never;
@@ -2221,160 +2474,6 @@ export interface paths {
         };
         get: operations["PublicFaqsController_list"];
         put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/notifications": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** 목록과 미확인 건수. 종 팝오버는 pageSize=5 로 부른다. */
-        get: operations["NotificationsController_findAll"];
-        put?: never;
-        post?: never;
-        /** 선택 삭제. 내 것이 아닌 ID 는 조용히 빠진다. */
-        delete: operations["NotificationsController_remove"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/notifications/read-all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 모두 읽음 */
-        post: operations["NotificationsController_readAll"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/notifications/{id}/read": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 알림을 눌러 이동할 때 읽음으로 바꾸고, 갈 곳(관련 업무)을 담은 그 한 줄을 준다. */
-        post: operations["NotificationsController_read"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/me/notifications": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** 목록 · 미확인 건수 · 줄마다 눌러 열 곳. 수신 설정으로 앱 푸시를 끈 알림도 보인다 */
-        get: operations["MyNotificationsController_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/me/notifications/read-all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 14일 안의 미확인을 모두 읽음 */
-        post: operations["MyNotificationsController_readAll"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/me/notifications/{id}/read": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 읽음 — 알림을 눌러 관련 화면으로 갈 때도 부른다 */
-        post: operations["MyNotificationsController_read"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/me/notifications/{id}/unread": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 안 읽음으로 되돌리기 */
-        post: operations["MyNotificationsController_unread"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/me/notification-preferences": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** 네 묶음(근로계약서 · 근무스케줄 · TO-DO · 급여명세서). 바꾼 적 없으면 켜짐 */
-        get: operations["MyNotificationPreferencesController_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/me/notification-preferences/{category}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** 한 묶음 켜고 끄기. 그 뒤에 생기는 알림부터 든다 */
-        put: operations["MyNotificationPreferencesController_update"];
         post?: never;
         delete?: never;
         options?: never;
@@ -3011,6 +3110,222 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 출퇴근 화면 — 고른 근무지의 좌표 · 반경(1차 모두 100m), 동의 상태, 출근을 막는 까닭, 열린 출근, 오늘 근무스케줄 */
+        get: operations["MyAttendanceController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/attendance/location-reads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 위치 읽음(ATT-22) — 출근 · 퇴근 버튼을 눌러 위치를 읽을 때마다 부른다. 확인자료(수집 · 이용)를 남기고, 받은 locationReadId 를
+         *     이어서 보내는 출근 · 퇴근에 넣는다. 위치는 보내지 않는다
+         */
+        post: operations["MyAttendanceController_locationRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/attendance/check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 출근. 기록 시각은 서버가 받은 시각이다 */
+        post: operations["MyAttendanceController_checkIn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/attendance/check-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 퇴근. 고른 소속의 열린 출근을 닫는다 */
+        post: operations["MyAttendanceController_checkOut"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/attendance/records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 출퇴근 현황(WHALEERP-221 · 222) — 내 소속 하나의 기간(366일 이하) 기록. 보기만 한다(고치기는 관리자 웹뿐). 보정 · 대신 등록한 날에는
+         *     이력이 붙는다(연필 시트)
+         */
+        get: operations["MyAttendanceController_myRecords"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance-records/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 일별 출퇴근 — 점포 조건(상단 범위 · 필터) 안 하루의 직원별 예정 · 출근 · 퇴근 · 상태. 업무 범위 밖 점포는 빠진다. 본사 계정에게
+         *     동의 없는 가맹 직원은 줄째로 빼고 건수에만 센다(ATT-30)
+         */
+        get: operations["AttendanceRecordsController_daily"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance-records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 기간 출퇴근 — 점포 조건 안 기간(92일 이하)의 직원 · 날 줄, 직원을 고르면 그 직원만(WHALEERP-217 「직원별 · 근무지별 · 기간」).
+         *     근무스케줄이나 기록이 있는 날만. 본사 계정에게 동의 없는 가맹 직원은 빠지고 건수에만 센다(ATT-30)
+         */
+        get: operations["AttendanceRecordsController_period"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance-records/proxy-staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 대신 등록 선택지 — 그날 대신 등록할 수 있는 직원(위치정보 동의 없음 · 일시 중지, 체결 완료 계약, ATT-20 · 26) */
+        get: operations["AttendanceRecordsController_proxyStaff"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance-records/proxy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 출퇴근 대신 등록(ATT-20 · 26). 최근 3개월 · 오늘까지, 사유 필수 */
+        post: operations["AttendanceRecordsController_proxy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance-records/{recordId}/correction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 기록 보정 — 짝의 출근 · 퇴근 시각, 비었던 쪽은 새로. 보정 이력을 남기고 확인 필요 사유를 지운다(218 · ATT-19) */
+        post: operations["AttendanceRecordsController_correct"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance-records/{recordId}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 「이상 없음」 — 값은 그대로 두고 짝의 확인 필요 사유만 지운다(ATT-19) */
+        post: operations["AttendanceRecordsController_review"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance-records/{recordId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 이력 — 짝의 보정 이력과 대신 등록, 새것부터 */
+        get: operations["AttendanceRecordsController_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/profile": {
         parameters: {
             query?: never;
@@ -3326,6 +3641,92 @@ export interface paths {
          *     근로계약서는 서명 대기가 된다.
          */
         post: operations["MyInvitationsController_accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bp-holidays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 월 캘린더 · 목록 — 계산한 날짜마다 한 줄과, 캘린더의 공식 휴일. */
+        get: operations["BpHolidaysController_list"];
+        put?: never;
+        post: operations["BpHolidaysController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bp-holidays/histories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 변경 이력 — 기간(기본 이달 1일~오늘)에 생긴 등록 · 수정 · 강제 종료 · 삭제. 지운 휴일 포함. */
+        get: operations["BpHolidaysController_histories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bp-holidays/overlaps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 겹치는 휴일 확인 — 저장 전에 부른다. 저장은 막지 않는다. */
+        post: operations["BpHolidaysController_overlaps"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bp-holidays/{bpHolidayId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["BpHolidaysController_detail"];
+        /** 수정 — 시작 전이면 모두, 진행 중이면 휴일명 · 설명 · 점포만. 점포는 더하면 오늘부터, 빼면 어제까지. */
+        put: operations["BpHolidaysController_update"];
+        post?: never;
+        /** 삭제(논리) — 시작일이 오늘 이후인 휴일만. 지운 휴일은 변경 이력에만 남는다. */
+        delete: operations["BpHolidaysController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bp-holidays/{bpHolidayId}/terminate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 강제 종료 — 어제 날짜로 끝낸다. 되돌리지 않는다. 시작일이 어제 이전인 진행 중 휴일만. */
+        post: operations["BpHolidaysController_terminate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3715,13 +4116,14 @@ export interface components {
              * @example seojun@whale.test
              */
             email: string;
-            /**
-             * @description 이메일을 바꿀 때만 받는다(원래 값과 같으면 비워도 된다) — 토큰만 가진 사람이 비밀번호 없이
-             *     로그인 이메일을 자기 것으로 바꿔, 비밀번호 찾기로 새 임시 비밀번호를 가로채는 계정 탈취를
-             *     막는다(ip-code-review-claude 적대적 리뷰로 찾음, 2026-10-21 — my-profile(직원 앱)의
-             *     email-change 와 같은 통제다).
-             */
-            currentPassword?: string;
+        };
+        AdminMyPasswordChangeDto: {
+            /** @description 현재 비밀번호. */
+            currentPassword: string;
+            /** @description 새 비밀번호 — 영문 · 숫자 · 특수문자 각 1자 이상 8~20자. 규칙 위반은 400 과 정책 문구 하나. */
+            newPassword: string;
+            /** @description 새 비밀번호 확인. */
+            newPasswordConfirm: string;
         };
         AdminProfileEmailAvailabilityResponseDto: {
             /** @description true 면 이 이메일로 저장할 수 있다. */
@@ -3812,6 +4214,15 @@ export interface components {
              *     않는다 — admin-signup.service.ts 의 signup 과 같은 규칙). 비우면 인증 쪽 세 값은 그대로 둔다.
              */
             businessVerificationToken?: string;
+            /**
+             * @description 사업자등록번호 · 대표자명 · 개업일자 · 인증일시를 전부 비운다(사용자 결정, 2026-10-23) — 점포와
+             *     달리 BP 자신의 사업자정보는 "다른 번호로 바꾸기"(재인증) 말고 "아예 지우기"도 된다. true 면 그 네
+             *     칸을 null 로 쓴다. businessVerificationToken 과 함께 보내면 400(서비스에서 본다) — 같은 저장에서
+             *     "새로 반영"과 "지우기"를 동시에 받을 수 없다. 구독 기록이 있으면 막아야 하지만(사용자 결정) 구독
+             *     자체가 아직 없어(관련 테이블 없음, Manyfast S-JHQQNR 「1차 범위 밖」과 같은 이유) 지금은 검사하지
+             *     않는다 — 구독이 생기면 여기에 그 검사를 더한다.
+             */
+            clearBusinessVerification?: boolean;
         };
         BpBusinessVerificationDto: {
             /**
@@ -4847,6 +5258,48 @@ export interface components {
             /** @description 새 상위 아래의 자리 — 0 이 맨 앞, 형제 수 이상이면 맨 끝. */
             index: number;
         };
+        PublicHolidayResponseDto: {
+            publicHolidayId: number;
+            /**
+             * @description 날짜.
+             * @example 2026-03-02
+             */
+            holidayDate: string;
+            /**
+             * @description 휴일명.
+             * @example 삼일절
+             */
+            name: string;
+            /**
+             * @description 비고. 없으면 null(대체공휴일이면 그 사유).
+             * @example 대체공휴일 — 삼일절
+             */
+            note: string | null;
+        };
+        PublicHolidaySynchronizationResponseDto: {
+            /**
+             * @description 성공한 마지막 동기화 시각(ISO 8601). 동기화한 적이 없으면 null.
+             * @example 2026-09-01T03:00:00.000Z
+             */
+            lastSynchronizedAt: string | null;
+            /**
+             * @description 올해 · 다음 해(한국 날짜 기준) 중 마지막 동기화가 실패한 연도. 없으면 빈 배열.
+             * @example [
+             *       2027
+             *     ]
+             */
+            failedYears: number[];
+        };
+        PublicHolidayListResponseDto: {
+            /** @description 고른 연도. */
+            year: number;
+            /** @description 고른 월. 연도 전체를 조회했으면 null. */
+            month: number | null;
+            items: components["schemas"]["PublicHolidayResponseDto"][];
+            /** @description 공식 휴일 수(고른 달, 또는 그 해). */
+            total: number;
+            synchronization: components["schemas"]["PublicHolidaySynchronizationResponseDto"];
+        };
         BpListItemResponseDto: {
             bpCodeId: number;
             /** @example BP000012 */
@@ -4930,7 +5383,14 @@ export interface components {
             lastSentAt: string;
             /** Format: date-time */
             expiresAt: string;
-            /** @description 재발송 버튼을 보일지. 간격 제한 없이 상태로만 정한다 — 초대 발송 · 초대 만료 · 소속 추가 확인 · 복귀 확인 */
+            /**
+             * @description 가입 초대 재발송 버튼을 보일지 — 이 값 하나만 본다. 참이면 이 줄의 contract.contractId 로 근로계약 재발송(POST
+             *     /contracts/{contractId}/send)이 가입 초대 알림톡을 보낸다(설정 누락 503 · 그사이 바뀐 상태 409 · 발송 실패 502 는 남는다).
+             *     모두 맞을 때만 참이다: 가입 전(가입 완료가 아님) · 가입 상태가 초대 발송 · 초대 만료 · 소속 추가 확인 · 복귀 확인(연결 보류 ·
+             *     만 19세 미만 · 거절 · 초안은 거짓) · 이 초대가 수락되지 않음 · 최근 계약이 발송 대기 또는 서명 대기 · 그 번호에 탈퇴하지
+             *     않은 계정이 없음(있으면 소속 추가 확인 · 복귀 확인이라 앱에 받을 길이 없어 409) · 휴대폰 번호. 간격 제한은 없다. 가입한
+             *     직원의 앱 알림 재발송은 가입 초대가 아니라 근로계약 상세에서 하므로 거짓이다.
+             */
             canResend: boolean;
         };
         /** @enum {string} */
@@ -4983,6 +5443,13 @@ export interface components {
          * @enum {string}
          */
         HqSharingConsentState: "AGREED" | "NOT_AGREED";
+        StaffMemberEmploymentPeriodDto: {
+            staffMemberId: number;
+            /** @description 입사일(YYYY-MM-DD). 채우기 전 레코드는 null */
+            hiredDate: string | null;
+            /** @description 퇴직일(YYYY-MM-DD) — 퇴직 예정이면 정한 날. 정하지 않았으면 null */
+            retiredDate: string | null;
+        };
         StaffMemberDetailResponseDto: {
             employmentType: components["schemas"]["EmploymentType"] | null;
             joinState: components["schemas"]["StaffJoinState"] | null;
@@ -5007,6 +5474,24 @@ export interface components {
              *     null
              */
             birthDate: string | null;
+            /**
+             * @description 관리자가 생년월일을 정정할 수 있는 레코드인가(PUT /staff-members/:id/birth-date, WHALEERP-602). 계정이 있고 가입 완료
+             *     (`JOINED`, 탈퇴 · 연결 보류 아님)이며 퇴직하지 않았을 때 true(퇴직일이 지났는데 배치 전인 레코드는 퇴직으로 보아 false) — 정정 API 가
+             *     409 로 막는 경우(BIRTH_DATE_NOT_JOINED · BIRTH_DATE_RETIRED)와 같은 판정이다. `joinState` 는 직원 레코드의 가입 상태라
+             *     계정이 탈퇴 · 연결 보류여도 JOINED 로 오므로 버튼 표시에는 이 칸을 쓴다. 수정 권한은 보지 않는다 — 화면이 권한으로 가린다.
+             *     같은 값이라는 409(BIRTH_DATE_UNCHANGED)는 값을 넣어 봐야 아는 것이라 담지 않는다
+             */
+            birthDateCorrectable: boolean;
+            /**
+             * @description 이전 재직 기간 — 퇴직 뒤 같은 점포에 다시 입사해 이은 옛 레코드들(WHALEERP-615), 가까운 것부터. 누르면 그 레코드의
+             *     상세로 간다. 체결 완료된 계약이 없는 레코드와 이 관리자에게 가려지는 레코드는 빠진다
+             */
+            previousRecords: components["schemas"]["StaffMemberEmploymentPeriodDto"][];
+            /**
+             * @description 이후 재직 기간 — 이 레코드 뒤에 다시 입사한 레코드들, 가까운 것부터. 체결 완료 전(임시저장 · 발송만 한) 레코드와 가려지는
+             *     레코드는 빠진다
+             */
+            laterRecords: components["schemas"]["StaffMemberEmploymentPeriodDto"][];
             staffMemberId: number | null;
             isMasked: boolean;
             name: string | null;
@@ -5169,6 +5654,13 @@ export interface components {
              */
             retiredDate: string;
         };
+        BirthDateCorrectionDto: {
+            /**
+             * @description 정정할 생년월일(YYYY-MM-DD, 한국 날짜). 오늘(KST) 뒤 날짜(내일부터)이거나 한국 오늘 기준 만 19세 미만이면 받지 않는다.
+             * @example 1990-05-17
+             */
+            birthDate: string;
+        };
         PayslipListItemDto: {
             employmentType: components["schemas"]["EmploymentType"] | null;
             status: components["schemas"]["PayslipStatus"] | null;
@@ -5271,6 +5763,8 @@ export interface components {
             month: string;
             /** @description 점포 ID 목록. 관리 범위 밖은 조용히 빠진다. 없으면 관리 범위 전체 */
             storeIds?: number[];
+            /** @description 점포 유형(상단 점포 범위의 직영 · 가맹, 목록과 같다). 주면 그 유형 점포만이고 폐점 점포는 뺀다 */
+            storeTypes?: ("DIRECT" | "FRANCHISE")[];
             /** @description 직원명 부분 일치(목록과 같다). 앞뒤 공백을 지우고 비면 없는 것으로 본다 */
             staffName?: string;
         };
@@ -5333,7 +5827,7 @@ export interface components {
             isEntered: boolean;
         };
         /** @enum {string} */
-        PayslipReviewReason: "MISSING_ATTENDANCE" | "AFTER_CONTRACT_END" | "CONTRACT_CHANGED" | "DEDUCTION_MISSING";
+        PayslipReviewReason: "MISSING_ATTENDANCE" | "AFTER_CONTRACT_END" | "CONTRACT_CHANGED" | "DEDUCTION_MISSING" | "ATTENDANCE_NEEDS_REVIEW";
         PayslipReviewReasonDto: {
             reviewReason: components["schemas"]["PayslipReviewReason"];
             payslipReviewReasonId: number;
@@ -5586,6 +6080,11 @@ export interface components {
             sentAt: string | null;
             /** @description 날인 기한 (ISO 8601) */
             signDeadlineAt: string | null;
+            /**
+             * @description 직원의 지금 가입 · 초대 상태(직원 목록 joinState 와 같은 규칙, WHALEERP-133). draftAction 은 저장 때 판별한 값이라 초대가
+             *     만료 · 거절돼도 남는다 — 상태 칸의 「가입 대기 중」 · 「소속 확인 중」은 이 값으로 정한다
+             */
+            staffJoinState: components["schemas"]["StaffJoinState"];
             contractId: number;
             staffMemberId: number;
             /** @description 직원 레코드의 이름(초안 입력값) */
@@ -5593,11 +6092,29 @@ export interface components {
             storeId: number;
             /** @description 점포가 지워졌어도 이름은 보인다 */
             storeName: string | null;
+            /** @description 직원이 퇴직했는가(재직 상태 퇴직) — 상태 칸에 「퇴직」을 붙인다. 퇴직 예정(퇴직일 전)은 false */
+            staffRetired: boolean;
+        };
+        ContractStatusCountsDto: {
+            DRAFT: number;
+            PENDING_SEND: number;
+            PENDING_SIGNATURE: number;
+            CORRECTION_REQUESTED: number;
+            SIGNED: number;
+            REJECTED: number;
+            EXPIRED: number;
+            ENDED: number;
         };
         ContractListResponseDto: {
             items: components["schemas"]["ContractListItemDto"][];
             /** @description 거른 결과 전체 건수 */
             total: number;
+            /**
+             * @description 상태별 계약 수(WHALEERP-133). 목록과 같은 조건에서 상태 필터만 뺀 개수 — 점포 · 점포명 · 직원명 필터를 따르고, 본사 역할에게
+             *     가려지는 가맹 점포의 본사 제공 동의 안 한 직원 계약은 세지 않는다(점포 하나로 좁혀 그 사람의 계약 상태가 드러나지 않게, api #146
+             *     리뷰 — ATT-30 이 점포 단위 개수를 허용하는지는 기획 확인 대기). 상태가 빈 옛 계약은 세지 않아 개수의 합이 total 과 다를 수 있다
+             */
+            statusCounts: components["schemas"]["ContractStatusCountsDto"];
         };
         /**
          * @description 성별 — 남 · 여. 가입 때 직원이 넣은 값과 본인 대조한다(WHALEERP-125). 임시저장은 비워도 된다
@@ -5704,6 +6221,15 @@ export interface components {
             replaceContractIds?: number[];
         };
         CreatedContractResponseDto: {
+            /** @description 저장한 뒤의 상태 — 임시저장 · 발송 대기 · 서명 대기 · 체결 완료(종이 계약) 등 */
+            status: components["schemas"]["ContractStatus"];
+            /**
+             * @description 시스템이 실제로 한 처리(WHALEERP-132). 보내지 않은 저장(임시저장 · 종이 계약 등록)은 null, 가입한 직원에게 앱으로 보냈으면
+             *     즉시 발송(IMMEDIATE_SEND), 아니면 판별한 초대 유형 — 가입 초대(알림톡) · 소속 추가 확인 · 복귀 확인(소속 · 복귀를 확인하기
+             *     전까지 직원에게 알림이 가지 않는다). 보내기 전에 다른 요청이 초대를 무효로 해 되돌렸거나, 판별값이 없는 옛 계약의 가입 전
+             *     직원이라 나간 것이 없으면 null(상태는 지금 상태). 계약에 저장한 draftAction(상세 · 목록)과 다를 수 있다
+             */
+            draftAction: components["schemas"]["ContractDraftAction"] | null;
             contractId: number;
             staffMemberId: number;
         };
@@ -5786,6 +6312,28 @@ export interface components {
             histories: components["schemas"]["ContractStatusHistoryDto"][];
             /** @description 종이 계약 날인본(근로계약서 · 임금계약서). 전자계약 · 임시저장이면 빈 배열 */
             documents: components["schemas"]["ContractDocumentDto"][];
+            /**
+             * @description 처음 보낸 때(ISO 8601) — 상태 이력에서 발송 대기 · 서명 대기로 처음 간 때(WHALEERP-328). 보낸 적 없는 임시저장 · 종이
+             *     계약이면 null
+             */
+            firstSentAt: string | null;
+            /** @description 마지막으로 보낸 때(ISO 8601) — 재발송 · 고쳐 다시 보내면 바뀐다. 보낸 적 없으면 null */
+            lastSentAt: string | null;
+            /** @description 날인 기한(ISO 8601) — 마지막으로 보낸 때부터 30일. 보낸 적 없으면 null */
+            signDeadlineAt: string | null;
+            /** @description 최종 처리일(ISO 8601) — 가장 최근 상태 변경 일시. 이력이 없으면 null */
+            lastProcessedAt: string | null;
+            /** @description 직원이 남긴 거부 사유 — 거부된 계약에만, 그 밖은 null */
+            rejectReason: string | null;
+            /** @description 재계약으로 만든 계약이면 직전 계약 ID. 재계약(WHALEERP-156) 전이라 지금은 늘 null */
+            previousContractId: number | null;
+            /** @description 종이 계약 등록일(ISO 8601) — 체결 완료가 된 때. 종이 계약만 — 전자계약 · 등록 전 임시저장(등록 전에 종료된 것 포함)은 null */
+            registeredAt: string | null;
+            /**
+             * @description 종이 계약을 작성한 관리자 — 등록한 종이 계약만(registeredAt 이 있을 때), 그 밖은 null. 이름이 없으면 로그인 아이디. 임시저장을 다른 관리자가 이어 써 등록했어도
+             *     처음 작성한 관리자다(상태 이력은 관리자를 남기지 않는다)
+             */
+            registeredBy: string | null;
             contractId: number;
             staffMemberId: number;
             name: string;
@@ -5794,6 +6342,19 @@ export interface components {
             storeId: number;
             /** @description 외국인 여부 — 체크하지 않았으면 false */
             isForeigner: boolean;
+            /**
+             * @description 재발송 횟수 — 처음 발송 뒤 다시 보낸 횟수(재발송 · 고쳐 다시 보냄). 알림 없이 날인 기한만 새로 잡은 것도 센다. 알림톡이 나가지
+             *     않으면 되돌려 빼지만, 드물게 다른 요청과 겹친 실패 · 그사이 다른 요청이 초대를 무효로 해 보내지 않은 재발송은 빼지 못해 실제보다
+             *     클 수 있다. 이 칸이 생기기 전의 재발송은 세지 않았다.
+             *     재발송 여부는 이 값으로 본다(firstSentAt · lastSentAt 은 시각 출처가 달라 첫 발송에도 ms 가 다를 수 있다)
+             */
+            resendCount: number;
+            /**
+             * @description 재발송(POST …/send)을 정책상 할 수 있는가 — 발송 대기 · 서명 대기이고, 가입한 직원이거나 그 번호로 계정이 없는 가입 전 직원. 계정이
+             *     있는 번호(소속 추가 확인 · 복귀 확인)는 409 SEND_CHANNEL_NOT_READY 라 false. 상세 화면이 재발송 버튼을 이 값으로 보인다. 정책만
+             *     본다 — 유선번호(409 SEND_PHONE_NOT_MOBILE) · 발송 설정 없음(503)은 true 여도 보낼 때 막힌다
+             */
+            canResend: boolean;
         };
         UpdateWorkerDto: {
             /** @description 성별 — 남 · 여. 가입 때 직원이 넣은 값과 본인 대조한다(WHALEERP-125). 임시저장은 비워도 된다 */
@@ -5981,6 +6542,96 @@ export interface components {
             awaitingSignature: boolean;
             /** @description 지금 날인하면 받는가 — awaitingSignature 이고 본인 대조가 맞을 때. 날인 API 와 같은 판정이다 */
             signable: boolean;
+        };
+        /** @enum {string} */
+        NotificationRelatedType: "CONTRACT" | "INQUIRY" | "LEAD" | "STAFF_MEMBER";
+        NotificationItemDto: {
+            relatedType: components["schemas"]["NotificationRelatedType"] | null;
+            /** @description 알림 ID(받는 사람별). 읽음 · 삭제에 쓴다 */
+            id: number;
+            /** @description 만들 때 쓴 템플릿 코드(NTF_*) */
+            templateCode: string;
+            /** @description 구분 — 지금 템플릿 이름. 템플릿이 없으면 템플릿 코드 */
+            kind: string;
+            /** @description 제목 — 만들 때의 문구 */
+            title: string;
+            /** @description 둘째 줄 — 만들 때의 문구 */
+            body: string;
+            relatedId: number | null;
+            /** @description 알림을 눌러 갈 관리자 웹 경로. 알림을 만든 업무 쪽이 정했다. 없으면 갈 화면이 없다 */
+            link: string | null;
+            isRead: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        NotificationListResponseDto: {
+            items: components["schemas"]["NotificationItemDto"][];
+            total: number;
+            /** @description 미확인 건수 — 종 배지 */
+            unreadCount: number;
+        };
+        NotificationReadAllResponseDto: {
+            /** @description 이번에 읽음으로 바뀐 건수 */
+            updated: number;
+        };
+        /**
+         * @description 수신 설정 묶음 — 지금 템플릿의 값. 템플릿이 없으면 null
+         * @enum {string}
+         */
+        PreferenceCategory: "CONTRACT" | "SCHEDULE" | "TODO" | "PAYSLIP";
+        /** @enum {string} */
+        StaffNotificationTargetType: "WORK_SCHEDULE" | "TODO" | "CONTRACT" | "PAYSLIP";
+        StaffNotificationTargetDto: {
+            type: components["schemas"]["StaffNotificationTargetType"];
+            /** @description 그 업무가 속한 내 소속. 급여명세서는 없다 */
+            staffMemberId?: number;
+            /** @description 근무스케줄 — 근무일 YYYY-MM-DD */
+            workDate?: string;
+            /** @description TO-DO */
+            todoId?: number;
+            /** @description 근로계약 */
+            contractId?: number;
+            /** @description 급여명세서 */
+            payslipId?: number;
+        };
+        MyNotificationItemDto: {
+            /** @description 수신 설정 묶음 — 지금 템플릿의 값. 템플릿이 없으면 null */
+            category: components["schemas"]["PreferenceCategory"] | null;
+            /** @description 눌러 열 곳. 관련 업무가 지워졌거나 내 재직 소속으로 닿을 수 없으면 null — 「열 수 없습니다」 */
+            target: components["schemas"]["StaffNotificationTargetDto"] | null;
+            /** @description 알림 ID(받는 사람별). 읽음 바꾸기에 쓴다 */
+            id: number;
+            /** @description 만들 때 쓴 템플릿 코드(PUSH_*) */
+            templateCode: string;
+            /** @description 제목 — 만들 때의 문구 */
+            title: string;
+            /** @description 둘째 줄 — 만들 때의 문구 */
+            body: string;
+            /** @description 긴급 TO-DO 의 수행 임박 알림 — 빨간 점 */
+            isUrgent: boolean;
+            isRead: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        MyNotificationListResponseDto: {
+            /** @description 만든 지 14일 안, 새것부터 */
+            items: components["schemas"]["MyNotificationItemDto"][];
+            total: number;
+            /** @description 14일 안의 미확인 건수 — 종 배지 */
+            unreadCount: number;
+        };
+        MyNotificationPreferenceDto: {
+            category: components["schemas"]["PreferenceCategory"];
+            /** @description 앱 푸시 받기. 꺼도 알림함에는 남는다 */
+            isEnabled: boolean;
+        };
+        MyNotificationPreferenceListResponseDto: {
+            /** @description 네 묶음 — 근로계약서 · 근무스케줄 · TO-DO · 급여명세서 */
+            items: components["schemas"]["MyNotificationPreferenceDto"][];
+        };
+        UpdateMyNotificationPreferenceDto: {
+            /** @description 앱 푸시 받기 */
+            isEnabled: boolean;
         };
         StoreOptionDto: {
             storeId: number;
@@ -6513,96 +7164,6 @@ export interface components {
             attachments: components["schemas"]["PostAttachmentDto"][];
         };
         /** @enum {string} */
-        NotificationRelatedType: "CONTRACT" | "INQUIRY" | "LEAD" | "STAFF_MEMBER";
-        NotificationItemDto: {
-            relatedType: components["schemas"]["NotificationRelatedType"] | null;
-            /** @description 알림 ID(받는 사람별). 읽음 · 삭제에 쓴다 */
-            id: number;
-            /** @description 만들 때 쓴 템플릿 코드(NTF_*) */
-            templateCode: string;
-            /** @description 구분 — 지금 템플릿 이름. 템플릿이 없으면 템플릿 코드 */
-            kind: string;
-            /** @description 제목 — 만들 때의 문구 */
-            title: string;
-            /** @description 둘째 줄 — 만들 때의 문구 */
-            body: string;
-            relatedId: number | null;
-            /** @description 알림을 눌러 갈 관리자 웹 경로. 알림을 만든 업무 쪽이 정했다. 없으면 갈 화면이 없다 */
-            link: string | null;
-            isRead: boolean;
-            /** Format: date-time */
-            createdAt: string;
-        };
-        NotificationListResponseDto: {
-            items: components["schemas"]["NotificationItemDto"][];
-            total: number;
-            /** @description 미확인 건수 — 종 배지 */
-            unreadCount: number;
-        };
-        NotificationReadAllResponseDto: {
-            /** @description 이번에 읽음으로 바뀐 건수 */
-            updated: number;
-        };
-        /**
-         * @description 수신 설정 묶음 — 지금 템플릿의 값. 템플릿이 없으면 null
-         * @enum {string}
-         */
-        PreferenceCategory: "CONTRACT" | "SCHEDULE" | "TODO" | "PAYSLIP";
-        /** @enum {string} */
-        StaffNotificationTargetType: "WORK_SCHEDULE" | "TODO" | "CONTRACT" | "PAYSLIP";
-        StaffNotificationTargetDto: {
-            type: components["schemas"]["StaffNotificationTargetType"];
-            /** @description 그 업무가 속한 내 소속. 급여명세서는 없다 */
-            staffMemberId?: number;
-            /** @description 근무스케줄 — 근무일 YYYY-MM-DD */
-            workDate?: string;
-            /** @description TO-DO */
-            todoId?: number;
-            /** @description 근로계약 */
-            contractId?: number;
-            /** @description 급여명세서 */
-            payslipId?: number;
-        };
-        MyNotificationItemDto: {
-            /** @description 수신 설정 묶음 — 지금 템플릿의 값. 템플릿이 없으면 null */
-            category: components["schemas"]["PreferenceCategory"] | null;
-            /** @description 눌러 열 곳. 관련 업무가 지워졌거나 내 재직 소속으로 닿을 수 없으면 null — 「열 수 없습니다」 */
-            target: components["schemas"]["StaffNotificationTargetDto"] | null;
-            /** @description 알림 ID(받는 사람별). 읽음 바꾸기에 쓴다 */
-            id: number;
-            /** @description 만들 때 쓴 템플릿 코드(PUSH_*) */
-            templateCode: string;
-            /** @description 제목 — 만들 때의 문구 */
-            title: string;
-            /** @description 둘째 줄 — 만들 때의 문구 */
-            body: string;
-            /** @description 긴급 TO-DO 의 수행 임박 알림 — 빨간 점 */
-            isUrgent: boolean;
-            isRead: boolean;
-            /** Format: date-time */
-            createdAt: string;
-        };
-        MyNotificationListResponseDto: {
-            /** @description 만든 지 14일 안, 새것부터 */
-            items: components["schemas"]["MyNotificationItemDto"][];
-            total: number;
-            /** @description 14일 안의 미확인 건수 — 종 배지 */
-            unreadCount: number;
-        };
-        MyNotificationPreferenceDto: {
-            category: components["schemas"]["PreferenceCategory"];
-            /** @description 앱 푸시 받기. 꺼도 알림함에는 남는다 */
-            isEnabled: boolean;
-        };
-        MyNotificationPreferenceListResponseDto: {
-            /** @description 네 묶음 — 근로계약서 · 근무스케줄 · TO-DO · 급여명세서 */
-            items: components["schemas"]["MyNotificationPreferenceDto"][];
-        };
-        UpdateMyNotificationPreferenceDto: {
-            /** @description 앱 푸시 받기 */
-            isEnabled: boolean;
-        };
-        /** @enum {string} */
         NotificationTemplateChannel: "NOTIFICATION" | "PUSH" | "EMAIL" | "ALIMTALK";
         TemplateListItemDto: {
             channel: components["schemas"]["NotificationTemplateChannel"];
@@ -6615,7 +7176,7 @@ export interface components {
             bodySummary: string;
             kakaoTemplateCode: string | null;
             isActive: boolean;
-            /** @description 기본 문구가 있는지(마이그레이션으로 넣은 기본 템플릿 41건) — 되돌리기를 보일지 */
+            /** @description 기본 문구가 있는지(마이그레이션으로 넣은 기본 템플릿 42건) — 되돌리기를 보일지 */
             hasDefault: boolean;
             /** @description 마지막으로 고친 관리자 이름. 아무도 고치지 않았으면 null — 화면은 「기본 문구」 */
             updatedByName: string | null;
@@ -6655,7 +7216,7 @@ export interface components {
             bodySummary: string;
             kakaoTemplateCode: string | null;
             isActive: boolean;
-            /** @description 기본 문구가 있는지(마이그레이션으로 넣은 기본 템플릿 41건) — 되돌리기를 보일지 */
+            /** @description 기본 문구가 있는지(마이그레이션으로 넣은 기본 템플릿 42건) — 되돌리기를 보일지 */
             hasDefault: boolean;
             /** @description 마지막으로 고친 관리자 이름. 아무도 고치지 않았으면 null — 화면은 「기본 문구」 */
             updatedByName: string | null;
@@ -7424,6 +7985,333 @@ export interface components {
             /** @description 시작 일시순 */
             items: components["schemas"]["WorkScheduleDto"][];
         };
+        AttendanceStoreDto: {
+            storeId: number;
+            name: string;
+            /** @description 기본주소와 상세주소 */
+            address: string | null;
+            /** @description 위도. 점포에 좌표가 없으면 null — 앱은 위치로 판정할 수 없다 */
+            latitude: number | null;
+            longitude: number | null;
+            /** @description 근무지 반경(미터). 1차는 모든 점포 100 */
+            radiusMeters: number;
+            /** @description 위치 적용 여부 — false 면 위치를 보지 않고(동의 · 사유도 없음) 등록한다 */
+            isLocationApplied: boolean;
+        };
+        /** @enum {string} */
+        LocationConsentState: "NOT_AGREED" | "AGREED" | "PAUSED" | "WITHDRAWN";
+        AttendanceConsentDto: {
+            state: components["schemas"]["LocationConsentState"];
+            /** @description 동의한 약관 버전이 지금 시행 중인 것과 달라 다시 받아야 한다(ATT-23) */
+            needsReconsent: boolean;
+            /** @description 지금 시행 중인 위치정보 약관 버전 — 동의 시트의 「v1.2」. 없으면 null */
+            termsVersion: string | null;
+        };
+        CheckInBlockDto: {
+            /** @enum {string} */
+            reason: "CONTRACT_PENDING_SIGNATURE" | "NO_CONTRACT";
+            /** @description 서명 대기 계약 — 「계약서 보기」로 연다. NO_CONTRACT 면 null */
+            contractId: number | null;
+        };
+        OpenCheckInDto: {
+            attendanceRecordId: number;
+            staffMemberId: number;
+            storeId: number;
+            storeName: string;
+            /** Format: date-time */
+            recordedAt: string;
+            /** @description 퇴근 등록 기한(출근한 다음 날, 한국)이 지났다 — 직원은 퇴근할 수 없고 관리자 보정으로 닫는다(퇴근 409 `CHECK_OUT_EXPIRED`) */
+            isCheckOutExpired: boolean;
+        };
+        TodayScheduleDto: {
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
+            /** @description 시작 HH:mm(한국 시각) */
+            startTime: string;
+            /** @description 끝 HH:mm(한국 시각) */
+            endTime: string;
+            breakMinutes: number;
+        };
+        MyAttendanceResponseDto: {
+            staffMemberId: number;
+            store: components["schemas"]["AttendanceStoreDto"];
+            locationConsent: components["schemas"]["AttendanceConsentDto"];
+            /** @description 출근을 막는 까닭. 출근할 수 있으면 null */
+            checkInBlock: components["schemas"]["CheckInBlockDto"] | null;
+            openCheckIn: components["schemas"]["OpenCheckInDto"] | null;
+            todaySchedules: components["schemas"]["TodayScheduleDto"][];
+        };
+        LocationReadDto: {
+            /** @description 앱 전역에서 고른 소속 — 이 근무지로 출근 · 퇴근하려고 위치를 읽었다 */
+            staffMemberId: number;
+        };
+        LocationReadResultDto: {
+            /** @description 이 읽음의 확인자료(수집) id — 이어서 보내는 출근 · 퇴근에 넣는다 */
+            locationReadId: number;
+        };
+        CheckInDto: {
+            /**
+             * @description 확인 필요 사유 — 고른 근무지 반경 밖이면 `OUT_OF_RADIUS_CHECKIN`(ATT-11). 좌표 · 거리는 받지 않는다(ATT-05)
+             * @enum {string}
+             */
+            reviewReason?: "OUT_OF_RADIUS_CHECKIN";
+            /** @description 앱 전역에서 고른 소속(직원 레코드) — 이 근무지로 출근한다(ATT-07) */
+            staffMemberId: number;
+            /**
+             * @description 출근 버튼을 누를 때 남긴 위치 읽음(`POST /me/attendance/location-reads` 의 locationReadId). 위치를 보는 근무지면 꼭 있어야 하고,
+             *     그 확인자료(수집 · 이용)를 이 기록에 잇는다(ATT-22). 위치를 보지 않는 근무지는 보내지 않는다
+             */
+            locationReadId?: number;
+        };
+        AttendanceRecordResultDto: {
+            /** @enum {string} */
+            kind: "CHECK_IN" | "CHECK_OUT";
+            /** @enum {string|null} */
+            reviewReason: "OUT_OF_RADIUS_CHECKIN" | "OUT_OF_RADIUS_CHECKOUT" | "MOCK_LOCATION" | null;
+            attendanceRecordId: number;
+            /**
+             * Format: date-time
+             * @description 기록 시각 — 서버가 요청을 받은 시각
+             */
+            recordedAt: string;
+            storeId: number;
+            storeName: string;
+            /**
+             * Format: date-time
+             * @description 퇴근일 때 짝 출근 시각. 출근이면 null
+             */
+            checkInRecordedAt: string | null;
+        };
+        CheckOutDto: {
+            /**
+             * @description 확인 필요 사유 — 반경 밖 `OUT_OF_RADIUS_CHECKOUT`, 위치 조작 감지 `MOCK_LOCATION`(ATT-11 · ATT-21). 좌표는 받지 않는다
+             * @enum {string}
+             */
+            reviewReason?: "OUT_OF_RADIUS_CHECKOUT" | "MOCK_LOCATION";
+            /** @description 앱 전역에서 고른 소속 — 열린 출근 기록이 이 소속의 것이어야 한다 */
+            staffMemberId: number;
+            /**
+             * @description 퇴근 버튼을 누를 때 남긴 위치 읽음(`POST /me/attendance/location-reads` 의 locationReadId). 위치를 보는 근무지면 꼭 있어야 하고,
+             *     그 확인자료(수집 · 이용)를 이 기록에 잇는다(ATT-22). 위치를 보지 않는 근무지는 보내지 않는다
+             */
+            locationReadId?: number;
+        };
+        /**
+         * @description 그날 상태. 근무스케줄 시작 전이면 null(예정)
+         * @enum {string}
+         */
+        AttendanceDayStatus: "NORMAL" | "LATE" | "ABSENT" | "MISSING_CHECK_IN" | "MISSING_CHECK_OUT" | "OFF";
+        AttendanceHistoryEntryDto: {
+            /** @enum {string} */
+            kind: "CORRECTION" | "PROXY";
+            /**
+             * Format: date-time
+             * @description 처리 일시
+             */
+            at: string;
+            /** @description 처리한 관리자 — 이름(없으면 아이디) */
+            by: string;
+            /** @description 처리한 관리자의 권한 그룹 이름(데모 「정하윤 (BP 마스터)」). 계정을 찾지 못하면 null */
+            byRole: string | null;
+            /** @description 보정이면 변경 전 「출근 09:02 · 퇴근 없음」, 대신 등록이면 null */
+            before: string | null;
+            /** @description 보정이면 변경 후, 대신 등록이면 등록한 값 */
+            after: string;
+            reason: string;
+        };
+        AttendanceScheduleDto: {
+            /** @description HH:mm(한국) */
+            startTime: string;
+            /** @description HH:mm(한국). 자정을 넘으면 다음 날 시각 */
+            endTime: string;
+            breakMinutes: number;
+        };
+        /**
+         * @description 확인 필요 사유 — 검토를 마치면 null
+         * @enum {string}
+         */
+        AttendanceReviewReason: "ACCURACY_EXCEEDED" | "OUT_OF_RADIUS_CHECKIN" | "OUT_OF_RADIUS_CHECKOUT" | "MOCK_LOCATION" | "LONG_SHIFT";
+        /** @enum {string} */
+        AttendanceEntryMethod: "SELF" | "PROXY";
+        AttendancePunchDto: {
+            /** @description 확인 필요 사유 — 검토를 마치면 null */
+            reviewReason: components["schemas"]["AttendanceReviewReason"] | null;
+            entryMethod: components["schemas"]["AttendanceEntryMethod"];
+            attendanceRecordId: number;
+            /**
+             * Format: date-time
+             * @description 기록 시각(ISO)
+             */
+            recordedAt: string;
+            /** @description 기록 시각 HH:mm(한국) */
+            time: string;
+            /** @description 관리자가 보정한 적이 있는가(보정 이력이 있다) — 필터 「기록 구분 · 보정됨」 */
+            isCorrected: boolean;
+        };
+        AttendancePairDto: {
+            checkIn: components["schemas"]["AttendancePunchDto"] | null;
+            checkOut: components["schemas"]["AttendancePunchDto"] | null;
+        };
+        MyAttendanceDayDto: {
+            employmentType: components["schemas"]["EmploymentType"];
+            employmentStatus: components["schemas"]["EmploymentStatus"];
+            /** @description 그날 상태. 근무스케줄 시작 전이면 null(예정) */
+            status: components["schemas"]["AttendanceDayStatus"] | null;
+            /** @description 보정 · 대신 등록 이력, 새것부터. 손대지 않은 날 · 「이상 없음」만 받은 날은 빈 배열(ATT-19) */
+            edits: components["schemas"]["AttendanceHistoryEntryDto"][];
+            /** @description 날 YYYY-MM-DD(한국) */
+            date: string;
+            staffMemberId: number;
+            name: string;
+            /** @description 휴대전화번호 — 필터 「직원(이름 또는 번호)」 */
+            phone: string;
+            storeId: number;
+            storeName: string;
+            schedules: components["schemas"]["AttendanceScheduleDto"][];
+            /** @description 출근순 */
+            pairs: components["schemas"]["AttendancePairDto"][];
+            /** @description 그날이 확정 · 발송된 급여명세서 기간 안이다 — 보정하면 급여에 영향이 갈 수 있다(WHALEERP-218 · 220) */
+            isPayslipConfirmed: boolean;
+        };
+        MyAttendanceStatsDto: {
+            workedMinutes: number;
+            overtimeMinutes: number;
+        };
+        MyAttendanceWeekDto: {
+            workedMinutes: number;
+            overtimeMinutes: number;
+            /** @description 그 주 월요일(YYYY-MM-DD) */
+            monday: string;
+        };
+        MyAttendanceRecordsResponseDto: {
+            from: string;
+            to: string;
+            storeName: string;
+            /** @description 근무스케줄이나 기록이 있는 날만, 날짜순 */
+            items: components["schemas"]["MyAttendanceDayDto"][];
+            /** @description 기간 합 */
+            totals: components["schemas"]["MyAttendanceStatsDto"];
+            /** @description 기간에 걸친 주마다, 월요일순 */
+            weeks: components["schemas"]["MyAttendanceWeekDto"][];
+        };
+        AttendanceDayItemDto: {
+            employmentType: components["schemas"]["EmploymentType"];
+            employmentStatus: components["schemas"]["EmploymentStatus"];
+            /** @description 그날 상태. 근무스케줄 시작 전이면 null(예정) */
+            status: components["schemas"]["AttendanceDayStatus"] | null;
+            /** @description 날 YYYY-MM-DD(한국) */
+            date: string;
+            staffMemberId: number;
+            name: string;
+            /** @description 휴대전화번호 — 필터 「직원(이름 또는 번호)」 */
+            phone: string;
+            storeId: number;
+            storeName: string;
+            schedules: components["schemas"]["AttendanceScheduleDto"][];
+            /** @description 출근순 */
+            pairs: components["schemas"]["AttendancePairDto"][];
+            /** @description 그날이 확정 · 발송된 급여명세서 기간 안이다 — 보정하면 급여에 영향이 갈 수 있다(WHALEERP-218 · 220) */
+            isPayslipConfirmed: boolean;
+        };
+        DailyAttendanceResponseDto: {
+            date: string;
+            /** @description 점포 · 이름순 */
+            items: components["schemas"]["AttendanceDayItemDto"][];
+            /** @description 상태별 인원 — 가린 직원도 센다(ATT-30 「점포별 숫자에는 센다」) */
+            counts: {
+                [key: string]: number;
+            };
+        };
+        AttendancePeriodItemDto: {
+            employmentType: components["schemas"]["EmploymentType"];
+            employmentStatus: components["schemas"]["EmploymentStatus"];
+            /** @description 그날 상태. 근무스케줄 시작 전이면 null(예정) */
+            status: components["schemas"]["AttendanceDayStatus"] | null;
+            /** @description 날 YYYY-MM-DD(한국) */
+            date: string;
+            staffMemberId: number;
+            name: string;
+            /** @description 휴대전화번호 — 필터 「직원(이름 또는 번호)」 */
+            phone: string;
+            storeId: number;
+            storeName: string;
+            schedules: components["schemas"]["AttendanceScheduleDto"][];
+            /** @description 출근순 */
+            pairs: components["schemas"]["AttendancePairDto"][];
+            /** @description 그날이 확정 · 발송된 급여명세서 기간 안이다 — 보정하면 급여에 영향이 갈 수 있다(WHALEERP-218 · 220) */
+            isPayslipConfirmed: boolean;
+            /** @description 보정 · 대신 등록 이력, 새것부터. 손대지 않은 날 · 「이상 없음」만 받은 날은 빈 배열(ATT-19) */
+            edits: components["schemas"]["AttendanceHistoryEntryDto"][];
+        };
+        AttendanceWeekStaffDto: {
+            staffMemberId: number;
+            /** @description 근무 분 — 출근 ~ 짝 퇴근의 합에서 그날 근무스케줄 휴게(없으면 계약 휴게)를 뺀 것 */
+            workedMinutes: number;
+            /** @description 연장 분 — 정직원은 하루 8시간 · 주 40시간 초과, 파트타이머는 그 요일 계약 시간 초과(계약 안 한 요일은 전부)(PAY-04 우리 판단) */
+            overtimeMinutes: number;
+            /** @description 주휴 대상 — 1주 소정근로시간 15시간 이상이고 그 주 계약 요일을 모두 출근(PAY-02) */
+            isWeeklyHolidayEligible: boolean;
+        };
+        PeriodAttendanceResponseDto: {
+            from: string;
+            to: string;
+            /** @description 근무스케줄이나 기록이 있는 직원 · 날만(휴무는 없음). 날짜 내림차순, 같은 날은 점포 · 이름순 */
+            items: components["schemas"]["AttendancePeriodItemDto"][];
+            /** @description 직원 · 날 상태별 건수 — 본사에게 가려지는 직원도 센다(ATT-30) */
+            counts: {
+                [key: string]: number;
+            };
+            /**
+             * @description 근태 요약의 직원별 한 주 값 — 기간이 월요일 ~ 일요일 한 주일 때만(아니면 없음). 급여 계산(WHALEERP-227)과 같은 규칙이다.
+             *     줄에 나온 직원만(가려진 직원 없음)
+             */
+            weekStaff?: components["schemas"]["AttendanceWeekStaffDto"][];
+        };
+        ProxyStaffItemDto: {
+            staffMemberId: number;
+            name: string;
+            storeId: number;
+            storeName: string;
+            /** @description 대신 등록(위치정보 동의 없음 · 일시 중지). false 면 위치정보에 동의한 직원 — 기록 없는 날만 출근 · 퇴근을 함께 넣어 보정한다 */
+            isProxy: boolean;
+            /** @description 그 날짜가 확정 · 발송된 급여명세서 기간 안이다 — 등록하기 전에 경고한다(218) */
+            isPayslipConfirmed: boolean;
+        };
+        ProxyStaffResponseDto: {
+            items: components["schemas"]["ProxyStaffItemDto"][];
+        };
+        ProxyAttendanceDto: {
+            staffMemberId: number;
+            /** @description 날 YYYY-MM-DD(한국). 최근 3개월 안 · 오늘까지 */
+            date: string;
+            /** @description 출근 HH:mm — 필수 */
+            checkInTime: string;
+            /** @description 퇴근 HH:mm. 없으면 출근만(열린 출근 — 대신 등록만, 보정으로 채우면 필수). 출근보다 이르거나 같으면 다음 날 */
+            checkOutTime?: string;
+            /** @description 사유 — 필수, 500자까지 */
+            reason: string;
+        };
+        AttendanceEditResultDto: {
+            /** @description 그 날짜가 확정 · 발송된 급여명세서 기간 안이다 — 급여에 영향이 갈 수 있다(218) */
+            isPayslipConfirmed: boolean;
+        };
+        CorrectAttendanceDto: {
+            /** @description 출근 HH:mm. 출근이 있으면 필수 — 지우지는 않는다 */
+            checkInTime?: string;
+            /** @description 퇴근 HH:mm. 퇴근이 있으면 필수 */
+            checkOutTime?: string;
+            /** @description 수정 사유 — 필수, 500자까지 */
+            reason: string;
+            /** @description 화면이 본 출근 기록 시각(ISO) — 그사이 다른 관리자가 고쳤으면 409 ATTENDANCE_CHANGED. 출근이 없던 짝이면 생략 */
+            expectedCheckInAt?: string;
+            /** @description 화면이 본 퇴근 기록 시각(ISO). 퇴근이 없던 짝이면 생략 — 그사이 퇴근이 생겼어도 409 */
+            expectedCheckOutAt?: string;
+        };
+        AttendanceHistoryResponseDto: {
+            items: components["schemas"]["AttendanceHistoryEntryDto"][];
+        };
         MyHqSharingConsentDto: {
             isConsented: boolean;
             /** @description 동의한 문구의 버전 */
@@ -7436,8 +8324,6 @@ export interface components {
              */
             withdrawnAt: string | null;
         };
-        /** @enum {string} */
-        LocationConsentState: "NOT_AGREED" | "AGREED" | "PAUSED" | "WITHDRAWN";
         MyLocationConsentDto: {
             state: components["schemas"]["LocationConsentState"];
             /** @description 동의한 약관 버전. 미동의면 null */
@@ -7451,6 +8337,11 @@ export interface components {
             pausedAt: string | null;
             /** Format: date-time */
             withdrawnAt: string | null;
+            /**
+             * @description 동의한 약관 버전이 지금 시행 중인 것과 달라 다시 동의해야 하는지(ATT-23). 동의 · 일시 중지일 때만 true 일 수 있다 —
+             *     앱은 다음 출퇴근 등록 전에 동의 시트를 다시 띄우고 `POST /me/location-consent` 로 새 버전에 동의한다.
+             */
+            needsReconsent: boolean;
         };
         MyProfileResponseDto: {
             status: components["schemas"]["AccountStatus"];
@@ -7458,7 +8349,7 @@ export interface components {
             email: string;
             /** @description 이름 — 고칠 수 없다 */
             realName: string;
-            /** @description 생년월일(YYYY-MM-DD) — 고칠 수 없다 */
+            /** @description 생년월일(YYYY-MM-DD) — 직원 앱에서는 고칠 수 없다(생년월일은 관리자 정정만, WHALEERP-602) */
             birthDate: string;
             /** @description 휴대전화번호 — 1차는 읽기 전용 */
             phone: string;
@@ -7649,6 +8540,395 @@ export interface components {
             staffMemberId: number;
             /** @description 근무지(점포) 이름 */
             storeName: string;
+        };
+        BpHolidayTargetResponseDto: {
+            isAllStores: boolean;
+            /**
+             * @description 전체 점포일 때 BP 상호.
+             * @example ㈜한강상회
+             */
+            bpTradeName: string | null;
+            /**
+             * @description 특정 점포일 때 그날 적용되는 첫 점포(이름순).
+             * @example 온기식당 판교점
+             */
+            firstStoreName: string | null;
+            /** @description 특정 점포일 때 첫 점포 말고 그날 적용되는 점포 수. */
+            otherStoreCount: number;
+            /** @description 전체 점포일 때 그날 예외인 점포 수. */
+            excludedStoreCount: number;
+        };
+        BpHolidayActionsResponseDto: {
+            /** @description 휴일명 · 설명(시작 전이면 날짜 · 유형 · 반복 · 적용 범위까지) 수정. */
+            canUpdate: boolean;
+            /** @description 대상 · 예외 점포 더하기 · 빼기 — 일부 점포 사용자는 맡은 점포만. */
+            canUpdateStores: boolean;
+            /** @description 강제 종료(어제 날짜로 끝냄) — 시작일이 어제 이전이고 아직 끝나지 않은 휴일. */
+            canTerminate: boolean;
+            /** @description 삭제 — 시작일이 오늘 이후인 휴일. */
+            canDelete: boolean;
+            /**
+             * @description 막힌 동작의 사유.
+             * @example 끝난 휴일은 고칠 수 없습니다
+             */
+            blockedReason: string | null;
+        };
+        BpHolidayDateRowResponseDto: {
+            /** @example 2026-10-26 */
+            date: string;
+            bpHolidayId: number;
+            /** @example 정기휴무 */
+            name: string;
+            /**
+             * @description DAY · PERIOD · REPEAT.
+             * @example REPEAT
+             */
+            holidayTypeCode: string;
+            /**
+             * @description 반복일 때 DAILY · WEEKLY · MONTHLY · YEARLY.
+             * @example WEEKLY
+             */
+            holidayRepeatTypeCode: string | null;
+            target: components["schemas"]["BpHolidayTargetResponseDto"];
+            /** @description 지난 날짜(오늘보다 앞)인가. */
+            isPast: boolean;
+            /** @description 최종 수정 — 수정 · 강제 종료 · 삭제 때 그대로 보낸다. */
+            updatedAt: string;
+            /** @description 최종 수정자 이름. */
+            updatedByName: string | null;
+            actions: components["schemas"]["BpHolidayActionsResponseDto"];
+        };
+        BpHolidayPublicHolidayResponseDto: {
+            /** @example 2026-10-03 */
+            holidayDate: string;
+            /** @example 개천절 */
+            name: string;
+        };
+        BpHolidayListResponseDto: {
+            year: number;
+            month: number;
+            /** @description 날짜순. 같은 날짜는 전체 점포 휴일 먼저, 그다음 등록 순서. */
+            items: components["schemas"]["BpHolidayDateRowResponseDto"][];
+            total: number;
+            publicHolidays: components["schemas"]["BpHolidayPublicHolidayResponseDto"][];
+        };
+        BpHolidayHistoryResponseDto: {
+            changeId: number;
+            bpHolidayId: number;
+            /** @example 정기휴무 */
+            holidayName: string;
+            field: string;
+            beforeValue: string | null;
+            /** @example 온기식당 판교점 추가(2026-10-26부터) */
+            afterValue: string | null;
+            changedAt: string;
+            changedByName: string | null;
+        };
+        BpHolidayHistoryListResponseDto: {
+            items: components["schemas"]["BpHolidayHistoryResponseDto"][];
+            total: number;
+        };
+        CheckBpHolidayOverlapsDto: {
+            /**
+             * @description 수정 중인 휴일. 등록이면 비운다.
+             * @example 12
+             */
+            bpHolidayId?: number;
+            /**
+             * @description 휴일명 1~30자.
+             * @example 정기휴무
+             */
+            name: string;
+            /**
+             * @description 설명 500자까지. 비우면 null.
+             * @example 월요일마다 쉬는 정기 휴무
+             */
+            description?: string | null;
+            /**
+             * @description 휴일 유형(공통코드 HOLIDAY_TYPE) — DAY 하루 · PERIOD 기간 · REPEAT 반복.
+             * @example REPEAT
+             * @enum {string}
+             */
+            holidayTypeCode: "DAY" | "PERIOD" | "REPEAT";
+            /**
+             * @description 시작일(반복의 기준일). 오늘(한국 날짜) 이후.
+             * @example 2026-11-02
+             */
+            startDate: string;
+            /**
+             * @description 기간의 종료일. 하루 · 반복은 무시한다.
+             * @example 2026-11-04
+             */
+            endDate?: string | null;
+            /**
+             * @description 반복 유형(공통코드 HOLIDAY_REPEAT_TYPE) — 반복일 때만.
+             * @example WEEKLY
+             * @enum {string|null}
+             */
+            holidayRepeatTypeCode?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | null;
+            /**
+             * @description 반복 종료 조건 — NONE 없음 · UNTIL_DATE 특정 날짜까지 · COUNT 지정 횟수만큼.
+             * @example NONE
+             * @enum {string|null}
+             */
+            repeatEndType?: "NONE" | "UNTIL_DATE" | "COUNT" | null;
+            /**
+             * @description 반복 종료일 — UNTIL_DATE 일 때만.
+             * @example 2026-12-28
+             */
+            repeatEndDate?: string | null;
+            /**
+             * @description 반복 횟수 1~9999 — COUNT 일 때만. 없는 날짜(31일 · 2월 29일)는 세지 않는다.
+             * @example 10
+             */
+            repeatCount?: number | null;
+            /**
+             * @description 전체 점포 휴일인가. true 면 예외 점포(excludedStoreIds), false 면 대상 점포(storeIds)를 받는다.
+             * @example false
+             */
+            isAllStores: boolean;
+            /**
+             * @description 특정 점포 휴일의 대상 점포 — 하나 이상, 1000개까지.
+             * @example [
+             *       3
+             *     ]
+             */
+            storeIds?: number[];
+            /**
+             * @description 전체 점포 휴일의 예외 점포 — 이 휴일에서 빠진다. 1000개까지.
+             * @example []
+             */
+            excludedStoreIds?: number[];
+        };
+        BpHolidayOverlapDateResponseDto: {
+            /** @example 2026-11-02 */
+            date: string;
+            /**
+             * @example [
+             *       "정기휴무"
+             *     ]
+             */
+            holidayNames: string[];
+        };
+        BpHolidayOverlapStoreResponseDto: {
+            storeId: number;
+            storeName: string;
+            /** @description 앞 10건. */
+            dates: components["schemas"]["BpHolidayOverlapDateResponseDto"][];
+            /** @description 10건 말고 더 겹치는 날짜 수. */
+            moreDateCount: number;
+        };
+        BpHolidayOverlapsResponseDto: {
+            /** @description 겹치는 점포 수. */
+            storeCount: number;
+            /** @description 겹치는 (점포, 날짜) 수. */
+            dateCount: number;
+            stores: components["schemas"]["BpHolidayOverlapStoreResponseDto"][];
+        };
+        BpHolidayStoreResponseDto: {
+            storeId: number;
+            /** @example ST000003 */
+            storeCode: string;
+            name: string;
+            /**
+             * @description DIRECT · FRANCHISE.
+             * @example DIRECT
+             */
+            storeTypeCode: string;
+            /**
+             * @description 점포 상태 — 폐점(CLOSED)이면 화면에 태그를 붙인다.
+             * @example OPERATING
+             */
+            storeStatusCode: string;
+            /**
+             * @description 이 기간의 시작일.
+             * @example 2026-09-21
+             */
+            effectiveStartDate: string;
+            /** @description 이 사용자가 맡은 점포인가 — 일부 점포 사용자는 맡은 점포만 빼거나 더한다. */
+            isManaged: boolean;
+        };
+        BpHolidayDetailResponseDto: {
+            bpHolidayId: number;
+            name: string;
+            description: string | null;
+            isAllStores: boolean;
+            holidayTypeCode: string;
+            /** @example 2026-09-21 */
+            startDate: string;
+            /** @description 하루는 시작일과 같고 반복은 null. */
+            endDate: string | null;
+            holidayRepeatTypeCode: string | null;
+            /** @description NONE · UNTIL_DATE · COUNT. 반복이 아니면 null. */
+            repeatEndType: string | null;
+            repeatEndDate: string | null;
+            repeatCount: number | null;
+            /**
+             * @description 오늘 기준 — UPCOMING 시작 전 · ONGOING 진행 중 · ENDED 종료.
+             * @enum {string}
+             */
+            state: "ENDED" | "UPCOMING" | "ONGOING";
+            /** @description 특정 점포면 대상 점포, 전체 점포면 예외 점포(지금 열린 기간). */
+            stores: components["schemas"]["BpHolidayStoreResponseDto"][];
+            /** @description 고른 날짜(없으면 오늘)에 이 휴일이 적용되는 점포 수. */
+            appliedStoreCount: number;
+            /** @description 반복이면 고른 날짜 다음 날짜 세 개까지. 반복이 아니면 빈 배열. */
+            nextDates: string[];
+            histories: components["schemas"]["BpHolidayHistoryResponseDto"][];
+            actions: components["schemas"]["BpHolidayActionsResponseDto"];
+            createdAt: string;
+            createdByName: string | null;
+            updatedAt: string;
+            updatedByName: string | null;
+        };
+        SaveBpHolidayDto: {
+            /**
+             * @description 휴일명 1~30자.
+             * @example 정기휴무
+             */
+            name: string;
+            /**
+             * @description 설명 500자까지. 비우면 null.
+             * @example 월요일마다 쉬는 정기 휴무
+             */
+            description?: string | null;
+            /**
+             * @description 휴일 유형(공통코드 HOLIDAY_TYPE) — DAY 하루 · PERIOD 기간 · REPEAT 반복.
+             * @example REPEAT
+             * @enum {string}
+             */
+            holidayTypeCode: "DAY" | "PERIOD" | "REPEAT";
+            /**
+             * @description 시작일(반복의 기준일). 오늘(한국 날짜) 이후.
+             * @example 2026-11-02
+             */
+            startDate: string;
+            /**
+             * @description 기간의 종료일. 하루 · 반복은 무시한다.
+             * @example 2026-11-04
+             */
+            endDate?: string | null;
+            /**
+             * @description 반복 유형(공통코드 HOLIDAY_REPEAT_TYPE) — 반복일 때만.
+             * @example WEEKLY
+             * @enum {string|null}
+             */
+            holidayRepeatTypeCode?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | null;
+            /**
+             * @description 반복 종료 조건 — NONE 없음 · UNTIL_DATE 특정 날짜까지 · COUNT 지정 횟수만큼.
+             * @example NONE
+             * @enum {string|null}
+             */
+            repeatEndType?: "NONE" | "UNTIL_DATE" | "COUNT" | null;
+            /**
+             * @description 반복 종료일 — UNTIL_DATE 일 때만.
+             * @example 2026-12-28
+             */
+            repeatEndDate?: string | null;
+            /**
+             * @description 반복 횟수 1~9999 — COUNT 일 때만. 없는 날짜(31일 · 2월 29일)는 세지 않는다.
+             * @example 10
+             */
+            repeatCount?: number | null;
+            /**
+             * @description 전체 점포 휴일인가. true 면 예외 점포(excludedStoreIds), false 면 대상 점포(storeIds)를 받는다.
+             * @example false
+             */
+            isAllStores: boolean;
+            /**
+             * @description 특정 점포 휴일의 대상 점포 — 하나 이상, 1000개까지.
+             * @example [
+             *       3
+             *     ]
+             */
+            storeIds?: number[];
+            /**
+             * @description 전체 점포 휴일의 예외 점포 — 이 휴일에서 빠진다. 1000개까지.
+             * @example []
+             */
+            excludedStoreIds?: number[];
+        };
+        BpHolidayCreatedResponseDto: {
+            bpHolidayId: number;
+        };
+        UpdateBpHolidayDto: {
+            /**
+             * @description 상세에서 읽은 updatedAt — 그 뒤 다른 사용자가 고쳤으면 409.
+             * @example 2026-10-26T01:00:00.000Z
+             */
+            updatedAt: string;
+            /**
+             * @description 휴일명 1~30자.
+             * @example 정기휴무
+             */
+            name: string;
+            /**
+             * @description 설명 500자까지. 비우면 null.
+             * @example 월요일마다 쉬는 정기 휴무
+             */
+            description?: string | null;
+            /**
+             * @description 휴일 유형(공통코드 HOLIDAY_TYPE) — DAY 하루 · PERIOD 기간 · REPEAT 반복.
+             * @example REPEAT
+             * @enum {string}
+             */
+            holidayTypeCode: "DAY" | "PERIOD" | "REPEAT";
+            /**
+             * @description 시작일(반복의 기준일). 오늘(한국 날짜) 이후.
+             * @example 2026-11-02
+             */
+            startDate: string;
+            /**
+             * @description 기간의 종료일. 하루 · 반복은 무시한다.
+             * @example 2026-11-04
+             */
+            endDate?: string | null;
+            /**
+             * @description 반복 유형(공통코드 HOLIDAY_REPEAT_TYPE) — 반복일 때만.
+             * @example WEEKLY
+             * @enum {string|null}
+             */
+            holidayRepeatTypeCode?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | null;
+            /**
+             * @description 반복 종료 조건 — NONE 없음 · UNTIL_DATE 특정 날짜까지 · COUNT 지정 횟수만큼.
+             * @example NONE
+             * @enum {string|null}
+             */
+            repeatEndType?: "NONE" | "UNTIL_DATE" | "COUNT" | null;
+            /**
+             * @description 반복 종료일 — UNTIL_DATE 일 때만.
+             * @example 2026-12-28
+             */
+            repeatEndDate?: string | null;
+            /**
+             * @description 반복 횟수 1~9999 — COUNT 일 때만. 없는 날짜(31일 · 2월 29일)는 세지 않는다.
+             * @example 10
+             */
+            repeatCount?: number | null;
+            /**
+             * @description 전체 점포 휴일인가. true 면 예외 점포(excludedStoreIds), false 면 대상 점포(storeIds)를 받는다.
+             * @example false
+             */
+            isAllStores: boolean;
+            /**
+             * @description 특정 점포 휴일의 대상 점포 — 하나 이상, 1000개까지.
+             * @example [
+             *       3
+             *     ]
+             */
+            storeIds?: number[];
+            /**
+             * @description 전체 점포 휴일의 예외 점포 — 이 휴일에서 빠진다. 1000개까지.
+             * @example []
+             */
+            excludedStoreIds?: number[];
+        };
+        TerminateBpHolidayDto: {
+            /**
+             * @description 상세에서 읽은 updatedAt.
+             * @example 2026-10-26T01:00:00.000Z
+             */
+            updatedAt: string;
         };
     };
     responses: never;
@@ -8287,7 +9567,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 형식 위반 · 동시 수정 토큰 형식 오류 · 이메일 변경 시 지금 비밀번호 틀림(없음 포함) */
+            /** @description 형식 위반 · 동시 수정 토큰 형식 오류 */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -8296,6 +9576,34 @@ export interface operations {
             };
             /** @description 이미 등록된 이메일 · 동시 수정(다른 관리자가 먼저 저장) */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminAuthController_changeMyPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminMyPasswordChangeDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 현재 비밀번호 불일치 · 비밀번호 정책 위반 · 새 비밀번호가 현재와 같음 · 확인 불일치 */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8371,6 +9679,13 @@ export interface operations {
         };
         responses: {
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description clearBusinessVerification 과 businessVerificationToken 을 함께 보냄 */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10830,6 +12145,47 @@ export interface operations {
             };
         };
     };
+    PublicHolidaysController_list: {
+        parameters: {
+            query: {
+                /** @description 연도. 2000~2100(공식 휴일 테이블의 범위). */
+                year: number;
+                /** @description 월 1~12. 주면 그 달(캘린더), 없으면 그 해 전체(목록). 목록은 키를 빼고 보낸다 — 빈 값(`month=`)은 400. */
+                month?: number;
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicHolidayListResponseDto"];
+                };
+            };
+            /** @description 연도 2000~2100 · 월 1~12 밖 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     BpCodesController_list: {
         parameters: {
             query: {
@@ -10990,10 +12346,18 @@ export interface operations {
         parameters: {
             query?: {
                 /**
-                 * @description 쉼표로 구분한 점포 ID. 관리 범위 밖의 ID 는 조용히 빠진다. 없으면 관리 범위 전체.
-                 *     빈 칸 · 숫자가 아닌 값 · 1..2147483647 밖의 값이 하나라도 있거나 500개를 넘으면 400 이다.
+                 * @description 고른 점포(관리자웹 목록 점포 필터 · 상단 점포 범위). 쉼표로 1000개까지(`storeIds=1,2`). 같은 키 반복
+                 *     (`storeIds=1&storeIds=2`)도 받지만 쿼리 파서가 키를 1000개까지만 읽어 넘치면 뒤 조건이 400 없이 빠지므로 많을 때는
+                 *     쉼표로 보낸다(api #132 리뷰). 관리 범위 밖의 id 는 조용히 빠진다. 주지 않으면 관리 범위 전체.
+                 *     빈 칸 · 숫자가 아닌 값 · 1..2147483647 밖의 값이 하나라도 있거나 1000개를 넘으면 400 이다.
                  */
-                storeIds?: string;
+                storeIds?: number[];
+                /**
+                 * @description 점포 유형(상단 점포 범위의 직영 · 가맹) — DIRECT · FRANCHISE, 반복하거나 쉼표로. 주면 그 유형 점포만이고 폐점 점포는
+                 *     뺀다(TO-DO 목록 api #133 과 같다, 2026-10-22 재영 — 폐점 점포는 전체 · 점포를 골라 본다). storeIds 와 함께 주면 둘 다
+                 *     맞는 점포만이다. 주지 않으면 유형 · 폐점 무관. 빈 값 · 모르는 값이 하나라도 있으면 400 이다.
+                 */
+                storeTypes?: ("DIRECT" | "FRANCHISE")[];
                 /**
                  * @description 쉼표로 구분한 고용형태. 없으면 전체. 화면은 둘 다 고르면 보내지 않는다.
                  *     빈 값 · 모르는 값이 하나라도 있으면 400 이다.
@@ -11525,6 +12889,61 @@ export interface operations {
             };
         };
     };
+    StaffBirthDateController_correct: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BirthDateCorrectionDto"];
+            };
+        };
+        responses: {
+            /** @description 정정함 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description BIRTH_DATE_INVALID(문자열 날짜의 형식 오류 · 없는 날짜 · 오늘(KST) 뒤 날짜(내일부터); birthDate 없음 · 문자열 아님 · 모르는 필드는 code 없는 ValidationPipe 400) / BIRTH_DATE_UNDER_AGE(한국 오늘 기준 만 19세 미만) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 직원 정보 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 직원이거나 관리 범위 밖 · 본사 제공 동의로 가려진 직원 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description BIRTH_DATE_NOT_JOINED(계정 없음(가입 전) · 계정이 JOINED 아님(탈퇴 · 연결 보류)) / BIRTH_DATE_RETIRED(퇴직한 레코드 · 퇴직일이 지났는데 배치 전인 레코드. 퇴직 예정은 허용) / BIRTH_DATE_UNCHANGED(지금 값과 같음) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     PayslipsController_findAll: {
         parameters: {
             query: {
@@ -11537,9 +12956,14 @@ export interface operations {
                 status?: string;
                 /**
                  * @description 쉼표로 구분한 점포 ID(직원 목록과 같다). 관리 범위 밖의 ID 는 조용히 빠진다. 없으면 관리 범위 전체.
-                 *     빈 칸 · 숫자가 아닌 값 · 1..2147483647 밖의 값이 하나라도 있거나 500개를 넘으면 400 이다. 상태 건수도 이 점포로 센다.
+                 *     빈 칸 · 숫자가 아닌 값 · 1..2147483647 밖의 값이 하나라도 있거나 1000개를 넘으면 400 이다(직원 목록과 같다). 상태 건수도 이 점포로 센다.
                  */
                 storeIds?: string;
+                /**
+                 * @description 쉼표로 구분한 점포 유형(상단 점포 범위의 직영 · 가맹) — DIRECT · FRANCHISE. 주면 그 유형 점포만이고 폐점 점포는 뺀다(직원
+                 *     목록과 같다). storeIds 와 함께 주면 둘 다 맞는 점포만이다. 빈 값 · 모르는 값이 하나라도 있으면 400 이다.
+                 */
+                storeTypes?: string;
                 /** @description 페이지당 건수 — 20 · 50 · 100, 기본 20 */
                 pageSize?: 20 | 50 | 100;
                 /**
@@ -11916,6 +13340,55 @@ export interface operations {
             };
             /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PayslipsController_recalculate: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayslipStatusChangeDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayslipDetailResponseDto"];
+                };
+            };
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PAYSLIP_STATUS_CONFLICT — 작성 중 · 검토 중이 아님 · PAYSLIP_STALE — 그사이 누가 고침 */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12824,7 +14297,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description { contractId, status(그대로 — PENDING_SEND · PENDING_SIGNATURE), sentAt, signDeadlineAt } */
+            /** @description { contractId, status(가입 초대는 그대로 PENDING_SEND · PENDING_SIGNATURE, 가입한 직원은 PENDING_SIGNATURE), sentAt, signDeadlineAt }. 가입한 직원은 알림함 알림(앱 푸시는 #261 전까지 나가지 않음) — 알림 템플릿을 쓸 수 없거나 탈퇴 계정이면 알림 없이 기한만 새로 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -12845,22 +14318,66 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description CONTRACT_STATUS_CONFLICT(발송 대기 · 서명 대기가 아님) · SEND_CHANNEL_NOT_READY(가입한 직원 · 계정이 있는 번호 — 앱 알림 준비 전) · SEND_PHONE_NOT_MOBILE(휴대폰 번호가 아님) · 다른 요청이 먼저 고침 */
+            /** @description CONTRACT_STATUS_CONFLICT(발송 대기 · 서명 대기가 아님) · SEND_CHANNEL_NOT_READY(계정이 있는 번호의 소속 추가 확인 · 복귀 확인 — 직원 앱에 소속 확인이 없음) · SEND_PHONE_NOT_MOBILE(휴대폰 번호가 아님) · 코드 없음 「이 점포에 이미 재직 중인 직원입니다」(가입 전 레코드인데 그 번호의 계정이 이 점포에 재직 중) · 다른 요청이 먼저 고침 */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description SEND_FAILED(나가지 않음 — 거절 · 토큰 단계 · 요청 전 오류, 되돌렸고 다시 보낼 수 있음, 본문 contractId · status) · SEND_UNCONFIRMED(접수 여부 모름 또는 되돌리기 실패 — 상세를 다시 읽을 것) */
+            /** @description 가입 초대 알림톡일 때만 — SEND_FAILED(나가지 않음 — 거절 · 토큰 단계 · 요청 전 오류, 되돌렸고 다시 보낼 수 있음, 본문 contractId · status) · SEND_UNCONFIRMED(접수 여부 모름 또는 되돌리기 실패 — 상세를 다시 읽을 것) */
             502: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 직원 앱 주소(STAFF_APP_URL)가 없음 · 대체 문자 발신번호(BIZPPURIO_SMS_FROM)가 없음 · 가입 초대 템플릿이 없거나 꺼짐 */
+            /** @description 가입 초대 알림톡일 때만 — 직원 앱 주소(STAFF_APP_URL)가 없음 · 대체 문자 발신번호(BIZPPURIO_SMS_FROM)가 없음 · 가입 초대 템플릿이 없거나 꺼짐 */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ContractSendController_end: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                contractId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description { contractId, status: ENDED } */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 근로계약 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 계약 · 업무 범위 밖 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description CONTRACT_STATUS_CONFLICT(발송 대기가 아님 — 지금 상태를 싣는다) · 다른 요청이 먼저 고침 */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -13144,6 +14661,338 @@ export interface operations {
             };
             /** @description 내 계약이 아님 — 없는 id · 남의 계약 · 임시저장 · 발송 대기 · 소속 확인 대기 계약(후보 계정만). 모두 같은 본문 */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    NotificationsController_findAll: {
+        parameters: {
+            query?: {
+                /** @description 페이지, 1부터. 상한은 OFFSET 이 DB 정수 범위를 넘어 500 이 되지 않게 둔다 */
+                page?: number;
+                /** @description 페이지당 건수, 기본 20 · 최대 200 */
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationListResponseDto"];
+                };
+            };
+            /** @description 쿼리 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 직원 앱 토큰이거나 사용 중인 관리자 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    NotificationsController_remove: {
+        parameters: {
+            query: {
+                /** @description 빈 칸 · 숫자가 아닌 값 · 1..2147483647 밖의 값이 있거나 200개를 넘으면 400 이다 */
+                ids: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description ids 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 직원 앱 토큰이거나 사용 중인 관리자 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    NotificationsController_readAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationReadAllResponseDto"];
+                };
+            };
+            /** @description 직원 앱 토큰이거나 사용 중인 관리자 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    NotificationsController_read: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationItemDto"];
+                };
+            };
+            /** @description 직원 앱 토큰이거나 사용 중인 관리자 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 알림이 아니거나 지운 알림 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyNotificationsController_list: {
+        parameters: {
+            query?: {
+                /** @description 페이지, 1부터. 상한은 OFFSET 이 DB 정수 범위를 넘어 500 이 되지 않게 둔다 */
+                page?: number;
+                /** @description 페이지당 건수, 기본 20 · 최대 200 */
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyNotificationListResponseDto"];
+                };
+            };
+            /** @description 쿼리 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyNotificationsController_readAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationReadAllResponseDto"];
+                };
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyNotificationsController_read: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyNotificationItemDto"];
+                };
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 알림이 아니거나 지웠거나 14일이 지났다 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyNotificationsController_unread: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyNotificationItemDto"];
+                };
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 알림이 아니거나 지웠거나 14일이 지났다 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyNotificationPreferencesController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyNotificationPreferenceListResponseDto"];
+                };
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyNotificationPreferencesController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category: components["schemas"]["PreferenceCategory"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMyNotificationPreferenceDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyNotificationPreferenceDto"];
+                };
+            };
+            /** @description 모르는 묶음 · isEnabled 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -14594,338 +16443,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PublishedPostListResponseDto"];
                 };
-            };
-        };
-    };
-    NotificationsController_findAll: {
-        parameters: {
-            query?: {
-                /** @description 페이지, 1부터. 상한은 OFFSET 이 DB 정수 범위를 넘어 500 이 되지 않게 둔다 */
-                page?: number;
-                /** @description 페이지당 건수, 기본 20 · 최대 200 */
-                pageSize?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotificationListResponseDto"];
-                };
-            };
-            /** @description 쿼리 형식 오류 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 직원 앱 토큰이거나 사용 중인 관리자 계정이 아님 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    NotificationsController_remove: {
-        parameters: {
-            query: {
-                /** @description 빈 칸 · 숫자가 아닌 값 · 1..2147483647 밖의 값이 있거나 200개를 넘으면 400 이다 */
-                ids: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description ids 형식 오류 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 직원 앱 토큰이거나 사용 중인 관리자 계정이 아님 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    NotificationsController_readAll: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotificationReadAllResponseDto"];
-                };
-            };
-            /** @description 직원 앱 토큰이거나 사용 중인 관리자 계정이 아님 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    NotificationsController_read: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotificationItemDto"];
-                };
-            };
-            /** @description 직원 앱 토큰이거나 사용 중인 관리자 계정이 아님 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 내 알림이 아니거나 지운 알림 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    MyNotificationsController_list: {
-        parameters: {
-            query?: {
-                /** @description 페이지, 1부터. 상한은 OFFSET 이 DB 정수 범위를 넘어 500 이 되지 않게 둔다 */
-                page?: number;
-                /** @description 페이지당 건수, 기본 20 · 최대 200 */
-                pageSize?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MyNotificationListResponseDto"];
-                };
-            };
-            /** @description 쿼리 형식 오류 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 관리자 토큰 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    MyNotificationsController_readAll: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotificationReadAllResponseDto"];
-                };
-            };
-            /** @description 관리자 토큰 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    MyNotificationsController_read: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MyNotificationItemDto"];
-                };
-            };
-            /** @description 관리자 토큰 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 내 알림이 아니거나 지웠거나 14일이 지났다 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    MyNotificationsController_unread: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MyNotificationItemDto"];
-                };
-            };
-            /** @description 관리자 토큰 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 내 알림이 아니거나 지웠거나 14일이 지났다 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    MyNotificationPreferencesController_list: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MyNotificationPreferenceListResponseDto"];
-                };
-            };
-            /** @description 관리자 토큰 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    MyNotificationPreferencesController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                category: components["schemas"]["PreferenceCategory"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateMyNotificationPreferenceDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MyNotificationPreferenceDto"];
-                };
-            };
-            /** @description 모르는 묶음 · isEnabled 형식 오류 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 관리자 토큰 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -17002,6 +18519,582 @@ export interface operations {
             };
         };
     };
+    MyAttendanceController_get: {
+        parameters: {
+            query: {
+                /** @description 앱 전역에서 고른 소속(직원 레코드) — `GET /me/memberships` 의 staffMemberId (ATT-07) */
+                staffMemberId: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyAttendanceResponseDto"];
+                };
+            };
+            /** @description staffMemberId 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 · LOCATION_CONSENT_REQUIRED — 위치정보 동의 없음 · 철회 · 약관 버전이 바뀌어 다시 동의 필요 / LOCATION_PAUSED — 위치 수집 일시 중지. 위치를 보지 않는 근무지는 보지 않는다 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 체결 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyAttendanceController_locationRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocationReadDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationReadResultDto"];
+                };
+            };
+            /** @description 본문 형식 오류 · 위치를 보지 않는 근무지 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 · LOCATION_CONSENT_REQUIRED — 위치정보 동의 없음 · 철회 · 약관 버전이 바뀌어 다시 동의 필요 / LOCATION_PAUSED — 위치 수집 일시 중지. 위치를 보지 않는 근무지는 보지 않는다 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 체결 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyAttendanceController_checkIn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckInDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceRecordResultDto"];
+                };
+            };
+            /** @description 본문 형식 오류 · 출근에 쓸 수 없는 사유 · 위치를 보지 않는 근무지에 사유 · 위치 읽음 · 위치를 보는 근무지인데 위치 읽음이 없거나 이미 쓴 것 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 · LOCATION_CONSENT_REQUIRED — 위치정보 동의 없음 · 철회 · 약관 버전이 바뀌어 다시 동의 필요 / LOCATION_PAUSED — 위치 수집 일시 중지. 위치를 보지 않는 근무지는 보지 않는다 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 체결 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description ALREADY_CHECKED_IN — 어느 소속에든 열린 출근이 있음(openCheckIn 을 함께) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description CONTRACT_PENDING_SIGNATURE — 서명 대기 계약(contractId) / NO_CONTRACT — 오늘이 체결 완료 근로계약 기간 밖이거나 퇴직일이 지남 (ATT-12) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyAttendanceController_checkOut: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckOutDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceRecordResultDto"];
+                };
+            };
+            /** @description 본문 형식 오류 · 퇴근에 쓸 수 없는 사유 · 위치를 보지 않는 근무지에 사유 · 위치 읽음 · 위치를 보는 근무지인데 위치 읽음이 없거나 이미 쓴 것 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 · LOCATION_CONSENT_REQUIRED — 위치정보 동의 없음 · 철회 · 약관 버전이 바뀌어 다시 동의 필요 / LOCATION_PAUSED — 위치 수집 일시 중지. 위치를 보지 않는 근무지는 보지 않는다 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 체결 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description NO_OPEN_CHECK_IN — 고른 소속에 열린 출근이 없음. 다른 소속에 있으면 openCheckIn 을 함께. CHECK_OUT_EXPIRED — 열린 출근이 출근한 다음 날을 지남(관리자 보정으로 닫는다) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyAttendanceController_myRecords: {
+        parameters: {
+            query: {
+                /** @description 앱 전역에서 고른 소속(직원 레코드) */
+                staffMemberId: number;
+                /** @description 시작일 YYYY-MM-DD(한국) */
+                from: string;
+                /** @description 끝날 YYYY-MM-DD(포함). 시작부터 366일 이하(HIST-2 「한 번에 최대 1년」) */
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyAttendanceRecordsResponseDto"];
+                };
+            };
+            /** @description 쿼리 형식 오류 · 기간이 366일 넘음 · 끝이 시작보다 앞 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 — 위치 동의는 보지 않는다 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 체결 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AttendanceRecordsController_daily: {
+        parameters: {
+            query: {
+                /** @description 점포 유형(상단 범위 직영 · 가맹) — DIRECT · FRANCHISE. 폐점 점포는 뺀다 */
+                storeTypes?: ("DIRECT" | "FRANCHISE")[];
+                /** @description 날짜 YYYY-MM-DD(한국). 출근 기록 시각 · 근무스케줄 시작이 이 날인 것 */
+                date: string;
+                /** @description 고른 점포. 여러 개는 `storeIds=1&storeIds=2` 와 쉼표 `storeIds=1,2` 중 하나로, 1000개까지 */
+                storeIds?: number[];
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyAttendanceResponseDto"];
+                };
+            };
+            /** @description 쿼리 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AttendanceRecordsController_period: {
+        parameters: {
+            query: {
+                /** @description 점포 유형(상단 범위 직영 · 가맹) — DIRECT · FRANCHISE. 폐점 점포는 뺀다 */
+                storeTypes?: ("DIRECT" | "FRANCHISE")[];
+                /** @description 시작일 YYYY-MM-DD(한국) */
+                from: string;
+                /** @description 끝날 YYYY-MM-DD(포함). 시작부터 92일 이하 */
+                to: string;
+                /** @description 직원 레코드 — 주면 그 직원만. 점포 조건 안의 직원이 아니거나 본사에게 가려지는 직원이면 404 */
+                staffMemberId?: number;
+                /** @description 고른 점포. 여러 개는 `storeIds=1&storeIds=2` 와 쉼표 `storeIds=1,2` 중 하나로, 1000개까지 */
+                storeIds?: number[];
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeriodAttendanceResponseDto"];
+                };
+            };
+            /** @description 쿼리 형식 오류 · 기간이 92일 넘음 · 끝이 시작보다 앞 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 직원이 점포 조건 안의 직원이 아니거나 본사에게 가려진 직원 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AttendanceRecordsController_proxyStaff: {
+        parameters: {
+            query: {
+                /** @description 점포 유형(상단 범위 직영 · 가맹) — DIRECT · FRANCHISE. 폐점 점포는 뺀다 */
+                storeTypes?: ("DIRECT" | "FRANCHISE")[];
+                /** @description 날 YYYY-MM-DD(한국) */
+                date: string;
+                /** @description 고른 점포. 여러 개는 `storeIds=1&storeIds=2` 와 쉼표 `storeIds=1,2` 중 하나로, 1000개까지 */
+                storeIds?: number[];
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProxyStaffResponseDto"];
+                };
+            };
+            /** @description 쿼리 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AttendanceRecordsController_proxy: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProxyAttendanceDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceEditResultDto"];
+                };
+            };
+            /** @description 본문 형식 오류 · 3개월이 지났거나 오늘 이후 · 아직 오지 않은 시각 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description ALREADY_CHECKED_IN — 퇴근 없이 출근만 넣는데 열린 출근이 있음 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PROXY_NOT_ALLOWED — 위치정보 동의가 있는 직원 · 위치를 보지 않는 점포 / NO_CONTRACT — 그날 체결 완료 계약 없음 · 퇴직 뒤 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AttendanceRecordsController_correct: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                recordId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CorrectAttendanceDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceEditResultDto"];
+                };
+            };
+            /** @description 본문 형식 오류 · 3개월이 지남 · 있던 쪽 시각을 비움 · 바뀐 값 없음 · 아직 오지 않은 시각 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 기록 · 업무 범위 밖 · 본사에게 가려진 직원 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description ATTENDANCE_CHANGED — 그사이 다른 관리자가 고침 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AttendanceRecordsController_review: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                recordId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceEditResultDto"];
+                };
+            };
+            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 기록 · 업무 범위 밖 · 본사에게 가려진 직원 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description ATTENDANCE_CHANGED — 확인 필요 사유가 없음(이미 검토됨) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AttendanceRecordsController_history: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                recordId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceHistoryResponseDto"];
+                };
+            };
+            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 기록 · 업무 범위 밖 · 본사에게 가려진 직원 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     MyProfileController_get: {
         parameters: {
             query?: never;
@@ -17885,6 +19978,383 @@ export interface operations {
             };
             /** @description 계정 번호로 코드를 5번 틀려 30분 잠김(INVITATION_CODE_LOCKED, 본문 lockExpiresAt — 재발송하면 풀림) · 기본 요청 제한 */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpHolidaysController_list: {
+        parameters: {
+            query: {
+                /** @description 연도 2000~2100. */
+                year: number;
+                /** @description 월 1~12. */
+                month: number;
+                /** @description 휴일명에 들어 있으면 나온다(캘린더 · 목록 모두). */
+                name?: string;
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BpHolidayListResponseDto"];
+                };
+            };
+            /** @description 쿼리 · 본문 검증 실패 · 플랫폼 계정의 BP 미선택 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 쓸 수 없는 계정 · 메뉴 권한 없음 · 다른 BP 헤더 · 일부 점포 사용자의 전체 점포 휴일 · 맡지 않은 점포 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpHolidaysController_create: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveBpHolidayDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BpHolidayCreatedResponseDto"];
+                };
+            };
+            /** @description 쿼리 · 본문 검증 실패 · 플랫폼 계정의 BP 미선택 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 쓸 수 없는 계정 · 메뉴 권한 없음 · 다른 BP 헤더 · 일부 점포 사용자의 전체 점포 휴일 · 맡지 않은 점포 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpHolidaysController_histories: {
+        parameters: {
+            query: {
+                /** @description 시작 날짜. */
+                from?: string;
+                /** @description 끝 날짜(그날 포함). */
+                to?: string;
+                /** @description 1부터. */
+                page: number;
+                /** @description 기본 20, 최대 200. */
+                pageSize: number;
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BpHolidayHistoryListResponseDto"];
+                };
+            };
+            /** @description 쿼리 · 본문 검증 실패 · 플랫폼 계정의 BP 미선택 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 쓸 수 없는 계정 · 메뉴 권한 없음 · 다른 BP 헤더 · 일부 점포 사용자의 전체 점포 휴일 · 맡지 않은 점포 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpHolidaysController_overlaps: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckBpHolidayOverlapsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BpHolidayOverlapsResponseDto"];
+                };
+            };
+            /** @description 쿼리 · 본문 검증 실패 · 플랫폼 계정의 BP 미선택 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 쓸 수 없는 계정 · 메뉴 권한 없음 · 다른 BP 헤더 · 일부 점포 사용자의 전체 점포 휴일 · 맡지 않은 점포 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpHolidaysController_detail: {
+        parameters: {
+            query?: {
+                /** @description 캘린더 · 목록에서 고른 날짜. */
+                date?: string;
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                bpHolidayId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BpHolidayDetailResponseDto"];
+                };
+            };
+            /** @description 쿼리 · 본문 검증 실패 · 플랫폼 계정의 BP 미선택 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 쓸 수 없는 계정 · 메뉴 권한 없음 · 다른 BP 헤더 · 일부 점포 사용자의 전체 점포 휴일 · 맡지 않은 점포 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 · 지운 · 볼 수 없는 휴일 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpHolidaysController_update: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                bpHolidayId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateBpHolidayDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 쿼리 · 본문 검증 실패 · 플랫폼 계정의 BP 미선택 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 쓸 수 없는 계정 · 메뉴 권한 없음 · 다른 BP 헤더 · 일부 점포 사용자의 전체 점포 휴일 · 맡지 않은 점포 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 · 지운 · 볼 수 없는 휴일 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 끝난 휴일 · 진행 중 휴일의 날짜 · 유형 · 반복 · 적용 범위 변경 · 다른 사용자가 먼저 수정 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpHolidaysController_remove: {
+        parameters: {
+            query: {
+                /** @description 상세에서 읽은 updatedAt. */
+                updatedAt: string;
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                bpHolidayId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 쿼리 · 본문 검증 실패 · 플랫폼 계정의 BP 미선택 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 쓸 수 없는 계정 · 메뉴 권한 없음 · 다른 BP 헤더 · 일부 점포 사용자의 전체 점포 휴일 · 맡지 않은 점포 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 · 지운 · 볼 수 없는 휴일 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 이미 지난 날짜가 있는 휴일(강제 종료를 쓴다) · 다른 사용자가 먼저 수정 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpHolidaysController_terminate: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                bpHolidayId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TerminateBpHolidayDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 쿼리 · 본문 검증 실패 · 플랫폼 계정의 BP 미선택 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 쓸 수 없는 계정 · 메뉴 권한 없음 · 다른 BP 헤더 · 일부 점포 사용자의 전체 점포 휴일 · 맡지 않은 점포 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 · 지운 · 볼 수 없는 휴일 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 끝난 휴일 · 오늘 이후에 시작하는 휴일(삭제를 쓴다) · 다른 사용자가 먼저 수정 */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
