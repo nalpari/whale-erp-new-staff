@@ -22,14 +22,16 @@ export const readSeen = () => memory ?? readStorage();
 /** 「다음에 하기」 — 본 요청에 지금 요청을 더해 기억하고 팝업에 알린다. */
 export function rememberSeen(key: string) {
   const seen = mergeSeenKey(key, readSeen());
+  let wrote = false;
   try {
     sessionStorage.setItem(STORAGE_KEY, seen);
+    // 쓰기가 됐어도 다시 읽혀야 저장소만 믿는다 — 쓰기는 되는데 읽기가 던지는 환경에서 화면 안 값을 비우면 닫은 팝업이 다시 뜬다.
+    wrote = sessionStorage.getItem(STORAGE_KEY) === seen;
   } catch {
-    // 저장소를 막은 브라우저 — 아래에서 화면 안에만 둔다.
+    // 저장소를 막은 브라우저 — 화면 안에만 둔다.
   }
-  // 저장소에서 같은 값을 다시 읽을 수 있을 때만 화면 안 값을 비운다 — 남겨 두면 readSeen 이 옛 값을 먼저 읽고, 쓰기는 되는데 읽기가
-  // 던지는 환경에서 비우면 닫은 팝업이 다시 뜬다.
-  memory = readStorage() === seen ? null : seen;
+  // 저장소에 남았으면 화면 안 값을 비운다(남겨 두면 readSeen 이 옛 값을 먼저 읽는다). 아니면 화면 안에만 둔다.
+  memory = wrote ? null : seen;
   listeners.forEach((listener) => listener());
 }
 

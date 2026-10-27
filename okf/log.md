@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-27
+* **Update**: f6fafd3 code-review 반영 — 결과 화면의 버튼 줄을 늘 [홈으로] · [요청 목록]으로 두고 목록 조회를 뺐다. 수락 완료의 점포 이름을 가입 완료와 같은 짧은 쿠키(`accepted_store`)로 되살렸다(주소에는 싣지 않음). 무효화는 `revalidatePath("/", "layout")` 하나로, 결과 제목 · 설명은 `contentOf` 하나로 묶고 React `cache` 로 한 번만 읽는다. 팝업 기억은 쓰기 뒤 다시 읽혀야(wrote) 화면 안 값을 비운다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 67192e2 code-review 반영 — 결과 경로에 점포 이름을 싣지 않고(가짜 결과 링크 · 기록 노출) 「소속이 추가되었습니다」로 그린다. 결과로 보낼 때 기록을 바꿔 넣고 확인 · 홈 · 내 정보 · 소속 근무지를 무효화하며, 읽지 못하는 결과 주소는 홈으로 보낸다. 결과마다 문서 title, 「다른 요청 보기」만 Suspense, 본문 틀 · 첫 제목을 `screen-parts.tsx` 로 묶었다. 팝업 기억은 저장소에서 같은 값을 다시 읽을 수 있을 때만 화면 안 값을 비운다. #146 후속 자리를 결과 화면으로 고치고 sources 에 더했다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: #38 Young Joo 리뷰 블로커 반영 — 소속 추가 확인에 답한 뒤 결과를 결과 경로 `/affiliations/done` 으로 보내 그린다. 액션 상태로만 그리면 proxy 의 토큰 갱신(쿠키 씀)이나 하이드레이션 전 제출로 화면이 다시 그려져 결과가 사라졌다. 팝업 기억은 저장소 쓰기가 다시 성공하면 화면 안 값을 비운다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: PR #38 code-review 반영 — 홈 팝업 · 내 정보 배지 · 소속 근무지 요청 줄을 따로 `Suspense` 로 받고, 재직 중 안내는 수락에만, code 없는 404 · 거절의 409 는 다시 누를 수 있는 오류로 남긴다. 팝업 기억은 로그인할 때 지우고, 팝업 줄에 직무를 더했다. 요청 줄을 공통 `AffiliationRequestList` 로 묶고 새 색을 Alert 경고 색으로 맞췄으며 「30일」 고정 문구를 뺐다 — [Whale ERP Staff](/whale-erp-staff.md).

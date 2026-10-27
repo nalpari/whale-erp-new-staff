@@ -5,6 +5,7 @@ import { CONNECTION_FAILED, RATE_LIMITED } from "./action-errors.ts";
 import {
   ALREADY_EMPLOYED,
   answerFailure,
+  contentOf,
   employmentLine,
   invitationTypeLabel,
   isPopupDismissed,
@@ -96,6 +97,14 @@ test("parseResult 는 정한 값만 받고 나머지는 null", () => {
   assert.equal(parseResult({ result: "accepted" }), null);
   // 점포 이름은 받지 않는다 — 남이 만든 링크의 글이 결과에 실리지 않는다
   assert.deepEqual(parseResult({ result: "accepted", store: "가짜 점포", contracts: "1" }), { kind: "accepted", contractCount: 1 });
+});
+
+test("contentOf 는 결과마다 제목 · 설명을 주고, 수락이면 쿠키의 점포 이름을 넣는다", () => {
+  assert.equal(contentOf({ kind: "accepted", contractCount: 1 }, "홍대점").title, "홍대점 소속이 추가되었습니다");
+  assert.equal(contentOf({ kind: "accepted", contractCount: 1 }).title, "소속이 추가되었습니다");
+  assert.equal(contentOf({ kind: "rejected" }, "홍대점").title, "소속 추가를 거절했습니다");
+  assert.equal(contentOf({ kind: "closed", reason: "ended" }).title, "끝난 요청입니다");
+  assert.equal(contentOf({ kind: "closed", reason: "answered" }).title, "이미 답한 요청입니다");
 });
 
 test("invitationTypeLabel 은 복귀 확인과 소속 추가 요청을 가른다", () => {
