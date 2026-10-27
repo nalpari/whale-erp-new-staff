@@ -20,14 +20,8 @@ export const metadata: Metadata = { title: "홈 · Whale ERP" };
 export default async function HomePage() {
   const { account } = await requireSession();
   // 머리줄의 근무지 · 새 알림 점(HOME-2). 소속 목록을 못 받으면 선택기만 감추고 종만 둔다 — 홈 나머지는 그대로 보인다.
-  // 소속 추가 요청(WHALEERP-144)은 팝업으로만 알린다 — 못 받으면 팝업 없이 홈을 그대로 보인다.
-  const [memberships, notifications, affiliationRequests] = await Promise.all([
-    getCurrentMembership(),
-    getMyNotifications("pageSize=1"),
-    getMyAffiliationRequests(),
-  ]);
+  const [memberships, notifications] = await Promise.all([getCurrentMembership(), getMyNotifications("pageSize=1")]);
   const current = memberships?.current;
-  const affiliation = popupSummary(affiliationRequests ?? []);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -66,14 +60,16 @@ export default async function HomePage() {
       <div className="sticky bottom-0 mt-auto">
         <BottomNav current="/" />
       </div>
-      {affiliation && (
-        <AffiliationPopup
-          requestKey={affiliation.key}
-          storeName={affiliation.storeName}
-          employmentTypeLabel={affiliation.employmentTypeLabel}
-          others={affiliation.others}
-        />
-      )}
+      {/* 소속 추가 요청(WHALEERP-144)은 팝업으로만 알린다. 따로 받아 api 가 느려도 홈을 먼저 보인다. */}
+      <Suspense>
+        <AffiliationRequests />
+      </Suspense>
     </div>
   );
+}
+
+/** 소속 추가 요청 팝업. 못 받으면 팝업 없이 홈을 그대로 보인다. */
+async function AffiliationRequests() {
+  const summary = popupSummary((await getMyAffiliationRequests()) ?? []);
+  return summary && <AffiliationPopup requestKey={summary.key} rows={summary.rows} />;
 }

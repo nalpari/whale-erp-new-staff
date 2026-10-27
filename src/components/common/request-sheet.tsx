@@ -5,7 +5,7 @@ import { Alert } from "./alert";
 import { BottomSheet } from "./bottom-sheet";
 import { DangerButton } from "./danger-button";
 
-// 확인을 바라는 요청을 알리는 시트(데모 home 의 날인 요청 팝업 sign-req 모양). 경고 짝 색(#FFF6E5 · #956013) 판에 이름 · 값 줄,
+// 확인을 바라는 요청을 알리는 시트(데모 home 의 날인 요청 팝업 sign-req 모양). Alert 경고 판과 같은 색(#FFF6E5 · #956013, 줄 사이 흰 선) 판에 이름 · 값 줄,
 // 그 아래 설명과 가는 버튼 하나, 맨 아래 닫기(「다음에 하기」). 소속 추가 요청(WHALEERP-144)이 쓰고, 날인 요청 팝업(148)도
 // 문구 · 줄 · 버튼만 바꿔 같은 것을 쓴다.
 export function RequestSheet({
@@ -29,7 +29,7 @@ export function RequestSheet({
 }) {
   return (
     <BottomSheet open={open} onClose={onClose} title={title} closeLabel={closeLabel}>
-      <dl className="flex flex-col divide-y divide-[#f5e3c0] rounded-[12px] bg-[#fff6e5] px-[14px] py-[4px]">
+      <dl className="flex flex-col divide-y divide-white rounded-[12px] bg-[#fff6e5] px-[14px] py-[4px]">
         {rows.map(({ label, value }) => (
           <div key={label} className="flex items-center gap-[12px] py-[10px]">
             <dt className="shrink-0 text-[13px] font-semibold text-[#956013]">{label}</dt>

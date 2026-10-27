@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Alert, Badge, BottomNav, Button, Card, MaskIcon } from "@/components/common";
 import { PRESS } from "@/components/common/theme";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
@@ -58,15 +58,12 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
   const { changed } = await searchParams;
   // 주소에서 오는 값이라 정한 키만 받는다(`?changed=toString` 같은 프로토타입 이름이 함수를 꺼내지 않게).
   const toast = typeof changed === "string" && Object.hasOwn(CHANGED_TOAST, changed) ? CHANGED_TOAST[changed] : undefined;
-  const [profile, memberships, employmentTypes, locationTerms, affiliationRequests] = await Promise.all([
+  const [profile, memberships, employmentTypes, locationTerms] = await Promise.all([
     getMyProfile(),
     getMyMemberships(),
     getEnumOrEmpty("EmploymentType"),
     getCurrentTerms("LOCATION"),
-    getMyAffiliationRequests(),
   ]);
-  // 답하지 않은 소속 추가 요청(WHALEERP-144) 수 — 소속 근무지 줄에 배지로 알린다. 못 받았으면 0 으로 둔다.
-  const requestCount = affiliationRequests?.length ?? 0;
   const items = memberships?.items ?? [];
   const first = items.at(0);
 
@@ -105,7 +102,10 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
                   {first ? `${first.store.storeName}${items.length > 1 ? ` 외 ${items.length - 1}곳` : ""}` : "아직 없습니다"}
                 </span>
               </span>
-              {requestCount > 0 && <Badge tone="warning">요청 {requestCount}건</Badge>}
+              {/* 답하지 않은 소속 추가 요청(WHALEERP-144) 수. 따로 받아 api 가 느려도 화면을 먼저 보인다. */}
+              <Suspense>
+                <RequestCountBadge />
+              </Suspense>
               {first && <Badge tone="plain">{labelOf(employmentTypes, first.employmentType)}</Badge>}
               <Image src="/icons/chevron-right-muted.svg" alt="" width={12} height={12} className="-scale-y-100" />
             </Link>
@@ -167,4 +167,10 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
       </div>
     </div>
   );
+}
+
+/** 소속 근무지 줄의 「요청 N건」 배지. 없거나 못 받았으면 두지 않는다. */
+async function RequestCountBadge() {
+  const count = (await getMyAffiliationRequests())?.length ?? 0;
+  return count > 0 && <Badge tone="warning">요청 {count}건</Badge>;
 }

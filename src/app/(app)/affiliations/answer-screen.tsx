@@ -173,7 +173,7 @@ function Result({ state, hasOthers }: { state: Exclude<AnswerState, { step: "inp
             <Notice icon={<MaskIcon src="/icons/contract.svg" size={14} />}>
               {state.contractCount > 0 ? (
                 <>
-                  이 소속의 <strong>근로계약서가 발송되었습니다.</strong> 날인해야 근무가 시작됩니다. 날인 기한은 오늘부터 30일입니다.
+                  이 소속의 <strong>근로계약서가 발송되었습니다.</strong> 날인해야 근무가 시작됩니다.
                 </>
               ) : (
                 <>근로계약서가 도착하면 알림으로 알려 드립니다. 날인해야 근무가 시작됩니다.</>

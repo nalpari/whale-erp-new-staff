@@ -6,6 +6,7 @@ import {
   ALREADY_EMPLOYED,
   answerFailure,
   employmentLine,
+  invitationTypeLabel,
   isPopupDismissed,
   mergeSeenKey,
   parseRejectReason,
@@ -24,29 +25,47 @@ test("parseRejectReason 은 500자까지 받고 넘으면 막는다", () => {
   assert.deepEqual(parseRejectReason("가".repeat(501)), { ok: false, error: "거절 사유는 500자 이하로 입력해 주세요" });
 });
 
-test("answerFailure 는 code 로 더 답할 수 없는 요청을 가른다", () => {
-  const title = (status: number, code?: string) => {
-    const { state } = answerFailure({ status, message: "", code });
-    return state.step === "closed" ? state.title : null;
-  };
-  assert.equal(title(409, "AFFILIATION_REQUEST_ANSWERED"), "이미 답한 요청입니다");
-  assert.equal(title(404, "AFFILIATION_REQUEST_ENDED"), "끝난 요청입니다");
-  assert.equal(title(404, "AFFILIATION_REQUEST_NOT_FOUND"), "요청을 찾을 수 없습니다");
+const ERROR = { step: "input", error: "요청을 처리하지 못했습니다. 잠시 뒤 다시 시도해 주세요" };
+
+test("answerFailure 는 code 로 더 답할 수 없는 요청을 가른다 — 수락 · 거절 같다", () => {
+  for (const answer of ["accept", "reject"] as const) {
+    const title = (status: number, code?: string) => {
+      const { state } = answerFailure({ status, message: "", code }, answer);
+      return state.step === "closed" ? state.title : null;
+    };
+    assert.equal(title(409, "AFFILIATION_REQUEST_ANSWERED"), "이미 답한 요청입니다");
+    assert.equal(title(404, "AFFILIATION_REQUEST_ENDED"), "끝난 요청입니다");
+    assert.equal(title(404, "AFFILIATION_REQUEST_NOT_FOUND"), "요청을 찾을 수 없습니다");
+  }
 });
 
-test("answerFailure 는 이 점포에 재직 중(code 없는 409)이면 수락만 막고 거절은 남긴다", () => {
-  assert.deepEqual(answerFailure({ status: 409, message: "이 점포에 이미 재직 중입니다" }), {
+test("answerFailure 는 수락의 code 없는 409(이 점포에 재직 중)만 수락을 막고 거절은 남긴다", () => {
+  assert.deepEqual(answerFailure({ status: 409, message: "이 점포에 이미 재직 중입니다" }, "accept"), {
     state: { step: "input", error: ALREADY_EMPLOYED, acceptBlocked: true },
     log: false,
   });
 });
 
+test("answerFailure 는 거절의 code 없는 409 를 재직 중 안내 없이 일반 오류로 두고 남긴다", () => {
+  assert.deepEqual(answerFailure({ status: 409, message: "Conflict" }, "reject"), { state: ERROR, log: true });
+});
+
+test("answerFailure 는 code 없는 404(라우트 없음 · api 배포 전)를 끝난 화면이 아니라 다시 누를 수 있는 오류로 두고 남긴다", () => {
+  for (const answer of ["accept", "reject"] as const)
+    assert.deepEqual(answerFailure({ status: 404, message: "Cannot POST /me/affiliation-requests/3/accept" }, answer), { state: ERROR, log: true });
+});
+
 test("answerFailure 는 다시 누를 수 있는 실패를 입력 상태로 두고, 예상 밖 4xx 만 남긴다", () => {
-  assert.deepEqual(answerFailure("network"), { state: { step: "input", error: CONNECTION_FAILED }, log: false });
-  assert.deepEqual(answerFailure({ status: 429, message: "" }), { state: { step: "input", error: RATE_LIMITED }, log: false });
-  assert.equal(answerFailure({ status: 400, message: "" }).log, true);
-  assert.equal(answerFailure({ status: 503, message: "" }).log, false);
-  assert.equal(answerFailure({ status: 503, message: "" }).state.step, "input");
+  assert.deepEqual(answerFailure("network", "accept"), { state: { step: "input", error: CONNECTION_FAILED }, log: false });
+  assert.deepEqual(answerFailure({ status: 429, message: "" }, "reject"), { state: { step: "input", error: RATE_LIMITED }, log: false });
+  assert.equal(answerFailure({ status: 400, message: "" }, "reject").log, true);
+  assert.equal(answerFailure({ status: 503, message: "" }, "accept").log, false);
+  assert.equal(answerFailure({ status: 503, message: "" }, "accept").state.step, "input");
+});
+
+test("invitationTypeLabel 은 복귀 확인과 소속 추가 요청을 가른다", () => {
+  assert.equal(invitationTypeLabel({ invitationType: "RETURN_CONFIRM" }), "복귀 확인");
+  assert.equal(invitationTypeLabel({ invitationType: "AFFILIATION_CONFIRM" }), "소속 추가 요청");
 });
 
 const request = (invitationId: number, storeName: string): AffiliationRequest => ({
@@ -62,12 +81,27 @@ const request = (invitationId: number, storeName: string): AffiliationRequest =>
   asksHqSharingConsent: false,
 });
 
-test("popupSummary 는 첫 요청과 나머지 수를, 없으면 null 을 준다", () => {
+test("popupSummary 는 요청이 없으면 null", () => {
   assert.equal(popupSummary([]), null);
+});
+
+test("popupSummary 는 요청이 하나면 점포와 고용 형태 · 직무 줄을 준다", () => {
+  assert.deepEqual(popupSummary([{ ...request(9, "홍대점"), jobTitle: "바리스타" }]), {
+    rows: [
+      { label: "점포", value: "홍대점" },
+      { label: "고용 형태", value: "파트타이머 · 바리스타" },
+    ],
+    key: "9",
+  });
+  assert.equal(popupSummary([{ ...request(9, "홍대점"), employmentTypeLabel: null }])?.rows[1].value, "고용 형태 미정");
+});
+
+test("popupSummary 는 요청이 여럿이면 첫 점포 「외 N곳」과 요청 수를 준다", () => {
   assert.deepEqual(popupSummary([request(9, "홍대점"), request(3, "강남역점")]), {
-    storeName: "홍대점",
-    employmentTypeLabel: "파트타이머",
-    others: 1,
+    rows: [
+      { label: "점포", value: "홍대점 외 1곳" },
+      { label: "요청", value: "2건" },
+    ],
     key: "3,9",
   });
 });

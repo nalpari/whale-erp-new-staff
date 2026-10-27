@@ -37,7 +37,7 @@ const CLOSED = {
   },
   ended: {
     title: "끝난 요청입니다",
-    message: "확인 기한(30일)이 지났거나 새 요청으로 바뀌었습니다. 점포 관리자에게 다시 보내 달라고 요청해 주세요.",
+    message: "확인 기한이 지났거나 새 요청으로 바뀌었습니다. 점포 관리자에게 다시 보내 달라고 요청해 주세요.",
   },
   notFound: {
     title: "요청을 찾을 수 없습니다",
@@ -53,28 +53,44 @@ const closed = (key: keyof typeof CLOSED): AnswerState => ({ step: "closed", ...
 
 /**
  * 수락 · 거절 실패를 화면 상태로. log 는 계약 어긋남(예상 밖 4xx)으로 남길지다 — 5xx · 연결 실패는 request() 가 남겼다.
- * 404 · 409 는 code 로 가른다. 409 에 code 가 없으면 「이 점포에 이미 재직 중」(수락만)이라 수락을 막고 거절은 남긴다.
+ * 404 · 409 는 code 로 가른다. 수락의 code 없는 409 만 「이 점포에 이미 재직 중」이라 수락을 막고 거절은 남긴다. 그 밖의 code 없는
+ * 404 · 409(라우트 없음 · api 배포 전 등)는 예상 밖이라 다시 누를 수 있는 오류로 두고 남긴다.
  */
-export function answerFailure(failure: ApiFailure): { state: AnswerState; log: boolean } {
+export function answerFailure(failure: ApiFailure, answer: "accept" | "reject"): { state: AnswerState; log: boolean } {
   if (failure === "network") return { state: { step: "input", error: CONNECTION_FAILED }, log: false };
   const { status, code } = failure;
-  if (status === 404) return { state: closed(code === "AFFILIATION_REQUEST_ENDED" ? "ended" : "notFound"), log: false };
-  if (status === 409)
-    return code === "AFFILIATION_REQUEST_ANSWERED"
-      ? { state: closed("answered"), log: false }
-      : { state: { step: "input", error: ALREADY_EMPLOYED, acceptBlocked: true }, log: false };
+  if (code === "AFFILIATION_REQUEST_ENDED") return { state: closed("ended"), log: false };
+  if (code === "AFFILIATION_REQUEST_NOT_FOUND") return { state: closed("notFound"), log: false };
+  if (code === "AFFILIATION_REQUEST_ANSWERED") return { state: closed("answered"), log: false };
+  if (status === 409 && answer === "accept" && code === undefined)
+    return { state: { step: "input", error: ALREADY_EMPLOYED, acceptBlocked: true }, log: false };
   if (status === 429) return { state: { step: "input", error: RATE_LIMITED }, log: false };
   return { state: { step: "input", error: `요청을 처리하지 못했습니다. ${RETRY_LATER}` }, log: status < 500 };
 }
 
-/** 로그인 뒤 팝업에 보일 요약 — api 목록의 첫 요청과 나머지 수. */
-export function popupSummary(items: AffiliationRequest[]): { storeName: string; employmentTypeLabel: string | null; others: number; key: string } | null {
+/** 소속 추가 확인 · 복귀 확인을 가르는 배지 글자. 화면 용어는 둘 다 「소속 추가 확인 요청」이다. */
+export const invitationTypeLabel = ({ invitationType }: Pick<AffiliationRequest, "invitationType">) =>
+  invitationType === "RETURN_CONFIRM" ? "복귀 확인" : "소속 추가 요청";
+
+/**
+ * 로그인 뒤 팝업에 보일 줄과 기억할 값. 요청이 하나면 점포와 고용 형태 · 직무(확인 화면 · 목록과 같은 줄), 여럿이면 첫 점포 「외 N곳」과
+ * 요청 수 — 첫 요청의 고용 형태만 보이면 나머지도 같은 줄 안다.
+ */
+export function popupSummary(items: AffiliationRequest[]): { rows: { label: string; value: string }[]; key: string } | null {
   const first = items.at(0);
   if (!first) return null;
+  const others = items.length - 1;
   return {
-    storeName: first.storeName,
-    employmentTypeLabel: first.employmentTypeLabel,
-    others: items.length - 1,
+    rows:
+      others > 0
+        ? [
+            { label: "점포", value: `${first.storeName} 외 ${others}곳` },
+            { label: "요청", value: `${items.length}건` },
+          ]
+        : [
+            { label: "점포", value: first.storeName },
+            { label: "고용 형태", value: employmentLine(first) },
+          ],
     // 「다음에 하기」를 눌렀을 때 기억하는 값(id 묶음). 새 요청이 오면 다시 뜬다(isPopupDismissed).
     key: items
       .map((item) => item.invitationId)
