@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { Button, MaskIcon, RequestSheet } from "@/components/common";
-import { isPopupDismissed, mergeSeenKey } from "@/lib/affiliation-requests";
+import { employmentLine, isPopupDismissed, mergeSeenKey } from "@/lib/affiliation-requests";
 
 // 소속 추가 요청 팝업(WHALEERP-144, 2026-10-26 재영). 답하지 않은 요청이 있으면 홈 위에 띄운다 — 날인 요청 팝업(데모 home 의 sign-req)과
 // 같은 모양이다. 「다음에 하기」를 누르면 본 요청을 이 탭(sessionStorage)에 기억해 다시 띄우지 않는다 — 하나에 답해 줄어도 그대로 닫혀 있고,
@@ -73,7 +73,10 @@ export function AffiliationPopup({
       title="소속 추가 요청이 있습니다."
       rows={[
         { label: "점포", value: others > 0 ? `${storeName} 외 ${others}곳` : storeName },
-        { label: "고용 형태", value: employmentTypeLabel ?? "미정" },
+        // 여럿이면 첫 요청의 고용 형태만 보이지 않고 요청 수를 보인다. 비었을 때 문구는 확인 화면 · 목록(employmentLine)과 같다.
+        others > 0
+          ? { label: "요청", value: `${others + 1}건` }
+          : { label: "고용 형태", value: employmentLine({ employmentTypeLabel, jobTitle: null }) },
       ]}
       description="수락하기 전에는 소속이 바뀌지 않습니다. 지금 확인하지 않아도 내 정보 - 소속 근무지에서 다시 볼 수 있습니다."
       action={
