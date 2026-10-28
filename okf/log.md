@@ -5,8 +5,15 @@
 * **Update**: PR #44 리뷰 반영 — 날인 가능 · 기한 강조 · 날인 자리를 api `awaitingSignature` 로만 정하고, 날인할 수 없는 서명 대기는 목록 · 상세 모두 만료 · 서명 불가로 처리가 끝난 묶음에 둔다. 받기 실패는 글자 응답 대신 상세로 돌려보내 `?download=` 안내(Alert). 제9조에서 아직 사실이 아닌 「앱에서 처리 완료본을 내려받는다」를 뺐다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 146 PR 전 리뷰 반영 — 날인 기한을 상세는 늘 · 목록은 당일이면 시각까지 보이고(기한은 발송 시각 + 30일 그 시각), 번호 가리기 · 근로시간 소수 한 자리 · 수습 감액 없음 문구를 맞췄다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 근로계약서 조회 `/contracts` · `/contracts/[contractId]`(WHALEERP-146)를 더했다 — 전자계약은 조항 열 가지와 요일별 소정근로시간 표를 화면에 그리고, 종이 계약은 올라온 날인본 · 임금계약서와 「받기」(라우트가 api 의 300초 서명 주소로 302, 401 은 로그인), 처리가 끝난 계약은 읽기 전용, 기한 7일 이내 강조. 소속 근무지의 「근로계약서」 버튼을 열어 그 근무지 계약서만 보이게 했다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: #38 에 main 병합 — okf 양쪽 기록을 살리고, api 타입을 api main(#164 머지 뒤) 기준으로 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
 
 ## 2026-10-27
+* **Update**: f6fafd3 code-review 반영 — 결과 화면의 버튼 줄을 늘 [홈으로] · [요청 목록]으로 두고 목록 조회를 뺐다. 수락 완료의 점포 이름을 가입 완료와 같은 짧은 쿠키(`accepted_store`)로 되살렸다(주소에는 싣지 않음). 무효화는 `revalidatePath("/", "layout")` 하나로, 결과 제목 · 설명은 `contentOf` 하나로 묶고 React `cache` 로 한 번만 읽는다. 팝업 기억은 쓰기 뒤 다시 읽혀야(wrote) 화면 안 값을 비운다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 67192e2 code-review 반영 — 결과 경로에 점포 이름을 싣지 않고(가짜 결과 링크 · 기록 노출) 「소속이 추가되었습니다」로 그린다. 결과로 보낼 때 기록을 바꿔 넣고 확인 · 홈 · 내 정보 · 소속 근무지를 무효화하며, 읽지 못하는 결과 주소는 홈으로 보낸다. 결과마다 문서 title, 「다른 요청 보기」만 Suspense, 본문 틀 · 첫 제목을 `screen-parts.tsx` 로 묶었다. 팝업 기억은 저장소에서 같은 값을 다시 읽을 수 있을 때만 화면 안 값을 비운다. #146 후속 자리를 결과 화면으로 고치고 sources 에 더했다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: #38 Young Joo 리뷰 블로커 반영 — 소속 추가 확인에 답한 뒤 결과를 결과 경로 `/affiliations/done` 으로 보내 그린다. 액션 상태로만 그리면 proxy 의 토큰 갱신(쿠키 씀)이나 하이드레이션 전 제출로 화면이 다시 그려져 결과가 사라졌다. 팝업 기억은 저장소 쓰기가 다시 성공하면 화면 안 값을 비운다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: PR #38 code-review 반영 — 홈 팝업 · 내 정보 배지 · 소속 근무지 요청 줄을 따로 `Suspense` 로 받고, 재직 중 안내는 수락에만, code 없는 404 · 거절의 409 는 다시 누를 수 있는 오류로 남긴다. 팝업 기억은 로그인할 때 지우고, 팝업 줄에 직무를 더했다. 요청 줄을 공통 `AffiliationRequestList` 로 묶고 새 색을 Alert 경고 색으로 맞췄으며 「30일」 고정 문구를 뺐다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 144 리뷰 반영 — 소속 추가 요청 목록은 401 밖의 실패를 모두 null 로 받아 홈 · 내 정보가 깨지지 않고, 팝업은 본 요청의 부분집합이면 닫아 두며 로그아웃하면 기억을 지운다. 이 점포에 재직 중(409)이면 수락만 막고 거절로 닫게 하고, 동의를 묻는 요청은 하이드레이션 전 수락을 막는다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 소속 추가 확인 · 복귀 확인(WHALEERP-144, api #164)을 열었다 — `/affiliations` 확인 화면 · 거절 시트, 홈 팝업, 소속 근무지의 요청 줄, 공통 `RequestSheet` · `ReasonSheet`. api 타입을 api growlithe(lima) 기준으로 다시 만들었다. 계약 화면(#146)이 없어 수락 뒤 날인 이동은 후속으로 적었다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 출퇴근 현황 — 확인 필요 사유 「근무 12시간 초과」(api `LONG_SHIFT`, 출근부터 12시간 넘은 퇴근, 2026-10-27 재영)의 시트 제목 · 설명을 더했다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Fix**: 출퇴근 등록 — api 의 퇴근 409 `CHECK_OUT_EXPIRED`(출근한 다음 날이 지난 열린 출근)를 「잠시 뒤 다시 시도」가 아니라 api 문구(근무지 관리자에게 퇴근 보정 요청)로 보인다. 화면의 `openCheckIn.isCheckOutExpired` 면 근무 경과 · 퇴근 버튼 대신 「퇴근 등록 기한이 지났습니다」와 관리자 보정 안내를 보이고 위치를 읽지 않으며, 「이미 출근해 있습니다」 시트도 날짜와 보정 안내로 바꾼다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
 
