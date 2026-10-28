@@ -13,7 +13,7 @@ import { Sunken, Values } from "@/app/_components/tax-profile-parts";
 export const metadata: Metadata = { title: "신고 정보 등록 완료 · Whale ERP" };
 
 // 신고 정보 처음 넣기 완료(WHALEERP-150, 데모 tax 의 done). 가린 값 · 쓰는 곳 · 받은 때만 보인다(원문은 api 가 내려 주지 않는다).
-// 신고 정보가 아직 없으면(주소로 바로 옴) 넣기로 보낸다. 다시 읽지 못하면 저장은 됐다고 알리고 가린 값만 뺀다.
+// 신고 정보가 아직 없으면(주소로 바로 옴) 넣기로 보낸다. 다시 읽지 못하면 등록했다고 단정하지 않는다(PR #42 리뷰).
 export default async function NewTaxProfileDonePage({ params }: PageProps<"/me/memberships/[staffMemberId]/tax-profile/new/done">) {
   const staffMemberId = parseStaffMemberId((await params).staffMemberId);
   if (staffMemberId === null) notFound();
@@ -33,8 +33,8 @@ export default async function NewTaxProfileDonePage({ params }: PageProps<"/me/m
     <div className="flex flex-1 flex-col">
       <div className="flex flex-1 flex-col justify-center gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
         <div className="flex flex-col gap-[6px]">
-          <h1 className="text-[22px] font-bold">신고 정보를 등록했습니다</h1>
-          <p className="text-[14px] text-staff-text-sub">이제 근무를 시작할 수 있습니다.</p>
+          <h1 className="text-[22px] font-bold">{profile ? "신고 정보를 등록했습니다" : "신고 정보를 확인하지 못했습니다"}</h1>
+          {profile && <p className="text-[14px] text-staff-text-sub">이제 근무를 시작할 수 있습니다.</p>}
         </div>
         {profile ? (
           <Sunken>
@@ -50,7 +50,7 @@ export default async function NewTaxProfileDonePage({ params }: PageProps<"/me/m
           </Sunken>
         ) : (
           <Alert tone="warning">
-            <p>등록한 값을 지금 불러오지 못했습니다. 잠시 뒤 신고 정보에서 확인해 주세요.</p>
+            <p>등록됐는지 지금 확인할 수 없습니다. 잠시 뒤 신고 정보에서 확인하고, 없으면 다시 넣어 주세요.</p>
           </Alert>
         )}
         <p className="text-[12px] text-staff-text-muted">내 정보 - 소속 근무지의 신고 정보에서 언제든 확인하고 새로 넣을 수 있습니다.</p>

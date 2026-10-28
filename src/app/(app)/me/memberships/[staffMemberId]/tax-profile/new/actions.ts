@@ -5,6 +5,7 @@ import { RedirectType, notFound, redirect } from "next/navigation";
 import { failureOf, logFailure, type Schemas } from "@/lib/api";
 import { clientIpFrom } from "@/lib/client-ip";
 import {
+  TAX_PROFILE_ALREADY_SUBMITTED,
   parseStaffMemberId,
   readTaxProfileForm,
   taxProfileCreateFailure,
@@ -28,7 +29,8 @@ async function savedMeanwhile(path: string): Promise<boolean> {
  * 날인 뒤 신고 정보 처음 넣기(WHALEERP-150, api `PUT /me/memberships/:staffMemberId/tax-profile`). 주민등록번호 · 급여 계좌를 함께
  * 보내고 지금 비밀번호는 보내지 않는다(api #138 — 처음 작성은 비교하지 않고, 빈 문자열은 형식 400). 처음 작성을 두 번 동시에 보내
  * 뒤쪽이 400 CURRENT_PASSWORD_MISMATCH 를 받으면 다시 읽어 저장됐으면 완료로 간다. 이미 낸 신고 정보가 있는 소속에서 이 액션을
- * 불러도 비밀번호가 없어 api 가 고치지 않는다(같은 400 → 다시 읽어 완료 화면).
+ * 부르면 먼저 조회해 보내지 않는다 — 비밀번호가 없어 api 도 고치지 않지만, 400 을 다시 읽기로 풀면 이번 값이 버려졌는데 완료로 보인다
+ * (PR #42 리뷰). 그래서 다시 읽기는 조회와 저장 사이에 다른 제출이 먼저 저장된 경우에만 쓰인다.
  * staffMemberId 는 화면이 bind 로 붙인 값이지만 누구나 직접 부를 수 있어 다시 거른다. 주민등록번호 원문은 api 로만 보낸다.
  */
 export async function createTaxProfileAction(
@@ -42,6 +44,8 @@ export async function createTaxProfileAction(
   if (!("body" in checked)) return checked;
   const path = `/me/memberships/${staffMemberId}/tax-profile`;
   try {
+    if ((await authedRequest<Schemas["MyTaxProfileResponseDto"]>(path)).taxProfile)
+      return { problem: { field: "form", message: TAX_PROFILE_ALREADY_SUBMITTED } };
     await authedRequest<Schemas["MyTaxProfileResponseDto"]>(path, {
       method: "PUT",
       json: checked.body,

@@ -268,3 +268,9 @@ test("taxProfileCreateFailure 는 동시 처음 작성의 400 CURRENT_PASSWORD_M
   assert.deepEqual(of(404).state, { problem: { field: "form", message: TAX_PROFILE_CREATE_NOT_FOUND } });
   assert.deepEqual(taxProfileCreateFailure("network"), { state: { problem: { field: "form", message: CONNECTION_FAILED } }, log: false, alreadySaved: false });
 });
+
+test("taxProfileCreateFailure 는 처음 넣기 화면에 없는 지금 비밀번호 칸 오류를 버튼 위로 옮긴다", () => {
+  const r = taxProfileCreateFailure({ status: 400, message: "currentPassword must be shorter" });
+  assert.equal(r.state.problem?.field, "form");
+  assert.equal(r.log, true);
+});

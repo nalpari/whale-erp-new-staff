@@ -180,6 +180,8 @@ export function taxProfileSaveFailure(failure: ApiFailure): { state: TaxProfileE
   return { state: problem("form", `신고 정보를 저장하지 못했습니다. ${RETRY_LATER}`), log: status < 500 };
 }
 
+/** 처음 넣기를 보냈는데 이 소속에 이미 낸 신고 정보가 있을 때 — 처음 넣기는 덮어쓰지 않는다. */
+export const TAX_PROFILE_ALREADY_SUBMITTED = "이 근무지에는 이미 낸 신고 정보가 있습니다. 바꾸려면 신고 정보의 「새로 넣기」에서 바꿔 주세요";
 /** 처음 넣기에서 은행을 고르지 않았을 때. */
 export const BANK_REQUIRED = "급여를 받을 은행을 골라 주세요";
 /** 처음 넣기의 api 404 — 내 소속이 아니다(퇴직 · 남의 id). */
@@ -212,5 +214,9 @@ export function taxProfileCreateFailure(failure: ApiFailure): { state: TaxProfil
     return { state: problem("form", "주민등록번호와 급여 계좌를 모두 넣어 주세요"), log: true, alreadySaved: false };
   if (failure !== "network" && failure.status === 404)
     return { state: problem("form", TAX_PROFILE_CREATE_NOT_FOUND), log: false, alreadySaved: false };
-  return { ...taxProfileSaveFailure(failure), alreadySaved: false };
+  const { state, log } = taxProfileSaveFailure(failure);
+  // 처음 넣기 화면에는 지금 비밀번호 칸이 없다 — 그 칸의 오류는 버튼 위로 옮긴다(보내지 않으므로 오면 계약이 어긋난 것).
+  if (state.problem?.field === "currentPassword")
+    return { state: problem("form", `신고 정보를 저장하지 못했습니다. ${RETRY_LATER}`), log: true, alreadySaved: false };
+  return { state, log, alreadySaved: false };
 }

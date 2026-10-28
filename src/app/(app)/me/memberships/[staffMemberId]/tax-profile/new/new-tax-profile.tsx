@@ -36,9 +36,9 @@ export function TaxProfileIntro({ storeName, formHref }: { storeName: string; fo
           </span>
           <h2 className="text-[22px] font-bold">신고 정보를 넣어 주세요</h2>
           <p className="text-[14px] text-staff-text-sub">
-            근로계약을 맺었습니다 — <strong className="text-staff-text">{storeName}</strong>
+            <strong className="text-staff-text">{storeName}</strong>에 낼 정보입니다.
             <br />
-            4대보험 신고와 급여 지급에 필요한 정보입니다.
+            4대보험 신고와 급여 지급에 필요합니다.
           </p>
         </div>
         <Card>
@@ -176,7 +176,8 @@ export function TaxProfileCreateForm({
         <TaxOwnerNotice storeName={storeName} noConsent />
       </div>
       <Dock>
-        <Button type="submit" disabled={pending || mismatch}>
+        {/* 은행 목록을 받지 못하면 계좌 칸이 막혀 셋 다 필수인 처음 넣기는 보낼 수 없다 — 칸의 안내가 사정을 말한다. */}
+        <Button type="submit" disabled={pending || mismatch || banks.length === 0}>
           등록하기
         </Button>
       </Dock>
