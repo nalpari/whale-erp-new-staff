@@ -192,7 +192,7 @@ export function SignupForm({
         {asksHqSharingConsent && (
           <div className="flex flex-col gap-[4px]">
             <CheckBox name="hqSharingConsented" checked={hqSharing} onChange={setHqSharing}>
-              본사 제공 동의 (선택)
+              사업자 제공 동의 (선택)
             </CheckBox>
             <p className="text-[12px] text-staff-text-muted">
               가맹본부가 내 근무 정보(근로계약 · 근무스케줄 · 출퇴근 기록 · 급여명세서)를 개인 단위로 보는 것에 동의합니다. 동의하지
@@ -204,7 +204,7 @@ export function SignupForm({
         {failed?.field === "form" ? (
           <Alert tone="danger">{failed.error}</Alert>
         ) : (
-          <Notice>이름 · 생년월일 · 성별 · 외국인 여부가 근로계약서와 다르면 날인하기 전에 근무지에 고쳐 달라고 요청하게 됩니다.</Notice>
+          <Notice>이름 · 생년월일 · 성별 · 외국인 여부가 근로계약서와 다르면 서명하기 전에 근무지에 고쳐 달라고 요청하게 됩니다.</Notice>
         )}
       </AuthScreen>
       <BottomSheet
