@@ -2334,6 +2334,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/contracts/{contractId}/documents/{contractDocumentId}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 내 근로계약 파일 내려받기 주소(300초) — 상세 documents 의 파일. 받으면 원래 파일 이름으로 저장된다 */
+        get: operations["MyContractDocumentsController_downloadUrl"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/notifications": {
         parameters: {
             query?: never;
@@ -17025,6 +17042,63 @@ export interface operations {
             };
             /** @description 내 계약이 아님 — 없는 id · 남의 계약 · 임시저장 · 발송 대기 · 소속 확인 대기 계약(후보 계정만). 모두 같은 본문 */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyContractDocumentsController_downloadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contractId: number;
+                contractDocumentId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadUrlResponseDto"];
+                };
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 계약이 아님(상세와 같은 본문) · 그 계약의 파일이 아님 · 상세 documents 에 없는 파일(직원 필기 서명) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description CONTRACT_STATUS_CONFLICT — 처리 완료본(SIGNED_COPY)인데 체결 완료 · 종료가 아님(서명 대기 · 수정 요청 · 거부 · 만료). 본문 status 에 지금 상태 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 첨부파일 저장소가 설정되지 않음 */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

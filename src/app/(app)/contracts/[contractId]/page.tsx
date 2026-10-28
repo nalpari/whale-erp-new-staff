@@ -78,14 +78,20 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
                     <span className="text-[14px] font-semibold">{labelOf(documentKinds, d.kind)}</span>
                     <span className="text-[12px] break-all text-staff-text-muted">{d.fileName}</span>
                   </span>
-                  {/* TODO(문서 내려받기 api): 직원용 계약서 파일 내려받기 api 가 생기면 여기에 「받기」 링크를 둔다 —
-                      급여명세서 PDF 처럼 이 앱의 라우트(/contracts/[contractId]/documents/[contractDocumentId])가 로그인 토큰으로 api 를 불러 넘긴다. */}
+                  {/* 이 앱의 라우트가 로그인 토큰으로 api 의 서명 주소를 받아 보낸다(documents/[contractDocumentId]/route.ts). 라우트
+                      핸들러라 Link 의 미리 받기를 쓰지 않는다. */}
+                  <a
+                    href={`/contracts/${c.contractId}/documents/${d.contractDocumentId}`}
+                    className="inline-flex h-[36px] shrink-0 items-center rounded-[10px] border border-staff-border bg-white px-[12px] text-[13px] font-semibold text-staff-text active:bg-staff-primary-inactive"
+                  >
+                    받기<span className="sr-only"> · {labelOf(documentKinds, d.kind)}</span>
+                  </a>
                 </li>
               ))}
             </ul>
           )}
         </section>
-        <Tiny>파일 내려받기는 준비 중입니다. 계약 내용을 바꾸려면 근무지 관리자에게 문의해 주세요.</Tiny>
+        <Tiny>계약 내용을 바꾸려면 근무지 관리자에게 문의해 주세요.</Tiny>
       </ContractFrame>
     );
   }
