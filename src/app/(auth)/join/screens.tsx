@@ -199,7 +199,7 @@ export function AccountExists() {
     <AuthScreen
       titleRef={titleRef}
       title="이미 계정이 있습니다"
-      description="이 휴대전화번호로 가입한 계정이 있습니다. 새로 가입하지 않고 로그인한 뒤 초대 코드를 넣으면 이 근무지가 더해집니다."
+      description="이 휴대전화번호로 가입한 계정이 있습니다. 새로 가입하지 않고 로그인한 뒤 초대 코드를 넣거나 초대 링크를 다시 누르면 이 근무지가 더해집니다."
       dock={
         <>
           <ToLogin primary href={withNext("/login", ADD_WORKPLACE_PATH)} />

@@ -30,8 +30,8 @@ export default async function AddWorkplaceDonePage() {
       }
     >
       <Notice>
-        근무지에서 보낸 근로계약서는 홈에서 확인하고 날인할 수 있습니다. 근로계약을 체결하면 소속 근무지에 보이고 그 근무지의 근무
-        정보를 볼 수 있습니다.
+        근로계약서 확인 · 날인 화면은 준비 중입니다. 근로계약을 체결하면 소속 근무지에 보이고 그 근무지의 근무 정보를 볼 수
+        있습니다.
       </Notice>
     </AuthScreen>
   );

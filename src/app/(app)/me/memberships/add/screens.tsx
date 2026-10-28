@@ -26,7 +26,7 @@ export function AlreadyJoined() {
     <AuthScreen
       titleRef={titleRef}
       title="이미 가입을 마친 초대입니다"
-      description="이 초대의 근무지는 이미 계정에 이어졌습니다. 근무지에서 보낸 근로계약서는 홈에서 확인할 수 있습니다."
+      description="이 초대의 근무지는 이미 계정에 이어졌습니다. 근로계약을 체결하면 소속 근무지에 보입니다."
       dock={
         <>
           <Button href={HOME_PATH} transitionTypes={["nav-forward"]}>
@@ -39,7 +39,10 @@ export function AlreadyJoined() {
   );
 }
 
-/** 로그인한 채 연 초대 링크가 이 계정의 휴대전화번호로 온 초대가 아니다(다른 사람의 링크 · 계약서 번호가 다름). */
+/**
+ * 로그인한 채 연 초대 링크가 이 계정의 휴대전화번호로 온 초대가 아니다(다른 사람의 링크 · 계약서 번호가 다름). api 는 모양만 맞고
+ * 망가진 토큰도 같은 404 로 답해 가르지 못한다 — 안내에 둘 다 적는다.
+ */
 export function NotForThisAccount() {
   const titleRef = useFocusedTitle();
   return (
@@ -47,9 +50,19 @@ export function NotForThisAccount() {
       titleRef={titleRef}
       title="이 계정으로 받을 수 없는 초대입니다"
       description="초대는 근로계약서에 적힌 휴대전화번호로 갑니다. 로그인한 계정의 번호로 온 초대만 더할 수 있습니다."
-      dock={<BackToMemberships />}
+      dock={
+        <>
+          <Button href={ADD_WORKPLACE_PATH} transitionTypes={["nav-forward"]}>
+            초대 코드 넣기
+          </Button>
+          <BackToMemberships />
+        </>
+      }
     >
-      <Notice>번호가 맞는데도 이 안내가 보이면 근무지 관리자에게 근로계약서의 휴대전화번호를 확인해 달라고 요청해 주세요.</Notice>
+      <Notice>
+        링크가 잘렸을 수도 있습니다. 같이 받은 초대 코드로 다시 해 보고, 그래도 이 안내가 보이면 근무지 관리자에게 근로계약서의
+        휴대전화번호를 확인해 달라고 요청해 주세요.
+      </Notice>
     </AuthScreen>
   );
 }
