@@ -46,7 +46,7 @@ export default async function JoinDonePage() {
         </dl>
         <p className="pt-[6px] text-[12px] text-staff-text-muted">생년월일은 가입한 뒤 직접 고칠 수 없습니다.</p>
       </Card>
-      <Notice>근무지에서 보낸 근로계약서는 홈에서 확인하고 날인할 수 있습니다.</Notice>
+      <Notice>근무지에서 보낸 근로계약서는 홈에서 확인하고 서명할 수 있습니다.</Notice>
     </AuthScreen>
   );
 }

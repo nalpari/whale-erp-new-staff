@@ -13,11 +13,11 @@ const STATES = [
   { id: "code-fail", label: "코드 틀림", note: "어느 칸인지 알리지 않음" },
   { id: "code-locked", label: "입력 잠금", note: "남은 시간 · 재발송 안내" },
   { id: "invite", label: "초대 확인", note: "가입 시작 전" },
-  { id: "has-account", label: "계정 있음", note: "로그인 뒤 소속 추가 확인" },
+  { id: "has-account", label: "계정 있음", note: "로그인 뒤 소속 근무지" },
   { id: "signup", label: "계정 등록", note: "초대 코드로 옴 · 번호 읽기 전용" },
   { id: "signup-link", label: "계정 등록 · 링크", note: "초대 링크로 옴 · 초대의 번호" },
   { id: "done", label: "가입 완료", note: "날인 요청 팝업 · 종이 계약은 신고 정보" },
-  { id: "bpshare", label: "본사 제공 동의", note: "가맹 점포 · 선택" },
+  { id: "bpshare", label: "사업자 제공 동의", note: "가맹 점포 · 선택" },
   { id: "minor", label: "만 19세 미만", note: "가입 중단" },
   { id: "addsite", label: "소속 추가 확인", note: "수락 전" },
   { id: "addsite-done", label: "소속 추가 완료", note: "수락 후" },
@@ -31,34 +31,33 @@ const HOME = page("home");
 const CONTRACT = page("contract", "detail");
 const LOGIN = page("login");
 
-const CODE_HELP = "초대 코드는 근무지에서 보낸 알림톡·문자에 있습니다. 받지 못했으면 근무지에 다시 보내 달라고 요청해 주세요.";
-const PHONE_FIX = "번호가 틀렸으면 근무지 관리자에게 알려 주세요. 관리자가 근로계약서의 번호를 고쳐 다시 초대합니다.";
+const CODE_HELP = "초대 코드는 근무지에서 보낸 알림톡·문자에서 확인할 수 있습니다.<br>받지 못했다면 근무지 관리자에게 요청해 주세요.";
 
 // 초대 코드 입력(code · code-fail). 틀려도 어느 칸인지 알리지 않으므로 두 칸을 함께 빨갛게 하고 문구는 코드 칸 아래 한 줄만.
 const codeView = (fail) =>
   pageHeader("초대 코드로 가입", { backHref: LOGIN }) +
   body(
     steps("1 / 4 · 초대 코드", 1) +
-      lead("초대 코드를 넣어 주세요", "초대를 받은 휴대전화번호와 8자리 초대 코드를 함께 넣습니다.", { align: "left", heading: "h2" }) +
+      lead("초대 코드 입력", "초대받은 휴대전화번호와 초대 코드 8자리를 입력해 주세요.", { align: "left", heading: "h2" }) +
       textField({
         label: "휴대전화번호*",
         type: "tel",
         inputmode: "numeric",
         required: true,
+        placeholder: "숫자만 입력해 주세요",
         value: "010-9284-5521",
         "data-need": "code",
         "aria-invalid": fail ? "true" : undefined,
-        help: "초대를 받은 번호입니다. 숫자만 넣으면 하이픈은 저절로 들어갑니다.",
       }) +
       textField({
         label: "초대 코드*",
         maxlength: 8,
         autocapitalize: "characters",
         required: true,
+        placeholder: "초대 코드 8자리",
         value: fail ? "K7M4Q9TS" : "K7M4Q9TX",
         "data-need": "code",
-        help: fail ? undefined : "8자리입니다. 두 칸을 모두 채우면 「다음」이 켜집니다.",
-        error: fail ? "휴대전화번호나 초대 코드를 다시 확인해 주세요" : undefined,
+        error: fail ? "휴대전화번호 또는 초대 코드를 다시 확인해 주세요" : undefined,
       }) +
       notice(CODE_HELP),
   ) +
@@ -89,9 +88,9 @@ const readOnlyField = ({ label, value, help }) => {
 
 const rows = (children) => `<div class="flex flex-col divide-y divide-staff-border-light">${children}</div>`;
 
-// 비밀번호 조건 충족 줄: 성공색(#22C55E) 원 안에 흰 체크.
-const met = (children) =>
-  `<li class="flex items-center gap-[8px]"><span class="flex size-[16px] shrink-0 items-center justify-center rounded-full bg-[#22c55e]">${img("check.svg", 10, 10)}</span><span>${children}</span></li>`;
+// 비밀번호 조건 줄(아직 입력 전): 빈 동그라미와 흐린 글자.
+const unmet = (children) =>
+  `<li class="flex items-center gap-[8px] text-staff-text-muted"><span class="size-[16px] shrink-0 rounded-full border border-staff-border"></span><span>${children}</span></li>`;
 
 const LINK_BTN = "text-[13px] font-semibold text-staff-text-sub underline underline-offset-2 transition-colors duration-150 ease-out active:bg-staff-primary-inactive";
 
@@ -103,19 +102,18 @@ const termRow = ({ title, required = false, sub, viewToast }) =>
   )}</p><p class="pt-[3px] text-[12px] text-staff-text-sub">${sub}</p></div><button type="button" data-toast="${viewToast}" aria-label="${title} 보기" class="-my-[8px] h-[44px] shrink-0 rounded-[12px] px-[10px] ${LINK_BTN}">보기</button></div>`;
 
 // 본사 제공 동의(가맹 점포 · 선택).
-// 선택 동의가 필수처럼 읽히지 않도록 「동의하지 않아도 가입과 근무는 그대로」를 체크 옆에 같이 둔다.
 const bpShareConsent = () =>
   sunken(
-    `<div class="flex items-start gap-[10px]">${checkBox({ label: "본사 제공 동의" })}<div class="min-w-0 flex-1"><p class="flex items-center gap-[6px] text-[14px] font-semibold">본사 제공 동의 ${badge(
+    `<div class="flex items-start gap-[10px]">${checkBox({ label: "사업자 제공 동의" })}<div class="min-w-0 flex-1"><p class="flex items-center gap-[6px] text-[14px] font-semibold">사업자 제공 동의 ${badge(
       "plain",
       "선택",
-    )}</p><p class="pt-[3px] text-[12px] text-staff-text-sub">가맹본부(웨일카페)가 내 근무 정보를 개인 단위로 보는 것에 동의합니다.</p><button type="button" data-open="bpshare" class="-ml-[10px] h-[44px] rounded-[12px] px-[10px] ${LINK_BTN}">내용 보기</button></div></div><p class="pt-[4px] text-[12px] text-staff-text-muted">동의하지 않아도 가입과 근무는 그대로 됩니다. 이때 본사에는 점포별 숫자로만 보입니다.</p>`,
+    )}</p><p class="pt-[3px] text-[12px] text-staff-text-sub">가맹본부(웨일카페)가 내 근무 정보를 개인 단위로 보는 것에 동의합니다.</p><button type="button" data-open="bpshare" class="-ml-[10px] h-[44px] rounded-[12px] px-[10px] ${LINK_BTN}">내용 보기</button></div></div>`,
   );
 
 const bpShareSheet = (a = {}) =>
   bottomSheet(
     "bpshare",
-    { title: "본사 제공 동의", ...a },
+    { title: "사업자 제공 동의", ...a },
     `<p class="text-[14px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text">가맹 점포에서 일하는 직원의 근무 정보를 <b>가맹본부가 개인 단위로</b> 보는 것에 대한 <b>선택 동의</b>입니다.</p>${sunken(
       values([
         ["받는 자", "가맹본부 · 웨일카페"],
@@ -123,14 +121,14 @@ const bpShareSheet = (a = {}) =>
         ["목적", "가맹점 운영 지원과 점검"],
         ["보유 기간", "철회 또는 가맹 관계 종료까지"],
       ]),
-    )}<p class="text-[12px] text-staff-text-sub [&_b]:font-bold">동의하지 않아도 가입과 근무는 그대로 됩니다. 이때 본사에는 <b>점포별 숫자로만</b> 보입니다. 동의는 내 정보에서 언제든 철회할 수 있고, <b>항목이나 목적이 넓어지면</b> 새 버전으로 다시 동의를 받습니다. <span class="text-staff-text-muted">본사 제공 동의 v1.0</span></p><p class="text-[12px] text-staff-text-muted">동의 문구는 법무 검토 중(ATT-8)</p>`,
+    )}<p class="text-[12px] text-staff-text-sub [&_b]:font-bold">동의하지 않아도 가입과 근무는 그대로 됩니다. 이때 본사에는 <b>점포별 숫자로만</b> 보입니다. 동의는 내 정보에서 언제든 철회할 수 있고, <b>항목이나 목적이 넓어지면</b> 새 버전으로 다시 동의를 받습니다. <span class="text-staff-text-muted">사업자 제공 동의 v1.0</span></p><p class="text-[12px] text-staff-text-muted">동의 문구는 법무 검토 중(ATT-8)</p>`,
   );
 
 const rejectSheet = (a = {}) =>
   bottomSheet(
     "reject",
-    { title: "소속 추가를 거절하시겠어요?", description: "거절해도 기존 소속과 계정에는 영향이 없습니다.", closeLabel: "취소", ...a },
-    textField({ label: "거절 사유 (선택)", placeholder: "예: 다른 곳에서 일하고 있어요" }) + button("거절하기", { "data-close": true, "data-toast": "확인을 거절했습니다" }),
+    { title: "소속 추가를 거절하시겠습니까?", description: "거절해도 기존 근무지와 계정은 유지됩니다.", closeLabel: "취소", ...a },
+    textField({ label: "거절 사유 (선택)", placeholder: "예: 다른 곳에서 일하고 있어요" }) + button("거절하기", { "data-close": true, "data-toast": "소속 추가를 거절했습니다" }),
   );
 
 const VIEWS = {
@@ -141,56 +139,53 @@ const VIEWS = {
   "code-locked": () =>
     pageHeader("초대 코드로 가입", { backHref: LOGIN }) +
     body(
-      lead("잠시 뒤 다시 시도해 주세요", "휴대전화번호나 초대 코드를 여러 번 잘못 넣어 입력을 잠갔습니다.", { align: "left", heading: "h2" }) +
-        alert("warning", `<p class="text-[14px] font-semibold">남은 시간</p><p class="text-[28px] font-bold tabular-nums">28:41</p>`) +
-        notice("30분 뒤 다시 시도하거나, 근무지 관리자에게 재발송을 요청해 주세요."),
+      lead("초대 코드 입력이 잠시 잠겼습니다", "30분 뒤 다시 시도하거나,<br><strong>근무지 관리자에게 초대 코드 재발송을 요청해 주세요.</strong>", { align: "left", heading: "h2" }) +
+        alert("warning", `<p class="text-[14px] font-semibold">남은 시간</p><p class="text-[28px] font-bold tabular-nums">28:41</p>`),
     ) +
-    dock(button("다음", { disabled: true }) + ghost("로그인 화면으로", { href: LOGIN })),
+    dock(button("다시 입력하기 · 28:41 뒤", { disabled: true }) + ghost("로그인으로 돌아가기", { href: LOGIN })),
 
   // 초대한 근무지와 고용 형태만 보인다. 기존 계정 정보와 직원 레코드 값은 보이지 않는다.
   invite: () =>
     body(
-      lead("초대를 확인해 주세요", "웨일카페 강남역점에서 함께 일하자고 초대를 보냈습니다.", { large: true }) +
+      lead("초대가 도착했습니다", "웨일카페 강남역점에서 함께 일하자고 초대했습니다.", { large: true }) +
         card(
           rows(
             iconRow({ icon: "store-small.svg", title: "웨일카페 · 강남역점", sub: "서울 강남구 테헤란로 1길" }) +
               iconRow({ icon: "contract.svg", title: "고용 형태", sub: "파트타이머 · 시급제" }),
           ),
         ) +
-        notice("초대는 받은 날부터 <strong>30일</strong> 동안 쓸 수 있습니다. 이 초대는 <strong>11월 18일까지</strong> 쓸 수 있습니다."),
+        notice("이 초대는 <strong>11월 18일까지</strong> 사용할 수 있습니다."),
     ) +
     dock(
-      button(`가입 시작${img("arrow-right.svg", 14, 12)}`, go("signup")) +
+      button(`가입하기${img("arrow-right.svg", 14, 12)}`, go("signup")) +
         ghost("이 번호로 계정이 이미 있으면?", go("has-account")) +
         ghost("이미 가입을 마친 초대면?", go("login")) +
         ghost("만료된 초대면?", go("expired")),
     ),
 
-  // 이 번호로 계정이 이미 있으면 가입하지 않고 로그인한다. 소속 추가 확인·복귀 확인은 로그인 뒤 앱 안의 확인 화면이다(운영 정책 JOI-02).
+  // 이 번호로 계정이 이미 있으면 가입하지 않고 로그인한다. 로그인하면 내 정보 - 소속 근무지로 가고, 맨 위 「확인을 기다리는 요청」에서
+  // 이 초대(소속 추가 확인 · 복귀 확인)를 수락한다. 로그인한 채 초대 링크를 열어도 소속 근무지로 간다(운영 정책 JOI-09, ME-8 2026-10-28 김민식).
   // 기존 계정의 이메일은 보이지 않는다.
   "has-account": () =>
     body(
-      lead("이미 계정이 있습니다", "이 휴대전화번호로 가입한 계정이 있습니다. 새로 가입하지 않고 로그인해 주세요.") +
-        notice(
-          "로그인하면 이 초대의 <strong>소속 추가 확인</strong>이 앱 안에 뜹니다. 전에 이 근무지에서 일했다면 복귀 확인이 뜹니다. 수락하기 전까지는 초대한 근무지와 고용 형태만 보입니다.",
-        ),
-    ) + dock(button("로그인하러 가기", { href: LOGIN }) + ghost("로그인한 뒤 · 소속 추가 확인", go("addsite", "로그인했습니다"))),
+      lead("이미 가입된 계정이 있습니다", "이 휴대전화번호로 가입한 계정이 있습니다.<br>로그인하면 소속 근무지에서 초대를 수락할 수 있습니다."),
+    ) + dock(button("로그인하러 가기", { href: LOGIN }) + ghost("로그인한 뒤 · 소속 근무지", { href: page("me", "sites") })),
 
   // link: 초대 링크로 온 경로 — 코드 입력이 없어 3단계이고 번호는 그 초대(근로계약서)의 번호다.
   signup: (link = false) =>
     body(
       (link ? steps("2 / 3 · 계정 등록", 2, 3) : steps("3 / 4 · 계정 등록", 3)) +
-        lead("계정을 등록해 주세요", "웨일카페 강남역점 근무를 위한 계정입니다.", { align: "left" }) +
+        lead("계정 등록", "웨일카페 강남역점 근무를 위한 계정입니다.", { align: "left" }) +
         // 인적사항 다섯 가지(운영 정책 ACC-23). 이름·생년월일·성별·외국인 여부가 계약서와 다르면 날인 전 본인 대조에서 수정 요청으로 이어지고(운영 정책 JOI-10), 가입을 막지는 않는다.
         // 휴대전화번호는 계정의 매칭 키라 읽기 전용이다 — 고칠 수 있으면 남의 번호로 가입해 그 사람의 다음 초대를 막을 수 있다(JOIN-7).
         `<p class="text-[15px] font-bold">인적사항</p>` +
-        textField({ label: "이름*", autocomplete: "name", required: true, value: "김민서" }) +
+        textField({ label: "이름*", autocomplete: "name", required: true, placeholder: "이름을 입력해 주세요", value: "김민서" }) +
         readOnlyField({
           label: "휴대전화번호*",
           value: "010-9284-5521",
-          help: `${link ? "이 초대(근로계약서)에 적힌" : "초대 코드 확인으로 확정된"} 번호라 고칠 수 없습니다. ${PHONE_FIX}`,
+          help: "번호 변경이 필요하면 근무지 관리자에게 문의해 주세요.",
         }) +
-        textField({ label: "생년월일*", inputmode: "numeric", maxlength: 8, placeholder: "YYYYMMDD", required: true, value: "19980412", help: "8자리로 넣어 주세요. 가입한 뒤에는 고칠 수 없습니다." }) +
+        textField({ label: "생년월일*", inputmode: "numeric", maxlength: 8, placeholder: "YYYYMMDD", required: true, value: "19980412", help: "가입 후에는 변경할 수 없으니 정확히 입력해 주세요." }) +
         pick("성별*", [{ value: "m", label: "남" }, { value: "f", label: "여" }], "f") +
         pick("외국인 여부*", [{ value: "n", label: "내국인" }, { value: "y", label: "외국인" }], "n") +
         `<hr class="border-staff-border-light">` +
@@ -199,37 +194,34 @@ const VIEWS = {
           label: "이메일*",
           type: "email",
           required: true,
+          placeholder: "이메일을 입력해 주세요",
           value: "minseo.kim@gmail.com",
-          help: "로그인할 때 쓰는 아이디입니다. 비밀번호를 잊으면 이 주소로 인증번호가 갑니다.",
+          help: "로그인 아이디로 사용됩니다.",
         }) +
-        textField({ label: "비밀번호*", type: "password", required: true, value: "Whale#cafe25" }) +
-        textField({ label: "비밀번호 확인*", type: "password", required: true, value: "Whale#cafe25", help: "두 번 넣은 값이 같아야 다음으로 넘어갑니다." }) +
+        textField({ label: "비밀번호*", type: "password", required: true, placeholder: "비밀번호를 입력해 주세요" }) +
+        textField({ label: "비밀번호 확인*", type: "password", required: true, placeholder: "비밀번호를 한 번 더 입력해 주세요" }) +
         sunken(
-          `<p class="text-[13px] font-semibold text-staff-text-sub">비밀번호 조건</p><ul class="flex flex-col gap-[6px] pt-[8px] text-[13px] [&_b]:font-bold">${met(
-            "영문 대소문자·숫자·기호 중 <b>세 가지</b>를 섞었습니다",
-          )}${met("8자 이상 20자 이하")}${met("이메일 아이디와 겹치지 않습니다")}</ul><p class="pt-[8px] text-[12px] text-staff-text-muted">두 가지만 섞으면 10자 이상이어야 합니다.</p>`,
+          `<p class="text-[13px] font-semibold text-staff-text-sub">비밀번호 조건</p><ul class="flex flex-col gap-[6px] pt-[8px] text-[13px] [&_b]:font-bold">${unmet(
+            "영문 대소문자·숫자·특수문자 중 <b>3가지</b> 이상",
+          )}${unmet("8자 이상 20자 이하")}${unmet("이메일 아이디와 중복 불가")}</ul><p class="pt-[8px] text-[12px] text-staff-text-muted">2가지만 사용하면 10자 이상 입력해 주세요.</p>`,
         ) +
         `<hr class="border-staff-border-light">` +
-        notice(
-          "<strong>인적사항은 이제 여기서 직접 입력합니다.</strong> 근로계약서에 들어갈 주소 항목이 관리자 작성 화면에서 빠지고, 가입하는 직원이 적는 것으로 바뀌었습니다. 도로명 주소는 검색해서 고르고 상세주소만 직접 적습니다(ME-2).",
-          maskIcon("contract.svg", 14),
-        ) +
         // 검색 버튼은 입력칸 높이(52)에 맞춘다. outline 은 44px 라 직접 그린다.
-        `<div class="flex flex-col gap-[8px]"><label for="join-address" class="text-[13px] font-semibold text-staff-text-sub">주소*</label><div class="flex gap-[8px]"><input id="join-address" readonly required value="서울 마포구 양화로 12" aria-describedby="join-address-help" class="${FIELD}"><button type="button" data-toast="주소 검색을 엽니다" class="h-[52px] shrink-0 rounded-[12px] border border-staff-border bg-white px-[18px] text-[14px] font-semibold transition-colors duration-150 ease-out active:bg-staff-primary-inactive">검색</button></div><p id="join-address-help" class="text-[12px] text-staff-text-muted">도로명 주소는 검색해서 고릅니다.</p></div>` +
-        textField({ label: "상세주소", placeholder: "상세주소", value: "3층 302호", help: "상세주소만 직접 적습니다." }) +
+        `<div class="flex flex-col gap-[8px]"><label for="join-address" class="text-[13px] font-semibold text-staff-text-sub">주소*</label><div class="flex gap-[8px]"><input id="join-address" readonly required placeholder="주소를 검색해 주세요" value="서울 마포구 양화로 12" class="${FIELD}"><button type="button" data-toast="주소 검색을 엽니다" class="h-[52px] shrink-0 rounded-[12px] border border-staff-border bg-white px-[18px] text-[14px] font-semibold transition-colors duration-150 ease-out active:bg-staff-primary-inactive">검색</button></div></div>` +
+        textField({ label: "상세주소", placeholder: "상세주소", value: "3층 302호" }) +
         `<hr class="border-staff-border-light">` +
         // 약관 동의(JOIN-6). 필수 둘은 1팀 TERMS_TYPE 의 직원 앱 회원가입용(STAFF_TERMS_SERVICE · STAFF_PRIVACY),
         // 선택은 MARKETING. 위치정보 동의는 첫 출근 등록 때 따로 받는다. 데모에서 「다음」이 켜지는 것을 보이려고 모두 빈 칸으로 시작한다.
         `<div class="flex flex-col gap-[8px]"><p class="text-[13px] font-semibold text-staff-text-sub">약관 동의</p>${sunken(
-          termRow({ title: "직원 앱 서비스 이용약관", required: true, sub: "직원 근무 앱을 쓰는 데 필요한 약관입니다.", viewToast: "서비스 이용약관 전문을 엽니다" }) +
-            termRow({ title: "개인정보 수집·이용 동의", required: true, sub: "계정을 만들고 근무를 관리하는 데 쓰는 정보입니다.", viewToast: "개인정보 수집·이용 동의 전문을 엽니다" }) +
-            termRow({ title: "마케팅 정보 수신", sub: "새 기능과 이벤트 소식을 받습니다. 동의하지 않아도 가입할 수 있습니다.", viewToast: "마케팅 정보 수신 안내를 엽니다" }),
+          termRow({ title: "직원 앱 서비스 이용약관", required: true, sub: "직원 근무 앱 이용에 필요한 약관입니다.", viewToast: "서비스 이용약관 전문을 엽니다" }) +
+            termRow({ title: "개인정보 수집·이용 동의", required: true, sub: "계정 생성과 근무 관리에 필요한 정보입니다.", viewToast: "개인정보 수집·이용 동의 전문을 엽니다" }) +
+            termRow({ title: "마케팅 정보 수신", sub: "새 기능과 이벤트 소식을 받습니다.", viewToast: "마케팅 정보 수신 안내를 엽니다" }),
         )}</div>` +
-        `<div class="flex flex-col gap-[8px]"><p class="text-[12px] text-staff-text-muted">가맹 점포로 가입할 때만 보입니다</p>${bpShareConsent()}</div>` +
-        `<p class="text-[12px] text-staff-text-muted">필수 약관 두 개에 모두 동의해야 가입할 수 있습니다. 위치정보 동의는 첫 출근 등록 때 따로 받습니다.</p>`,
+        `<div class="flex flex-col gap-[8px]">${bpShareConsent()}</div>` +
+        `<p class="text-[12px] text-staff-text-muted">필수 약관에 모두 동의해야 가입할 수 있습니다.</p>`,
     ) +
     dock(
-      button("가입하기", { disabled: true, "data-gate": "terms", ...go("done", "가입을 마쳤습니다") }) +
+      button("가입하기", { disabled: true, "data-gate": "terms", ...go("done", "가입이 완료되었습니다") }) +
         ghost("만 19세 미만이면?", go("minor")) +
         (link ? "" : ghost("초대 링크로 왔으면?", go("signup-link"))),
     ),
@@ -237,17 +229,15 @@ const VIEWS = {
 
   minor: () =>
     body(
-      lead("가입을 진행할 수 없습니다", "만 19세 미만은 WHALE ERP 로 근로계약과 출퇴근을 관리하지 않습니다. 근무지 관리자에게 알려 주세요.") +
-        sunken(
-          `<p class="text-[13px] text-staff-text-sub">계정은 만들지 않았습니다. 가입 때 넣은 생년월일은 남기지 않습니다. 근로계약과 출퇴근은 근무지에서 따로 관리합니다.</p>`,
-        ),
+      lead("가입할 수 없습니다", "만 19세 미만은 가입할 수 없습니다.<br><strong>근무지 관리자에게 문의해 주세요.</strong>") +
+        sunken(`<p class="text-[13px] text-staff-text-sub">입력한 정보는 저장되지 않았습니다.</p>`),
       { center: true },
-    ) + dock(ghost("닫기", { href: page("login") })),
+    ) + dock(ghost("로그인으로 돌아가기", { href: page("login") })),
 
   // 로그인된 상태로 홈에 간다. 전자계약은 홈 위에 날인 요청 팝업(HOME-1), 종이 계약은 신고 정보 입력(CON-8).
   done: () =>
     body(
-      lead("가입을 마쳤습니다", "웨일카페 강남역점 근무지에 계정이 이어졌습니다.") +
+      lead("가입이 완료되었습니다", "웨일카페 강남역점에 계정이 연결되었습니다.") +
         sunken(
           values([
             ["이름", "김민서"],
@@ -255,11 +245,9 @@ const VIEWS = {
             ["근무지", "웨일카페 강남역점"],
           ]),
         ) +
-        `<p class="text-[12px] text-staff-text-muted">인적사항은 가입한 뒤 직접 고칠 수 없습니다.</p>` +
-        card(iconRow({ icon: "contract.svg", title: "근로계약서가 자동 발송되었습니다", sub: "서명 대기 · 홈에 들어가면 날인 요청 팝업이 뜹니다" })) +
-        `<div class="text-left">${notice(
-          "<strong>종이로 계약을 맺었다면</strong> 날인할 것이 없습니다. 관리자가 올린 날인본이 계약서 화면에 체결 완료로 보이고, 여기서 바로 신고 정보 입력으로 넘어갑니다.",
-        )}</div>`,
+        `<p class="text-[12px] text-staff-text-muted">인적사항은 가입한 뒤 앱에서 변경할 수 없습니다.</p>` +
+        card(iconRow({ icon: "contract.svg", title: "근로계약서가 도착했습니다", sub: "홈에서 내용을 확인하고 서명해 주세요." })) +
+        `<div class="text-left">${notice("<strong>종이로 계약했다면</strong> 서명 없이 신고 정보만 입력하면 됩니다.")}</div>`,
       { center: true },
     ) + dock(button("홈으로", { href: page("home", "sign-req") }) + ghost("종이 계약이면 · 신고 정보 입력", { href: page("tax", "intro") })),
 
@@ -267,7 +255,7 @@ const VIEWS = {
   addsite: () =>
     pageHeader("소속 추가 확인", { backHref: HOME }) +
     body(
-      lead("새 소속 추가 요청", "웨일카페 홍대점에서 함께 일해 달라고 요청했습니다.", { heading: "h2" }) +
+      lead("새 근무지 초대가 도착했습니다", "웨일카페 홍대점에서 함께 일하자고 초대했습니다.", { heading: "h2" }) +
         card(
           rows(
             iconRow({ icon: "store-small.svg", title: "웨일카페 · 홍대점", sub: "서울 마포구 양화로" }) +
@@ -275,11 +263,11 @@ const VIEWS = {
           ),
         ) +
         notice(
-          "수락하면 <strong>이름·휴대전화번호·생년월일·성별·외국인 여부만</strong> 새 소속에 복사됩니다. 다른 소속의 계약·급여·출퇴근 기록은 넘어가지 않습니다.",
+          "수락하면 <strong>이름·휴대전화번호·생년월일·성별·외국인 여부</strong>만 새 근무지에 공유됩니다.<br>기존 근무지의 계약·급여·출퇴근 기록은 공유되지 않습니다.",
           maskIcon("shield.svg", 14, true),
         ) +
         notice(
-          "<strong>여기서 수락하는 것은 소속 연결까지입니다.</strong> 시급·근무 시간대를 포함한 근무 조건은 수락한 뒤 도착하는 근로계약서에서 확인하고 날인합니다.",
+          "시급·근무 시간 등 근무 조건은 수락한 뒤 받는 근로계약서에서 확인할 수 있습니다.",
           maskIcon("contract.svg", 14),
         ) +
         bpShareConsent(),
@@ -289,31 +277,27 @@ const VIEWS = {
   "addsite-done": () =>
     pageHeader("소속 추가 완료", { backHref: HOME }) +
     body(
-      lead("웨일카페 홍대점 소속이 추가되었습니다", "기존 계정은 그대로이고, 계정의 이름·휴대전화번호·생년월일·성별·외국인 여부만 이 근무지의 새 직원 레코드에 이어졌습니다.", { heading: "h2" }) +
+      lead("웨일카페 홍대점이 추가되었습니다", "지금 쓰는 계정을 그대로 사용합니다.", { heading: "h2" }) +
         sunken(
           values([
-            ["넘어간 것", "이름 · 휴대전화번호 · 생년월일 · 성별 · 외국인 여부"],
-            ["넘어가지 않은 것", "계약 · 급여 · 출퇴근"],
+            ["공유된 정보", "이름 · 휴대전화번호 · 생년월일 · 성별 · 외국인 여부"],
+            ["공유되지 않은 정보", "계약 · 급여 · 출퇴근 기록"],
           ]),
         ) +
-        `<div class="text-left">${notice("이 소속의 <strong>근로계약서가 발송되었습니다.</strong> 날인해야 근무가 시작됩니다.", maskIcon("contract.svg", 14))}</div>`,
+        `<div class="text-left">${notice("<strong>홍대점 근로계약서가 도착했습니다.</strong><br>계약서에 서명해야 근무를 시작할 수 있습니다.", maskIcon("contract.svg", 14))}</div>`,
       { center: true },
-    ) + dock(button(`${maskIcon("contract.svg", 14)}홍대점 계약서 날인하러 가기`, { href: CONTRACT }) + ghost("홈으로", { href: HOME })),
+    ) + dock(button(`${maskIcon("contract.svg", 14)}계약서 서명하기`, { href: CONTRACT }) + ghost("홈으로", { href: HOME })),
 
   expired: () =>
     body(
-      lead("초대가 만료되었습니다", "30일이 지났거나 새 초대로 바뀌어 이 초대는 더 이상 쓸 수 없습니다.") +
-        notice("<strong>초대 링크와 초대 코드가 함께</strong> 무효가 됩니다. 가입 초대와 재초대는 받은 날부터 <strong>30일</strong> 동안 쓸 수 있습니다.") +
-        sunken(
-          `<p class="text-[13px] font-semibold text-staff-text-sub">이제 할 일</p><p class="pt-[6px] text-[13px] text-staff-text-sub">근무지에 다시 초대해 달라고 요청해 주세요. 근로계약서 초안은 그대로 남아 있어 재초대를 받으면 이어서 진행됩니다.</p>`,
-        ),
-    ) + dock(`<p class="py-[6px] text-center text-[12px] text-staff-text-muted">근무지에서 다시 초대해야 이어서 진행할 수 있습니다.</p>`),
+      lead("초대가 만료되었습니다", "초대를 받은 지 30일이 지났거나 새 초대가 발송되었습니다.<br><strong>근무지 관리자에게 다시 초대를 요청해 주세요.</strong>"),
+    ) + dock(ghost("로그인으로 돌아가기", { href: LOGIN })),
 
   login: () =>
     body(
-      lead("이미 가입을 마친 초대입니다", "로그인하면 이어서 확인할 수 있습니다.") +
-        textField({ label: "이메일", type: "email", value: "minseo.kim@gmail.com" }) +
-        textField({ label: "비밀번호", type: "password", value: "Whale#cafe25" }) +
+      lead("이미 가입이 완료된 초대입니다", "로그인하면 이어서 진행할 수 있습니다.") +
+        textField({ label: "이메일", type: "email", placeholder: "가입한 이메일을 입력해 주세요" }) +
+        textField({ label: "비밀번호", type: "password", placeholder: "비밀번호를 입력해 주세요" }) +
         bpShareConsent(),
     ) +
     dock(button("로그인", { href: HOME })),

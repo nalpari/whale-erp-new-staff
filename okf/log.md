@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-10-28
+* **Update**: #38 에 main 병합 — okf 양쪽 기록을 살리고, api 타입을 api main(#164 머지 뒤) 기준으로 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
+
 ## 2026-10-27
 * **Update**: f6fafd3 code-review 반영 — 결과 화면의 버튼 줄을 늘 [홈으로] · [요청 목록]으로 두고 목록 조회를 뺐다. 수락 완료의 점포 이름을 가입 완료와 같은 짧은 쿠키(`accepted_store`)로 되살렸다(주소에는 싣지 않음). 무효화는 `revalidatePath("/", "layout")` 하나로, 결과 제목 · 설명은 `contentOf` 하나로 묶고 React `cache` 로 한 번만 읽는다. 팝업 기억은 쓰기 뒤 다시 읽혀야(wrote) 화면 안 값을 비운다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 67192e2 code-review 반영 — 결과 경로에 점포 이름을 싣지 않고(가짜 결과 링크 · 기록 노출) 「소속이 추가되었습니다」로 그린다. 결과로 보낼 때 기록을 바꿔 넣고 확인 · 홈 · 내 정보 · 소속 근무지를 무효화하며, 읽지 못하는 결과 주소는 홈으로 보낸다. 결과마다 문서 title, 「다른 요청 보기」만 Suspense, 본문 틀 · 첫 제목을 `screen-parts.tsx` 로 묶었다. 팝업 기억은 저장소에서 같은 값을 다시 읽을 수 있을 때만 화면 안 값을 비운다. #146 후속 자리를 결과 화면으로 고치고 sources 에 더했다 — [Whale ERP Staff](/whale-erp-staff.md).
@@ -7,8 +10,21 @@
 * **Update**: PR #38 code-review 반영 — 홈 팝업 · 내 정보 배지 · 소속 근무지 요청 줄을 따로 `Suspense` 로 받고, 재직 중 안내는 수락에만, code 없는 404 · 거절의 409 는 다시 누를 수 있는 오류로 남긴다. 팝업 기억은 로그인할 때 지우고, 팝업 줄에 직무를 더했다. 요청 줄을 공통 `AffiliationRequestList` 로 묶고 새 색을 Alert 경고 색으로 맞췄으며 「30일」 고정 문구를 뺐다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 144 리뷰 반영 — 소속 추가 요청 목록은 401 밖의 실패를 모두 null 로 받아 홈 · 내 정보가 깨지지 않고, 팝업은 본 요청의 부분집합이면 닫아 두며 로그아웃하면 기억을 지운다. 이 점포에 재직 중(409)이면 수락만 막고 거절로 닫게 하고, 동의를 묻는 요청은 하이드레이션 전 수락을 막는다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 소속 추가 확인 · 복귀 확인(WHALEERP-144, api #164)을 열었다 — `/affiliations` 확인 화면 · 거절 시트, 홈 팝업, 소속 근무지의 요청 줄, 공통 `RequestSheet` · `ReasonSheet`. api 타입을 api growlithe(lima) 기준으로 다시 만들었다. 계약 화면(#146)이 없어 수락 뒤 날인 이동은 후속으로 적었다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 출퇴근 현황 — 확인 필요 사유 「근무 12시간 초과」(api `LONG_SHIFT`, 출근부터 12시간 넘은 퇴근, 2026-10-27 재영)의 시트 제목 · 설명을 더했다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Fix**: 출퇴근 등록 — api 의 퇴근 409 `CHECK_OUT_EXPIRED`(출근한 다음 날이 지난 열린 출근)를 「잠시 뒤 다시 시도」가 아니라 api 문구(근무지 관리자에게 퇴근 보정 요청)로 보인다. 화면의 `openCheckIn.isCheckOutExpired` 면 근무 경과 · 퇴근 버튼 대신 「퇴근 등록 기한이 지났습니다」와 관리자 보정 안내를 보이고 위치를 읽지 않으며, 「이미 출근해 있습니다」 시트도 날짜와 보정 안내로 바꾼다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
+
+## 2026-10-26
+* **Fix**: 출퇴근 등록 — api 의 위치 읽음 422 `STORE_LOCATION_MISSING` · 400 `LOCATION_READ_REQUIRED`(그사이 근무지 좌표가 지워지거나 생긴 낡은 화면)를 「화면을 다시 받음」으로 처리해, 다시 받은 화면에서 퇴근할 수 있게 했다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Fix**: PR #33 머지 블로커 — 근무지 좌표가 없어도 근무 중이면 퇴근 버튼을 열고 위치 없이 퇴근한다(api 가 받는다). 화면을 연 뒤 좌표가 지워져 출근이 422 `STORE_LOCATION_MISSING` 이면 api 문구를 보이고 화면을 다시 받는다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 재영 답(2026-10-26 두 번째) 반영 — 출퇴근 현황의 근무 시간 · 연장을 api 값(`totals` · `weeks`, 급여 계산과 같은 규칙)으로. 위치 조작 감지 때 「모의 위치를 끈 뒤 출근을 다시 눌러 주세요」 안내(버튼 없음). 데모 · 목업의 「껐습니다 · 다시 확인」 버튼을 없앴다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Fix**: 데모 · 목업 대조 결과 반영 — 출퇴근 등록은 위치 읽음(확인자료)을 api 에 먼저 남긴 뒤에 위치를 읽는다(ATT-22, 확인자료 없이 읽는 일이 없게). 출퇴근 현황의 확인 필요 시트에서 같은 날의 수정 이력 · 퇴근 기록 없음을 이어 연다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 재영 답(2026-10-26) 반영 — 출퇴근 등록은 출근 · 퇴근 버튼을 누를 때만 위치를 읽고 읽을 때마다 위치 읽음(api `POST /me/attendance/location-reads`)을 남긴다(ATT-22). 위치정보 동의 시트 문구를 「반경 밖이면 확인 필요 표시만 남고 관리자 검토 뒤 지웁니다」로(ATT-06). 급여 목업 · 주석의 가산 미적용 연장수당을 1배로(PAY-05). api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
 
 ## 2026-10-23
+* **Update**: 출퇴근 현황 확인 필요 시트 제목을 관리자 웹과 같은 「반경 밖 출근 · 퇴근」으로 바꿨다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 출퇴근 현황을 목업 · 데모와 대조해 연필 시트(보정은 바뀐 쪽만, 대신 등록은 시각만), 퇴근 기록 없는 날 막대, 기간별 「조회」 버튼(공통 Button)을 맞췄다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 급여 기본급 · 주휴 · 연장을 api 가 계산하게 되어(WHALEERP-227) 안내 시트 주석과 알려진 한계 문장을 고쳤다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 출퇴근 현황 `/attendance`(WHALEERP-221 · 222, 데모 attendance)를 더했다 — 이번 주 · 기간별 탭, 연필 · 확인 필요 · 퇴근 기록 없음 시트, 출퇴근 등록 머리줄에 현황 버튼. 출퇴근 등록 `/check-in`(214 · 215)도 문서에 적었다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 1 · 2차 · PR #26 리뷰 반영 — 신고 정보 고치기 서버 액션이 먼저 조회해 신고 정보가 없으면 저장하지 않고(첫 입력은 150), 값을 고치거나 다시 보내는 동안 지난 서버 오류를 가린다. 주민등록번호 뒷자리 칸을 비밀번호 칸이 아닌 CSS 가림 칸으로 바꿔 브라우저 「비밀번호 저장」을 막고, 503 은 고정 문구, 로그에 api code 를 남긴다. 고치기 폼에 서버 액션 action 을 두어 하이드레이션 전 제출이 GET(원문이 주소에)이 아니라 POST 가 된다(소속 id bind 는 서버 화면으로 옮김 — 클라이언트 bind 는 그 POST 에 서버가 멈췄다). 고치기에 「지금 비밀번호」 확인을 더하고(api 334 후속 `currentPassword` · `CURRENT_PASSWORD_MISMATCH`, 노영주 10-23) api 타입을 api tentacool(machu) 기준으로 다시 만들었다. 주민등록번호 뒷자리 칸의 복사 · 잘라내기 · 끌어 옮기기를 막고, 저장 뒤 보기 조회가 실패해도 `?changed=1` 을 지우고 저장됐다고 알린다(#26 참고) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 신고 정보 「새로 넣기」를 열었다(WHALEERP-333, api 334 `PUT /me/memberships/:staffMemberId/tax-profile`) — `/me/memberships/[staffMemberId]/tax-profile/edit` 에서 주민등록번호만 · 급여 계좌만 · 둘 다 고치고, 신고 정보가 없으면 버튼이 없다(첫 입력은 150). 입력 칸 · 보기 조각을 `src/app/_components/tax-profile-*` 로 나누고 `ApiFailure` 에 본문 `code` 를 더했다 — [Whale ERP Staff](/whale-erp-staff.md).
 

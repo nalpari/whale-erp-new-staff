@@ -67,7 +67,7 @@ export const pageHeader = (title, { backHref, action = "" } = {}) =>
 // period-nav.tsx. prevAttrs/nextAttrs: 누를 때 단서
 export const periodNav = ({ label, prevLabel, nextLabel, prevAttrs = {}, nextAttrs = {} }) => {
   const buttonClass = "flex min-h-[44px] items-center text-[15px] font-semibold text-staff-text-sub transition-colors duration-150 ease-out active:text-staff-text";
-  return `<div class="flex w-full items-center gap-[8px] leading-[1.5]"><div class="min-w-0 flex-1"><button type="button"${attrs(prevAttrs)} class="${buttonClass}">${img("chevron-left-24.svg", 24, 24, "-scale-y-100")}${prevLabel}</button></div><p class="shrink-0 text-[16px] font-bold text-staff-text">${label}</p><button type="button"${attrs(nextAttrs)} class="${buttonClass} shrink-0 justify-end gap-[2px]">${nextLabel}${img("chevron-right-24.svg", 24, 24, "-scale-y-100")}</button></div>`;
+  return `<div class="flex w-full items-center gap-[8px] leading-[1.5]"><div class="min-w-0 flex-1"><button type="button"${attrs(prevAttrs)} class="${buttonClass}">${img("chevron-left-24.svg", 24, 24, "-scale-y-100")}${prevLabel}</button></div><p class="shrink-0 text-[16px] font-bold text-staff-text">${label}</p><div class="flex min-w-0 flex-1 justify-end"><button type="button"${attrs(nextAttrs)} class="${buttonClass} gap-[2px]">${nextLabel}${img("chevron-right-24.svg", 24, 24, "-scale-y-100")}</button></div></div>`;
 };
 
 // status-chip.tsx
@@ -130,7 +130,7 @@ export const bottomSheet = (name, { title, description, closeLabel = "닫기", .
 export const sheetOption = (label, { selected = false, ...a } = {}) =>
   `<button type="button" aria-pressed="${selected}"${attrs(a)} class="flex min-h-[52px] items-center justify-center gap-[9px] rounded-[12px] border border-[#e4e8ef] bg-white px-[18px] text-[15px] font-semibold text-staff-text-sub transition-colors duration-150 ease-out active:bg-staff-primary-inactive disabled:opacity-40">${label}${img("check-sub.svg", 19, 19, `-scale-y-100${selected ? "" : " hidden"}`)}</button>`;
 
-// 근무지 고르기 시트(Figma 03.Sheet, HOME-2·WORK-4). 제목·설명·선택지는 /design 과 같다(2026-10-12 재영). 홈 상단 선택기와
+// 근무지 고르기 시트(Figma 03.Sheet, HOME-2·WORK-4). 선택지는 /design 과 같다(2026-10-12 재영), 제목·설명은 문구 정리로 바꿨다. 홈 상단 선택기와
 // 근무 정보의 근무지 카드가 같은 시트를 열고, 고른 근무지를 앱 전체가 따른다. 최근 선택이 곧 지금 근무지다.
 // 고르면 화면의 근무지 이름(data-slot="store")을 바꾸고 닫는다. 체크는 data-pick 묶음이 고른 칸으로 옮긴다.
 // 고를 수 있는 근무지는 체결 완료 계약이 있는 곳뿐이다(운영 정책 CTR-29). 퇴직한 합정점은 내 정보·급여 필터에만 남는다.
@@ -138,12 +138,12 @@ export const STORES = ["웨일카페 강남역점", "웨일카페 홍대점"];
 export const storeSheet = (a = {}) =>
   bottomSheet(
     "store",
-    { title: "어디에서 근무하시나요?", description: "선택한 근무지의 정보를 보여드려요.", ...a },
+    { title: "근무지 선택", description: "선택한 근무지의 근무 정보가 표시됩니다.", ...a },
     `<div data-pick class="contents">${STORES.map((s) =>
       sheetOption(s, {
         selected: s === STORES[0],
         "data-set": `store=${s}`,
-        "data-toast": s === STORES[0] ? undefined : `${s}으로 전환했습니다`,
+        "data-toast": s === STORES[0] ? undefined : `${s}으로 변경했습니다`,
         "data-close": true,
       }),
     ).join("")}</div>`,

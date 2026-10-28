@@ -454,6 +454,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/admin/me/withdraw-eligibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 회원 탈퇴 조건 조회(MY PAGE, S-JHQQNR). 탈퇴 버튼을 누르기 전에 보여줄 영향 범위 — BP명 · 함께 탈퇴될
+         *     하위 관리자 수 · 함께 강제 폐점될 점포 수 · 가로막는 진행 중 계약 여부. BP 마스터만 받는다 — 그 밖의
+         *     권한은 403, 계정이 지워졌으면 404. 조회만 하고 실제 탈퇴는 하지 않는다.
+         */
+        get: operations["AdminAuthController_getWithdrawEligibility"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/admin/me/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 회원 탈퇴 실행(MY PAGE, S-JHQQNR). BP 마스터가 현재 비밀번호와 사유를 보내면 본인 · 같은 BP 의 하위 관리자가
+         *     모두 탈퇴하고 점포는 모두 폐점된다. 진행 중인 근로계약이 있으면 막는다(조건 조회와 같은 기준). 비밀번호를
+         *     받는 경로라 내 비밀번호 변경과 같은 한도를 건다.
+         */
+        post: operations["AdminAuthController_withdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/admin/me/email-availability": {
         parameters: {
             query?: never;
@@ -1384,6 +1426,168 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/bp-masters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 목록. 고객 BP, 등록 일시 최신순. */
+        get: operations["BpMastersController_list"];
+        put?: never;
+        /** 등록. BP 와 BP 마스터 계정을 함께 만들고 1시간짜리 초기 비밀번호를 메일로만 보낸다. */
+        post: operations["BpMastersController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bp-masters/excel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 엑셀 바로 받기(xlsx). 목록과 같은 조건으로 전부, 연락처 · 대표자 연락처는 가운데 자리를 가린다.
+         *     1만 건 이상은 400, 한 사람 1분에 한 번(429). `:id` 보다 먼저 둔다.
+         */
+        get: operations["BpMastersController_excel"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bp-masters/login-id-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 아이디 중복 확인. 등록 권한이 필요하다. `:id` 보다 먼저 둔다. */
+        get: operations["BpMastersController_loginIdAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bp-masters/email-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 이메일 중복 확인. 아이디 확인과 같은 등록 권한이다. `:id` 보다 먼저 둔다. */
+        get: operations["BpMastersController_emailAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bp-masters/business-verifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 사업자 진위확인 — 검사만 하고 10분짜리 토큰을 준다. 등록 · 수정 저장에 실어야 반영된다.
+         *     국세청 키 · 하루 할당량을 모든 BP 가 함께 쓰므로 IP · 계정마다 시간당 10건(점포 · 가입과 같다).
+         */
+        post: operations["BpMastersController_verifyBusiness"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bp-masters/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 상세. 탈퇴한 BP 도 보인다(개인정보는 null). */
+        get: operations["BpMastersController_detail"];
+        /** 수정. 마지막 저장이 남는다(동시 수정 확인 없음). */
+        put: operations["BpMastersController_update"];
+        post?: never;
+        /** 삭제(논리 삭제) — 오등록만. 상세의 deletion 조건을 서버에서 다시 본다. */
+        delete: operations["BpMastersController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bp-masters/{id}/histories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 변경 이력 — BP 와 BP 마스터 계정의 이력을 합쳐 최신순. 탈퇴한 BP 는 409(이력에 탈퇴 전 개인정보가 남아 있다). */
+        get: operations["BpMastersController_histories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bp-masters/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 상태 변경(사용 ↔ 미사용). 미사용이면 그 BP 의 관리자 계정 전부가 함께 미사용이 된다. */
+        post: operations["BpMastersController_changeStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bp-masters/{id}/password-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 비밀번호 초기화. 새 1시간짜리 비밀번호를 BP 마스터 이메일로만 보낸다. 수정 권한이 필요하다. */
+        post: operations["BpMastersController_resetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/public-terms-versions": {
         parameters: {
             query?: never;
@@ -1610,6 +1814,26 @@ export interface paths {
         put?: never;
         /** 직원 한 명의 초안. */
         post: operations["PayslipsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/payslips/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 점포 하나 · 급여 월 하나의 요약(로그인 후 홈 점포 하나 화면 직원 급여 카드, WHALEERP-621). `:id` 보다 먼저 선언해야
+         *     한다.
+         */
+        get: operations["PayslipsController_summary"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1988,7 +2212,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 재발송 — 발송 대기 · 서명 대기에서 새 서명 기한(30일)으로 다시 보낸다. 가입 전 · 계정 없는 번호는 가입 초대 알림톡을 새
+         * 재발송 — 발송 대기 · 서명 대기 · 거부 · 만료(WHALEERP-153)에서 새 서명 기한(30일)으로 다시 보낸다. 가입 전 · 계정 없는 번호는 가입 초대 알림톡을 새
          *     초대 코드로(상태 그대로, 앞서 나간 초대 코드는 무효), 가입한 직원은 앱 알림(근로계약서 발송 알림)으로 보낸다 — 발송 대기였으면
          *     서명 대기로 넘긴다(WHALEERP-611). 가입한 직원의 알림은 알림함 알림이고(앱 푸시는 #261 전까지 나가지 않는다), 알림 템플릿을
          *     쓸 수 없거나 탈퇴 계정이면 알림 없이 기한만 새로 잡는다. 계정은 있고 이 점포에 가입하지 않은 번호(소속 추가 확인 · 복귀
@@ -3369,7 +3593,7 @@ export interface paths {
         };
         /**
          * 일별 출퇴근 — 점포 조건(상단 범위 · 필터) 안 하루의 직원별 예정 · 출근 · 퇴근 · 상태. 업무 범위 밖 점포는 빠진다. 본사 계정에게
-         *     동의 없는 가맹 직원은 줄째로 빼고 건수에만 센다(ATT-30)
+         *     동의 없는 가맹 직원은 줄도 상태별 건수도 빼고 센다(ATT-30, 운영 정책 v218 2026-10-27)
          */
         get: operations["AttendanceRecordsController_daily"];
         put?: never;
@@ -3389,7 +3613,7 @@ export interface paths {
         };
         /**
          * 기간 출퇴근 — 점포 조건 안 기간(92일 이하)의 직원 · 날 줄, 직원을 고르면 그 직원만(WHALEERP-217 「직원별 · 근무지별 · 기간」).
-         *     근무스케줄이나 기록이 있는 날만. 본사 계정에게 동의 없는 가맹 직원은 빠지고 건수에만 센다(ATT-30)
+         *     근무스케줄이나 기록이 있는 날만. 본사 계정에게 동의 없는 가맹 직원은 줄 · 건수 모두에서 빠진다(ATT-30, 운영 정책 v218 2026-10-27)
          */
         get: operations["AttendanceRecordsController_period"];
         put?: never;
@@ -3949,6 +4173,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/home/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 수치 카드 넷 · 점포별 현황 표(미조치 많은 순 일곱 곳 + 전체 수) */
+        get: operations["HomeController_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/home/pending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 경고 밴드(갱신 예정 7일 안) · 처리 대기 유형 목록 */
+        get: operations["HomeController_pending"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4340,6 +4598,27 @@ export interface components {
             newPassword: string;
             /** @description 새 비밀번호 확인. */
             newPasswordConfirm: string;
+        };
+        WithdrawEligibilityResponseDto: {
+            /** @description BP 상호명. */
+            bpName: string;
+            /** @description 함께 탈퇴될 하위 관리자 수(BP 관리자 · 가맹마스터 · 가맹관리자) — 요청한 BP 마스터 자신은 빼고 센다. */
+            adminCount: number;
+            /** @description 함께 강제 폐점될 점포 수 — 이미 폐점한 점포는 빼고 센다. */
+            storeCount: number;
+            /** @description 진행 중인 근로계약(임시저장 · 발송 대기 · 서명 대기 · 수정 요청 · 체결 완료)이 있으면 true — 있으면 탈퇴를 막는다. */
+            hasInProgressContract: boolean;
+        };
+        CreateWithdrawalDto: {
+            /** @description 현재 비밀번호. */
+            currentPassword: string;
+            /**
+             * @description 탈퇴 사유 — 공통코드 WITHDRAW_REASON.
+             * @enum {string}
+             */
+            reasonCode: "WD_CLOSE" | "WD_SWITCH" | "WD_COST" | "WD_FEATURE" | "WD_HARD" | "WD_INPUT";
+            /** @description 탈퇴 사유 상세 — 직접입력(WD_INPUT)일 때 필수. 그 검사는 서비스에서 한다. */
+            reasonDetail?: string;
         };
         AdminProfileEmailAvailabilityResponseDto: {
             /** @description true 면 이 이메일로 저장할 수 있다. */
@@ -5746,6 +6025,317 @@ export interface components {
             items: components["schemas"]["AdminStoreDto"][];
             total: number;
         };
+        BpMasterSummaryResponseDto: {
+            /**
+             * @description BP 상태. 사용 · 미사용 · 탈퇴.
+             * @enum {string}
+             */
+            accountStatus: "ACTIVE" | "INACTIVE" | "WITHDRAWN";
+            /**
+             * @description 가입경로. 회원가입 · 플랫폼등록.
+             * @enum {string}
+             */
+            joinPath: "SIGNUP" | "PLATFORM_REGISTERED";
+            bpCodeId: number;
+            /**
+             * @description BP 코드.
+             * @example BP000012
+             */
+            bpCode: string;
+            /**
+             * @description BP 마스터 아이디. 탈퇴해도 남는다.
+             * @example hangang01
+             */
+            loginId: string;
+            /** @description BP 마스터 이름 · 연락처 · 이메일. 탈퇴한 BP 는 null — 화면은 「탈퇴로 삭제됨」. */
+            name: string | null;
+            phone: string | null;
+            email: string | null;
+            /** @description 상호명 */
+            tradeName: string;
+            /** @description 사업자등록번호(숫자 10자리). 미인증이면 null. */
+            bizRegistrationNumber: string | null;
+            /**
+             * Format: date-time
+             * @description 등록 일시
+             */
+            createdAt: string;
+            /** @description 등록자 이름. 회원가입한 BP 는 null. */
+            createdByName: string | null;
+        };
+        BpMasterListResponseDto: {
+            items: components["schemas"]["BpMasterSummaryResponseDto"][];
+            /** @description 조건에 맞는 전체 건수 */
+            total: number;
+        };
+        VerifyBpMasterBusinessDto: {
+            /**
+             * @description 사업자등록번호. 하이픈을 넣어 보내도 숫자만 남겨 받는다.
+             * @example 1058763602
+             */
+            bizRegistrationNumber: string;
+            /**
+             * @description 대표자명.
+             * @example 김하늘
+             */
+            bizCeoName: string;
+            /**
+             * @description 개업일자(YYYY-MM-DD).
+             * @example 2020-03-02
+             */
+            bizOpenDate: string;
+            /** @description 수정 중인 BP. 등록이면 비운다. */
+            bpCodeId?: number;
+        };
+        BpMasterBusinessVerificationResponseDto: {
+            /** @description 10분짜리 토큰. 등록 · 수정 저장에 실어야 반영된다. */
+            verificationToken: string;
+        };
+        BpMasterWithdrawalResponseDto: {
+            /**
+             * Format: date-time
+             * @description 탈퇴 일시 — 탈퇴로 BP 마스터 계정 상태가 바뀐 시각. 기록이 없으면 null(탈퇴 흐름은 늘 채운다).
+             */
+            withdrawnAt: string | null;
+            /**
+             * @description 탈퇴 사유 한글(공통코드 WITHDRAW_REASON). 표에 없는 코드는 코드 그대로, 사유 코드가 없으면 null.
+             * @example 폐업·사업 종료
+             */
+            reasonLabel: string | null;
+            /** @description 직접 입력한 사유. 직접입력이 아니면 null. */
+            reasonDetail: string | null;
+        };
+        BpMasterDeletionResponseDto: {
+            /** @description 지금 지울 수 있는가 */
+            isDeletable: boolean;
+            /** @description 지울 수 없는 이유. 화면 말풍선에 그대로 보인다. 지울 수 있으면 빈 배열. */
+            reasons: string[];
+        };
+        BpMasterDetailResponseDto: {
+            /**
+             * @description BP 상태. 사용 · 미사용 · 탈퇴.
+             * @enum {string}
+             */
+            accountStatus: "ACTIVE" | "INACTIVE" | "WITHDRAWN";
+            /**
+             * @description 가입경로. 회원가입 · 플랫폼등록.
+             * @enum {string}
+             */
+            joinPath: "SIGNUP" | "PLATFORM_REGISTERED";
+            /** @description 탈퇴 정보 — 탈퇴한 BP 만, 아니면 null. 화면 「사유 보기」 팝업이 쓴다. */
+            withdrawal: components["schemas"]["BpMasterWithdrawalResponseDto"] | null;
+            /** @description BP 마스터 계정 id */
+            adminAccountId: number;
+            /**
+             * Format: date-time
+             * @description BP 상태가 바뀐 일시 — 미사용이면 「언제부터 미사용」. 바뀐 적이 없으면 null.
+             */
+            statusChangedAt: string | null;
+            /** @description 대표자명 · 개업일자(YYYY-MM-DD) — 사업자 진위확인 결과. 미인증이면 null. */
+            bizCeoName: string | null;
+            bizOpenDate: string | null;
+            bizCeoPhone: string | null;
+            bizCeoEmail: string | null;
+            bizZipCode: string | null;
+            bizAddress: string | null;
+            bizAddressDetail: string | null;
+            bizCategory: string | null;
+            bizItem: string | null;
+            /**
+             * Format: date-time
+             * @description 최종 인증 일시. null 이면 미인증.
+             */
+            bizVerifiedAt: string | null;
+            /** @description 소속 점포 수 — 폐점 · 삭제한 점포는 세지 않는다. */
+            storeCount: number;
+            /** @description 하위 관리자 수 — 이 BP 의 BP 관리자 · 가맹 마스터 · 가맹 관리자 중 지우지 않은 계정. */
+            subAdminCount: number;
+            /**
+             * Format: date-time
+             * @description 최근 로그인. 없으면 null.
+             */
+            lastLoginAt: string | null;
+            /**
+             * Format: date-time
+             * @description 약관 동의 일시. 플랫폼등록 BP 는 첫 로그인 전까지 null.
+             */
+            termsAgreedAt: string | null;
+            /** @description 강제 비밀번호 변경 대상 */
+            isPasswordChangeRequired: boolean;
+            /** @description 초기 비밀번호 미발송 — 등록 · 초기화 메일이 실패했다. 비밀번호 초기화로 다시 보낸다. */
+            isInitialPasswordUnsent: boolean;
+            /**
+             * Format: date-time
+             * @description 최종수정 일시 — BP 나 BP 마스터 계정을 마지막으로 고친 시각(bp_codes.updated_at).
+             */
+            updatedAt: string;
+            /** @description 최종수정자 이름. 고친 적이 없거나 회원가입 그대로면 null. */
+            updatedByName: string | null;
+            deletion: components["schemas"]["BpMasterDeletionResponseDto"];
+            bpCodeId: number;
+            /**
+             * @description BP 코드.
+             * @example BP000012
+             */
+            bpCode: string;
+            /**
+             * @description BP 마스터 아이디. 탈퇴해도 남는다.
+             * @example hangang01
+             */
+            loginId: string;
+            /** @description BP 마스터 이름 · 연락처 · 이메일. 탈퇴한 BP 는 null — 화면은 「탈퇴로 삭제됨」. */
+            name: string | null;
+            phone: string | null;
+            email: string | null;
+            /** @description 상호명 */
+            tradeName: string;
+            /** @description 사업자등록번호(숫자 10자리). 미인증이면 null. */
+            bizRegistrationNumber: string | null;
+            /**
+             * Format: date-time
+             * @description 등록 일시
+             */
+            createdAt: string;
+            /** @description 등록자 이름. 회원가입한 BP 는 null. */
+            createdByName: string | null;
+        };
+        BpMasterHistoryResponseDto: {
+            /** Format: date-time */
+            changedAt: string;
+            /**
+             * @description 변경 항목.
+             * @example 상호명
+             */
+            field: string;
+            beforeValue: string | null;
+            afterValue: string | null;
+            /** @description 처리자 이름. 시스템이 처리했으면 null. */
+            changedByName: string | null;
+            /** @description 비고 — 사업자 번호 인증으로 바뀐 줄의 「사업자 번호 인증」. 탈퇴한 BP 는 이력을 409 로 거절하므로 탈퇴 사유는 상세의 withdrawal 로 본다. */
+            note: string | null;
+        };
+        BpMasterHistoryListResponseDto: {
+            items: components["schemas"]["BpMasterHistoryResponseDto"][];
+            total: number;
+        };
+        CreateBpMasterDto: {
+            /**
+             * @description BP 마스터 아이디. 영문 또는 영문 · 숫자 4~20자, 소문자로 저장한다. 삭제 · 탈퇴한 계정까지 겹칠 수 없다.
+             * @example hangang01
+             */
+            loginId: string;
+            /**
+             * @description BP 마스터 이름. 한글 · 영문 2~20자.
+             * @example 김하늘
+             */
+            name: string;
+            /**
+             * @description BP 마스터 연락처. 하이픈 없이 숫자 10~11자리.
+             * @example 01012345678
+             */
+            phone: string;
+            /**
+             * Format: email
+             * @description BP 마스터 이메일. 소문자로 저장한다. 지우지 않은 사용 · 미사용 관리자 계정끼리 겹칠 수 없다.
+             * @example ceo@hangang.co.kr
+             */
+            email: string;
+            /**
+             * @description 상호명. 1~50자.
+             * @example 한강상회
+             */
+            tradeName: string;
+            /** @description 대표자 연락처. 숫자 9~11자리. 비워 둘 수 있다. */
+            bizCeoPhone?: string | null;
+            /**
+             * Format: email
+             * @description 대표자 이메일. 비워 둘 수 있다.
+             */
+            bizCeoEmail?: string | null;
+            /** @description 사업장 우편번호 — 주소 검색 결과. */
+            bizZipCode?: string | null;
+            /** @description 사업장 기본주소 — 주소 검색 결과. */
+            bizAddress?: string | null;
+            /** @description 사업장 상세주소 — 직접 입력. */
+            bizAddressDetail?: string | null;
+            /** @description 업태. 50자까지. */
+            bizCategory?: string | null;
+            /** @description 종목. 50자까지. */
+            bizItem?: string | null;
+            /**
+             * @description POST /bp-masters/business-verifications 가 준 10분짜리 토큰. 실으면 그 안의 사업자등록번호 · 대표자명 ·
+             *     개업일자와 인증일시를 함께 저장한다. 비우면 그 세 값은 그대로 둔다(등록이면 미인증).
+             */
+            verificationToken?: string;
+        };
+        CreateBpMasterResponseDto: {
+            bpCodeId: number;
+            /**
+             * @description 새 BP 코드.
+             * @example BP000013
+             */
+            bpCode: string;
+            /** @description 초기 비밀번호를 보낸 주소 */
+            email: string;
+            /** @description 초기 비밀번호 메일을 보냈는가. 실패해도 BP 는 만들어졌다 — 상세에서 비밀번호 초기화로 다시 보낸다. */
+            isMailSent: boolean;
+        };
+        UpdateBpMasterDto: {
+            /**
+             * @description BP 마스터 이름. 한글 · 영문 2~20자.
+             * @example 김하늘
+             */
+            name: string;
+            /**
+             * @description BP 마스터 연락처. 하이픈 없이 숫자 10~11자리.
+             * @example 01012345678
+             */
+            phone: string;
+            /**
+             * Format: email
+             * @description BP 마스터 이메일. 소문자로 저장한다. 지우지 않은 사용 · 미사용 관리자 계정끼리 겹칠 수 없다.
+             * @example ceo@hangang.co.kr
+             */
+            email: string;
+            /**
+             * @description 상호명. 1~50자.
+             * @example 한강상회
+             */
+            tradeName: string;
+            /** @description 대표자 연락처. 숫자 9~11자리. 비워 둘 수 있다. */
+            bizCeoPhone?: string | null;
+            /**
+             * Format: email
+             * @description 대표자 이메일. 비워 둘 수 있다.
+             */
+            bizCeoEmail?: string | null;
+            /** @description 사업장 우편번호 — 주소 검색 결과. */
+            bizZipCode?: string | null;
+            /** @description 사업장 기본주소 — 주소 검색 결과. */
+            bizAddress?: string | null;
+            /** @description 사업장 상세주소 — 직접 입력. */
+            bizAddressDetail?: string | null;
+            /** @description 업태. 50자까지. */
+            bizCategory?: string | null;
+            /** @description 종목. 50자까지. */
+            bizItem?: string | null;
+            /**
+             * @description POST /bp-masters/business-verifications 가 준 10분짜리 토큰. 실으면 그 안의 사업자등록번호 · 대표자명 ·
+             *     개업일자와 인증일시를 함께 저장한다. 비우면 그 세 값은 그대로 둔다(등록이면 미인증).
+             */
+            verificationToken?: string;
+        };
+        ChangeBpMasterStatusDto: {
+            /**
+             * @description 바꿀 상태. 미사용이면 그 BP 의 관리자 계정 전부가, 사용이면 BP 마스터만 함께 바뀐다.
+             * @enum {string}
+             */
+            status: "ACTIVE" | "INACTIVE";
+        };
+        ResetBpMasterPasswordResponseDto: {
+            /** @description 초기화 메일을 보냈는가. 실패해도 기존 비밀번호는 이미 막혔다 — 다시 초기화한다. */
+            isMailSent: boolean;
+        };
         TermsVersionResponseDto: {
             /** @description 약관 유형 코드 — 공통코드 `TERMS_TYPE`. 예: PRIVACY_COLLECT */
             termsTypeCode: string;
@@ -5823,11 +6413,32 @@ export interface components {
         };
         /** @enum {string} */
         ContractStatus: "DRAFT" | "PENDING_SEND" | "PENDING_SIGNATURE" | "CORRECTION_REQUESTED" | "SIGNED" | "REJECTED" | "EXPIRED" | "ENDED";
+        /** @enum {string} */
+        Weekday: "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN";
+        ContractDetailWorkDayDto: {
+            weekday: components["schemas"]["Weekday"];
+            breakStartTime: string | null;
+            breakEndTime: string | null;
+            startTime: string;
+            endTime: string;
+        };
         StaffMemberContractDto: {
             status: components["schemas"]["ContractStatus"] | null;
+            /**
+             * @description 근무 요일 — 월→일, 시각 HH:mm. 근로계약은 자정을 넘지 않는다(contract_work_days CHECK). 없으면 빈 배열.
+             *     null 은 「근로계약 조회 권한 없음」 — 근무 시간 · 근무요일은 근로계약 조항에서 나온 값이라 근로계약 관리 메뉴 조회
+             *     권한이 없는 관리자에게는 주지 않는다(재영 결정 2026-10-27)
+             */
+            workDays: components["schemas"]["ContractDetailWorkDayDto"][] | null;
             contractId: number;
             /** Format: date-time */
             signDeadlineAt: string | null;
+            /**
+             * Format: date-time
+             * @description 마지막으로 보낸 때(계약 상세 lastSentAt 과 같은 값). 초대 재발송 본문 expectedSentAt 으로 그대로 보낸다 — 두 화면에서 같은 계약을
+             *     두 번 다시 보내지 않게(api #158 셀프 code-review). 보낸 적 없으면 null
+             */
+            lastSentAt: string | null;
             /** @description 계약 종료일(YYYY-MM-DD). 비면 무기한 */
             endDate: string | null;
             /**
@@ -5839,7 +6450,7 @@ export interface components {
              * @description 가입 · 인증 칸 재발송용 — 근로계약 상세의 canResend 와 달리 가입한 직원은 거짓이다(가입한 직원의 앱 알림 재발송은 근로계약
              *     상세에서). 이 칸의 버튼은 이 값 하나만 본다. 참이면 이 계약으로 근로계약 재발송(POST
              *     /contracts/{contractId}/send)이 가입 초대 알림톡 또는 소속 추가 확인 요청을 보낸다(설정 누락 503 · 그사이 바뀐 상태 409 · 발송
-             *     실패 502 는 남는다). 근로계약 상세의 canResend 와 같은 판정(발송 대기 · 서명 대기) 위에 모두 맞을 때만 참이다: 가입 전 ·
+             *     실패 502 는 남는다). 발송 대기 · 서명 대기(거부 · 만료 재발송은 근로계약 상세에서, WHALEERP-153) 위에 모두 맞을 때만 참이다: 가입 전 ·
              *     가입 상태가 초대 발송 · 초대 만료 · 소속 추가 확인 · 복귀 확인(연결 보류 · 만 19세 미만 · 거절은 거짓), 또는 초안이고 이
              *     계약이 소속 추가 확인 · 복귀 확인으로 판별된 것(WHALEERP-130 전 요청 없이 서명 대기가 된 옛 계약) · 보이는 초대가 수락되지
              *     않음 · 휴대폰 번호 · 가린 줄 아님. 간격 제한은 없다.
@@ -6089,9 +6700,20 @@ export interface components {
              */
             birthDate: string;
         };
+        /**
+         * @description 급여명세서 검토 사유 — 출퇴근 누락 · 계약 만료 후 기록 · 기간 중 계약 변경 · 공제 미입력 · 확인 필요 기록 포함
+         * @enum {string}
+         */
+        PayslipReviewReason: "MISSING_ATTENDANCE" | "AFTER_CONTRACT_END" | "CONTRACT_CHANGED" | "DEDUCTION_MISSING" | "ATTENDANCE_NEEDS_REVIEW";
         PayslipListItemDto: {
             employmentType: components["schemas"]["EmploymentType"] | null;
             status: components["schemas"]["PayslipStatus"] | null;
+            /**
+             * @description 검토 대기 사유(WHALEERP-234) — 확인하지 않은 검토 사유와 공제 미입력(공제 칸으로 판정, 운영 정책 v221 PAY-06). 하나라도
+             *     있으면 검토 대기다. 사유 다섯 — 출퇴근 누락 · 계약 만료 후 기록 · 기간 중 계약 변경 · 공제 미입력 · 확인 필요 기록 포함 — 의
+             *     순서. 작성 중 · 검토 중이 아니면 빈 배열, 가린 줄은 null
+             */
+            pendingReviewReasons: components["schemas"]["PayslipReviewReason"][] | null;
             payslipId: number | null;
             isMasked: boolean;
             staffName: string | null;
@@ -6124,6 +6746,21 @@ export interface components {
             total: number;
             /** @description 그 달 · 관리 범위의 상태 건수. 상태 필터와 상관없고 점포 · 직원명 필터는 따른다 — 직원명으로 거르면 가린 줄은 빼고, 아니면 가린 줄도 센다 */
             statusCounts: components["schemas"]["PayslipStatusCountsDto"];
+            /** @description 그 달 · 고른 점포(직원명으로 거르면 그 이름)의 검토 대기 명세서 수 — 본사 역할에게 가린 줄은 세지 않는다(ATT-30, 운영 정책 v218 — 검토 대기(근태 이상 · 공제 미입력) 여부가 드러나지 않게). 관리자 웹 건수 줄의 「검토 대기 N」 꼬리표 */
+            reviewPendingCount: number;
+        };
+        PayslipSummaryGroupDto: {
+            count: number;
+            grossPayAmount: number;
+        };
+        PayslipSummaryResponseDto: {
+            /** @example 2026-09 */
+            month: string;
+            total: components["schemas"]["PayslipSummaryGroupDto"];
+            /** @description 정직원(명세서의 고용형태 FULL_TIME) */
+            fullTime: components["schemas"]["PayslipSummaryGroupDto"];
+            /** @description 파트타이머(PART_TIME) */
+            partTime: components["schemas"]["PayslipSummaryGroupDto"];
         };
         PayslipCandidateDto: {
             /** @description 계약 유형 — 유효한 근로계약의 값, 없으면 직원 레코드의 값 */
@@ -6254,8 +6891,6 @@ export interface components {
             /** @description 입력 여부 — 공제 미입력과 0 을 가른다 */
             isEntered: boolean;
         };
-        /** @enum {string} */
-        PayslipReviewReason: "MISSING_ATTENDANCE" | "AFTER_CONTRACT_END" | "CONTRACT_CHANGED" | "DEDUCTION_MISSING" | "ATTENDANCE_NEEDS_REVIEW";
         PayslipReviewReasonDto: {
             reviewReason: components["schemas"]["PayslipReviewReason"];
             payslipReviewReasonId: number;
@@ -6557,12 +7192,6 @@ export interface components {
          * @enum {string}
          */
         Gender: "MALE" | "FEMALE";
-        /**
-         * @description 주휴일 — 근무하지 않는 요일 하나(노무사 확인 2026-10-14). 주 소정근로시간이 15시간 이상이면 넣어야 하고,
-         *     15시간 미만이면 주휴가 없어 비운다(contracts.service checkWeeklyHoliday).
-         * @enum {string}
-         */
-        Weekday: "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN";
         ContractWorkDayDto: {
             weekday: components["schemas"]["Weekday"];
             /** @description 시업 HH:mm */
@@ -6688,13 +7317,6 @@ export interface components {
             contractId: number;
             staffMemberId: number;
         };
-        ContractDetailWorkDayDto: {
-            weekday: components["schemas"]["Weekday"];
-            breakStartTime: string | null;
-            breakEndTime: string | null;
-            startTime: string;
-            endTime: string;
-        };
         ContractStatusHistoryDto: {
             /** @description 처음 만든 줄은 null */
             fromStatus: components["schemas"]["ContractStatus"] | null;
@@ -6810,9 +7432,10 @@ export interface components {
              */
             resendCount: number;
             /**
-             * @description 재발송(POST …/send)을 정책상 할 수 있는가 — 발송 대기 · 서명 대기. 가입한 직원은 앱 알림, 가입 전 직원은 가입 초대이거나 그 번호에
-             *     계정이 있으면 소속 추가 확인 요청이다(WHALEERP-130). 상세 화면이 재발송 버튼을 이 값으로 보인다. 정책만 본다 — 유선번호(409
-             *     SEND_PHONE_NOT_MOBILE) · 발송 설정 없음(503) · 그 계정이 이 점포에 재직 중(409)은 true 여도 보낼 때 막힌다
+             * @description 재발송(POST …/send)을 정책상 할 수 있는가 — 발송 대기 · 서명 대기 · 거부 · 만료(WHALEERP-153). 가입한 직원은 앱 알림, 가입 전
+             *     직원은 가입 초대이거나 그 번호에 계정이 있으면 소속 추가 확인 요청이다(WHALEERP-130). 거부 · 만료는 되살릴 수 없거나
+             *     (REOPEN_BLOCKED) 다른 점포 근무 시간과 겹치면(WORK_TIME_OVERLAP) false. 상세 화면이 재발송 버튼을 이 값으로 보인다. 정책만
+             *     본다 — 유선번호(409 SEND_PHONE_NOT_MOBILE) · 발송 설정 없음(503) · 그 계정이 이 점포에 재직 중(409)은 true 여도 보낼 때 막힌다
              */
             canResend: boolean;
             /** @description 직원이 가입을 마쳤는가 — 거부 · 만료 재발송이 앱(서명 대기)으로 가는지 가입 초대(발송 대기)로 가는지 확인창 문구를 가른다 */
@@ -6840,6 +7463,19 @@ export interface components {
         };
         DownloadUrlResponseDto: {
             url: string;
+        };
+        SendContractDto: {
+            /**
+             * @description 화면이 본 계약 상태. 재발송은 서명 대기 · 발송 대기 · 거부 · 만료를 모두 받아, 이 값이 없으면 열어 둔 서명 대기 화면에서 그사이
+             *     거부 · 만료된 계약을 모르고 되살린다
+             */
+            expectedStatus?: components["schemas"]["ContractStatus"];
+            /**
+             * Format: date-time
+             * @description 화면이 본 마지막 발송 시각(상세 lastSentAt, ISO 8601). 재발송하면 바뀐다 — 상태가 그대로인 발송 대기 · 서명 대기를 두 탭에서 각각
+             *     다시 보내면 상태만으로는 잡히지 않아 알림이 두 번 가고 앞 초대 코드가 무효가 된다. 아직 보낸 적 없으면(lastSentAt null) 비운다
+             */
+            expectedSentAt?: string;
         };
         SendContractResponseDto: {
             /**
@@ -8694,7 +9330,7 @@ export interface components {
             date: string;
             /** @description 점포 · 이름순 */
             items: components["schemas"]["AttendanceDayItemDto"][];
-            /** @description 상태별 인원 — 가린 직원도 센다(ATT-30 「점포별 숫자에는 센다」) */
+            /** @description 상태별 인원 — 본사에게 가려지는 직원은 세지 않는다(ATT-30, 운영 정책 v218 2026-10-27 — 로그인 후 홈 · 근태 요약과 같은 기준) */
             counts: {
                 [key: string]: number;
             };
@@ -8734,7 +9370,7 @@ export interface components {
             to: string;
             /** @description 근무스케줄이나 기록이 있는 직원 · 날만(휴무는 없음). 날짜 내림차순, 같은 날은 점포 · 이름순 */
             items: components["schemas"]["AttendancePeriodItemDto"][];
-            /** @description 직원 · 날 상태별 건수 — 본사에게 가려지는 직원도 센다(ATT-30) */
+            /** @description 직원 · 날 상태별 건수 — 본사에게 가려지는 직원은 세지 않는다(ATT-30, 운영 정책 v218 2026-10-27 — 로그인 후 홈 · 근태 요약과 같은 기준) */
             counts: {
                 [key: string]: number;
             };
@@ -8944,7 +9580,7 @@ export interface components {
         };
         InvitationCheckResponseDto: {
             /**
-             * @description 고용 형태 — 정직원 · 파트타이머
+             * @description 고용 형태 — 정직원 · 파트타이머. 함께 온 진행 중 계약의 값(없으면 직원 레코드) — 재계약 초대면 레코드는 옛 조건이다
              * @enum {string}
              */
             employmentType: "FULL_TIME" | "PART_TIME";
@@ -9029,13 +9665,14 @@ export interface components {
              */
             invitationType: "AFFILIATION_CONFIRM" | "RETURN_CONFIRM";
             /**
-             * @description 고용 형태 — 정직원 · 파트타이머. 옛 레코드는 비어 있을 수 있다
-             * @enum {string|null}
+             * @description 고용 형태 — 정직원 · 파트타이머. 함께 온 계약의 값(없으면 직원 레코드)이다 — 레코드는 계약이 시작할 때 바뀌어 복귀 확인이면 옛
+             *     조건일 수 있다. 직무와 늘 같은 곳에서 읽는다
+             * @enum {string}
              */
-            employmentType: "FULL_TIME" | "PART_TIME" | null;
+            employmentType: "FULL_TIME" | "PART_TIME";
             /** @description 고용 형태 표시 문구(정직원 · 파트타이머) — 팝업 문구에 그대로 쓴다 */
             employmentTypeLabel: string | null;
-            /** @description 직무 */
+            /** @description 직무 — 함께 온 계약의 값(없으면 직원 레코드), 고용 형태와 같은 곳에서 읽는다. 계약에 직무가 없는 옛 행이면 null 일 수 있다 */
             jobTitle: string | null;
             /** @description 요청(초대) ID — 수락 · 거절 경로에 쓴다 */
             invitationId: number;
@@ -9253,7 +9890,23 @@ export interface components {
             dateCount: number;
             stores: components["schemas"]["BpHolidayOverlapStoreResponseDto"][];
         };
+        /**
+         * @description 오늘(한국 날짜) 기준 이 기간의 상태 — UPCOMING 적용 예정 · ACTIVE 적용 중 · ENDED 빠짐. 휴일 자체의 끝도 반영해
+         *     강제 종료 · 끝난 휴일은 열린 기간도 ENDED, 시작 전 휴일의 기간은 UPCOMING 이다. 수정 양식의 「지금 열린 점포」는
+         *     `effectiveEndDate === null && periodState !== 'ENDED'` 인 줄이다.
+         * @enum {string}
+         */
+        BpHolidayPeriodState: "UPCOMING" | "ACTIVE" | "ENDED";
         BpHolidayStoreResponseDto: {
+            /**
+             * @description 오늘(한국 날짜) 기준 이 기간의 상태 — UPCOMING 적용 예정 · ACTIVE 적용 중 · ENDED 빠짐. 휴일 자체의 끝도 반영해
+             *     강제 종료 · 끝난 휴일은 열린 기간도 ENDED, 시작 전 휴일의 기간은 UPCOMING 이다. 수정 양식의 「지금 열린 점포」는
+             *     `effectiveEndDate === null && periodState !== 'ENDED'` 인 줄이다.
+             * @example ACTIVE
+             */
+            periodState: components["schemas"]["BpHolidayPeriodState"];
+            /** @description 기간 행 ID(holiday_store_mapping_id · holiday_excluded_store_id) — 같은 점포가 기간마다 한 줄이라 화면 key 로 쓴다. */
+            periodId: number;
             storeId: number;
             /** @example ST000003 */
             storeCode: string;
@@ -9273,6 +9926,11 @@ export interface components {
              * @example 2026-09-21
              */
             effectiveStartDate: string;
+            /**
+             * @description 이 기간의 종료일(점포를 뺀 날의 전날). 열린 기간이면 null — 휴일 자체가 끝났는지는 periodState 로 본다.
+             * @example 2026-10-25
+             */
+            effectiveEndDate: string | null;
             /** @description 이 사용자가 맡은 점포인가 — 일부 점포 사용자는 맡은 점포만 빼거나 더한다. */
             isManaged: boolean;
         };
@@ -9296,7 +9954,7 @@ export interface components {
              * @enum {string}
              */
             state: "ENDED" | "UPCOMING" | "ONGOING";
-            /** @description 특정 점포면 대상 점포, 전체 점포면 예외 점포(지금 열린 기간). */
+            /** @description 특정 점포면 대상 점포, 전체 점포면 예외 점포 — 지우지 않은 모든 기간(닫힌 기간 포함), 기간마다 한 줄. */
             stores: components["schemas"]["BpHolidayStoreResponseDto"][];
             /** @description 고른 날짜(없으면 오늘)에 이 휴일이 적용되는 점포 수. */
             appliedStoreCount: number;
@@ -9457,6 +10115,124 @@ export interface components {
              * @example 2026-10-26T01:00:00.000Z
              */
             updatedAt: string;
+        };
+        HomeStaffCardDto: {
+            /** @description 총수 — 본사 역할에게도 가림 없이 센다(점포별 숫자, 운영 정책 ATT-30) */
+            total: number;
+            /** @description 정직원. 본사 역할에게 가려지는 점포(직영이 아닌 점포)는 본사 제공 동의한 직원만 — 그래서 정직원 + 파트타이머가 총수보다 작을 수 있다 */
+            fullTime: number;
+            /** @description 파트타이머. 정직원과 같은 기준 */
+            partTime: number;
+        };
+        HomeStoreCardDto: {
+            total: number;
+            direct: number;
+            franchise: number;
+        };
+        HomeAttendanceCardDto: {
+            /** @description 근무 예정 — 오늘 근무스케줄이 있는 재직 직원 수. 근무스케줄 화면처럼 본사 역할에게도 가림 없이 센다 */
+            scheduled: number;
+            /** @description 출근 — 오늘 출근 기록이 있는 직원 수. 본사 역할에게 가려지는 점포(직영이 아닌 점포)는 본사 제공 동의한 직원만(운영 정책 ATT-30 v217) */
+            checkedIn: number;
+            /**
+             * @description 미출근 — 근무 예정인데 그날 출퇴근 기록이 하나도 없고 첫 근무 시작 시각이 지난 수. 출퇴근 현황의 미출근과 같다(운영 정책
+             *     ATT-34) — 시작 시각 정각은 아직 예정, 출근 없는 퇴근만 있으면 출근 미등록이라 들지 않는다. 출근과 같은 기준으로 가린다
+             */
+            notCheckedIn: number;
+        };
+        HomeInquiryCardDto: {
+            /** @description 답변 대기 — 접수 · 처리중 */
+            waiting: number;
+            /** @description 답변완료 */
+            answered: number;
+        };
+        HomeCardsDto: {
+            /** @description 직원 정보 관리 조회 권한 */
+            staff: components["schemas"]["HomeStaffCardDto"] | null;
+            /** @description 미체결 계약(발송 대기 + 서명 대기 + 수정 요청). 본사 역할에게 가려지는 점포는 동의한 직원의 계약만. 근로계약 관리 조회 권한 */
+            unsignedContractCount: number | null;
+            stores: components["schemas"]["HomeStoreCardDto"];
+            /** @description 출퇴근 현황 · 근무스케줄 관리 조회 권한 둘 다 */
+            todayAttendance: components["schemas"]["HomeAttendanceCardDto"] | null;
+            /** @description 문의사항 조회 권한 */
+            myInquiries: components["schemas"]["HomeInquiryCardDto"] | null;
+        };
+        HomeStoreRowDto: {
+            storeId: number;
+            storeName: string;
+            /** @description 점포 유형 코드 — DIRECT · FRANCHISE */
+            storeTypeCode: string;
+            staffCount: number | null;
+            unsignedContractCount: number | null;
+            /** @description 오늘 출근 — 카드의 checkedIn 과 같은 기준(본사 역할에게 가려지는 점포는 동의한 직원만) */
+            checkedInCount: number | null;
+            /** @description 오늘 근무 예정 — 가림 없이 */
+            scheduledCount: number | null;
+            /** @description 미조치 — 서명 대기 + 근로계약 수정 요청 + 소속 확인 거절 + 긴급 TO-DO 미완료. 볼 수 있는 영역의 건수만 더한다 */
+            pendingActionCount: number;
+        };
+        HomeStoreTableDto: {
+            /** @description 운영 점포 전체 수 */
+            total: number;
+            /** @description 미조치 많은 순(같으면 점포명) 일곱 곳 */
+            items: components["schemas"]["HomeStoreRowDto"][];
+        };
+        HomeSummaryResponseDto: {
+            /**
+             * Format: date-time
+             * @description 조회 시각
+             */
+            asOf: string;
+            /** @description 플랫폼 계정(플랫폼 마스터 · 플랫폼 관리자)이면 true — 현황 없이 안내만 보이고, 나머지 칸은 null · 빈 표다 */
+            platform: boolean;
+            cards: components["schemas"]["HomeCardsDto"] | null;
+            storeTable: components["schemas"]["HomeStoreTableDto"];
+        };
+        HomeRenewalDto: {
+            contractId: number;
+            /** @description 가려지는 직원(본사 제공 동의가 없는 가맹 점포 직원)이면 null */
+            staffMemberId: number | null;
+            /** @description 가려지는 직원이면 null */
+            name: string | null;
+            isMasked: boolean;
+            storeId: number;
+            storeName: string;
+            /** @description 계약 종료일(YYYY-MM-DD) */
+            endDate: string;
+        };
+        /**
+         * @description 계약 갱신 예정 · 근로계약 서명 대기 · 근로계약 수정 요청 · 소속 확인 거절 · 문의 답변완료(마지막 답변이 최근 7일 안) · 긴급 TO-DO 미완료
+         * @enum {string}
+         */
+        HomePendingType: "CONTRACT_RENEWAL" | "CONTRACT_PENDING_SIGNATURE" | "CONTRACT_CORRECTION_REQUESTED" | "AFFILIATION_REJECTED" | "INQUIRY_ANSWERED" | "URGENT_TODO";
+        HomePendingFilterDto: {
+            /** @description 점포. 문의는 점포로 거르지 않아 빈 배열 */
+            storeIds: number[];
+            /** @description 그 화면 목록의 상태 필터 값 — 근로계약 상태 · 가입 상태 · 문의 답변 상태 · TO-DO 상태 */
+            status: string[];
+        };
+        HomePendingItemDto: {
+            /** @description 계약 갱신 예정 · 근로계약 서명 대기 · 근로계약 수정 요청 · 소속 확인 거절 · 문의 답변완료(마지막 답변이 최근 7일 안) · 긴급 TO-DO 미완료 */
+            type: components["schemas"]["HomePendingType"];
+            count: number;
+            /** @description 대표 이름 — 가장 오래 기다린 것의 직원 이름(문의 · TO-DO 는 제목). 가려지는 직원이면 null */
+            firstName: string | null;
+            isFirstNameMasked: boolean;
+            /** @description 대표 말고 나머지 건수(「외 N명」) */
+            othersCount: number;
+            /** @description 가장 오래 기다린 일수(한국 날짜) — 서명 대기는 발송 뒤, 수정 요청은 요청 뒤, 소속 확인 거절은 거절 뒤, 문의는 마지막 답변 뒤, TO-DO 는 등록 뒤. 갱신 예정은 null */
+            waitingDays: number | null;
+            filter: components["schemas"]["HomePendingFilterDto"];
+        };
+        HomePendingResponseDto: {
+            /** Format: date-time */
+            asOf: string;
+            /** @description 플랫폼 계정이면 true — renewals 는 null, items 는 빈 배열 */
+            platform: boolean;
+            /** @description 경고 밴드. 근로계약 관리 조회 권한이 없으면 null */
+            renewals: components["schemas"]["HomeRenewalDto"][] | null;
+            /** @description 건수가 0인 유형과 권한이 없는 유형은 뺀다. 순서는 갱신 예정 → 계약 → 직원 → 문의 → TO-DO */
+            items: components["schemas"]["HomePendingItemDto"][];
         };
     };
     responses: never;
@@ -10132,6 +10908,81 @@ export interface operations {
             };
             /** @description 현재 비밀번호 불일치 · 비밀번호 정책 위반 · 새 비밀번호가 현재와 같음 · 확인 불일치 */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminAuthController_getWithdrawEligibility: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WithdrawEligibilityResponseDto"];
+                };
+            };
+            /** @description BP 마스터가 아님 · 플랫폼 BP */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 계정을 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminAuthController_withdraw: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateWithdrawalDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 현재 비밀번호 불일치 · 직접입력 사유 상세 누락 · 진행 중인 근로계약 있음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description BP 마스터가 아님 · 플랫폼 BP */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 계정을 찾을 수 없음 */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10938,8 +11789,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 아이디 · 이메일 중복 · 다른 가맹 마스터가 맡은 점포 */
+            /** @description 그사이 지워진 BP */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 아이디 · 이메일 중복 · 다른 가맹 마스터가 맡은 점포 · 사용 중이 아닌 BP(미사용 · 탈퇴) */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 잠금 대기(BP 미사용 전환 · 삭제 등) · 연결 부족으로 트랜잭션 시간 초과 — 다시 시도 */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11187,15 +12052,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 없거나 볼 수 없는 계정 */
+            /** @description 없거나 볼 수 없는 계정 · 그사이 지워진 BP */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 이메일 중복 · 동시 수정 · 다른 가맹 마스터가 맡은 점포 */
+            /** @description 이메일 중복 · 동시 수정 · 다른 가맹 마스터가 맡은 점포 · 사용 중이 아닌 BP 에 사용으로 저장 */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 잠금 대기(BP 미사용 전환 · 삭제 등) · 연결 부족으로 트랜잭션 시간 초과 — 다시 시도 */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -13342,6 +14214,584 @@ export interface operations {
             };
         };
     };
+    BpMastersController_list: {
+        parameters: {
+            query: {
+                /** @description 쪽 번호. 1부터, 최대 10,000,000 — 건너뛸 행 수가 integer 범위를 넘지 않게. */
+                page: number;
+                /** @description 한 쪽 건수. 20 · 50 · 100, 기본 20. */
+                pageSize: 20 | 50 | 100;
+                /** @description 검색 기준. 검색어와 함께 준다 — 검색어만 주면 BP 코드 · 아이디 · 이름 · 상호명 · 사업자등록번호 어디든 맞으면 나온다. */
+                searchType?: "BP_CODE" | "LOGIN_ID_NAME" | "TRADE_NAME" | "BIZ_REGISTRATION_NUMBER";
+                /** @description 검색어. 부분 일치, 대소문자 구분 없음. 탈퇴 BP 는 이름으로 찾히지 않는다. */
+                keyword?: string;
+                /** @description BP 상태. 여러 개는 `statuses=ACTIVE&statuses=INACTIVE` 또는 쉼표로. 주지 않으면 셋 다. */
+                statuses?: ("ACTIVE" | "INACTIVE" | "WITHDRAWN")[];
+                /** @description 사업자정보 인증. 인증 = 최종 인증일시가 있다. 주지 않으면 전체. */
+                verification?: "VERIFIED" | "UNVERIFIED";
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BpMasterListResponseDto"];
+                };
+            };
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpMastersController_create: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateBpMasterDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateBpMasterResponseDto"];
+                };
+            };
+            /** @description 입력 형식 · 인증 토큰 만료 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 아이디 · 이메일 · 사업자등록번호 중복 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpMastersController_excel: {
+        parameters: {
+            query?: {
+                /** @description 검색 기준. 검색어와 함께 준다 — 검색어만 주면 BP 코드 · 아이디 · 이름 · 상호명 · 사업자등록번호 어디든 맞으면 나온다. */
+                searchType?: "BP_CODE" | "LOGIN_ID_NAME" | "TRADE_NAME" | "BIZ_REGISTRATION_NUMBER";
+                /** @description 검색어. 부분 일치, 대소문자 구분 없음. 탈퇴 BP 는 이름으로 찾히지 않는다. */
+                keyword?: string;
+                /** @description BP 상태. 여러 개는 `statuses=ACTIVE&statuses=INACTIVE` 또는 쉼표로. 주지 않으면 셋 다. */
+                statuses?: ("ACTIVE" | "INACTIVE" | "WITHDRAWN")[];
+                /** @description 사업자정보 인증. 인증 = 최종 인증일시가 있다. 주지 않으면 전체. */
+                verification?: "VERIFIED" | "UNVERIFIED";
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description BP목록_YYYYMMDD.xlsx */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                };
+            };
+            /** @description 검색 조건 형식 · 1만 건 이상 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 1분 안에 다시 받음 */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpMastersController_loginIdAvailability: {
+        parameters: {
+            query: {
+                /** @description 아이디. 영문 또는 영문 · 숫자 4~20자. */
+                loginId: string;
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginIdAvailabilityResponseDto"];
+                };
+            };
+            /** @description 아이디 형식 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpMastersController_emailAvailability: {
+        parameters: {
+            query: {
+                email: string;
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminProfileEmailAvailabilityResponseDto"];
+                };
+            };
+            /** @description 이메일 형식 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpMastersController_verifyBusiness: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyBpMasterBusinessDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BpMasterBusinessVerificationResponseDto"];
+                };
+            };
+            /** @description 입력 형식 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없거나 지운 BP · 플랫폼 BP */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 사업자등록번호 중복 · 탈퇴한 BP */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 국세청 정보와 다름 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 시간당 한도(10건) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 사업자 진위확인 연동이 없거나 실패함 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpMastersController_detail: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BpMasterDetailResponseDto"];
+                };
+            };
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없거나 지운 BP · 플랫폼 BP */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpMastersController_update: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateBpMasterDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 입력 형식 · 인증 토큰 만료 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없거나 지운 BP · 플랫폼 BP */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 이메일 · 사업자등록번호 중복 · 탈퇴한 BP */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpMastersController_remove: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없거나 지운 BP · 플랫폼 BP */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 탈퇴 · 로그인 기록 · 하위 관리자 · 점포가 있어 지울 수 없음 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpMastersController_histories: {
+        parameters: {
+            query: {
+                /** @description 쪽 번호. 1부터, 최대 10,000,000 — 건너뛸 행 수가 integer 범위를 넘지 않게. */
+                page: number;
+                /** @description 한 쪽 건수. 기본 20, 최대 200. */
+                pageSize: number;
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BpMasterHistoryListResponseDto"];
+                };
+            };
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없거나 지운 BP · 플랫폼 BP */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 탈퇴한 BP — 변경 이력을 볼 수 없다 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpMastersController_changeStatus: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeBpMasterStatusDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없거나 지운 BP · 플랫폼 BP */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 탈퇴한 BP · 그 사이 다른 관리자가 상태를 바꿈 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpMastersController_resetPassword: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResetBpMasterPasswordResponseDto"];
+                };
+            };
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없거나 지운 BP · 플랫폼 BP */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 탈퇴한 BP · 이메일 없음 · 그 사이 이메일이 바뀜 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 메일 설정(MAIL_* · ADMIN_WEB_URL)이 없는 환경 — 아무것도 바꾸지 않는다 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     TermsVersionsController_findAll: {
         parameters: {
             query?: never;
@@ -14011,6 +15461,12 @@ export interface operations {
                  *     목록과 같다). storeIds 와 함께 주면 둘 다 맞는 점포만이다. 빈 값 · 모르는 값이 하나라도 있으면 400 이다.
                  */
                 storeTypes?: string;
+                /**
+                 * @description true 면 검토 대기(확인하지 않은 검토 사유 — 출퇴근 누락 · 계약 만료 후 기록 · 기간 중 계약 변경 · 확인 필요 기록 포함 —
+                 *     가 남았거나 공제 미입력인 작성 중 · 검토 중 명세서 — 공제 미입력은 공제 칸으로 판정, 운영 정책 v221 PAY-06)만(WHALEERP-234). 검토 대기는 상태가 아니라 분류다(2026-10-26). 주면 본사 역할에게 가린 줄은 빠진다 —
+                 *     상태 필터와 같다. false · 없음은 거르지 않는다. 'true' · 'false' 밖의 값은 400.
+                 */
+                reviewPending?: boolean;
                 /** @description 페이지당 건수 — 20 · 50 · 100, 기본 20 */
                 pageSize?: 20 | 50 | 100;
                 /**
@@ -14108,6 +15564,47 @@ export interface operations {
             };
             /** @description NO_VALID_CONTRACT — 급여 기간에 유효한 근로계약 없음 */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PayslipsController_summary: {
+        parameters: {
+            query: {
+                /** @description 급여 월(YYYY-MM). 목록의 month 와 같다 — 급여 기간 시작일이 그 달인 명세서다 */
+                month: string;
+                /** @description 점포 ID */
+                storeId: number;
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayslipSummaryResponseDto"];
+                };
+            };
+            /** @description 쿼리 형식 오류(month · storeId 누락 포함) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -15342,9 +16839,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SendContractDto"];
+            };
+        };
         responses: {
-            /** @description status — 가입 초대는 그대로 PENDING_SEND · PENDING_SIGNATURE, 가입한 직원은 PENDING_SIGNATURE, 소속 추가 확인 요청은 PENDING_SEND(signDeadlineAt null — 수락부터 30일). 가입한 직원은 알림함 알림(앱 푸시는 #261 전까지 나가지 않음) — 알림 템플릿을 쓸 수 없거나 탈퇴 계정이면 알림 없이 기한만 새로 */
+            /** @description status — 가입 초대는 그대로 PENDING_SEND · PENDING_SIGNATURE, 가입한 직원은 PENDING_SIGNATURE, 소속 추가 확인 요청은 PENDING_SEND(signDeadlineAt null — 수락부터 30일). 거부 · 만료(WHALEERP-153)는 가입한 직원이면 PENDING_SIGNATURE, 그 밖에는 PENDING_SEND 로 되살린다. 가입한 직원은 알림함 알림(앱 푸시는 #261 전까지 나가지 않음) — 알림 템플릿을 쓸 수 없거나 탈퇴 계정이면 알림 없이 기한만 새로 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -15367,7 +16868,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description CONTRACT_STATUS_CONFLICT(발송 대기 · 서명 대기가 아님) · SEND_PHONE_NOT_MOBILE(휴대폰 번호가 아님) · 코드 없음 「이 점포에 이미 재직 중인 직원입니다」(가입 전 레코드인데 그 번호의 계정이 이 점포에 재직 중) · 다른 요청이 먼저 고침 */
+            /** @description CONTRACT_STATUS_CONFLICT(발송 대기 · 서명 대기 · 거부 · 만료가 아님, 또는 본문 expectedStatus · expectedSentAt 이 지금 계약과 다름 — 그사이 거부 · 만료되었거나 다른 탭에서 먼저 보냄) · REOPEN_BLOCKED(거부 · 만료를 되살릴 수 없음 — 퇴직 · 퇴직일 있음, 폐점 · 삭제 점포, 같은 점포 · 번호의 다른 진행 중 계약, 계약 기간이 끝남, 기간이 겹치거나 더 늦게 시작한 다른 체결 완료, 같은 직전 계약의 다른 재계약. message 에 까닭) · WORK_TIME_OVERLAP(거부 · 만료를 되살리면 다른 점포 근무 시간과 겹침) · SEND_PHONE_NOT_MOBILE(휴대폰 번호가 아님) · 코드 없음 「이 점포에 이미 재직 중인 직원입니다」(가입 전 레코드인데 그 번호의 계정이 이 점포에 재직 중) · 다른 요청이 먼저 고침 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -21569,6 +23070,78 @@ export interface operations {
             };
             /** @description 끝난 휴일 · 오늘 이후에 시작하는 휴일(삭제를 쓴다) · 다른 사용자가 먼저 수정 */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    HomeController_summary: {
+        parameters: {
+            query?: {
+                /** @description 업무 범위의 점포. 여러 개는 `storeIds=1&storeIds=2` 와 쉼표 `storeIds=1,2` 중 하나로(섞으면 400), 1000개까지. 관리 범위 밖 ID 는 조용히 빠진다. 주지 않으면 관리 범위 전체 */
+                storeIds?: number[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HomeSummaryResponseDto"];
+                };
+            };
+            /** @description storeIds 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 직원 앱 토큰이거나 사용 중인 관리자 계정이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    HomeController_pending: {
+        parameters: {
+            query?: {
+                /** @description 업무 범위의 점포. 여러 개는 `storeIds=1&storeIds=2` 와 쉼표 `storeIds=1,2` 중 하나로(섞으면 400), 1000개까지. 관리 범위 밖 ID 는 조용히 빠진다. 주지 않으면 관리 범위 전체 */
+                storeIds?: number[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HomePendingResponseDto"];
+                };
+            };
+            /** @description storeIds 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 직원 앱 토큰이거나 사용 중인 관리자 계정이 아님 */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

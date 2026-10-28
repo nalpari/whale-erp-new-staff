@@ -3,7 +3,7 @@ import { formatWon, itemAmount } from "@/lib/payslip-rules";
 import type { PayslipItem } from "@/lib/payslips";
 
 // 목업 table.pay. 비과세 줄은 이름 아래 「비과세」, 3.3% 원천징수 줄은 끝자리 처리 미정 안내(PAY-7)를 작은 글자로 붙인다.
-// 목업의 줄마다 계산 근거(PAY-3) · 「해당 없음」 · 「· 정정됨」(PAY-1)은 api 에 그 값이 없어 보이지 않는다.
+// 목업의 줄마다 계산 근거(PAY-3) · 가산 미적용 「1배」 · 「· 정정됨」(PAY-1)은 api 에 그 값이 없어 보이지 않는다.
 function subText(item: PayslipItem): string | undefined {
   if (item.isTaxFree) return "비과세";
   if (item.itemCategory === "WITHHOLDING") return "끝자리 세무 확인 대기(PAY-7)";
