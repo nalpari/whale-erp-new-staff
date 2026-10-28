@@ -136,7 +136,7 @@ const todoPanel = (s) => {
 // 근무지 카드: 두 탭 위에 두고 누르면 홈과 같은 근무지 고르기 시트를 연다(WORK-4, 2026-10-20 재영). 고른 근무지는 앱 전체가 따른다.
 // 근무지가 하나뿐인 직원이면 누를 수 없는 표시로 두고 펼침 표시를 뺀다.
 const storeCard = () =>
-  `<button type="button" data-open="store" aria-label="근무지 바꾸기, 지금 ${STORE}" class="flex w-full items-center gap-[14px] rounded-[18px] border border-staff-border-light bg-[#eef2ff] px-[20px] py-[18px] text-left">${storeSmall()}<span class="flex min-w-0 flex-1 flex-col gap-[2px]"><span class="truncate text-[16px] font-bold" data-slot="store">${STORE}</span><span class="text-[12px] text-staff-text-sub">연결된 근무지 ${STORES.length}곳 · 눌러서 바꾸기</span></span>${img("chevron-down.svg", 15, 15, "-scale-y-100")}</button>`;
+  `<button type="button" data-open="store" aria-label="근무지 바꾸기, 지금 ${STORE}" class="flex w-full items-center gap-[14px] rounded-[18px] border border-staff-border-light bg-[#eef2ff] px-[20px] py-[18px] text-left">${storeSmall()}<span class="flex min-w-0 flex-1 flex-col gap-[2px]"><span class="truncate text-[16px] font-bold" data-slot="store">${STORE}</span><span class="text-[12px] text-staff-text-sub">연결된 근무지 ${STORES.length}곳</span></span>${img("chevron-down.svg", 15, 15, "-scale-y-100")}</button>`;
 
 // ── 근무스케줄 탭(week) ──
 const storeSmall = () => img("store-small.svg", 14.625, 13.5);
@@ -147,22 +147,22 @@ const schedule = () =>
     nextLabel: "다음 달",
     prevAttrs: { "data-toast": "8월로 옮겼습니다" },
     nextAttrs: { "data-toast": "10월로 옮겼습니다" },
-  })}<div class="flex flex-col gap-[12px] rounded-[18px] border border-staff-border-light bg-white px-[12px] pt-[16px] pb-[12px]">${monthCalendar()}<p class="border-t border-staff-border-light pt-[12px] text-[12px] text-staff-text-muted">근무가 있는 날에만 시간이 붙습니다. 날짜를 누르면 아래에 그날 상세가 열립니다.</p></div></section>` +
-  `<section class="flex flex-col gap-[8px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">고른 날 · 9월 10일(목)</h2>${card(
+  })}<div class="flex flex-col gap-[12px] rounded-[18px] border border-staff-border-light bg-white px-[12px] pt-[16px] pb-[12px]">${monthCalendar()}<p class="border-t border-staff-border-light pt-[12px] text-[12px] text-staff-text-muted">날짜를 누르면 그날 근무를 볼 수 있습니다.</p></div></section>` +
+  `<section class="flex flex-col gap-[8px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">9월 10일 (목)</h2>${card(
     `<div class="flex items-center gap-[12px]">${storeSmall()}<p class="min-w-0 flex-1 truncate text-[14px] font-semibold">${STORE}</p></div>`,
   )}${card(
     `<p class="pb-[8px] text-[13px] font-semibold text-staff-text-sub">근무 시간</p>${workTimeBar({
       schedule: { start: "09:00", end: "18:00" },
       worked: { start: "09:02", end: "14:12" },
       ongoing: true,
-    })}<p class="pt-[8px] text-[12px] text-staff-text-muted">점선은 예정, 채운 칠은 실제 기록입니다</p>`,
+    })}<p class="pt-[8px] text-[12px] text-staff-text-muted">점선은 예정, 채운 막대는 실제 근무입니다</p>`,
   )}${sunken(
     values([
       ["예정 시간", "09:00 – 18:00"],
       ["휴게시간", "60분"],
       ["실제 출근", "09:02"],
     ]),
-  )}</section>`;
+  )}<p class="text-[12px] text-staff-text-muted">근무스케줄 변경은 근무지 관리자에게 문의해 주세요.</p></section>`;
 // TO-DO 요약 카드(Figma 06)는 뺐다. TO-DO 는 같은 화면의 TO-DO 탭에서 본다(WORK-5, 2026-10-20 재영).
 // 출퇴근 등록으로 가는 버튼은 두지 않는다. 출퇴근은 하단 메뉴의 출퇴근 칸으로 간다(2026-10-12 재영).
 
@@ -217,11 +217,11 @@ const view = (s) => {
     v === "nosite"
       ? emptyView(
           maskIcon("store.svg", 40, true),
-          "근무지가 없습니다",
-          "연결된 근무지가 없어 스케줄과 TO-DO 를 보여 줄 수 없습니다. 받은 급여명세서는 급여 탭에서 계속 볼 수 있습니다.",
+          "근무가 종료되었습니다",
+          "급여명세서는 보존 기간(3년) 동안<br>급여 탭에서 확인할 수 있습니다.",
         )
       : `<div id="${PANEL}" role="tabpanel" aria-labelledby="${segmentTabId(PANEL, tab)}" class="flex flex-col gap-[20px]">${isTodo(v) ? todoPanel(v) : ""}${
-          v === "empty" ? emptyView(img("menu-schedule.svg", 44, 44), "이번 달 등록된 근무가 없습니다", "관리자가 스케줄을 등록하면 이 달력에 표시됩니다.") : ""
+          v === "empty" ? emptyView(img("menu-schedule.svg", 44, 44), "이번 달 근무가 없습니다", "근무지에서 근무스케줄을 등록하면 여기에 표시됩니다.") : ""
         }${v === "week" ? schedule() : ""}</div>`;
   return `<div class="flex flex-1 flex-col">${pageHeader("근무 정보", {
     backHref: page("home"),

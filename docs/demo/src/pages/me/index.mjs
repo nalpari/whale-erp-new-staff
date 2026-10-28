@@ -1,9 +1,9 @@
 // 직원 근무 앱 데모 · 내 정보. src/app/demo/me/page.tsx 를 옮겼다. 기준 목업: docs/mockup/app/me.html — 상태 6개(내 정보 ·
-// 비밀번호 변경 · 이메일 변경 · 새 이메일 인증 · 주소 검색 · 소속 근무지)와 시트 8개(약관 보기 · 잠시 멈춤 ·
+// 비밀번호 변경 · 이메일 변경 · 새 이메일 인증 · 주소 검색 · 소속 근무지 — 소속 추가 확인 요청 포함)와 시트 8개(약관 보기 · 잠시 멈춤 ·
 // 일시 중지 동안의 카드 · 철회한 뒤의 카드 · 본사 제공 동의 내용 · 본사 제공 동의 철회 · 위치정보 동의 철회 · 로그아웃), 화면 문구·가짜 값·이동(data-go)·알림(data-toast)을 옮겼다.
 // 생년월일은 가입한 뒤 고치지 않고(운영 정책 ACC-13), 휴대전화번호는 계정의 신원 기준이라 1차에 바꾸지 않으며(2026-10-19),
 // 소속 근무지·고용 형태는 근로계약으로만 바뀌어 읽기 전용이다. 직원이 고치는 건 이메일·주소·비밀번호다. 번호 변경 상태 셋은 없앴다.
-// 위치정보 동의 카드: 동의 상태·일시·버전, 약관 보기 · 잠시 멈춤 · 동의 철회(운영 정책 ATT-23·26). 일시 중지 중이면 같은 카드가 「다시 켜기」로 바뀐다.
+// 위치정보 동의 카드: 동의 상태·일시·버전, 약관 보기 · 일시 중지 · 동의 철회(운영 정책 ATT-23·26). 일시 중지 중이면 같은 카드가 「다시 켜기」로 바뀐다.
 // 본사 제공 동의 카드: 가맹 점포 직원의 선택 동의, 내용 보기 · 동의 철회(운영 정책 ATT-30). 동의 문구는 법무 검토 중(ATT-8).
 // 두 카드 모두 철회하면 같은 자리에서 「동의하지 않음 · 철회 일시」와 「다시 동의하기」로 바뀐다(ME-5, 2026-10-08). 목업의 「철회한 뒤의 카드」 시트는
 // 두 카드를 철회한 모양으로 바꾼 상태(revoked)로 그린다.
@@ -103,44 +103,44 @@ const meView = (mode, ids) => {
     `${cardHead("위치정보 동의", badge("plain", "동의하지 않음"))}${tinyLine("2026년 10월 2일 18:40 철회 · 위치정보 수집·이용 동의 v1.2")}<div class="flex flex-col gap-[8px] pt-[10px]">${locReagree}<div class="flex gap-[8px]">${smallButton(
       "약관 보기",
       { "data-open": "terms" },
-    )}</div></div>${tinyLine("동의하지 않은 동안 출퇴근 기록은 근무지 관리자에게 문의해 주세요. 다음 출퇴근 등록 때 동의해도 됩니다.", true)}`,
+    )}</div></div>${tinyLine("동의 전까지 출퇴근 기록은 근무지 관리자에게 문의해 주세요.<br>다음 출퇴근 등록 때 다시 동의할 수 있습니다.", true)}`,
   );
   const locPausedCard = card(
-    `${cardHead("위치정보 동의", badge("warning", "일시 중지"))}${tinyLine("2026년 9월 29일 14:20 부터 일시 중지 · 동의는 2026년 3월 15일 09:04 그대로")}<div class="flex flex-col gap-[8px] pt-[10px]">${button(
+    `${cardHead("위치정보 동의", badge("warning", "일시 중지"))}${tinyLine("2026년 9월 29일 14:20부터 일시 중지 · 동의는 유지 중")}<div class="flex flex-col gap-[8px] pt-[10px]">${button(
       "다시 켜기",
-      go("view"),
+      go("view", "위치 수집을 다시 켰습니다"),
     )}<div class="flex gap-[8px]">${smallButton("약관 보기", { "data-open": "terms" })}${smallButton("동의 철회", { "data-open": "revoke" })}</div></div>${tinyLine(
-      "일시 중지 동안 출퇴근 기록은 근무지 관리자에게 문의해 주세요. 다시 켜면 새로 동의하지 않아도 됩니다.",
+      "일시 중지 중에는 출퇴근 기록을 근무지 관리자에게 문의해 주세요.<br>다시 켜면 새로 동의하지 않아도 됩니다.",
       true,
     )}<!-- 데모용: 일시 중지 동안의 출퇴근 등록 화면 --><div class="pt-[10px]">${outline("출퇴근 등록 화면 보기", { href: page("check-in", "paused") })}</div>`,
   );
   const locAgreedCard = card(
     `${cardHead("위치정보 동의", badge("success", "동의함"))}${tinyLine("2026년 3월 15일 09:04 동의 · 위치정보 수집·이용 동의 v1.2")}<div class="flex gap-[8px] pt-[10px]">${smallButton("약관 보기", {
       "data-open": "terms",
-    })}${smallButton("잠시 멈춤", { "data-open": "pause" })}${smallButton("동의 철회", { "data-open": "revoke" })}</div>${tinyLine(
-      "동의하지 않으면 앱으로 출퇴근을 등록할 수 없고, 다음 출퇴근 등록 때 다시 동의할 수 있습니다.",
+    })}${smallButton("일시 중지", { "data-open": "pause" })}${smallButton("동의 철회", { "data-open": "revoke" })}</div>${tinyLine(
+      "동의를 철회하면 앱으로 출퇴근을 등록할 수 없습니다.",
       true,
     )}`,
   );
   const bpRevokedCard = card(
-    `${cardHead("본사 제공 동의", badge("plain", "동의하지 않음"))}${tinyLine("2026년 10월 2일 18:42 철회 · 가맹본부 웨일카페 · 본사 제공 동의 v1.0")}<div class="flex flex-col gap-[8px] pt-[10px]">${swapButton(
+    `${cardHead("사업자 제공 동의", badge("plain", "동의하지 않음"))}${tinyLine("2026년 10월 2일 18:42 철회 · 가맹본부 웨일카페 · 사업자 제공 동의 v1.0")}<div class="flex flex-col gap-[8px] pt-[10px]">${swapButton(
       "다시 동의하기",
       ids.bpOn,
       ids.bpOff,
-      { "data-toast": "본사 제공에 다시 동의했습니다" },
-    )}<div class="flex gap-[8px]">${smallButton("내용 보기", { "data-open": "bpshare" })}</div></div>${tinyLine("지금은 본사에 점포별 숫자로만 보입니다. 다시 동의하면 개인 단위로 보입니다.", true)}`,
+      { "data-toast": "사업자 제공 동의를 완료했습니다" },
+    )}<div class="flex gap-[8px]">${smallButton("내용 보기", { "data-open": "bpshare" })}</div></div>${tinyLine("지금은 가맹본부에 점포별 숫자로만 보입니다.<br>다시 동의하면 개인 단위로 보입니다.", true)}`,
   );
   const bpAgreedCard = card(
-    `${cardHead("본사 제공 동의", badge("success", "동의함"))}${tinyLine("2026년 3월 15일 09:04 동의 · 가맹본부 웨일카페 · 본사 제공 동의 v1.0")}<div class="flex gap-[8px] pt-[10px]">${smallButton("내용 보기", {
+    `${cardHead("사업자 제공 동의", badge("success", "동의함"))}${tinyLine("2026년 3월 15일 09:04 동의 · 가맹본부 웨일카페 · 사업자 제공 동의 v1.0")}<div class="flex gap-[8px] pt-[10px]">${smallButton("내용 보기", {
       "data-open": "bpshare",
-    })}${smallButton("동의 철회", { "data-open": "bprevoke" })}</div>${tinyLine("철회해도 가입과 근무는 그대로입니다. 본사에는 점포별 숫자로만 보입니다.", true)}`,
+    })}${smallButton("동의 철회", { "data-open": "bprevoke" })}</div>${tinyLine("철회해도 근무에는 영향이 없으며, 가맹본부에는 점포별 숫자로만 보입니다.", true)}`,
   );
 
   return `<header class="flex min-h-[72px] w-full items-center bg-white px-[22px] py-[14px]"><h1 class="min-w-0 flex-1 text-[18px] font-bold">내 정보</h1></header><main class="flex flex-col gap-[14px] px-[16px] pt-[16px] pb-[24px]">${card(
-    `${label("기본 정보")}<div class="flex flex-col gap-[10px] pt-[8px]">${readOnlyField({ label: "이름", value: "이하은" })}${readOnlyField({ label: "생년월일", value: "1998-04-12" })}${readOnlyField({
+    `${label("기본 정보")}<div class="flex flex-col gap-[10px] pt-[8px]">${readOnlyField({ label: "이름", value: "이하은" })}${readOnlyField({ label: "생년월일", value: "1998.04.12" })}${readOnlyField({
       label: "입사일",
-      value: "2025-11-03",
-    })}</div>${tinyLine("생년월일은 가입한 뒤 고칠 수 없습니다.")}`,
+      value: "2025.11.03",
+    })}</div>${tinyLine("생년월일을 변경하려면 근무지 관리자에게 문의해 주세요.")}`,
   )}<div class="flex flex-col gap-[6px]"><button type="button" data-go="sites" class="flex w-full items-center gap-[12px] rounded-[16px] border border-staff-border-light bg-staff-info-bg p-[16px] text-left transition-colors duration-150 ease-out active:bg-staff-primary-inactive"><span class="min-w-0 flex-1">${label(
     "소속 근무지",
   )}<span class="block pt-[4px] text-[15px] font-bold">웨일카페 강남역점 외 1곳</span></span>${badge("plain", "파트타이머")}${img(
@@ -148,7 +148,7 @@ const meView = (mode, ids) => {
     12,
     12,
     "-scale-y-100",
-  )}</button><p class="px-[4px] text-[12px] text-staff-text-muted">소속 근무지와 고용 형태는 근로계약으로만 바뀝니다.</p></div><!-- 위치정보 동의(운영 정책 ATT-23·26). 일시 중지 중이면 같은 자리에서 「다시 켜기」로 돌아온다 — 다시 켤 때 동의 절차가 없다. -->${panel(
+  )}</button><p class="px-[4px] text-[12px] text-staff-text-muted">소속 근무지와 고용 형태는 근로계약에 따라 정해집니다.</p></div><!-- 위치정보 동의(운영 정책 ATT-23·26). 일시 중지 중이면 같은 자리에서 「다시 켜기」로 돌아온다 — 다시 켤 때 동의 절차가 없다. -->${panel(
     locRevokedCard,
     ids.locOff,
     revoked,
@@ -160,17 +160,17 @@ const meView = (mode, ids) => {
     `${label("연락처")}<div class="flex flex-col gap-[10px] pt-[8px]">${readOnlyField({
       label: "휴대전화번호",
       value: "010-4821-7736",
-      help: "가입 때 넣은 번호로, 앱에서 바꿀 수 없습니다.",
+      help: "가입할 때 입력한 번호로, 앱에서 변경할 수 없습니다.",
     })}${readOnlyField({
       label: "이메일 · 로그인 아이디",
       value: "haeun.lee@gmail.com",
-      help: "로그인할 때 쓰는 아이디라 새 이메일로 인증번호를 받아 확인한 뒤에 바뀝니다.",
+      help: "로그인 아이디로 사용되며, 변경하려면 새 이메일 인증이 필요합니다.",
       action: smallButton("변경", go("email")),
     })}<!-- 주소는 검색으로 도로명을 고르고 상세주소만 적는다(ME-2). 이미 쓴 계약서에는 반영하지 않는다는 안내를 빼지 않는다. --><div class="flex flex-col gap-[6px]">${readOnlyField({
       label: "주소",
       value: ADDRESSES[0],
       action: smallButton("검색", go("addr")),
-    })}<input aria-label="상세주소" placeholder="상세주소" value="3층 302호" class="${FIELD}"><p class="pt-[2px] text-[12px] text-staff-text-muted">도로명 주소는 검색해서 고르고 상세주소만 직접 적습니다. 주소를 바꾸면 지금 계약서에는 반영되지 않고 다음에 새로 쓰는 계약부터 적용됩니다.</p></div></div><div class="pt-[12px]">${button(
+    })}<input aria-label="상세주소" placeholder="상세주소" value="3층 302호" class="${FIELD}"><p class="pt-[2px] text-[12px] text-staff-text-muted">주소를 변경해도 이미 서명한 계약서에는 반영되지 않습니다.</p></div></div><div class="pt-[12px]">${button(
       "변경사항 저장",
       { "data-toast": "변경사항을 저장했습니다" },
     )}</div>`,
@@ -191,27 +191,27 @@ const sheets = (mode, ids) =>
       `<p class="text-[14px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text">출근 · 퇴근 버튼을 누를 때 매장 안인지를 위치로 확인하는 데만 씁니다. <b>위치는 휴대전화 안에서만 확인하고 서버로 보내지 않으며</b> 기록에는 출퇴근 시각이 남습니다. 반경 밖이면 확인 필요 표시만 남고 관리자 검토 뒤 지웁니다. 동의는 내 정보에서 언제든 철회할 수 있고, 철회하면 앱으로 등록할 수 없습니다.</p>`,
     )}<p class="text-[12px] text-staff-text-muted">약관 버전이 바뀌면 다음 출퇴근 등록 때 새 버전으로 다시 동의를 받습니다.</p>`,
   ) +
-  // 일시 중지(운영 정책 ATT-26). 버튼 이름은 「잠시 멈춤」「다시 켜기」. 동의는 남고 수집만 멎어 다시 켤 때 동의 절차가 없다.
+  // 일시 중지(운영 정책 ATT-26). 버튼 이름은 「일시 중지」「다시 켜기」. 동의는 남고 수집만 멎어 다시 켤 때 동의 절차가 없다.
   bottomSheet(
     "pause",
-    { title: "위치 수집을 잠시 멈출까요", closeLabel: "그대로 두기" },
-    `<p class="text-[14px] font-bold text-staff-text">잠시 멈춘 동안에는 앱으로 출퇴근을 등록할 수 없습니다. 출퇴근 기록은 근무지 관리자에게 문의해 주세요. 다시 켜면 새로 동의하지 않아도 됩니다.</p>${sunken(
-      `<p class="text-[14px] text-staff-text-sub">동의는 그대로 남고 수집만 멎습니다. 철회와 달리 다시 켤 때 동의 절차가 없습니다.</p>`,
-    )}${button("잠시 멈춤", { ...go("paused", "위치 수집을 멈췄습니다"), "data-close": true })}`,
+    { title: "위치 수집을 일시 중지하시겠습니까?", closeLabel: "취소" },
+    `<p class="text-[14px] font-bold text-staff-text">일시 중지 중에는 앱으로 출퇴근을 등록할 수 없습니다.<br>출퇴근 기록은 근무지 관리자에게 문의해 주세요.</p>${sunken(
+      `<p class="text-[14px] text-staff-text-sub">동의는 그대로 유지되어, 다시 켤 때 새로 동의하지 않아도 됩니다.</p>`,
+    )}${button("일시 중지", { ...go("paused", "위치 수집을 일시 중지했습니다"), "data-close": true })}`,
   ) +
   bottomSheet(
     "revoke",
-    { title: "위치정보 동의를 철회할까요", closeLabel: "그대로 두기" },
-    `<p class="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">철회하면 <strong>앱으로 출퇴근을 등록할 수 없습니다. 출퇴근 기록은 근무지 관리자에게 문의해 주세요.</strong></p>${sunken(
-      `<p class="text-[14px] text-staff-text-sub">다시 등록하려면 내 정보의 「다시 동의하기」나 다음 출퇴근 등록 때 새로 동의하면 됩니다. 이미 남은 기록은 그대로 보존됩니다.</p>`,
-    )}${swapButton("철회합니다", ids.locOff, ids.locOn, { "data-toast": "위치정보 동의를 철회했습니다", "data-close": true })}<!-- 데모용: 철회 뒤의 출퇴근 등록 화면(「위치정보 동의 없음」, 운영 정책 ATT-20) -->${outline(
+    { title: "위치정보 동의를 철회하시겠습니까?", closeLabel: "취소" },
+    `<p class="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">철회하면 앱으로 출퇴근을 등록할 수 없습니다.<br><strong>출퇴근 기록은 근무지 관리자에게 문의해 주세요.</strong></p>${sunken(
+      `<p class="text-[14px] text-staff-text-sub">다음 출퇴근 등록 때 다시 동의할 수 있습니다.<br>지금까지의 기록은 그대로 남습니다.</p>`,
+    )}${swapButton("철회하기", ids.locOff, ids.locOn, { "data-toast": "위치정보 동의를 철회했습니다", "data-close": true })}<!-- 데모용: 철회 뒤의 출퇴근 등록 화면(「위치정보 동의 없음」, 운영 정책 ATT-20) -->${outline(
       "출퇴근 등록 화면 보기",
       { href: page("check-in", "no-consent") },
     )}`,
   ) +
   bottomSheet(
     "bpshare",
-    { title: "본사 제공 동의" },
+    { title: "사업자 제공 동의" },
     `${sunken(
       values([
         ["받는 자", "가맹본부 · 웨일카페"],
@@ -223,17 +223,17 @@ const sheets = (mode, ids) =>
   ) +
   bottomSheet(
     "bprevoke",
-    { title: "본사 제공 동의를 철회할까요", closeLabel: "그대로 두기" },
-    `<p class="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">철회하면 가맹본부가 <strong>내 근무 정보를 개인 단위로 보지 않습니다.</strong> 점포별 숫자로만 보입니다.</p>${sunken(
-      `<p class="text-[14px] text-staff-text-sub">가입과 근무, 급여명세서 수령은 그대로입니다. 다시 동의하려면 이 화면에서 켜면 됩니다.</p>`,
-    )}${swapButton("철회합니다", ids.bpOff, ids.bpOn, { "data-toast": "본사 제공 동의를 철회했습니다", "data-close": true })}`,
+    { title: "사업자 제공 동의를 철회하시겠습니까?", closeLabel: "취소" },
+    `<p class="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">철회하면 가맹본부에는 내 근무 정보가<br><strong>점포별 숫자로만 보입니다.</strong></p>${sunken(
+      `<p class="text-[14px] text-staff-text-sub">근무와 급여명세서에는 영향이 없습니다.<br>내 정보에서 언제든 다시 동의할 수 있습니다.</p>`,
+    )}${swapButton("철회하기", ids.bpOff, ids.bpOn, { "data-toast": "사업자 제공 동의를 철회했습니다", "data-close": true })}`,
   ) +
   bottomSheet(
     "logout",
     {
-      title: "로그아웃할까요",
-      description: "다시 들어오려면 이메일과 비밀번호가 필요합니다. 출퇴근을 찍어야 할 때 번거로울 수 있습니다.",
-      closeLabel: "그대로 두기",
+      title: "로그아웃하시겠습니까?",
+      description: "다시 로그인하려면 이메일과 비밀번호가 필요합니다.",
+      closeLabel: "취소",
     },
     // 목업 btn--seal(빨강). 여기서는 로그인 화면으로 가는 링크다.
     dangerButton("로그아웃", { href: page("login"), "data-dir": "nav-back" }),
@@ -242,72 +242,81 @@ const sheets = (mode, ids) =>
 const VIEWS = {
   password: () =>
     body(
-      `${textField({ label: "현재 비밀번호", type: "password", autocomplete: "current-password", value: "********" })}${textField({
+      `${textField({ label: "현재 비밀번호", type: "password", autocomplete: "current-password", placeholder: "현재 비밀번호를 입력해 주세요" })}${textField({
         label: "새 비밀번호",
         type: "password",
         autocomplete: "new-password",
-        value: "••••••••••",
+        placeholder: "새 비밀번호를 입력해 주세요",
       })}${textField({
         label: "새 비밀번호 확인",
         type: "password",
         autocomplete: "new-password",
-        value: "••••••••••",
+        placeholder: "새 비밀번호를 한 번 더 입력해 주세요",
       })}<!-- 비밀번호 규칙(ME-4). 가입·재설정·관리자 초기화 뒤의 변경에도 같이 적용한다. -->${sunken(
-        `${label("비밀번호 조건")}<ul class="flex flex-col pt-[2px]">${rule(true, "영문 대소문자·숫자·기호 중 <b>세 가지</b>를 섞었습니다")}${rule(true, "8자 이상 20자 이하")}${rule(
+        `${label("비밀번호 조건")}<ul class="flex flex-col pt-[2px]">${rule(false, "영문 대소문자·숫자·특수문자 중 <b>3가지</b> 이상")}${rule(false, "8자 이상 20자 이하")}${rule(
           false,
-          "이메일 아이디와 겹치지 않기",
-        )}</ul><p class="pt-[7px] text-[12px] text-staff-text-muted">두 가지만 섞으면 10자 이상이어야 합니다.</p>`,
+          "이메일 아이디와 중복 불가",
+        )}</ul><p class="pt-[7px] text-[12px] text-staff-text-muted">2가지만 사용하면 10자 이상 입력해 주세요.</p>`,
       )}`,
     ) + dock(button("변경하기", back("view", "비밀번호를 변경했습니다")) + ghost("취소", back("view"))),
 
   // 이메일이 로그인 아이디라 새 이메일로 인증번호를 받아 확인한 뒤에만 바뀐다(ME-3).
   email: () =>
     body(
-      `${lead("이메일을 바꾸면 아이디가 바뀝니다", "새 이메일로 인증번호를 보냅니다. 확인이 끝나면 다음 로그인부터 새 이메일을 씁니다.")}${sunken(
-        `<div class="flex items-center gap-[12px]">${label("지금 아이디")}<span class="min-w-0 flex-1 truncate text-right text-[13px]">haeun.lee@gmail.com</span></div>`,
-      )}${textField({ label: "새 이메일", type: "email", autocomplete: "email", placeholder: "새로 쓸 이메일" })}${alert(
+      `${lead("이메일을 변경하면 로그인 아이디도 바뀝니다", "새 이메일로 인증번호를 보내 드립니다.<br>인증이 끝나면 다음 로그인부터 새 이메일을 사용합니다.")}${sunken(
+        `<div class="flex items-center gap-[12px]">${label("현재 아이디")}<span class="min-w-0 flex-1 truncate text-right text-[13px]">haeun.lee@gmail.com</span></div>`,
+      )}${textField({ label: "새 이메일", type: "email", autocomplete: "email", placeholder: "새 이메일을 입력해 주세요" })}${alert(
         "warning",
-        "비밀번호를 잊었을 때 인증번호가 이 주소로 갑니다. <strong>받을 수 있는 주소</strong>인지 확인해 주세요.",
+        "비밀번호 재설정 인증번호도 이 이메일로 보내 드립니다.<br><strong>메일을 받을 수 있는 주소</strong>인지 확인해 주세요.",
       )}`,
-    ) + dock(button("인증번호 받기", go("email-pin", "새 이메일로 인증번호를 보냈습니다")) + ghost("그대로 두기", back("view"))),
+    ) + dock(button("인증번호 받기", go("email-pin", "새 이메일로 인증번호를 보냈습니다")) + ghost("취소", back("view"))),
 
   "email-pin": () =>
     body(
-      `${lead("새 이메일로 보낸 번호를 넣어 주세요", "ha******w@gmail.com 으로 보냈습니다.")}${textField({
+      `${lead("인증번호 입력", "ha******w@gmail.com으로 보낸<br>인증번호 6자리를 입력해 주세요.")}${textField({
         label: "인증번호",
         autocomplete: "one-time-code",
-        value: "9T4X1P",
+        placeholder: "인증번호 6자리",
       })}<div class="flex items-center justify-between text-[12px] text-staff-text-sub"><span>남은 시간 <b class="font-bold text-staff-text tabular-nums">09:12</b></span><span>남은 시도 <b class="font-bold text-staff-text tabular-nums">5</b>회</span></div>${notice(
-        "확인이 끝날 때까지 아이디는 그대로 이전 이메일입니다.",
+        "인증이 끝나기 전까지는 기존 이메일로 로그인합니다.",
       )}`,
-    ) + dock(button("확인", back("view", "아이디를 새 이메일로 바꿨습니다")) + ghost("이메일 다시 입력", back("email"))),
+    ) + dock(button("확인", back("view", "로그인 아이디를 새 이메일로 변경했습니다")) + ghost("이메일 다시 입력하기", back("email"))),
 
   // 주소 검색(ME-2). 고른 도로명은 그대로 저장되고 상세주소만 내 정보에서 적는다. 어느 API 를 붙일지는 개발에서 정한다.
   addr: () =>
     body(
-      `<div class="flex flex-col gap-[8px]"><label for="me-addr-q" class="text-[13px] font-semibold text-staff-text-sub">도로명 주소 검색</label><div class="flex items-center gap-[8px]"><input id="me-addr-q" value="양화로 12" aria-describedby="me-addr-help" class="${FIELD}"><div class="w-[88px] shrink-0">${button(
+      `<div class="flex flex-col gap-[8px]"><label for="me-addr-q" class="text-[13px] font-semibold text-staff-text-sub">도로명 주소 검색</label><div class="flex items-center gap-[8px]"><input id="me-addr-q" value="양화로 12" placeholder="도로명 또는 건물명을 입력해 주세요" class="${FIELD}"><div class="w-[88px] shrink-0">${button(
         "검색",
         { "data-toast": "주소를 찾았습니다" },
-      )}</div></div><p id="me-addr-help" class="text-[12px] text-staff-text-muted">도로명이나 건물 이름으로 찾습니다.</p></div><ul class="flex flex-col divide-y divide-staff-border-light rounded-[16px] border border-staff-border-light bg-white px-[16px]">${ADDRESSES.map(
+      )}</div></div></div><ul class="flex flex-col divide-y divide-staff-border-light rounded-[16px] border border-staff-border-light bg-white px-[16px]">${ADDRESSES.map(
         (a) =>
-          `<li><button type="button" data-go="view" data-dir="nav-back" data-toast="주소를 골랐습니다. 상세주소를 적어 주세요" class="flex w-full items-center gap-[12px] py-[13px] text-left"><span class="min-w-0 flex-1"><span class="block text-[15px] font-semibold">${a}</span><span class="block text-[12px] text-staff-text-sub">서교동 · 우편번호 04044</span></span>${img(
+          `<li><button type="button" data-go="view" data-dir="nav-back" data-toast="주소를 선택했습니다. 상세주소를 입력해 주세요" class="flex w-full items-center gap-[12px] py-[13px] text-left"><span class="min-w-0 flex-1"><span class="block text-[15px] font-semibold">${a}</span><span class="block text-[12px] text-staff-text-sub">서교동 · 우편번호 04044</span></span>${img(
             "chevron-right-muted.svg",
             12,
             12,
             "-scale-y-100",
           )}</button></li>`,
-      ).join("")}</ul>${notice("고른 주소는 <strong>그대로 저장</strong>되고 상세주소만 직접 적습니다. 오타나 형식이 어긋나는 일을 막기 위해서입니다.")}`,
+      ).join("")}</ul>${notice("선택한 주소는 <strong>그대로 저장</strong>되며, 상세주소만 직접 입력합니다.")}`,
     ),
 
   // 소속 근무지(ME-7, 2026-10-20 재영): 근무지를 누르면 아래로 펼쳐 근로계약서 · 급여명세서 · 신고 정보로 간다.
   // 세 화면은 누른 근무지의 것만 걸러 연다(앱 상단에서 고른 근무지와 관계없다). 데모 링크는 거르지 못해 화면만 연다.
+  // 소속 추가 확인 요청(ME-8, 2026-10-28 재영): 아직 수락하지 않은 요청이 온 점포를 소속 근무지 위에 따로 묶어 보인다 — 수락 전이라 소속이 아니다.
+  // 누르면 소속 추가 확인(수락 · 거절)으로 간다. 펼쳐서 근로계약서 · 급여명세서 · 신고 정보로 가지 않는다. 답하지 않으면 30일 뒤 요청만 만료된다(운영 정책 JOI-09).
+  // 예시 점포는 신촌점이다 — 홍대점은 이 데모에서 이미 재직 중이다. 데모의 소속 추가 확인 화면은 가입 데모의 홍대점 화면을 그대로 연다.
   sites: () =>
     body(
-      `<div class="flex flex-col gap-[10px]">${[
+      `<section aria-label="소속 추가 확인 요청" class="flex flex-col gap-[8px]"><h2 class="px-[4px] text-[13px] font-semibold text-staff-text-sub">소속 추가 확인 요청</h2><a href="${page(
+        "join",
+        "addsite",
+      )}" class="flex items-start gap-[12px] rounded-[16px] border border-staff-border-light bg-white p-[16px] transition-colors duration-150 ease-out active:bg-staff-info-bg"><span class="flex pt-[3px] text-staff-text-sub">${maskIcon("store-small.svg", 18)}</span><span class="min-w-0 flex-1"><span class="block text-[15px] font-semibold">웨일카페 신촌점</span><span class="block text-[12px] text-staff-text-sub">파트타이머 · 10월 8일 (목) 만료</span></span>${badge(
+        "warning",
+        "소속 추가 요청",
+      )}${img("chevron-right-muted.svg", 12, 12, "mt-[6px] -scale-y-100")}</a></section><h2 class="px-[4px] text-[13px] font-semibold text-staff-text-sub">소속 근무지</h2><div class="flex flex-col gap-[10px]">${[
         ["웨일카페 강남역점", "파트타이머 · 2025년 11월 3일부터", true],
         ["웨일카페 홍대점", "파트타이머 · 2026년 3월 16일부터", false],
         // 퇴직한 근무지도 둔다(ME-7, 2026-10-20 재영). 흐리게 · 「퇴직」 표시 · 근무 기간.
-        ["웨일베이커리 합정점", "파트타이머 · 2025년 3월 2일 ~ 2025년 12월 31일", false, true],
+        ["웨일베이커리 합정점", "파트타이머 · 2025년 3월 2일 – 2025년 12월 31일", false, true],
       ]
         .map(
           ([name, sub, open, retired]) =>
@@ -321,7 +330,7 @@ const VIEWS = {
               .map(([label, href]) => outline(label, { href }))
               .join("")}</div></details>`,
         )
-        .join("")}</div><p class="text-[12px] text-staff-text-muted">소속과 고용 형태는 근로계약이 새로 체결되어야 바뀝니다. 여기서는 고칠 수 없습니다.</p>`,
+        .join("")}</div><p class="text-[12px] text-staff-text-muted">소속 근무지와 고용 형태는 근로계약에 따라 정해집니다.<br>변경이 필요하면 근무지 관리자에게 문의해 주세요.</p>`,
     ),
 };
 

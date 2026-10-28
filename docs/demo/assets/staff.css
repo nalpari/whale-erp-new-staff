@@ -440,6 +440,9 @@
   .h-\[4px\] {
     height: 4px;
   }
+  .h-\[20px\] {
+    height: 20px;
+  }
   .h-\[26px\] {
     height: 26px;
   }
@@ -659,9 +662,6 @@
   }
   .gap-\[4px\] {
     gap: 4px;
-  }
-  .gap-\[5px\] {
-    gap: 5px;
   }
   .gap-\[6px\] {
     gap: 6px;
@@ -1210,9 +1210,6 @@
   .pb-\[16px\] {
     padding-bottom: 16px;
   }
-  .pb-\[20px\] {
-    padding-bottom: 20px;
-  }
   .pb-\[23px\] {
     padding-bottom: 23px;
   }
@@ -1290,9 +1287,6 @@
   }
   .text-\[22px\] {
     font-size: 22px;
-  }
-  .text-\[26px\] {
-    font-size: 26px;
   }
   .text-\[28px\] {
     font-size: 28px;
