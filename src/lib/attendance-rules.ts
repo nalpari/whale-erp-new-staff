@@ -123,12 +123,13 @@ export type HomeAttendanceAction = "check-in" | "check-out" | null;
  * - 위치를 보는 근무지의 위치 수집 일시 중지(ATT-26) — 출근 · 퇴근 모두 앱으로 못 한다. 미동의 · 철회 · 다시 동의 필요는 출퇴근 화면이
  *   동의부터 받으므로 버튼을 둔다(ATT-06 · ATT-32, HOME-12 2026-10-28 재영)
  * - 이 근무지의 열린 출근이 있으면 퇴근하기, 퇴근 기한이 지났거나 다른 근무지의 열린 출근이면 없음(보정 · 근무지 바꾸기는 출퇴근 화면 몫)
- * - 출근을 막는 까닭(서명 대기 · 체결 계약 없음)이 있거나 오늘 근무스케줄이 없으면 출근하기 없음
+ * - 출근을 막는 까닭(서명 대기 · 체결 계약 없음)이 있거나, 위치를 보는 근무지인데 좌표가 없거나(운영 정책 ATT-36 — api 는 출근 때 422
+ *   STORE_LOCATION_MISSING), 오늘 근무스케줄이 없으면 출근하기 없음. 퇴근은 좌표와 상관없이 둔다
  */
 export function homeAttendanceAction(
   attendance: {
     staffMemberId: number;
-    store: { isLocationApplied: boolean };
+    store: { isLocationApplied: boolean; latitude: number | null; longitude: number | null };
     locationConsent: { state: string };
     checkInBlock: object | null;
     openCheckIn: { staffMemberId: number; isCheckOutExpired: boolean } | null;
@@ -138,5 +139,7 @@ export function homeAttendanceAction(
   if (attendance.store.isLocationApplied && attendance.locationConsent.state === "PAUSED") return null;
   const open = attendance.openCheckIn;
   if (open) return open.staffMemberId === attendance.staffMemberId && !open.isCheckOutExpired ? "check-out" : null;
-  return attendance.checkInBlock || !hasTodaySchedule ? null : "check-in";
+  const { store } = attendance;
+  const noLocation = store.isLocationApplied && (store.latitude === null || store.longitude === null);
+  return attendance.checkInBlock || noLocation || !hasTodaySchedule ? null : "check-in";
 }

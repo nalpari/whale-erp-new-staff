@@ -77,7 +77,7 @@ test("탭 진입 읽기 · 카카오 지도의 내 위치는 LOCATION v1.1 이�
 });
 
 test("홈 출퇴근 버튼 — 열린 출근이면 퇴근하기, 오늘 근무가 있고 막는 까닭이 없으면 출근하기, 일시 중지면 없음 (HOME-3 · HOME-12)", () => {
-  const base = { staffMemberId: 7, store: { isLocationApplied: true }, locationConsent: { state: "AGREED" }, checkInBlock: null, openCheckIn: null };
+  const base = { staffMemberId: 7, store: { isLocationApplied: true, latitude: 37.5, longitude: 127.0 }, locationConsent: { state: "AGREED" }, checkInBlock: null, openCheckIn: null };
   assert.equal(homeAttendanceAction(base, true), "check-in");
   assert.equal(homeAttendanceAction(base, false), null);
   // 미동의 · 철회는 출퇴근 화면이 동의부터 받는다
@@ -86,7 +86,11 @@ test("홈 출퇴근 버튼 — 열린 출근이면 퇴근하기, 오늘 근무�
   // 일시 중지는 출근 · 퇴근 모두 앱으로 못 한다. 위치를 보지 않는 근무지는 상관없다
   assert.equal(homeAttendanceAction({ ...base, locationConsent: { state: "PAUSED" } }, true), null);
   assert.equal(homeAttendanceAction({ ...base, locationConsent: { state: "PAUSED" }, openCheckIn: { staffMemberId: 7, isCheckOutExpired: false } }, true), null);
-  assert.equal(homeAttendanceAction({ ...base, store: { isLocationApplied: false }, locationConsent: { state: "PAUSED" } }, true), "check-in");
+  assert.equal(homeAttendanceAction({ ...base, store: { ...base.store, isLocationApplied: false }, locationConsent: { state: "PAUSED" } }, true), "check-in");
+  // 위치를 보는 근무지인데 좌표가 없으면 출근하기 없음(ATT-36), 퇴근은 그대로 · 위치를 보지 않으면 상관없다
+  assert.equal(homeAttendanceAction({ ...base, store: { isLocationApplied: true, latitude: null, longitude: 127.0 } }, true), null);
+  assert.equal(homeAttendanceAction({ ...base, store: { isLocationApplied: true, latitude: null, longitude: null }, openCheckIn: { staffMemberId: 7, isCheckOutExpired: false } }, true), "check-out");
+  assert.equal(homeAttendanceAction({ ...base, store: { isLocationApplied: false, latitude: null, longitude: null } }, true), "check-in");
   // 서명 대기 · 체결 계약 없음
   assert.equal(homeAttendanceAction({ ...base, checkInBlock: { reason: "NO_CONTRACT" } }, true), null);
   // 열린 출근 — 이 근무지면 퇴근하기(오늘 근무가 없어도, 밤샘), 기한이 지났거나 다른 근무지면 없음
