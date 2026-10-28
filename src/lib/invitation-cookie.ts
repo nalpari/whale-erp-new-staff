@@ -48,3 +48,16 @@ export async function saveJoinedStore(storeName: string): Promise<void> {
 export async function readJoinedStore(): Promise<string | null> {
   return (await cookies()).get(JOINED_STORE_COOKIE)?.value || null;
 }
+
+// 소속 추가 완료 화면(/affiliations/done, WHALEERP-144)이 보일 점포 이름. 수락하면 요청이 목록에서 빠져 다시 읽을 수 없고, 주소에
+// 실으면 남이 만든 링크로 가짜 「○○ 소속이 추가되었습니다」를 보일 수 있어 가입 완료와 같이 수락한 액션이 잠깐 쿠키로 넘긴다.
+const ACCEPTED_STORE_COOKIE = "accepted_store";
+
+/** 서버 액션에서만 부른다. */
+export async function saveAcceptedStore(storeName: string): Promise<void> {
+  (await cookies()).set(ACCEPTED_STORE_COOKIE, clipChars(storeName, JOINED_STORE_MAX), cookieOptions(JOINED_STORE_SECONDS, "/affiliations/done"));
+}
+
+export async function readAcceptedStore(): Promise<string | null> {
+  return (await cookies()).get(ACCEPTED_STORE_COOKIE)?.value || null;
+}

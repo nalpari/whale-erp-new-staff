@@ -2212,11 +2212,12 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 재발송 — 발송 대기 · 서명 대기에서 새 서명 기한(30일)으로 다시 보낸다. 가입 전 · 계정 없는 번호는 가입 초대 알림톡을 새
+         * 재발송 — 발송 대기 · 서명 대기 · 거부 · 만료(WHALEERP-153)에서 새 서명 기한(30일)으로 다시 보낸다. 가입 전 · 계정 없는 번호는 가입 초대 알림톡을 새
          *     초대 코드로(상태 그대로, 앞서 나간 초대 코드는 무효), 가입한 직원은 앱 알림(근로계약서 발송 알림)으로 보낸다 — 발송 대기였으면
          *     서명 대기로 넘긴다(WHALEERP-611). 가입한 직원의 알림은 알림함 알림이고(앱 푸시는 #261 전까지 나가지 않는다), 알림 템플릿을
          *     쓸 수 없거나 탈퇴 계정이면 알림 없이 기한만 새로 잡는다. 계정은 있고 이 점포에 가입하지 않은 번호(소속 추가 확인 · 복귀
-         *     확인)는 409.
+         *     확인)는 소속 추가 확인 요청 알림톡 · 메일을 새로 보내고 발송 대기로 둔다 — 날인 기한은 직원이 수락한 때부터라 응답의 기한은
+         *     null 이다(WHALEERP-130).
          */
         post: operations["ContractSendController_send"];
         delete?: never;
@@ -4040,6 +4041,63 @@ export interface paths {
          *     근로계약서는 서명 대기가 된다.
          */
         post: operations["MyInvitationsController_accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/affiliation-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 내 살아 있는 소속 추가 확인 요청 — 보냄 · 기한 안. 로그인 뒤 팝업과 나의 정보 - 소속 점포가 이 목록을 보인다. 없으면 빈 배열 */
+        get: operations["MyAffiliationRequestsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/affiliation-requests/{invitationId}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 수락 — 그 점포의 직원 레코드를 이 계정에 잇고(가입 완료) 함께 온 근로계약서를 서명 대기로 넘긴다. 날인 기한은 지금부터 30일,
+         *     날인 요청 직원 알림이 나간다.
+         */
+        post: operations["MyAffiliationRequestsController_accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/affiliation-requests/{invitationId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 거절 — 요청을 거절로 두고(사유 선택) 함께 온 근로계약서를 거부로 닫는다(같은 사유). 직원 레코드 · 지금 소속 · 계정은 그대로다.
+         *     초안을 쓴 관리자에게 「소속 추가 확인 거절」 운영 알림이 간다.
+         */
+        post: operations["MyAffiliationRequestsController_reject"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6354,12 +6412,9 @@ export interface components {
             /** Format: date-time */
             expiresAt: string;
             /**
-             * @description 가입 초대 재발송 버튼을 보일지 — 이 값 하나만 본다. 참이면 이 줄의 contract.contractId 로 근로계약 재발송(POST
-             *     /contracts/{contractId}/send)이 가입 초대 알림톡을 보낸다(설정 누락 503 · 그사이 바뀐 상태 409 · 발송 실패 502 는 남는다).
-             *     모두 맞을 때만 참이다: 가입 전(가입 완료가 아님) · 가입 상태가 초대 발송 · 초대 만료 · 소속 추가 확인 · 복귀 확인(연결 보류 ·
-             *     만 19세 미만 · 거절 · 초안은 거짓) · 이 초대가 수락되지 않음 · 최근 계약이 발송 대기 또는 서명 대기 · 그 번호에 탈퇴하지
-             *     않은 계정이 없음(있으면 소속 추가 확인 · 복귀 확인이라 앱에 받을 길이 없어 409) · 휴대폰 번호. 간격 제한은 없다. 가입한
-             *     직원의 앱 알림 재발송은 가입 초대가 아니라 근로계약 상세에서 하므로 거짓이다.
+             * @deprecated
+             * @description contract.canResend 와 같은 값이다 — 초대 행이 없는 줄(이 변경 전 요청 없이 서명 대기가 된 옛 소속 확인 계약)은 invitation 이
+             *     null 이라 이 칸으로는 보일 수 없어 contract.canResend 로 옮겼다(api #164 리뷰). 화면이 옮겨 가면 뺀다.
              */
             canResend: boolean;
         };
@@ -6395,6 +6450,12 @@ export interface components {
             contractId: number;
             /** Format: date-time */
             signDeadlineAt: string | null;
+            /**
+             * Format: date-time
+             * @description 마지막으로 보낸 때(계약 상세 lastSentAt 과 같은 값). 초대 재발송 본문 expectedSentAt 으로 그대로 보낸다 — 두 화면에서 같은 계약을
+             *     두 번 다시 보내지 않게(api #158 셀프 code-review). 보낸 적 없으면 null
+             */
+            lastSentAt: string | null;
             /** @description 계약 종료일(YYYY-MM-DD). 비면 무기한 */
             endDate: string | null;
             /**
@@ -6402,6 +6463,16 @@ export interface components {
              * @description 최종 수정 일시. 거부일을 따로 저장하지 않아 「거부 · MM-DD」는 이 값으로 보인다
              */
             updatedAt: string | null;
+            /**
+             * @description 가입 · 인증 칸 재발송용 — 근로계약 상세의 canResend 와 달리 가입한 직원은 거짓이다(가입한 직원의 앱 알림 재발송은 근로계약
+             *     상세에서). 이 칸의 버튼은 이 값 하나만 본다. 참이면 이 계약으로 근로계약 재발송(POST
+             *     /contracts/{contractId}/send)이 가입 초대 알림톡 또는 소속 추가 확인 요청을 보낸다(설정 누락 503 · 그사이 바뀐 상태 409 · 발송
+             *     실패 502 는 남는다). 발송 대기 · 서명 대기(거부 · 만료 재발송은 근로계약 상세에서, WHALEERP-153) 위에 모두 맞을 때만 참이다: 가입 전 ·
+             *     가입 상태가 초대 발송 · 초대 만료 · 소속 추가 확인 · 복귀 확인(연결 보류 · 만 19세 미만 · 거절은 거짓), 또는 초안이고 이
+             *     계약이 소속 추가 확인 · 복귀 확인으로 판별된 것(WHALEERP-130 전 요청 없이 서명 대기가 된 옛 계약) · 보이는 초대가 수락되지
+             *     않음 · 휴대폰 번호 · 가린 줄 아님. 간격 제한은 없다.
+             */
+            canResend: boolean;
         };
         StaffMemberListItemDto: {
             employmentType: components["schemas"]["EmploymentType"] | null;
@@ -7094,6 +7165,14 @@ export interface components {
              *     만료 · 거절돼도 남는다 — 상태 칸의 「가입 대기 중」 · 「소속 확인 중」은 이 값으로 정한다
              */
             staffJoinState: components["schemas"]["StaffJoinState"];
+            /**
+             * @description 갱신 예정일 YYYY-MM-DD — 체결 완료이고 종료일이 오늘 이후면 종료일 30일 전(직원 상세 요약과 같은 규칙, WHALEERP-156).
+             *     종료일이 30일 안이면 이미 지난 날짜다. 이미 재계약했으면(진행 중이거나 체결을 거친 재계약이 있음) null, 그 밖에도 null
+             * @example 2026-11-01
+             */
+            renewalDate: string | null;
+            /** @description 재계약이면 직전 계약 ID(WHALEERP-156) — 상태 칸에 「재계약」을 붙인다. 아니면 null */
+            previousContractId: number | null;
             contractId: number;
             staffMemberId: number;
             /** @description 직원 레코드의 이름(초안 입력값) */
@@ -7215,10 +7294,29 @@ export interface components {
             /** @description true 면 임시저장(DRAFT) — 초대 · 계약서를 보내지 않는다. 없으면 초안 저장(발송 대기) */
             isTemporarySave?: boolean;
             /**
+             * @description 재계약의 직전 계약(WHALEERP-156) — 저장(POST)에서만 본다. 체결 완료이거나 체결 뒤 종료된 같은 근무지 · 같은 번호의
+             *     계약이어야 하고, 이미 체결을 거친 재계약이 있으면 409 다(진행 중 재계약은 같은 점포 진행 중 계약처럼 대체를 묻는다). 그 직원이 재직 중이면(퇴직 · 퇴직 예정이
+             *     아니면) 연장이라 같은 직원 레코드에 새 계약을 붙인다 — 가입한 재직 직원이어도 막지 않는다. 퇴직한 직원이면 재입사라 지금처럼
+             *     새 레코드를 만든다(가입한 직원이 퇴직 예정이면 아직 재직이라 409 — 퇴직 뒤에). 앞 계약은 새 계약이 체결 완료이고 그 시작일이
+             *     되면 하루 배치가 종료로 바꾼다(2026-10-26 김민식). 고르지 않아도 이 점포에 같은 번호로 가입한 재직 직원이 있으면 그 사람의
+             *     가장 최근 체결 계약에 잇는 재계약으로 저장한다(WHALEERP-130, 2026-10-26 재영 — 재직 중인 직원에게 새 계약을 보내는 것이 곧
+             *     재계약). 재계약의 시작일은 직전 계약 시작일보다 하루 이상 뒤여야 하고(400), 그러면 직전 계약과 기간이 겹쳐도 된다
+             *     (2026-10-26 김민식 · 재영 확인). 고르지 않은 종이 계약이 가입 전 레코드의 그 계약보다 늦게 시작하지 않으면 재계약이 아니라
+             *     같은 계약서를 다시 올린 것으로 본다 — 겹치면 SIGNED_CONTRACT_OVERLAP 이다.
+             */
+            previousContractId?: number;
+            /**
+             * @description 잘못 올린 계약 바로잡기(WHALEERP-156) — 종이 계약 등록에서만 쓴다(그 밖이면 400). 종이 계약은 체결 완료 계약을 대체하지 않고,
+             *     같은 점포 · 같은 번호에 기간이 겹치는 체결 완료 계약이 있으면 409(code SIGNED_CONTRACT_OVERLAP)다. 잘못 올린 계약을 고치려면
+             *     이 값을 켜고 그 409 의 contracts id 를 모두 replaceContractIds 로 넣어 다시 보낸다 — 체결 완료 계약도 곧바로 종료한다(수정
+             *     권한). 재계약이 아니다 — previousContractId 와 함께 보낼 수 없고(400), 직전 계약을 저절로 찾지 않는다. 사유는 받지 않는다.
+             */
+            correctSignedContracts?: boolean;
+            /**
              * @description 대체할 진행 중 계약(WHALEERP-129). 같은 점포에 같은 번호의 진행 중 계약(임시저장 · 발송 대기 · 서명 대기 · 수정 요청)이
              *     있으면 409(code CONTRACT_IN_PROGRESS)가 그 목록(id · 상태 · 직원 이름 · 계약 기간)을 준다. 관리자가 대체를 확인하면
-             *     그 id 를 모두 넣어 다시 보낸다 — 임시저장은 지우고 발송 대기 · 서명 대기 · 수정 요청은 종료한다. 종이 계약 등록이면 체결 완료도
-             *     묻고 종료한다. 체결 완료는 같은 번호로 퇴직 · 재입사가 되풀이되면 쌓이므로 상한을 넉넉히 둔다 — 409 목록을 모두
+             *     그 id 를 모두 넣어 다시 보낸다 — 임시저장은 지우고 발송 대기 · 서명 대기 · 수정 요청은 종료한다. 종이 계약 바로잡기
+             *     (correctSignedContracts)면 체결 완료도 묻고 종료한다. 체결 완료는 같은 번호로 퇴직 · 재입사가 되풀이되면 쌓이므로 상한을 넉넉히 둔다 — 409 목록을 모두
              *     다시 보낼 수 없으면 그 번호로는 종이 계약을 등록할 수 없다(api #49 리뷰, WHALEERP-600).
              */
             replaceContractIds?: number[];
@@ -7330,6 +7428,11 @@ export interface components {
              *     처음 작성한 관리자다(상태 이력은 관리자를 남기지 않는다)
              */
             registeredBy: string | null;
+            /**
+             * @description 이 계약을 직전 계약으로 둔 체결을 거친 재계약 ID(WHALEERP-156) — 있으면 상세가 「새 계약」을 띄우지 않는다. 진행 중 재계약은 치지
+             *     않는다(새 재계약을 저장할 때 대체를 묻는다). 없으면 null
+             */
+            renewedBy: number | null;
             contractId: number;
             staffMemberId: number;
             name: string;
@@ -7346,11 +7449,14 @@ export interface components {
              */
             resendCount: number;
             /**
-             * @description 재발송(POST …/send)을 정책상 할 수 있는가 — 발송 대기 · 서명 대기이고, 가입한 직원이거나 그 번호로 계정이 없는 가입 전 직원. 계정이
-             *     있는 번호(소속 추가 확인 · 복귀 확인)는 409 SEND_CHANNEL_NOT_READY 라 false. 상세 화면이 재발송 버튼을 이 값으로 보인다. 정책만
-             *     본다 — 유선번호(409 SEND_PHONE_NOT_MOBILE) · 발송 설정 없음(503)은 true 여도 보낼 때 막힌다
+             * @description 재발송(POST …/send)을 정책상 할 수 있는가 — 발송 대기 · 서명 대기 · 거부 · 만료(WHALEERP-153). 가입한 직원은 앱 알림, 가입 전
+             *     직원은 가입 초대이거나 그 번호에 계정이 있으면 소속 추가 확인 요청이다(WHALEERP-130). 거부 · 만료는 되살릴 수 없거나
+             *     (REOPEN_BLOCKED) 다른 점포 근무 시간과 겹치면(WORK_TIME_OVERLAP) false. 상세 화면이 재발송 버튼을 이 값으로 보인다. 정책만
+             *     본다 — 유선번호(409 SEND_PHONE_NOT_MOBILE) · 발송 설정 없음(503) · 그 계정이 이 점포에 재직 중(409)은 true 여도 보낼 때 막힌다
              */
             canResend: boolean;
+            /** @description 직원이 가입을 마쳤는가 — 거부 · 만료 재발송이 앱(서명 대기)으로 가는지 가입 초대(발송 대기)로 가는지 확인창 문구를 가른다 */
+            staffJoined: boolean;
         };
         UpdateWorkerDto: {
             /** @description 성별 — 남 · 여. 가입 때 직원이 넣은 값과 본인 대조한다(WHALEERP-125). 임시저장은 비워도 된다 */
@@ -7366,14 +7472,40 @@ export interface components {
             /**
              * @description 대체할 진행 중 계약(WHALEERP-129). 같은 점포에 같은 번호의 진행 중 계약(임시저장 · 발송 대기 · 서명 대기 · 수정 요청)이
              *     있으면 409(code CONTRACT_IN_PROGRESS)가 그 목록(id · 상태 · 직원 이름 · 계약 기간)을 준다. 관리자가 대체를 확인하면
-             *     그 id 를 모두 넣어 다시 보낸다 — 임시저장은 지우고 발송 대기 · 서명 대기 · 수정 요청은 종료한다. 종이 계약 등록이면 체결 완료도
-             *     묻고 종료한다. 체결 완료는 같은 번호로 퇴직 · 재입사가 되풀이되면 쌓이므로 상한을 넉넉히 둔다 — 409 목록을 모두
+             *     그 id 를 모두 넣어 다시 보낸다 — 임시저장은 지우고 발송 대기 · 서명 대기 · 수정 요청은 종료한다. 종이 계약 바로잡기
+             *     (correctSignedContracts)면 체결 완료도 묻고 종료한다. 체결 완료는 같은 번호로 퇴직 · 재입사가 되풀이되면 쌓이므로 상한을 넉넉히 둔다 — 409 목록을 모두
              *     다시 보낼 수 없으면 그 번호로는 종이 계약을 등록할 수 없다(api #49 리뷰, WHALEERP-600).
              */
             replaceContractIds?: number[];
         };
         DownloadUrlResponseDto: {
             url: string;
+        };
+        SendContractDto: {
+            /**
+             * @description 화면이 본 계약 상태. 재발송은 서명 대기 · 발송 대기 · 거부 · 만료를 모두 받아, 이 값이 없으면 열어 둔 서명 대기 화면에서 그사이
+             *     거부 · 만료된 계약을 모르고 되살린다
+             */
+            expectedStatus?: components["schemas"]["ContractStatus"];
+            /**
+             * Format: date-time
+             * @description 화면이 본 마지막 발송 시각(상세 lastSentAt, ISO 8601). 재발송하면 바뀐다 — 상태가 그대로인 발송 대기 · 서명 대기를 두 탭에서 각각
+             *     다시 보내면 상태만으로는 잡히지 않아 알림이 두 번 가고 앞 초대 코드가 무효가 된다. 아직 보낸 적 없으면(lastSentAt null) 비운다
+             */
+            expectedSentAt?: string;
+        };
+        SendContractResponseDto: {
+            /**
+             * @description 보낸 뒤의 상태 — 가입 초대는 그대로(발송 대기 · 서명 대기), 가입한 직원은 서명 대기, 소속 추가 확인 요청은 발송 대기(직원이
+             *     수락하면 서명 대기)
+             * @enum {string}
+             */
+            status: "DRAFT" | "PENDING_SEND" | "PENDING_SIGNATURE" | "CORRECTION_REQUESTED" | "SIGNED" | "REJECTED" | "EXPIRED" | "ENDED";
+            /** @description 새 날인 기한(보낸 때부터 30일). 소속 추가 확인 요청은 직원이 수락한 때부터 세어 아직 없다(null) */
+            signDeadlineAt: string | null;
+            contractId: number;
+            /** @description 이번 발송 일시 */
+            sentAt: string;
         };
         SignedMyContractResponseDto: {
             contractId: number;
@@ -9465,7 +9597,7 @@ export interface components {
         };
         InvitationCheckResponseDto: {
             /**
-             * @description 고용 형태 — 정직원 · 파트타이머
+             * @description 고용 형태 — 정직원 · 파트타이머. 함께 온 진행 중 계약의 값(없으면 직원 레코드) — 재계약 초대면 레코드는 옛 조건이다
              * @enum {string}
              */
             employmentType: "FULL_TIME" | "PART_TIME";
@@ -9542,6 +9674,54 @@ export interface components {
             staffMemberId: number;
             /** @description 근무지(점포) 이름 */
             storeName: string;
+        };
+        AffiliationRequestDto: {
+            /**
+             * @description 소속 추가 확인(처음 일하는 점포) · 복귀 확인(그 점포에서 퇴직했던 직원). 화면 용어는 둘 다 「소속 추가 확인 요청」
+             * @enum {string}
+             */
+            invitationType: "AFFILIATION_CONFIRM" | "RETURN_CONFIRM";
+            /**
+             * @description 고용 형태 — 정직원 · 파트타이머. 함께 온 계약의 값(없으면 직원 레코드)이다 — 레코드는 계약이 시작할 때 바뀌어 복귀 확인이면 옛
+             *     조건일 수 있다. 직무와 늘 같은 곳에서 읽는다
+             * @enum {string}
+             */
+            employmentType: "FULL_TIME" | "PART_TIME";
+            /** @description 고용 형태 표시 문구(정직원 · 파트타이머) — 팝업 문구에 그대로 쓴다 */
+            employmentTypeLabel: string | null;
+            /** @description 직무 — 함께 온 계약의 값(없으면 직원 레코드), 고용 형태와 같은 곳에서 읽는다. 계약에 직무가 없는 옛 행이면 null 일 수 있다 */
+            jobTitle: string | null;
+            /** @description 요청(초대) ID — 수락 · 거절 경로에 쓴다 */
+            invitationId: number;
+            /** @description 요청한 근무지(점포) 이름 */
+            storeName: string;
+            /** @description 그 점포의 사업자(BP) 상호 */
+            bpName: string;
+            /** @description 요청을 보낸 때 */
+            sentAt: string;
+            /** @description 요청이 끝나는 때(보낸 때부터 30일) — 지나면 목록에서 빠지고 수락 · 거절은 404 AFFILIATION_REQUEST_ENDED */
+            expiresAt: string;
+            /** @description 본사 제공 동의를 함께 물을지 — 직영이 아닌 점포이고 아직 동의하지 않았다(운영 정책 ATT-30) */
+            asksHqSharingConsent: boolean;
+        };
+        AcceptAffiliationRequestDto: {
+            /**
+             * @description 본사 제공 동의(운영 정책 ATT-30, 선택). 목록의 asksHqSharingConsent 가 true 일 때만 쓴다 — 직영 점포이거나 계정이 이미
+             *     동의했으면 보내도 바꾸지 않는다(근무지 더하기와 같다)
+             */
+            hqSharingConsented?: boolean;
+        };
+        AcceptAffiliationResponseDto: {
+            /** @description 이 계정에 이어진 직원 레코드 */
+            staffMemberId: number;
+            /** @description 근무지(점포) 이름 */
+            storeName: string;
+            /** @description 서명 대기로 넘어간 근로계약 — 날인 기한은 수락한 때부터 30일 */
+            contractIds: number[];
+        };
+        RejectAffiliationRequestDto: {
+            /** @description 거절 사유 — 함께 온 계약의 거부 사유로도 남는다 */
+            reason?: string;
         };
         BpHolidayTargetResponseDto: {
             isAllStores: boolean;
@@ -16202,7 +16382,7 @@ export interface operations {
                     "application/json": components["schemas"]["CreatedContractResponseDto"];
                 };
             };
-            /** @description 입력 오류 · 만 19세 미만 */
+            /** @description 입력 오류 · 만 19세 미만 · 재계약 시작일이 직전 계약 시작일 다음 날보다 이름 · 종이 계약 등록이 아닌데 잘못 올린 계약 바로잡기 */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -16283,7 +16463,7 @@ export interface operations {
                     "application/json": components["schemas"]["CreatedContractResponseDto"];
                 };
             };
-            /** @description 입력 오류 · 만 19세 미만 · 근로계약서 날인본 없음 · 파일 종류 · 크기 · 개수 */
+            /** @description 입력 오류 · 만 19세 미만 · 근로계약서 날인본 없음 · 파일 종류 · 크기 · 개수 · 재계약 시작일이 직전 계약 시작일 다음 날보다 이름 · 잘못 올린 계약 바로잡기를 재계약과 함께 보냄 */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -16304,7 +16484,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 대체할 계약을 다른 요청이 먼저 고침 */
+            /** @description 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 대체할 계약을 다른 요청이 먼저 고침 · SIGNED_CONTRACT_OVERLAP(종이 계약 — 기간이 겹치는 체결 완료 계약, contracts 목록. 잘못 올린 계약이면 correctSignedContracts 와 그 id 를 모두 replaceContractIds 로) · RENEWAL_SIGNED_OVERLAP(종이 재계약이 직전 계약이 아닌 체결 완료와 겹침 — 바로잡기 없이 막음) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -16384,7 +16564,7 @@ export interface operations {
                     "application/json": components["schemas"]["CreatedContractResponseDto"];
                 };
             };
-            /** @description 입력 오류 · 만 19세 미만 · 수정 요청인데 임시저장 · 근무지 변경 · 가입한 직원의 번호 변경 */
+            /** @description 입력 오류 · 만 19세 미만 · 수정 요청인데 임시저장 · 근무지 변경 · 가입한 직원의 번호 변경 · 재계약 시작일이 직전 계약 시작일 다음 날보다 이름 · 종이 계약 등록이 아닌데 잘못 올린 계약 바로잡기 */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -16581,7 +16761,7 @@ export interface operations {
                     "application/json": components["schemas"]["CreatedContractResponseDto"];
                 };
             };
-            /** @description 입력 오류 · 만 19세 미만 · 근로계약서 날인본 없음 · 파일 종류 · 크기 · 개수 */
+            /** @description 입력 오류 · 만 19세 미만 · 근로계약서 날인본 없음 · 파일 종류 · 크기 · 개수 · 재계약 시작일이 직전 계약 시작일 다음 날보다 이름 · 잘못 올린 계약 바로잡기를 재계약과 함께 보냄 */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -16602,7 +16782,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 임시저장이 아님 · 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 다른 요청이 먼저 고침 */
+            /** @description 임시저장이 아님 · 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 다른 요청이 먼저 고침 · SIGNED_CONTRACT_OVERLAP(종이 계약 — 기간이 겹치는 체결 완료 계약, contracts 목록. 잘못 올린 계약이면 correctSignedContracts 와 그 id 를 모두 replaceContractIds 로) · RENEWAL_SIGNED_OVERLAP(종이 재계약이 직전 계약이 아닌 체결 완료와 겹침 — 바로잡기 없이 막음) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -16676,14 +16856,20 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SendContractDto"];
+            };
+        };
         responses: {
-            /** @description { contractId, status(가입 초대는 그대로 PENDING_SEND · PENDING_SIGNATURE, 가입한 직원은 PENDING_SIGNATURE), sentAt, signDeadlineAt }. 가입한 직원은 알림함 알림(앱 푸시는 #261 전까지 나가지 않음) — 알림 템플릿을 쓸 수 없거나 탈퇴 계정이면 알림 없이 기한만 새로 */
+            /** @description status — 가입 초대는 그대로 PENDING_SEND · PENDING_SIGNATURE, 가입한 직원은 PENDING_SIGNATURE, 소속 추가 확인 요청은 PENDING_SEND(signDeadlineAt null — 수락부터 30일). 거부 · 만료(WHALEERP-153)는 가입한 직원이면 PENDING_SIGNATURE, 그 밖에는 PENDING_SEND 로 되살린다. 가입한 직원은 알림함 알림(앱 푸시는 #261 전까지 나가지 않음) — 알림 템플릿을 쓸 수 없거나 탈퇴 계정이면 알림 없이 기한만 새로 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["SendContractResponseDto"];
+                };
             };
             /** @description 근로계약 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
             403: {
@@ -16699,21 +16885,21 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description CONTRACT_STATUS_CONFLICT(발송 대기 · 서명 대기가 아님) · SEND_CHANNEL_NOT_READY(계정이 있는 번호의 소속 추가 확인 · 복귀 확인 — 직원 앱에 소속 확인이 없음) · SEND_PHONE_NOT_MOBILE(휴대폰 번호가 아님) · 코드 없음 「이 점포에 이미 재직 중인 직원입니다」(가입 전 레코드인데 그 번호의 계정이 이 점포에 재직 중) · 다른 요청이 먼저 고침 */
+            /** @description CONTRACT_STATUS_CONFLICT(발송 대기 · 서명 대기 · 거부 · 만료가 아님, 또는 본문 expectedStatus · expectedSentAt 이 지금 계약과 다름 — 그사이 거부 · 만료되었거나 다른 탭에서 먼저 보냄) · REOPEN_BLOCKED(거부 · 만료를 되살릴 수 없음 — 퇴직 · 퇴직일 있음, 폐점 · 삭제 점포, 같은 점포 · 번호의 다른 진행 중 계약, 계약 기간이 끝남, 기간이 겹치거나 더 늦게 시작한 다른 체결 완료, 같은 직전 계약의 다른 재계약. message 에 까닭) · WORK_TIME_OVERLAP(거부 · 만료를 되살리면 다른 점포 근무 시간과 겹침) · SEND_PHONE_NOT_MOBILE(휴대폰 번호가 아님) · 코드 없음 「이 점포에 이미 재직 중인 직원입니다」(가입 전 레코드인데 그 번호의 계정이 이 점포에 재직 중) · 다른 요청이 먼저 고침 */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 가입 초대 알림톡일 때만 — SEND_FAILED(나가지 않음 — 거절 · 토큰 단계 · 요청 전 오류, 되돌렸고 다시 보낼 수 있음, 본문 contractId · status) · SEND_UNCONFIRMED(접수 여부 모름 또는 되돌리기 실패 — 상세를 다시 읽을 것) */
+            /** @description 가입 초대 · 소속 추가 확인 요청 알림톡일 때만 — SEND_FAILED(나가지 않음 — 거절 · 토큰 단계 · 요청 전 오류, 되돌렸고 다시 보낼 수 있음, 본문 contractId · status) · SEND_UNCONFIRMED(접수 여부 모름 또는 되돌리기 실패 — 상세를 다시 읽을 것). 소속 추가 확인 요청 메일 실패는 오류가 아니다 */
             502: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 가입 초대 알림톡일 때만 — 직원 앱 주소(STAFF_APP_URL)가 없음 · 대체 문자 발신번호(BIZPPURIO_SMS_FROM)가 없음 · 가입 초대 템플릿이 없거나 꺼짐 */
+            /** @description 가입 초대 · 소속 추가 확인 요청 알림톡일 때만 — 직원 앱 주소(STAFF_APP_URL)가 없음 · 대체 문자 발신번호(BIZPPURIO_SMS_FROM)가 없음 · 그 알림톡 템플릿이 없거나 꺼짐 */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -22415,6 +22601,171 @@ export interface operations {
                 content?: never;
             };
             /** @description 계정 번호로 코드를 5번 틀려 30분 잠김(INVITATION_CODE_LOCKED, 본문 lockExpiresAt — 재발송하면 풀림) · 기본 요청 제한 */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyAffiliationRequestsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AffiliationRequestDto"][];
+                };
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyAffiliationRequestsController_accept: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invitationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptAffiliationRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcceptAffiliationResponseDto"];
+                };
+            };
+            /** @description 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없거나 내 것이 아닌 요청(AFFILIATION_REQUEST_NOT_FOUND) · 만료 · 번호가 바뀐 요청(AFFILIATION_REQUEST_ENDED) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 이미 답한 요청(AFFILIATION_REQUEST_ANSWERED) · 이 점포에 이미 재직 중 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 계정마다 10분에 10번 */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyAffiliationRequestsController_reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invitationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectAffiliationRequestDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 형식 오류 · 사유 500자 넘음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description AFFILIATION_REQUEST_NOT_FOUND · AFFILIATION_REQUEST_ENDED — 수락과 같다 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 이미 답한 요청(AFFILIATION_REQUEST_ANSWERED) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 계정마다 10분에 10번 */
             429: {
                 headers: {
                     [name: string]: unknown;
