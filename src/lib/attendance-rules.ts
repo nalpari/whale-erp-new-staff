@@ -113,3 +113,33 @@ export function elapsedOf(from: Date, to: Date): { hours: number; minutes: numbe
 }
 
 export const elapsedLabel = (e: { hours: number; minutes: number }) => `${e.hours}시간 ${pad(e.minutes)}분`;
+
+/** 홈 오늘 근무 카드의 출퇴근 버튼 — 출근하기 · 퇴근하기 · 없음(null). */
+export type HomeAttendanceAction = "check-in" | "check-out" | null;
+
+/**
+ * 홈 오늘 근무 카드에 둘 출퇴근 버튼(HOME-3). 누르면 출퇴근 화면(/check-in)으로 가고 등록은 거기서 한다 — 홈에서는 위치를 읽지 않는다(ATT-22).
+ * 거기서 등록할 수 없는 상태면 버튼을 두지 않는다(2026-10-23 재영 — 누를 수 없는 버튼을 두지 않는다):
+ * - 위치를 보는 근무지의 위치 수집 일시 중지(ATT-26) — 출근 · 퇴근 모두 앱으로 못 한다. 미동의 · 철회 · 다시 동의 필요는 출퇴근 화면이
+ *   동의부터 받으므로 버튼을 둔다(ATT-06 · ATT-32, HOME-12 2026-10-28 재영)
+ * - 이 근무지의 열린 출근이 있으면 퇴근하기, 퇴근 기한이 지났거나 다른 근무지의 열린 출근이면 없음(보정 · 근무지 바꾸기는 출퇴근 화면 몫)
+ * - 출근을 막는 까닭(서명 대기 · 체결 계약 없음)이 있거나, 위치를 보는 근무지인데 좌표가 없거나(운영 정책 ATT-36 — api 는 출근 때 422
+ *   STORE_LOCATION_MISSING), 오늘 근무스케줄이 없으면 출근하기 없음. 퇴근은 좌표와 상관없이 둔다
+ */
+export function homeAttendanceAction(
+  attendance: {
+    staffMemberId: number;
+    store: { isLocationApplied: boolean; latitude: number | null; longitude: number | null };
+    locationConsent: { state: string };
+    checkInBlock: object | null;
+    openCheckIn: { staffMemberId: number; isCheckOutExpired: boolean } | null;
+  },
+  hasTodaySchedule: boolean,
+): HomeAttendanceAction {
+  if (attendance.store.isLocationApplied && attendance.locationConsent.state === "PAUSED") return null;
+  const open = attendance.openCheckIn;
+  if (open) return open.staffMemberId === attendance.staffMemberId && !open.isCheckOutExpired ? "check-out" : null;
+  const { store } = attendance;
+  const noLocation = store.isLocationApplied && (store.latitude === null || store.longitude === null);
+  return attendance.checkInBlock || noLocation || !hasTodaySchedule ? null : "check-in";
+}
