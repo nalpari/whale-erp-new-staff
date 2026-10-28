@@ -25,8 +25,8 @@
          (/invite#token=…)로 열면 code 를 건너뛰고 invite 에서 시작한다. 링크로 온
          계정 등록은 단계가 셋이라 signup-link 로 따로 그렸다. 두 경로 모두
          휴대전화번호는 읽기 전용이다(JOIN-7). 그 번호로 계정이 이미 있으면
-         has-account 에서 로그인으로 보내고, 소속 추가 확인은 로그인 뒤에 뜬다
-         (운영 정책 JOI-02).
+         has-account 에서 로그인으로 보내고, 로그인하면 내 정보 - 소속 근무지 맨 위
+         「확인을 기다리는 요청」에서 수락한다(운영 정책 JOI-09, me.html ME-8).
          코드가 틀릴 때(code-fail)와 잠길 때(code-locked)는 오른쪽 상태 목록만이
          아니라 code 화면 아래 버튼으로도 갈 수 있게 뒀다.
 
@@ -253,9 +253,9 @@
               <div class="note note--pen">
                 <i class="ph ph-sign-in"></i>
                 <div>
-                  로그인하면 이 초대의 <strong>소속 추가 확인</strong>이 앱 안에 뜹니다. 전에 이
-                  근무지에서 일했다면 복귀 확인이 뜹니다. 수락하기 전까지는 초대한 근무지와 고용
-                  형태만 보입니다.
+                  로그인하면 <strong>내 정보 - 소속 근무지</strong>로 갑니다. 맨 위 「확인을 기다리는 요청」에서
+                  이 초대(전에 이 근무지에서 일했다면 복귀 확인)를 수락해 주세요. 수락하기 전까지는 초대한
+                  근무지와 고용 형태만 보입니다.
                 </div>
               </div>
 
@@ -723,7 +723,7 @@
 
             <div class="dock" data-when="has-account">
               <a class="btn" href="login.html"><i class="ph ph-sign-in"></i>로그인하러 가기</a>
-              <button class="btn btn--quiet" data-go="addsite" data-toast="로그인했습니다">로그인한 뒤 · 소속 추가 확인</button>
+              <a class="btn btn--quiet" href="me.html#sites">로그인한 뒤 · 소속 근무지</a>
             </div>
 
             <div class="dock" data-when="signup">
