@@ -55,7 +55,7 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
           </Alert>
         ) : !profile ? (
           <Notice>
-            <strong>{storeName}</strong>에는 아직 신고 정보를 내지 않았습니다. 근로계약 날인을 마친 뒤 넣게 됩니다.
+            <strong>{storeName}</strong>에는 아직 신고 정보를 내지 않았습니다. 근로계약서 서명을 마친 뒤 넣게 됩니다.
           </Notice>
         ) : (
           <>

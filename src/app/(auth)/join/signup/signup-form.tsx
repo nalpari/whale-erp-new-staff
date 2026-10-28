@@ -195,7 +195,7 @@ export function SignupForm({
         {failed?.field === "form" ? (
           <Alert tone="danger">{failed.error}</Alert>
         ) : (
-          <Notice>이름 · 생년월일 · 성별 · 외국인 여부가 근로계약서와 다르면 날인하기 전에 근무지에 고쳐 달라고 요청하게 됩니다.</Notice>
+          <Notice>이름 · 생년월일 · 성별 · 외국인 여부가 근로계약서와 다르면 서명하기 전에 근무지에 고쳐 달라고 요청하게 됩니다.</Notice>
         )}
       </AuthScreen>
       <BottomSheet

@@ -115,7 +115,7 @@ export function HqSharingConsent({ checked, onChange }: { checked: boolean; onCh
   return (
     <div className="flex flex-col gap-[4px]">
       <CheckBox name="hqSharingConsented" checked={checked} onChange={onChange}>
-        본사 제공 동의 (선택)
+        사업자 제공 동의 (선택)
       </CheckBox>
       <p className="text-[12px] text-staff-text-muted">
         가맹본부가 내 근무 정보(근로계약 · 근무스케줄 · 출퇴근 기록 · 급여명세서)를 개인 단위로 보는 것에 동의합니다. 동의하지

@@ -101,11 +101,11 @@ export function addressSaveFailure(failure: ApiFailure): { error: string; log: b
  */
 export const CONSENT_CHANGES = {
   "location-agree": { path: "/me/location-consent", done: "위치정보 수집에 동의했습니다" },
-  "location-pause": { path: "/me/location-consent/pause", done: "위치 수집을 멈췄습니다" },
+  "location-pause": { path: "/me/location-consent/pause", done: "위치 수집을 일시 중지했습니다" },
   "location-resume": { path: "/me/location-consent/resume", done: "위치 수집을 다시 켰습니다" },
   "location-withdraw": { path: "/me/location-consent/withdraw", done: "위치정보 동의를 철회했습니다" },
-  "hq-sharing-agree": { path: "/me/hq-sharing-consent", done: "본사 제공에 동의했습니다" },
-  "hq-sharing-withdraw": { path: "/me/hq-sharing-consent/withdraw", done: "본사 제공 동의를 철회했습니다" },
+  "hq-sharing-agree": { path: "/me/hq-sharing-consent", done: "사업자 제공에 동의했습니다" },
+  "hq-sharing-withdraw": { path: "/me/hq-sharing-consent/withdraw", done: "사업자 제공 동의를 철회했습니다" },
 } as const;
 
 export type ConsentChange = keyof typeof CONSENT_CHANGES;

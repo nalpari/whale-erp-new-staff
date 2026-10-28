@@ -217,7 +217,7 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
       <>
         <GeoBlank tone="warning" text="위치를 읽지 않습니다" />
         <Alert tone="warning">
-          <strong>잠시 멈춘 동안에는 앱으로 출퇴근을 등록할 수 없습니다.</strong>
+          <strong>일시 중지 중에는 앱으로 출퇴근을 등록할 수 없습니다.</strong>
           <br />
           출퇴근 기록은 근무지 관리자에게 문의해 주세요.
         </Alert>
@@ -529,7 +529,7 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
         open={sheet === "nocontract"}
         onClose={() => setSheet(null)}
         title="근로계약을 체결해야 출근할 수 있습니다"
-        description="오늘 날짜가 들어간 체결 완료 근로계약이 있어야 출퇴근을 등록할 수 있습니다. 받은 계약서를 날인하면 바로 출근할 수 있습니다."
+        description="오늘 날짜가 들어간 체결 완료 근로계약이 있어야 출퇴근을 등록할 수 있습니다. 받은 계약서에 서명하면 바로 출근할 수 있습니다."
       >
         <Button href="/home">계약서 보러 가기</Button>
       </BottomSheet>
