@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { RedirectType, notFound, redirect } from "next/navigation";
-import { ApiError, failureOf, logFailure, type RequestOptions } from "@/lib/api";
+import { ApiError, failureOf, logFailure, type RequestBody } from "@/lib/api";
 import { clientIpFrom } from "@/lib/client-ip";
 import {
   contractActionFailure,
@@ -75,7 +75,7 @@ export async function requestContractCorrectionAction(rawContractId: number, raw
 async function run(
   action: ContractAction,
   path: string,
-  options: Pick<RequestOptions, "json" | "form" | "timeoutMs">,
+  options: RequestBody & { timeoutMs?: number },
   to: string,
 ): Promise<ContractActionState> {
   try {

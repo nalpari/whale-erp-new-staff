@@ -46,12 +46,15 @@ export function baseUrl(): string {
   return url;
 }
 
-export interface RequestOptions {
+/**
+ * 요청 본문 — JSON(`json`)이나 multipart(`form`, 파일 첨부 — 날인의 서명 PNG) 중 하나만. multipart 의 Content-Type 은 fetch 가
+ * 경계(boundary)와 함께 붙인다. 둘을 함께 주면 타입이 막는다.
+ */
+export type RequestBody = { json?: unknown; form?: never } | { form?: FormData; json?: never };
+
+/** 본문 밖의 옵션. Omit 은 유니온을 펴지 않아 본문(RequestBody)과 나눠 둔다 — 고를 때는 이것을 Omit 하고 RequestBody 를 붙인다. */
+export interface RequestSettings {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  /** 본문. 있으면 JSON 으로 보낸다. */
-  json?: unknown;
-  /** multipart 본문(파일 첨부 — 날인의 서명 PNG). Content-Type 은 fetch 가 경계(boundary)와 함께 붙인다. json 과 함께 주지 않는다. */
-  form?: FormData;
   /** 있으면 Authorization: Bearer 로 보낸다. */
   accessToken?: string;
   /** 모두에게 같은 응답(enum)만 초 단위로 캐시한다. 없으면 캐시하지 않는다. */
@@ -64,6 +67,8 @@ export interface RequestOptions {
    */
   clientIp?: ClientIp;
 }
+
+export type RequestOptions = RequestSettings & RequestBody;
 
 export async function request<T>(
   path: string,

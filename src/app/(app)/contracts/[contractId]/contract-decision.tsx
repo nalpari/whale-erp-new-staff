@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { Alert, BottomSheet, Button, DangerButton, Dock } from "@/components/common";
 import { REJECT_REASON_MAX, type ContractActionState } from "@/lib/contract-actions";
 import { useContractAction } from "../_components/use-contract-action";
@@ -29,12 +29,12 @@ export function ContractDecision({
   const reject = useContractAction();
   const correction = useContractAction();
   const pending = reject.pending || correction.pending;
-  // 하이드레이션 전 제출도 서버 액션 POST 가 되게 action 에 둔다(시트는 JS 로만 열리지만 action 없는 폼은 GET 이다). 그 뒤에는
-  // onSubmit 이 막고 직접 불러 연결 실패까지 문구로 받는다.
-  const [, rejectFormAction] = useActionState(rejectAction, {});
-
+  // 시트를 닫으면 지난 실패 문구를 지운다 — 다시 열 때 새로 시작한다
   const close = () => {
-    if (!pending) setSheet(null);
+    if (pending) return;
+    setSheet(null);
+    reject.reset();
+    correction.reset();
   };
   const router = useRouter();
   // 계약이 그사이 바뀌었다 — 시트를 닫고 화면을 다시 받는다
@@ -78,7 +78,9 @@ export function ContractDecision({
         description="거절한 뒤에는 되돌릴 수 없습니다. 다시 진행하려면 관리자가 계약서를 다시 보내야 합니다."
         closeLabel="취소"
       >
-        <form action={rejectFormAction} onSubmit={handleReject} className="flex flex-col gap-[13px]">
+        {/* 시트는 하이드레이션 뒤 JS 로만 열려 이 폼은 늘 onSubmit 이 막고 서버 액션을 직접 부른다(연결 실패까지 문구로 받으려고).
+            action 이 없어도 하이드레이션 전 GET 제출은 일어나지 않고, 실었더라도 거절 사유뿐이라 민감한 값이 아니다. */}
+        <form onSubmit={handleReject} className="flex flex-col gap-[13px]">
           <label className="flex flex-col gap-[8px]">
             <span className="text-[13px] font-semibold text-staff-text-sub">
               거절 사유 <span className="font-medium text-staff-placeholder">(선택)</span>

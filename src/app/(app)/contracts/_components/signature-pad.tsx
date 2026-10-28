@@ -18,7 +18,9 @@ const MAX_PX = 2048;
  * 필기 서명란(CON-2, 데모 contract 의 sign · sign-drawn — 높이 190 · radius 12, 비면 점선 테두리 · 안내 글, 그리면 실선 흰 바탕).
  * 손가락 · 펜 · 마우스를 포인터 이벤트로 받고, touch-action: none 으로 그리는 동안 화면이 스크롤되지 않게 한다. 캔버스 해상도는
  * 화면 배율(devicePixelRatio)에 맞춰 선이 흐리지 않다. 폭이 바뀌면(화면 돌림) 해상도를 다시 맞추며 지운다 — 늘린 서명을 보내지 않게.
- * 한 획씩 그린다(두 번째 손가락은 무시). 첫 획을 마치면 onDrawnChange(true), 지우면 false.
+ * 한 획씩 그린다(두 번째 손가락은 무시). 첫 획을 마치면 onDrawnChange(true), 지우면 false. 브라우저가 가로챈 획(pointercancel —
+ * 시스템 제스처 · 전화 등)은 그린 것으로 세지 않는다(그은 데까지는 남겨 둔다). 탭 한 번의 점도 획으로 센다 — 이니셜 · 점 서명을
+ * 막을 근거가 없고, 확정은 따로 한 번 더 누른다(CON-2).
  */
 export function SignaturePad({
   ref,
@@ -111,6 +113,9 @@ export function SignaturePad({
     stroke.current = null;
     onDrawnChange(true);
   };
+  const handlePointerCancel = (e: PointerEvent<HTMLCanvasElement>) => {
+    if (stroke.current?.pointerId === e.pointerId) stroke.current = null;
+  };
 
   return (
     <div
@@ -130,7 +135,7 @@ export function SignaturePad({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerEnd}
-        onPointerCancel={handlePointerEnd}
+        onPointerCancel={handlePointerCancel}
         className="relative block size-full cursor-crosshair touch-none text-staff-text select-none"
       />
     </div>

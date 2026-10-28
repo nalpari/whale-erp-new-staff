@@ -2,7 +2,7 @@
 
 import { useRef, useState, type ReactNode } from "react";
 import { Alert, Button, Dock } from "@/components/common";
-import type { ContractActionState } from "@/lib/contract-actions";
+import { SIGNATURE_TARGET_BYTES, type ContractActionState } from "@/lib/contract-actions";
 import { ContractFrame, Sunken, Values } from "../../_components/parts";
 import { SignaturePad, type SignaturePadHandle } from "../../_components/signature-pad";
 import { useContractAction } from "../../_components/use-contract-action";
@@ -38,6 +38,8 @@ export function SignForm({
         console.error("[contract-sign] 서명 이미지 만들기 실패", error);
         return { message: "서명 이미지를 만들지 못했습니다. 다시 그려 주세요" };
       }
+      // 줄여도 크면 보내지 않는다 — 서버 액션 본문 한도(1MB)에 걸리면 연결 실패처럼 보인다
+      if (png.size > SIGNATURE_TARGET_BYTES) return { message: "서명이 너무 큽니다. 다시 그려 주세요" };
       const formData = new FormData();
       formData.set("signature", png, "signature.png");
       return action({}, formData);

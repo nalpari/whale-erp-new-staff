@@ -1,6 +1,6 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { ApiError, request, type RequestOptions, type Schemas } from "./api";
+import { ApiError, request, type RequestBody, type RequestSettings, type Schemas } from "./api";
 import { CURRENT_PATH_HEADER, withNext } from "./login-return";
 import {
   ACCESS_TOKEN_COOKIE,
@@ -117,7 +117,7 @@ export async function saveDeviceId(deviceId: string): Promise<void> {
  */
 export async function authedRequest<T>(
   path: string,
-  options: Omit<RequestOptions, "accessToken"> = {},
+  options: Omit<RequestSettings, "accessToken"> & RequestBody = {},
 ): Promise<T> {
   const { accessToken } = await requireSession();
   try {
