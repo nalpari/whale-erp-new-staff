@@ -68,6 +68,9 @@ const DONE_STATUS: Record<ContractAction, ContractStatus> = {
   correction: "CORRECTION_REQUESTED",
 };
 
+/** 서명 기한이 지남(409 SIGN_DEADLINE_PASSED) — api 문구 대신 화면 문구. */
+export const SIGN_DEADLINE_PASSED = "서명 기한이 지났습니다. 근무지 관리자에게 다시 보내 달라고 요청해 주세요";
+
 /** 결과를 모름 — 서버가 처리했을 수도 있다. 다시 누르면 api 가 지금 상태로 알려 준다(이미 처리됐으면 409 → 성공). */
 export const OUTCOME_UNKNOWN = "처리됐는지 확인하지 못했습니다. 계약서를 다시 열어 확인하거나 다시 시도해 주세요";
 
@@ -98,7 +101,9 @@ export function contractActionFailure(
         log: false,
       };
     }
-    // CONTRACT_STATUS_CONFLICT · SIGN_DEADLINE_PASSED · STAFF_RETIRED · CONTRACT_RESENT 는 api 가 한글 사유를 준다
+    // api 문구는 「날인 기한」이라 용어집(2026-10-28 재영 — 화면은 「서명」)에 맞춰 화면 문구로 바꾼다
+    if (code === "SIGN_DEADLINE_PASSED") return { state: { stale: true, message: SIGN_DEADLINE_PASSED }, log: false };
+    // CONTRACT_STATUS_CONFLICT · STAFF_RETIRED · CONTRACT_RESENT 는 api 가 한글 사유를 준다
     const known = code !== undefined && isHangulReason(message);
     return { state: { stale: true, message: known ? message : "계약서 상태가 바뀌었습니다. 계약서를 다시 열어 확인해 주세요" }, log: !known };
   }

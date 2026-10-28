@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   OUTCOME_UNKNOWN,
+  SIGN_DEADLINE_PASSED,
   REJECT_REASON_MAX,
   SIGNATURE_MAX_BYTES,
   contractActionFailure,
@@ -89,10 +90,14 @@ test("contractActionFailure — 409 사유별", () => {
   });
   for (const [code, message] of [
     ["CONTRACT_RESENT", "근로계약서가 다시 발송됐습니다. 새로 고쳐 바뀐 계약서를 확인해 주세요"],
-    ["SIGN_DEADLINE_PASSED", "날인 기한이 지났습니다. 관리자에게 재발송을 요청해 주세요"],
     ["STAFF_RETIRED", "퇴직한 직원은 근로계약을 처리할 수 없습니다"],
   ])
     assert.deepEqual(contractActionFailure("sign", conflict(code, message), {}), { state: { stale: true, message }, log: false });
+  // 서명 기한 지남은 api 문구(「날인 기한」) 대신 화면 문구
+  assert.deepEqual(contractActionFailure("reject", conflict("SIGN_DEADLINE_PASSED", "날인 기한이 지났습니다. 관리자에게 재발송을 요청해 주세요"), {}), {
+    state: { stale: true, message: SIGN_DEADLINE_PASSED },
+    log: false,
+  });
   // 코드 없는 영어 409 는 대체 문구와 기록
   assert.deepEqual(contractActionFailure("sign", { status: 409, message: "Conflict" }, null), {
     state: { stale: true, message: "계약서 상태가 바뀌었습니다. 계약서를 다시 열어 확인해 주세요" },
