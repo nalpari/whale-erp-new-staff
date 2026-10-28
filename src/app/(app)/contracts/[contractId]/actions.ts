@@ -56,11 +56,16 @@ export async function rejectContractAction(
   return run("reject", `/me/contracts/${contractId}/reject`, { json: read }, `/contracts/${contractId}/done?done=rejected`);
 }
 
-/** 수정 요청 — 받는 내용은 없다. 본인 대조와 상관없이 서명 대기 · 기한 안이면 받는다(WHALEERP-145 ⑦). */
-export async function requestContractCorrectionAction(rawContractId: number): Promise<ContractActionState> {
+/**
+ * 수정 요청 — 받는 내용은 없다. 본인 대조와 상관없이 서명 대기 · 기한 안이면 받는다(WHALEERP-145 ⑦). 소속 근무지에서 그 근무지
+ * 목록으로 왔으면(storeId) 돌아온 상세에도 `?store=` 를 이어 준다.
+ */
+export async function requestContractCorrectionAction(rawContractId: number, rawStoreId: number | null): Promise<ContractActionState> {
   const contractId = parseId(String(rawContractId));
   if (contractId === null) notFound();
-  return run("correction", `/me/contracts/${contractId}/correction-request`, {}, `/contracts/${contractId}?done=correction`);
+  const storeId = rawStoreId === null ? null : parseId(String(rawStoreId));
+  const to = `/contracts/${contractId}?${storeId === null ? "" : `store=${storeId}&`}done=correction`;
+  return run("correction", `/me/contracts/${contractId}/correction-request`, {}, to);
 }
 
 /**

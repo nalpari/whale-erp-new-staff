@@ -9,8 +9,8 @@ import { dateLabel } from "@/lib/profile";
 export const metadata: Metadata = { title: "소속 근무지 · Whale ERP" };
 
 // 내 정보의 소속 근무지(데모 docs/demo/me 의 sites). 조회만 한다 — 소속과 고용 형태는 근로계약으로만 바뀐다.
-// 소속마다 근로계약서 · 급여명세서 · 신고 정보로 간다(2026-10-20 기획, api #79). 근로계약서 · 급여명세서는 계정 api 가 아직 없어
-// 「준비 중」으로 막아 둔다.
+// 소속마다 근로계약서 · 급여명세서 · 신고 정보로 간다(2026-10-20 기획, api #79). 근로계약서는 그 근무지 계약서 목록으로 가고,
+// 급여명세서는 계정 api 가 아직 없어 「준비 중」으로 막아 둔다.
 // 소속 한 줄의 버튼 셋. 외곽선 버튼(Button outline)과 같은 44px · radius 12 · 14px semibold 지만, 세 칸이 한 줄(휴대전화에서 한 칸
 // 약 100px)에 들어가도록 좌우 여백만 18 → 8 로 줄였다. 공통 Button 은 className 을 받지 않아 여기서 그린다.
 const ROW_BUTTON = `inline-flex h-[44px] w-full items-center justify-center rounded-[12px] border border-staff-border bg-white px-[8px] text-[14px] font-semibold whitespace-nowrap text-staff-text active:bg-staff-primary-inactive ${PRESS}`;
@@ -46,7 +46,7 @@ export default async function MembershipsPage() {
                   {/* 퇴직 예정도 소속이다(퇴직일 전까지). 배지 글자로 갈라 보인다. */}
                   {m.retiredDate ? <Badge tone="waiting">{dateLabel(m.retiredDate)} 퇴직 예정</Badge> : <Badge tone="working">근무 중</Badge>}
                 </div>
-                {/* 근로계약서 · 급여명세서 · 신고 정보(2026-10-20 기획). 앞의 둘은 계정 api 가 없어 흐린 「준비 중」 버튼이다. */}
+                {/* 근로계약서 · 급여명세서 · 신고 정보(2026-10-20 기획). 급여명세서는 계정 api 가 없어 흐린 「준비 중」 버튼이다. */}
                 <div className="grid grid-cols-3 gap-[8px]">
                   {/* 그 근무지 계약서만(ME-7 · TAX-8) — 앱 전역에서 고른 근무지와 관계없다 */}
                   <Link href={`/contracts?store=${m.store.storeId}`} transitionTypes={["nav-forward"]} className={ROW_BUTTON}>
