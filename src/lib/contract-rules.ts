@@ -209,8 +209,10 @@ export function paperDocuments(documents: readonly ContractDocument[]): Contract
  */
 export function signedCopyOf(c: Pick<ContractDetail, "status" | "contractMethod" | "documents">): ContractDocument | null {
   if (c.contractMethod === "PAPER" || (c.status !== "SIGNED" && c.status !== "ENDED")) return null;
-  const copies = c.documents.filter((d) => d.kind === "SIGNED_COPY");
-  return copies.reduce<ContractDocument | null>((last, d) => (last && last.contractDocumentId > d.contractDocumentId ? last : d), null);
+  return c.documents.reduce<ContractDocument | null>(
+    (last, d) => (d.kind === "SIGNED_COPY" && (!last || d.contractDocumentId > last.contractDocumentId) ? d : last),
+    null,
+  );
 }
 
 /** 계약서의 월 근로시간 줄(값이 있는 것만). 기본시간 중 휴일 · 월 추가 휴일은 관리자 작성 화면이 받지 않아 보이지 않는다. */

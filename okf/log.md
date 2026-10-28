@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-28
+* **Update**: PR #48 리뷰 반영 — 제9조를 146 문구로 되돌렸다(본문을 템플릿으로 그려 이미 서명한 계약까지 바뀌어 보이므로, 받기 문장은 조항 템플릿 131 때). 내보내기는 상세에 `<a>` 로 바로 두고, 302 뒤 저장소 오류는 앱이 잡지 못하는 점 · iOS 홈 화면 앱은 실기기 확인이 필요한 점을 적었다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 149 PR 전 리뷰 반영 — 화면에 쓰이지 않는 문서 종류 한글 예외를 뺐고, 내보내기 링크는 공통 `buttonClass` 로 모양만 빌린 `<a>` 다(Link 는 라우트 핸들러를 한 번 더 부른다) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 처리 완료본 내보내기(WHALEERP-149) — 체결 완료 · 종료된 전자계약에 `SIGNED_COPY` 가 있으면 상세에 「계약서 내보내기」(받기 라우트, 공유 시트는 브라우저의 저장 · 공유로 갈음). 계약서 제9조의 내려받기 문장에 조건(처리 완료본이 만들어지면)을 붙여 넣었다(131 조항 템플릿과 맞출 것) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 409 `SIGN_DEADLINE_PASSED` 는 api 문구(「날인 기한」) 대신 화면 문구 「서명 기한이 지났습니다. 근무지 관리자에게 다시 보내 달라고 요청해 주세요」 — [Whale ERP Staff](/whale-erp-staff.md).
