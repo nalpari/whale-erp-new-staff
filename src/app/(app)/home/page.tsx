@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BottomNav } from "@/components/common";
+import { popupSummary } from "@/lib/affiliation-requests";
 import { getCurrentMembership } from "@/lib/current-membership";
 import { getMyNotifications } from "@/lib/my-notifications";
+import { getMyAffiliationRequests } from "@/lib/my-profile";
 import { requireSession } from "@/lib/session";
 import { NotificationBell } from "../notification-bell";
+import { AffiliationPopup } from "./affiliation-popup";
 import { MyWorkInfo } from "./my-work-info";
 import { ScheduleCards, ScheduleCardsSkeleton } from "./schedule-cards";
 import { StoreTopBar } from "./store-top-bar";
@@ -57,6 +60,16 @@ export default async function HomePage() {
       <div className="sticky bottom-0 mt-auto">
         <BottomNav current="/" />
       </div>
+      {/* 소속 추가 요청(WHALEERP-144)은 팝업으로만 알린다. 따로 받아 api 가 느려도 홈을 먼저 보인다. */}
+      <Suspense>
+        <AffiliationRequests />
+      </Suspense>
     </div>
   );
+}
+
+/** 소속 추가 요청 팝업. 못 받으면 팝업 없이 홈을 그대로 보인다. */
+async function AffiliationRequests() {
+  const summary = popupSummary((await getMyAffiliationRequests()) ?? []);
+  return summary && <AffiliationPopup requestKey={summary.key} rows={summary.rows} />;
 }

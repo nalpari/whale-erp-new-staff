@@ -1,19 +1,23 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Alert, Badge, MaskIcon, Notice, PageHeader } from "@/components/common";
 import { PRESS } from "@/components/common/theme";
+import { invitationTypeLabel } from "@/lib/affiliation-requests";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { kstToday } from "@/lib/join";
 import { getMyInvitations } from "@/lib/my-invitations";
-import { getMyMemberships } from "@/lib/my-profile";
+import { getMyAffiliationRequests, getMyMemberships } from "@/lib/my-profile";
+import { pendingRequestRows } from "@/lib/pending-requests";
 import { dateLabel, kstMonthDayLabel, membershipStatusOf } from "@/lib/profile";
 
 export const metadata: Metadata = { title: "소속 근무지 · Whale ERP" };
 
 // 내 정보의 소속 근무지(데모 docs/demo/me 의 sites). 소속과 고용 형태는 근로계약으로만 바뀌어 여기서 고치지 않는다.
-// 맨 위에 「확인을 기다리는 요청」을 고정하고 받은 때 최신순으로 보인다 — 가입한 사람에게 온 다른 근무지의 가입 초대는 초대 코드 없이
-// 여기서 수락한다(WHALEERP-604, 2026-10-28 김민식). 그 아래 지금 소속, 그 뒤 퇴직한 근무지(ME-7, api includeRetired — 퇴직일 최근 순).
+// 맨 위에 「확인을 기다리는 요청」을 고정하고 받은 때 최신순으로 보인다(ME-8, 2026-10-28 김민식 · 재영) — 가입한 사람이 받은 가입 초대
+// (WHALEERP-604, 초대 코드 없이 여기서 수락) · 소속 추가 확인 · 복귀 확인(WHALEERP-144, 홈 팝업을 닫아도 여기서 찾는다)을 한 칸에 섞는다.
+// 그 아래 지금 소속, 그 뒤 퇴직한 근무지(ME-7, api includeRetired — 퇴직일 최근 순).
 // 소속마다 근로계약서 · 급여명세서 · 신고 정보로 간다(2026-10-20 기획, api #79). 근로계약서 · 급여명세서는 계정 api 가 아직 없어
 // 「준비 중」으로 막아 둔다. 퇴직한 근무지는 신고 정보도 볼 수 없어(api 404) 버튼을 두지 않는다.
 // 소속 한 줄의 버튼 셋. 외곽선 버튼(Button outline)과 같은 44px · radius 12 · 14px semibold 지만, 세 칸이 한 줄(휴대전화에서 한 칸
@@ -21,61 +25,17 @@ export const metadata: Metadata = { title: "소속 근무지 · Whale ERP" };
 const ROW_BUTTON = `inline-flex h-[44px] w-full items-center justify-center rounded-[12px] border border-staff-border bg-white px-[8px] text-[14px] font-semibold whitespace-nowrap text-staff-text active:bg-staff-primary-inactive ${PRESS}`;
 
 export default async function MembershipsPage() {
-  const [memberships, invitations, employmentTypes] = await Promise.all([
-    getMyMemberships(true),
-    getMyInvitations(),
-    getEnumOrEmpty("EmploymentType"),
-  ]);
+  const [memberships, employmentTypes] = await Promise.all([getMyMemberships(true), getEnumOrEmpty("EmploymentType")]);
   const today = kstToday();
-  // 받은 때 최신순은 api 가 보장한다(GET /me/invitations).
-  const requests = invitations;
 
   return (
     <div className="flex flex-1 flex-col">
       <PageHeader title="소속 근무지" backHref="/me" />
       <div className="flex flex-col gap-[16px] px-[22px] pt-[22px] pb-[24px] leading-[1.5]">
-        {requests === null ? (
-          <Alert tone="warning">
-            <p>받은 초대를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>
-          </Alert>
-        ) : (
-          requests.length > 0 && (
-            // 데모 me 의 sites(ME-8, staff #43): 줄마다 점포 · 「고용 형태 · 받은 날 받음 / 만료일 만료」 · 초대 종류 배지.
-            <section aria-labelledby="pending-requests" className="flex flex-col gap-[8px]">
-              <h2 id="pending-requests" className="px-[4px] text-[13px] font-semibold text-staff-text-sub">
-                확인을 기다리는 요청
-              </h2>
-              <ul className="flex flex-col gap-[8px]">
-                {requests.map((r) => (
-                  <li key={r.invitationId}>
-                    <Link
-                      href={`/me/invitations/${r.invitationId}`}
-                      transitionTypes={["nav-forward"]}
-                      className={`flex w-full items-start gap-[12px] rounded-[16px] border border-staff-border-light bg-white p-[16px] text-left active:bg-staff-info-bg ${PRESS}`}
-                    >
-                      <span className="flex pt-[3px] text-staff-text-sub">
-                        <MaskIcon src="/icons/store-small.svg" size={18} />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[15px] font-semibold">{r.storeName}</span>
-                        <span className="block text-[12px] text-staff-text-sub">
-                          {labelOf(employmentTypes, r.employmentType)} · {kstMonthDayLabel(r.sentAt)} 받음
-                          <br />
-                          {kstMonthDayLabel(r.expiresAt)} 만료
-                        </span>
-                      </span>
-                      <Badge tone="warning">가입 초대</Badge>
-                      <Image src="/icons/chevron-right-muted.svg" alt="" width={12} height={12} className="mt-[6px] -scale-y-100" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )
-        )}
-        {requests !== null && requests.length > 0 && (
-          <h2 className="px-[4px] text-[13px] font-semibold text-staff-text-sub">소속 근무지</h2>
-        )}
+        {/* 요청 목록은 소속과 따로 받아 api 가 느려도 소속을 먼저 보인다(받으면 위에 붙는다). */}
+        <Suspense>
+          <PendingRequests />
+        </Suspense>
         {memberships === null ? (
           <Alert tone="warning">
             <p>소속 근무지를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>
@@ -136,5 +96,59 @@ export default async function MembershipsPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+/**
+ * 확인을 기다리는 요청 — 데모 me 의 sites(ME-8, staff #43): 줄마다 점포 · 「고용 형태 · 받은 날 받음 / 만료일 만료」 · 초대 종류 배지,
+ * 그 아래 「소속 근무지」 제목. 둘 다 없으면 아무것도 두지 않는다. 한쪽만 못 받았으면 받은 쪽을 보이고 못 받은 사정을 한 줄 덧붙인다
+ * (가입 초대는 여기서만 찾는다 — 소속 추가 확인은 홈 팝업 · 알림톡 링크로도 간다).
+ */
+async function PendingRequests() {
+  const [invitations, affiliations, employmentTypes] = await Promise.all([
+    getMyInvitations(),
+    getMyAffiliationRequests(),
+    getEnumOrEmpty("EmploymentType"),
+  ]);
+  const rows = pendingRequestRows(invitations ?? [], affiliations ?? [], (v) => labelOf(employmentTypes, v), invitationTypeLabel);
+  const failed = invitations === null || affiliations === null;
+  if (rows.length === 0 && !failed) return null;
+  return (
+    <>
+      <section aria-labelledby="pending-requests" className="flex flex-col gap-[8px]">
+        <h2 id="pending-requests" className="px-[4px] text-[13px] font-semibold text-staff-text-sub">
+          확인을 기다리는 요청
+        </h2>
+        {rows.length > 0 && (
+          <ul className="flex flex-col gap-[8px]">
+            {rows.map((r) => (
+              <li key={r.key}>
+                <Link
+                  href={r.href}
+                  transitionTypes={["nav-forward"]}
+                  className={`flex w-full items-start gap-[12px] rounded-[16px] border border-staff-border-light bg-white p-[16px] text-left active:bg-staff-info-bg ${PRESS}`}
+                >
+                  <span className="flex pt-[3px] text-staff-text-sub">
+                    <MaskIcon src="/icons/store-small.svg" size={18} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[15px] font-semibold break-keep">{r.storeName}</span>
+                    <span className="block text-[12px] text-staff-text-sub">
+                      {r.employment} · {kstMonthDayLabel(r.sentAt)} 받음
+                      <br />
+                      {kstMonthDayLabel(r.expiresAt)} 만료
+                    </span>
+                  </span>
+                  <Badge tone="warning">{r.kind}</Badge>
+                  <Image src="/icons/chevron-right-muted.svg" alt="" width={12} height={12} className="mt-[6px] -scale-y-100" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+        {failed && <p className="px-[4px] text-[12px] text-staff-text-muted">받은 요청 일부를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>}
+      </section>
+      <h2 className="px-[4px] text-[13px] font-semibold text-staff-text-sub">소속 근무지</h2>
+    </>
   );
 }
