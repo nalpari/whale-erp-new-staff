@@ -8,7 +8,7 @@ import { SignaturePad, type SignaturePadHandle } from "../../_components/signatu
 import { useContractAction } from "../../_components/use-contract-action";
 
 /**
- * 서명란 → 날인 확정(데모 contract 의 sign · sign-drawn · signing). 그리기와 확정을 두 번에 나눈다(CON-2) — 그리기 전에는 「날인 확정」이
+ * 서명란 → 날인 확정(데모 contract 의 sign · sign-drawn · signing). 그리기와 확정을 두 번에 나눈다(CON-2) — 그리기 전에는 「서명 완료」이
  * 꺼져 있고, 그린 뒤에는 「다시 그리기」로 지운다. 보내는 동안 버튼을 모두 잠근다. 계약이 그사이 바뀌었으면(stale) 계약서로 돌아가게 한다.
  * 서명은 PNG 로 만들어 FormData 의 `signature` 로 서버 액션에 넘긴다(action 은 서버 화면이 계약 id · 발송 일시를 bind 한 것).
  */
@@ -49,9 +49,9 @@ export function SignForm({
     <>
       <ContractFrame header={header}>
         <div className="flex flex-col gap-[6px]" aria-live="polite">
-          <h2 className="text-[22px] font-bold">{pending ? "날인을 처리하고 있습니다" : "서명란에 서명해 주세요"}</h2>
+          <h2 className="text-[22px] font-bold">{pending ? "서명을 처리하고 있습니다" : "서명란에 서명해 주세요"}</h2>
           <p className="text-[14px] text-staff-text-sub">
-            {pending ? "처리가 끝날 때까지 화면을 닫지 마세요." : "날인을 확정하면 되돌릴 수 없습니다."}
+            {pending ? "처리가 끝날 때까지 화면을 닫지 마세요." : "서명을 완료하면 되돌릴 수 없습니다."}
           </p>
         </div>
         <SignaturePad ref={pad} drawn={drawn} disabled={pending || state.stale} onDrawnChange={setDrawn} />
@@ -77,7 +77,7 @@ export function SignForm({
         ) : (
           <>
             <Button disabled={!drawn || pending} onClick={handleConfirm}>
-              날인 확정
+              서명 완료
             </Button>
             {drawn ? (
               <Button variant="ghost" disabled={pending} onClick={() => pad.current?.clear()}>

@@ -13,7 +13,7 @@ type Sheet = "reject" | "correction" | null;
 const TEXTAREA = FIELD.replace("h-[52px]", "min-h-[76px] resize-y py-[12px]");
 
 /**
- * 상세 아래 버튼 줄(WHALEERP-147, 데모 contract 의 detail · reject). 본인 대조가 맞으면 「날인하기」(서명란 화면으로)와 「거절하기」,
+ * 상세 아래 버튼 줄(WHALEERP-147, 데모 contract 의 detail · reject). 본인 대조가 맞으면 「서명하기」(서명란 화면으로)와 「거절하기」,
  * 다르면(signable 이 아님) 날인 대신 「수정 요청하기」를 주 버튼으로 둔다. 수정 요청은 대조와 상관없이 서명 대기면 낼 수 있어(WHALEERP-145 ⑦)
  * 맞을 때도 보조 버튼으로 둔다. 거절(사유 선택, 500자)과 수정 요청은 확인 시트에서 보낸다. 보내는 동안 시트 버튼을 잠근다.
  * 실패가 stale(그사이 계약이 바뀜)이면 「계약서 다시 보기」로 화면을 다시 받는다.
@@ -58,7 +58,7 @@ export function ContractDecision({
     <>
       <Dock inset={30}>
         {signable ? (
-          <Button href={signHref}>날인하기</Button>
+          <Button href={signHref}>서명하기</Button>
         ) : (
           <Button onClick={() => setSheet("correction")}>수정 요청하기</Button>
         )}
@@ -111,7 +111,7 @@ export function ContractDecision({
         open={sheet === "correction"}
         onClose={close}
         title="계약서 수정을 요청하시겠습니까?"
-        description="근무지 관리자에게 수정 요청이 전달됩니다. 관리자가 고쳐 다시 보내면 날인할 수 있습니다."
+        description="근무지 관리자에게 수정 요청이 전달됩니다. 관리자가 고쳐 다시 보내면 서명할 수 있습니다."
         closeLabel="취소"
       >
         <Failure state={correction.state} />

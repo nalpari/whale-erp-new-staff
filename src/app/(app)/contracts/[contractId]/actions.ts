@@ -38,7 +38,7 @@ export async function signContractAction(
 ): Promise<ContractActionState> {
   const contractId = parseId(String(rawContractId));
   if (contractId === null) notFound();
-  if (!isSentAt(sentAt)) return { stale: true, message: "계약서를 다시 열어 날인해 주세요" };
+  if (!isSentAt(sentAt)) return { stale: true, message: "계약서를 다시 열어 서명해 주세요" };
   const signature = formData.get("signature");
   if (!(signature instanceof Blob)) return { message: "서명을 받지 못했습니다. 다시 그려 주세요" };
   // 서버 액션 요청 본문은 Next 기본 1MB 까지라 여기서 통째로 읽어도 그보다 크지 않다. 검사한 Blob 을 그대로 넘긴다.

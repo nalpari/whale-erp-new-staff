@@ -13,7 +13,7 @@ import { ContractFrame, Sunken, Tiny, Values } from "../../_components/parts";
 
 export const metadata: Metadata = { title: "근로계약서 처리 완료 · Whale ERP" };
 
-const TOAST = { signed: "날인을 완료했습니다", rejected: "계약서를 거절했습니다" } as const;
+const TOAST = { signed: "서명을 완료했습니다", rejected: "계약서를 거절했습니다" } as const;
 
 /** 그 소속에 신고 정보를 이미 냈는가. 조회하지 못하면(5xx · 연결 실패 · 404 등) false — 입력 화면이 다시 가른다. */
 async function taxProfileSubmitted(staffMemberId: number): Promise<boolean> {
@@ -86,7 +86,7 @@ export default async function ContractDonePage({ params, searchParams }: PagePro
   return (
     <>
       <ContractFrame header={header}>
-        {c.processedAt && <Clock label="날인 시각" at={c.processedAt} />}
+        {c.processedAt && <Clock label="서명 시각" at={c.processedAt} />}
         <Sunken>
           <Values
             rows={[

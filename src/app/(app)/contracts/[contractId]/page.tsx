@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Alert, Badge, MaskIcon, Notice, PageHeader } from "@/components/common";
 import {
-  UNSIGNABLE_LABEL,
   contractSubText,
   deadlineOf,
   isFinished,
@@ -10,6 +9,7 @@ import {
   paperDocuments,
   parseId,
   periodText,
+  phaseLabel,
   phaseOf,
   statusTone,
 } from "@/lib/contract-rules";
@@ -80,7 +80,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const now = new Date();
   // 날인할 수 있는지는 api 의 awaitingSignature 로 정한다 — 날인할 수 없는 서명 대기는 만료 · 서명 불가로 보인다(phaseOf).
   const phase = phaseOf(c, now);
-  const status = phase === "UNSIGNABLE" ? UNSIGNABLE_LABEL : labelOf(statuses, phase);
+  const status = phaseLabel(phase, labelOf(statuses, phase));
   const employmentType = c.employmentType && labelOf(employmentTypes, c.employmentType);
   const title = [c.employer.storeName, employmentType].filter(Boolean).join(" · ");
   const deadline = deadlineOf(c, now);
@@ -171,11 +171,11 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           // 본인 대조(WHALEERP-125): 다른 항목만 알린다 — 계정 값은 보이지 않는다. 날인 대신 수정 요청을 낸다.
           <Alert tone="warning">
             <p>
-              <strong>계약서의 직원 정보가 가입한 정보와 달라 날인할 수 없습니다.</strong>
+              <strong>계약서의 직원 정보가 가입한 정보와 달라 서명할 수 없습니다.</strong>
               <br />
               {mismatched ? `다른 항목: ${mismatched}` : "다른 항목이 있습니다."}
               <br />
-              계약서 내용을 확인하고 수정을 요청해 주세요. 근무지 관리자가 고쳐 다시 보내면 날인할 수 있습니다.
+              계약서 내용을 확인하고 수정을 요청해 주세요. 근무지 관리자가 고쳐 다시 보내면 서명할 수 있습니다.
             </p>
           </Alert>
         ) : phase === "CORRECTION_REQUESTED" ? (
@@ -231,7 +231,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
         {/* TODO(149): 처리 완료본 파일 생성(WHALEERP-131) 뒤 documents 의 SIGNED_COPY 를 체결된 계약에서 같은 받기 라우트(documents/[contractDocumentId])로. */}
 
         {/* api 가 지금 날인할 수 있다고 할 때만(서명 대기 · 기한 안 · 재직 중) — 아래 버튼 줄과 같은 판정 */}
-        {c.awaitingSignature && <Tiny>날인하거나 거절하면 근무지 관리자에게 알림이 전달됩니다.</Tiny>}
+        {c.awaitingSignature && <Tiny>서명하거나 거절하면 근무지 관리자에게 알림이 전달됩니다.</Tiny>}
       </ContractFrame>
       {c.awaitingSignature && c.sentAt && (
         <ContractDecision
