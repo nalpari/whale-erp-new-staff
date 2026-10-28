@@ -1,7 +1,17 @@
 // node --test src/lib/attendance-rules.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { distanceMeters, elapsedLabel, elapsedOf, kstMonthDayTime, kstTime, recordedReasonLabel, registerProblemOf, reviewReasonOf } from "./attendance-rules.ts";
+import {
+  distanceMeters,
+  elapsedLabel,
+  elapsedOf,
+  kstMonthDayTime,
+  kstTime,
+  recordedReasonLabel,
+  registerProblemOf,
+  reviewReasonOf,
+  termsCoverMap,
+} from "./attendance-rules.ts";
 
 test("거리는 하버사인 — 위도 0.001도는 약 111m", () => {
   const d = distanceMeters({ latitude: 37.498, longitude: 127.0276 }, { latitude: 37.499, longitude: 127.0276 });
@@ -52,4 +62,15 @@ test("등록된 기록의 사유 이름 — api 가 붙이는 근무 12시간 �
   assert.equal(recordedReasonLabel("LONG_SHIFT"), "근무 12시간 초과");
   assert.equal(recordedReasonLabel("MOCK_LOCATION"), "위치 조작 감지");
   assert.equal(recordedReasonLabel("ACCURACY_EXCEEDED"), null);
+});
+
+test("탭 진입 읽기 · 카카오 지도의 내 위치는 LOCATION v1.1 이상을 시행할 때만 (2026-10-28 재영)", () => {
+  assert.equal(termsCoverMap("v1.1"), true);
+  assert.equal(termsCoverMap("v1.2"), true);
+  assert.equal(termsCoverMap("v1.10"), true);
+  assert.equal(termsCoverMap("v2.0"), true);
+  assert.equal(termsCoverMap("v1.0"), false); // api 가 아직 v1.1 을 시행하지 않음(배포 순서 · 롤백)
+  assert.equal(termsCoverMap("v0.9"), false);
+  assert.equal(termsCoverMap(null), false);
+  for (const unknown of ["1.1", "V1.1", "v1.1.0", ""]) assert.equal(termsCoverMap(unknown), false, unknown); // 모르는 모양은 막는다
 });

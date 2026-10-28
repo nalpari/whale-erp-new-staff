@@ -11,6 +11,7 @@ import {
   kstTime,
   recordedReasonLabel,
   reviewReasonOf,
+  termsCoverMap,
   type AttendanceKind,
   type RegisterProblem,
   type ReviewReason,
@@ -47,6 +48,10 @@ export function CheckInScreen({ data, mapKey }: { data: MyAttendance; mapKey: st
   const needsConsent = located && (consent.state === "NOT_AGREED" || consent.state === "WITHDRAWN" || consent.needsReconsent);
   const paused = located && consent.state === "PAUSED";
   const canLocate = located && target !== null && !paused && !needsConsent;
+  // 탭 진입 때 읽기 · 카카오 지도에 내 위치 그리기는 그 둘을 담은 약관(LOCATION v1.1)에 동의했을 때만 — api 가 아직 v1.1 을
+  // 시행하지 않았으면(배포 순서 · 롤백) v1.0 동의로는 하지 않는다 — 버튼을 누를 때만 읽고, 지도는 근무지만 그린다(내 위치 없이 거리만
+  // 알림, 2026-10-28 PR #45 리뷰)
+  const mapConsented = termsCoverMap(consent.termsVersion);
   const working = openCheckIn?.staffMemberId === data.staffMemberId ? openCheckIn : null;
 
   const [geo, setGeo] = useState<Geo>({ status: "idle" });
@@ -91,10 +96,10 @@ export function CheckInScreen({ data, mapKey }: { data: MyAttendance; mapKey: st
   // 탭에 들어오면 한 번 위치를 읽는다. 버튼과 같이 위치 읽음(확인자료)을 먼저 남기고, 남기지 못했으면 읽지 않는다 — 이때는 시트를
   // 띄우지 않고 근무지만 그린 지도로 둔다(까닭은 버튼을 누를 때 보인다). 버튼이 위치를 읽지 않는 상태면 탭에서도 읽지 않는다 —
   // 동의 없음 · 일시 중지 · 근무지 좌표 없음(canLocate), 근무 중이면 퇴근 기한 지남, 아니면 출근이 막혔거나(계약 대기 · 근무 기간 아님)
-  // 다른 근무지에 열린 출근이 있을 때.
+  // 다른 근무지에 열린 출근이 있을 때. 시행 중인 약관이 탭 진입 읽기를 담지 않았을 때(mapConsented)도 읽지 않는다.
   // 한 번만 읽도록 ref 로 막고 cleanup 으로 결과를 버리지 않는다 — 개발 모드(Strict Mode)는 effect 를 두 번 돌려, 결과를 버리면
   // 기록만 남고 위치를 그리지 못한다. 보여 주기만 하는 값이라 실패는 조용히 넘긴다
-  const previewable = canLocate && (working ? !working.isCheckOutExpired : !checkInBlock && !openCheckIn);
+  const previewable = canLocate && mapConsented && (working ? !working.isCheckOutExpired : !checkInBlock && !openCheckIn);
   const previewed = useRef(false);
   useEffect(() => {
     if (!previewable || previewed.current) return;
@@ -301,7 +306,7 @@ export function CheckInScreen({ data, mapKey }: { data: MyAttendance; mapKey: st
       <KakaoGeoMap
         appKey={mapKey}
         store={target}
-        me={seen ? { ...seen.position, inRange: seen.inRange } : undefined}
+        me={mapConsented && seen ? { ...seen.position, inRange: seen.inRange } : undefined}
         radiusMeters={store.radiusMeters}
         caption={waitText}
         fallback={seen ? <GeoMap tone={seen.inRange ? "in" : "out"} caption={waitText} /> : <GeoBlank tone="muted" text={waitText} />}
@@ -326,6 +331,15 @@ export function CheckInScreen({ data, mapKey }: { data: MyAttendance; mapKey: st
         <GeoBlank tone="muted" text="위치 조작이 감지되었습니다" />
         <Alert tone="danger">모의 위치를 끈 뒤 출근을 다시 눌러 주세요.</Alert>
       </>
+    ) : !mapConsented ? (
+      // 카카오 지도에 내 위치를 그리는 데 동의하지 않았으면 근무지만 그린 지도를 그대로 두고 거리만 알린다
+      <KakaoGeoMap
+        appKey={mapKey}
+        store={target}
+        radiusMeters={store.radiusMeters}
+        caption={distanceText}
+        fallback={<GeoMap tone={geo.inRange ? "in" : "out"} caption={distanceText} />}
+      />
     ) : (
       <KakaoGeoMap
         appKey={mapKey}
