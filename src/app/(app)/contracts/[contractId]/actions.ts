@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { RedirectType, notFound, redirect } from "next/navigation";
 import { ApiError, failureOf, logFailure, type RequestBody } from "@/lib/api";
@@ -96,6 +97,8 @@ async function run(
       return outcome.state;
     }
   }
-  // replace — 뒤로 가기로 날인 · 거절 화면에 다시 들르지 않게 한다.
+  // 처리한 계약이 남은 화면(홈 서명 요청 팝업 · 목록 · 상세)을 한꺼번에 무효화한다 — 뒤로 가기 라우터 캐시에 서명 전 화면이 남아
+  // 지난 팝업 · 버튼이 보이지 않게(소속 추가 답하기와 같다). replace — 뒤로 가기로 날인 · 거절 화면에 다시 들르지 않게 한다.
+  revalidatePath("/", "layout");
   redirect(to, RedirectType.replace);
 }
