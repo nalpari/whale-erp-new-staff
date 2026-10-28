@@ -2,25 +2,31 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
-import { Button, MaskIcon, RequestSheet } from "@/components/common";
+import { Button, MaskIcon, RequestSheet, SHEET_CLOSE_MS } from "@/components/common";
 import { readSeen, subscribeSeen } from "@/lib/affiliation-popup-memory";
 import { isPopupDismissed } from "@/lib/affiliation-requests";
 import {
+  forgetSignRequestPopup,
   readSignRequestSeen,
   rememberSignRequestSeen,
   subscribeSignRequestReopen,
   subscribeSignRequestSeen,
+  takeSignRequestReopen,
 } from "@/lib/sign-request-popup-memory";
 import { isSignRequestDismissed } from "@/lib/sign-request-seen";
 import { AffiliationPopup } from "./affiliation-popup";
 
 type Rows = { label: string; value: string }[];
-type Showing = "sign" | "affiliation" | null;
+type Sheet = "sign" | "affiliation";
 
 /**
  * 홈 위 팝업 둘 — 서명 요청(WHALEERP-148)과 소속 추가 요청(144). 한 번에 하나만, 서명 요청이 먼저다(순서의 근거는 home/page.tsx 의
- * HomeRequests). 지금 보이는 소속 추가 요청 시트는 그사이 서명 요청 기억이 지워져도(백그라운드에서 오래 있다 돌아옴) 닫지 않는다 —
- * 보고 있는 것을 끝낸 뒤 서명 요청이 뜬다. 서버 그림에서는 둘 다 닫아 두고(저장소를 모른다) 브라우저에서 읽어 연다.
+ * HomeRequests). 규칙은 셋이다.
+ * - 보고 있는 시트는 그대로 둔다 — 그사이 다른 쪽 기억이 지워지거나 홈을 다시 받아도, 닫을(「다음에 하기」 · 가기) 때까지.
+ * - 한 시트를 닫으면 다 내려간 뒤(SHEET_CLOSE_MS) 다음 시트를 연다 — 겹쳐 보이지 않게.
+ * - 백그라운드에서 오래 있다 다시 보이면(HOME-4 「앱을 다시 엶」, 홈에 없을 때 돌아왔으면 홈을 그릴 때) 홈을 먼저 다시 받고 서명 요청
+ *   기억을 지운다 — 받는 동안은 새로 띄우지 않아 지난 데이터(그사이 서명한 계약)로 띄우지 않는다.
+ * 서버 그림에서는 둘 다 닫아 두고(저장소를 모른다) 브라우저에서 읽어 연다.
  */
 export function HomePopups({
   sign,
@@ -31,26 +37,43 @@ export function HomePopups({
 }) {
   const router = useRouter();
   const [refreshing, startRefresh] = useTransition();
-  // 백그라운드에서 오래 있다 다시 보이면(HOME-4 「앱을 다시 엶」) 홈을 다시 받는다 — 받는 동안 서명 요청을 닫아 두어 지난 데이터로
-  // 띄우지 않는다. 받은 결과로 팝업이 뜨거나(아직 서명 대기) 안 뜬다(그사이 서명함).
-  useEffect(() => subscribeSignRequestReopen(() => startRefresh(() => router.refresh())), [router]);
+  useEffect(() => {
+    const reopen = () => {
+      if (!takeSignRequestReopen()) return;
+      startRefresh(() => router.refresh());
+      forgetSignRequestPopup();
+    };
+    reopen();
+    return subscribeSignRequestReopen(reopen);
+  }, [router]);
 
-  const signWaiting = useSyncExternalStore(
-    subscribeSignRequestSeen,
-    () => sign !== null && !isSignRequestDismissed(sign.key, readSignRequestSeen()),
-    () => false,
-  );
-  const affiliationWaiting = useSyncExternalStore(
-    subscribeSeen,
-    () => affiliation !== null && !isPopupDismissed(affiliation.key, readSeen()),
-    () => false,
-  );
-  // 다시 받는 동안은 새로 띄우지 않는다(지난 데이터).
-  const wanted: Showing = refreshing ? null : signWaiting ? "sign" : affiliationWaiting ? "affiliation" : null;
-  // 보이던 소속 추가 시트는 그대로 둔다(닫을 때까지). 렌더 중 상태 맞추기 — 이전 값과 다를 때만 바꾼다.
-  const [showing, setShowing] = useState<Showing>(null);
-  const next: Showing = showing === "affiliation" && affiliationWaiting ? "affiliation" : wanted;
-  if (next !== showing) setShowing(next);
+  const waiting: Record<Sheet, boolean> = {
+    sign: useSyncExternalStore(
+      subscribeSignRequestSeen,
+      () => sign !== null && !isSignRequestDismissed(sign.key, readSignRequestSeen()),
+      () => false,
+    ),
+    affiliation: useSyncExternalStore(
+      subscribeSeen,
+      () => affiliation !== null && !isPopupDismissed(affiliation.key, readSeen()),
+      () => false,
+    ),
+  };
+  // 보고 있는 시트(잠금). 그것이 닫히면 내려가는 동안(closing) 비워 둔다.
+  const [shown, setShown] = useState<Sheet | null>(null);
+  const [closing, setClosing] = useState(false);
+  const pick: Sheet | null = waiting.sign ? "sign" : waiting.affiliation ? "affiliation" : null;
+  const next = shown && waiting[shown] ? shown : shown || closing || refreshing ? null : pick;
+  // 렌더 중 상태 맞추기 — 바뀔 때만. 보던 시트가 닫혔으면 내려가는 시간을 둔다.
+  if (next !== shown) {
+    setShown(next);
+    if (shown) setClosing(true);
+  }
+  useEffect(() => {
+    if (!closing) return;
+    const timer = setTimeout(() => setClosing(false), SHEET_CLOSE_MS);
+    return () => clearTimeout(timer);
+  }, [closing]);
 
   return (
     <>

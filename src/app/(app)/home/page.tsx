@@ -15,7 +15,6 @@ import { NotificationBell } from "../notification-bell";
 import { HomePopups } from "./home-popups";
 import { MyWorkInfo } from "./my-work-info";
 import { ScheduleCards, ScheduleCardsSkeleton } from "./schedule-cards";
-
 import { StoreTopBar } from "./store-top-bar";
 import { TodoCard, TodoCardSkeleton } from "./todo-card";
 
@@ -80,15 +79,17 @@ export default async function HomePage() {
  * 지금 근무지의 일이고, 소속 추가 요청은 새 근무지를 더할지 묻는 것이며 수락해도 그 뒤 계약 서명이 따로 온다(가입 · 진입 가이드 JOIN-7 의
  * 흐름이 가입 → 서명 요청 팝업). 데모 · 기획 문서에 둘이 함께일 때의 순서는 없다.
  * 두 조회를 함께 기다린다 — 계약 목록이 느린 동안 소속 추가 팝업도 기다리지만, 따로 띄우면 소속 추가가 먼저 떴다가 서명 요청이 그 뒤를
- * 잇는 순서가 뒤집힌다. 어느 쪽이든 못 받으면(그쪽 조회가 던져도) 그 팝업만 없이 홈 그대로다.
+ * 잇는 순서가 뒤집힌다. 두 조회는 api 실패를 null 로 돌려주므로(그 팝업만 없이 홈 그대로) 여기까지 던져 오는 것은 코드 결함 · 만료 안내
+ * redirect 뿐이라 홈 오류로 드러나게 둔다. 고용 형태 enum 은 계약 목록이 오면 바로(소속 추가 조회와 나란히) 받는다.
  */
 async function HomeRequests() {
-  const [contracts, affiliationRequests] = await Promise.allSettled([getContractsOrNull(), getMyAffiliationRequests()]);
-  const contractItems = settledOrNull(contracts);
-  const sign = contractItems && signRequestOf(contractItems, new Date());
-  const summary = popupSummary(settledOrNull(affiliationRequests) ?? []);
-  // 고용 형태 한글은 서명 요청이 있을 때만 받는다.
-  const employmentTypes = sign?.contract.employmentType ? await employmentTypesOrEmpty() : [];
+  const now = new Date();
+  const contracts = getContractsOrNull();
+  const employmentTypes = contracts.then((items) =>
+    items && signRequestOf(items, now)?.contract.employmentType ? employmentTypesOrEmpty() : [],
+  );
+  const [items, affiliationRequests, types] = await Promise.all([contracts, getMyAffiliationRequests(), employmentTypes]);
+  const sign = items && signRequestOf(items, now);
   return (
     <HomePopups
       sign={
@@ -97,22 +98,14 @@ async function HomeRequests() {
           href: sign.href,
           rows: [
             { label: "근무지", value: sign.contract.storeName },
-            ...(sign.contract.employmentType ? [{ label: "고용 형태", value: labelOf(employmentTypes, sign.contract.employmentType) }] : []),
+            ...(sign.contract.employmentType ? [{ label: "고용 형태", value: labelOf(types, sign.contract.employmentType) }] : []),
             ...(sign.deadline ? [{ label: "서명 기한", value: sign.deadline }] : []),
           ],
         }
       }
-      affiliation={summary && { key: summary.key, rows: summary.rows }}
+      affiliation={popupSummary(affiliationRequests ?? [])}
     />
   );
-}
-
-/** 한쪽 조회가 던져도 다른 팝업은 띄운다. Next 내부 오류(401 의 만료 안내 redirect 등)는 그대로 던지고, 그 밖은 남기고 null. */
-function settledOrNull<T>(result: PromiseSettledResult<T>): T | null {
-  if (result.status === "fulfilled") return result.value;
-  unstable_rethrow(result.reason);
-  console.error("[home-popups] 팝업 조회 실패", result.reason);
-  return null;
 }
 
 /**

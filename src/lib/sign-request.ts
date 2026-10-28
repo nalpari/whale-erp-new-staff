@@ -9,6 +9,7 @@ export interface SignRequest {
   /**
    * 그 계약서 상세 — 데모 sign-req 처럼 상세에서 조항을 보고 서명한다(146: 서명 · 거절 버튼이 조항과 한 화면). 본인 대조가 다른 계약도
    * 상세에서 다른 항목과 수정 요청을 본다 — 수정을 요청하면 서명 대기가 아니게 되어(awaitingSignature 거짓) 팝업이 멈춘다.
+   * `?store=` 를 붙여 상세의 뒤로 가기가 그 근무지 계약서 목록으로 간다.
    */
   href: string;
   /** 「2026년 10월 11일 10:23까지 · 26일 남음」(당일은 「오늘 마감」, 상세 머리 카드와 같은 규칙 deadlineValue). 기한이 없으면 null. */
@@ -29,7 +30,7 @@ export function signRequestOf(items: readonly ContractListItem[], now: Date): Si
   const d = deadlineOf(contract, now);
   return {
     contract,
-    href: `/contracts/${contract.contractId}`,
+    href: `/contracts/${contract.contractId}?store=${contract.storeId}`,
     deadline: d && deadlineValue(d, "detail"),
     key: waiting
       .map((c) => `${c.contractId}@${c.sentAt}`)

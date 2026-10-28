@@ -2,6 +2,7 @@
 // node --test 가 직접 읽으므로 값 import 는 같은 폴더의 순수 모듈(.ts 확장자)만 둔다.
 import { CONNECTION_FAILED, RATE_LIMITED, RETRY_LATER, type ApiFailure } from "./action-errors.ts";
 import type { Schemas } from "./api";
+import { isSeenSubset, mergeSeen } from "./popup-memory.ts";
 
 export type AffiliationRequest = Schemas["AffiliationRequestDto"];
 
@@ -159,21 +160,11 @@ export function popupSummary(items: AffiliationRequest[]): { rows: { label: stri
   };
 }
 
-const idsOf = (key: string | null) => new Set((key ?? "").split(",").filter(Boolean));
-
 /** 팝업을 닫아 둘지 — 지금 요청이 모두 이미 본(닫은) 요청이면 닫아 둔다. 하나에 답해 줄었을 때는 다시 뜨지 않고, 새 요청이 있을 때만 뜬다. */
-export function isPopupDismissed(currentKey: string, seenKey: string | null): boolean {
-  const seen = idsOf(seenKey);
-  return [...idsOf(currentKey)].every((id) => seen.has(id));
-}
+export const isPopupDismissed = isSeenSubset;
 
-/** 「다음에 하기」로 닫을 때 기억할 값 — 이미 본 요청에 지금 요청을 더한다. */
-export function mergeSeenKey(currentKey: string, seenKey: string | null): string {
-  return [...new Set([...idsOf(seenKey), ...idsOf(currentKey)])]
-    .map(Number)
-    .sort((a, b) => a - b)
-    .join(",");
-}
+/** 「다음에 하기」로 닫을 때 기억할 값 — 이미 본 요청에 지금 요청을 더한다(id 숫자 순). */
+export const mergeSeenKey = (currentKey: string, seenKey: string | null) => mergeSeen(currentKey, seenKey, (a, b) => Number(a) - Number(b));
 
 /**
  * 목록 조회(`getMyAffiliationRequests`) 실패를 어떻게 다룰지. 이 목록은 팝업 · 배지 같은 곁들임이라 api 실패(4xx · 5xx · 연결 실패)는

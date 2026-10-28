@@ -10,7 +10,7 @@ export { PeriodNav } from "./period-nav";
 export { StatusChip, type StatusChipTone } from "./status-chip";
 export { Switch, SwitchRow } from "./switch-row";
 export { AttendanceDayCard, DayOffRow, type AttendanceDayStatus } from "./attendance-day";
-export { BottomSheet, SheetOption } from "./bottom-sheet";
+export { BottomSheet, SHEET_CLOSE_MS, SheetOption } from "./bottom-sheet";
 export { RequestSheet, ReasonSheet } from "./request-sheet";
 export { Button, type ButtonVariant } from "./button";
 export { TextField } from "./text-field";

@@ -33,7 +33,7 @@ test("서명을 기다리는 전자계약 가운데 기한이 가장 급한 것�
   );
   assert.equal(request?.contract.contractId, 2);
   // 데모처럼 상세로 — 거기서 조항을 보고 서명한다
-  assert.equal(request?.href, "/contracts/2");
+  assert.equal(request?.href, "/contracts/2?store=10");
   assert.equal(request?.deadline, "2026년 11월 2일 10:00까지 · 5일 남음");
   // 기억 값은 기다리는 계약 모두 — 고른 것만이 아니다
   assert.equal(request?.key, "1@2026-10-20T01:00:00.000Z,2@2026-10-03T01:00:00.000Z");

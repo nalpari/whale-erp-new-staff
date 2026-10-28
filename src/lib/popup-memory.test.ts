@@ -1,7 +1,7 @@
 // node --test src/lib/popup-memory.test.ts
 import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
-import { createPopupMemory } from "./popup-memory.ts";
+import { createPopupMemory, isSeenSubset, mergeSeen } from "./popup-memory.ts";
 
 /** 꾸민 sessionStorage. failing 이면 쓰기를, readFailing 이면 읽기를, removeFailing 이면 지우기를 막는다. */
 class FakeStorage {
@@ -72,4 +72,12 @@ test("지우기가 던져도 화면 안 값은 지운다", () => {
   memory.forget();
   storage.failing = false;
   assert.equal(memory.read(), null);
+});
+
+test("닫은 항목 판정은 부분집합, 합치기는 정렬을 인자로", () => {
+  assert.equal(isSeenSubset("3", "3,9"), true);
+  assert.equal(isSeenSubset("3,12", "3,9"), false);
+  assert.equal(isSeenSubset("3", null), false);
+  assert.equal(mergeSeen("12", "3,9"), "12,3,9");
+  assert.equal(mergeSeen("12", "3,9", (a, b) => Number(a) - Number(b)), "3,9,12");
 });

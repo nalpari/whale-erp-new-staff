@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-28
+* **Update**: #49 재리뷰 반영 — 팝업 조회는 `Promise.all`(결함은 홈 오류로), 「앱을 다시 엶」은 홈 팝업이 홈에 있을 때 홈을 먼저 다시 받은 뒤 기억을 지움, 보던 시트는 서명 · 소속 추가 모두 유지하고 닫힘 애니메이션 뒤 다음 시트, 팝업 링크에 `?store=`, 「다음에 하기」 판정은 `popup-memory.ts` 의 공용 함수 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: PR #49 리뷰 반영 — 서명 요청 팝업은 데모처럼 계약서 상세로 보낸다. 「다음에 하기」는 부분집합 판정(줄면 그대로), 10분 백그라운드 뒤에는 홈을 다시 받아 띄운다. 두 팝업은 `home-popups.tsx` 한 곳에서 한 번에 하나(보던 소속 추가 시트는 닫지 않음), 조회는 `allSettled`. 판정은 의존 없는 `sign-request-seen.ts` 로 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 148 PR 전 리뷰 반영 — 서명 요청 팝업은 백그라운드에서 10분 넘게 숨었다 다시 보이면 「다음에 하기」 기억을 지워 다시 뜬다(HOME-4 해석, 소속 추가 요청 팝업은 그대로). 고용 형태 enum 은 서명 요청이 있을 때만, 목록 4xx 는 남긴다. 기한 줄은 `deadlineValue` 로 상세와 같은 규칙. 데모와 다른 점을 적었다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 서명 요청 팝업(WHALEERP-148)을 홈에 더했다 — 서명을 기다리는 전자계약 가운데 기한이 가장 급한 것을 띄워 서명 화면으로, 「다음에 하기」는 이 탭에만 기억(HOME-4). 소속 추가 요청 팝업과는 한 번에 하나(서명 요청 먼저). 팝업 기억은 `popup-memory.ts` 로 함께 쓴다 — [Whale ERP Staff](/whale-erp-staff.md).

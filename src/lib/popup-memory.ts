@@ -2,6 +2,22 @@
 // 소속 추가 요청 팝업(WHALEERP-144)과 서명 요청 팝업(148)이 저장소 키만 달리해 쓴다. 저장소를 막은 브라우저에서는 화면 안에만 두고,
 // 기억하지 못해도 팝업은 뜬다. 브라우저에서만 부른다(테스트는 sessionStorage 를 꾸며 넣는다).
 
+const itemsOf = (key: string | null) => new Set((key ?? "").split(",").filter(Boolean));
+
+/**
+ * 「다음에 하기」 판정 — 지금 항목(쉼표로 이은 키)이 모두 이미 닫은 항목이면 닫아 둔다. 항목이 줄면 그대로 닫혀 있고, 새 항목이 있을
+ * 때만 다시 뜬다. 소속 추가 요청(요청 id) · 서명 요청(계약 id@발송 일시)이 함께 쓴다.
+ */
+export function isSeenSubset(currentKey: string, seenKey: string | null): boolean {
+  const seen = itemsOf(seenKey);
+  return [...itemsOf(currentKey)].every((item) => seen.has(item));
+}
+
+/** 「다음에 하기」로 닫을 때 기억할 값 — 이미 닫은 항목에 지금 항목을 더한다. compare 는 정렬(없으면 글자 순). */
+export function mergeSeen(currentKey: string, seenKey: string | null, compare?: (a: string, b: string) => number): string {
+  return [...new Set([...itemsOf(seenKey), ...itemsOf(currentKey)])].sort(compare).join(",");
+}
+
 export interface PopupMemory {
   /** 기억한 값(없으면 null). */
   read: () => string | null;
