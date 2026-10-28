@@ -27,8 +27,8 @@ export default async function MembershipsPage() {
     getEnumOrEmpty("EmploymentType"),
   ]);
   const today = kstToday();
-  // api 가 보낸 때 최신순으로 주지만, 고정 칸의 순서는 이 화면의 약속이라 다시 맞춘다.
-  const requests = invitations && [...invitations].sort((a, b) => b.sentAt.localeCompare(a.sentAt));
+  // 받은 때 최신순은 api 가 보장한다(GET /me/invitations).
+  const requests = invitations;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -91,16 +91,16 @@ export default async function MembershipsPage() {
                       <span className={`block text-[15px] font-semibold ${retired ? "text-staff-text-sub" : ""}`}>{m.store.storeName}</span>
                       <span className="block text-[12px] text-staff-text-sub">
                         {labelOf(employmentTypes, m.employmentType)} · {m.jobTitle}
-                        {retired && m.retiredDate
-                          ? ` · ${m.hiredDate ? `${dateLabel(m.hiredDate)} ~ ` : ""}${dateLabel(m.retiredDate)}`
+                        {retired
+                          ? ` · ${m.hiredDate ? `${dateLabel(m.hiredDate)} ~ ` : ""}${dateLabel(m.retiredDate!)}`
                           : m.hiredDate && ` · ${dateLabel(m.hiredDate)}부터`}
                       </span>
                     </span>
                     {/* 퇴직 예정도 소속이다(퇴직일까지). 배지 글자로 갈라 보인다. */}
                     {retired ? (
                       <Badge tone="plain">퇴직</Badge>
-                    ) : status === "retiring" && m.retiredDate ? (
-                      <Badge tone="waiting">{dateLabel(m.retiredDate)} 퇴직 예정</Badge>
+                    ) : status === "retiring" ? (
+                      <Badge tone="waiting">{dateLabel(m.retiredDate!)} 퇴직 예정</Badge>
                     ) : (
                       <Badge tone="working">근무 중</Badge>
                     )}

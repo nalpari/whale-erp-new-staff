@@ -1,6 +1,5 @@
-import type { Schemas } from "./api";
+import { ApiError, NetworkError, logUnexpected, type Schemas } from "./api";
 import type { ClientIp } from "./client-ip";
-import { orNull } from "./my-profile";
 import { authedRequest } from "./session";
 
 // 가입한 직원에게 온 다른 근무지의 가입 초대(WHALEERP-604, api 603). 초대 코드는 받지 않는다 — api 가 계정의 휴대전화번호로 온
@@ -9,9 +8,22 @@ import { authedRequest } from "./session";
 
 export type MyInvitation = Schemas["MyInvitationDto"];
 
-/** 받은 초대 목록. 5xx · 연결 실패면 null — 소속 근무지 화면은 초대 칸만 「불러오지 못했다」로 보인다. 그 밖은 던진다. */
-export const getMyInvitations = (): Promise<MyInvitation[] | null> =>
-  orNull(async () => (await authedRequest<Schemas["MyInvitationListResponseDto"]>("/me/invitations")).items);
+/**
+ * 받은 초대 목록. 실패하면 null — 소속 근무지에 덧붙인 칸이라, 이것 하나 때문에 소속 목록까지 오류 화면으로 넘기지 않는다(PR #40 리뷰).
+ * 요청 한도(429) 같은 4xx 도 null 로 받고, 예상 밖 4xx 는 남긴다(5xx · 연결 실패는 request() 가 남겼다). 401 의 만료 안내 redirect 는 던진다.
+ */
+export async function getMyInvitations(): Promise<MyInvitation[] | null> {
+  try {
+    return (await authedRequest<Schemas["MyInvitationListResponseDto"]>("/me/invitations")).items;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      if (error.status < 500 && error.status !== 429) logUnexpected("my-invitations", error);
+      return null;
+    }
+    if (error instanceof NetworkError) return null;
+    throw error;
+  }
+}
 
 /** 근무지 더하기 — 그 초대의 직원 레코드를 이 계정에 잇는다. 가입을 기다리던 근로계약서는 서명 대기가 된다. */
 export function acceptMyInvitation(invitationId: number, body: Schemas["AcceptMyInvitationDto"], clientIp: ClientIp | undefined) {

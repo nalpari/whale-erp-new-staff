@@ -14,7 +14,23 @@ export const BackToMemberships = () => (
   </Button>
 );
 
-/** 쓸 수 없는 초대(기한 · 다시 보냄 · 번호 변경 · 퇴직 · 가입 불가, 또는 목록에 없는 초대). */
+/**
+ * 받은 초대 목록에 없다 — 이미 더했거나(다른 탭 · 기기) 끝났다. 목록만으로는 둘을 가를 수 없어 「쓸 수 없는 초대」라고 단정하지
+ * 않는다(PR #40 리뷰 — 이미 더한 직원이 다시 초대를 요청하지 않게).
+ */
+export function InvitationNotListed() {
+  const titleRef = useFocusedTitle();
+  return (
+    <AuthScreen
+      titleRef={titleRef}
+      title="이 초대를 찾을 수 없습니다"
+      description="이미 더한 근무지이거나 만료 · 새 초대로 바뀐 초대입니다. 소속 근무지에서 다시 확인해 주세요."
+      dock={<BackToMemberships />}
+    />
+  );
+}
+
+/** 쓸 수 없는 초대(기한 · 다시 보냄 · 퇴직 · 가입 불가) — 수락했더니 api 가 404 로 답했다. */
 export function InvitationEnded() {
   const titleRef = useFocusedTitle();
   return (
