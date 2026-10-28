@@ -13,6 +13,19 @@ export function distanceMeters(a: { latitude: number; longitude: number }, b: { 
   return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
+/**
+ * 시행 중인 위치정보 약관이 탭 진입 때 읽기 · 카카오 지도에 내 위치 그리기를 담은 버전(LOCATION v1.1, 2026-10-28 재영)
+ * 이상인가. 다시 동의가 필요 없으면 동의한 버전 = 시행 중인 버전이므로, 이것이 거짓이면 직원이 그 두 가지에 동의하지 않은 것이다 —
+ * 참이라고 동의한 것은 아니다(동의 없음 · 철회일 수 있다) — 동의 상태(canLocate)와 함께 쓴다.
+ * api 가 아직 v1.1 을 시행하지 않았거나(배포 순서 · 롤백) 버전 모양을 모르면 거짓 — 「v주.부」 꼴만 읽는다.
+ */
+export function termsCoverMap(termsVersion: string | null): boolean {
+  const match = termsVersion ? /^v(\d+)\.(\d+)$/.exec(termsVersion) : null;
+  if (!match) return false;
+  const [major, minor] = [Number(match[1]), Number(match[2])];
+  return major > 1 || (major === 1 && minor >= 1);
+}
+
 export type AttendanceKind = "CHECK_IN" | "CHECK_OUT";
 export type ReviewReason = "OUT_OF_RADIUS_CHECKIN" | "OUT_OF_RADIUS_CHECKOUT" | "MOCK_LOCATION";
 
