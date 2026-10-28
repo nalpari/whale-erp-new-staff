@@ -4,6 +4,10 @@ import { test } from "node:test";
 import { CONNECTION_FAILED, RATE_LIMITED, RETRY_LATER } from "./action-errors.ts";
 import {
   ACCOUNT_INCOMPLETE,
+  BANK_REQUIRED,
+  TAX_PROFILE_CREATE_NOT_FOUND,
+  taxProfileCreateFailure,
+  validateTaxProfileCreate,
   CURRENT_PASSWORD_EMPTY,
   CURRENT_PASSWORD_MISMATCH,
   ACCOUNT_SHAPE,
@@ -233,4 +237,34 @@ test("taxViewAfterChange — 고치고 돌아온 뒤 조회가 실패해도 저�
   assert.deepEqual(taxViewAfterChange(true, { taxProfile: null }), { toast: false, unavailable: TAX_VIEW_UNAVAILABLE_AFTER_SAVE });
   assert.deepEqual(taxViewAfterChange(false, null), { toast: false, unavailable: TAX_VIEW_UNAVAILABLE });
   assert.deepEqual(taxViewAfterChange(false, profile), { toast: false, unavailable: TAX_VIEW_UNAVAILABLE });
+});
+
+test("validateTaxProfileCreate 는 셋 다 받아야 하고 지금 비밀번호를 싣지 않는다", () => {
+  const input = { rrnFront: "900101", rrnBack: "1234567", bankCode: "004", payrollAccountNumber: "123-456-78901", currentPassword: "" };
+  assert.deepEqual(validateTaxProfileCreate(input), { body: { rrn: "9001011234567", bankCode: "004", payrollAccountNumber: "12345678901" } });
+  // 화면에 비밀번호 칸이 없지만 누가 실어 보내도 본문에 넣지 않는다(빈 문자열은 api 형식 400).
+  assert.deepEqual(validateTaxProfileCreate({ ...input, currentPassword: "pw" }), {
+    body: { rrn: "9001011234567", bankCode: "004", payrollAccountNumber: "12345678901" },
+  });
+  assert.deepEqual(validateTaxProfileCreate({ ...input, rrnBack: "" }), { problem: { field: "rrn", message: RRN_SHAPE } });
+  assert.deepEqual(validateTaxProfileCreate({ ...input, rrnFront: "90010" }), { problem: { field: "rrn", message: RRN_SHAPE } });
+  assert.deepEqual(validateTaxProfileCreate({ ...input, bankCode: "" }), { problem: { field: "bank", message: BANK_REQUIRED } });
+  assert.deepEqual(validateTaxProfileCreate({ ...input, payrollAccountNumber: "" }), { problem: { field: "account", message: ACCOUNT_SHAPE } });
+  assert.deepEqual(validateTaxProfileCreate({ ...input, payrollAccountNumber: "123456789" }), {
+    problem: { field: "account", message: ACCOUNT_SHAPE },
+  });
+});
+
+test("taxProfileCreateFailure 는 동시 처음 작성의 400 CURRENT_PASSWORD_MISMATCH 를 다시 읽게 한다", () => {
+  const of = (status: number, code?: string, message = "") => taxProfileCreateFailure({ status, message, ...(code ? { code } : {}) });
+  assert.equal(of(400, "CURRENT_PASSWORD_MISMATCH").alreadySaved, true);
+  assert.equal(of(400, "RRN_BIRTH_MISMATCH").alreadySaved, false);
+  assert.deepEqual(of(400, "RRN_BIRTH_MISMATCH").state, { problem: { field: "rrn", message: RRN_BIRTH_MISMATCH } });
+  assert.deepEqual(of(400, "TAX_PROFILE_INCOMPLETE"), {
+    state: { problem: { field: "form", message: "주민등록번호와 급여 계좌를 모두 넣어 주세요" } },
+    log: true,
+    alreadySaved: false,
+  });
+  assert.deepEqual(of(404).state, { problem: { field: "form", message: TAX_PROFILE_CREATE_NOT_FOUND } });
+  assert.deepEqual(taxProfileCreateFailure("network"), { state: { problem: { field: "form", message: CONNECTION_FAILED } }, log: false, alreadySaved: false });
 });

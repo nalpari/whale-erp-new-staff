@@ -178,3 +178,38 @@ export function taxProfileSaveFailure(failure: ApiFailure): { state: TaxProfileE
   if (status === 500) return { state: problem("form", `신고 정보를 저장하지 못했습니다. ${REPORT_IF_REPEATED}`), log: false };
   return { state: problem("form", `신고 정보를 저장하지 못했습니다. ${RETRY_LATER}`), log: status < 500 };
 }
+
+/** 처음 넣기에서 은행을 고르지 않았을 때. */
+export const BANK_REQUIRED = "급여를 받을 은행을 골라 주세요";
+/** 처음 넣기의 api 404 — 내 소속이 아니다(퇴직 · 남의 id). */
+export const TAX_PROFILE_CREATE_NOT_FOUND = "이 근무지에는 신고 정보를 넣을 수 없습니다. 소속 근무지에서 다시 열어 주세요";
+
+/**
+ * 날인 뒤 처음 넣기(WHALEERP-150)의 값 거르기. 주민등록번호 · 은행 · 계좌번호 셋 다 필수이고, 지금 비밀번호는 보내지 않는다 —
+ * api 는 처음 작성에 비밀번호를 비교하지 않지만 빈 문자열은 형식 400 이다(api #138). 맞으면 api 본문, 아니면 화면 상태.
+ */
+export function validateTaxProfileCreate(input: TaxProfileEditInput): { body: SaveTaxProfileBody } | TaxProfileEditState {
+  const front = digitsOnly(input.rrnFront);
+  const back = digitsOnly(input.rrnBack);
+  const account = digitsOnly(input.payrollAccountNumber);
+  if (!/^\d{6}$/.test(front) || !/^\d{7}$/.test(back)) return problem("rrn", RRN_SHAPE);
+  if (!input.bankCode) return problem("bank", BANK_REQUIRED);
+  if (input.bankCode.length > 20) return problem("bank", "은행을 다시 골라 주세요");
+  if (!/^\d{10,16}$/.test(account)) return problem("account", ACCOUNT_SHAPE);
+  return { body: { rrn: front + back, bankCode: input.bankCode, payrollAccountNumber: account } };
+}
+
+/**
+ * 처음 넣기의 저장 실패. alreadySaved 면 화면에 오류를 보이지 말고 다시 읽어 저장됐는지 본다 — 처음 작성을 두 번 동시에 보내면
+ * 뒤쪽은 이미 낸 신고 정보를 고치는 것으로 읽혀 400 CURRENT_PASSWORD_MISMATCH 가 된다(api #138, 2026-10-23 노영주).
+ * 그 밖은 고치기와 같고, 처음 넣기에서 뜻이 다른 것(빠진 칸 · 404)만 문구를 바꾼다.
+ */
+export function taxProfileCreateFailure(failure: ApiFailure): { state: TaxProfileEditState; log: boolean; alreadySaved: boolean } {
+  if (failure !== "network" && failure.status === 400 && failure.code === "CURRENT_PASSWORD_MISMATCH")
+    return { state: problem("form", `신고 정보를 저장했는지 확인하지 못했습니다. ${RETRY_LATER}`), log: false, alreadySaved: true };
+  if (failure !== "network" && failure.status === 400 && (failure.code === "TAX_PROFILE_INCOMPLETE" || failure.code === "TAX_PROFILE_EMPTY"))
+    return { state: problem("form", "주민등록번호와 급여 계좌를 모두 넣어 주세요"), log: true, alreadySaved: false };
+  if (failure !== "network" && failure.status === 404)
+    return { state: problem("form", TAX_PROFILE_CREATE_NOT_FOUND), log: false, alreadySaved: false };
+  return { ...taxProfileSaveFailure(failure), alreadySaved: false };
+}

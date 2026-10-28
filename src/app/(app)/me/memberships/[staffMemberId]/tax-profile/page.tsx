@@ -26,7 +26,8 @@ function ValueCard({ label, value, help }: { label: string; value: string; help:
 
 // 소속별 신고 정보(TAX-8). 기준: 데모 docs/demo/tax 의 view(「등록된 신고 정보」). 가린 값만 보인다(원문은 api 가 내려 주지 않는다).
 // 받은 근거 두 줄은 운영 정책 TAX-08 의 문구(데모와 같은 문장)이고, 사업주는 이 소속의 점포다.
-// 「새로 넣기」(데모 form)는 이미 낸 신고 정보가 있을 때만 보이고 `./edit` 로 간다(WHALEERP-333) — 첫 입력은 날인 뒤 흐름(150) 몫이다.
+// 「새로 넣기」(데모 form)는 이미 낸 신고 정보가 있을 때만 보이고 `./edit` 로 간다(WHALEERP-333). 아직 없으면 날인 뒤 흐름의
+// 처음 넣기(`./new`, WHALEERP-150)로 가는 「넣기」를 둔다 — 날인 뒤 흐름을 중간에 닫은 직원이 다시 넣는 길이다.
 // 고치고 돌아오면 `?changed=1` 로 와 알림을 띄우고 주소에서 지운다 — 다시 조회가 실패해도 지우고, 안내에 저장은 됐다고 덧붙인다(PR #26 참고). 내 소속이 아니면(퇴직 · 남의 id) 404 다.
 export default async function TaxProfilePage({ params, searchParams }: PageProps<"/me/memberships/[staffMemberId]/tax-profile">) {
   const staffMemberId = parseStaffMemberId((await params).staffMemberId);
@@ -55,7 +56,7 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
           </Alert>
         ) : !profile ? (
           <Notice>
-            <strong>{storeName}</strong>에는 아직 신고 정보를 내지 않았습니다. 근로계약 날인을 마친 뒤 넣게 됩니다.
+            <strong>{storeName}</strong>에는 아직 신고 정보를 내지 않았습니다. 근로계약 날인을 마쳤다면 지금 넣어 주세요.
           </Notice>
         ) : (
           <>
@@ -88,12 +89,20 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
           </>
         )}
       </div>
-      {profile && (
+      {profile ? (
         <Dock>
           <Button variant="ghost" href={`/me/memberships/${staffMemberId}/tax-profile/edit`}>
             새로 넣기
           </Button>
         </Dock>
+      ) : (
+        tax && (
+          <Dock>
+            <Button href={`/me/memberships/${staffMemberId}/tax-profile/new`} transitionTypes={["nav-forward"]}>
+              신고 정보 넣기
+            </Button>
+          </Dock>
+        )
       )}
       {changed && (
         <ChangedToast path={`/me/memberships/${staffMemberId}/tax-profile`}>{after.toast ? "신고 정보를 바꿨습니다" : undefined}</ChangedToast>
