@@ -2,14 +2,19 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BottomNav } from "@/components/common";
 import { popupSummary } from "@/lib/affiliation-requests";
+import { ApiError, NetworkError } from "@/lib/api";
+import { getContracts } from "@/lib/contracts";
 import { getCurrentMembership } from "@/lib/current-membership";
+import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { getMyNotifications } from "@/lib/my-notifications";
 import { getMyAffiliationRequests } from "@/lib/my-profile";
 import { requireSession } from "@/lib/session";
+import { signRequestOf } from "@/lib/sign-request";
 import { NotificationBell } from "../notification-bell";
 import { AffiliationPopup } from "./affiliation-popup";
 import { MyWorkInfo } from "./my-work-info";
 import { ScheduleCards, ScheduleCardsSkeleton } from "./schedule-cards";
+import { SignRequestPopup } from "./sign-request-popup";
 import { StoreTopBar } from "./store-top-bar";
 import { TodoCard, TodoCardSkeleton } from "./todo-card";
 
@@ -60,16 +65,52 @@ export default async function HomePage() {
       <div className="sticky bottom-0 mt-auto">
         <BottomNav current="/" />
       </div>
-      {/* 소속 추가 요청(WHALEERP-144)은 팝업으로만 알린다. 따로 받아 api 가 느려도 홈을 먼저 보인다. */}
+      {/* 서명 요청(WHALEERP-148) · 소속 추가 요청(WHALEERP-144)은 팝업으로만 알린다. 따로 받아 api 가 느려도 홈을 먼저 보인다. */}
       <Suspense>
-        <AffiliationRequests />
+        <HomeRequests />
       </Suspense>
     </div>
   );
 }
 
-/** 소속 추가 요청 팝업. 못 받으면 팝업 없이 홈을 그대로 보인다. */
-async function AffiliationRequests() {
-  const summary = popupSummary((await getMyAffiliationRequests()) ?? []);
-  return summary && <AffiliationPopup requestKey={summary.key} rows={summary.rows} />;
+/**
+ * 홈 위 팝업 — 서명 요청(148)과 소속 추가 요청(144). 둘 다 있으면 한 번에 하나만, 서명 요청을 먼저 띄우고 그것을 닫으면 소속 추가
+ * 요청이 뜬다. 근거: 서명 대기 계약은 기한(발송 + 30일)이 지나면 만료되고 서명해야 근무가 시작되는(데모 sign-req 문구) 지금 근무지의
+ * 일이고, 소속 추가 요청은 새 근무지를 더할지 묻는 것이며 수락해도 그 뒤 계약 서명이 따로 온다(가입 · 진입 가이드 JOIN-7 의 흐름이
+ * 가입 → 서명 요청 팝업). 데모 · 기획 문서에 둘이 함께일 때의 순서는 없다. 어느 쪽이든 못 받으면 그 팝업만 없이 홈 그대로다.
+ */
+async function HomeRequests() {
+  const [contracts, affiliationRequests, employmentTypes] = await Promise.all([
+    getContractsOrNull(),
+    getMyAffiliationRequests(),
+    getEnumOrEmpty("EmploymentType"),
+  ]);
+  const sign = contracts && signRequestOf(contracts, new Date());
+  const summary = popupSummary(affiliationRequests ?? []);
+  return (
+    <>
+      {sign && (
+        <SignRequestPopup
+          requestKey={sign.key}
+          href={sign.href}
+          rows={[
+            { label: "근무지", value: sign.contract.storeName },
+            ...(sign.contract.employmentType ? [{ label: "고용 형태", value: labelOf(employmentTypes, sign.contract.employmentType) }] : []),
+            ...(sign.deadline ? [{ label: "서명 기한", value: sign.deadline }] : []),
+          ]}
+        />
+      )}
+      {summary && <AffiliationPopup requestKey={summary.key} rows={summary.rows} signRequestKey={sign?.key ?? null} />}
+    </>
+  );
+}
+
+/** 내 근로계약 목록 — 팝업 곁들임이라 api 실패(4xx · 5xx · 연결 실패)는 null 로 받아 팝업 없이 홈을 그대로 보인다(401 은 만료 안내로). */
+async function getContractsOrNull() {
+  try {
+    return await getContracts();
+  } catch (error) {
+    if (error instanceof ApiError || error instanceof NetworkError) return null;
+    throw error;
+  }
 }

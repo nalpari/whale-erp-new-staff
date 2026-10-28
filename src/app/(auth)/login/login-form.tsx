@@ -5,6 +5,7 @@ import { useActionState, useState } from "react";
 import { Alert, BrandLogo, Button, Card, CheckBox, Notice, TextField } from "@/components/common";
 import { useNow } from "@/app/_components/countdown";
 import { forgetAffiliationPopup } from "@/lib/affiliation-popup-memory";
+import { forgetSignRequestPopup } from "@/lib/sign-request-popup-memory";
 import { type AttemptLock, lockCountdown } from "@/lib/attempt-lock";
 import { AuthScreen } from "../_components/auth-screen";
 import { useFocusedTitle } from "../_components/use-focused-title";
@@ -43,8 +44,15 @@ export function LoginForm({
   }
 
   return (
-    // 로그인하면 소속 추가 요청 팝업(WHALEERP-144)의 「다음에 하기」 기억을 지워 로그인 뒤 팝업이 다시 뜨게 한다.
-    <form action={formAction} onSubmit={forgetAffiliationPopup} className="flex flex-1 flex-col">
+    // 로그인하면 소속 추가 요청 팝업(WHALEERP-144) · 서명 요청 팝업(148)의 「다음에 하기」 기억을 지워 로그인 뒤 팝업이 다시 뜨게 한다.
+    <form
+      action={formAction}
+      onSubmit={() => {
+        forgetAffiliationPopup();
+        forgetSignRequestPopup();
+      }}
+      className="flex flex-1 flex-col"
+    >
       {next ? <input type="hidden" name="next" value={next} /> : null}
       <AuthScreen
         top={expired ? undefined : <BrandLogo />}
