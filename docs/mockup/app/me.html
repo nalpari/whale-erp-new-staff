@@ -449,17 +449,38 @@
             <!-- 소속 근무지(ME-7): 근무지를 누르면 아래로 펼쳐 근로계약서 · 급여명세서 · 신고 정보로 간다.
                  세 화면은 고른 근무지의 것만 걸러 연다(앱 상단에서 고른 근무지와 관계없다). 목업 링크는 거르지 못해 화면만 연다 -->
             <div class="view" data-when="sites">
-              <!-- 소속 추가 확인 요청(ME-8): 수락 전이라 소속이 아니다 — 소속 근무지 위에 따로 묶고, 누르면 소속 추가 확인(join.html)으로 간다 -->
-              <p class="tiny" style="margin: 0 0 6px">소속 추가 확인 요청</p>
-              <a class="card row row--top" href="join.html#addsite" style="padding: 12px 14px; margin-bottom: 14px">
+              <!-- 확인을 기다리는 요청(ME-8): 가입한 사람이 받은 초대 세 종류(가입 초대 · 소속 추가 확인 · 복귀 확인)를 받은 때 최신순으로 맨 위에 고정하고
+                   누르면 확인 화면(join.html#addsite)에서 수락한다. 수락 전이라 소속이 아니어서 펼치지 않는다 -->
+              <p class="tiny" style="margin: 0 0 6px">확인을 기다리는 요청</p>
+              <div class="stack stack-10" style="margin-bottom: 14px">
+              <a class="card row row--top" href="join.html#addsite" style="padding: 12px 14px">
                 <i class="ph-fill ph-storefront" style="color: var(--pen); font-size: 18px; margin-top: 2px"></i>
                 <div class="row__main">
                   <p class="row__title">웨일카페 신촌점</p>
-                  <p class="row__sub">파트타이머 · 10월 8일 (목) 만료</p>
+                  <p class="row__sub">파트타이머 · 9월 9일 (수) 받음<br>10월 9일 (금) 만료</p>
                 </div>
-                <span class="badge badge--amber">소속 추가 요청</span>
+                <span class="badge badge--amber">소속 추가 확인</span>
                 <i class="ph ph-caret-right" style="color: var(--ink-3); margin-top: 3px"></i>
               </a>
+              <a class="card row row--top" href="join.html#addsite" style="padding: 12px 14px">
+                <i class="ph-fill ph-storefront" style="color: var(--pen); font-size: 18px; margin-top: 2px"></i>
+                <div class="row__main">
+                  <p class="row__title">웨일베이커리 합정점</p>
+                  <p class="row__sub">파트타이머 · 9월 7일 (월) 받음<br>10월 7일 (수) 만료</p>
+                </div>
+                <span class="badge badge--amber">복귀 확인</span>
+                <i class="ph ph-caret-right" style="color: var(--ink-3); margin-top: 3px"></i>
+              </a>
+              <a class="card row row--top" href="join.html#addsite" style="padding: 12px 14px">
+                <i class="ph-fill ph-storefront" style="color: var(--pen); font-size: 18px; margin-top: 2px"></i>
+                <div class="row__main">
+                  <p class="row__title">웨일카페 연남점</p>
+                  <p class="row__sub">정직원 · 9월 2일 (수) 받음<br>10월 2일 (금) 만료</p>
+                </div>
+                <span class="badge badge--amber">가입 초대</span>
+                <i class="ph ph-caret-right" style="color: var(--ink-3); margin-top: 3px"></i>
+              </a>
+              </div>
               <p class="tiny" style="margin: 0 0 6px">소속 근무지</p>
               <div class="stack stack-10">
                 <details class="card" open style="padding: 0">
@@ -1000,19 +1021,22 @@
           <div class="gap is-decided">
             <div class="gap__head">
               <span class="gap__no">ME-8</span>
-              <span class="gap__t">아직 수락하지 않은 소속 추가 확인 요청을 소속 근무지에 보이는가</span>
-              <span class="gap__st gap__st--fixed">확정 · 소속 근무지 위에 따로</span>
-              <span class="gap__ref">JOI-09 · ME-7</span>
+              <span class="gap__t">가입한 사람이 받은 초대를 어디서 보고 수락하는가</span>
+              <span class="gap__st gap__st--fixed">확정 · 소속 근무지 맨 위 「확인을 기다리는 요청」</span>
+              <span class="gap__ref">JOI-09 · ME-7 · WHALEERP-603 · 604</span>
             </div>
             <div class="gap__one">
               <p>
-                소속 근무지 화면 맨 위에 <b>「소속 추가 확인 요청」</b>을 따로 묶어 요청이 온 점포를 보인다(2026-10-28 재영). 점포명 · 고용 형태 · 요청 만료일과
-                「소속 추가 요청」 표시를 두고, 누르면 소속 추가 확인(수락 · 거절)으로 간다.
+                소속 근무지 목록 맨 위에 <b>「확인을 기다리는 요청」</b>을 고정한다. 가입한 사람이 받은 초대 세 종류 — <b>가입 전에 받은 가입 초대 · 소속 추가 확인 · 복귀 확인</b> — 를
+                받은 때 최신순으로 보이고 거기서 수락한다 (2026-10-28 김민식 · 재영).
               </p>
               <ul>
-                <li>수락 전이라 소속이 아니다 — 소속 근무지 목록과 나누고, 펼쳐서 근로계약서 · 급여명세서 · 신고 정보로 가는 동작은 두지 않는다(ME-7 과 다르다)</li>
-                <li>복귀 확인 요청도 같은 자리에 같은 모양으로 둔다. 답하지 않으면 30일 뒤 요청만 만료되어 목록에서 빠진다(운영 정책 JOI-09)</li>
-                <li>예시 점포는 웨일카페 신촌점이다 — 홍대점은 이 목업에서 이미 재직 중이라 다른 점포로 했다(2026-10-28 재영)</li>
+                <li>줄마다 점포명 · 초대 종류(배지) · 고용 형태 · 받은 날 · 만료일. 누르면 확인 화면(수락 · 거절)으로 간다. 답하지 않으면 30일 뒤 요청만 만료되어 빠진다(운영 정책 JOI-09)</li>
+                <li>수락 전이라 소속이 아니다 — 펼쳐서 근로계약서 · 급여명세서 · 신고 정보로 가는 동작은 두지 않는다(ME-7 과 다르다)</li>
+                <li>그 아래에 지금 소속 근무지와 퇴직한 근무지(「퇴직」 표시)를 보인다</li>
+                <li><b>초대 코드는 가입 첫 단계에서만 쓴다</b> — 가입한 사람이 코드를 넣어 근무지를 더하는 화면은 두지 않는다(2026-10-28 재영)</li>
+                <li>로그인하지 않은 채 「이미 계정이 있습니다」가 나오거나 로그인한 채 초대 링크를 열면 소속 근무지로 간다(join.html has-account)</li>
+                <li>예시 점포: 홍대점은 이 목업에서 이미 재직 중이라 신촌점 · 연남점, 복귀 확인은 퇴직한 합정점이다</li>
               </ul>
             </div>
           </div>
