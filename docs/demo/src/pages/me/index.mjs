@@ -1,5 +1,5 @@
 // 직원 근무 앱 데모 · 내 정보. src/app/demo/me/page.tsx 를 옮겼다. 기준 목업: docs/mockup/app/me.html — 상태 6개(내 정보 ·
-// 비밀번호 변경 · 이메일 변경 · 새 이메일 인증 · 주소 검색 · 소속 근무지)와 시트 8개(약관 보기 · 잠시 멈춤 ·
+// 비밀번호 변경 · 이메일 변경 · 새 이메일 인증 · 주소 검색 · 소속 근무지 — 소속 추가 확인 요청 포함)와 시트 8개(약관 보기 · 잠시 멈춤 ·
 // 일시 중지 동안의 카드 · 철회한 뒤의 카드 · 본사 제공 동의 내용 · 본사 제공 동의 철회 · 위치정보 동의 철회 · 로그아웃), 화면 문구·가짜 값·이동(data-go)·알림(data-toast)을 옮겼다.
 // 생년월일은 가입한 뒤 고치지 않고(운영 정책 ACC-13), 휴대전화번호는 계정의 신원 기준이라 1차에 바꾸지 않으며(2026-10-19),
 // 소속 근무지·고용 형태는 근로계약으로만 바뀌어 읽기 전용이다. 직원이 고치는 건 이메일·주소·비밀번호다. 번호 변경 상태 셋은 없앴다.
@@ -301,9 +301,18 @@ const VIEWS = {
 
   // 소속 근무지(ME-7, 2026-10-20 재영): 근무지를 누르면 아래로 펼쳐 근로계약서 · 급여명세서 · 신고 정보로 간다.
   // 세 화면은 누른 근무지의 것만 걸러 연다(앱 상단에서 고른 근무지와 관계없다). 데모 링크는 거르지 못해 화면만 연다.
+  // 소속 추가 확인 요청(ME-8, 2026-10-28 재영): 아직 수락하지 않은 요청이 온 점포를 소속 근무지 위에 따로 묶어 보인다 — 수락 전이라 소속이 아니다.
+  // 누르면 소속 추가 확인(수락 · 거절)으로 간다. 펼쳐서 근로계약서 · 급여명세서 · 신고 정보로 가지 않는다. 답하지 않으면 30일 뒤 요청만 만료된다(운영 정책 JOI-09).
+  // 예시 점포는 신촌점이다 — 홍대점은 이 데모에서 이미 재직 중이다. 데모의 소속 추가 확인 화면은 가입 데모의 홍대점 화면을 그대로 연다.
   sites: () =>
     body(
-      `<div class="flex flex-col gap-[10px]">${[
+      `<section aria-label="소속 추가 확인 요청" class="flex flex-col gap-[8px]"><h2 class="px-[4px] text-[13px] font-semibold text-staff-text-sub">소속 추가 확인 요청</h2><a href="${page(
+        "join",
+        "addsite",
+      )}" class="flex items-start gap-[12px] rounded-[16px] border border-staff-border-light bg-white p-[16px] transition-colors duration-150 ease-out active:bg-staff-info-bg"><span class="flex pt-[3px] text-staff-text-sub">${maskIcon("store-small.svg", 18)}</span><span class="min-w-0 flex-1"><span class="block text-[15px] font-semibold">웨일카페 신촌점</span><span class="block text-[12px] text-staff-text-sub">파트타이머 · 10월 8일 (목) 만료</span></span>${badge(
+        "warning",
+        "소속 추가 요청",
+      )}${img("chevron-right-muted.svg", 12, 12, "mt-[6px] -scale-y-100")}</a></section><h2 class="px-[4px] text-[13px] font-semibold text-staff-text-sub">소속 근무지</h2><div class="flex flex-col gap-[10px]">${[
         ["웨일카페 강남역점", "파트타이머 · 2025년 11월 3일부터", true],
         ["웨일카페 홍대점", "파트타이머 · 2026년 3월 16일부터", false],
         // 퇴직한 근무지도 둔다(ME-7, 2026-10-20 재영). 흐리게 · 「퇴직」 표시 · 근무 기간.
