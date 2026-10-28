@@ -37,12 +37,18 @@ export async function saveAddressAction(_previous: AddressSaveState, formData: F
 /** 동의 바꾸기 결과. 끝난 뒤 알림 문구는 화면이 CONSENT_CHANGES 에서 읽는다(출처 한 곳). */
 export type ConsentChangeResult = { ok: true } | { ok: false; error: string };
 
-/** 위치정보 동의 · 일시 중지 · 다시 켜기 · 철회, 본사 제공 동의 · 철회(ATT-23 · 26 · 30). 성공하거나 상태가 낡았으면(409) 화면을 다시 받는다. */
-export async function changeConsentAction(change: ConsentChange): Promise<ConsentChangeResult> {
+/**
+ * 위치정보 동의 · 일시 중지 · 다시 켜기 · 철회, 본사 제공 동의 · 철회(ATT-23 · 26 · 30). 성공하거나 상태가 낡았으면(409) 화면을 다시 받는다.
+ * 위치정보 동의는 화면이 보여 준 약관 버전(termsVersion)을 함께 보낸다 — 그사이 약관이 바뀌었으면 api 가 409 로 거절하고, 다시 받은
+ * 화면이 새 약관을 보인다(보인 고지와 남는 동의 버전이 어긋나지 않게, WHALEERP-628).
+ */
+export async function changeConsentAction(change: ConsentChange, termsVersion?: string | null): Promise<ConsentChangeResult> {
   // 서버 액션은 누구나 직접 부를 수 있어 값을 다시 거른다.
   if (!isConsentChange(change)) return { ok: false, error: "잘못된 요청입니다" };
+  if (termsVersion != null && (typeof termsVersion !== "string" || termsVersion.length > 64)) return { ok: false, error: "잘못된 요청입니다" };
+  const json = change === "location-agree" && termsVersion ? { termsVersion } : undefined;
   try {
-    await authedRequest(CONSENT_CHANGES[change].path, { method: "POST", clientIp: clientIpFrom(await headers()) });
+    await authedRequest(CONSENT_CHANGES[change].path, { method: "POST", json, clientIp: clientIpFrom(await headers()) });
   } catch (error) {
     const failure = failureOf(error);
     if (!failure) throw error;

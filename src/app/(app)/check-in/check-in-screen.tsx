@@ -191,9 +191,16 @@ export function CheckInScreen({ data, mapKey }: { data: MyAttendance; mapKey: st
     });
   };
 
+  // 동의 시트는 지난 실패 문구 없이 연다 — 시트 안에 오류를 보이므로(아래 consent 시트)
+  const openConsent = () => {
+    setError(null);
+    setSheet("consent");
+  };
   const consentChange = (change: "location-agree" | "location-resume", done: string) =>
     startTransition(async () => {
-      const result = await changeConsentAction(change);
+      setError(null);
+      // 동의는 시트에 보인 약관 버전으로 — 그사이 바뀌었으면 api 가 409 로 거절하고 다시 받은 시트가 새 문구를 보인다
+      const result = await changeConsentAction(change, change === "location-agree" ? consent.termsVersion : undefined);
       if (!result.ok) return setError(result.error);
       setSheet(null);
       show(done);
@@ -281,7 +288,7 @@ export function CheckInScreen({ data, mapKey }: { data: MyAttendance; mapKey: st
       </>
     );
     dock = (
-      <Button variant="ghost" onClick={() => setSheet("consent")}>
+      <Button variant="ghost" onClick={openConsent}>
         다시 동의하기
       </Button>
     );
@@ -456,7 +463,7 @@ export function CheckInScreen({ data, mapKey }: { data: MyAttendance; mapKey: st
         <>
           {/* 동의 시트를 닫기로 접었으면 다시 열 길이 있어야 한다 — 꺼진 출근 버튼만 남기지 않는다 */}
           {needsConsent ? (
-            <Button disabled={pending} onClick={() => setSheet("consent")}>
+            <Button disabled={pending} onClick={openConsent}>
               위치정보 동의하기
             </Button>
           ) : (
@@ -483,7 +490,7 @@ export function CheckInScreen({ data, mapKey }: { data: MyAttendance; mapKey: st
 
       {/* 위치정보 동의(운영 정책 ATT-06 · ATT-23): 서비스 약관과 따로, 첫 출근 등록 때 · 약관 버전이 바뀌면 다시. 문구는 법무 검토 중(ATT-8) — 반경 밖 확인 필요 표시 문장은 2026-10-26 재영 안,
           탭 진입 때 읽기 · 카카오 전달은 2026-10-28 재영 안(ATT-05 · ATT-22 v229). 카카오 전달을 「제공」 · 「위탁」 중 무엇으로 쓸지는 법무 결과에 따라 고친다.
-          문구는 시행 중인 약관 버전(mapConsented)에 맞춘다 — api 는 동의를 그 버전으로 기록하므로, v1.1 미만이면 v1.0 문구를 보여야
+          문구는 버전 갈래별 고정 요약이다 — 새 버전이 받는 곳 · 쓰는 곳을 바꾸면 갈래를 더한다. 문구는 시행 중인 약관 버전(mapConsented)에 맞춘다 — api 는 동의를 그 버전으로 기록하므로, v1.1 미만이면 v1.0 문구를 보여야
           보인 고지와 기록이 맞는다(배포 사이 · 롤백, 2026-10-28 PR #45 리뷰). v1.0 문구는 이미 나가 동의를 받은 문구라 고치지 않는다. */}
       <BottomSheet open={sheet === "consent"} onClose={() => setSheet(null)} title="위치정보 수집에 동의해 주세요">
         {mapConsented ? (
@@ -521,6 +528,8 @@ export function CheckInScreen({ data, mapKey }: { data: MyAttendance; mapKey: st
           서비스 약관과 따로 받는 동의입니다. 동의하지 않으면 출퇴근 기록을 근무지 관리자에게 문의해야 합니다.
           {consent.termsVersion && <span className="text-staff-text-muted"> 위치정보 수집·이용 동의 {consent.termsVersion}</span>}
         </p>
+        {/* 시트가 화면을 가리므로 동의 실패(그사이 약관이 바뀐 409 등)는 시트 안에서 알린다 — 409 뒤에는 다시 받은 새 문구가 위에 보인다 */}
+        {error && <Alert tone="danger">{error}</Alert>}
         <Button disabled={pending} onClick={() => consentChange("location-agree", "위치정보 수집에 동의했습니다")}>
           동의합니다
         </Button>
