@@ -6,6 +6,7 @@ import {
   deadlineOf,
   deadlineText,
   groupContracts,
+  phaseLabel,
   phaseOf,
   hoursText,
   maskPhone,
@@ -213,4 +214,10 @@ test("번호는 1..2147483647 의 맨 숫자만", () => {
   for (const raw of ["0", "01", "-1", "1.5", "", "2147483648", "../me", undefined, ["1"]]) {
     assert.equal(parseId(raw), null, JSON.stringify(raw));
   }
+});
+
+test("상태 한글은 enum 한글 그대로 — 거부는 화면에서 거절(용어집 2026-10-28), 서명 불가는 화면 단계", () => {
+  assert.equal(phaseLabel("SIGNED", "체결 완료"), "체결 완료");
+  assert.equal(phaseLabel("REJECTED", "거부"), "거절");
+  assert.equal(phaseLabel("UNSIGNABLE", "UNSIGNABLE"), "서명 불가");
 });

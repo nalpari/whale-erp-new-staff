@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Alert, Badge, MaskIcon, Notice, PageHeader } from "@/components/common";
 import {
-  UNSIGNABLE_LABEL,
   contractSubText,
   deadlineOf,
   isFinished,
@@ -10,6 +9,7 @@ import {
   paperDocuments,
   parseId,
   periodText,
+  phaseLabel,
   phaseOf,
   statusTone,
 } from "@/lib/contract-rules";
@@ -70,7 +70,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const now = new Date();
   // 날인할 수 있는지는 api 의 awaitingSignature 로 정한다 — 날인할 수 없는 서명 대기는 만료 · 서명 불가로 보인다(phaseOf).
   const phase = phaseOf(c, now);
-  const status = phase === "UNSIGNABLE" ? UNSIGNABLE_LABEL : labelOf(statuses, phase);
+  const status = phaseLabel(phase, labelOf(statuses, phase));
   const employmentType = c.employmentType && labelOf(employmentTypes, c.employmentType);
   const title = [c.employer.storeName, employmentType].filter(Boolean).join(" · ");
   const deadline = deadlineOf(c, now);

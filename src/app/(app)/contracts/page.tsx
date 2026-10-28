@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Badge, MaskIcon, PageHeader } from "@/components/common";
-import { UNSIGNABLE_LABEL, contractSubText, deadlineOf, groupContracts, parseId, phaseOf, statusTone } from "@/lib/contract-rules";
+import { contractSubText, deadlineOf, groupContracts, parseId, phaseLabel, phaseOf, statusTone } from "@/lib/contract-rules";
 import { getContracts, type ContractListItem } from "@/lib/contracts";
 import { getEnumOrEmpty, labelOf, type EnumValue } from "@/lib/enums";
 import { requireSession } from "@/lib/session";
@@ -81,7 +81,7 @@ function ContractRow({
 }) {
   // 날인할 수 없는 서명 대기는 만료 · 서명 불가로 보인다(상세와 같다). 강조는 api 가 날인할 수 있다고 할 때만(deadlineOf).
   const phase = phaseOf(c, now);
-  const status = phase === "UNSIGNABLE" ? UNSIGNABLE_LABEL : labelOf(statuses, phase);
+  const status = phaseLabel(phase, labelOf(statuses, phase));
   const urgent = deadlineOf(c, now)?.urgent ?? false;
   return (
     <li>

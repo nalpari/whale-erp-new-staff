@@ -27,8 +27,16 @@ export function phaseOf(c: PhaseFields, now: Date): ContractPhase {
   return c.signDeadlineAt && Date.parse(c.signDeadlineAt) <= now.getTime() ? "EXPIRED" : "UNSIGNABLE";
 }
 
-/** 지금 날인할 수 있는 계약에 붙지 않는 상태(서명 불가)의 배지 글자. enum 값이 아니라 화면 문구다. */
-export const UNSIGNABLE_LABEL = "서명 불가";
+/**
+ * 화면 단계의 한글. 보통은 api enum 한글(enumLabel, ContractStatus)을 그대로 쓴다. 예외 둘만 값을 코드에 적는다:
+ * 서명 불가(UNSIGNABLE)는 enum 값이 아닌 화면 단계이고, 거부(REJECTED)는 용어집(2026-10-28 재영)이 직원 앱 화면에서 「거절」로
+ * 부르기로 해서다 — enum 한글은 표준(거부) 그대로 두고 관리자 웹도 그것을 쓴다.
+ */
+export function phaseLabel(phase: ContractPhase, enumLabel: string): string {
+  if (phase === "UNSIGNABLE") return "서명 불가";
+  if (phase === "REJECTED") return "거절";
+  return enumLabel;
+}
 
 export type Deadline = {
   /** 「2026년 9월 12일」(한국 날짜) */
@@ -71,7 +79,7 @@ export function periodText(startDate: string | null, endDate: string | null): st
 /**
  * 목록 줄 · 상세 머리 카드의 둘째 줄. 날인할 수 있는 서명 대기는 기한, 체결 완료는 서명한 날(종이 계약은 관리자가 올린 날),
  * 거부 · 수정 요청은 그날(processedAt), 만료(기한이 지난 서명 대기 포함)는 지난 기한, 서명 불가는 그 까닭, 종료는 계약 기간.
- * statusLabel 은 화면 단계의 한글(enum 한글 또는 UNSIGNABLE_LABEL).
+ * statusLabel 은 화면 단계의 한글(phaseLabel).
  */
 export function contractSubText(
   c: PhaseFields & Pick<ContractListItem, "contractMethod" | "processedAt" | "startDate" | "endDate">,
