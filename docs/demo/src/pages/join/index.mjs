@@ -88,9 +88,9 @@ const readOnlyField = ({ label, value, help }) => {
 
 const rows = (children) => `<div class="flex flex-col divide-y divide-staff-border-light">${children}</div>`;
 
-// 비밀번호 조건 충족 줄: 성공색(#22C55E) 원 안에 흰 체크.
-const met = (children) =>
-  `<li class="flex items-center gap-[8px]"><span class="flex size-[16px] shrink-0 items-center justify-center rounded-full bg-[#22c55e]">${img("check.svg", 10, 10)}</span><span>${children}</span></li>`;
+// 비밀번호 조건 줄(아직 입력 전): 빈 동그라미와 흐린 글자.
+const unmet = (children) =>
+  `<li class="flex items-center gap-[8px] text-staff-text-muted"><span class="size-[16px] shrink-0 rounded-full border border-staff-border"></span><span>${children}</span></li>`;
 
 const LINK_BTN = "text-[13px] font-semibold text-staff-text-sub underline underline-offset-2 transition-colors duration-150 ease-out active:bg-staff-primary-inactive";
 
@@ -114,7 +114,7 @@ const bpShareSheet = (a = {}) =>
   bottomSheet(
     "bpshare",
     { title: "사업자 제공 동의", ...a },
-    `<p class="text-[14px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text">내 근무 정보를 <b>가맹본부에 개인별로 제공</b>하는 데 대한 <b>선택 동의</b>입니다.</p>${sunken(
+    `<p class="text-[14px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text">가맹 점포에서 일하는 직원의 근무 정보를 <b>가맹본부가 개인 단위로</b> 보는 것에 대한 <b>선택 동의</b>입니다.</p>${sunken(
       values([
         ["받는 자", "가맹본부 · 웨일카페"],
         ["항목", "근로계약 · 근무스케줄 · 출퇴근 기록과 확인 필요 사유 · 급여명세서"],
@@ -200,9 +200,9 @@ const VIEWS = {
         textField({ label: "비밀번호*", type: "password", required: true, placeholder: "비밀번호를 입력해 주세요" }) +
         textField({ label: "비밀번호 확인*", type: "password", required: true, placeholder: "비밀번호를 한 번 더 입력해 주세요" }) +
         sunken(
-          `<p class="text-[13px] font-semibold text-staff-text-sub">비밀번호 조건</p><ul class="flex flex-col gap-[6px] pt-[8px] text-[13px] [&_b]:font-bold">${met(
+          `<p class="text-[13px] font-semibold text-staff-text-sub">비밀번호 조건</p><ul class="flex flex-col gap-[6px] pt-[8px] text-[13px] [&_b]:font-bold">${unmet(
             "영문 대소문자·숫자·특수문자 중 <b>3가지</b> 이상",
-          )}${met("8자 이상 20자 이하")}${met("이메일 아이디와 중복 불가")}</ul><p class="pt-[8px] text-[12px] text-staff-text-muted">2가지만 사용하면 10자 이상 입력해 주세요.</p>`,
+          )}${unmet("8자 이상 20자 이하")}${unmet("이메일 아이디와 중복 불가")}</ul><p class="pt-[8px] text-[12px] text-staff-text-muted">2가지만 사용하면 10자 이상 입력해 주세요.</p>`,
         ) +
         `<hr class="border-staff-border-light">` +
         // 검색 버튼은 입력칸 높이(52)에 맞춘다. outline 은 44px 라 직접 그린다.
@@ -236,7 +236,7 @@ const VIEWS = {
   // 로그인된 상태로 홈에 간다. 전자계약은 홈 위에 날인 요청 팝업(HOME-1), 종이 계약은 신고 정보 입력(CON-8).
   done: () =>
     body(
-      lead("가입이 완료되었습니다", "웨일카페 강남역점에서 바로 시작할 수 있습니다.") +
+      lead("가입이 완료되었습니다", "웨일카페 강남역점에 계정이 연결되었습니다.") +
         sunken(
           values([
             ["이름", "김민서"],
@@ -244,7 +244,7 @@ const VIEWS = {
             ["근무지", "웨일카페 강남역점"],
           ]),
         ) +
-        `<p class="text-[12px] text-staff-text-muted">인적사항을 변경하려면 근무지 관리자에게 문의해 주세요.</p>` +
+        `<p class="text-[12px] text-staff-text-muted">인적사항은 가입한 뒤 앱에서 변경할 수 없습니다.</p>` +
         card(iconRow({ icon: "contract.svg", title: "근로계약서가 도착했습니다", sub: "홈에서 내용을 확인하고 서명해 주세요." })) +
         `<div class="text-left">${notice("<strong>종이로 계약했다면</strong> 서명 없이 신고 정보만 입력하면 됩니다.")}</div>`,
       { center: true },
@@ -276,14 +276,14 @@ const VIEWS = {
   "addsite-done": () =>
     pageHeader("소속 추가 완료", { backHref: HOME }) +
     body(
-      lead("웨일카페 홍대점이 추가되었습니다", "지금 쓰는 계정으로 홍대점 근무를 시작할 수 있습니다.", { heading: "h2" }) +
+      lead("웨일카페 홍대점이 추가되었습니다", "지금 쓰는 계정을 그대로 사용합니다.", { heading: "h2" }) +
         sunken(
           values([
             ["공유된 정보", "이름 · 휴대전화번호 · 생년월일 · 성별 · 외국인 여부"],
             ["공유되지 않은 정보", "계약 · 급여 · 출퇴근 기록"],
           ]),
         ) +
-        `<div class="text-left">${notice("<strong>홍대점 근로계약서가 도착했습니다.</strong><br>계약서에 서명하면 근무를 시작할 수 있습니다.", maskIcon("contract.svg", 14))}</div>`,
+        `<div class="text-left">${notice("<strong>홍대점 근로계약서가 도착했습니다.</strong><br>계약서에 서명해야 근무를 시작할 수 있습니다.", maskIcon("contract.svg", 14))}</div>`,
       { center: true },
     ) + dock(button(`${maskIcon("contract.svg", 14)}계약서 서명하기`, { href: CONTRACT }) + ghost("홈으로", { href: HOME })),
 

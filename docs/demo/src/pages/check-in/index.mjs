@@ -5,7 +5,7 @@
 // 퇴근 되돌리기 없음(ATT-10) · 반경 밖도 출근·퇴근 모두 확인 필요로(ATT-11, 2026-10-20) · 위치 조작 감지는 출근 막고 퇴근은 확인 필요(운영 정책 ATT-21) ·
 // 위치는 출근·퇴근 버튼을 누를 때만 읽고 읽을 때마다 확인자료를 남긴다 · 「위치 다시 확인」 버튼 없음(운영 정책 ATT-22, 2026-10-26) ·
 // 위치정보 동의는 첫 출근 등록 때 필수, 거부·철회 시 「근무지 관리자에게 문의」, 다시 동의는 직원이 직접(운영 정책 ATT-06·20, ME-5) · 일시 중지 중엔 대신 등록 안내,
-// 「다시 켜기」로 재동의 없이 복귀(운영 정책 ATT-26) · 근무 중 화면의 「근무지 관리자가 확인합니다」 한 줄(운영 정책 ATT-25).
+// 「다시 켜기」로 재동의 없이 복귀(운영 정책 ATT-26). 등록 화면의 「○○점 관리자가 확인합니다」 한 줄(운영 정책 ATT-25)은 뺐다(2026-10-28 재영, 정책 확인 대기).
 // 동의 문구는 법무 검토 중이라(ATT-8) 시트에 그대로 적었다.
 // 모양: 매장 안(ready)은 Figma 04.출퇴근(node 12:756)을 따른다. 나머지 상태와 시트는 Figma 없음 — DESIGN.md 기준 초안.
 // 목업과 다른 점: 퇴근하기는 목업의 테두리 버튼 대신 DESIGN.md 의 주 버튼이다. 하단 메뉴 「출퇴근」 칸 화면이다(2026-10-08 다섯 칸).
@@ -47,9 +47,6 @@ const SHEET_BASE = {
 };
 // 화면에서 버튼으로 여는 시트
 const VIEW_SHEETS = { far: ["hifar"], ready: ["dup"], working: ["bye"], "far-out": ["byefar"], "spoof-out": ["byespoof"] };
-
-// 운영 정책 ATT-25: 등록 화면마다 받는 사람·목적을 알리는 한 줄.
-const ADMIN_NOTE = "출퇴근 기록은 근무지 관리자가 확인합니다.";
 
 const go = (id, toast) => ({ "data-go": id, "data-toast": toast });
 const ghost = (label, a = {}) => button(label, { variant: "ghost", ...a });
@@ -138,8 +135,7 @@ const VIEWS = {
           worked: { start: "09:02", end: "15:43" },
           ongoing: true,
         })}<p class="text-[12px] text-staff-text-muted">점선은 예정, 채운 막대는 실제 근무입니다</p></section>` +
-        elapsed() +
-        `<p class="text-center text-[12px] text-staff-text-muted">${ADMIN_NOTE}</p>`,
+        elapsed(),
       { variant: "detail" },
     ) + dock(button("퇴근하기", { "data-open": "bye" }), 30),
 
@@ -220,7 +216,7 @@ const VIEWS = {
   "no-consent": () =>
     body(
       geoBlank("text-staff-placeholder", "위치정보 동의가 필요합니다") +
-        alert("danger", "<strong>동의하지 않으면 앱으로 출퇴근을 등록할 수 없습니다.</strong><br>다시 동의하거나 출퇴근을 기록하려면 근무지 관리자에게 문의해 주세요.") +
+        alert("danger", "<strong>위치정보 이용에 동의하지 않으면 앱으로 출퇴근을 등록할 수 없습니다.</strong><br>출퇴근 기록은 근무지 관리자에게 문의해 주세요.<br>내 정보의 「다시 동의하기」에서 직접 다시 동의할 수 있습니다.") +
         `<section class="flex flex-col gap-[8px] rounded-[18px] border border-staff-border-light bg-white p-[20px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">관리자가 대신 등록하면</h2><div class="flex gap-[8px] text-[13px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text"><span class="flex pt-[3px]">${maskIcon(
           "pencil.svg",
           14,
@@ -297,7 +293,7 @@ const SHEETS = {
       `<p class="text-[14px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text">출퇴근을 등록할 때 <b>매장 안에 있는지</b> 위치로 확인합니다.<br>위치는 <b>휴대전화 안에서만 확인</b>하고 서버로 보내지 않습니다.</p>${sunken(
         values([
           ["이용 목적", "출퇴근 위치 확인"],
-          ["저장 항목", "출퇴근 시각 (위치는 저장하지 않음)"],
+          ["저장 항목", "출퇴근 시각 (위치는 저장하지 않음)<br>반경 밖이면 확인 필요 표시와 사유만 저장하고, 관리자 검토 뒤 삭제"],
           ["동의 철회", "내 정보에서 언제든 가능"],
         ]),
       )}<p class="text-[12px] font-bold text-staff-text-sub">동의하지 않으면 앱으로 출퇴근을 등록할 수 없으며,<br>근무지 관리자에게 기록을 요청해야 합니다.</p><p class="text-[12px] text-staff-text-sub">서비스 약관과 별도로 받는 동의입니다. <span class="text-staff-text-muted">위치정보 수집·이용 동의 v1.2</span></p><p class="text-[12px] text-staff-text-muted">동의서 항목·문구는 법무 검토 중(ATT-8)</p>${button(

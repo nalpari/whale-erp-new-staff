@@ -265,7 +265,7 @@ const VIEWS = {
   rejected: () =>
     `${body(
       `${clock("거절 시각", "14:11")}${sunken(REJECT_SAMPLE, { prose: true, label: "거절 사유" })}${tiny(
-        "근무지 관리자에게 거절 사유가 전달되었습니다.<br>관리자가 계약서를 다시 보내면 홈에 표시됩니다.",
+        "근무지 관리자에게 거절 사실을 알렸습니다.<br>관리자가 계약서를 다시 보내면 홈에 표시됩니다.",
       )}`,
       { variant: "detail", center: true },
     )}${dock(button("홈으로", { variant: "ghost", href: page("home") }), 30)}`,

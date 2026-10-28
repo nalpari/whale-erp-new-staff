@@ -219,7 +219,7 @@ const SHEETS = {
       "flagTue",
       {
         title: "매장 범위 밖에서 출근했습니다",
-        description: "출근 시각 09:58은 등록되었습니다.",
+        description: "출근 시각 09:58은 등록되었습니다.<br>기록에 확인 필요가 붙었고, 관리자가 검토하고 있습니다.",
         ...a,
       },
       storeNotice(),

@@ -43,8 +43,8 @@ const screen = ({ top, title, desc, children = "", dock: d }) =>
 const remaining = (time) => `<span>남은 시간 <b class="text-staff-text tabular-nums">${time}</b></span>`;
 
 const RULES = [
-  { ok: true, text: "영문 대소문자·숫자·특수문자 중 <b>3가지</b> 이상" },
-  { ok: true, text: "8자 이상 20자 이하" },
+  { ok: false, text: "영문 대소문자·숫자·특수문자 중 <b>3가지</b> 이상" },
+  { ok: false, text: "8자 이상 20자 이하" },
   { ok: false, text: "이메일 아이디와 중복 불가" },
 ];
 
@@ -145,7 +145,7 @@ const VIEWS = {
   "find-fail": () =>
     screen({
       title: "일치하는 계정이 없습니다",
-      desc: "입력한 정보를 다시 확인해 주세요.<br>남은 시도는 <strong>2회</strong>이며, 모두 틀리면 5분 동안 이용할 수 없습니다.<br>계속 찾을 수 없다면 근무지 관리자에게 문의해 주세요.",
+      desc: "입력한 정보를 다시 확인해 주세요.<br>남은 시도는 <strong>2회</strong>이며, 모두 틀리면 5분 동안 이용할 수 없습니다.<br>계속 찾을 수 없다면 근무지에 직접 방문해 문의해 주세요.",
       dock: button("다시 입력하기", back("find")) + ghost("다섯 번 넘긴 경우 보기", go("find-lock")),
       children: card(
         `<p class="text-[13px] font-semibold text-staff-text-sub">이런 경우가 많아요</p><ul class="flex flex-col pt-[2px] text-[13px] font-medium"><li class="border-b border-staff-border-light py-[8px]">가입 후 휴대전화번호가 바뀐 경우</li><li class="py-[8px]">이름 띄어쓰기나 생년월일 형식이 다른 경우</li></ul>`,
@@ -156,7 +156,7 @@ const VIEWS = {
   "find-lock": () =>
     screen({
       title: "이메일 찾기가 잠시 잠겼습니다",
-      desc: "5분 뒤 다시 시도하거나,<br><strong>근무지 관리자에게 문의해 주세요.</strong>",
+      desc: "5분 뒤 다시 시도하거나,<br><strong>근무지에 직접 방문해 문의해 주세요.</strong><br>전화나 메시지로는 알려 드릴 수 없습니다.",
       dock: button("다시 입력하기 · 02:47 뒤", { disabled: true }) + ghost("로그인으로 돌아가기", back("login")),
       children: card(
         `<div class="flex flex-col items-center text-center"><p class="text-[13px] font-semibold text-staff-text-sub">남은 시간</p><p class="pt-[4px] text-[32px] font-bold tabular-nums">02:47</p></div>`,
@@ -175,9 +175,15 @@ const VIEWS = {
           type: "email",
           autocomplete: "username",
           placeholder: "가입한 이메일을 입력해 주세요",
-          help: "이메일을 사용할 수 없다면 근무지 관리자에게 문의해 주세요.",
         }) +
-        `<button type="button" data-go="find" class="-mt-[8px] flex min-h-[44px] items-center self-start text-[14px] font-semibold text-staff-text-sub underline underline-offset-2">이메일이 기억나지 않나요?</button>`,
+        `<button type="button" data-go="find" class="-mt-[8px] flex min-h-[44px] items-center self-start text-[14px] font-semibold text-staff-text-sub underline underline-offset-2">이메일이 기억나지 않나요?</button>` +
+        card(
+          `<p class="text-[13px] font-semibold text-staff-text-sub">이메일을 사용할 수 없다면</p><p class="pt-[6px] text-[13px] text-staff-text-sub">관리자에게 알리면 관리자가 초기화를 요청하고, 재설정 링크를 이메일로 받습니다.<br><strong class="font-bold text-staff-text">메일함을 사용할 수 없다면 근무지에 직접 방문해 문의해 주세요.</strong> 관리자가 이메일을 대신 변경할 수는 없습니다.</p>`,
+        ) +
+        // LOGIN · WHALEERP-174(2026-10-13 재영): 계정 유무를 드러내지 않게 누구에게나 같은 안내를 둔다(운영 정책 ACC-08).
+        card(
+          `<p class="text-[13px] font-semibold text-staff-text-sub">아직 가입을 마치지 않았다면</p><p class="pt-[6px] text-[13px] text-staff-text-sub">받은 초대 링크로 가입을 먼저 마쳐 주세요.<br>링크가 만료되었다면 근무지에 다시 초대해 달라고 요청해 주세요.</p>`,
+        ),
     }),
 
   // LOGIN-3: 10분 · 5회, 발급 1분 간격 · 하루 10회.
@@ -249,7 +255,7 @@ const VIEWS = {
   "link-used": () =>
     screen({
       title: "사용할 수 없는 링크입니다",
-      desc: "링크가 만료되었거나 이미 사용되었습니다.<br><strong>관리자에게 링크를 다시 요청하거나,<br>비밀번호를 직접 재설정해 주세요.</strong>",
+      desc: "메일에서 받은 링크를 다시 눌러 주세요.<br><strong>그래도 안 되면 관리자에게 링크를 다시 요청하거나,<br>비밀번호를 직접 재설정해 주세요.</strong>",
       dock: button("비밀번호 재설정", go("forgot")) + ghost("로그인으로 돌아가기", back("login")),
     }),
 

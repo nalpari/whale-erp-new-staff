@@ -160,7 +160,7 @@ const meView = (mode, ids) => {
     `${label("연락처")}<div class="flex flex-col gap-[10px] pt-[8px]">${readOnlyField({
       label: "휴대전화번호",
       value: "010-4821-7736",
-      help: "번호 변경이 필요하면 근무지 관리자에게 문의해 주세요.",
+      help: "가입할 때 입력한 번호로, 앱에서 변경할 수 없습니다.",
     })}${readOnlyField({
       label: "이메일 · 로그인 아이디",
       value: "haeun.lee@gmail.com",
@@ -253,7 +253,7 @@ const VIEWS = {
         autocomplete: "new-password",
         placeholder: "새 비밀번호를 한 번 더 입력해 주세요",
       })}<!-- 비밀번호 규칙(ME-4). 가입·재설정·관리자 초기화 뒤의 변경에도 같이 적용한다. -->${sunken(
-        `${label("비밀번호 조건")}<ul class="flex flex-col pt-[2px]">${rule(true, "영문 대소문자·숫자·특수문자 중 <b>3가지</b> 이상")}${rule(true, "8자 이상 20자 이하")}${rule(
+        `${label("비밀번호 조건")}<ul class="flex flex-col pt-[2px]">${rule(false, "영문 대소문자·숫자·특수문자 중 <b>3가지</b> 이상")}${rule(false, "8자 이상 20자 이하")}${rule(
           false,
           "이메일 아이디와 중복 불가",
         )}</ul><p class="pt-[7px] text-[12px] text-staff-text-muted">2가지만 사용하면 10자 이상 입력해 주세요.</p>`,

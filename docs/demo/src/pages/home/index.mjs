@@ -137,7 +137,7 @@ const CONTENT = {
 
   // 체결 완료 계약이 없으면 점포 정보를 보이지 않고 날인을 기다리는 근로계약서만 보인다(운영 정책 CTR-29). 근무스케줄은 체결 전에는 없다.
   empty: () =>
-    `<section class="flex flex-col gap-[12px]">${sectionTitle("서명할 근로계약서")}${contractCard("웨일카페 강남역점", "10월 11일까지 서명해 주세요")}<p class="text-[12px] text-staff-text-sub">서명을 마치면 근무를 시작할 수 있습니다.</p></section>`,
+    `<section class="flex flex-col gap-[12px]">${sectionTitle("서명할 근로계약서")}${contractCard("웨일카페 강남역점", "10월 11일까지 서명해 주세요")}<p class="text-[12px] text-staff-text-sub">근로계약서에 서명해야 근무를 시작할 수 있습니다.</p></section>`,
 
   // 첫 근로계약서를 거부·만료·종료로 잃어 날인 대기도 체결 완료도 없는 때. 퇴직 후와 달리 근무한 적이 없다(운영 정책 CTR-29).
   "no-site": () =>

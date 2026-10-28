@@ -73,8 +73,8 @@ const PAYSLIPS = {
     ],
     history: [
       // 발송 줄이 여럿이면 가장 최근 발송 한 줄만 보인다(운영 정책 PAY-20, 2026-10-20). 08-03 첫 발송은 보이지 않는다.
-      ["8월 20일 10:05", "다시 발송"],
-      ["8월 19일 17:40", "정정을 위해 확정 취소"],
+      ["8월 20일 10:05", "발송"],
+      ["8월 19일 17:40", "확정 취소"],
     ],
   },
 };
@@ -177,7 +177,7 @@ const list = (filtered = false) =>
   body(
     // 이번 달 실지급액(Figma node 17:1003): 짙은 남색 · radius 24 · 안쪽 25. 남색 위 흐린 글자 #BAC7DE·#D1DAEB 는 이 카드에만 쓴다(/design/pay 그대로).
     // 이번 달에 받은(발송된) 명세서 전체의 실지급액 합. 근무지와 관계없이 세고 누르는 곳은 없다. 합계·건수·점포는 api 가 내려 준 값이다(PAY-9, 운영 정책 PAY-08).
-    `<section aria-label="이번 달에 받은 급여명세서" class="flex flex-col rounded-[24px] bg-staff-navy p-[25px] text-white"><p class="text-[13px] text-[#bac7de]">9월 실지급액 합계</p><p class="pt-[14px] pb-[16px] font-bold"><span class="text-[32px]">1,156,430</span><span class="text-[17px]"> 원</span></p><p class="border-t border-white/13 pt-[15px] text-[12px] text-[#d1daeb]">명세서 2건 · 웨일카페 강남역점, 웨일카페 홍대점</p></section>` +
+    `<section aria-label="이번 달에 받은 급여명세서" class="flex flex-col rounded-[24px] bg-staff-navy p-[25px] text-white"><p class="text-[13px] text-[#bac7de]">9월에 받은 급여명세서 · 실지급액 합계</p><p class="pt-[14px] pb-[16px] font-bold"><span class="text-[32px]">1,156,430</span><span class="text-[17px]"> 원</span></p><p class="border-t border-white/13 pt-[15px] text-[12px] text-[#d1daeb]">명세서 2건 · 웨일카페 강남역점, 웨일카페 홍대점</p></section>` +
       `<section class="flex flex-col rounded-[20px] border border-staff-border-light bg-white p-[20px]"><div class="flex items-center justify-between"><h2 class="text-[13px] font-semibold text-staff-text-sub">명세서</h2><span class="text-[12px] text-staff-text-muted">${filtered ? 0 : PAST.length}건</span></div><div class="flex gap-[8px] pt-[10px]">${chip(filtered ? "웨일베이커리 합정점" : "전체 근무지", "pf-store", filtered)}${chip("2026년", "pf-year", false)}</div>${
         filtered
           ? `<div class="flex flex-col items-center gap-[10px] pt-[24px] pb-[6px] text-center"><p class="text-[14px] text-staff-text-sub">선택한 근무지와 연도에 받은 명세서가 없습니다</p>${button("전체 명세서 보기", { variant: "outline", "data-go": "list" })}</div>`
