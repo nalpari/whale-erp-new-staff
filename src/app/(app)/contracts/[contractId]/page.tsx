@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Alert, Badge, MaskIcon, Notice, PageHeader } from "@/components/common";
+import { Alert, Badge, Dock, MaskIcon, Notice, PageHeader } from "@/components/common";
 import {
   contractSubText,
   deadlineOf,
+  documentKindLabel,
   isFinished,
   maskPhone,
   paperDocuments,
@@ -11,6 +12,7 @@ import {
   periodText,
   phaseLabel,
   phaseOf,
+  signedCopyOf,
   statusTone,
 } from "@/lib/contract-rules";
 import { mismatchText } from "@/lib/contract-actions";
@@ -21,6 +23,7 @@ import { requireSession } from "@/lib/session";
 import { ChangedToast } from "../../me/changed-toast";
 import { ContractDocument } from "../_components/contract-document";
 import { ContractFrame, ContractHead, Sunken, Tiny, Values } from "../_components/parts";
+import { SignedCopyExport } from "../_components/signed-copy-export";
 import { rejectContractAction, requestContractCorrectionAction } from "./actions";
 import { ContractDecision } from "./contract-decision";
 
@@ -120,7 +123,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
                     <MaskIcon src="/icons/contract.svg" size={22} />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-[2px]">
-                    <span className="text-[14px] font-semibold">{labelOf(documentKinds, d.kind)}</span>
+                    <span className="text-[14px] font-semibold">{documentKindLabel(d.kind, labelOf(documentKinds, d.kind))}</span>
                     <span className="text-[12px] break-all text-staff-text-muted">{d.fileName}</span>
                   </span>
                   {/* 이 앱의 라우트가 로그인 토큰으로 api 의 서명 주소를 받아 보낸다(documents/[contractDocumentId]/route.ts). 라우트
@@ -132,7 +135,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
                     href={`/contracts/${c.contractId}/documents/${d.contractDocumentId}${storeQuery}`}
                     className="inline-flex h-[36px] shrink-0 items-center rounded-[10px] border border-staff-border bg-white px-[12px] text-[13px] font-semibold text-staff-text active:bg-staff-primary-inactive"
                   >
-                    받기<span className="sr-only"> · {labelOf(documentKinds, d.kind)}</span>
+                    받기<span className="sr-only"> · {documentKindLabel(d.kind, labelOf(documentKinds, d.kind))}</span>
                   </a>
                 </li>
               ))}
@@ -147,6 +150,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const worker = c.worker;
   // 본인 대조가 다르면 다른 항목의 한글. 못 받았거나 한글이 없는 값이 섞이면 null — 항목 없이 일반 문구다.
   const mismatched = mismatchText(c.mismatches, identityFields);
+  const signedCopy = signedCopyOf(c);
   return (
     <>
       <ContractFrame header={header}>
@@ -228,11 +232,16 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           />
         </Sunken>
 
-        {/* TODO(149): 처리 완료본 파일 생성(WHALEERP-131) 뒤 documents 의 SIGNED_COPY 를 체결된 계약에서 같은 받기 라우트(documents/[contractDocumentId])로. */}
-
         {/* api 가 지금 날인할 수 있다고 할 때만(서명 대기 · 기한 안 · 재직 중) — 아래 버튼 줄과 같은 판정 */}
         {c.awaitingSignature && <Tiny>서명하거나 거절하면 근무지 관리자에게 알림이 전달됩니다.</Tiny>}
       </ContractFrame>
+      {signedCopy && (
+        // 체결이 끝난 계약의 처리 완료본 내보내기(WHALEERP-149). 서명 대기에서는 내보내지 않는다 — 처리 완료본은 체결 뒤 파일 생성
+        // (WHALEERP-131)이 만들어 documents 에 SIGNED_COPY 로 실린다. 아직 없으면 버튼도 없다.
+        <Dock inset={30}>
+          <SignedCopyExport href={`/contracts/${c.contractId}/documents/${signedCopy.contractDocumentId}${storeQuery}`} />
+        </Dock>
+      )}
       {c.awaitingSignature && c.sentAt && (
         <ContractDecision
           signHref={`/contracts/${c.contractId}/sign?${storeId === null ? "" : `store=${storeId}&`}sentAt=${encodeURIComponent(c.sentAt)}`}

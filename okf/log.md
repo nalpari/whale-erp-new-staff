@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-28
+* **Update**: 처리 완료본 내보내기(WHALEERP-149) — 체결 완료 · 종료된 전자계약에 `SIGNED_COPY` 가 있으면 상세에 「계약서 내보내기」(받기 라우트, 공유 시트는 브라우저의 저장 · 공유로 갈음). 문서 종류 「날인 완료본」을 화면에서 「서명 완료본」으로, 계약서 제9조의 내려받기 문장을 되살렸다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 409 `SIGN_DEADLINE_PASSED` 는 api 문구(「날인 기한」) 대신 화면 문구 「서명 기한이 지났습니다. 근무지 관리자에게 다시 보내 달라고 요청해 주세요」 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 용어집 변경(2026-10-28 재영) — 147 화면 문구의 「날인」을 「서명」으로(버튼은 데모대로 「서명하기」 · 「서명 완료」, 서명 화면 제목 · 완료 화면 · 알림 · 안내 · 오류 문구). 경로 · 식별자 · 주석의 표준 용어는 그대로 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: PR #47 리뷰 반영 — 날인 · 완료 화면까지 `?store=` 를 잇고, 서명란은 크기가 바뀌어도 획을 다시 그려 지우지 않으며 가로챈 획은 잉크까지 지운다. 완료 화면은 이미 낸 신고 정보면 보기 · 홈으로. 상세의 `IdentityField` enum 은 함께 받되 실패해도 상세를 깨지 않는다 — [Whale ERP Staff](/whale-erp-staff.md).
