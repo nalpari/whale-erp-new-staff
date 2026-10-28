@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { ContractListItem } from "./contracts.ts";
-import { REOPEN_AFTER_MS, isSignRequestDismissed, onVisibilityChange, signRequestOf } from "./sign-request.ts";
+import { signRequestOf } from "./sign-request.ts";
 
 const NOW = new Date("2026-10-28T03:00:00Z"); // 한국 2026-10-28 12:00
 
@@ -32,7 +32,8 @@ test("서명을 기다리는 전자계약 가운데 기한이 가장 급한 것�
     NOW,
   );
   assert.equal(request?.contract.contractId, 2);
-  assert.equal(request?.href, "/contracts/2/sign?sentAt=2026-10-03T01%3A00%3A00.000Z");
+  // 데모처럼 상세로 — 거기서 조항을 보고 서명한다
+  assert.equal(request?.href, "/contracts/2");
   assert.equal(request?.deadline, "2026년 11월 2일 10:00까지 · 5일 남음");
   // 기억 값은 기다리는 계약 모두 — 고른 것만이 아니다
   assert.equal(request?.key, "1@2026-10-20T01:00:00.000Z,2@2026-10-03T01:00:00.000Z");
@@ -47,24 +48,4 @@ test("서명할 수 없는 계약(기한 지남 · 퇴직 — awaitingSignature 
   assert.equal(signRequestOf([item(1, { awaitingSignature: false })], NOW), null);
   assert.equal(signRequestOf([item(1, { contractMethod: "PAPER" })], NOW), null);
   assert.equal(signRequestOf([item(1, { sentAt: null })], NOW), null);
-});
-
-test("「다음에 하기」로 닫은 묶음과 같을 때만 닫아 둔다 — 새 계약 · 다시 발송이면 다시 뜬다", () => {
-  const key = signRequestOf([item(1)], NOW)!.key;
-  assert.equal(isSignRequestDismissed(key, null), false);
-  assert.equal(isSignRequestDismissed(key, key), true);
-  assert.equal(isSignRequestDismissed(signRequestOf([item(1), item(2)], NOW)!.key, key), false);
-  assert.equal(isSignRequestDismissed(signRequestOf([item(1, { sentAt: "2026-10-25T01:00:00.000Z" })], NOW)!.key, key), false);
-});
-
-test("화면이 숨으면 그 시각을 기록하고, 10분 넘게 숨었다 보이면 기억을 지운다(HOME-4 「앱을 열 때」)", () => {
-  const t0 = 1_000_000;
-  const hidden = onVisibilityChange(null, "hidden", t0);
-  assert.deepEqual(hidden, { hiddenAt: t0, forget: false });
-  // 숨은 채 또 숨김 알림이 와도 처음 숨은 시각을 둔다
-  assert.deepEqual(onVisibilityChange(t0, "hidden", t0 + 5000), { hiddenAt: t0, forget: false });
-  assert.deepEqual(onVisibilityChange(t0, "visible", t0 + REOPEN_AFTER_MS), { hiddenAt: null, forget: false });
-  assert.deepEqual(onVisibilityChange(t0, "visible", t0 + REOPEN_AFTER_MS + 1), { hiddenAt: null, forget: true });
-  // 숨은 기록 없이 보임만 오면(처음 그림) 지우지 않는다
-  assert.deepEqual(onVisibilityChange(null, "visible", t0), { hiddenAt: null, forget: false });
 });

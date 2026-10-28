@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { unstable_rethrow } from "next/navigation";
 import { Suspense } from "react";
 import { BottomNav } from "@/components/common";
-import { popupSummary } from "@/lib/affiliation-requests";
-import { failureOf, logFailure } from "@/lib/api";
+import { popupSummary, requestsLoadFailure } from "@/lib/affiliation-requests";
+import { ApiError, failureOf, logFailure, logUnexpected } from "@/lib/api";
 import { getContracts } from "@/lib/contracts";
 import { getCurrentMembership } from "@/lib/current-membership";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
@@ -11,10 +12,10 @@ import { getMyAffiliationRequests } from "@/lib/my-profile";
 import { requireSession } from "@/lib/session";
 import { signRequestOf } from "@/lib/sign-request";
 import { NotificationBell } from "../notification-bell";
-import { AffiliationPopup } from "./affiliation-popup";
+import { HomePopups } from "./home-popups";
 import { MyWorkInfo } from "./my-work-info";
 import { ScheduleCards, ScheduleCardsSkeleton } from "./schedule-cards";
-import { SignRequestPopup } from "./sign-request-popup";
+
 import { StoreTopBar } from "./store-top-bar";
 import { TodoCard, TodoCardSkeleton } from "./todo-card";
 
@@ -75,45 +76,69 @@ export default async function HomePage() {
 
 /**
  * 홈 위 팝업 — 서명 요청(148)과 소속 추가 요청(144). 둘 다 있으면 한 번에 하나만, 서명 요청을 먼저 띄우고 그것을 닫으면 소속 추가
- * 요청이 뜬다. 근거: 서명 대기 계약은 기한(발송 + 30일)이 지나면 만료되고 서명해야 근무가 시작되는(데모 sign-req 문구) 지금 근무지의
- * 일이고, 소속 추가 요청은 새 근무지를 더할지 묻는 것이며 수락해도 그 뒤 계약 서명이 따로 온다(가입 · 진입 가이드 JOIN-7 의 흐름이
- * 가입 → 서명 요청 팝업). 데모 · 기획 문서에 둘이 함께일 때의 순서는 없다. 어느 쪽이든 못 받으면 그 팝업만 없이 홈 그대로다.
+ * 요청이 뜬다(home-popups.tsx). 근거: 서명 대기 계약은 기한(발송 + 30일)이 지나면 만료되고 서명해야 근무가 시작되는(데모 sign-req 문구)
+ * 지금 근무지의 일이고, 소속 추가 요청은 새 근무지를 더할지 묻는 것이며 수락해도 그 뒤 계약 서명이 따로 온다(가입 · 진입 가이드 JOIN-7 의
+ * 흐름이 가입 → 서명 요청 팝업). 데모 · 기획 문서에 둘이 함께일 때의 순서는 없다.
+ * 두 조회를 함께 기다린다 — 계약 목록이 느린 동안 소속 추가 팝업도 기다리지만, 따로 띄우면 소속 추가가 먼저 떴다가 서명 요청이 그 뒤를
+ * 잇는 순서가 뒤집힌다. 어느 쪽이든 못 받으면(그쪽 조회가 던져도) 그 팝업만 없이 홈 그대로다.
  */
 async function HomeRequests() {
-  const [contracts, affiliationRequests] = await Promise.all([getContractsOrNull(), getMyAffiliationRequests()]);
-  const sign = contracts && signRequestOf(contracts, new Date());
-  // 고용 형태 한글은 서명 요청이 있을 때만 받는다. 팝업 곁들임이라 어떤 실패든 빈 목록(값 그대로)으로 — 홈이 깨지지 않게.
-  const employmentTypes = sign?.contract.employmentType ? await getEnumOrEmpty("EmploymentType").catch(() => []) : [];
-  const summary = popupSummary(affiliationRequests ?? []);
+  const [contracts, affiliationRequests] = await Promise.allSettled([getContractsOrNull(), getMyAffiliationRequests()]);
+  const contractItems = settledOrNull(contracts);
+  const sign = contractItems && signRequestOf(contractItems, new Date());
+  const summary = popupSummary(settledOrNull(affiliationRequests) ?? []);
+  // 고용 형태 한글은 서명 요청이 있을 때만 받는다.
+  const employmentTypes = sign?.contract.employmentType ? await employmentTypesOrEmpty() : [];
   return (
-    <>
-      {sign && (
-        <SignRequestPopup
-          requestKey={sign.key}
-          href={sign.href}
-          rows={[
+    <HomePopups
+      sign={
+        sign && {
+          key: sign.key,
+          href: sign.href,
+          rows: [
             { label: "근무지", value: sign.contract.storeName },
             ...(sign.contract.employmentType ? [{ label: "고용 형태", value: labelOf(employmentTypes, sign.contract.employmentType) }] : []),
             ...(sign.deadline ? [{ label: "서명 기한", value: sign.deadline }] : []),
-          ]}
-        />
-      )}
-      {summary && <AffiliationPopup requestKey={summary.key} rows={summary.rows} signRequestKey={sign?.key ?? null} />}
-    </>
+          ],
+        }
+      }
+      affiliation={summary && { key: summary.key, rows: summary.rows }}
+    />
   );
+}
+
+/** 한쪽 조회가 던져도 다른 팝업은 띄운다. Next 내부 오류(401 의 만료 안내 redirect 등)는 그대로 던지고, 그 밖은 남기고 null. */
+function settledOrNull<T>(result: PromiseSettledResult<T>): T | null {
+  if (result.status === "fulfilled") return result.value;
+  unstable_rethrow(result.reason);
+  console.error("[home-popups] 팝업 조회 실패", result.reason);
+  return null;
 }
 
 /**
  * 내 근로계약 목록 — 팝업 곁들임이라 api 실패(4xx · 5xx · 연결 실패)는 null 로 받아 팝업 없이 홈을 그대로 보인다(401 은 만료 안내로).
- * 4xx 는 예상하지 못한 응답이라 남긴다(5xx · 연결 실패는 request() 가 남겼다) — 소속 추가 요청 조회와 같다.
+ * 다루는 규칙은 소속 추가 요청 목록과 같다(requestsLoadFailure — 예상 밖 4xx 만 남긴다).
  */
 async function getContractsOrNull() {
   try {
     return await getContracts();
   } catch (error) {
     const failure = failureOf(error);
-    if (!failure) throw error;
-    if (failure !== "network" && failure.status < 500) logFailure("contracts-popup", failure);
+    const handling = requestsLoadFailure(failure);
+    if (handling === "throw") throw error;
+    if (handling === "log" && failure) logFailure("contracts-popup", failure);
     return null;
+  }
+}
+
+/** 고용 형태 enum. getEnumOrEmpty 는 5xx · 연결 실패만 빈 목록이고 404 · 응답 모양 결함은 던진다 — 팝업 곁들임이라 남기고 빈 목록(값 그대로). */
+async function employmentTypesOrEmpty() {
+  try {
+    return await getEnumOrEmpty("EmploymentType");
+  } catch (error) {
+    unstable_rethrow(error);
+    if (error instanceof ApiError) logUnexpected("contracts-popup", error);
+    else console.error("[contracts-popup] EmploymentType enum 을 받지 못했습니다", error);
+    return [];
   }
 }
