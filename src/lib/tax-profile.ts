@@ -1,8 +1,9 @@
 // 신고 정보(TAX-8, WHALEERP-333 · api 334)의 순수 계산 — 주소의 소속 id 읽기(parseStaffMemberId), 주민등록번호 앞자리 · 생년월일
 // 맞춰 보기(rrnBirthMismatch), 고치기 폼 값 읽기 · 거르기(readTaxProfileForm · validateTaxProfileEdit), 신고 정보가 없으면 고치지 않기
-// (taxProfileEditBlocked), 저장 실패를 화면 상태로 바꾸기(taxProfileSaveFailure). api 를 부르는 쪽은 me/memberships/[staffMemberId]/tax-profile/edit/actions.ts 다.
+// (taxProfileEditBlocked), 저장 실패를 화면 상태로 바꾸기(taxProfileSaveFailure), 날인 뒤 처음 넣기(WHALEERP-150)의 거르기 · 실패
+// (validateTaxProfileCreate · taxProfileCreateFailure). api 를 부르는 쪽은 me/memberships/[staffMemberId]/tax-profile 의 edit/actions.ts · new/actions.ts 다.
 // node --test 가 직접 읽으므로 값 import 는 같은 폴더의 순수 모듈(.ts 확장자)만 둔다.
-// 주민등록번호 · 계좌번호 · 지금 비밀번호 원문은 api 본문(validateTaxProfileEdit 의 body)에만 싣고, 화면 상태(TaxProfileEditState) · 문구에는 싣지 않는다.
+// 주민등록번호 · 계좌번호 · 지금 비밀번호 원문은 api 본문(validateTaxProfileEdit · validateTaxProfileCreate 의 body)에만 싣고, 화면 상태(TaxProfileEditState) · 문구에는 싣지 않는다.
 import {
   CONNECTION_FAILED,
   RATE_LIMITED,

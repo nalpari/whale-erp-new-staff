@@ -36,7 +36,7 @@ export function TaxProfileIntro({ storeName, formHref }: { storeName: string; fo
           </span>
           <h2 className="text-[22px] font-bold">신고 정보를 넣어 주세요</h2>
           <p className="text-[14px] text-staff-text-sub">
-            <strong className="text-staff-text">{storeName}</strong>과 근로계약을 맺었습니다.
+            근로계약을 맺었습니다 — <strong className="text-staff-text">{storeName}</strong>
             <br />
             4대보험 신고와 급여 지급에 필요한 정보입니다.
           </p>
