@@ -67,7 +67,7 @@ export const pageHeader = (title, { backHref, action = "" } = {}) =>
 // period-nav.tsx. prevAttrs/nextAttrs: 누를 때 단서
 export const periodNav = ({ label, prevLabel, nextLabel, prevAttrs = {}, nextAttrs = {} }) => {
   const buttonClass = "flex min-h-[44px] items-center text-[15px] font-semibold text-staff-text-sub transition-colors duration-150 ease-out active:text-staff-text";
-  return `<div class="flex w-full items-center gap-[8px] leading-[1.5]"><div class="min-w-0 flex-1"><button type="button"${attrs(prevAttrs)} class="${buttonClass}">${img("chevron-left-24.svg", 24, 24, "-scale-y-100")}${prevLabel}</button></div><p class="shrink-0 text-[16px] font-bold text-staff-text">${label}</p><button type="button"${attrs(nextAttrs)} class="${buttonClass} shrink-0 justify-end gap-[2px]">${nextLabel}${img("chevron-right-24.svg", 24, 24, "-scale-y-100")}</button></div>`;
+  return `<div class="flex w-full items-center gap-[8px] leading-[1.5]"><div class="min-w-0 flex-1"><button type="button"${attrs(prevAttrs)} class="${buttonClass}">${img("chevron-left-24.svg", 24, 24, "-scale-y-100")}${prevLabel}</button></div><p class="shrink-0 text-[16px] font-bold text-staff-text">${label}</p><div class="flex min-w-0 flex-1 justify-end"><button type="button"${attrs(nextAttrs)} class="${buttonClass} gap-[2px]">${nextLabel}${img("chevron-right-24.svg", 24, 24, "-scale-y-100")}</button></div></div>`;
 };
 
 // status-chip.tsx
