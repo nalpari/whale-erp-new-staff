@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { RedirectType, notFound, redirect } from "next/navigation";
 import { ApiError, failureOf, logFailure, type RequestBody } from "@/lib/api";
 import { clientIpFrom } from "@/lib/client-ip";
+import { getEnumOrEmpty } from "@/lib/enums";
 import {
   contractActionFailure,
   isSentAt,
@@ -84,7 +85,9 @@ async function run(
     const failure = failureOf(error);
     // 401 의 만료 안내 redirect 와 코드 결함은 그대로 던진다.
     if (!failure) throw error;
-    const outcome = contractActionFailure(action, failure, error instanceof ApiError ? error.body : null);
+    // 본인 대조가 다르면 다른 항목을 한글로 적는다 — 그때만 enum 을 받는다(못 받으면 빈 목록, 문구에서 항목을 뺀다)
+    const identityLabels = failure !== "network" && failure.code === "IDENTITY_MISMATCH" ? await getEnumOrEmpty("IdentityField") : [];
+    const outcome = contractActionFailure(action, failure, error instanceof ApiError ? error.body : null, identityLabels);
     if ("state" in outcome) {
       if (outcome.log) logFailure(`contract-${action}`, failure);
       return outcome.state;

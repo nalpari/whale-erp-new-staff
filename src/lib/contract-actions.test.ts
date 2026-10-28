@@ -12,10 +12,20 @@ import {
   signatureProblem,
 } from "./contract-actions.ts";
 
-test("mismatchText — api 순서대로 한글, 모르는 값은 그대로", () => {
-  assert.equal(mismatchText(["name", "birthDate", "isForeigner"]), "이름 · 생년월일 · 외국인 여부");
-  assert.equal(mismatchText(["phone", "gender"]), "휴대전화번호 · 성별");
-  assert.equal(mismatchText(["nationality"]), "nationality");
+const IDENTITY_LABELS = [
+  { value: "name", label: "이름" },
+  { value: "phone", label: "휴대전화번호" },
+  { value: "birthDate", label: "생년월일" },
+  { value: "gender", label: "성별" },
+  { value: "isForeigner", label: "외국인 여부" },
+];
+
+test("mismatchText — api 순서대로 enum 한글, 한글이 없는 값이 있거나 비면 null", () => {
+  assert.equal(mismatchText(["name", "birthDate", "isForeigner"], IDENTITY_LABELS), "이름 · 생년월일 · 외국인 여부");
+  assert.equal(mismatchText(["phone", "gender"], IDENTITY_LABELS), "휴대전화번호 · 성별");
+  assert.equal(mismatchText(["name", "nationality"], IDENTITY_LABELS), null);
+  assert.equal(mismatchText(["name"], []), null);
+  assert.equal(mismatchText([], IDENTITY_LABELS), null);
 });
 
 test("readRejectReason — 비면 보내지 않고, NFC · 앞뒤 공백을 지운 뒤 500자까지", () => {
@@ -67,12 +77,16 @@ test("contractActionFailure — 이미 그 결과인 409 는 성공으로", () =
 });
 
 test("contractActionFailure — 409 사유별", () => {
-  const mismatch = contractActionFailure(
-    "sign",
-    conflict("IDENTITY_MISMATCH", "계약서의 직원 정보가 가입한 정보와 다릅니다. 수정을 요청해 주세요"),
-    { mismatches: ["name", "gender"] },
-  );
-  assert.ok("state" in mismatch && mismatch.state.stale && /이름 · 성별/.test(mismatch.state.message ?? ""));
+  const mismatchConflict = conflict("IDENTITY_MISMATCH", "계약서의 직원 정보가 가입한 정보와 다릅니다. 수정을 요청해 주세요");
+  assert.deepEqual(contractActionFailure("sign", mismatchConflict, { mismatches: ["name", "gender"] }, IDENTITY_LABELS), {
+    state: { stale: true, message: "계약서의 직원 정보(이름 · 성별)가 가입한 정보와 다릅니다. 계약서로 돌아가 수정을 요청해 주세요" },
+    log: false,
+  });
+  // enum 을 못 받으면 항목 없이
+  assert.deepEqual(contractActionFailure("sign", mismatchConflict, { mismatches: ["name"] }, []), {
+    state: { stale: true, message: "계약서의 직원 정보가 가입한 정보와 다릅니다. 계약서로 돌아가 수정을 요청해 주세요" },
+    log: false,
+  });
   for (const [code, message] of [
     ["CONTRACT_RESENT", "근로계약서가 다시 발송됐습니다. 새로 고쳐 바뀐 계약서를 확인해 주세요"],
     ["SIGN_DEADLINE_PASSED", "날인 기한이 지났습니다. 관리자에게 재발송을 요청해 주세요"],

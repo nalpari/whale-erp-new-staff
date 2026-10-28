@@ -138,6 +138,11 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   }
 
   const worker = c.worker;
+  // 본인 대조가 다르면 다른 항목의 한글(api enum IdentityField)을 받는다 — 그때만 부른다. 못 받으면 항목 없이 일반 문구다.
+  const mismatched =
+    c.awaitingSignature && !c.signable && c.mismatches.length > 0
+      ? mismatchText(c.mismatches, await getEnumOrEmpty("IdentityField"))
+      : null;
   return (
     <>
       <ContractFrame header={header}>
@@ -164,12 +169,8 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
             <p>
               <strong>계약서의 직원 정보가 가입한 정보와 달라 날인할 수 없습니다.</strong>
               <br />
-              {c.mismatches.length > 0 && (
-                <>
-                  다른 항목: {mismatchText(c.mismatches)}
-                  <br />
-                </>
-              )}
+              {mismatched ? `다른 항목: ${mismatched}` : "다른 항목이 있습니다."}
+              <br />
               계약서 내용을 확인하고 수정을 요청해 주세요. 근무지 관리자가 고쳐 다시 보내면 날인할 수 있습니다.
             </p>
           </Alert>

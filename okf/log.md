@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-28
+* **Update**: 본인 대조 항목 한글을 화면 상수표 대신 api enum `IdentityField`(`GET /enums`, api vileplume)로 받는다. 못 받으면 항목 없이 「다른 항목이 있습니다」 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 147 PR 전 리뷰 반영 — 줄여도 큰 서명은 보내지 않고 다시 그리게, 시트를 닫으면 지난 실패 문구를 지움, 가로챈 획(pointercancel)은 그린 것으로 세지 않음, `request` 의 `json` · `form` 을 함께 줄 수 없게 타입으로 막음 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 근로계약서 날인 · 거절 · 수정 요청(WHALEERP-147)을 더했다 — 서명란에 그린 PNG 를 서버 액션이 multipart 로 api 에 넘기고(`request` 의 `form`), 본인 대조가 다르면 날인 대신 수정 요청, 결과를 모르는 실패는 다시 누르면 409 지금 상태로 가른다. 날인 완료 화면에서 신고 정보 처음 넣기(150)로 잇는다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: PR #44 리뷰 반영 — 날인 가능 · 기한 강조 · 날인 자리를 api `awaitingSignature` 로만 정하고, 날인할 수 없는 서명 대기는 목록 · 상세 모두 만료 · 서명 불가로 처리가 끝난 묶음에 둔다. 받기 실패는 글자 응답 대신 상세로 돌려보내 `?download=` 안내(Alert). 제9조에서 아직 사실이 아닌 「앱에서 처리 완료본을 내려받는다」를 뺐다 — [Whale ERP Staff](/whale-erp-staff.md).

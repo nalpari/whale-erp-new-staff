@@ -2,26 +2,22 @@
 // 화면 상태로 바꾸기. api 를 부르는 쪽은 src/app/(app)/contracts/[contractId]/actions.ts 다.
 // node --test 가 직접 읽으므로 값 import 는 같은 폴더의 순수 모듈(.ts 확장자)만 둔다.
 import { RATE_LIMITED, isHangulReason, type ApiFailure } from "./action-errors.ts";
+import type { Schemas } from "./api";
 import type { ContractStatus } from "./contracts";
 
 export type ContractAction = "sign" | "reject" | "correction";
-export type IdentityField = "name" | "phone" | "birthDate" | "gender" | "isForeigner";
+export type IdentityField = Schemas["IdentityField"];
+/** enum 조회(`getEnumOrEmpty`)가 준 값 · 한글 목록. 순수 모듈이라 enums.ts 를 값으로 가져오지 않고 모양만 받는다. */
+type EnumLabels = readonly { value: string; label: string }[];
 
 /**
- * 본인 대조 항목의 화면 이름(api `IdentityField`). api 의 enum 조회(`GET /enums`)에 이 이름이 없어 화면이 둔다 — 생기면
- * `getEnum("IdentityField")` 로 바꾼다.
+ * 다른 본인 대조 항목을 api 순서대로 「이름 · 생년월일」. 한글은 api enum `IdentityField`(GET /enums)에서 받는다. 한글이 없는 값이
+ * 하나라도 있으면(enum 을 못 받음 · api 가 항목을 더함) null — 화면은 영어 값 대신 「다른 항목이 있습니다」 같은 일반 문구를 쓴다.
  */
-export const IDENTITY_LABELS: Record<IdentityField, string> = {
-  name: "이름",
-  phone: "휴대전화번호",
-  birthDate: "생년월일",
-  gender: "성별",
-  isForeigner: "외국인 여부",
-};
-
-/** 다른 항목을 api 순서대로 「이름 · 생년월일」. 모르는 값은 그대로 보인다(api 가 항목을 더해도 빠지지 않게). */
-export const mismatchText = (mismatches: readonly string[]) =>
-  mismatches.map((m) => IDENTITY_LABELS[m as IdentityField] ?? m).join(" · ");
+export function mismatchText(mismatches: readonly string[], labels: EnumLabels): string | null {
+  const names = mismatches.map((m) => labels.find((l) => l.value === m)?.label);
+  return names.length > 0 && names.every((n) => n !== undefined) ? names.join(" · ") : null;
+}
 
 /** 거절 사유 상한(api REJECT_REASON_MAX). api 처럼 NFC 로 맞추고 앞뒤 공백을 지운 뒤 센다. */
 export const REJECT_REASON_MAX = 500;
@@ -77,6 +73,7 @@ export const OUTCOME_UNKNOWN = "처리됐는지 확인하지 못했습니다. �
 
 /**
  * api 실패를 화면 상태로. body 는 오류 응답의 JSON 본문 그대로다(409 의 status · mismatches 를 읽는다).
+ * identityLabels 는 api enum `IdentityField` 의 값 · 한글(409 IDENTITY_MISMATCH 의 다른 항목을 적을 때만 쓴다).
  * - 409 CONTRACT_STATUS_CONFLICT 인데 지금 상태가 이 버튼의 결과면 done — 앞선 요청이 이미 처리됐다.
  * - 409(상태 · 기한 · 퇴직 · 재발송 · 대조) · 404 는 stale.
  * - 400 은 날인이면 서명 이미지 문제(다시 그리기), 거절이면 사유 칸.
@@ -87,17 +84,20 @@ export function contractActionFailure(
   action: ContractAction,
   failure: ApiFailure,
   body: unknown,
+  identityLabels: EnumLabels = [],
 ): { done: true } | { state: ContractActionState; log: boolean } {
   if (failure === "network") return { state: { message: `서버에 연결하지 못했습니다. ${OUTCOME_UNKNOWN}` }, log: false };
   const { status, message, code } = failure;
   const fields = (body ?? {}) as { status?: unknown; mismatches?: unknown };
   if (status === 409) {
     if (code === "CONTRACT_STATUS_CONFLICT" && fields.status === DONE_STATUS[action]) return { done: true };
-    if (code === "IDENTITY_MISMATCH" && Array.isArray(fields.mismatches))
+    if (code === "IDENTITY_MISMATCH") {
+      const items = Array.isArray(fields.mismatches) ? mismatchText(fields.mismatches.map(String), identityLabels) : null;
       return {
-        state: { stale: true, message: `계약서의 직원 정보(${mismatchText(fields.mismatches.map(String))})가 가입한 정보와 다릅니다. 계약서로 돌아가 수정을 요청해 주세요` },
+        state: { stale: true, message: `계약서의 직원 정보${items ? `(${items})` : ""}가 가입한 정보와 다릅니다. 계약서로 돌아가 수정을 요청해 주세요` },
         log: false,
       };
+    }
     // CONTRACT_STATUS_CONFLICT · SIGN_DEADLINE_PASSED · STAFF_RETIRED · CONTRACT_RESENT 는 api 가 한글 사유를 준다
     const known = code !== undefined && isHangulReason(message);
     return { state: { stale: true, message: known ? message : "계약서 상태가 바뀌었습니다. 계약서를 다시 열어 확인해 주세요" }, log: !known };
