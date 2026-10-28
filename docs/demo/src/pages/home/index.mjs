@@ -3,7 +3,7 @@
 //   HOME-1 순서는 오늘·이번 주 먼저, 서명 대기 계약서는 날인 요청 팝업으로 따로 알리고 TO-DO 카드에서 TO-DO 목록으로 바로 간다.
 //   HOME-2 근무지 선택기는 홈 머리줄과 근무 정보의 근무지 카드 두 곳, 같은 앱 전역 근무지(2026-10-20). HOME-3 출퇴근 등록은 오늘 근무 카드 안 버튼으로 간다(하단 메뉴에 출퇴근 칸 없음).
 //   HOME-4 날인 요청 팝업은 날인하기 전까지 앱을 열 때마다 띄운다 — 데모에서는 「날인 요청 팝업」 상태로 본다.
-//   HOME-5 퇴직 후에는 「근무지가 없습니다」, 하단 메뉴와 알림 버튼은 그대로 두고 급여 탭으로 간다.
+//   HOME-5 퇴직 후에는 「근무가 종료되었습니다」, 하단 메뉴와 알림 버튼은 그대로 두고 급여 탭으로 간다.
 // 평상시(today)는 Figma 02.Main(node 8:3)을 따른다(오늘의 근무 node 9:152 · 이번 주 근무 node 9:242 · 근무지 시트 03.Sheet node 12:670).
 // 그 밖 상태(처리할 일 카드 · 휴무 · 가입 직후 · 퇴직 후 · 날인 요청 팝업)는 Figma 없음 — DESIGN.md 기준 초안.
 import { bottomNav, bottomSheet, button, empty, img, infoRow, maskIcon, page, sectionTitle, state, statusChip, storeSheet, STORES, todoItem, todoList, topBar, weekSelector } from "../../ui.mjs";
@@ -60,20 +60,20 @@ const todayCard = ([start, end]) =>
     12,
   )}</a></section>`;
 
-// 이번 주 근무(Figma node 9:242). 월~일, 한국 표준시 기준. 처음 고른 날은 오늘.
+// 이번 주 근무(Figma node 9:242). 월~일, 한국 표준시 기준(화면 안내 줄은 뺐다). 처음 고른 날은 오늘.
 const thisWeek = (days) =>
   `<section class="flex flex-col gap-[13px]">${sectionTitle("이번 주 근무", {
     right: `<span class="text-[14px] text-staff-text-sub">9/7 (월) – 9/13 (일)</span>`,
   })}<div class="flex flex-col gap-[13px] rounded-[18px] border border-staff-border-light bg-white px-[12px] pt-[16px] pb-[12px]">${weekSelector({
     days,
     selected: "09-10",
-  })}<p class="border-t border-staff-border-light pt-[12px] text-[12px] text-staff-text-sub">이번 주는 월요일부터 일요일까지, 한국 표준시 기준입니다</p></div></section>`;
+  })}</div></section>`;
 
-// TO-DO 카드. 오른쪽 위 「전체보기」로 근무 화면의 TO-DO 쪽에 바로 간다(HOME-1). TO-DO 가 없으면 섹션을 그리지 않는다(2026-10-20 재영).
+// TO-DO 카드. 오른쪽 위 「전체 보기」로 근무 화면의 TO-DO 쪽에 바로 간다(HOME-1). TO-DO 가 없으면 섹션을 그리지 않는다(2026-10-20 재영).
 const todoSection = (count, children) =>
   `<section class="flex flex-col gap-[12px]">${sectionTitle("TO-DO", {
     count,
-    right: `<a href="${page("work", "todo")}" class="-my-[13px] flex min-h-[44px] items-center gap-[2px] text-[12px] text-staff-text-sub">전체보기${img("chevron-right-small.svg", 11, 11, "-scale-y-100")}</a>`,
+    right: `<a href="${page("work", "todo")}" class="-my-[13px] flex min-h-[44px] items-center gap-[2px] text-[12px] text-staff-text-sub">전체 보기${img("chevron-right-small.svg", 11, 11, "-scale-y-100")}</a>`,
   })}<div class="rounded-[18px] border border-staff-border-light bg-white px-[16px]">${children}</div></section>`;
 
 // 근무 정보(Figma 「나의 근무 정보」 줄 모양). 요약만 보이고 자세한 것은 각 화면에서 본다.
@@ -83,7 +83,7 @@ const workInfo = () =>
     icon: "menu-attendance.svg",
     title: "출퇴근 현황",
     description: "이번 달 출근 9회 · 지각 0회",
-  })}${infoRow({ href: page("pay"), icon: "menu-payslip.svg", title: "급여명세서", description: "2026년 8월분 발송됨" })}</section>`;
+  })}${infoRow({ href: page("pay"), icon: "menu-payslip.svg", title: "급여명세서", description: "2026년 8월분 받음" })}</section>`;
 
 // 날인 대기 계약서 카드. 누르면 그 계약서로 간다.
 const contractCard = (title, sub) =>
@@ -130,21 +130,21 @@ const CONTENT = {
 
   off: () =>
     sections(
-      `<div class="flex flex-col gap-[2px] rounded-[18px] border border-staff-border-light bg-staff-info-bg px-[20px] py-[18px]"><p class="text-[16px] font-bold">오늘은 근무가 없는 날입니다</p><p class="text-[12px] text-staff-text-sub">이번 주 다른 근무일은 아래에서 확인하세요</p></div>` +
+      `<div class="flex flex-col gap-[2px] rounded-[18px] border border-staff-border-light bg-staff-info-bg px-[20px] py-[18px]"><p class="text-[16px] font-bold">오늘은 휴무입니다</p><p class="text-[12px] text-staff-text-sub">다음 근무 · 9월 11일 (금) 13:00 – 22:00</p></div>` +
         thisWeek(weekWith(off("09-10", "목", 10))) +
         workInfo(),
     ),
 
   // 체결 완료 계약이 없으면 점포 정보를 보이지 않고 날인을 기다리는 근로계약서만 보인다(운영 정책 CTR-29). 근무스케줄은 체결 전에는 없다.
   empty: () =>
-    `<section class="flex flex-col gap-[12px]">${sectionTitle("날인을 기다리는 근로계약서")}${contractCard("웨일카페 강남역점", "서명 대기 · 날인 기한 2026-10-11")}</section>`,
+    `<section class="flex flex-col gap-[12px]">${sectionTitle("서명할 근로계약서")}${contractCard("웨일카페 강남역점", "10월 11일까지 서명해 주세요")}<p class="text-[12px] text-staff-text-sub">서명을 마치면 근무를 시작할 수 있습니다.</p></section>`,
 
   // 첫 근로계약서를 거부·만료·종료로 잃어 날인 대기도 체결 완료도 없는 때. 퇴직 후와 달리 근무한 적이 없다(운영 정책 CTR-29).
   "no-site": () =>
     empty(
       maskIcon("contract.svg", 24, true),
-      "아직 근무 중인 근무지가 없습니다",
-      `<p>근무지에서 근로계약서를 다시 보내면 여기에 표시됩니다. 거부했거나 기한이 지난 계약서는 근로계약 목록에서 볼 수 있습니다.</p><div class="flex flex-col gap-[8px] pt-[8px]">${button(
+      "연결된 근무지가 없습니다",
+      `<p>근무지에서 근로계약서를 보내면 여기에 표시됩니다.<br>거절했거나 기한이 지난 계약서는 아래에서 확인해 주세요.</p><div class="flex flex-col gap-[8px] pt-[8px]">${button(
         `${maskIcon("contract.svg", 16, true)}근로계약서 보기`,
         { variant: "outline", href: page("contract", "list") },
       )}</div>`,
@@ -153,11 +153,11 @@ const CONTENT = {
   retired: () =>
     empty(
       maskIcon("store.svg", 24, true),
-      "근무지가 없습니다",
-      `<p class="[&_strong]:font-bold [&_strong]:text-staff-text">연결된 근무지가 없습니다. 근무와 출퇴근 화면도 같은 안내를 보여 줍니다. 받은 급여명세서는 <strong>급여 탭</strong>에서, 알림은 위쪽 종에서 계속 볼 수 있습니다.</p><div class="flex flex-col gap-[8px] pt-[8px]">${button(
-        `${maskIcon("nav-pay.svg", 16, true)}급여 탭으로 가기`,
+      "근무가 종료되었습니다",
+      `<p class="[&_strong]:font-bold [&_strong]:text-staff-text">급여명세서는 <strong>보존 기간(3년)</strong> 동안 확인할 수 있습니다.</p><div class="flex flex-col gap-[8px] pt-[8px]">${button(
+        `${maskIcon("nav-pay.svg", 16, true)}급여명세서 보기`,
         { variant: "outline", href: page("pay") },
-      )}<p class="text-[12px] text-staff-text-muted">보존 기간인 3년 동안 조회할 수 있습니다.</p></div>`,
+      )}</div>`,
     ),
 };
 
@@ -171,7 +171,7 @@ const header = (view) =>
 const screen = (view) =>
   `<div class="flex flex-1 flex-col gap-[24px] leading-[1.5]"><main class="flex flex-1 flex-col px-[22px] pt-[42px]">${header(
     view,
-  )}<div class="flex flex-col gap-[5px] pt-[24px] pb-[20px]"><h1 class="text-[26px] font-bold">하은님, 좋은 아침이에요</h1><p class="text-[12px] text-staff-text-sub">9월 10일 목요일 · 오늘도 기분 좋은 하루 되세요</p></div>${CONTENT[
+  )}<div class="h-[20px]"></div>${CONTENT[
     view
   ]()}</main><div class="sticky bottom-0 mt-auto">${bottomNav("home")}</div></div>`;
 
