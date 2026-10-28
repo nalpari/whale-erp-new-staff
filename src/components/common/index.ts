@@ -11,7 +11,7 @@ export { StatusChip, type StatusChipTone } from "./status-chip";
 export { Switch, SwitchRow } from "./switch-row";
 export { AttendanceDayCard, DayOffRow, type AttendanceDayStatus } from "./attendance-day";
 export { BottomSheet, SheetOption } from "./bottom-sheet";
-export { Button, type ButtonVariant } from "./button";
+export { Button, buttonClass, type ButtonVariant } from "./button";
 export { TextField } from "./text-field";
 export { Notice } from "./notice";
 export { Badge, type BadgeTone } from "./badge";

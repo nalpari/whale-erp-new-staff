@@ -4,7 +4,6 @@ import { Alert, Badge, Dock, MaskIcon, Notice, PageHeader } from "@/components/c
 import {
   contractSubText,
   deadlineOf,
-  documentKindLabel,
   isFinished,
   maskPhone,
   paperDocuments,
@@ -123,7 +122,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
                     <MaskIcon src="/icons/contract.svg" size={22} />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-[2px]">
-                    <span className="text-[14px] font-semibold">{documentKindLabel(d.kind, labelOf(documentKinds, d.kind))}</span>
+                    <span className="text-[14px] font-semibold">{labelOf(documentKinds, d.kind)}</span>
                     <span className="text-[12px] break-all text-staff-text-muted">{d.fileName}</span>
                   </span>
                   {/* 이 앱의 라우트가 로그인 토큰으로 api 의 서명 주소를 받아 보낸다(documents/[contractDocumentId]/route.ts). 라우트
@@ -135,7 +134,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
                     href={`/contracts/${c.contractId}/documents/${d.contractDocumentId}${storeQuery}`}
                     className="inline-flex h-[36px] shrink-0 items-center rounded-[10px] border border-staff-border bg-white px-[12px] text-[13px] font-semibold text-staff-text active:bg-staff-primary-inactive"
                   >
-                    받기<span className="sr-only"> · {documentKindLabel(d.kind, labelOf(documentKinds, d.kind))}</span>
+                    받기<span className="sr-only"> · {labelOf(documentKinds, d.kind)}</span>
                   </a>
                 </li>
               ))}
