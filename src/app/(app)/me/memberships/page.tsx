@@ -7,7 +7,7 @@ import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { kstToday } from "@/lib/join";
 import { getMyInvitations } from "@/lib/my-invitations";
 import { getMyMemberships } from "@/lib/my-profile";
-import { dateLabel, kstDateTimeLabel } from "@/lib/profile";
+import { dateLabel, kstDateTimeLabel, membershipStatusOf } from "@/lib/profile";
 
 export const metadata: Metadata = { title: "소속 근무지 · Whale ERP" };
 
@@ -26,9 +26,7 @@ export default async function MembershipsPage() {
     getMyInvitations(),
     getEnumOrEmpty("EmploymentType"),
   ]);
-  // 퇴직일이 오늘(한국 날짜)보다 앞이면 퇴직, 오늘 · 뒤면 퇴직 예정(그날까지 일한다).
   const today = kstToday();
-  const isRetired = (retiredDate: string | null) => retiredDate !== null && retiredDate < today;
   // api 가 보낸 때 최신순으로 주지만, 고정 칸의 순서는 이 화면의 약속이라 다시 맞춘다.
   const requests = invitations && [...invitations].sort((a, b) => b.sentAt.localeCompare(a.sentAt));
 
@@ -36,12 +34,11 @@ export default async function MembershipsPage() {
     <div className="flex flex-1 flex-col">
       <PageHeader title="소속 근무지" backHref="/me" />
       <div className="flex flex-col gap-[16px] px-[22px] pt-[22px] pb-[24px] leading-[1.5]">
-        {invitations === null ? (
+        {requests === null ? (
           <Alert tone="warning">
             <p>받은 초대를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>
           </Alert>
         ) : (
-          requests &&
           requests.length > 0 && (
             <section aria-labelledby="pending-requests" className="flex flex-col gap-[8px]">
               <h2 id="pending-requests" className="text-[13px] font-semibold text-staff-text-sub">
@@ -81,15 +78,17 @@ export default async function MembershipsPage() {
         ) : (
           <ul className="flex flex-col divide-y divide-staff-border-light rounded-[16px] border border-staff-border-light bg-white px-[16px]">
             {memberships.items.map((m) => {
-              const retired = isRetired(m.retiredDate);
+              const status = membershipStatusOf(m.retiredDate, today);
+              const retired = status === "retired";
               return (
                 <li key={m.staffMemberId} className="flex flex-col gap-[10px] py-[14px]">
-                  <div className={`flex items-start gap-[12px] ${retired ? "opacity-60" : ""}`}>
-                    <span className="flex pt-[3px] text-staff-text-sub">
+                  {/* 퇴직한 근무지는 흐리게 보이되 글자 대비가 떨어지지 않게 투명도 대신 흐린 글자 토큰을 쓴다. */}
+                  <div className="flex items-start gap-[12px]">
+                    <span className={`flex pt-[3px] ${retired ? "text-staff-text-muted" : "text-staff-text-sub"}`}>
                       <MaskIcon src="/icons/store-small.svg" size={18} />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-[15px] font-semibold">{m.store.storeName}</span>
+                      <span className={`block text-[15px] font-semibold ${retired ? "text-staff-text-sub" : ""}`}>{m.store.storeName}</span>
                       <span className="block text-[12px] text-staff-text-sub">
                         {labelOf(employmentTypes, m.employmentType)} · {m.jobTitle}
                         {retired && m.retiredDate
@@ -100,7 +99,7 @@ export default async function MembershipsPage() {
                     {/* 퇴직 예정도 소속이다(퇴직일까지). 배지 글자로 갈라 보인다. */}
                     {retired ? (
                       <Badge tone="plain">퇴직</Badge>
-                    ) : m.retiredDate ? (
+                    ) : status === "retiring" && m.retiredDate ? (
                       <Badge tone="waiting">{dateLabel(m.retiredDate)} 퇴직 예정</Badge>
                     ) : (
                       <Badge tone="working">근무 중</Badge>

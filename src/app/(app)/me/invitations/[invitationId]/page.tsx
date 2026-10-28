@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Alert, Dock } from "@/components/common";
+import { AuthScreen } from "@/app/(auth)/_components/auth-screen";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { getMyInvitations } from "@/lib/my-invitations";
 import { kstDateTimeLabel } from "@/lib/profile";
@@ -19,16 +19,11 @@ export default async function InvitationPage({ params }: PageProps<"/me/invitati
   const [invitations, employmentTypes] = await Promise.all([getMyInvitations(), getEnumOrEmpty("EmploymentType")]);
   if (invitations === null)
     return (
-      <div className="flex flex-1 flex-col">
-        <div className="flex flex-col gap-[16px] px-[24px] pt-[52px] pb-[24px] leading-[1.5]">
-          <Alert tone="warning">
-            <p>받은 초대를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>
-          </Alert>
-        </div>
-        <Dock>
-          <BackToMemberships />
-        </Dock>
-      </div>
+      <AuthScreen
+        title="받은 초대를 불러오지 못했습니다"
+        description="잠시 뒤 다시 열어 주세요."
+        dock={<BackToMemberships />}
+      />
     );
   const invitation = invitations.find((i) => i.invitationId === invitationId);
   if (!invitation) return <InvitationEnded />;

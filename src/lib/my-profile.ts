@@ -5,7 +5,7 @@ import { authedRequest } from "./session";
 export const getMyProfile = () => authedRequest<Schemas["MyProfileResponseDto"]>("/me/profile");
 
 /** 5xx · 연결 실패만 null 로 바꾼다 — 그 칸만 「불러오지 못했다」로 보이고 화면 전체를 오류로 만들지 않는다. 그 밖은 던진다. */
-async function orNull<T>(load: () => Promise<T>): Promise<T | null> {
+export async function orNull<T>(load: () => Promise<T>): Promise<T | null> {
   try {
     return await load();
   } catch (error) {
