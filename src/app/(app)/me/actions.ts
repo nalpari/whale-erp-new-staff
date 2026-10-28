@@ -45,8 +45,10 @@ export type ConsentChangeResult = { ok: true } | { ok: false; error: string };
 export async function changeConsentAction(change: ConsentChange, termsVersion?: string | null): Promise<ConsentChangeResult> {
   // 서버 액션은 누구나 직접 부를 수 있어 값을 다시 거른다.
   if (!isConsentChange(change)) return { ok: false, error: "잘못된 요청입니다" };
-  if (termsVersion != null && (typeof termsVersion !== "string" || termsVersion.length > 64)) return { ok: false, error: "잘못된 요청입니다" };
-  const json = change === "location-agree" && termsVersion ? { termsVersion } : undefined;
+  if (termsVersion != null && (typeof termsVersion !== "string" || termsVersion === "" || termsVersion.length > 64))
+    return { ok: false, error: "잘못된 요청입니다" };
+  // 위치정보 동의는 보인 약관이 없었어도(null) 늘 싣는다 — api 는 빠지면 400, null 이면 그사이 시행된 약관이 있을 때 409 다(api #185)
+  const json = change === "location-agree" ? { termsVersion: termsVersion ?? null } : undefined;
   try {
     await authedRequest(CONSENT_CHANGES[change].path, { method: "POST", json, clientIp: clientIpFrom(await headers()) });
   } catch (error) {

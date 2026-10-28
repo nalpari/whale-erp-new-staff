@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-28
+* **Fix**: api #185 머지 블로커에 맞춤 — 위치정보 동의 요청에 `termsVersion` 을 null 까지 늘 싣는다(api 가 칸을 필수로 바꿨다) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: main 병합(dewgong, main #38 소속 추가 확인까지) — okf 충돌은 양쪽 기록을 살렸다(출퇴근 줄은 이쪽, 소속 추가 확인 줄 · 출처는 main) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Fix**: PR #45 머지 블로커(⑥ 3차) — 위치정보 동의는 시트에 보인 약관 버전(`termsVersion`)을 함께 보낸다(출퇴근 · 내 정보). 시트를 연 사이 api 가 약관을 바꿨으면 api #185 가 409 로 거절하고 다시 받은 화면이 새 문구를 보인다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Fix**: PR #45 머지 블로커(⑥ 재리뷰) — 위치정보 동의 시트 문구 · 표를 시행 중인 약관 버전으로 나눈다(v1.1 미만이면 v1.0 문구). api 가 동의를 시행 중인 버전으로 기록하므로, 배포 사이 · 롤백에 보인 고지와 기록이 어긋나지 않게 — [Whale ERP Staff](/whale-erp-staff.md).

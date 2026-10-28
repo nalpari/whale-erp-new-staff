@@ -89,7 +89,7 @@ export function addressSaveFailure(failure: ApiFailure): { error: string; log: b
 
 /**
  * 동의 바꾸기(ATT-23 · 26 · 30)와 그 api 경로 · 끝난 뒤 알림 문구. 모두 POST · 204, 상태가 맞지 않으면 409 다. 본문은 없고
- * 위치정보 동의만 시트에 보인 약관 버전 `{ termsVersion }` 을 싣는다(다르면 409, api #185)
+ * 위치정보 동의만 시트에 보인 약관 버전 `{ termsVersion }` 을 늘 싣는다(보인 약관이 없으면 null, 다르면 409, api #185)
  * (2026-10-20 api 확정). 알림 문구는 데모 me 의 토스트를 따르되, 처음 동의하는 경우도 있어 「다시」는 뺐다(다시 켜기는 데모에 없어 지었다).
  */
 export const CONSENT_CHANGES = {
