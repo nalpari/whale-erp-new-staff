@@ -37,7 +37,7 @@ export async function saveAddressAction(_previous: AddressSaveState, formData: F
 /** 동의 바꾸기 결과. 끝난 뒤 알림 문구는 화면이 CONSENT_CHANGES 에서 읽는다(출처 한 곳). */
 export type ConsentChangeResult = { ok: true } | { ok: false; error: string };
 
-/** 위치정보 동의 · 잠시 멈춤 · 다시 켜기 · 철회, 본사 제공 동의 · 철회(ATT-23 · 26 · 30). 성공하거나 상태가 낡았으면(409) 화면을 다시 받는다. */
+/** 위치정보 동의 · 일시 중지 · 다시 켜기 · 철회, 본사 제공 동의 · 철회(ATT-23 · 26 · 30). 성공하거나 상태가 낡았으면(409) 화면을 다시 받는다. */
 export async function changeConsentAction(change: ConsentChange): Promise<ConsentChangeResult> {
   // 서버 액션은 누구나 직접 부를 수 있어 값을 다시 거른다.
   if (!isConsentChange(change)) return { ok: false, error: "잘못된 요청입니다" };
