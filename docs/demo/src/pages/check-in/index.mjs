@@ -5,7 +5,7 @@
 // 퇴근 되돌리기 없음(ATT-10) · 반경 밖도 출근·퇴근 모두 확인 필요로(ATT-11, 2026-10-20) · 위치 조작 감지는 출근 막고 퇴근은 확인 필요(운영 정책 ATT-21) ·
 // 위치는 출근·퇴근 버튼을 누를 때만 읽고 읽을 때마다 확인자료를 남긴다 · 「위치 다시 확인」 버튼 없음(운영 정책 ATT-22, 2026-10-26) ·
 // 위치정보 동의는 첫 출근 등록 때 필수, 거부·철회 시 「근무지 관리자에게 문의」, 다시 동의는 직원이 직접(운영 정책 ATT-06·20, ME-5) · 일시 중지 중엔 대신 등록 안내,
-// 「다시 켜기」로 재동의 없이 복귀(운영 정책 ATT-26) · 등록 화면의 「○○점 관리자가 확인합니다」 한 줄(운영 정책 ATT-25).
+// 「다시 켜기」로 재동의 없이 복귀(운영 정책 ATT-26) · 근무 중 화면의 「근무지 관리자가 확인합니다」 한 줄(운영 정책 ATT-25).
 // 동의 문구는 법무 검토 중이라(ATT-8) 시트에 그대로 적었다.
 // 모양: 매장 안(ready)은 Figma 04.출퇴근(node 12:756)을 따른다. 나머지 상태와 시트는 Figma 없음 — DESIGN.md 기준 초안.
 // 목업과 다른 점: 퇴근하기는 목업의 테두리 버튼 대신 DESIGN.md 의 주 버튼이다. 하단 메뉴 「출퇴근」 칸 화면이다(2026-10-08 다섯 칸).
@@ -49,7 +49,7 @@ const SHEET_BASE = {
 const VIEW_SHEETS = { far: ["hifar"], ready: ["dup"], working: ["bye"], "far-out": ["byefar"], "spoof-out": ["byespoof"] };
 
 // 운영 정책 ATT-25: 등록 화면마다 받는 사람·목적을 알리는 한 줄.
-const ADMIN_NOTE = "출퇴근 기록은 근태 확인을 위해 강남역점 관리자가 확인합니다.";
+const ADMIN_NOTE = "출퇴근 기록은 근무지 관리자가 확인합니다.";
 
 const go = (id, toast) => ({ "data-go": id, "data-toast": toast });
 const ghost = (label, a = {}) => button(label, { variant: "ghost", ...a });
@@ -103,16 +103,16 @@ const clock = (label, time, { note, dim = false } = {}) =>
     note ? `<p class="pt-[30px] text-[12px] text-staff-text-sub">${note}</p>` : ""
   }</section>`;
 
-// 근무 경과: 단위만 17px.
+// 근무 시간: 단위만 17px.
 const elapsed = () =>
-  `<section class="flex flex-col items-center py-[14px] text-center"><h2 class="text-[13px] font-semibold text-staff-text-sub">근무 경과</h2><p class="text-[42px] leading-[1.1] font-bold">6<span class="text-[17px]">시간 </span>41<span class="text-[17px]">분</span></p><p class="pt-[4px] text-[12px] text-staff-text-sub">현재 시각 15:43</p></section>`;
+  `<section class="flex flex-col items-center py-[14px] text-center"><h2 class="text-[13px] font-semibold text-staff-text-sub">근무 시간</h2><p class="text-[42px] leading-[1.1] font-bold">6<span class="text-[17px]">시간 </span>41<span class="text-[17px]">분</span></p><p class="pt-[4px] text-[12px] text-staff-text-sub">현재 시각 15:43</p></section>`;
 
-// 퇴근 시트의 출근 시각 · 지금까지.
+// 퇴근 시트의 출근 시각 · 근무 시간.
 const punchSummary = () =>
   sunken(
     values([
       ["출근", "09:02"],
-      ["지금까지", "6시간 41분"],
+      ["근무 시간", "6시간 41분"],
     ]),
   );
 
@@ -122,9 +122,9 @@ const VIEWS = {
       // 위치는 출근하기를 누를 때만 읽는다 — 화면을 열 때는 읽지 않는다(운영 정책 ATT-22, 2026-10-26)
       geoBlank("text-staff-placeholder", "출근하기를 누르면 위치를 확인합니다") +
         siteCard("웨일카페 강남역점", "출근하기를 누를 때 매장 안인지 확인합니다") +
-        // 오늘 예정 근무(Figma node 12:957 아래 카드)
-        `<section class="flex flex-col gap-[7px] rounded-[18px] border border-staff-border-light bg-white p-[20px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">오늘 예정 근무</h2><div class="flex items-center gap-[8px]"><p class="min-w-0 flex-1 text-[20px] font-bold tracking-[-0.42px]">09:00 – 18:00</p><span class="rounded-[8px] bg-staff-info-bg px-[10px] py-[4px] text-[12px] font-semibold text-staff-text-sub">휴게 60분</span></div></section>` +
-        clock("현재 시각", "08:52", { note: "기록 시각은 서버가 요청을 받은 때로 정해집니다" }),
+        // 오늘 근무(Figma node 12:957 아래 카드)
+        `<section class="flex flex-col gap-[7px] rounded-[18px] border border-staff-border-light bg-white p-[20px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">오늘 근무</h2><div class="flex items-center gap-[8px]"><p class="min-w-0 flex-1 text-[20px] font-bold tracking-[-0.42px]">09:00 – 18:00</p><span class="rounded-[8px] bg-staff-info-bg px-[10px] py-[4px] text-[12px] font-semibold text-staff-text-sub">휴게 60분</span></div></section>` +
+        clock("현재 시각", "08:52"),
       { variant: "detail" },
     ) +
     // 출근은 확인 없이 바로 기록한다(ATT-9 · 운영 정책 ATT-13).
@@ -137,7 +137,7 @@ const VIEWS = {
           schedule: { start: "09:00", end: "18:00" },
           worked: { start: "09:02", end: "15:43" },
           ongoing: true,
-        })}<p class="text-[12px] text-staff-text-muted">점선은 예정, 채운 칠은 실제 기록입니다</p></section>` +
+        })}<p class="text-[12px] text-staff-text-muted">점선은 예정, 채운 막대는 실제 근무입니다</p></section>` +
         elapsed() +
         `<p class="text-center text-[12px] text-staff-text-muted">${ADMIN_NOTE}</p>`,
       { variant: "detail" },
@@ -145,7 +145,7 @@ const VIEWS = {
 
   done: () =>
     body(
-      clock("퇴근 기록", "18:04") +
+      clock("퇴근 시각", "18:04") +
         sunken(
           values([
             ["근무지", "웨일카페 강남역점"],
@@ -153,7 +153,7 @@ const VIEWS = {
             ["근무 시간", "9시간 02분"],
           ]),
         ) +
-        `<p class="text-[12px] text-staff-text-muted">기록이 저장되었습니다. ${ADMIN_NOTE}</p>`,
+        `<p class="text-[12px] text-staff-text-muted">오늘도 수고하셨습니다.</p>`,
       { variant: "detail", center: true },
     ) + dock(ghost("홈으로", { href: page("home") }), 30),
 
@@ -162,7 +162,7 @@ const VIEWS = {
       geoMap("out", "매장까지 240m") +
         alert(
           "warning",
-          "<strong>매장에서 240m 떨어져 있습니다.</strong><br>이대로 출근하면 기록에 <strong>확인 필요</strong>가 붙고 관리자가 확인합니다. 근무지가 맞는지 한 번 더 확인해 주세요.",
+          "<strong>매장 범위 밖입니다.</strong><br>여기서 출근하면 <strong>관리자 확인이 필요한 기록</strong>으로 남습니다.<br>근무지가 맞는지 확인해 주세요.",
         ) +
         `<section class="flex flex-col rounded-[18px] border border-staff-border-light bg-white p-[20px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">근무지</h2><p class="pt-[6px] text-[16px] font-bold">웨일카페 강남역점</p><p class="pt-[3px] text-[12px] text-staff-text-muted">서울 강남구 테헤란로 1길</p></section>` +
         clock("현재 시각", "08:47", { dim: true }),
@@ -174,7 +174,7 @@ const VIEWS = {
     body(
       geoMap("out", "매장까지 240m") +
         siteCard("근무 중", "09:02에 출근했습니다") +
-        alert("warning", "<strong>매장 범위 밖입니다.</strong><br>퇴근은 여기서도 등록할 수 있습니다. 다만 기록에 <strong>확인 필요</strong>가 붙고 관리자가 확인합니다.") +
+        alert("warning", "<strong>매장 범위 밖입니다.</strong><br>여기서 퇴근하면 <strong>관리자 확인이 필요한 기록</strong>으로 남습니다.") +
         elapsed(),
       { variant: "detail" },
     ) + dock(button("퇴근하기", { "data-open": "byefar" }), 30),
@@ -182,22 +182,14 @@ const VIEWS = {
   denied: () =>
     body(
       geoBlank("text-staff-placeholder", "위치를 확인할 수 없습니다") +
-        alert("danger", "<strong>위치 권한이 꺼져 있습니다.</strong><br>출퇴근은 매장에 있는지를 위치로 확인합니다. 설정에서 위치 접근을 허용해 주세요.") +
-        sunken("매장에 있는지를 위치로만 확인하기 때문에, 권한이 없으면 출퇴근을 등록할 수 없습니다. 설정에서 위치 접근을 허용한 뒤 다시 시도해 주세요.", {
-          prose: true,
-          label: "권한이 필요한 이유",
-        }),
+        alert("danger", "<strong>위치 권한이 꺼져 있습니다.</strong><br>출퇴근하려면 설정에서 위치 접근을 허용해 주세요."),
       { variant: "detail" },
     ) + dock(button("설정 열기", go("ready", "위치 권한을 켰습니다")), 30),
 
   spoof: () =>
     body(
-      geoBlank("text-staff-error", "위치를 믿을 수 없습니다") +
-        alert("danger", "<strong>모의 위치가 켜져 있습니다.</strong><br>모의 위치를 끈 뒤 출근을 다시 눌러 주세요.") +
-        sunken(
-          "출근은 매장에 실제로 왔는지를 위치로만 확인합니다. 기기가 꾸며 낸 위치로는 그것을 확인할 수 없어 등록을 받지 않습니다. <b>퇴근은 막지 않습니다</b> — 이미 일한 사실이 있어 기록을 남기는 편이 낫고, 대신 확인 필요가 붙습니다.",
-          { prose: true, label: "왜 막나요" },
-        ),
+      geoBlank("text-staff-error", "출근할 수 없습니다") +
+        alert("danger", "<strong>모의 위치가 켜져 있습니다.</strong><br>모의 위치 설정이나 가상 위치 앱을 끄고 다시 시도해 주세요."),
       { variant: "detail" },
     ) +
     // 모의 위치를 끈 뒤 누르는 확인 버튼은 두지 않는다 — 위치는 출근하기를 누를 때만 읽으므로, 모의 위치를 끄고 출근하기를 다시 누르면 된다(운영 정책 ATT-22, 2026-10-26).
@@ -205,18 +197,18 @@ const VIEWS = {
 
   "spoof-out": () =>
     body(
-      geoBlank("text-staff-warning", "위치를 믿을 수 없습니다") +
+      geoBlank("text-staff-warning", "모의 위치가 감지되었습니다") +
         siteCard("근무 중", "09:02에 출근했습니다") +
-        alert("warning", "<strong>모의 위치가 켜져 있습니다.</strong><br>퇴근은 등록할 수 있습니다. 다만 기록에 <strong>확인 필요</strong>가 붙고 관리자가 확인합니다.") +
+        alert("warning", "<strong>퇴근은 등록할 수 있습니다.</strong><br>다만 관리자 확인이 필요한 기록으로 남습니다.") +
         elapsed(),
       { variant: "detail" },
     ) + dock(button("퇴근하기", { "data-open": "byespoof" }), 30),
 
   paused: () =>
     body(
-      geoBlank("text-staff-warning", "위치를 읽지 않습니다") +
-        alert("warning", "<strong>잠시 멈춘 동안에는 앱으로 출퇴근을 등록할 수 없습니다.</strong><br>출퇴근 기록은 근무지 관리자에게 문의해 주세요.") +
-        sunken("동의는 그대로 남아 있어 <b>새로 동의하지 않아도 됩니다.</b> 내 정보에서도 켤 수 있습니다. 2026년 9월 29일 14:20 부터 일시 중지 상태입니다.", {
+      geoBlank("text-staff-warning", "위치 수집이 일시 중지되었습니다") +
+        alert("warning", "<strong>일시 중지 중에는 앱으로 출퇴근을 등록할 수 없습니다.</strong><br>다시 켜거나, 근무지 관리자에게 문의해 주세요.") +
+        sunken("<b>새로 동의하지 않아도 됩니다.</b><br>9월 29일 14:20부터 일시 중지 중입니다.", {
           prose: true,
           label: "다시 켜면 바로 등록할 수 있습니다",
         }),
@@ -227,16 +219,12 @@ const VIEWS = {
 
   "no-consent": () =>
     body(
-      geoBlank("text-staff-placeholder", "위치정보 동의가 없습니다") +
-        alert("danger", "<strong>위치정보 이용에 동의하지 않으면 앱으로 출퇴근을 등록할 수 없습니다.</strong><br>출퇴근 기록은 근무지 관리자에게 문의해 주세요.") +
-        sunken(
-          "휴대전화 위치 권한은 설정에서 켜면 바로 등록할 수 있습니다. 여기는 <b>위치정보 수집 동의 자체를 하지 않았거나 철회한</b> 경우라, 설정을 바꿔도 앱에서는 등록되지 않습니다. 내 정보의 「다시 동의하기」에서 직접 다시 동의할 수 있습니다.",
-          { prose: true, label: "권한을 끈 것과 다릅니다" },
-        ) +
-        `<section class="flex flex-col gap-[8px] rounded-[18px] border border-staff-border-light bg-white p-[20px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">기록은 이렇게 남습니다</h2><div class="flex gap-[8px] text-[13px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text"><span class="flex pt-[3px]">${maskIcon(
+      geoBlank("text-staff-placeholder", "위치정보 동의가 필요합니다") +
+        alert("danger", "<strong>동의하지 않으면 앱으로 출퇴근을 등록할 수 없습니다.</strong><br>다시 동의하거나 출퇴근을 기록하려면 근무지 관리자에게 문의해 주세요.") +
+        `<section class="flex flex-col gap-[8px] rounded-[18px] border border-staff-border-light bg-white p-[20px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">관리자가 대신 등록하면</h2><div class="flex gap-[8px] text-[13px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text"><span class="flex pt-[3px]">${maskIcon(
           "pencil.svg",
           14,
-        )}</span><p class="min-w-0 flex-1">문의를 받은 관리자가 <b>대신 등록</b>하면 출퇴근 현황에 연필 표시로 보이고, 누르면 누가 언제 왜 등록했는지 볼 수 있습니다.</p></div></section>`,
+        )}</span><p class="min-w-0 flex-1">관리자가 <b>대신 등록</b>한 기록은 출퇴근 현황에 연필 표시로 보입니다.</p></div></section>`,
       { variant: "detail" },
     ),
 
@@ -247,113 +235,112 @@ const VIEWS = {
         "store.svg",
         30,
         true,
-      )}</span><h2 class="pt-[6px] text-[18px] font-bold">근무지가 없습니다</h2><p class="max-w-[250px] text-[14px] text-staff-text-sub">연결된 근무지가 없어 출퇴근을 등록할 수 없습니다. 받은 급여명세서는 급여 탭에서 볼 수 있습니다.</p></div>`,
+      )}</span><h2 class="pt-[6px] text-[18px] font-bold">근무가 종료되었습니다</h2><p class="max-w-[250px] text-[14px] text-staff-text-sub">급여명세서는 보존 기간(3년) 동안<br>급여 탭에서 확인할 수 있습니다.</p></div>`,
       { variant: "detail", center: true },
     ),
 };
 
-// ── 시트 ── 퇴근은 확인 시트를 한 번 거친다(ATT-9). 버튼 이름은 「퇴근 확정」과 「아직 아닙니다」.
+// ── 시트 ── 퇴근은 확인 시트를 한 번 거친다(ATT-9). 버튼 이름은 「퇴근하기」와 「취소」.
 // 시트 안에서 다른 상태로 옮기는 버튼은 data-close 를 함께 단다(시트를 닫고 그 상태로).
 const close = (a = {}) => ({ ...a, "data-close": true });
 const SHEETS = {
   bye: (a) =>
     bottomSheet(
       "bye",
-      { title: "퇴근할까요", description: "퇴근을 등록하면 오늘 근무가 끝납니다. 뒤에 다시 출근하려면 새로 등록해야 합니다.", closeLabel: "아직 아닙니다", ...a },
-      punchSummary() + button("퇴근 확정", close(go("done", "퇴근을 등록했습니다"))),
+      { title: "퇴근하시겠습니까?", description: "퇴근하면 오늘 근무가 종료됩니다.<br>다시 출근하려면 출근을 새로 등록해야 합니다.", closeLabel: "취소", ...a },
+      punchSummary() + button("퇴근하기", close(go("done", "퇴근을 등록했습니다"))),
     ),
   // 범위 밖 출근(ATT-11, 2026-10-20 재영): 확인 필요로 받는다. 근무지 자동 선택이 없어(ATT-07) 출근할 근무지 이름을 크게 보인다.
   hifar: (a) =>
     bottomSheet(
       "hifar",
       {
-        title: "매장 범위 밖에서 출근할까요",
-        description: "이대로 등록하면 기록에 확인 필요가 붙고 관리자가 확인합니다.",
-        closeLabel: "아직 아닙니다",
+        title: "매장 범위 밖에서 출근하시겠습니까?",
+        description: "관리자 확인이 필요한 기록으로 남습니다.",
+        closeLabel: "취소",
         ...a,
       },
       sunken(
-        `<p class="text-[16px] font-bold">웨일카페 강남역점</p><p class="pt-[3px] text-[12px] text-staff-text-muted">근무지가 다르면 닫고 홈이나 근무 정보에서 바꿔 주세요</p>`,
+        `<p class="text-[16px] font-bold">웨일카페 강남역점</p><p class="pt-[3px] text-[12px] text-staff-text-muted">근무지가 다르면 취소한 뒤 홈에서 근무지를 바꿔 주세요.</p>`,
         { label: "출근할 근무지", prose: true },
       ) +
-        alert("warning", "매장까지 240m · 범위 100m 밖입니다") +
-        button("출근 확정", close(go("working", "확인 필요로 출근을 등록했습니다"))),
+        alert("warning", "매장까지 240m · 출퇴근 범위 100m") +
+        button("출근하기", close(go("working", "출근을 등록했습니다 (관리자 확인 필요)"))),
     ),
   byefar: (a) =>
     bottomSheet(
       "byefar",
       {
-        title: "매장 범위 밖에서 퇴근할까요",
-        description: "이대로 등록하면 기록에 확인 필요가 붙고 관리자가 확인합니다. 퇴근을 등록하면 오늘 근무가 끝납니다.",
-        closeLabel: "아직 아닙니다",
+        title: "매장 범위 밖에서 퇴근하시겠습니까?",
+        description: "관리자 확인이 필요한 기록으로 남습니다.<br>퇴근하면 오늘 근무가 종료됩니다.",
+        closeLabel: "취소",
         ...a,
       },
-      punchSummary() + alert("warning", "매장까지 240m · 범위 100m 밖입니다") + button("퇴근 확정", close(go("done", "확인 필요로 퇴근을 등록했습니다"))),
+      punchSummary() + alert("warning", "매장까지 240m · 출퇴근 범위 100m") + button("퇴근하기", close(go("done", "퇴근을 등록했습니다 (관리자 확인 필요)"))),
     ),
   byespoof: (a) =>
     bottomSheet(
       "byespoof",
       {
-        title: "확인 필요로 퇴근할까요",
-        description:
-          "모의 위치가 켜져 있어 지금 위치를 믿을 수 없습니다. 이대로 등록하면 기록에 확인 필요가 붙고 관리자가 확인합니다. 퇴근을 등록하면 오늘 근무가 끝납니다.",
-        closeLabel: "아직 아닙니다",
+        title: "모의 위치 상태로 퇴근하시겠습니까?",
+        description: "관리자 확인이 필요한 기록으로 남습니다.<br>퇴근하면 오늘 근무가 종료됩니다.",
+        closeLabel: "취소",
         ...a,
       },
-      punchSummary() + alert("warning", "확인 필요 사유 · 위치 조작 감지") + button("퇴근 확정", close(go("done", "확인 필요로 퇴근을 등록했습니다"))),
+      punchSummary() + alert("warning", "사유 · 모의 위치 감지") + button("퇴근하기", close(go("done", "퇴근을 등록했습니다 (관리자 확인 필요)"))),
     ),
-  // 위치정보 동의(운영 정책 ATT-06): 서비스 약관과 따로, 첫 출근 등록 때 필수. 닫기는 다음에 정하는 것이고 거부는 「동의하지 않음」이다.
+  // 위치정보 동의(운영 정책 ATT-06): 서비스 약관과 따로, 첫 출근 등록 때 필수. 닫기는 다음에 정하는 것이고 거부는 「동의하지 않습니다」이다.
   consent: (a) =>
     bottomSheet(
       "consent",
-      { title: "위치정보 수집에 동의해 주세요", ...a },
-      `<p class="text-[14px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text">출근 · 퇴근 버튼을 누를 때 <b>매장 안인지</b>를 위치로 확인합니다. <b>위치는 휴대전화 안에서만 확인하고 서버로 보내지 않습니다.</b> 기록에는 <b>출퇴근 시각</b>이 남습니다. 반경 밖이면 <b>확인 필요 표시만</b> 남고 관리자 검토 뒤 지웁니다.</p>${sunken(
+      { title: "위치정보 수집·이용 동의", ...a },
+      `<p class="text-[14px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text">출퇴근을 등록할 때 <b>매장 안에 있는지</b> 위치로 확인합니다.<br>위치는 <b>휴대전화 안에서만 확인</b>하고 서버로 보내지 않습니다.</p>${sunken(
         values([
-          ["쓰는 곳", "출퇴근 등록 판정"],
-          ["남기는 것", "출퇴근 시각 · 반경 밖이면 확인 필요 표시(관리자 검토 뒤 지움)"],
-          ["동의 철회", "내 정보에서 언제든"],
+          ["이용 목적", "출퇴근 위치 확인"],
+          ["저장 항목", "출퇴근 시각 (위치는 저장하지 않음)"],
+          ["동의 철회", "내 정보에서 언제든 가능"],
         ]),
-      )}<p class="text-[12px] font-bold text-staff-text-sub">동의해야 앱으로 출퇴근을 등록할 수 있습니다.</p><p class="text-[12px] text-staff-text-sub">서비스 약관과 따로 받는 동의입니다. 동의하지 않으면 출퇴근 기록을 근무지 관리자에게 문의해야 합니다. <span class="text-staff-text-muted">위치정보 수집·이용 동의 v1.2</span></p><p class="text-[12px] text-staff-text-muted">동의서 항목·문구는 법무 검토 중(ATT-8)</p>${button(
+      )}<p class="text-[12px] font-bold text-staff-text-sub">동의하지 않으면 앱으로 출퇴근을 등록할 수 없으며,<br>근무지 관리자에게 기록을 요청해야 합니다.</p><p class="text-[12px] text-staff-text-sub">서비스 약관과 별도로 받는 동의입니다. <span class="text-staff-text-muted">위치정보 수집·이용 동의 v1.2</span></p><p class="text-[12px] text-staff-text-muted">동의서 항목·문구는 법무 검토 중(ATT-8)</p>${button(
         "동의합니다",
         close({ "data-toast": "위치정보 수집에 동의했습니다" }),
-      )}${ghost("동의하지 않음", close({ "data-go": "no-consent" }))}`,
+      )}${ghost("동의하지 않습니다", close({ "data-go": "no-consent" }))}`,
     ),
   dup: (a) =>
     bottomSheet(
       "dup",
-      { title: "이미 출근해 있습니다", description: "오늘 09:02에 웨일카페 강남역점으로 출근한 기록이 열려 있습니다. 퇴근을 먼저 등록해 주세요.", ...a },
-      sunken(values([["열린 출근", "09:02"]])) + button("퇴근하러 가기", close({ "data-go": "working" })),
+      { title: "이미 출근했습니다", description: "오늘 09:02에 웨일카페 강남역점에 출근했습니다.<br><strong>퇴근을 먼저 등록해 주세요.</strong>", ...a },
+      button("퇴근하러 가기", close({ "data-go": "working" })),
     ),
   nopunch: (a) =>
     bottomSheet(
       "nopunch",
       {
         title: "출근 기록이 없습니다",
-        description: "퇴근은 열려 있는 출근 기록이 있어야 등록할 수 있습니다. 오늘 출근을 찍지 않았다면 근무지 관리자에게 문의해 주세요.",
+        description: "출근을 등록해야 퇴근할 수 있습니다.<br><strong>오늘 출근을 등록하지 못했다면 관리자에게 알려 주세요.</strong>",
         ...a,
       },
       // 「관리자에게 알리기」는 1차에 두지 않는다(HIST-3)
-      sunken("관리자는 최근 3개월 안의 기록을 수정할 수 있습니다.", { prose: true }),
+      sunken("관리자는 최근 3개월 이내의 기록만 수정할 수 있습니다.", { prose: true }),
     ),
   // 경고 판: 상태 칩의 지각·긴급 색(#FFF6E5 · #956013). 카드 전체가 계약서로 가는 링크.
   nocontract: (a) =>
     bottomSheet(
       "nocontract",
       {
-        title: "근로계약을 체결해야 출근할 수 있습니다",
-        description: "오늘 날짜가 들어간 체결 완료 근로계약이 있어야 출퇴근을 등록할 수 있습니다. 받은 계약서를 날인하면 바로 출근할 수 있습니다.",
+        title: "근로계약서 서명이 필요합니다",
+        description: "근로계약서에 서명해야 출퇴근을 등록할 수 있습니다.",
         ...a,
       },
-      `<a href="${page("contract")}" class="flex min-h-[52px] items-center gap-[12px] rounded-[12px] bg-[#fff6e5] p-[14px] text-[#956013]"><span class="min-w-0 flex-1"><span class="block text-[14px] font-semibold">근로계약서 1건 대기</span><span class="block text-[12px]">남은 기한 26일</span></span>${maskIcon(
+      `<a href="${page("contract")}" class="flex min-h-[52px] items-center gap-[12px] rounded-[12px] bg-[#fff6e5] p-[14px] text-[#956013]"><span class="min-w-0 flex-1"><span class="block text-[14px] font-semibold">서명할 근로계약서 1건</span><span class="block text-[12px]">서명 기한 26일 남음</span></span>${maskIcon(
         "chevron-right-small.svg",
         12,
-      )}</a>${button("계약서 보기", { href: page("contract") })}`,
+      )}</a>${button("계약서 서명하기", { href: page("contract") })}`,
     ),
   noperiod: (a) =>
     bottomSheet(
       "noperiod",
-      { title: "오늘은 근로계약 기간이 아닙니다", description: "오늘 날짜가 들어간 체결 완료 근로계약이 있어야 출퇴근을 등록할 수 있습니다.", ...a },
-      sunken("근무지 관리자에게 문의해 주세요.", { prose: true }),
+      { title: "오늘은 근로계약 기간이 아닙니다", description: "근로계약 기간에만 출퇴근을 등록할 수 있습니다.<br><strong>근무지 관리자에게 문의해 주세요.</strong>", ...a },
+      "",
     ),
 };
 
