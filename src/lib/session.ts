@@ -1,6 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ApiError, request, type RequestOptions, type Schemas } from "./api";
+import { clearMyInvitation } from "./invitation-cookie";
 import { CURRENT_PATH_HEADER, withNext } from "./login-return";
 import {
   ACCESS_TOKEN_COOKIE,
@@ -87,9 +88,13 @@ export async function requireSession(): Promise<Session> {
   return session;
 }
 
-/** 서버 액션 · 라우트 핸들러에서만 부른다. device_id · saved_email(아이디 저장)은 남긴다. */
+/**
+ * 서버 액션 · 라우트 핸들러에서만 부른다. device_id · saved_email(아이디 저장)은 남긴다. 근무지 추가에서 확인한 초대(my_invitation)는
+ * 그 계정의 것이라 함께 지운다 — 같은 기기의 다음 계정이 앞 계정의 코드로 확인을 부르지 않게(WHALEERP-604 리뷰).
+ */
 export async function clearSession(): Promise<void> {
   clearSessionCookies(await cookies());
+  await clearMyInvitation();
 }
 
 /** 서버 액션에서만 부른다(없으면 만들어 굽는다). */

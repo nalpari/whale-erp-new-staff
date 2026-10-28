@@ -61,8 +61,8 @@ export function parseInvitationLookup(raw: string | undefined): InvitationLookup
  */
 export type MyInvitationLookup = { token: string } | { code: string };
 
-/** 로그인한 직원의 근무지 추가 화면(초대 코드 입력). 확인 · 완료 화면은 그 아래다. */
-export const ADD_WORKPLACE_PATH = "/me/memberships/add";
+/** 로그인한 직원의 근무지 추가 화면(초대 코드 입력). 확인 · 완료 화면은 그 아래다. 라우트는 api 자원(/me/invitations)과 같게 둔다. */
+export const ADD_WORKPLACE_PATH = "/me/invitations";
 
 /** 근무지 추가 쿠키의 값. 모양이 다르면 없는 것으로 본다. */
 export function parseMyInvitationLookup(raw: string | undefined): MyInvitationLookup | null {

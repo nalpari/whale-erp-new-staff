@@ -9,7 +9,7 @@ import { checkMyInviteCodeAction, type AddCodeState } from "./actions";
 import { AlreadyJoined, BackToMemberships } from "./screens";
 
 // 근무지 추가의 초대 코드 입력(WHALEERP-604). 가입 첫 단계(join/invite-code-form.tsx)와 같고 휴대전화번호 칸만 없다 — api 가
-// 계정의 번호로 찾는다. 맞으면 서버 액션이 초대 확인(add/confirm)으로 보낸다. 코드 칸은 상태로 든다(틀렸을 때 넣은 값을 둔다).
+// 계정의 번호로 찾는다. 맞으면 서버 액션이 초대 확인(invitations/confirm)으로 보낸다. 코드 칸은 상태로 든다(틀렸을 때 넣은 값을 둔다).
 export function AddCodeForm() {
   const [state, formAction, pending] = useActionState<AddCodeState, FormData>(checkMyInviteCodeAction, { step: "input" });
   const [code, setCode] = useState("");

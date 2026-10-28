@@ -1,7 +1,7 @@
 # Bundle history
 
 ## 2026-10-28
-* **Update**: 로그인 뒤 초대 코드로 근무지 추가(WHALEERP-604) — 소속 근무지의 「초대 코드로 근무지 추가」 → 코드 · 확인 · 완료 화면, 로그인한 채 연 초대 링크와 가입 중 「이미 계정이 있습니다」의 로그인 뒤 이어 가기 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 로그인 뒤 초대 코드로 근무지 추가(WHALEERP-604) — 소속 근무지의 「초대 코드로 근무지 추가」 → 코드 · 확인 · 완료 화면, 로그인한 채 연 초대 링크와 가입 중 「이미 계정이 있습니다」의 로그인 뒤 이어 가기. 라우트는 `/me/invitations`, 확인한 초대 쿠키는 로그아웃 때 지운다 — [Whale ERP Staff](/whale-erp-staff.md).
 
 ## 2026-10-27
 * **Update**: 출퇴근 현황 — 확인 필요 사유 「근무 12시간 초과」(api `LONG_SHIFT`, 출근부터 12시간 넘은 퇴근, 2026-10-27 재영)의 시트 제목 · 설명을 더했다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).

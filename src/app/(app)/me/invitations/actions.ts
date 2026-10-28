@@ -18,7 +18,7 @@ import { CONNECTION_FAILED_MESSAGE } from "@/app/(auth)/_components/auth-screen"
 const CODE_MISMATCH = "초대 코드를 다시 확인해 주세요. 이 계정의 휴대전화번호로 받은 초대만 더할 수 있습니다";
 
 /**
- * 초대 코드 입력 결과. 맞으면 초대를 쿠키에 두고 초대 확인(add/confirm)으로 가므로 상태로 돌아오지 않는다.
+ * 초대 코드 입력 결과. 맞으면 초대를 쿠키에 두고 초대 확인(invitations/confirm)으로 가므로 상태로 돌아오지 않는다.
  * - input: 입력 화면. field 가 code 면 칸 아래, form 이면 버튼 위 알림.
  * - locked: 계정 번호로 5번 틀려 30분 잠김. ended · joined: 끝난 초대 · 이미 가입을 마친 초대.
  */
@@ -55,7 +55,7 @@ export async function checkMyInviteCodeAction(_previous: AddCodeState, formData:
 }
 
 /**
- * 근무지 추가 확인의 「근무지 추가」 결과. 더하면 완료 화면(add/done)으로 가므로 상태로 돌아오지 않는다.
+ * 근무지 추가 확인의 「근무지 추가」 결과. 더하면 완료 화면(invitations/done)으로 가므로 상태로 돌아오지 않는다.
  * - expired: 초대 쿠키(30분)가 없다 — 처음부터 다시.
  * - not-mine: 로그인한 채 연 링크의 초대가 이 계정의 번호로 온 것이 아니다(링크의 토큰인데 404 INVITATION_NOT_FOUND).
  * 실패에서는 쿠키를 건드리지 않는다 — 지우면 Next 가 이 화면을 서버에서 다시 그려 안내가 덮인다(join/actions.ts 와 같다).

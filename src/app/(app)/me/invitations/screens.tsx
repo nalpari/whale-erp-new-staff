@@ -19,14 +19,17 @@ export const BackToMemberships = () => (
   </Button>
 );
 
-/** 이 초대의 근무지는 이미 이 계정에 이어졌다(먼저 더했거나 같은 초대로 동시에 눌렀다). */
+/**
+ * 이미 가입을 마친 초대(409). 먼저 더했거나 같은 초대로 동시에 눌렀을 때가 대부분이지만, api 는 번호를 대조하기 전에 초대 상태를
+ * 먼저 보므로 로그인한 채 연 남의 링크도 이리로 온다 — 이 계정에 이어졌다고 단정하지 않는다.
+ */
 export function AlreadyJoined() {
   const titleRef = useFocusedTitle();
   return (
     <AuthScreen
       titleRef={titleRef}
       title="이미 가입을 마친 초대입니다"
-      description="이 초대의 근무지는 이미 계정에 이어졌습니다. 근로계약을 체결하면 소속 근무지에 보입니다."
+      description="이 초대로는 이미 가입을 마쳤습니다. 이 계정으로 더한 근무지라면 근로계약을 체결한 뒤 소속 근무지에 보입니다."
       dock={
         <>
           <Button href={HOME_PATH} transitionTypes={["nav-forward"]}>
