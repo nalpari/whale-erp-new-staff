@@ -51,6 +51,7 @@ export function ContractDocument({ c, enums }: { c: ContractDetail; enums: Docum
           {c.workDays.length > 0 && (
             <>
               <table className="w-full border-collapse text-[13px] leading-[1.5]">
+                <caption className="sr-only">요일별 소정근로시간</caption>
                 <thead>
                   <tr className="border-b border-staff-border-light text-staff-text-muted">
                     {["요일", "시업", "종업", "휴게"].map((h) => (

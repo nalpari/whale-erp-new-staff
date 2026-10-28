@@ -1,9 +1,9 @@
 // 근로계약서 화면 규칙과 문구(WHALEERP-146). 상태 없는 순수 함수만 둔다 — 가져오기는 contracts.ts 다.
 // node --test 가 직접 읽으므로 값 import 는 같은 폴더의 순수 모듈(.ts 확장자)만 둔다.
-import { dateLabel, kstDateLabel } from "./profile.ts";
+import { formatWon } from "./payslip-rules.ts";
+import { KST_OFFSET_MS, dateLabel, kstDateLabel, kstDateTimeLabel } from "./profile.ts";
 import type { ContractDetail, ContractDocument, ContractListItem, ContractStatus, ContractWorkDay, Weekday } from "./contracts";
 
-const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_ID = 2_147_483_647;
 
@@ -16,6 +16,8 @@ const kstDay = (ms: number) => Math.floor((ms + KST_OFFSET_MS) / DAY_MS);
 export type Deadline = {
   /** 「2026년 9월 12일」(한국 날짜) */
   date: string;
+  /** 「2026년 9월 12일 10:23」(한국 시각) — api 의 기한은 발송 시각 + 30일 그 시각이라 하루 끝이 아니다 */
+  dateTime: string;
   /** 기한 날짜 − 오늘(한국 달력). 기한이 지났으면 의미 없다 */
   daysLeft: number;
   passed: boolean;
@@ -32,14 +34,19 @@ export function deadlineOf(c: Pick<ContractListItem, "status" | "signDeadlineAt"
   const at = Date.parse(c.signDeadlineAt);
   const passed = at <= now.getTime();
   const daysLeft = kstDay(at) - kstDay(now.getTime());
-  return { date: kstDateLabel(c.signDeadlineAt), daysLeft, passed, urgent: !passed && daysLeft <= URGENT_DAYS };
+  return { date: kstDateLabel(c.signDeadlineAt), dateTime: kstDateTimeLabel(c.signDeadlineAt), daysLeft, passed, urgent: !passed && daysLeft <= URGENT_DAYS };
 }
 
-/** 목록 줄 「서명 기한 2026년 9월 12일 · D-2」 · 상세 머리 「서명 기한 2026년 9월 12일 · 2일 남음」. 오늘이면 D-day · 오늘까지. */
+/**
+ * 목록 줄 「서명 기한 2026년 9월 12일 · D-2」, 기한 당일이면 시각까지 「서명 기한 2026년 9월 12일 10:23까지 · D-day」.
+ * 상세 머리 카드는 늘 시각까지 「서명 기한 2026년 9월 12일 10:23까지 · 2일 남음」(당일은 「오늘 마감」). 기한은 하루 끝이 아니라
+ * 발송 시각 + 30일 그 시각이라(api) 당일에 날짜만 보이면 저녁까지 남은 줄 안다.
+ */
 export function deadlineText(d: Deadline, style: "list" | "detail"): string {
-  if (d.passed) return `서명 기한 ${d.date} 지남`;
-  const left = style === "list" ? (d.daysLeft === 0 ? "D-day" : `D-${d.daysLeft}`) : d.daysLeft === 0 ? "오늘까지" : `${d.daysLeft}일 남음`;
-  return `서명 기한 ${d.date} · ${left}`;
+  const withTime = style === "detail" || d.daysLeft === 0;
+  if (d.passed) return `서명 기한 ${withTime ? d.dateTime : d.date} 지남`;
+  const left = style === "list" ? (d.daysLeft === 0 ? "D-day" : `D-${d.daysLeft}`) : d.daysLeft === 0 ? "오늘 마감" : `${d.daysLeft}일 남음`;
+  return `서명 기한 ${withTime ? `${d.dateTime}까지` : d.date} · ${left}`;
 }
 
 /** 「2026년 9월 15일 – 2027년 3월 14일」, 끝이 없으면 「2026년 3월 1일부터 · 기간 정함 없음」. */
@@ -112,8 +119,8 @@ const minutes = (hm: string) => Number(hm.slice(0, 2)) * 60 + Number(hm.slice(3,
 const dayHours = (d: ContractWorkDay) =>
   (minutes(d.endTime) - minutes(d.startTime) - (d.breakStartTime && d.breakEndTime ? minutes(d.breakEndTime) - minutes(d.breakStartTime) : 0)) / 60;
 
-/** 「5시간」 · 「7.5시간」 */
-export const hoursText = (hours: number) => `${Number(hours.toFixed(2))}시간`;
+/** 「5시간」 · 「7.5시간」 — 소수 한 자리, 끝의 0 은 지운다(7시간 20분 → 「7.3시간」). */
+export const hoursText = (hours: number) => `${Number(hours.toFixed(1))}시간`;
 
 export type WeekdayRow = { weekday: Weekday; start: string; end: string; rest: string; hours: string; off: boolean };
 
@@ -134,7 +141,7 @@ export function weekdayRows(workDays: readonly ContractWorkDay[], weeklyHoliday:
 export const weeklyHours = (workDays: readonly ContractWorkDay[]) => workDays.reduce((sum, d) => sum + dayHours(d), 0);
 
 /** 「10,320원」 */
-export const wonText = (amount: number) => `${amount.toLocaleString("ko-KR")}원`;
+export const wonText = (amount: number) => `${formatWon(amount)}원`;
 
 /** 임금 지급일 「익월 10일」 · 「당월 말일」(31 은 말일). payMonthLabel 은 enum 한글(PayMonth). */
 export function payDayText(payMonthLabel: string | null, payDay: number | null): string | null {
@@ -142,9 +149,10 @@ export function payDayText(payMonthLabel: string | null, payDay: number | null):
   return `${payMonthLabel} ${payDay === 31 ? "말일" : `${payDay}일`}`;
 }
 
-/** 수습 「3개월 · 시급의 10% 감액(수습 중 시급 9,288원)」. 수습이 없으면 null. */
+/** 수습 「3개월 · 시급의 10% 감액(수습 중 시급 9,288원)」, 감액률 0 이면 「3개월 · 감액 없음」. 수습이 없으면 null. */
 export function probationText(months: number | null, rate: number | null, wage: number | null): string | null {
   if (months === null || rate === null) return null;
+  if (rate === 0) return `${months}개월 · 감액 없음`;
   const during = wage === null ? "" : `(수습 중 시급 ${wonText(Math.round(wage * (1 - rate / 100)))})`;
   return `${months}개월 · 시급의 ${rate}% 감액${during}`;
 }
@@ -152,12 +160,12 @@ export function probationText(months: number | null, rate: number | null, wage: 
 /** 사회보험 한 묶음 — 가입 · 가입하지 않음, 정하지 않았으면 「-」. */
 export const insuredText = (v: boolean | null) => (v === null ? "-" : v ? "가입" : "가입하지 않음");
 
-/** 「010-****-5521」 — 가운데를 가린다. 모양이 다르면 끝 4자리만 남긴다. */
+/** 「010-****-5521」 — 가운데를 가린다. 휴대전화번호 모양(01 로 시작하는 10~11자리)이 아니면 끝 4자리만 남긴다 「****-1234」. */
 export function maskPhone(phone: string | null): string | null {
   if (!phone) return null;
   const digits = phone.replace(/\D/g, "");
-  if (digits.length < 8) return phone;
-  return `${digits.slice(0, 3)}-****-${digits.slice(-4)}`;
+  if (/^01\d{8,9}$/.test(digits)) return `${digits.slice(0, 3)}-****-${digits.slice(-4)}`;
+  return digits.length >= 4 ? `****-${digits.slice(-4)}` : "****";
 }
 
 /** 종이 계약(CTR-23)에서 보이는 파일 — 관리자가 올린 날인본(필수)과 임금계약서(선택). 날인본이 먼저. */

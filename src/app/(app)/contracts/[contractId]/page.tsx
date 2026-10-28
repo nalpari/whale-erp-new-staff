@@ -158,7 +158,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
         />
       </Sunken>
 
-      {/* TODO(CON-1): 체결 완료 계약서 PDF 받기 — 직원용 계약서 파일 내려받기 api 가 생기면 여기에 둔다. */}
+      {/* TODO(149): 처리 완료본 파일 생성(WHALEERP-131) 뒤 documents 의 SIGNED_COPY 를 체결된 계약에서 같은 받기 라우트(documents/[contractDocumentId])로. */}
 
       {c.status === "PENDING_SIGNATURE" && !deadline?.passed && (
         <>

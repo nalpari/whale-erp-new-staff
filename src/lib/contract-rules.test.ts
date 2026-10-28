@@ -6,6 +6,7 @@ import {
   deadlineOf,
   deadlineText,
   groupContracts,
+  hoursText,
   maskPhone,
   monthlyHourRows,
   paperDocuments,
@@ -30,33 +31,45 @@ const item = (over: Partial<ContractListItem> = {}): ContractListItem => ({
   startDate: "2026-09-15",
   endDate: "2027-03-14",
   sentAt: "2026-08-14T01:00:00Z",
-  signDeadlineAt: "2026-09-12T14:59:59Z", // 한국 9월 12일 23:59:59
+  signDeadlineAt: "2026-09-12T01:23:00Z", // 한국 9월 12일 10:23 — api 기한은 발송 시각 + 30일 그 시각(하루 끝이 아님)
   processedAt: "2026-08-14T01:00:00Z",
   awaitingSignature: true,
   ...over,
 });
 
-test("남은 기한은 한국 달력으로 센다 — 7일 이내만 강조", () => {
+test("남은 기한은 한국 달력으로 센다 — 7일 이내만 강조, 상세는 늘 시각까지", () => {
   // 한국 9월 10일 오전 9시
   const d = deadlineOf(item(), new Date("2026-09-10T00:00:00Z"));
-  assert.deepEqual(d, { date: "2026년 9월 12일", daysLeft: 2, passed: false, urgent: true });
+  assert.deepEqual(d, { date: "2026년 9월 12일", dateTime: "2026년 9월 12일 10:23", daysLeft: 2, passed: false, urgent: true });
   assert.equal(deadlineText(d!, "list"), "서명 기한 2026년 9월 12일 · D-2");
-  assert.equal(deadlineText(d!, "detail"), "서명 기한 2026년 9월 12일 · 2일 남음");
+  assert.equal(deadlineText(d!, "detail"), "서명 기한 2026년 9월 12일 10:23까지 · 2일 남음");
 
-  // 한국 9월 5일 0시 30분(UTC 로는 9월 4일) — 7일 남아 강조, 8일이면 강조하지 않는다
+  // 한국 9월 5일 0시 30분(UTC 로는 9월 4일) — 7일 남아 강조, 한국 9월 4일 23시 30분이면 8일이라 강조하지 않는다
   assert.equal(deadlineOf(item(), new Date("2026-09-04T15:30:00Z"))!.daysLeft, 7);
   assert.equal(deadlineOf(item(), new Date("2026-09-04T15:30:00Z"))!.urgent, true);
   assert.equal(deadlineOf(item(), new Date("2026-09-04T14:30:00Z"))!.urgent, false);
 });
 
-test("기한 당일은 D-day · 오늘까지, 지나면 지남(강조 없음)", () => {
-  const today = deadlineOf(item(), new Date("2026-09-12T10:00:00Z"))!;
-  assert.equal(deadlineText(today, "list"), "서명 기한 2026년 9월 12일 · D-day");
-  assert.equal(deadlineText(today, "detail"), "서명 기한 2026년 9월 12일 · 오늘까지");
-  const passed = deadlineOf(item(), new Date("2026-09-12T15:00:00Z"))!;
-  assert.equal(passed.passed, true);
-  assert.equal(passed.urgent, false);
-  assert.equal(deadlineText(passed, "list"), "서명 기한 2026년 9월 12일 지남");
+test("기한 당일 오전(기한 전)은 시각까지 · D-day · 오늘 마감", () => {
+  // 한국 9월 12일 08:00
+  const morning = deadlineOf(item(), new Date("2026-09-11T23:00:00Z"))!;
+  assert.equal(morning.daysLeft, 0);
+  assert.equal(morning.passed, false);
+  assert.equal(morning.urgent, true);
+  assert.equal(deadlineText(morning, "list"), "서명 기한 2026년 9월 12일 10:23까지 · D-day");
+  assert.equal(deadlineText(morning, "detail"), "서명 기한 2026년 9월 12일 10:23까지 · 오늘 마감");
+});
+
+test("기한 당일 오후(기한 뒤)는 지남 — 강조 없음", () => {
+  // 한국 9월 12일 15:00
+  const afternoon = deadlineOf(item(), new Date("2026-09-12T06:00:00Z"))!;
+  assert.equal(afternoon.daysLeft, 0);
+  assert.equal(afternoon.passed, true);
+  assert.equal(afternoon.urgent, false);
+  assert.equal(deadlineText(afternoon, "list"), "서명 기한 2026년 9월 12일 10:23 지남");
+  assert.equal(deadlineText(afternoon, "detail"), "서명 기한 2026년 9월 12일 10:23 지남");
+  // 다음 날이면 목록은 날짜만
+  assert.equal(deadlineText(deadlineOf(item(), new Date("2026-09-13T03:00:00Z"))!, "list"), "서명 기한 2026년 9월 12일 지남");
 });
 
 test("서명 대기가 아니거나 기한이 없으면 기한이 없다", () => {
@@ -126,8 +139,12 @@ test("소정근로시간 표는 월~일 일곱 줄 — 근무하지 않는 날�
   assert.equal(weeklyHours(days), 14);
 });
 
-test("30분 단위 근로시간은 소수 한 자리", () => {
+test("근로시간은 소수 한 자리, 끝의 0 은 지운다", () => {
   assert.equal(weekdayRows([day("MON", "09:00", "17:00", ["12:00", "12:30"])], null)[0].hours, "7.5시간");
+  // 7시간 20분 = 7.333…
+  assert.equal(weekdayRows([day("MON", "09:00", "16:20")], null)[0].hours, "7.3시간");
+  assert.equal(hoursText(8), "8시간");
+  assert.equal(hoursText(8.0), "8시간");
 });
 
 test("금액 · 지급일 · 수습 문구", () => {
@@ -136,6 +153,7 @@ test("금액 · 지급일 · 수습 문구", () => {
   assert.equal(payDayText("당월", 31), "당월 말일");
   assert.equal(payDayText(null, 10), null);
   assert.equal(probationText(3, 10, 10320), "3개월 · 시급의 10% 감액(수습 중 시급 9,288원)");
+  assert.equal(probationText(3, 0, 10320), "3개월 · 감액 없음");
   assert.equal(probationText(null, null, 10320), null);
 });
 
@@ -149,6 +167,11 @@ test("월 근로시간 줄은 값이 있는 것만", () => {
 test("휴대전화번호는 가운데를 가린다", () => {
   assert.equal(maskPhone("01012345521"), "010-****-5521");
   assert.equal(maskPhone("010-1234-5521"), "010-****-5521");
+  assert.equal(maskPhone("0101234552"), "010-****-4552");
+  // 휴대전화번호 모양이 아니면 끝 4자리만
+  assert.equal(maskPhone("+82 10-1234-5521"), "****-5521");
+  assert.equal(maskPhone("02-123-4567"), "****-4567");
+  assert.equal(maskPhone("123"), "****");
   assert.equal(maskPhone(null), null);
 });
 
