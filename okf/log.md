@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-10-28
+* **Update**: 근로계약서 조회 `/contracts` · `/contracts/[contractId]`(WHALEERP-146)를 더했다 — 전자계약은 조항 열 가지와 요일별 소정근로시간 표를 화면에 그리고, 종이 계약은 올라온 파일 이름만(내려받기는 api 대기), 처리가 끝난 계약은 읽기 전용, 기한 7일 이내 강조. 소속 근무지의 「근로계약서」 버튼을 열어 그 근무지 계약서만 보이게 했다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
+
 ## 2026-10-27
 * **Update**: 출퇴근 현황 — 확인 필요 사유 「근무 12시간 초과」(api `LONG_SHIFT`, 출근부터 12시간 넘은 퇴근, 2026-10-27 재영)의 시트 제목 · 설명을 더했다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Fix**: 출퇴근 등록 — api 의 퇴근 409 `CHECK_OUT_EXPIRED`(출근한 다음 날이 지난 열린 출근)를 「잠시 뒤 다시 시도」가 아니라 api 문구(근무지 관리자에게 퇴근 보정 요청)로 보인다. 화면의 `openCheckIn.isCheckOutExpired` 면 근무 경과 · 퇴근 버튼 대신 「퇴근 등록 기한이 지났습니다」와 관리자 보정 안내를 보이고 위치를 읽지 않으며, 「이미 출근해 있습니다」 시트도 날짜와 보정 안내로 바꾼다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).

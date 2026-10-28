@@ -1,0 +1,177 @@
+// 근로계약서 화면 규칙과 문구(WHALEERP-146). 상태 없는 순수 함수만 둔다 — 가져오기는 contracts.ts 다.
+// node --test 가 직접 읽으므로 값 import 는 같은 폴더의 순수 모듈(.ts 확장자)만 둔다.
+import { dateLabel, kstDateLabel } from "./profile.ts";
+import type { ContractDetail, ContractDocument, ContractListItem, ContractStatus, ContractWorkDay, Weekday } from "./contracts";
+
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const MAX_ID = 2_147_483_647;
+
+/** 남은 날인 기한이 이 날수 이내면 강조색으로 보인다(CON-4). 임박 알림은 없다. */
+export const URGENT_DAYS = 7;
+
+/** ISO 시각의 한국 달력 날짜(UTC 자정 ms). 한국은 서머타임이 없어 9시간만 민다. */
+const kstDay = (ms: number) => Math.floor((ms + KST_OFFSET_MS) / DAY_MS);
+
+export type Deadline = {
+  /** 「2026년 9월 12일」(한국 날짜) */
+  date: string;
+  /** 기한 날짜 − 오늘(한국 달력). 기한이 지났으면 의미 없다 */
+  daysLeft: number;
+  passed: boolean;
+  /** 지나지 않았고 남은 날이 URGENT_DAYS 이내 */
+  urgent: boolean;
+};
+
+/**
+ * 날인 기한. 남은 날은 한국 달력 날짜로 센다 — 기한이 오늘이면 0. 기한 시각이 지났으면 passed(하루 배치가 만료로 바꾸기 전에도
+ * 서명 대기로 남을 수 있다). 서명 대기가 아니거나 기한이 없으면 null.
+ */
+export function deadlineOf(c: Pick<ContractListItem, "status" | "signDeadlineAt">, now: Date): Deadline | null {
+  if (c.status !== "PENDING_SIGNATURE" || !c.signDeadlineAt) return null;
+  const at = Date.parse(c.signDeadlineAt);
+  const passed = at <= now.getTime();
+  const daysLeft = kstDay(at) - kstDay(now.getTime());
+  return { date: kstDateLabel(c.signDeadlineAt), daysLeft, passed, urgent: !passed && daysLeft <= URGENT_DAYS };
+}
+
+/** 목록 줄 「서명 기한 2026년 9월 12일 · D-2」 · 상세 머리 「서명 기한 2026년 9월 12일 · 2일 남음」. 오늘이면 D-day · 오늘까지. */
+export function deadlineText(d: Deadline, style: "list" | "detail"): string {
+  if (d.passed) return `서명 기한 ${d.date} 지남`;
+  const left = style === "list" ? (d.daysLeft === 0 ? "D-day" : `D-${d.daysLeft}`) : d.daysLeft === 0 ? "오늘까지" : `${d.daysLeft}일 남음`;
+  return `서명 기한 ${d.date} · ${left}`;
+}
+
+/** 「2026년 9월 15일 – 2027년 3월 14일」, 끝이 없으면 「2026년 3월 1일부터 · 기간 정함 없음」. */
+export function periodText(startDate: string | null, endDate: string | null): string {
+  if (!startDate) return "-";
+  return endDate ? `${dateLabel(startDate)} – ${dateLabel(endDate)}` : `${dateLabel(startDate)}부터 · 기간 정함 없음`;
+}
+
+/**
+ * 목록 줄 · 상세 머리 카드의 둘째 줄. 서명 대기는 기한, 체결 완료는 서명한 날(종이 계약은 관리자가 올린 날), 거부 · 수정 요청은
+ * 그날(processedAt), 만료는 지난 기한, 종료는 계약 기간. statusLabel 은 enum 한글(ContractStatus).
+ */
+export function contractSubText(
+  c: Pick<ContractListItem, "status" | "signDeadlineAt" | "contractMethod" | "processedAt" | "startDate" | "endDate">,
+  now: Date,
+  statusLabel: string,
+  style: "list" | "detail" = "list",
+): string {
+  const deadline = deadlineOf(c, now);
+  if (deadline) return deadlineText(deadline, style);
+  const on = (iso: string | null) => (iso ? ` ${kstDateLabel(iso)}` : "");
+  switch (c.status) {
+    case "SIGNED":
+      return c.contractMethod === "PAPER" ? `종이 계약 ·${on(c.processedAt)} 등록` : `서명${on(c.processedAt)}`;
+    case "EXPIRED":
+      return c.signDeadlineAt ? `서명 기한 ${kstDateLabel(c.signDeadlineAt)} 지남` : statusLabel;
+    case "ENDED":
+      return periodText(c.startDate, c.endDate);
+    default:
+      return `${statusLabel}${on(c.processedAt)}`;
+  }
+}
+
+/** 상태 배지 색. 서명 대기만 강조, 거부 · 만료는 오류 색, 체결 완료는 정상, 종료는 중립(데모 contract). */
+export function statusTone(status: ContractStatus): "warning" | "success" | "danger" | "waiting" | "progress" {
+  switch (status) {
+    case "PENDING_SIGNATURE":
+      return "warning";
+    case "SIGNED":
+      return "success";
+    case "REJECTED":
+    case "EXPIRED":
+      return "danger";
+    case "CORRECTION_REQUESTED":
+      return "progress";
+    default:
+      return "waiting";
+  }
+}
+
+/** 처리가 끝난 계약 — 다시 서명 · 거부할 수 없고 읽기만 한다. 서명 대기 · 수정 요청은 아직 진행 중이다. */
+export const isFinished = (status: ContractStatus) => status !== "PENDING_SIGNATURE" && status !== "CORRECTION_REQUESTED";
+
+/** 목록 묶음: 진행 중(서명 대기 · 수정 요청)과 처리가 끝난 것. 각 묶음 안은 api 순서(날인 대기는 기한이 급한 순, 그다음 최근 것) 그대로. */
+export function groupContracts<T extends Pick<ContractListItem, "status">>(items: readonly T[]): { open: T[]; finished: T[] } {
+  return { open: items.filter((c) => !isFinished(c.status)), finished: items.filter((c) => isFinished(c.status)) };
+}
+
+/** 경로의 계약 번호 · 주소의 점포 번호. api 의 id 는 integer 라 1..2147483647 밖은 없는 것으로 본다. */
+export function parseId(raw: string | string[] | undefined): number | null {
+  if (typeof raw !== "string" || !/^[1-9][0-9]*$/.test(raw)) return null;
+  const id = Number(raw);
+  return id <= MAX_ID ? id : null;
+}
+
+const WEEKDAYS: readonly Weekday[] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+const minutes = (hm: string) => Number(hm.slice(0, 2)) * 60 + Number(hm.slice(3, 5));
+
+/** 하루 근로시간(시간) — 종업 − 시업 − 휴게. */
+const dayHours = (d: ContractWorkDay) =>
+  (minutes(d.endTime) - minutes(d.startTime) - (d.breakStartTime && d.breakEndTime ? minutes(d.breakEndTime) - minutes(d.breakStartTime) : 0)) / 60;
+
+/** 「5시간」 · 「7.5시간」 */
+export const hoursText = (hours: number) => `${Number(hours.toFixed(2))}시간`;
+
+export type WeekdayRow = { weekday: Weekday; start: string; end: string; rest: string; hours: string; off: boolean };
+
+/**
+ * 제3조 소정근로시간 표(CTR-21) — 월요일부터 일요일까지 일곱 줄. 근무 요일은 시업 · 종업 · 휴게 · 근로시간, 근무하지 않는 날은
+ * 「—」와 「휴무」, 주휴일이면 「주휴일」.
+ */
+export function weekdayRows(workDays: readonly ContractWorkDay[], weeklyHoliday: Weekday | null): WeekdayRow[] {
+  return WEEKDAYS.map((weekday) => {
+    const d = workDays.find((w) => w.weekday === weekday);
+    if (!d) return { weekday, start: "—", end: "—", rest: "—", hours: weekday === weeklyHoliday ? "주휴일" : "휴무", off: true };
+    const rest = d.breakStartTime && d.breakEndTime ? `${d.breakStartTime}–${d.breakEndTime}` : "없음";
+    return { weekday, start: d.startTime, end: d.endTime, rest, hours: hoursText(dayHours(d)), off: false };
+  });
+}
+
+/** 주 소정근로시간(시간). */
+export const weeklyHours = (workDays: readonly ContractWorkDay[]) => workDays.reduce((sum, d) => sum + dayHours(d), 0);
+
+/** 「10,320원」 */
+export const wonText = (amount: number) => `${amount.toLocaleString("ko-KR")}원`;
+
+/** 임금 지급일 「익월 10일」 · 「당월 말일」(31 은 말일). payMonthLabel 은 enum 한글(PayMonth). */
+export function payDayText(payMonthLabel: string | null, payDay: number | null): string | null {
+  if (!payMonthLabel || payDay === null) return null;
+  return `${payMonthLabel} ${payDay === 31 ? "말일" : `${payDay}일`}`;
+}
+
+/** 수습 「3개월 · 시급의 10% 감액(수습 중 시급 9,288원)」. 수습이 없으면 null. */
+export function probationText(months: number | null, rate: number | null, wage: number | null): string | null {
+  if (months === null || rate === null) return null;
+  const during = wage === null ? "" : `(수습 중 시급 ${wonText(Math.round(wage * (1 - rate / 100)))})`;
+  return `${months}개월 · 시급의 ${rate}% 감액${during}`;
+}
+
+/** 사회보험 한 묶음 — 가입 · 가입하지 않음, 정하지 않았으면 「-」. */
+export const insuredText = (v: boolean | null) => (v === null ? "-" : v ? "가입" : "가입하지 않음");
+
+/** 「010-****-5521」 — 가운데를 가린다. 모양이 다르면 끝 4자리만 남긴다. */
+export function maskPhone(phone: string | null): string | null {
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 8) return phone;
+  return `${digits.slice(0, 3)}-****-${digits.slice(-4)}`;
+}
+
+/** 종이 계약(CTR-23)에서 보이는 파일 — 관리자가 올린 날인본(필수)과 임금계약서(선택). 날인본이 먼저. */
+export function paperDocuments(documents: readonly ContractDocument[]): ContractDocument[] {
+  const order = (d: ContractDocument) => (d.kind === "PAPER_EMPLOYMENT_CONTRACT" ? 0 : 1);
+  return documents.filter((d) => d.kind === "PAPER_EMPLOYMENT_CONTRACT" || d.kind === "WAGE_CONTRACT").sort((a, b) => order(a) - order(b));
+}
+
+/** 계약서의 월 근로시간 줄(값이 있는 것만). 기본시간 중 휴일 · 월 추가 휴일은 관리자 작성 화면이 받지 않아 보이지 않는다. */
+export function monthlyHourRows(c: Pick<ContractDetail, "baseHours" | "monthlyOvertimeHours" | "baseNightHours">): [string, string][] {
+  const rows: [string, number | null][] = [
+    ["월 기본 근로", c.baseHours],
+    ["월 연장 근로", c.monthlyOvertimeHours],
+    ["기본 근로 중 야간", c.baseNightHours],
+  ];
+  return rows.filter((r): r is [string, number] => r[1] !== null).map(([label, h]) => [label, hoursText(h)]);
+}
