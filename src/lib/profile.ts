@@ -24,6 +24,14 @@ export function kstDateLabel(iso: string): string {
   return `${k.getUTCFullYear()}년 ${k.getUTCMonth() + 1}월 ${k.getUTCDate()}일`;
 }
 
+const WEEKDAY_KO = ["일", "월", "화", "수", "목", "금", "토"];
+
+/** ISO 시각 → 한국 날짜 「9월 2일 (수)」 — 받은 초대의 받은 날 · 만료일(데모 me 의 sites, ME-8). */
+export function kstMonthDayLabel(iso: string): string {
+  const k = kst(iso);
+  return `${k.getUTCMonth() + 1}월 ${k.getUTCDate()}일 (${WEEKDAY_KO[k.getUTCDay()]})`;
+}
+
 /** ISO 시각 → 한국 시각 「2026년 3월 15일 09:04」. */
 export function kstDateTimeLabel(iso: string): string {
   const k = kst(iso);

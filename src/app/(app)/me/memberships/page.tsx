@@ -7,7 +7,7 @@ import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { kstToday } from "@/lib/join";
 import { getMyInvitations } from "@/lib/my-invitations";
 import { getMyMemberships } from "@/lib/my-profile";
-import { dateLabel, kstDateTimeLabel, membershipStatusOf } from "@/lib/profile";
+import { dateLabel, kstMonthDayLabel, membershipStatusOf } from "@/lib/profile";
 
 export const metadata: Metadata = { title: "소속 근무지 · Whale ERP" };
 
@@ -40,9 +40,10 @@ export default async function MembershipsPage() {
           </Alert>
         ) : (
           requests.length > 0 && (
+            // 데모 me 의 sites(ME-8, staff #43): 줄마다 점포 · 「고용 형태 · 받은 날 받음 / 만료일 만료」 · 초대 종류 배지.
             <section aria-labelledby="pending-requests" className="flex flex-col gap-[8px]">
-              <h2 id="pending-requests" className="text-[13px] font-semibold text-staff-text-sub">
-                확인을 기다리는 요청 {requests.length}건
+              <h2 id="pending-requests" className="px-[4px] text-[13px] font-semibold text-staff-text-sub">
+                확인을 기다리는 요청
               </h2>
               <ul className="flex flex-col gap-[8px]">
                 {requests.map((r) => (
@@ -50,24 +51,30 @@ export default async function MembershipsPage() {
                     <Link
                       href={`/me/invitations/${r.invitationId}`}
                       transitionTypes={["nav-forward"]}
-                      className={`flex w-full items-center gap-[12px] rounded-[16px] border border-staff-primary bg-white p-[16px] text-left active:bg-staff-primary-inactive ${PRESS}`}
+                      className={`flex w-full items-start gap-[12px] rounded-[16px] border border-staff-border-light bg-white p-[16px] text-left active:bg-staff-info-bg ${PRESS}`}
                     >
+                      <span className="flex pt-[3px] text-staff-text-sub">
+                        <MaskIcon src="/icons/store-small.svg" size={18} />
+                      </span>
                       <span className="min-w-0 flex-1">
-                        <span className="flex items-center gap-[8px]">
-                          <Badge tone="progress">가입 초대</Badge>
-                          <span className="min-w-0 truncate text-[15px] font-semibold">{r.storeName}</span>
-                        </span>
-                        <span className="block pt-[4px] text-[12px] text-staff-text-sub">
-                          {labelOf(employmentTypes, r.employmentType)} · {r.jobTitle} · {kstDateTimeLabel(r.sentAt)} 받음
+                        <span className="block text-[15px] font-semibold">{r.storeName}</span>
+                        <span className="block text-[12px] text-staff-text-sub">
+                          {labelOf(employmentTypes, r.employmentType)} · {kstMonthDayLabel(r.sentAt)} 받음
+                          <br />
+                          {kstMonthDayLabel(r.expiresAt)} 만료
                         </span>
                       </span>
-                      <Image src="/icons/chevron-right-muted.svg" alt="" width={12} height={12} className="-scale-y-100" />
+                      <Badge tone="warning">가입 초대</Badge>
+                      <Image src="/icons/chevron-right-muted.svg" alt="" width={12} height={12} className="mt-[6px] -scale-y-100" />
                     </Link>
                   </li>
                 ))}
               </ul>
             </section>
           )
+        )}
+        {requests !== null && requests.length > 0 && (
+          <h2 className="px-[4px] text-[13px] font-semibold text-staff-text-sub">소속 근무지</h2>
         )}
         {memberships === null ? (
           <Alert tone="warning">
@@ -92,13 +99,13 @@ export default async function MembershipsPage() {
                       <span className="block text-[12px] text-staff-text-sub">
                         {labelOf(employmentTypes, m.employmentType)} · {m.jobTitle}
                         {retired
-                          ? ` · ${m.hiredDate ? `${dateLabel(m.hiredDate)} ~ ` : ""}${dateLabel(m.retiredDate!)}`
+                          ? ` · ${m.hiredDate ? `${dateLabel(m.hiredDate)} – ` : ""}${dateLabel(m.retiredDate!)}`
                           : m.hiredDate && ` · ${dateLabel(m.hiredDate)}부터`}
                       </span>
                     </span>
                     {/* 퇴직 예정도 소속이다(퇴직일까지). 배지 글자로 갈라 보인다. */}
                     {retired ? (
-                      <Badge tone="plain">퇴직</Badge>
+                      <Badge tone="waiting">퇴직</Badge>
                     ) : status === "retiring" ? (
                       <Badge tone="waiting">{dateLabel(m.retiredDate!)} 퇴직 예정</Badge>
                     ) : (

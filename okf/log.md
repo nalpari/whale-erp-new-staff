@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-28
+* **Update**: 소속 근무지의 받은 초대 · 퇴직 표시를 재영이 맞춘 데모 ME-8(staff #43)에 맞췄다 — 요청 줄은 점포 · 「고용 형태 · 9월 2일 (수) 받음 / 만료일 만료」 · 「가입 초대」 배지, 아래 「소속 근무지」 제목, 퇴직은 대기색 「퇴직」 · 「–」 기간(`kstMonthDayLabel`) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 가입한 직원이 받은 초대를 소속 근무지에서 수락(WHALEERP-604) — 맨 위 「확인을 기다리는 요청」(받은 때 최신순) → `/me/invitations/[invitationId]` 확인 · 완료, 퇴직한 근무지도 보임, 로그인한 채 연 초대 링크 · 「이미 계정이 있습니다」 로그인 뒤는 소속 근무지로. 초대 코드 입력은 두지 않는다(2026-10-28 김민식) — [Whale ERP Staff](/whale-erp-staff.md).
 
 ## 2026-10-27
