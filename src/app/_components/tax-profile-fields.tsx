@@ -15,9 +15,9 @@ import { ACCOUNT_BASIS, Basis, RRN_BASIS } from "./tax-profile-parts";
 // 글자 칸에 CSS 로 가린다(-webkit-text-security) · 비밀번호 관리자 확장도 무시하게 한다(data-1p-ignore · data-lpignore).
 // CSS 가림은 값을 바꾸지 않아 복사 · 잘라내기 · 끌어 옮기기로 원문이 나간다(비밀번호 칸은 브라우저가 막는다) — 그래서 뒷자리 칸은
 // copy · cut · dragstart 를 막는다(PR #26 참고, 2026-10-23 노영주). 붙여넣기는 막지 않는다 — 본인이 다른 곳에서 옮겨 넣을 수 있게.
-// 모바일의 글자 선택 메뉴(공유 · 번역 · 검색)로도 원문이 나갈 수 있어 길게 눌러 뜨는 메뉴(contextmenu · iOS callout)도 막는다(150, 2026-10-23
-// 노영주 주의). 선택 자체는 막지 않는다 — 입력 칸의 커서 옮기기가 선택과 같은 동작이다. 메뉴를 띄우지 않는 브라우저 확장 · 키보드
-// 앱까지는 막지 못한다.
+// 남는 위험: 모바일의 글자 선택 메뉴(공유 · 번역 · 검색)는 copy 이벤트를 거치지 않아 원문이 나갈 수 있다(2026-10-23 노영주 주의).
+// 길게 눌러 뜨는 메뉴(contextmenu)를 막으면 같은 메뉴의 「붙여넣기」까지 막혀 두지 않았다(150 리뷰). 메뉴는 본인이 직접 골라야
+// 열리고 본인 기기 안의 일이라 비밀번호 칸과 같은 정도로 본다.
 // 화면 낭독기는 막지 않는다 — 넣는 본인에게 넣은 숫자를 읽어 주는 것이 입력 확인이고, 초점을 받는 입력 칸은 aria-hidden 으로 가릴 수
 // 없다(가리면 칸 이름조차 읽지 않는다). 이 칸은 본인의 기기에서 본인이 넣는 값이라 낭독기의 소리는 비밀번호 칸과 같은 정도로 본다.
 // required 는 처음 넣기(셋 다 필수)용이다. 고치기는 비워 둔 쪽을 그대로 두어 끈다.
@@ -87,13 +87,12 @@ export function RrnField({
             onCopy={blockCopy}
             onCut={blockCopy}
             onDragStart={blockCopy}
-            onContextMenu={blockCopy}
             maxLength={7}
             required={required}
             value={back}
             onChange={(event) => onBackChange(event.target.value)}
             aria-describedby={`${id}-note`}
-            className={`${FIELD} [-webkit-text-security:disc] [-webkit-touch-callout:none]`}
+            className={`${FIELD} [-webkit-text-security:disc]`}
           />
         </div>
         <p id={`${id}-note`} role={error ? "alert" : undefined} className={noteClass(error)}>

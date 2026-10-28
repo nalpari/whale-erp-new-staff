@@ -50,7 +50,7 @@ export default async function NewTaxProfileDonePage({ params }: PageProps<"/me/m
           </Sunken>
         ) : (
           <Alert tone="warning">
-            <p>등록한 값은 지금 볼 수 없습니다. 잠시 뒤 신고 정보에서 확인해 주세요.</p>
+            <p>등록한 값을 지금 불러오지 못했습니다. 잠시 뒤 신고 정보에서 확인해 주세요.</p>
           </Alert>
         )}
         <p className="text-[12px] text-staff-text-muted">내 정보 - 소속 근무지의 신고 정보에서 언제든 확인하고 새로 넣을 수 있습니다.</p>

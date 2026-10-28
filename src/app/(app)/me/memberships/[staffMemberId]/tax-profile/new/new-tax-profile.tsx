@@ -168,9 +168,6 @@ export function TaxProfileCreateForm({
           accountError={errorOf("account")}
         />
         <TaxIdentity realName={realName} birthDate={birthDateLabel} />
-        <p className="-mt-[8px] text-[12px] text-staff-text-muted">
-          가입할 때 넣은 정보입니다. 주민등록번호 앞자리가 생년월일과 다르면 넣을 수 없습니다.
-        </p>
         {problem?.field === "form" && (
           <Alert tone="danger">
             <p>{problem.message}</p>

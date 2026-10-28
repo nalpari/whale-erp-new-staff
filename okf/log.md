@@ -1,7 +1,7 @@
 # Bundle history
 
 ## 2026-10-28
-* **Update**: 신고 정보 처음 넣기(WHALEERP-150) — `…/tax-profile/new` 안내 · 입력 · 완료, 보기 화면 미제출 상태의 「신고 정보 넣기」, 주민등록번호 뒷자리 칸의 길게 누르기 메뉴 막기 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 신고 정보 처음 넣기(WHALEERP-150) — `…/tax-profile/new` 안내 · 입력 · 완료, 보기 화면 미제출 상태의 「신고 정보 넣기」 — [Whale ERP Staff](/whale-erp-staff.md).
 
 ## 2026-10-27
 * **Update**: 출퇴근 현황 — 확인 필요 사유 「근무 12시간 초과」(api `LONG_SHIFT`, 출근부터 12시간 넘은 퇴근, 2026-10-27 재영)의 시트 제목 · 설명을 더했다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).

@@ -52,8 +52,9 @@ export async function createTaxProfileAction(
     if (!failure) throw error;
     const { state, log, alreadySaved } = taxProfileCreateFailure(failure);
     if (!alreadySaved || !(await savedMeanwhile(path))) {
-      // 남기는 것은 상태 코드와 api 의 사유뿐이다(api 는 사유에 넣은 값을 싣지 않는다).
-      if (log) logFailure("tax-profile-create", failure);
+      // 남기는 것은 상태 코드와 api 의 사유뿐이다(api 는 사유에 넣은 값을 싣지 않는다). 처음 작성에 비밀번호 400 이 왔는데 다시 읽어도
+      // 신고 정보가 없으면(또는 읽지 못하면) 예상 밖이라 남긴다.
+      if (log || alreadySaved) logFailure("tax-profile-create", failure);
       return state;
     }
   }
