@@ -110,7 +110,15 @@ pipeline {
 
   post {
     // 성공했을 때만 빌드 캐시를 비운다. -a 를 붙이지 않아 지금 이미지가 쓰는 층(의존성 설치 층)의 캐시는 남는다.
-    success { sh 'docker builder prune -f || true' }
+    // 이 프로파일 이미지는 지금 것과 바로 이전 것(되돌릴 때 쓸 것)만 남기고 지운다. docker images 는 최신순이다.
+    success {
+      sh '''
+        docker builder prune -f || true
+        docker images "$IMAGE" --format '{{.Tag}}' \
+          | grep "^$PROFILE-" | grep -v -e "^$PROFILE-latest$" -e "^$TAG$" \
+          | tail -n +2 | xargs -r -I{} docker rmi "$IMAGE:{}" || true
+      '''
+    }
     always { sh 'docker image prune -f || true' }
   }
 }
