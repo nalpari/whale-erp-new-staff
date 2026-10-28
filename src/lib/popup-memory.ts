@@ -7,7 +7,7 @@ export interface PopupMemory {
   read: () => string | null;
   /** 값을 기억하고 구독자에게 알린다. */
   remember: (value: string) => void;
-  /** 기억을 지운다(로그인할 때). */
+  /** 기억을 지우고 구독자에게 알린다(로그인할 때 · 서명 요청 팝업은 앱을 다시 열었을 때). */
   forget: () => void;
   /** useSyncExternalStore 의 subscribe. */
   subscribe: (listener: () => void) => () => void;
@@ -49,6 +49,7 @@ export function createPopupMemory(storageKey: string): PopupMemory {
       } catch {
         // 저장소를 막은 브라우저 — 기억한 것도 없다.
       }
+      listeners.forEach((listener) => listener());
     },
     subscribe(listener) {
       listeners.add(listener);

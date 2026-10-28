@@ -65,9 +65,14 @@ export function deadlineOf(c: PhaseFields, now: Date): Deadline | null {
  * 발송 시각 + 30일 그 시각이라(api) 당일에 날짜만 보이면 저녁까지 남은 줄 안다.
  */
 export function deadlineText(d: Deadline, style: "list" | "detail"): string {
+  return `서명 기한 ${deadlineValue(d, style)}`;
+}
+
+/** deadlineText 의 「서명 기한」 뒤 — 이름 칸이 따로 있는 줄(홈 서명 요청 팝업)에 쓴다. */
+export function deadlineValue(d: Deadline, style: "list" | "detail"): string {
   const withTime = style === "detail" || d.daysLeft === 0;
   const left = style === "list" ? (d.daysLeft === 0 ? "D-day" : `D-${d.daysLeft}`) : d.daysLeft === 0 ? "오늘 마감" : `${d.daysLeft}일 남음`;
-  return `서명 기한 ${withTime ? `${d.dateTime}까지` : d.date} · ${left}`;
+  return `${withTime ? `${d.dateTime}까지` : d.date} · ${left}`;
 }
 
 /** 「2026년 9월 15일 – 2027년 3월 14일」, 끝이 없으면 「2026년 3월 1일부터 · 기간 정함 없음」. */

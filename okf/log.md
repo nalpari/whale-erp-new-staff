@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-28
+* **Update**: 148 PR 전 리뷰 반영 — 서명 요청 팝업은 백그라운드에서 10분 넘게 숨었다 다시 보이면 「다음에 하기」 기억을 지워 다시 뜬다(HOME-4 해석, 소속 추가 요청 팝업은 그대로). 고용 형태 enum 은 서명 요청이 있을 때만, 목록 4xx 는 남긴다. 기한 줄은 `deadlineValue` 로 상세와 같은 규칙. 데모와 다른 점을 적었다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 서명 요청 팝업(WHALEERP-148)을 홈에 더했다 — 서명을 기다리는 전자계약 가운데 기한이 가장 급한 것을 띄워 서명 화면으로, 「다음에 하기」는 이 탭에만 기억(HOME-4). 소속 추가 요청 팝업과는 한 번에 하나(서명 요청 먼저). 팝업 기억은 `popup-memory.ts` 로 함께 쓴다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 서명 · 거절 · 수정 요청 액션이 redirect 전에 `revalidatePath("/", "layout")` — 뒤로 가기 라우터 캐시에 서명 전 홈 · 목록 · 상세가 남지 않게(소속 추가 답하기와 같다) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 409 `SIGN_DEADLINE_PASSED` 는 api 문구(「날인 기한」) 대신 화면 문구 「서명 기한이 지났습니다. 근무지 관리자에게 다시 보내 달라고 요청해 주세요」 — [Whale ERP Staff](/whale-erp-staff.md).

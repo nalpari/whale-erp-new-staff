@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { ContractListItem } from "./contracts.ts";
-import { isSignRequestDismissed, signRequestOf } from "./sign-request.ts";
+import { REOPEN_AFTER_MS, isSignRequestDismissed, onVisibilityChange, signRequestOf } from "./sign-request.ts";
 
 const NOW = new Date("2026-10-28T03:00:00Z"); // 한국 2026-10-28 12:00
 
@@ -55,4 +55,16 @@ test("「다음에 하기」로 닫은 묶음과 같을 때만 닫아 둔다 —
   assert.equal(isSignRequestDismissed(key, key), true);
   assert.equal(isSignRequestDismissed(signRequestOf([item(1), item(2)], NOW)!.key, key), false);
   assert.equal(isSignRequestDismissed(signRequestOf([item(1, { sentAt: "2026-10-25T01:00:00.000Z" })], NOW)!.key, key), false);
+});
+
+test("화면이 숨으면 그 시각을 기록하고, 10분 넘게 숨었다 보이면 기억을 지운다(HOME-4 「앱을 열 때」)", () => {
+  const t0 = 1_000_000;
+  const hidden = onVisibilityChange(null, "hidden", t0);
+  assert.deepEqual(hidden, { hiddenAt: t0, forget: false });
+  // 숨은 채 또 숨김 알림이 와도 처음 숨은 시각을 둔다
+  assert.deepEqual(onVisibilityChange(t0, "hidden", t0 + 5000), { hiddenAt: t0, forget: false });
+  assert.deepEqual(onVisibilityChange(t0, "visible", t0 + REOPEN_AFTER_MS), { hiddenAt: null, forget: false });
+  assert.deepEqual(onVisibilityChange(t0, "visible", t0 + REOPEN_AFTER_MS + 1), { hiddenAt: null, forget: true });
+  // 숨은 기록 없이 보임만 오면(처음 그림) 지우지 않는다
+  assert.deepEqual(onVisibilityChange(null, "visible", t0), { hiddenAt: null, forget: false });
 });

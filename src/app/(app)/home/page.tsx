@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BottomNav } from "@/components/common";
 import { popupSummary } from "@/lib/affiliation-requests";
-import { ApiError, NetworkError } from "@/lib/api";
+import { failureOf, logFailure } from "@/lib/api";
 import { getContracts } from "@/lib/contracts";
 import { getCurrentMembership } from "@/lib/current-membership";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
@@ -80,12 +80,10 @@ export default async function HomePage() {
  * 가입 → 서명 요청 팝업). 데모 · 기획 문서에 둘이 함께일 때의 순서는 없다. 어느 쪽이든 못 받으면 그 팝업만 없이 홈 그대로다.
  */
 async function HomeRequests() {
-  const [contracts, affiliationRequests, employmentTypes] = await Promise.all([
-    getContractsOrNull(),
-    getMyAffiliationRequests(),
-    getEnumOrEmpty("EmploymentType"),
-  ]);
+  const [contracts, affiliationRequests] = await Promise.all([getContractsOrNull(), getMyAffiliationRequests()]);
   const sign = contracts && signRequestOf(contracts, new Date());
+  // 고용 형태 한글은 서명 요청이 있을 때만 받는다. 팝업 곁들임이라 어떤 실패든 빈 목록(값 그대로)으로 — 홈이 깨지지 않게.
+  const employmentTypes = sign?.contract.employmentType ? await getEnumOrEmpty("EmploymentType").catch(() => []) : [];
   const summary = popupSummary(affiliationRequests ?? []);
   return (
     <>
@@ -105,12 +103,17 @@ async function HomeRequests() {
   );
 }
 
-/** 내 근로계약 목록 — 팝업 곁들임이라 api 실패(4xx · 5xx · 연결 실패)는 null 로 받아 팝업 없이 홈을 그대로 보인다(401 은 만료 안내로). */
+/**
+ * 내 근로계약 목록 — 팝업 곁들임이라 api 실패(4xx · 5xx · 연결 실패)는 null 로 받아 팝업 없이 홈을 그대로 보인다(401 은 만료 안내로).
+ * 4xx 는 예상하지 못한 응답이라 남긴다(5xx · 연결 실패는 request() 가 남겼다) — 소속 추가 요청 조회와 같다.
+ */
 async function getContractsOrNull() {
   try {
     return await getContracts();
   } catch (error) {
-    if (error instanceof ApiError || error instanceof NetworkError) return null;
-    throw error;
+    const failure = failureOf(error);
+    if (!failure) throw error;
+    if (failure !== "network" && failure.status < 500) logFailure("contracts-popup", failure);
+    return null;
   }
 }
