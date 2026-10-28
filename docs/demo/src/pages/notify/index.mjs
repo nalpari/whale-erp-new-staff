@@ -36,18 +36,18 @@ const NOTIFICATIONS = [
     id: "n1",
     kind: "contract",
     title: "근로계약서가 도착했습니다",
-    sub: "웨일카페 강남역점 · 2026년 9월 근로계약서 · 날인 대기",
-    sent: "앱 푸시 실패 09:12 · 알림톡으로 함께 보냄",
+    sub: "웨일카페 강남역점 · 2026년 9월 근로계약서 · 서명 대기",
+    sent: "알림톡으로도 보냈습니다",
     time: "4분 전",
     unread: true,
   },
-  { id: "n2", kind: "schedule", title: "이번 주 근무스케줄이 바뀌었습니다", sub: "9/12(토) 근무가 13:00–22:00으로 바뀌었습니다", time: "1시간 전", unread: true },
-  { id: "n3", kind: "todo", title: "곧 수행할 TO-DO가 있습니다 · 긴급", sub: "환불 요청 처리 · 오늘 15:00", time: "3시간 전", unread: true, urgent: true },
-  { id: "n4", kind: "payslip", title: "8월 급여명세서가 도착했습니다", sub: "급여 기간 2026-08-01 ~ 08-31", time: "5시간 전", unread: true, href: () => page("pay", "resent") },
-  { id: "n5", kind: "todo", title: "곧 수행할 TO-DO가 있습니다", sub: "유통기한 라벨 점검 · 어제 14:00 · 읽음", time: "어제 13:00" },
+  { id: "n2", kind: "schedule", title: "이번 주 근무스케줄이 바뀌었습니다", sub: "9월 12일 (토) 근무가 13:00–22:00으로 바뀌었습니다", time: "1시간 전", unread: true },
+  { id: "n3", kind: "todo", title: "곧 해야 할 TO-DO가 있습니다 · 긴급", sub: "환불 요청 처리 · 오늘 15:00", time: "3시간 전", unread: true, urgent: true },
+  { id: "n4", kind: "payslip", title: "8월 급여명세서가 도착했습니다", sub: "급여 기간 8월 1일 – 8월 31일", time: "5시간 전", unread: true, href: () => page("pay", "resent") },
+  { id: "n5", kind: "todo", title: "곧 해야 할 TO-DO가 있습니다", sub: "유통기한 라벨 점검 · 어제 14:00 · 읽음", time: "어제 13:00" },
   { id: "n6", kind: "payslip", title: "8월 급여명세서가 도착했습니다", sub: "읽음", time: "8일 전" },
-  { id: "n7", kind: "schedule", title: "근무스케줄이 바뀌었습니다", sub: "9/9(수) 근무가 휴무로 바뀌었습니다 · 읽음", time: "4일 전" },
-  { id: "n8", kind: "contract", title: "근로계약서가 도착했습니다", sub: "2026년 8월 근로계약서 · 날인 완료 · 읽음", time: "12일 전" },
+  { id: "n7", kind: "schedule", title: "근무스케줄이 바뀌었습니다", sub: "9월 9일 (수) 근무가 휴무로 바뀌었습니다 · 읽음", time: "4일 전" },
+  { id: "n8", kind: "contract", title: "근로계약서가 도착했습니다", sub: "2026년 8월 근로계약서 · 서명 완료 · 읽음", time: "12일 전" },
 ];
 
 // public/icons 에 없는 아이콘 둘(목업 ph-gear-six · ph-link-break). 이 화면에만 나와 글자색을 따르는 선 아이콘으로 그린다.
@@ -84,35 +84,35 @@ const MAIN = {
     `<main class="flex flex-1 flex-col gap-[16px] px-[16px] pt-[16px] pb-[24px]"><div class="-my-[8px] flex items-center justify-between pl-[2px]"><span class="text-[13px] font-semibold text-staff-text-sub">미확인 ${unreadCount}건</span><button type="button" data-toast="모두 읽음으로 바꿨습니다" class="h-[44px] rounded-[14px] px-[12px] text-[13px] font-bold text-staff-text-sub active:bg-staff-primary-inactive ${PRESS}">모두 읽음</button></div><ul class="flex flex-col divide-y divide-staff-border-light overflow-hidden rounded-[16px] border border-staff-border-light bg-white">${NOTIFICATIONS.map(
       notificationRow,
     ).join("")}</ul>${button("더 보기", { variant: "outline", "data-toast": "20건을 더 불러왔습니다" })}${notice(
-      "알림은 <strong>14일</strong> 동안 보관합니다. 근로계약서와 급여명세서는 각 화면에서 기간대로 계속 볼 수 있습니다.",
+      "알림은 <strong>14일</strong> 동안 보관됩니다.<br>근로계약서와 급여명세서는 각 화면에서 계속 볼 수 있습니다.",
       maskIcon("history.svg", 16, true),
     )}</main>`,
 
   "inbox-empty": () =>
-    `<main class="flex flex-1 flex-col">${empty(maskIcon("bell.svg", 24, true), "확인할 알림이 없습니다", "근로계약서, 근무스케줄 변경, 곧 수행할 TO-DO, 급여명세서가 도착하면 여기에 표시됩니다.")}</main>`,
+    `<main class="flex flex-1 flex-col">${empty(maskIcon("bell.svg", 24, true), "받은 알림이 없습니다", "새 알림이 오면 여기에 표시됩니다.")}</main>`,
 
   // 수신 설정 — Figma 09.알림설정(node 17:1097)의 여백·목록·안내 블록, 문구는 목업.
   settings: () =>
-    `<main class="flex flex-1 flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px]"><p class="pb-[4px] text-[14px]">유형별로 받을 앱 푸시를 고릅니다.<br>꺼 둔 유형도 알림함에서는 확인할 수 있습니다.</p><ul class="divide-y divide-[#e8edf3]">${switchRow({
-      title: "근로계약서 발송",
-      description: "근로계약서가 도착하면 알립니다",
+    `<main class="flex flex-1 flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px]"><p class="pb-[4px] text-[14px]">받을 푸시 알림을 선택해 주세요.<br>꺼 둔 알림도 알림함에서 확인할 수 있습니다.</p><ul class="divide-y divide-[#e8edf3]">${switchRow({
+      title: "근로계약서",
+      description: "근로계약서를 받으면 알려 드립니다",
       checked: true,
-    })}${switchRow({ title: "근무스케줄 변경", description: "근무 시간이나 근무일이 바뀌면 알립니다", checked: true })}` +
+    })}${switchRow({ title: "근무스케줄 변경", description: "근무 시간이나 근무일이 바뀌면 알려 드립니다", checked: true })}` +
     // 네 묶음 모두 직원이 끈다(NOTI-8, 2026-10-20). TO-DO 묶음은 수행 임박 알림의 앱 푸시다.
-    `${switchRow({ title: "TO-DO 수행 임박", description: "수행 예정 일시가 다가오면 알립니다", checked: true })}${switchRow({
-      title: "급여명세서 발송",
-      description: "급여명세서가 발송되면 알립니다",
+    `${switchRow({ title: "TO-DO", description: "해야 할 시간이 다가오면 알려 드립니다", checked: true })}${switchRow({
+      title: "급여명세서",
+      description: "급여명세서를 받으면 알려 드립니다",
       checked: true,
     })}</ul>` +
     // 채널 안내(node 17:1241): #F9FBFD 바탕 · 옅은 테두리 · radius 14 · 안쪽 14. 문구는 NOTI-2 확정 뒤의 목업 문구.
-    `<p class="mt-auto rounded-[14px] border border-staff-border-light bg-[#f9fbfd] p-[14px] text-[12px] text-staff-text-sub">기본 채널은 앱 푸시입니다. 근로계약서처럼 꼭 확인해야 하는 알림은 카카오 알림톡을 함께 보내는 경우가 있습니다.</p></main>`,
+    `<p class="mt-auto rounded-[14px] border border-staff-border-light bg-[#f9fbfd] p-[14px] text-[12px] text-staff-text-sub">근로계약서처럼 꼭 확인해야 하는 알림은<br>카카오 알림톡으로도 함께 보낼 수 있습니다.</p></main>`,
 
   // 알림을 눌렀지만 관련 항목이 지워졌거나 볼 수 없을 때. 알림은 알림함에 남는다.
   gone: () =>
     `<main class="flex flex-1 flex-col">${empty(
       linkBreakIcon(),
-      "이 알림과 연결된 화면을 열 수 없습니다",
-      `관련 항목이 삭제되었거나 더 이상 접근할 수 없습니다. 알림 자체는 계속 알림함에 남아 있습니다.<div class="pt-[8px]">${button("알림함으로 돌아가기", {
+      "해당 내용을 열 수 없습니다",
+      `삭제되었거나 더 이상 볼 수 없는 내용입니다.<div class="pt-[8px]">${button("알림함으로 돌아가기", {
         variant: "ghost",
         "data-go": "inbox",
         "data-dir": "nav-back",
