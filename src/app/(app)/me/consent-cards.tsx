@@ -102,9 +102,9 @@ const LOCATION_BADGE: Record<LocationConsentState, { tone: BadgeTone; text: stri
 type LocationSheet = "terms" | "pause" | "withdraw";
 
 /**
- * 위치정보 동의 카드(ATT-23 · ATT-26, 데모 me 의 위치정보 카드). 동의 중이면 약관 보기 · 잠시 멈춤 · 동의 철회, 일시 중지면
- * 약관 보기 · 다시 켜기(새 동의 없음) · 동의 철회, 미동의면 약관 보기 · (흐린 잠시 멈춤) · 동의하기, 철회 뒤면 그 자리가 다시 동의(ME-5 — 내 정보에서도 동의한다,
- * 2026-10-20 노영주). 데모와 달리 다시 켜기 · 다시 동의도 같은 크기의 작은 버튼이다(2026-10-20 노영주). 잠시 멈춤 · 철회는 확인 시트를,
+ * 위치정보 동의 카드(ATT-23 · ATT-26, 데모 me 의 위치정보 카드). 동의 중이면 약관 보기 · 일시 중지 · 동의 철회, 일시 중지면
+ * 약관 보기 · 다시 켜기(새 동의 없음) · 동의 철회, 미동의면 약관 보기 · (흐린 일시 중지) · 동의하기, 철회 뒤면 그 자리가 다시 동의(ME-5 — 내 정보에서도 동의한다,
+ * 2026-10-20 노영주). 데모와 달리 다시 켜기 · 다시 동의도 같은 크기의 작은 버튼이다(2026-10-20 노영주). 일시 중지 · 철회는 확인 시트를,
  * 동의하기 · 다시 동의는 약관 시트를 거친다 — 약관을 보이고 그 안의 「동의합니다」로만 기록한다(2026-10-20 노영주). 약관을 못 받으면 동의할 수 없다.
  */
 export function LocationConsentCard({ consent, terms: current }: { consent: Schemas["MyLocationConsentDto"]; terms: CurrentTerms }) {
@@ -141,8 +141,8 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
         line={line}
         error={error}
         actions={
-          // 버튼 세 칸은 상태와 상관없이 같은 크기 · 같은 자리이고, 가운데 「잠시 멈춤 ↔ 다시 켜기」, 오른쪽 「동의 철회 ↔ 다시 동의」만
-          // 바뀐다(2026-10-20 노영주). 동의가 없으면 멈출 것도 없어 잠시 멈춤을 흐리게 둔다.
+          // 버튼 세 칸은 상태와 상관없이 같은 크기 · 같은 자리이고, 가운데 「일시 중지 ↔ 다시 켜기」, 오른쪽 「동의 철회 ↔ 다시 동의」만
+          // 바뀐다(2026-10-20 노영주). 동의가 없으면 멈출 것도 없어 일시 중지를 흐리게 둔다.
           <SmallButtons>
             {termsButton}
             {state === "PAUSED" ? (
@@ -151,7 +151,7 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
               </Button>
             ) : (
               <Button variant="outline" disabled={state !== "AGREED"} onClick={() => setSheet("pause")}>
-                잠시 멈춤
+                일시 중지
               </Button>
             )}
             {state === "AGREED" || state === "PAUSED" ? (
@@ -205,15 +205,15 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
         )}
       </BottomSheet>
 
-      {/* 잠시 멈춤(ATT-26). 동의는 남고 수집만 멎어 다시 켤 때 동의 절차가 없다. */}
-      <BottomSheet open={sheet === "pause"} onClose={() => setSheet(undefined)} title="위치 수집을 잠시 멈출까요" closeLabel="그대로 두기">
+      {/* 일시 중지(ATT-26). 동의는 남고 수집만 멎어 다시 켤 때 동의 절차가 없다. */}
+      <BottomSheet open={sheet === "pause"} onClose={() => setSheet(undefined)} title="위치 수집을 일시 중지할까요" closeLabel="그대로 두기">
         <p className="text-[14px] font-bold text-staff-text">
-          잠시 멈춘 동안에는 앱으로 출퇴근을 등록할 수 없습니다. 출퇴근 기록은 근무지 관리자에게 문의해 주세요. 다시 켜면 새로 동의하지 않아도
+          일시 중지 중에는 앱으로 출퇴근을 등록할 수 없습니다. 출퇴근 기록은 근무지 관리자에게 문의해 주세요. 다시 켜면 새로 동의하지 않아도
           됩니다
         </p>
         <Sunken>동의는 그대로 남고 수집만 멎습니다. 철회와 달리 다시 켤 때 동의 절차가 없습니다.</Sunken>
         <Button disabled={pending} onClick={() => change("location-pause")}>
-          잠시 멈춤
+          일시 중지
         </Button>
       </BottomSheet>
 
@@ -250,7 +250,7 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
   const [sheet, setSheet] = useState<HqSheet>();
   const { pending, error, toast, change } = useConsentChange(() => setSheet(undefined));
   const { isConsented, agreedAt, withdrawnAt, consentVersion } = consent;
-  const version = consentVersion ? ` · 본사 제공 동의 ${consentVersion}` : "";
+  const version = consentVersion ? ` · 사업자 제공 동의 ${consentVersion}` : "";
   const line =
     isConsented && agreedAt
       ? `${kstDateTimeLabel(agreedAt)} 동의${version}`
@@ -266,7 +266,7 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
   return (
     <>
       <ConsentCard
-        title="본사 제공 동의"
+        title="사업자 제공 동의"
         badge={isConsented ? { tone: "success", text: "동의함" } : { tone: "plain", text: "동의하지 않음" }}
         line={line}
         error={error}
@@ -293,7 +293,7 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
       />
       {toast && <Toast key={toast.key}>{toast.text}</Toast>}
 
-      <BottomSheet open={sheet === "content"} onClose={() => setSheet(undefined)} title="본사 제공 동의">
+      <BottomSheet open={sheet === "content"} onClose={() => setSheet(undefined)} title="사업자 제공 동의">
         <dl className="rounded-[12px] border border-staff-border-light bg-staff-info-bg px-[14px] py-[5px] text-[13px]">
           {HQ_SHARING_TERMS.map(([name, value]) => (
             <div key={name} className="flex gap-[12px] border-b border-staff-border-light py-[9px] last:border-b-0">
@@ -315,7 +315,7 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
         )}
       </BottomSheet>
 
-      <BottomSheet open={sheet === "withdraw"} onClose={() => setSheet(undefined)} title="본사 제공 동의를 철회할까요" closeLabel="그대로 두기">
+      <BottomSheet open={sheet === "withdraw"} onClose={() => setSheet(undefined)} title="사업자 제공 동의를 철회할까요" closeLabel="그대로 두기">
         <p className="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">
           철회하면 가맹본부가 <strong>내 근무 정보를 개인 단위로 보지 않습니다.</strong> 점포별 숫자로만 보입니다.
         </p>
