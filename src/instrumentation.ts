@@ -11,6 +11,10 @@ export async function register() {
   const [{ baseUrl }, { trustedHops }] = await Promise.all([import("./lib/api"), import("./lib/client-ip")]);
   baseUrl();
   trustedHops();
+  // 출퇴근 지도는 없어도 화면이 돌아가므로 멈추지 않고 알리기만 한다 — 비면 모든 직원이 지도 대신 그림을 본다
+  if (process.env.NODE_ENV === "production" && !process.env.KAKAO_MAP_APP_KEY) {
+    console.warn("[kakao-map] KAKAO_MAP_APP_KEY 가 비어 출퇴근 화면이 지도 대신 그림을 보입니다 — 값 파일을 확인하세요");
+  }
 }
 
 /**

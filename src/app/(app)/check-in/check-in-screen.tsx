@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState, useTransition, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { Alert, BottomSheet, Button, Dock, Toast, WorkTimeBar } from "@/components/common";
 import {
   distanceMeters,
@@ -19,9 +19,11 @@ import type { AttendanceRecordResult, MyAttendance } from "@/lib/my-attendance";
 import { changeConsentAction } from "../me/actions";
 import { recordLocationReadAction, registerAttendanceAction } from "./actions";
 import { Clock, GeoBlank, GeoMap, SiteCard, Sunken, Values } from "./check-in-parts";
+import { KakaoGeoMap } from "./kakao-map";
 
 /**
- * 휴대전화 위치. 출근 · 퇴근 버튼을 누를 때만 읽는다 — 화면을 열 때는 읽지 않는다(ATT-22, 2026-10-26 재영). 판정은 여기서 끝난다 —
+ * 휴대전화 위치. 출퇴근 탭에 들어올 때와 출근 · 퇴근 버튼을 누를 때 읽는다(ATT-22 v229, 2026-10-28 재영). 탭에서 읽은 위치는 지도에
+ * 보여 주기만 하고, 판정은 버튼을 누를 때 다시 읽어 정한다 — 화면을 열어 둔 사이에 움직일 수 있다. 판정은 여기서 끝난다 —
  * 좌표는 서버로 보내지 않는다(ATT-05). 위치 조작 감지(ATT-21)는 운영체제가 알려 줄 때만 판정하는데, 브라우저 위치(Geolocation API)는
  * 모의 위치 여부를 알려 주지 않아 지금은 늘 false 다. 오차도 따로 판정하지 않는다(ATT-4).
  */
@@ -30,7 +32,7 @@ type Geo =
   | { status: "loading" }
   | { status: "denied" }
   | { status: "unavailable" }
-  | { status: "ok"; distance: number; inRange: boolean; mocked: boolean };
+  | { status: "ok"; distance: number; inRange: boolean; mocked: boolean; position: { latitude: number; longitude: number } };
 
 type Sheet = "consent" | "bye" | "hifar" | "dup" | "nopunch" | "nocontract" | "noperiod" | null;
 
@@ -38,7 +40,7 @@ const GEO_OPTIONS: PositionOptions = { enableHighAccuracy: true, timeout: 15_000
 
 // 출퇴근 등록 화면(목업 attendance.html · 데모 check-in). 출근은 확인 없이 바로 기록하고(ATT-9), 퇴근은 확인 시트를 한 번
 // 거친다(WHALEERP-215). 반경 밖은 출근 · 퇴근 모두 시트에서 확인 필요가 붙는다고 알리고 받는다(ATT-11).
-export function CheckInScreen({ data }: { data: MyAttendance }) {
+export function CheckInScreen({ data, mapKey }: { data: MyAttendance; mapKey: string | null }) {
   const { store, locationConsent: consent, openCheckIn, checkInBlock } = data;
   const located = store.isLocationApplied;
   const target = store.latitude !== null && store.longitude !== null ? { latitude: store.latitude, longitude: store.longitude } : null;
@@ -48,6 +50,8 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
   const working = openCheckIn?.staffMemberId === data.staffMemberId ? openCheckIn : null;
 
   const [geo, setGeo] = useState<Geo>({ status: "idle" });
+  // 탭에 들어올 때 읽은 내 위치 — 지도에 보여 주기만 하고 판정 · 등록에는 쓰지 않는다(ATT-22 v229). 못 읽었으면 null
+  const [seen, setSeen] = useState<Extract<Geo, { status: "ok" }> | null>(null);
   // 이번 버튼에서 읽은 위치 읽음 — 범위 밖 출근 · 퇴근 확인 시트가 등록할 때 함께 보낸다
   const [readId, setReadId] = useState<number | null>(null);
   const [sheet, setSheet] = useState<Sheet>(needsConsent ? "consent" : null);
@@ -72,9 +76,10 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
         if (latitude === null || longitude === null) return resolve({ status: "unavailable" });
         if (!navigator.geolocation) return resolve({ status: "unavailable" });
         navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const distance = distanceMeters(position.coords, { latitude, longitude });
-            resolve({ status: "ok", distance, inRange: distance <= radiusMeters, mocked: false });
+          ({ coords }) => {
+            const distance = distanceMeters(coords, { latitude, longitude });
+            const position = { latitude: coords.latitude, longitude: coords.longitude };
+            resolve({ status: "ok", distance, inRange: distance <= radiusMeters, mocked: false, position });
           },
           (failure) => resolve({ status: failure.code === failure.PERMISSION_DENIED ? "denied" : "unavailable" }),
           GEO_OPTIONS,
@@ -82,6 +87,25 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
       }),
     [latitude, longitude, radiusMeters],
   );
+
+  // 탭에 들어오면 한 번 위치를 읽는다. 버튼과 같이 위치 읽음(확인자료)을 먼저 남기고, 남기지 못했으면 읽지 않는다 — 이때는 시트를
+  // 띄우지 않고 근무지만 그린 지도로 둔다(까닭은 버튼을 누를 때 보인다). 버튼이 위치를 읽지 않는 상태면 탭에서도 읽지 않는다 —
+  // 동의 없음 · 일시 중지 · 근무지 좌표 없음(canLocate), 근무 중이면 퇴근 기한 지남, 아니면 출근이 막혔거나(계약 대기 · 근무 기간 아님)
+  // 다른 근무지에 열린 출근이 있을 때.
+  // 한 번만 읽도록 ref 로 막고 cleanup 으로 결과를 버리지 않는다 — 개발 모드(Strict Mode)는 effect 를 두 번 돌려, 결과를 버리면
+  // 기록만 남고 위치를 그리지 못한다. 보여 주기만 하는 값이라 실패는 조용히 넘긴다
+  const previewable = canLocate && (working ? !working.isCheckOutExpired : !checkInBlock && !openCheckIn);
+  const previewed = useRef(false);
+  useEffect(() => {
+    if (!previewable || previewed.current) return;
+    previewed.current = true;
+    void (async () => {
+      const read = await recordLocationReadAction(data.staffMemberId);
+      if (!read.ok) return;
+      const next = await locate();
+      if (next.status === "ok") setSeen(next);
+    })().catch((thrown: unknown) => console.error("[check-in-preview] 위치 미리보기 실패", thrown));
+  }, [previewable, data.staffMemberId, locate]);
 
   const show = (text: string) => setToast({ key: Date.now(), text });
 
@@ -122,7 +146,7 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
   const register = (kind: AttendanceKind, reason: ReviewReason | null) => startTransition(() => registerNow(kind, reason, target ? readId : null));
 
   /**
-   * 버튼을 눌러 위치를 읽는다(ATT-22). api 에 위치 읽음(확인자료)을 먼저 남기고 그다음에 읽는다 — 확인자료 없이 위치를 읽는 일이
+   * 버튼을 눌러 위치를 다시 읽는다(ATT-22) — 판정은 이 위치로 한다. api 에 위치 읽음(확인자료)을 먼저 남기고 그다음에 읽는다 — 확인자료 없이 위치를 읽는 일이
    * 없게(다른 기기에서 멈췄거나 철회했으면 api 가 막는다). 읽기가 실패해도 확인자료는 남아 있다. 읽은 위치로 판정한 확인 필요 사유와
    * 위치 읽음을 돌려주고, 남기지 못했거나 읽지 못했으면 null(화면이 까닭을 보인다).
    */
@@ -257,6 +281,13 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
       </Button>
     );
   } else {
+    // 지도 위 안내 — 다시 읽는 중 · 탭에서 읽은 거리 · 버튼 안내 순
+    const waitText =
+      geo.status === "loading"
+        ? "위치를 확인하는 중입니다"
+        : seen
+          ? `매장까지 ${Math.round(seen.distance)}m`
+          : `${working ? "퇴근하기" : "출근하기"}를 누르면 위치를 확인합니다`;
     // 위치 블록: 위치를 보지 않는 근무지는 지도 없이 시각만 보인다
     const geoBlock = !located ? null : !target ? (
       <>
@@ -265,10 +296,16 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
       </>
     ) : needsConsent ? (
       <GeoBlank tone="muted" text="위치정보 동의 뒤에 위치를 확인합니다" />
-    ) : geo.status === "idle" ? (
-      <GeoBlank tone="muted" text={`${working ? "퇴근하기" : "출근하기"}를 누르면 위치를 확인합니다`} />
-    ) : geo.status === "loading" ? (
-      <GeoBlank tone="muted" text="위치를 확인하는 중입니다" />
+    ) : geo.status === "idle" || geo.status === "loading" ? (
+      // 버튼에서 읽은 위치가 아직 없으면(누르기 전 · 다시 읽는 중 · 남기지 못함) 탭에서 읽은 내 위치를 그린다. 그것도 없으면 근무지만 그린다
+      <KakaoGeoMap
+        appKey={mapKey}
+        store={target}
+        me={seen ? { ...seen.position, inRange: seen.inRange } : undefined}
+        radiusMeters={store.radiusMeters}
+        caption={waitText}
+        fallback={seen ? <GeoMap tone={seen.inRange ? "in" : "out"} caption={waitText} /> : <GeoBlank tone="muted" text={waitText} />}
+      />
     ) : geo.status === "denied" ? (
       <>
         <GeoBlank tone="muted" text="위치를 확인할 수 없습니다" />
@@ -290,7 +327,14 @@ export function CheckInScreen({ data }: { data: MyAttendance }) {
         <Alert tone="danger">모의 위치를 끈 뒤 출근을 다시 눌러 주세요.</Alert>
       </>
     ) : (
-      <GeoMap tone={geo.inRange ? "in" : "out"} caption={distanceText} />
+      <KakaoGeoMap
+        appKey={mapKey}
+        store={target}
+        me={{ ...geo.position, inRange: geo.inRange }}
+        radiusMeters={store.radiusMeters}
+        caption={distanceText}
+        fallback={<GeoMap tone={geo.inRange ? "in" : "out"} caption={distanceText} />}
+      />
     );
     const out = geo.status === "ok" && !geo.inRange;
     // 위치를 보는 근무지는 근무지 좌표가 있어야 버튼을 눌러 위치를 읽을 수 있다
