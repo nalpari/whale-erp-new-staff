@@ -34,8 +34,7 @@ export function formatPhone(raw: string): string {
   return `${digits.slice(0, 3)}-${digits.slice(3, 3 + middle)}-${digits.slice(3 + middle)}`;
 }
 
-/** 초대 쿠키의 값. 모양이 다르면(손으로 고친 값 · 옛 쿠키) 없는 것으로 본다 — 화면은 처음 단계로 돌려보낸다. */
-export function parseInvitationLookup(raw: string | undefined): InvitationLookup | null {
+function parseCookieObject(raw: string | undefined): Record<string, unknown> | null {
   if (!raw) return null;
   let value: unknown;
   try {
@@ -43,10 +42,35 @@ export function parseInvitationLookup(raw: string | undefined): InvitationLookup
   } catch {
     return null;
   }
-  if (typeof value !== "object" || value === null) return null;
-  const { token, phone, code } = value as Record<string, unknown>;
+  return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
+}
+
+/** 초대 쿠키의 값. 모양이 다르면(손으로 고친 값 · 옛 쿠키) 없는 것으로 본다 — 화면은 처음 단계로 돌려보낸다. */
+export function parseInvitationLookup(raw: string | undefined): InvitationLookup | null {
+  const value = parseCookieObject(raw);
+  if (!value) return null;
+  const { token, phone, code } = value;
   if (typeof token === "string" && isInvitationToken(token)) return { token };
   if (typeof phone === "string" && /^\d{10,11}$/.test(phone) && typeof code === "string" && isInviteCode(code)) return { phone, code };
+  return null;
+}
+
+/**
+ * 로그인한 직원이 근무지를 더할 때(WHALEERP-604) 초대를 찾는 값 — 로그인한 채 연 초대 링크의 토큰이나 초대 코드. 휴대전화번호는
+ * 받지 않는다(api 가 계정의 번호로 찾는다).
+ */
+export type MyInvitationLookup = { token: string } | { code: string };
+
+/** 로그인한 직원의 근무지 추가 화면(초대 코드 입력). 확인 · 완료 화면은 그 아래다. */
+export const ADD_WORKPLACE_PATH = "/me/memberships/add";
+
+/** 근무지 추가 쿠키의 값. 모양이 다르면 없는 것으로 본다. */
+export function parseMyInvitationLookup(raw: string | undefined): MyInvitationLookup | null {
+  const value = parseCookieObject(raw);
+  if (!value) return null;
+  const { token, code } = value;
+  if (typeof token === "string" && isInvitationToken(token)) return { token };
+  if (typeof code === "string" && isInviteCode(code)) return { code };
   return null;
 }
 

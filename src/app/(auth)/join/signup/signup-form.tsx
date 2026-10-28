@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useRef, useState, type ReactNode } from "react";
-import { Alert, BottomSheet, Button, CheckBox, Notice, SectionTitle, SegmentedControl, TextField } from "@/components/common";
+import { Alert, BottomSheet, Button, Notice, SectionTitle, SegmentedControl, TextField } from "@/components/common";
 import { FIELD } from "@/components/common/theme";
 import { AddressSearchSheet } from "@/app/_components/address-search-sheet";
 import { NewPasswordFields } from "@/app/_components/new-password-fields";
@@ -15,6 +15,7 @@ import {
   AccountExists,
   CodeLocked,
   EndedInvitation,
+  HqSharingConsent,
   InvitationExpired,
   JoinSteps,
   JoinedInvitation,
@@ -189,17 +190,7 @@ export function SignupForm({
           </p>
         </div>
 
-        {asksHqSharingConsent && (
-          <div className="flex flex-col gap-[4px]">
-            <CheckBox name="hqSharingConsented" checked={hqSharing} onChange={setHqSharing}>
-              본사 제공 동의 (선택)
-            </CheckBox>
-            <p className="text-[12px] text-staff-text-muted">
-              가맹본부가 내 근무 정보(근로계약 · 근무스케줄 · 출퇴근 기록 · 급여명세서)를 개인 단위로 보는 것에 동의합니다. 동의하지
-              않아도 가입과 근무는 그대로이고, 본사에는 점포별 숫자로만 보입니다. 내 정보에서 언제든 철회할 수 있습니다.
-            </p>
-          </div>
-        )}
+        {asksHqSharingConsent && <HqSharingConsent checked={hqSharing} onChange={setHqSharing} />}
 
         {failed?.field === "form" ? (
           <Alert tone="danger">{failed.error}</Alert>

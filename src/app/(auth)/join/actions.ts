@@ -8,8 +8,9 @@ import type { AttemptLock } from "@/lib/attempt-lock";
 import { checkInvitation, signup } from "@/lib/auth";
 import { clientIpFrom } from "@/lib/client-ip";
 import { normalizeBirthDate, normalizePhone } from "@/lib/email-find";
-import { clearInvitation, readInvitation, saveInvitation, saveJoinedStore } from "@/lib/invitation-cookie";
+import { clearInvitation, readInvitation, saveInvitation, saveJoinedStore, saveMyInvitation } from "@/lib/invitation-cookie";
 import {
+  ADD_WORKPLACE_PATH,
   BAD_BIRTH_DATE,
   invitationProblemOf,
   isGender,
@@ -80,12 +81,18 @@ export async function checkInviteCodeAction(_previous: InviteCodeState, formData
 /**
  * 초대 링크(`/invite#token=…`)를 열 때 부른다. fromHash 는 주소의 토큰이다. 모양이 맞으면 쿠키에 두고 초대 확인으로 가고(확인은 그
  * 화면이 한다), 없거나 모양이 틀리면 invalid 를 돌려준다. 링크 화면을 히스토리에 남기지 않는다 — 뒤로 가면 토큰 없는 주소가 된다.
+ * 로그인돼 있으면 가입하지 않고 근무지 추가의 초대 확인으로 간다(WHALEERP-604) — 판정은 leaveIfSignedIn 과 같은 로그인 흔적이다.
  */
 export async function openInviteLinkAction(fromHash: string | null): Promise<{ status: "invalid" }> {
-  await leaveIfSignedIn();
   // 서버 액션은 누구나 아무 값으로 부를 수 있다. 문자열이 아니면 주소에 토큰이 없는 것으로 본다.
-  if (typeof fromHash !== "string" || !isInvitationToken(fromHash)) return { status: "invalid" };
-  await saveInvitation({ token: fromHash });
+  const token = typeof fromHash === "string" && isInvitationToken(fromHash) ? fromHash : null;
+  if (await hasLoginTrace()) {
+    if (!token) redirect(ADD_WORKPLACE_PATH, RedirectType.replace);
+    await saveMyInvitation({ token });
+    redirect(`${ADD_WORKPLACE_PATH}/confirm`, RedirectType.replace);
+  }
+  if (!token) return { status: "invalid" };
+  await saveInvitation({ token });
   redirect("/join/invitation", RedirectType.replace);
 }
 
