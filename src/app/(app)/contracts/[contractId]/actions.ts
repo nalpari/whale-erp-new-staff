@@ -1,0 +1,90 @@
+"use server";
+
+import { headers } from "next/headers";
+import { RedirectType, notFound, redirect } from "next/navigation";
+import { ApiError, failureOf, logFailure, type RequestOptions } from "@/lib/api";
+import { clientIpFrom } from "@/lib/client-ip";
+import {
+  contractActionFailure,
+  isSentAt,
+  readRejectReason,
+  signatureProblem,
+  type ContractAction,
+  type ContractActionState,
+} from "@/lib/contract-actions";
+import { parseId } from "@/lib/contract-rules";
+import { authedRequest } from "@/lib/session";
+
+// 근로계약 날인 · 거절 · 수정 요청(WHALEERP-147, api `POST /me/contracts/:contractId/sign | reject | correction-request` WHALEERP-145).
+// 계약 id(와 날인의 발송 일시)는 서버 화면이 bind 로 붙이지만, 서버 액션은 누구나 직접 부를 수 있어 다시 거른다(내 계약인지는 api 가 본다).
+// 성공하면 날인 · 거절은 완료 화면(`done`)으로, 수정 요청은 상세로 replace 하고 주소의 `?done=` 으로 알림을 띄운다.
+// 실패를 화면 상태로 바꾸는 것은 lib/contract-actions.ts. 서명 이미지는 api 로만 보내고 상태 · 로그에 싣지 않는다.
+
+/** 날인 — 화면이 그린 서명 PNG(`signature`)와 상세가 그릴 때 받은 발송 일시(bind)를 multipart 로 넘긴다. */
+export async function signContractAction(
+  rawContractId: number,
+  sentAt: string,
+  _previous: ContractActionState,
+  formData: FormData,
+): Promise<ContractActionState> {
+  const contractId = parseId(String(rawContractId));
+  if (contractId === null) notFound();
+  if (!isSentAt(sentAt)) return { stale: true, message: "계약서를 다시 열어 날인해 주세요" };
+  const signature = formData.get("signature");
+  if (!(signature instanceof Blob)) return { message: "서명을 받지 못했습니다. 다시 그려 주세요" };
+  // 서버 액션 요청 본문은 Next 기본 1MB 까지라 여기서 통째로 읽어도 그보다 크지 않다.
+  const bytes = new Uint8Array(await signature.arrayBuffer());
+  const invalid = signatureProblem(bytes);
+  if (invalid) return { message: invalid };
+  const form = new FormData();
+  form.set("signature", new Blob([bytes], { type: "image/png" }), "signature.png");
+  form.set("sentAt", sentAt);
+  // 저장소에 서명을 올린 뒤 커밋까지 기다린다 — 기본 10초보다 길게
+  return run("sign", `/me/contracts/${contractId}/sign`, { form, timeoutMs: 30_000 }, `/contracts/${contractId}/done?done=signed`);
+}
+
+/** 거절 — 사유는 선택(500자). */
+export async function rejectContractAction(
+  rawContractId: number,
+  _previous: ContractActionState,
+  formData: FormData,
+): Promise<ContractActionState> {
+  const contractId = parseId(String(rawContractId));
+  if (contractId === null) notFound();
+  const read = readRejectReason(formData.get("reason"));
+  if ("error" in read) return { field: "reason", message: read.error };
+  return run("reject", `/me/contracts/${contractId}/reject`, { json: read }, `/contracts/${contractId}/done?done=rejected`);
+}
+
+/** 수정 요청 — 받는 내용은 없다. 본인 대조와 상관없이 서명 대기 · 기한 안이면 받는다(WHALEERP-145 ⑦). */
+export async function requestContractCorrectionAction(rawContractId: number): Promise<ContractActionState> {
+  const contractId = parseId(String(rawContractId));
+  if (contractId === null) notFound();
+  return run("correction", `/me/contracts/${contractId}/correction-request`, {}, `/contracts/${contractId}?done=correction`);
+}
+
+/**
+ * api 를 부르고 성공(또는 이미 그 결과인 409)이면 to 로 replace, 실패면 화면 상태. 직원의 실제 IP 를 넘겨 api 의 IP 한도를
+ * 사람마다 센다. 응답 본문(결과 상태 · 날인 시각)은 쓰지 않는다 — 완료 화면이 계약을 다시 읽는다.
+ */
+async function run(
+  action: ContractAction,
+  path: string,
+  options: Pick<RequestOptions, "json" | "form" | "timeoutMs">,
+  to: string,
+): Promise<ContractActionState> {
+  try {
+    await authedRequest(path, { ...options, method: "POST", clientIp: clientIpFrom(await headers()) });
+  } catch (error) {
+    const failure = failureOf(error);
+    // 401 의 만료 안내 redirect 와 코드 결함은 그대로 던진다.
+    if (!failure) throw error;
+    const outcome = contractActionFailure(action, failure, error instanceof ApiError ? error.body : null);
+    if ("state" in outcome) {
+      if (outcome.log) logFailure(`contract-${action}`, failure);
+      return outcome.state;
+    }
+  }
+  // replace — 뒤로 가기로 날인 · 거절 화면에 다시 들르지 않게 한다.
+  redirect(to, RedirectType.replace);
+}
