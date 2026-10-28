@@ -103,7 +103,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
                   {first ? `${first.store.storeName}${items.length > 1 ? ` 외 ${items.length - 1}곳` : ""}` : "아직 없습니다"}
                 </span>
               </span>
-              {/* 답하지 않은 소속 추가 요청(WHALEERP-144) 수. 따로 받아 api 가 느려도 화면을 먼저 보인다. */}
+              {/* 확인을 기다리는 요청(받은 가입 초대 WHALEERP-604 + 소속 추가 · 복귀 확인 144) 수. 따로 받아 api 가 느려도 화면을 먼저 보인다. */}
               <Suspense>
                 <RequestCountBadge />
               </Suspense>

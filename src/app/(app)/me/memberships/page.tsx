@@ -113,6 +113,13 @@ async function PendingRequests() {
   const rows = pendingRequestRows(invitations ?? [], affiliations ?? [], (v) => labelOf(employmentTypes, v), invitationTypeLabel);
   const failed = invitations === null || affiliations === null;
   if (rows.length === 0 && !failed) return null;
+  // 둘 다 못 받았으면 요청이 있는지조차 모르니 눈에 띄게 알린다. 한쪽만이면 받은 쪽을 보이고 한 줄 덧붙인다.
+  if (invitations === null && affiliations === null)
+    return (
+      <Alert tone="warning">
+        <p>받은 요청을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>
+      </Alert>
+    );
   return (
     <>
       <section aria-labelledby="pending-requests" className="flex flex-col gap-[8px]">

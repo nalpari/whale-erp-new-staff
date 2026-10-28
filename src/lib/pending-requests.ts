@@ -17,9 +17,10 @@ export interface PendingRequestRow {
 }
 
 /**
- * 두 목록을 받은 때(sentAt) 최신순 한 목록으로. 시각이 같으면 가입 초대를 앞에 둔다(어느 쪽이든 순서만 정해지면 된다).
- * employmentLabel 은 가입 초대의 고용 형태 한글(enum), 소속 추가 확인은 api 가 준 한글(employmentTypeLabel)을 쓴다.
- * kindOf 는 소속 추가 확인 · 복귀 확인 배지 글자(affiliation-requests.ts 의 invitationTypeLabel).
+ * 두 목록을 받은 때(sentAt) 최신순 한 목록으로. 시각이 같으면 가입 초대를 앞에 둔다(어느 쪽이든 순서만 정해지면 된다). 읽지 못하는
+ * 시각은 맨 뒤로 보낸다. employmentLabel 은 가입 초대의 고용 형태 한글(enum), 소속 추가 확인은 /affiliations 화면과 같은 글자
+ * (api 의 employmentTypeLabel, 없으면 「고용 형태 미정」 — affiliation-requests.ts 의 employmentLine 과 같은 규칙)를 쓴다. 줄에는 데모
+ * ME-8 처럼 고용 형태만 보이고 직무는 확인 화면에서 보인다. kindOf 는 소속 추가 확인 · 복귀 확인 배지 글자(invitationTypeLabel).
  */
 export function pendingRequestRows(
   invitations: readonly Schemas["MyInvitationDto"][],
@@ -42,11 +43,18 @@ export function pendingRequestRows(
       href: `/affiliations?id=${a.invitationId}`,
       storeName: a.storeName,
       kind: kindOf(a),
-      employment: a.employmentTypeLabel ?? employmentLabel(a.employmentType),
+      employment: a.employmentTypeLabel ?? "고용 형태 미정",
       sentAt: a.sentAt,
       expiresAt: a.expiresAt,
     })),
   ];
   // 시각 문자열의 소수 자릿수가 달라도 맞게 시각으로 비교한다. sort 는 안정 정렬이라 같은 시각은 위 순서(가입 초대 먼저)를 지킨다.
-  return rows.sort((a, b) => Date.parse(b.sentAt) - Date.parse(a.sentAt));
+  const time = (iso: string) => {
+    const t = Date.parse(iso);
+    return Number.isNaN(t) ? -Infinity : t;
+  };
+  return rows.sort((a, b) => {
+    const d = time(b.sentAt) - time(a.sentAt);
+    return Number.isNaN(d) ? 0 : d;
+  });
 }

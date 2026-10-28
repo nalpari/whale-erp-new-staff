@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { RedirectType, notFound, redirect } from "next/navigation";
 import { RATE_LIMITED } from "@/lib/action-errors";
@@ -50,6 +51,8 @@ export async function acceptMyInvitationAction(
     throw error;
   }
   await saveJoinedStore(result.storeName, "/me/invitations/done");
+  // 더한 초대가 남은 화면(내 정보 「요청 N건」 · 소속 근무지 「확인을 기다리는 요청」)을 무효화한다 — 소속 추가 확인의 답하기와 같다.
+  revalidatePath("/", "layout");
   // 확인 화면을 히스토리에 남기지 않는다. 뒤로 가면 다 쓴 초대를 다시 열게 된다.
   redirect("/me/invitations/done", RedirectType.replace);
 }

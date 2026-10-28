@@ -59,3 +59,10 @@ test("pendingRequestRows 는 받은 시각이 같으면 가입 초대를 앞에 
   const rows = pendingRequestRows([invitation(1, "2026-09-02T01:00:00Z")], [affiliation(2, "2026-09-02T01:00:00.000Z")], label, kind);
   assert.deepEqual(rows.map((r) => r.key), ["invitation-1", "affiliation-2"]);
 });
+
+test("pendingRequestRows 는 읽지 못하는 받은 시각을 맨 뒤로 보내고, 소속 추가 확인의 고용 형태 한글이 없으면 「고용 형태 미정」", () => {
+  const broken = { ...affiliation(9, "not-a-date"), employmentTypeLabel: null };
+  const rows = pendingRequestRows([invitation(1, "2026-09-02T01:00:00Z")], [broken, affiliation(3, "2026-09-09T01:00:00Z")], label, kind);
+  assert.deepEqual(rows.map((r) => r.key), ["affiliation-3", "invitation-1", "affiliation-9"]);
+  assert.equal(rows[2].employment, "고용 형태 미정");
+});

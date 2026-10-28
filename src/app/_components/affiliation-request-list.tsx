@@ -6,7 +6,8 @@ import { employmentLine, invitationTypeLabel, type AffiliationRequest } from "@/
 import { kstDateLabel } from "@/lib/profile";
 
 /**
- * 답하지 않은 소속 추가 확인 요청 목록(WHALEERP-144). 확인 화면(/affiliations)의 고르기와 내 정보 - 소속 근무지가 같이 쓴다.
+ * 답하지 않은 소속 추가 확인 요청 목록(WHALEERP-144). 확인 화면(/affiliations)의 고르기가 쓴다 — 내 정보 - 소속 근무지는 받은 가입
+ * 초대와 섞어 데모 ME-8 줄 모양으로 따로 그린다(me/memberships/page.tsx, pending-requests.ts).
  * 한 줄: 점포 아이콘 · 점포 이름 · 고용 형태 · 직무와 답할 기한 · 유형 배지 · 꺾쇠. 누르면 그 요청의 확인 화면(`?id=`)으로 간다.
  */
 export function AffiliationRequestList({ items }: { items: AffiliationRequest[] }) {
