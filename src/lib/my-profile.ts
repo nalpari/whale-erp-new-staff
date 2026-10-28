@@ -18,9 +18,14 @@ async function orNull<T>(load: () => Promise<T>): Promise<T | null> {
 /** 다른 화면(홈)이 지금 이메일 같은 값을 곁들일 때. 5xx · 연결 실패면 null — 부른 쪽이 로그인 때 값으로 대신한다. */
 export const getMyProfileOrNull = () => orNull(getMyProfile);
 
-/** 소속 근무지(`GET /me/memberships`). */
-export const getMyMemberships = () =>
-  orNull(() => authedRequest<Schemas["MyMembershipListResponseDto"]>("/me/memberships"));
+/**
+ * 소속 근무지(`GET /me/memberships`). 퇴직한 근무지는 빠진다 — 출퇴근 · 홈 · 근무지 선택기가 쓴다. includeRetired 면 퇴직한 근무지도
+ * 지금 소속 뒤에 퇴직일 최근 순으로 받는다(내 정보 - 소속 근무지, WHALEERP-604).
+ */
+export const getMyMemberships = (includeRetired = false) =>
+  orNull(() =>
+    authedRequest<Schemas["MyMembershipListResponseDto"]>(`/me/memberships${includeRetired ? "?includeRetired=true" : ""}`),
+  );
 
 /**
  * 그 소속의 신고 정보(`GET /me/memberships/:staffMemberId/tax-profile`). 미제출이면 `taxProfile: null`(200)이다.

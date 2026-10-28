@@ -1,11 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type ReactNode, useTransition } from "react";
+import { useTransition } from "react";
 import { Button, Card, CheckBox, Notice } from "@/components/common";
 import { useNow } from "@/app/_components/countdown";
 import { type AttemptLock, lockCountdown } from "@/lib/attempt-lock";
-import { ADD_WORKPLACE_PATH } from "@/lib/join";
+import { MEMBERSHIPS_PATH } from "@/lib/join";
 import { withNext } from "@/lib/login-return";
 import { AuthScreen } from "../_components/auth-screen";
 import { useFocusedTitle } from "../_components/use-focused-title";
@@ -133,18 +133,9 @@ const ToLogin = ({ primary = false, href = "/login" }: { primary?: boolean; href
 
 /**
  * 기한이 지났거나 · 다시 보냄 · 번호 변경 · 퇴직 · 가입 불가로 끝난 초대. 링크와 코드가 똑같이 무효다. onRetry 가 있으면(초대 코드
- * 입력 — 같은 /join 주소라 링크로는 입력 화면에 돌아가지 못한다) 입력 화면으로 돌아가고, 없으면 retryHref 로 간다.
- * 로그인한 직원의 근무지 추가(WHALEERP-604)는 retryHref 와 leave(「로그인으로 돌아가기」 자리)를 바꿔 같은 안내를 쓴다.
+ * 입력 — 같은 /join 주소라 링크로는 입력 화면에 돌아가지 못한다) 입력 화면으로 돌아가고, 없으면 /join 으로 간다.
  */
-export function EndedInvitation({
-  onRetry,
-  retryHref = "/join",
-  leave = <ToLogin />,
-}: {
-  onRetry?: () => void;
-  retryHref?: string;
-  leave?: ReactNode;
-}) {
+export function EndedInvitation({ onRetry }: { onRetry?: () => void }) {
   const titleRef = useFocusedTitle();
   return (
     <AuthScreen
@@ -156,11 +147,11 @@ export function EndedInvitation({
           {onRetry ? (
             <Button onClick={onRetry}>새 초대 코드 넣기</Button>
           ) : (
-            <Button href={retryHref} transitionTypes={["nav-back"]}>
+            <Button href="/join" transitionTypes={["nav-back"]}>
               새 초대 코드 넣기
             </Button>
           )}
-          {leave}
+          <ToLogin />
         </>
       }
     >
@@ -191,7 +182,7 @@ export function JoinedInvitation() {
 
 /**
  * 그 번호로 가입한 계정이 있다(운영 정책 JOI-02) — 새로 가입하지 않고 로그인한다. 기존 계정의 이메일은 보이지 않는다.
- * 로그인하면 근무지 추가(WHALEERP-604)로 이어 가 같은 초대 코드로 그 근무지를 더한다.
+ * 가입한 사람은 초대 코드로 가입하지 않는다 — 로그인하면 소속 근무지 맨 위의 받은 초대에서 수락한다(WHALEERP-604, 2026-10-28 김민식).
  */
 export function AccountExists() {
   const titleRef = useFocusedTitle();
@@ -199,10 +190,10 @@ export function AccountExists() {
     <AuthScreen
       titleRef={titleRef}
       title="이미 계정이 있습니다"
-      description="이 휴대전화번호로 가입한 계정이 있습니다. 새로 가입하지 않고 로그인한 뒤 초대 코드를 넣거나 초대 링크를 다시 누르면 이 근무지가 더해집니다."
+      description="이 휴대전화번호로 가입한 계정이 있습니다. 새로 가입하지 않고 로그인하면 내 정보 - 소속 근무지에서 이 초대를 수락할 수 있습니다."
       dock={
         <>
-          <ToLogin primary href={withNext("/login", ADD_WORKPLACE_PATH)} />
+          <ToLogin primary href={withNext("/login", MEMBERSHIPS_PATH)} />
           <Button variant="ghost" href="/email-find" transitionTypes={["nav-forward"]}>
             이메일 찾기
           </Button>
@@ -214,19 +205,9 @@ export function AccountExists() {
 
 /**
  * 같은 번호로 초대 코드를 5번 틀려 30분 잠겼다(JOIN-7). 재발송하면 api 가 그 번호의 잠금을 푼다. onRetry 가 있으면(초대 코드 입력)
- * 「다시 넣기」로 입력 화면에 돌아가고, 없으면(계정 등록 중 잠김) retryHref(초대 코드 입력)로 간다. leave 는 EndedInvitation 과 같다.
+ * 「다시 넣기」로 입력 화면에 돌아가고, 없으면(계정 등록 중 잠김) 초대 코드 입력으로 간다.
  */
-export function CodeLocked({
-  lock,
-  onRetry,
-  retryHref = "/join",
-  leave = <ToLogin />,
-}: {
-  lock: AttemptLock;
-  onRetry?: () => void;
-  retryHref?: string;
-  leave?: ReactNode;
-}) {
+export function CodeLocked({ lock, onRetry }: { lock: AttemptLock; onRetry?: () => void }) {
   const titleRef = useFocusedTitle();
   // 「다시 넣기」를 언제 여는지는 lockCountdown 이 정한다. 일찍 넣어도 api 가 다시 잠김으로 답할 뿐이다.
   const { text, waiting } = lockCountdown(lock, useNow(lock.serverNow));
@@ -246,11 +227,11 @@ export function CodeLocked({
             // 링크는 막을 수 없어 기다리는 동안은 막힌 버튼으로 그린다.
             <Button disabled>{label}</Button>
           ) : (
-            <Button href={retryHref} transitionTypes={["nav-back"]}>
+            <Button href="/join" transitionTypes={["nav-back"]}>
               {label}
             </Button>
           )}
-          {leave}
+          <ToLogin />
         </>
       }
     >
@@ -313,7 +294,7 @@ export function InvitationExpired() {
 }
 
 /** 초대를 확인하지 못했다(연결 실패 · 5xx · 요청 제한). 「다시 시도」는 이 화면을 서버에서 다시 그려 다시 확인한다. */
-export function CheckFailed({ message, leave = <ToLogin /> }: { message: string; leave?: ReactNode }) {
+export function CheckFailed({ message }: { message: string }) {
   const titleRef = useFocusedTitle();
   const router = useRouter();
   const [retrying, startRetry] = useTransition();
@@ -327,7 +308,7 @@ export function CheckFailed({ message, leave = <ToLogin /> }: { message: string;
           <Button disabled={retrying} onClick={() => startRetry(() => router.refresh())}>
             다시 시도
           </Button>
-          {leave}
+          <ToLogin />
         </>
       }
     />

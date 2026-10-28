@@ -1,12 +1,5 @@
 import { cookies } from "next/headers";
-import {
-  ADD_WORKPLACE_PATH,
-  clipChars,
-  parseInvitationLookup,
-  parseMyInvitationLookup,
-  type InvitationLookup,
-  type MyInvitationLookup,
-} from "./join";
+import { clipChars, parseInvitationLookup, type InvitationLookup } from "./join";
 
 // 확인을 마친 초대(WHALEERP-141 · 142). 초대 확인 → 계정 등록 사이에 들고 다니는 값이다 — 가입 요청에 다시 보내야 한다.
 // 링크의 토큰과 초대 코드는 그 초대로 가입할 수 있는 열쇠라 주소 · 브라우저 저장소에 두지 않고 httpOnly 쿠키에 둔다
@@ -38,24 +31,6 @@ export async function saveInvitation(lookup: InvitationLookup): Promise<void> {
 /** 서버 액션에서만 부른다. 구운 쿠키와 같은 path 를 줘야 지워진다. */
 export async function clearInvitation(): Promise<void> {
   (await cookies()).delete({ name: INVITATION_COOKIE, ...cookieOptions(0) });
-}
-
-// 로그인한 직원의 근무지 추가(WHALEERP-604). 초대 코드 입력 → 초대 확인 사이에 들고 다니는 값이다 — 가입 쿠키와 같은 까닭으로
-// httpOnly 쿠키에 두고 근무지 추가 화면에만 보낸다. 로그인한 채 연 초대 링크(`/invite#token=…`)의 토큰도 여기에 둔다.
-const MY_INVITATION_COOKIE = "my_invitation";
-
-export async function readMyInvitation(): Promise<MyInvitationLookup | null> {
-  return parseMyInvitationLookup((await cookies()).get(MY_INVITATION_COOKIE)?.value);
-}
-
-/** 서버 액션에서만 부른다. */
-export async function saveMyInvitation(lookup: MyInvitationLookup): Promise<void> {
-  (await cookies()).set(MY_INVITATION_COOKIE, JSON.stringify(lookup), cookieOptions(COOKIE_SECONDS, ADD_WORKPLACE_PATH));
-}
-
-/** 서버 액션에서만 부른다. */
-export async function clearMyInvitation(): Promise<void> {
-  (await cookies()).delete({ name: MY_INVITATION_COOKIE, ...cookieOptions(0, ADD_WORKPLACE_PATH) });
 }
 
 // 가입 완료 화면(가이드 ④)이 보일 근무지 이름. 가입하면 초대가 수락돼 다시 확인할 수 없고, 소속 목록(/me/memberships)은 계약을

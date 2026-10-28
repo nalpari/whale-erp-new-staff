@@ -10,7 +10,6 @@ import {
   needsBirthDateCheck,
   normalizeInviteCode,
   parseInvitationLookup,
-  parseMyInvitationLookup,
   signupFieldOf,
   signupFieldProblem,
 } from "./join.ts";
@@ -52,19 +51,6 @@ test("parseInvitationLookup 은 토큰이나 번호 + 코드만 받는다", () =
   assert.equal(parseInvitationLookup(JSON.stringify({ token: "short" })), null);
   assert.equal(parseInvitationLookup(JSON.stringify({ phone: "010-1234-5678", code: "K7Q2M9PX" })), null);
   assert.equal(parseInvitationLookup(JSON.stringify({ phone: "01012345678", code: "K7Q2M9P0" })), null);
-});
-
-test("parseMyInvitationLookup 은 토큰이나 코드만 받는다 — 번호는 계정의 번호라 들고 다니지 않는다", () => {
-  assert.deepEqual(parseMyInvitationLookup(JSON.stringify({ token: TOKEN })), { token: TOKEN });
-  assert.deepEqual(parseMyInvitationLookup(JSON.stringify({ code: "K7Q2M9PX" })), { code: "K7Q2M9PX" });
-  // 가입 쿠키 모양(번호 + 코드)이 와도 코드만 쓴다.
-  assert.deepEqual(parseMyInvitationLookup(JSON.stringify({ phone: "01012345678", code: "K7Q2M9PX" })), { code: "K7Q2M9PX" });
-  assert.equal(parseMyInvitationLookup(undefined), null);
-  assert.equal(parseMyInvitationLookup("not json"), null);
-  assert.equal(parseMyInvitationLookup("null"), null);
-  assert.equal(parseMyInvitationLookup(JSON.stringify({ token: "short" })), null);
-  assert.equal(parseMyInvitationLookup(JSON.stringify({ code: "k7q2m9px" })), null);
-  assert.equal(parseMyInvitationLookup(JSON.stringify({ code: "K7Q2M9P0" })), null);
 });
 
 test("invitationProblemOf 는 본문의 code 로 가른다", () => {
