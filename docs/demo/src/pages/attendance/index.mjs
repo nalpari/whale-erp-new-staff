@@ -62,7 +62,7 @@ const todayCard = () =>
     schedule: { start: "09:00", end: "18:00" },
     worked: { start: "09:02", end: "14:00" },
     ongoing: true,
-    summary: "출근 09:02 · 퇴근 진행 중",
+    summary: "출근 09:02 · 퇴근 전",
   });
 
 // 이번 주 — Figma node 12:1233 의 하루 카드 그대로. 연필 표시가 있는 카드(대신 등록 · 보정)는 눌러 시트를 연다.
@@ -106,13 +106,13 @@ const weekView = () =>
     day: "금 9/11",
     store: STORE,
     schedule: { start: "09:00", end: "18:00" },
-    summary: "아직 근무 전입니다 · 예정 09:00 – 18:00",
+    summary: "예정 09:00 – 18:00",
   })}${attendanceDayCard({
     state: "upcoming",
     day: "토 9/12",
     store: STORE,
     schedule: { start: "13:00", end: "22:00" },
-    summary: "아직 근무 전입니다 · 예정 13:00 – 22:00",
+    summary: "예정 13:00 – 22:00",
   })}${dayOffRow("일 9/13 · 휴무")}</div>`;
 
 // 주별 한 줄. 이번 주는 지금 근무 중이라 설명을 남보라로, 아직 오지 않은 주는 흐리게(목업 opacity 0.55).
@@ -123,17 +123,17 @@ const weekRow = (title, sub, { current = false, upcoming = false } = {}) =>
 // 한 번에 고를 수 있는 폭이 1년이라 시작일·종료일 서로의 min·max 를 1년으로 묶는다(처음 값: 2026-09-01 – 2026-09-30).
 const periodView = () =>
   `${card(
-    `<p class="text-[13px] font-semibold text-staff-text-sub">기간 고르기</p><div class="flex items-center gap-[8px] pt-[8px]"><input type="date" aria-label="시작일" min="2025-09-30" max="2026-09-30" class="${FIELD}" value="2026-09-01"><span aria-hidden="true" class="text-[12px] text-staff-text-muted">–</span><input type="date" aria-label="종료일" min="2026-09-01" max="2027-09-01" class="${FIELD}" value="2026-09-30"></div><div class="pt-[8px]">${button("조회", { "data-toast": "기간 기록을 불러왔습니다" })}</div><p class="pt-[8px] text-[12px] text-staff-text-muted [&_b]:font-bold">기본은 이번 달입니다. 한 번에 <b>최대 1년</b>까지 고를 수 있습니다.</p>`,
+    `<p class="text-[13px] font-semibold text-staff-text-sub">조회 기간</p><div class="flex items-center gap-[8px] pt-[8px]"><input type="date" aria-label="시작일" min="2025-09-30" max="2026-09-30" class="${FIELD}" value="2026-09-01"><span aria-hidden="true" class="text-[12px] text-staff-text-muted">–</span><input type="date" aria-label="종료일" min="2026-09-01" max="2027-09-01" class="${FIELD}" value="2026-09-30"></div><div class="pt-[8px]">${button("조회", { "data-toast": "기간 기록을 불러왔습니다" })}</div><p class="pt-[8px] text-[12px] text-staff-text-muted [&_b]:font-bold">한 번에 <b>최대 1년</b>까지 조회할 수 있습니다.</p>`,
   )}${sunken(
-    `<p class="text-[13px] font-semibold text-staff-text-sub">고른 기간 누계 · 9월 1일 – 30일</p><div class="flex flex-wrap items-baseline gap-x-[14px] pt-[6px]"><p class="text-[28px] font-bold [&_span]:text-[17px]">63<span>시간</span> 16<span>분</span></p><span class="text-[12px] text-staff-text-sub">지각 1회 · 연장 1시간 20분</span></div>`,
+    `<p class="text-[13px] font-semibold text-staff-text-sub">총 근무 시간 · 9월 1일 – 30일</p><div class="flex flex-wrap items-baseline gap-x-[14px] pt-[6px]"><p class="text-[28px] font-bold [&_span]:text-[17px]">63<span>시간</span> 16<span>분</span></p><span class="text-[12px] text-staff-text-sub">지각 1회 · 연장 1시간 20분</span></div>`,
   )}<ul class="flex flex-col divide-y divide-staff-border-light rounded-[16px] border border-staff-border-light bg-white px-[16px]">${weekRow(
     "9월 1주 · 8/31 – 9/6",
-    "근무 5일 · 40시간 12분 · 지각 0 · 연장 1시간 20분",
-  )}${weekRow("9월 2주 · 9/7 – 9/13", "이번 주 · 진행 중 · 23시간 04분 · 지각 1회", { current: true })}${weekRow(
+    "근무 5일 · 40시간 12분 · 지각 0회 · 연장 1시간 20분",
+  )}${weekRow("9월 2주 · 9/7 – 9/13", "이번 주 · 23시간 04분 · 지각 1회", { current: true })}${weekRow(
     "9월 3주 · 9/14 – 9/20",
-    "예정 · 아직 근무 전입니다",
+    "근무 예정",
     { upcoming: true },
-  )}${weekRow("9월 4주 · 9/21 – 9/27", "예정 · 아직 근무 전입니다", { upcoming: true })}</ul><p class="text-[12px] text-staff-text-muted">기록은 3년 보존됩니다. 1년은 한 번에 조회하는 폭의 제한입니다.</p>`;
+  )}${weekRow("9월 4주 · 9/21 – 9/27", "근무 예정", { upcoming: true })}</ul><p class="text-[12px] text-staff-text-muted">출퇴근 기록은 보존 기간(3년) 동안 조회할 수 있습니다.</p>`;
 
 // 경고 아이콘(목업 ph-warning). 저장소에 맞는 SVG 가 없어 여기서만 그린다. 20px 칸 가운데.
 const warningIcon = () =>
@@ -151,9 +151,9 @@ const flaggedDayCard = ({ day, summary, worked, sheet }) =>
 // 확인 필요가 섞인 이번 주. 꼬리표가 붙은 카드와 퇴근 기록 없음 카드는 눌러 시트를 연다. 직원이 누를 처리 버튼은 없다(HIST-3).
 // 퇴근 기록 없음(HIST-4): 확인 필요 사유가 아니라 그 날 카드에 붙는 별도 표시라 일반 카드에 둔다.
 const flaggedView = () =>
-  `<div class="flex gap-[6px] rounded-[12px] border border-[#f6e3bd] bg-[#fff6e5] p-[14px] text-[13px] text-[#6f4608] [&_strong]:font-bold">${warningIcon()}<p class="min-w-0 flex-1"><strong>확인이 필요한 기록이 1건 있습니다.</strong><br>관리자가 확인 중입니다. 기록이 다르면 <strong>근무지 점포에 말씀해 주세요.</strong> 확인이 끝나면 이 표시와 사유는 사라집니다.</p></div><div class="flex flex-col gap-[8px]">${dayOffRow(
+  `<div class="flex gap-[6px] rounded-[12px] border border-[#f6e3bd] bg-[#fff6e5] p-[14px] text-[13px] text-[#6f4608] [&_strong]:font-bold">${warningIcon()}<p class="min-w-0 flex-1"><strong>확인이 필요한 기록이 1건 있습니다.</strong><br>관리자가 확인하고 있습니다.<br>기록이 다르면 근무지 관리자에게 문의해 주세요.</p></div><div class="flex flex-col gap-[8px]">${dayOffRow(
     "월 9/7 · 휴무",
-  )}${flaggedDayCard({ day: "화 9/8", summary: "반경 밖 출근 · 09:58 등록됨", worked: { start: "09:58", end: "18:00" }, sheet: "flagTue" })}${pressable(
+  )}${flaggedDayCard({ day: "화 9/8", summary: "출근 09:58 · 반경 밖 출근", worked: { start: "09:58", end: "18:00" }, sheet: "flagTue" })}${pressable(
     "수 9/9 퇴근 기록 없음 보기",
     "flagWed",
     attendanceDayCard({
@@ -162,7 +162,7 @@ const flaggedView = () =>
       store: STORE,
       status: { label: "퇴근 기록 없음", tone: "neutral" },
       schedule: { start: "09:00", end: "18:00" },
-      summary: "출근 09:14 · 퇴근 기록 없음 · 근무지 관리자에게 문의",
+      summary: "출근 09:14 · 퇴근 기록 없음",
     }),
   )}${todayCard()}</div>`;
 
@@ -174,14 +174,14 @@ const VIEWS = {
   week: weekView,
   period: periodView,
   flagged: flaggedView,
-  empty: () => emptyView("history.svg", "등록된 출퇴근 기록이 없습니다", "근무를 시작하면 이곳에 기록이 쌓입니다."),
-  nosite: () => emptyView("store.svg", "근무지가 없습니다", "연결된 근무지가 없어 출퇴근 기록을 보여 줄 수 없습니다. 지난 기록은 관리자에게 문의해 주세요."),
+  empty: () => emptyView("history.svg", "출퇴근 기록이 없습니다", "출근을 등록하면 여기에 표시됩니다."),
+  nosite: () => emptyView("store.svg", "근무가 종료되었습니다", "지난 출퇴근 기록은<br>근무지 관리자에게 문의해 주세요."),
 };
 
-// 확인 필요 시트의 점포 안내(HIST-3 확정 문구).
+// 확인 필요 시트의 근무지 관리자 문의 안내(HIST-3).
 const storeNotice = () =>
   notice(
-    "관리자가 확인 중입니다. 기록이 다르면 <strong>근무지 점포에 말씀해 주세요.</strong> 확인이 끝나면 이 표시와 사유는 사라집니다.",
+    "관리자가 확인하고 있습니다.<br>기록이 다르면 <strong>근무지 관리자에게 문의해 주세요.</strong>",
     maskIcon("store-small.svg", 16),
   );
 
@@ -194,20 +194,16 @@ const SHEETS = {
         values([
           ["수정 전 퇴근", "17:48"],
           ["수정 후 퇴근", "18:02"],
-          ["수정자", "박지수 매니저"],
+          ["수정한 사람", "박지수 매니저"],
           ["수정 시각", "9월 9일 22:10"],
-          ["사유", "퇴근 시각 미태깅 정정"],
+          ["사유", "퇴근 미등록으로 정정"],
         ]),
-      ) + `<p class="text-[12px] text-staff-text-muted">수정은 관리자 웹에서만 할 수 있습니다. 이 화면은 이력 조회만 제공합니다.</p>`,
+      ) + `<p class="text-[12px] text-staff-text-muted">기록이 다르면 근무지 관리자에게 문의해 주세요.</p>`,
     ),
   proxyInfo: (a) =>
     bottomSheet(
       "proxyInfo",
-      {
-        title: "관리자가 대신 등록한 기록입니다",
-        description: "위치정보 동의가 없어 앱으로 등록할 수 없는 경우입니다. 근무지 관리자가 출퇴근 시각을 대신 등록했습니다.",
-        ...a,
-      },
+      { title: "관리자가 대신 등록한 기록입니다", ...a },
       sunken(
         values([
           ["출근 · 퇴근", "09:00 · 18:00"],
@@ -216,14 +212,14 @@ const SHEETS = {
           ["사유", "위치정보 동의 없음"],
         ]),
       ) +
-        `<p class="text-[12px] text-staff-text-muted">기록이 다르면 근무지 점포에 말씀해 주세요. 앱에서 직접 등록하려면 위치정보 수집에 다시 동의해야 합니다.</p>`,
+        `<p class="text-[12px] text-staff-text-muted">기록이 다르면 근무지 관리자에게 문의해 주세요.<br>앱으로 직접 등록하려면 위치정보 수집·이용에 다시 동의해야 합니다.</p>`,
     ),
   flagTue: (a) =>
     bottomSheet(
       "flagTue",
       {
-        title: "반경 밖 출근",
-        description: "매장 범위 밖에서 출근을 등록해 확인 필요가 붙었습니다. 출근 시각 09:58은 등록되었고 관리자가 검토하고 있습니다.",
+        title: "매장 범위 밖에서 출근했습니다",
+        description: "출근 시각 09:58은 등록되었습니다.",
         ...a,
       },
       storeNotice(),
@@ -232,12 +228,11 @@ const SHEETS = {
     bottomSheet(
       "flagWed",
       {
-        title: "퇴근 기록 없음",
-        description:
-          "09:14에 출근한 기록만 있고 퇴근 기록이 없습니다. 퇴근을 찍지 못했다면 근무지 관리자에게 문의해 주세요. 관리자가 퇴근 시각을 보정하면 이 표시는 사라집니다.",
+        title: "퇴근 기록이 없습니다",
+        description: "09:14 출근 기록만 있고 퇴근 기록이 없습니다.",
         ...a,
       },
-      notice("<strong>근무지 관리자에게 문의</strong>해 주세요. 앱에서 직접 고칠 수는 없습니다.", maskIcon("store-small.svg", 16)),
+      notice("퇴근을 등록하지 못했다면<br><strong>근무지 관리자에게 문의해 주세요.</strong>", maskIcon("store-small.svg", 16)),
     ),
 };
 
