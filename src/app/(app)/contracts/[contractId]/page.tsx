@@ -45,7 +45,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const contractId = parseId(rawId);
   if (contractId === null) notFound();
 
-  const [c, statuses, employmentTypes, weekdays, payMonths, payMethods, documentKinds] = await Promise.all([
+  const [c, statuses, employmentTypes, weekdays, payMonths, payMethods, documentKinds, identityFields] = await Promise.all([
     getContract(contractId),
     getEnumOrEmpty("ContractStatus"),
     getEnumOrEmpty("EmploymentType"),
@@ -53,6 +53,13 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
     getEnumOrEmpty("PayMonth"),
     getEnumOrEmpty("PayMethod"),
     getEnumOrEmpty("ContractDocumentKind"),
+    // 본인 대조 항목 한글(api enum IdentityField) — 대조가 다를 때만 쓰지만 캐시되니 함께 받는다. getEnumOrEmpty 는 5xx · 연결 실패만
+    // 빈 목록으로 바꾸고 404 · 응답에 이름 없음(api 가 아직 등록 전)은 던지므로, 여기서 남기고 빈 목록으로 받아 상세 전체가 깨지지
+    // 않게 한다 — 빈 목록이면 대조가 다른 계약은 항목 없이 일반 문구다.
+    getEnumOrEmpty("IdentityField").catch((error: unknown) => {
+      console.error("[contract] IdentityField enum 을 받지 못했습니다", error);
+      return [];
+    }),
   ]);
   if (!c) notFound();
   // 소속 근무지에서 그 근무지 목록으로 왔으면 같은 목록으로 돌아간다
@@ -138,11 +145,8 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   }
 
   const worker = c.worker;
-  // 본인 대조가 다르면 다른 항목의 한글(api enum IdentityField)을 받는다 — 그때만 부른다. 못 받으면 항목 없이 일반 문구다.
-  const mismatched =
-    c.awaitingSignature && !c.signable && c.mismatches.length > 0
-      ? mismatchText(c.mismatches, await getEnumOrEmpty("IdentityField"))
-      : null;
+  // 본인 대조가 다르면 다른 항목의 한글. 못 받았거나 한글이 없는 값이 섞이면 null — 항목 없이 일반 문구다.
+  const mismatched = mismatchText(c.mismatches, identityFields);
   return (
     <>
       <ContractFrame header={header}>
@@ -231,9 +235,9 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
       </ContractFrame>
       {c.awaitingSignature && c.sentAt && (
         <ContractDecision
-          signHref={`/contracts/${c.contractId}/sign?sentAt=${encodeURIComponent(c.sentAt)}`}
+          signHref={`/contracts/${c.contractId}/sign?${storeId === null ? "" : `store=${storeId}&`}sentAt=${encodeURIComponent(c.sentAt)}`}
           signable={c.signable}
-          rejectAction={rejectContractAction.bind(null, c.contractId)}
+          rejectAction={rejectContractAction.bind(null, c.contractId, storeId)}
           correctionAction={requestContractCorrectionAction.bind(null, c.contractId, storeId)}
         />
       )}

@@ -17,11 +17,14 @@ export const metadata: Metadata = { title: "근로계약서 날인 · Whale ERP"
 // 지금 날인할 수 없는 계약(서명 대기 · 기한 안 · 재직 · 본인 대조가 아님, 종이 계약)이거나 발송 일시가 없으면 상세로 돌려보낸다.
 export default async function SignContractPage({ params, searchParams }: PageProps<"/contracts/[contractId]/sign">) {
   await requireSession();
-  const contractId = parseId((await params).contractId);
+  const [{ contractId: rawId }, query] = await Promise.all([params, searchParams]);
+  const contractId = parseId(rawId);
   const c = contractId === null ? null : await getContract(contractId);
   if (!c) notFound();
-  const detailHref = `/contracts/${c.contractId}`;
-  const seen = (await searchParams).sentAt;
+  // 소속 근무지에서 왔으면(`?store=`) 상세 · 완료 화면에도 이어 준다 — 뒤로 가기가 그 근무지 상세 · 목록으로 간다
+  const storeId = parseId(query.store);
+  const detailHref = `/contracts/${c.contractId}${storeId === null ? "" : `?store=${storeId}`}`;
+  const seen = query.sentAt;
   if (!c.signable || c.contractMethod === "PAPER" || !isSentAt(seen)) redirect(detailHref, RedirectType.replace);
 
   const header = <PageHeader title="근로계약" backHref={detailHref} />;
@@ -48,7 +51,7 @@ export default async function SignContractPage({ params, searchParams }: PagePro
   const employmentType = c.employmentType && labelOf(await getEnumOrEmpty("EmploymentType"), c.employmentType);
   return (
     <SignForm
-      action={signContractAction.bind(null, c.contractId, seen)}
+      action={signContractAction.bind(null, c.contractId, storeId, seen)}
       header={header}
       title={[c.employer.storeName, employmentType].filter(Boolean).join(" · ")}
       signerName={c.account.name}

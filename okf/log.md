@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-28
+* **Update**: PR #47 리뷰 반영 — 날인 · 완료 화면까지 `?store=` 를 잇고, 서명란은 크기가 바뀌어도 획을 다시 그려 지우지 않으며 가로챈 획은 잉크까지 지운다. 완료 화면은 이미 낸 신고 정보면 보기 · 홈으로. 상세의 `IdentityField` enum 은 함께 받되 실패해도 상세를 깨지 않는다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 본인 대조 항목 한글을 화면 상수표 대신 api enum `IdentityField`(`GET /enums`, api vileplume)로 받는다. 못 받으면 항목 없이 「다른 항목이 있습니다」 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 147 PR 전 리뷰 반영 — 줄여도 큰 서명은 보내지 않고 다시 그리게, 시트를 닫으면 지난 실패 문구를 지움, 가로챈 획(pointercancel)은 그린 것으로 세지 않음, `request` 의 `json` · `form` 을 함께 줄 수 없게 타입으로 막음 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 근로계약서 날인 · 거절 · 수정 요청(WHALEERP-147)을 더했다 — 서명란에 그린 PNG 를 서버 액션이 multipart 로 api 에 넘기고(`request` 의 `form`), 본인 대조가 다르면 날인 대신 수정 요청, 결과를 모르는 실패는 다시 누르면 409 지금 상태로 가른다. 날인 완료 화면에서 신고 정보 처음 넣기(150)로 잇는다 — [Whale ERP Staff](/whale-erp-staff.md).

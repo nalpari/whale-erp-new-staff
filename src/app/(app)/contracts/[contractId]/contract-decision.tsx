@@ -3,10 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Alert, BottomSheet, Button, DangerButton, Dock } from "@/components/common";
+import { FIELD } from "@/components/common/theme";
 import { REJECT_REASON_MAX, type ContractActionState } from "@/lib/contract-actions";
 import { useContractAction } from "../_components/use-contract-action";
 
 type Sheet = "reject" | "correction" | null;
+
+/** 공통 입력칸(FIELD)에서 높이만 바꾼 여러 줄 칸 — 데모 reject 의 textarea(최소 76 · 위아래 12 · 세로로 늘림). */
+const TEXTAREA = FIELD.replace("h-[52px]", "min-h-[76px] resize-y py-[12px]");
 
 /**
  * 상세 아래 버튼 줄(WHALEERP-147, 데모 contract 의 detail · reject). 본인 대조가 맞으면 「날인하기」(서명란 화면으로)와 「거절하기」,
@@ -29,19 +33,19 @@ export function ContractDecision({
   const reject = useContractAction();
   const correction = useContractAction();
   const pending = reject.pending || correction.pending;
-  // 시트를 닫으면 지난 실패 문구를 지운다 — 다시 열 때 새로 시작한다
-  const close = () => {
-    if (pending) return;
+  // 시트를 닫고 지난 실패 문구를 지운다 — 다시 열 때 새로 시작한다
+  const closeSheet = () => {
     setSheet(null);
     reject.reset();
     correction.reset();
   };
+  const close = () => {
+    if (!pending) closeSheet();
+  };
   const router = useRouter();
   // 계약이 그사이 바뀌었다 — 시트를 닫고 화면을 다시 받는다
   const reload = () => {
-    setSheet(null);
-    reject.reset();
-    correction.reset();
+    closeSheet();
     router.refresh();
   };
   const handleReject = (event: FormEvent<HTMLFormElement>) => {
@@ -92,7 +96,7 @@ export function ContractDecision({
               placeholder="예: 근무 요일이 안내받은 내용과 다릅니다"
               aria-invalid={reject.state.field === "reason" || undefined}
               aria-describedby="reject-reason-help"
-              className="min-h-[76px] w-full resize-y rounded-[12px] border border-staff-border bg-white px-[14px] py-[12px] text-[16px] text-staff-text outline-none! transition-[border-color] duration-150 ease-out placeholder:text-staff-placeholder focus:border-staff-primary aria-invalid:border-staff-error"
+              className={TEXTAREA}
             />
             <span id="reject-reason-help" className="text-[12px] text-staff-text-muted">
               입력한 사유는 근무지 관리자에게 전달됩니다.
