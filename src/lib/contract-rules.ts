@@ -13,28 +13,42 @@ export const URGENT_DAYS = 7;
 /** ISO 시각의 한국 달력 날짜(UTC 자정 ms). 한국은 서머타임이 없어 9시간만 민다. */
 const kstDay = (ms: number) => Math.floor((ms + KST_OFFSET_MS) / DAY_MS);
 
+/**
+ * 화면이 보이는 계약 단계. api 상태 그대로이되, 서명 대기인데 api 가 지금 날인할 수 없다고 하면(awaitingSignature=false — 서명 대기 ·
+ * 기한 안 · 재직 중 셋 중 하나가 아님) 서명 대기로 보이지 않는다. 날인할 수 있는지는 api 의 awaitingSignature 로만 정하고, 서버 시계는
+ * 그 까닭을 문구로 고를 때만 본다 — 기한이 지났으면 만료(하루 배치가 만료로 바꾸기 전), 아니면 퇴직 등으로 서명할 수 없음(UNSIGNABLE).
+ */
+export type ContractPhase = ContractStatus | "UNSIGNABLE";
+
+type PhaseFields = Pick<ContractListItem, "status" | "awaitingSignature" | "signDeadlineAt">;
+
+export function phaseOf(c: PhaseFields, now: Date): ContractPhase {
+  if (c.status !== "PENDING_SIGNATURE" || c.awaitingSignature) return c.status;
+  return c.signDeadlineAt && Date.parse(c.signDeadlineAt) <= now.getTime() ? "EXPIRED" : "UNSIGNABLE";
+}
+
+/** 지금 날인할 수 있는 계약에 붙지 않는 상태(서명 불가)의 배지 글자. enum 값이 아니라 화면 문구다. */
+export const UNSIGNABLE_LABEL = "서명 불가";
+
 export type Deadline = {
   /** 「2026년 9월 12일」(한국 날짜) */
   date: string;
   /** 「2026년 9월 12일 10:23」(한국 시각) — api 의 기한은 발송 시각 + 30일 그 시각이라 하루 끝이 아니다 */
   dateTime: string;
-  /** 기한 날짜 − 오늘(한국 달력). 기한이 지났으면 의미 없다 */
+  /** 기한 날짜 − 오늘(한국 달력), 0 아래로 내리지 않는다 */
   daysLeft: number;
-  passed: boolean;
-  /** 지나지 않았고 남은 날이 URGENT_DAYS 이내 */
+  /** 남은 날이 URGENT_DAYS 이내 */
   urgent: boolean;
 };
 
 /**
- * 날인 기한. 남은 날은 한국 달력 날짜로 센다 — 기한이 오늘이면 0. 기한 시각이 지났으면 passed(하루 배치가 만료로 바꾸기 전에도
- * 서명 대기로 남을 수 있다). 서명 대기가 아니거나 기한이 없으면 null.
+ * 날인 기한 — api 가 지금 날인할 수 있다고 할 때(awaitingSignature)만. 남은 날은 한국 달력 날짜로 센다(기한이 오늘이면 0).
+ * 기한 안인지는 api 가 이미 판정했으므로 서버 시계로 다시 「지남」을 가리지 않는다. 그 밖이면 null.
  */
-export function deadlineOf(c: Pick<ContractListItem, "status" | "signDeadlineAt">, now: Date): Deadline | null {
-  if (c.status !== "PENDING_SIGNATURE" || !c.signDeadlineAt) return null;
-  const at = Date.parse(c.signDeadlineAt);
-  const passed = at <= now.getTime();
-  const daysLeft = kstDay(at) - kstDay(now.getTime());
-  return { date: kstDateLabel(c.signDeadlineAt), dateTime: kstDateTimeLabel(c.signDeadlineAt), daysLeft, passed, urgent: !passed && daysLeft <= URGENT_DAYS };
+export function deadlineOf(c: PhaseFields, now: Date): Deadline | null {
+  if (c.status !== "PENDING_SIGNATURE" || !c.awaitingSignature || !c.signDeadlineAt) return null;
+  const daysLeft = Math.max(0, kstDay(Date.parse(c.signDeadlineAt)) - kstDay(now.getTime()));
+  return { date: kstDateLabel(c.signDeadlineAt), dateTime: kstDateTimeLabel(c.signDeadlineAt), daysLeft, urgent: daysLeft <= URGENT_DAYS };
 }
 
 /**
@@ -44,7 +58,6 @@ export function deadlineOf(c: Pick<ContractListItem, "status" | "signDeadlineAt"
  */
 export function deadlineText(d: Deadline, style: "list" | "detail"): string {
   const withTime = style === "detail" || d.daysLeft === 0;
-  if (d.passed) return `서명 기한 ${withTime ? d.dateTime : d.date} 지남`;
   const left = style === "list" ? (d.daysLeft === 0 ? "D-day" : `D-${d.daysLeft}`) : d.daysLeft === 0 ? "오늘 마감" : `${d.daysLeft}일 남음`;
   return `서명 기한 ${withTime ? `${d.dateTime}까지` : d.date} · ${left}`;
 }
@@ -56,11 +69,12 @@ export function periodText(startDate: string | null, endDate: string | null): st
 }
 
 /**
- * 목록 줄 · 상세 머리 카드의 둘째 줄. 서명 대기는 기한, 체결 완료는 서명한 날(종이 계약은 관리자가 올린 날), 거부 · 수정 요청은
- * 그날(processedAt), 만료는 지난 기한, 종료는 계약 기간. statusLabel 은 enum 한글(ContractStatus).
+ * 목록 줄 · 상세 머리 카드의 둘째 줄. 날인할 수 있는 서명 대기는 기한, 체결 완료는 서명한 날(종이 계약은 관리자가 올린 날),
+ * 거부 · 수정 요청은 그날(processedAt), 만료(기한이 지난 서명 대기 포함)는 지난 기한, 서명 불가는 그 까닭, 종료는 계약 기간.
+ * statusLabel 은 화면 단계의 한글(enum 한글 또는 UNSIGNABLE_LABEL).
  */
 export function contractSubText(
-  c: Pick<ContractListItem, "status" | "signDeadlineAt" | "contractMethod" | "processedAt" | "startDate" | "endDate">,
+  c: PhaseFields & Pick<ContractListItem, "contractMethod" | "processedAt" | "startDate" | "endDate">,
   now: Date,
   statusLabel: string,
   style: "list" | "detail" = "list",
@@ -68,11 +82,13 @@ export function contractSubText(
   const deadline = deadlineOf(c, now);
   if (deadline) return deadlineText(deadline, style);
   const on = (iso: string | null) => (iso ? ` ${kstDateLabel(iso)}` : "");
-  switch (c.status) {
+  switch (phaseOf(c, now)) {
     case "SIGNED":
       return c.contractMethod === "PAPER" ? `종이 계약 ·${on(c.processedAt)} 등록` : `서명${on(c.processedAt)}`;
     case "EXPIRED":
       return c.signDeadlineAt ? `서명 기한 ${kstDateLabel(c.signDeadlineAt)} 지남` : statusLabel;
+    case "UNSIGNABLE":
+      return "지금은 서명할 수 없습니다";
     case "ENDED":
       return periodText(c.startDate, c.endDate);
     default:
@@ -80,9 +96,9 @@ export function contractSubText(
   }
 }
 
-/** 상태 배지 색. 서명 대기만 강조, 거부 · 만료는 오류 색, 체결 완료는 정상, 종료는 중립(데모 contract). */
-export function statusTone(status: ContractStatus): "warning" | "success" | "danger" | "waiting" | "progress" {
-  switch (status) {
+/** 상태 배지 색. 서명 대기만 강조, 거부 · 만료는 오류 색, 체결 완료는 정상, 종료 · 서명 불가는 중립(데모 contract). */
+export function statusTone(phase: ContractPhase): "warning" | "success" | "danger" | "waiting" | "progress" {
+  switch (phase) {
     case "PENDING_SIGNATURE":
       return "warning";
     case "SIGNED":
@@ -97,12 +113,16 @@ export function statusTone(status: ContractStatus): "warning" | "success" | "dan
   }
 }
 
-/** 처리가 끝난 계약 — 다시 서명 · 거부할 수 없고 읽기만 한다. 서명 대기 · 수정 요청은 아직 진행 중이다. */
-export const isFinished = (status: ContractStatus) => status !== "PENDING_SIGNATURE" && status !== "CORRECTION_REQUESTED";
+/** 처리가 끝난 계약 — 다시 서명 · 거부할 수 없고 읽기만 한다. 날인할 수 있는 서명 대기 · 수정 요청만 아직 진행 중이다. */
+export const isFinished = (phase: ContractPhase) => phase !== "PENDING_SIGNATURE" && phase !== "CORRECTION_REQUESTED";
 
-/** 목록 묶음: 진행 중(서명 대기 · 수정 요청)과 처리가 끝난 것. 각 묶음 안은 api 순서(날인 대기는 기한이 급한 순, 그다음 최근 것) 그대로. */
-export function groupContracts<T extends Pick<ContractListItem, "status">>(items: readonly T[]): { open: T[]; finished: T[] } {
-  return { open: items.filter((c) => !isFinished(c.status)), finished: items.filter((c) => isFinished(c.status)) };
+/**
+ * 목록 묶음: 진행 중(날인할 수 있는 서명 대기 · 수정 요청)과 처리가 끝난 것. 기한이 지났거나 퇴직 등으로 날인할 수 없는 서명 대기는
+ * 상세와 같게 처리가 끝난 쪽이다. 각 묶음 안은 api 순서(날인 대기는 기한이 급한 순, 그다음 최근 것) 그대로.
+ */
+export function groupContracts<T extends PhaseFields>(items: readonly T[], now: Date): { open: T[]; finished: T[] } {
+  const done = (c: T) => isFinished(phaseOf(c, now));
+  return { open: items.filter((c) => !done(c)), finished: items.filter(done) };
 }
 
 /** 경로의 계약 번호 · 주소의 점포 번호. api 의 id 는 integer 라 1..2147483647 밖은 없는 것으로 본다. */

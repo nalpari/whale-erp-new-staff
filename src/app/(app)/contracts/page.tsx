@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Badge, MaskIcon, PageHeader } from "@/components/common";
-import { contractSubText, deadlineOf, groupContracts, parseId, statusTone } from "@/lib/contract-rules";
+import { UNSIGNABLE_LABEL, contractSubText, deadlineOf, groupContracts, parseId, phaseOf, statusTone } from "@/lib/contract-rules";
 import { getContracts, type ContractListItem } from "@/lib/contracts";
 import { getEnumOrEmpty, labelOf, type EnumValue } from "@/lib/enums";
 import { requireSession } from "@/lib/session";
@@ -20,8 +20,8 @@ export default async function ContractsPage({ searchParams }: PageProps<"/contra
   const storeId = parseId((await searchParams).store);
   const [all, statuses, employmentTypes] = await Promise.all([getContracts(), getEnumOrEmpty("ContractStatus"), getEnumOrEmpty("EmploymentType")]);
   const items = storeId === null ? all : all.filter((c) => c.storeId === storeId);
-  const { open, finished } = groupContracts(items);
   const now = new Date();
+  const { open, finished } = groupContracts(items, now);
   // 소속 근무지에서 왔으면 그리로 돌아간다. 데모 목록의 뒤로 가기는 홈이다.
   const backHref = storeId === null ? "/home" : "/me/memberships";
   const query = storeId === null ? "" : `?store=${storeId}`;
@@ -79,7 +79,9 @@ function ContractRow({
   statuses: EnumValue[];
   employmentTypes: EnumValue[];
 }) {
-  const status = labelOf(statuses, c.status);
+  // 날인할 수 없는 서명 대기는 만료 · 서명 불가로 보인다(상세와 같다). 강조는 api 가 날인할 수 있다고 할 때만(deadlineOf).
+  const phase = phaseOf(c, now);
+  const status = phase === "UNSIGNABLE" ? UNSIGNABLE_LABEL : labelOf(statuses, phase);
   const urgent = deadlineOf(c, now)?.urgent ?? false;
   return (
     <li>
@@ -96,7 +98,7 @@ function ContractRow({
           {/* 기한 7일 이내: 상태 칩 지각 · 긴급 글자색(#956013, CON-4) */}
           <span className={`text-[12px] ${urgent ? "font-semibold text-[#956013]" : "text-staff-text-muted"}`}>{contractSubText(c, now, status)}</span>
         </span>
-        <Badge tone={statusTone(c.status)}>{status}</Badge>
+        <Badge tone={statusTone(phase)}>{status}</Badge>
         <span className="flex text-staff-placeholder">
           <MaskIcon src="/icons/chevron-right-small.svg" size={12} />
         </span>

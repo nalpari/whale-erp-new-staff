@@ -6,6 +6,7 @@ import {
   deadlineOf,
   deadlineText,
   groupContracts,
+  phaseOf,
   hoursText,
   maskPhone,
   monthlyHourRows,
@@ -40,7 +41,7 @@ const item = (over: Partial<ContractListItem> = {}): ContractListItem => ({
 test("남은 기한은 한국 달력으로 센다 — 7일 이내만 강조, 상세는 늘 시각까지", () => {
   // 한국 9월 10일 오전 9시
   const d = deadlineOf(item(), new Date("2026-09-10T00:00:00Z"));
-  assert.deepEqual(d, { date: "2026년 9월 12일", dateTime: "2026년 9월 12일 10:23", daysLeft: 2, passed: false, urgent: true });
+  assert.deepEqual(d, { date: "2026년 9월 12일", dateTime: "2026년 9월 12일 10:23", daysLeft: 2, urgent: true });
   assert.equal(deadlineText(d!, "list"), "서명 기한 2026년 9월 12일 · D-2");
   assert.equal(deadlineText(d!, "detail"), "서명 기한 2026년 9월 12일 10:23까지 · 2일 남음");
 
@@ -54,22 +55,31 @@ test("기한 당일 오전(기한 전)은 시각까지 · D-day · 오늘 마감
   // 한국 9월 12일 08:00
   const morning = deadlineOf(item(), new Date("2026-09-11T23:00:00Z"))!;
   assert.equal(morning.daysLeft, 0);
-  assert.equal(morning.passed, false);
   assert.equal(morning.urgent, true);
   assert.equal(deadlineText(morning, "list"), "서명 기한 2026년 9월 12일 10:23까지 · D-day");
   assert.equal(deadlineText(morning, "detail"), "서명 기한 2026년 9월 12일 10:23까지 · 오늘 마감");
 });
 
-test("기한 당일 오후(기한 뒤)는 지남 — 강조 없음", () => {
-  // 한국 9월 12일 15:00
-  const afternoon = deadlineOf(item(), new Date("2026-09-12T06:00:00Z"))!;
-  assert.equal(afternoon.daysLeft, 0);
-  assert.equal(afternoon.passed, true);
-  assert.equal(afternoon.urgent, false);
-  assert.equal(deadlineText(afternoon, "list"), "서명 기한 2026년 9월 12일 10:23 지남");
-  assert.equal(deadlineText(afternoon, "detail"), "서명 기한 2026년 9월 12일 10:23 지남");
-  // 다음 날이면 목록은 날짜만
-  assert.equal(deadlineText(deadlineOf(item(), new Date("2026-09-13T03:00:00Z"))!, "list"), "서명 기한 2026년 9월 12일 지남");
+test("기한 당일 오후(기한 뒤) — 날인 여부는 api 의 awaitingSignature 로: 아직 받는다고 하면 오늘 마감, 아니면 만료", () => {
+  // 한국 9월 12일 15:00(서버 시계로는 기한 뒤)
+  const afternoon = new Date("2026-09-12T06:00:00Z");
+  const still = deadlineOf(item(), afternoon)!;
+  assert.equal(still.daysLeft, 0);
+  assert.equal(deadlineText(still, "detail"), "서명 기한 2026년 9월 12일 10:23까지 · 오늘 마감");
+  const closed = item({ awaitingSignature: false });
+  assert.equal(deadlineOf(closed, afternoon), null);
+  assert.equal(phaseOf(closed, afternoon), "EXPIRED");
+  assert.equal(contractSubText(closed, afternoon, "만료"), "서명 기한 2026년 9월 12일 지남");
+});
+
+test("기한 전인데 api 가 날인할 수 없다고 하면(퇴직 등) 서명 불가 — 기한 · 강조 없음", () => {
+  const now = new Date("2026-09-10T00:00:00Z");
+  const retired = item({ awaitingSignature: false });
+  assert.equal(deadlineOf(retired, now), null);
+  assert.equal(phaseOf(retired, now), "UNSIGNABLE");
+  assert.equal(statusTone(phaseOf(retired, now)), "waiting");
+  assert.equal(contractSubText(retired, now, "서명 불가"), "지금은 서명할 수 없습니다");
+  assert.equal(phaseOf(item(), now), "PENDING_SIGNATURE");
 });
 
 test("서명 대기가 아니거나 기한이 없으면 기한이 없다", () => {
@@ -103,9 +113,23 @@ test("묶음: 서명 대기 · 수정 요청은 진행 중, 나머지는 처리 
     item({ contractId: 5, status: "ENDED" }),
     item({ contractId: 6, status: "REJECTED" }),
   ];
-  const { open, finished } = groupContracts(items);
+  const now = new Date("2026-09-10T00:00:00Z");
+  const { open, finished } = groupContracts(items, now);
   assert.deepEqual(open.map((c) => c.contractId), [1, 3]);
   assert.deepEqual(finished.map((c) => c.contractId), [2, 4, 5, 6]);
+});
+
+test("묶음: api 가 날인할 수 없다고 한 서명 대기(기한 지남 · 퇴직)는 처리가 끝난 쪽", () => {
+  const now = new Date("2026-10-01T00:00:00Z");
+  const items = [
+    item({ contractId: 1, signDeadlineAt: "2026-10-20T01:00:00Z" }),
+    item({ contractId: 2, awaitingSignature: false, signDeadlineAt: "2026-09-12T01:23:00Z" }),
+    item({ contractId: 3, awaitingSignature: false, signDeadlineAt: "2026-10-20T01:00:00Z" }),
+  ];
+  const { open, finished } = groupContracts(items, now);
+  assert.deepEqual(open.map((c) => c.contractId), [1]);
+  assert.deepEqual(finished.map((c) => c.contractId), [2, 3]);
+  assert.deepEqual(finished.map((c) => phaseOf(c, now)), ["EXPIRED", "UNSIGNABLE"]);
 });
 
 test("배지 색 — 서명 대기 경고, 거부 · 만료 오류, 체결 완료 정상, 종료 중립", () => {
