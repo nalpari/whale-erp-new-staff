@@ -148,6 +148,12 @@ export function periodTotals(records: Pick<MyAttendanceRecords, "items" | "total
   };
 }
 
+/** 홈 나의 근무 정보의 출퇴근 현황 줄(데모 「이번 달 출근 9회 · 지각 0회」) — 오늘까지 출근 기록이 있는 날 수와 지각한 날 수 */
+export function monthAttendanceLabel(records: Pick<MyAttendanceRecords, "items" | "totals">, today: string): string {
+  const checkedIn = records.items.filter((d) => d.date <= today && d.pairs.some((p) => p.checkIn !== null)).length;
+  return `이번 달 출근 ${checkedIn}회 · 지각 ${periodTotals(records, today).late}회`;
+}
+
 /** 「63시간 16분」 · 「1시간 20분」 · 「40시간」 */
 export const durationLabel = (minutes: number) => `${Math.floor(minutes / 60)}시간${minutes % 60 ? ` ${String(minutes % 60).padStart(2, "0")}분` : ""}`;
 

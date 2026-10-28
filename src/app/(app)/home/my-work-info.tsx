@@ -1,5 +1,7 @@
 import { InfoRow, SectionTitle } from "@/components/common";
 import { ApiError, NetworkError, logUnexpected } from "@/lib/api";
+import { monthAttendanceLabel } from "@/lib/attendance-history";
+import { getMyAttendanceRecords } from "@/lib/my-attendance";
 import { getMyWorkSchedules } from "@/lib/my-work-schedules";
 import { getPayslips } from "@/lib/payslips";
 import { kstDate } from "@/lib/work-schedules";
@@ -18,12 +20,14 @@ async function latestPayslipMonth(): Promise<number | null | undefined> {
 }
 
 // 데모 「나의 근무 정보」(Figma node 9:345) 바로가기. 급여명세서는 모든 근무지 것(PAY-8), 근무 스케줄은 고른 근무지의 이번 달 횟수.
-// 출퇴근 기록 줄은 출퇴근 화면이 생길 때 붙인다(2026-10-23 재영). 근무지가 없으면 급여명세서 줄만 둔다(HOME-5).
+// 출퇴근 현황은 고른 근무지의 이번 달 출근 · 지각 수로 /attendance 에 간다. 근무지가 없으면 급여명세서 줄만 둔다(HOME-5).
 export async function MyWorkInfo({ staffMemberId }: { staffMemberId?: number }) {
-  const month = kstDate(new Date()).slice(0, 7);
-  const [payMonth, schedules] = await Promise.all([
+  const today = kstDate(new Date());
+  const month = today.slice(0, 7);
+  const [payMonth, schedules, records] = await Promise.all([
     latestPayslipMonth(),
     staffMemberId ? getMyWorkSchedules(staffMemberId, month) : null,
+    staffMemberId ? getMyAttendanceRecords(staffMemberId, `${month}-01`, today) : null,
   ]);
   return (
     <section className="flex flex-col gap-[12px]">
@@ -40,6 +44,14 @@ export async function MyWorkInfo({ staffMemberId }: { staffMemberId?: number }) 
           icon="/icons/menu-schedule.svg"
           title="근무스케줄"
           description={schedules ? `이번 달 근무 ${schedules.items.length}회` : undefined}
+        />
+      )}
+      {staffMemberId && (
+        <InfoRow
+          href="/attendance"
+          icon="/icons/menu-attendance.svg"
+          title="출퇴근 현황"
+          description={records ? monthAttendanceLabel(records, today) : undefined}
         />
       )}
     </section>
