@@ -54,6 +54,8 @@ export async function acceptMyInvitationAction(
   // 더한 초대가 남은 화면(내 정보 「요청 N건」 · 소속 근무지 「확인을 기다리는 요청」)을 무효화한다 — 소속 추가 확인의 답하기와 같다.
   revalidatePath("/", "layout");
   // 확인 화면을 히스토리에 남기지 않는다. 뒤로 가면 다 쓴 초대를 다시 열게 된다. 점포 id 는 완료 화면의 「근로계약서 보기」가
-  // 그 근무지 계약서만 열 때 쓴다 — 주소로 바꿔도 내 계약서 목록을 거르는 값일 뿐이라 쿠키에 두지 않는다.
-  redirect(`/me/invitations/done?store=${result.storeId}`, RedirectType.replace);
+  // 그 근무지 계약서만 열 때 쓴다 — 주소로 바꿔도 내 계약서 목록을 거르는 값일 뿐이라 쿠키에 두지 않는다. api #195 배포 전이라
+  // 응답에 없으면 붙이지 않는다(완료 화면이 전체 목록으로 잇는다).
+  const query = typeof result.storeId === "number" ? `?store=${result.storeId}` : "";
+  redirect(`/me/invitations/done${query}`, RedirectType.replace);
 }
