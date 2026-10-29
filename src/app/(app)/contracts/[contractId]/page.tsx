@@ -13,6 +13,7 @@ import {
   phaseOf,
   statusTone,
 } from "@/lib/contract-rules";
+import { mismatchText } from "@/lib/contract-actions";
 import { getContract } from "@/lib/contracts";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { dateLabel, kstDateLabel } from "@/lib/profile";
@@ -20,6 +21,8 @@ import { requireSession } from "@/lib/session";
 import { ChangedToast } from "../../me/changed-toast";
 import { ContractDocument } from "../_components/contract-document";
 import { ContractFrame, ContractHead, Sunken, Tiny, Values } from "../_components/parts";
+import { rejectContractAction, requestContractCorrectionAction } from "./actions";
+import { ContractDecision } from "./contract-decision";
 
 export const metadata: Metadata = { title: "근로계약서 · Whale ERP" };
 
@@ -42,7 +45,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const contractId = parseId(rawId);
   if (contractId === null) notFound();
 
-  const [c, statuses, employmentTypes, weekdays, payMonths, payMethods, documentKinds] = await Promise.all([
+  const [c, statuses, employmentTypes, weekdays, payMonths, payMethods, documentKinds, identityFields] = await Promise.all([
     getContract(contractId),
     getEnumOrEmpty("ContractStatus"),
     getEnumOrEmpty("EmploymentType"),
@@ -50,6 +53,13 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
     getEnumOrEmpty("PayMonth"),
     getEnumOrEmpty("PayMethod"),
     getEnumOrEmpty("ContractDocumentKind"),
+    // 본인 대조 항목 한글(api enum IdentityField) — 대조가 다를 때만 쓰지만 캐시되니 함께 받는다. getEnumOrEmpty 는 5xx · 연결 실패만
+    // 빈 목록으로 바꾸고 404 · 응답에 이름 없음(api 가 아직 등록 전)은 던지므로, 여기서 남기고 빈 목록으로 받아 상세 전체가 깨지지
+    // 않게 한다 — 빈 목록이면 대조가 다른 계약은 항목 없이 일반 문구다.
+    getEnumOrEmpty("IdentityField").catch((error: unknown) => {
+      console.error("[contract] IdentityField enum 을 받지 못했습니다", error);
+      return [];
+    }),
   ]);
   if (!c) notFound();
   // 소속 근무지에서 그 근무지 목록으로 왔으면 같은 목록으로 돌아간다
@@ -135,85 +145,106 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   }
 
   const worker = c.worker;
+  // 본인 대조가 다르면 다른 항목의 한글. 못 받았거나 한글이 없는 값이 섞이면 null — 항목 없이 일반 문구다.
+  const mismatched = mismatchText(c.mismatches, identityFields);
   return (
-    <ContractFrame header={header}>
-      {downloadAlert}
-      {phase === "EXPIRED" ? (
-        // 데모 expired. 하루 배치가 만료로 바꾸기 전이라 서명 대기로 남아 있어도 api 가 날인할 수 없다고 하고 기한이 지났으면 같은 안내다.
-        <Alert tone="warning">
-          <p>
-            <strong>서명 기한이 지나 계약서가 만료되었습니다.</strong>
-            <br />
-            계약을 진행하려면 근무지 관리자에게 계약서를 다시 요청해 주세요.
-          </p>
-        </Alert>
-      ) : phase === "UNSIGNABLE" ? (
-        // 서명 대기인데 기한 전에 api 가 날인할 수 없다고 한다 — 재직 중이 아닐 때(퇴직). 데모에 없는 상태라 만료 안내와 같은 결로 적는다.
-        <Notice>
-          <strong>지금은 서명할 수 없는 계약서입니다.</strong>
-          <br />
-          재직 중이 아니면 서명할 수 없습니다. 계약을 진행하려면 근무지 관리자에게 문의해 주세요.
-        </Notice>
-      ) : phase === "CORRECTION_REQUESTED" ? (
-        <Notice>
-          <strong>수정을 요청한 계약서입니다.</strong>
-          <br />
-          근무지 관리자가 고쳐 다시 보내면 서명할 수 있습니다.
-        </Notice>
-      ) : (
-        isFinished(phase) && (
-          // 데모 readonly
+    <>
+      <ContractFrame header={header}>
+        {downloadAlert}
+        {phase === "EXPIRED" ? (
+          // 데모 expired. 하루 배치가 만료로 바꾸기 전이라 서명 대기로 남아 있어도 api 가 날인할 수 없다고 하고 기한이 지났으면 같은 안내다.
+          <Alert tone="warning">
+            <p>
+              <strong>서명 기한이 지나 계약서가 만료되었습니다.</strong>
+              <br />
+              계약을 진행하려면 근무지 관리자에게 계약서를 다시 요청해 주세요.
+            </p>
+          </Alert>
+        ) : phase === "UNSIGNABLE" ? (
+          // 서명 대기인데 기한 전에 api 가 날인할 수 없다고 한다 — 재직 중이 아닐 때(퇴직). 데모에 없는 상태라 만료 안내와 같은 결로 적는다.
           <Notice>
-            <strong>이미 처리가 끝난 계약서입니다.</strong>
+            <strong>지금은 서명할 수 없는 계약서입니다.</strong>
             <br />
-            다시 서명하거나 거절할 수 없습니다. 계약 내용을 바꾸려면 근무지 관리자에게 문의해 주세요.
+            재직 중이 아니면 서명할 수 없습니다. 계약을 진행하려면 근무지 관리자에게 문의해 주세요.
           </Notice>
-        )
-      )}
+        ) : c.awaitingSignature && !c.signable ? (
+          // 본인 대조(WHALEERP-125): 다른 항목만 알린다 — 계정 값은 보이지 않는다. 날인 대신 수정 요청을 낸다.
+          <Alert tone="warning">
+            <p>
+              <strong>계약서의 직원 정보가 가입한 정보와 달라 서명할 수 없습니다.</strong>
+              <br />
+              {mismatched ? `다른 항목: ${mismatched}` : "다른 항목이 있습니다."}
+              <br />
+              계약서 내용을 확인하고 수정을 요청해 주세요. 근무지 관리자가 고쳐 다시 보내면 서명할 수 있습니다.
+            </p>
+          </Alert>
+        ) : phase === "CORRECTION_REQUESTED" ? (
+          <Notice>
+            <strong>수정을 요청한 계약서입니다.</strong>
+            <br />
+            근무지 관리자가 고쳐 다시 보내면 서명할 수 있습니다.
+          </Notice>
+        ) : (
+          isFinished(phase) && (
+            // 데모 readonly
+            <Notice>
+              <strong>이미 처리가 끝난 계약서입니다.</strong>
+              <br />
+              다시 서명하거나 거절할 수 없습니다. 계약 내용을 바꾸려면 근무지 관리자에게 문의해 주세요.
+            </Notice>
+          )
+        )}
 
-      <ContractHead
-        title={title}
-        sub={contractSubText(c, now, status, "detail")}
-        urgent={deadline?.urgent ?? false}
-        badge={<Badge tone={statusTone(phase)}>{status}</Badge>}
-      />
-
-      <ContractDocument c={c} enums={{ employmentTypes, weekdays, payMonths, payMethods }} />
-
-      <Sunken label="계약서에 들어가는 내 정보">
-        <Values
-          rows={[
-            ["이름", worker.name],
-            ["생년월일", worker.birthDate && dateLabel(worker.birthDate)],
-            ["휴대전화번호", maskPhone(worker.phone)],
-            // 주소는 날인할 때 계정 주소로 고정된다 — 날인 전이면 비어 있어 계정 주소를 보인다(api)
-            ["주소", address(worker.address, worker.addressDetail) ?? address(c.account.address, c.account.addressDetail)],
-          ]}
+        <ContractHead
+          title={title}
+          sub={contractSubText(c, now, status, "detail")}
+          urgent={deadline?.urgent ?? false}
+          badge={<Badge tone={statusTone(phase)}>{status}</Badge>}
         />
-      </Sunken>
 
-      <Sunken label="사용자(근무지)">
-        <Values
-          rows={[
-            ["상호", c.employer.tradeName ?? c.employer.storeName],
-            ["대표자", c.employer.ceoName],
-            ["사업자등록번호", c.employer.registrationNumber],
-            ["사업장 주소", address(c.employer.bizAddress, c.employer.bizAddressDetail)],
-            ["전화", c.employer.storePhone],
-          ]}
+        <ContractDocument c={c} enums={{ employmentTypes, weekdays, payMonths, payMethods }} />
+
+        <Sunken label="계약서에 들어가는 내 정보">
+          <Values
+            rows={[
+              ["이름", worker.name],
+              ["생년월일", worker.birthDate && dateLabel(worker.birthDate)],
+              ["휴대전화번호", maskPhone(worker.phone)],
+              // 주소는 날인할 때 계정 주소로 고정된다 — 날인 전이면 비어 있어 계정 주소를 보인다(api)
+              ["주소", address(worker.address, worker.addressDetail) ?? address(c.account.address, c.account.addressDetail)],
+            ]}
+          />
+        </Sunken>
+
+        <Sunken label="사용자(근무지)">
+          <Values
+            rows={[
+              ["상호", c.employer.tradeName ?? c.employer.storeName],
+              ["대표자", c.employer.ceoName],
+              ["사업자등록번호", c.employer.registrationNumber],
+              ["사업장 주소", address(c.employer.bizAddress, c.employer.bizAddressDetail)],
+              ["전화", c.employer.storePhone],
+            ]}
+          />
+        </Sunken>
+
+        {/* TODO(149): 처리 완료본 파일 생성(WHALEERP-131) 뒤 documents 의 SIGNED_COPY 를 체결된 계약에서 같은 받기 라우트(documents/[contractDocumentId])로. */}
+
+        {/* api 가 지금 날인할 수 있다고 할 때만(서명 대기 · 기한 안 · 재직 중) — 아래 버튼 줄과 같은 판정 */}
+        {c.awaitingSignature && <Tiny>서명하거나 거절하면 근무지 관리자에게 알림이 전달됩니다.</Tiny>}
+      </ContractFrame>
+      {c.awaitingSignature && c.sentAt && (
+        <ContractDecision
+          signHref={`/contracts/${c.contractId}/sign?${storeId === null ? "" : `store=${storeId}&`}sentAt=${encodeURIComponent(c.sentAt)}`}
+          signable={c.signable}
+          rejectAction={rejectContractAction.bind(null, c.contractId, storeId)}
+          correctionAction={requestContractCorrectionAction.bind(null, c.contractId, storeId)}
         />
-      </Sunken>
-
-      {/* TODO(149): 처리 완료본 파일 생성(WHALEERP-131) 뒤 documents 의 SIGNED_COPY 를 체결된 계약에서 같은 받기 라우트(documents/[contractDocumentId])로. */}
-
-      {/* api 가 지금 날인할 수 있다고 할 때만(서명 대기 · 기한 안 · 재직 중) */}
-      {c.awaitingSignature && (
-        <>
-          {/* WHALEERP-147: 날인 · 거부는 이 자리(화면 아래 Dock)에 「서명하기」 · 「거절하기」로 붙는다 — c.signable(본인 대조까지 맞음) ·
-              c.mismatches(다르면 수정 요청) · c.sentAt(날인 때 그대로 보냄)을 쓴다. 지금은 보기만 한다. */}
-          <Tiny>앱에서 서명 · 거절하는 기능은 준비 중입니다. 서명하거나 거절하면 근무지 관리자에게 알림이 전달됩니다.</Tiny>
-        </>
       )}
-    </ContractFrame>
+      {query.done !== undefined && (
+        // 수정 요청 뒤 이 화면으로 돌아왔다(`?done=correction`). 알린 뒤 주소에서 지운다 — `?store=` 는 이어 준다(받기 실패 안내와 같다).
+        <ChangedToast path={`/contracts/${c.contractId}${storeQuery}`}>{query.done === "correction" ? "수정을 요청했습니다" : undefined}</ChangedToast>
+      )}
+    </>
   );
 }
