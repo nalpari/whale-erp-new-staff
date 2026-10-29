@@ -80,6 +80,9 @@ test("consentChangeFailure — 409 는 다시 받기, 500 한글 사유는 그�
     refresh: true,
     log: false,
   });
+  // 동의 시트를 연 사이 약관이 바뀐 409 는 api 사유를 그대로(WHALEERP-628)
+  const termsChanged = "그사이 위치정보 약관이 바뀌었습니다. 바뀐 약관을 확인하고 다시 동의해 주세요";
+  assert.deepEqual(consentChangeFailure({ status: 409, message: termsChanged }), { error: termsChanged, refresh: true, log: false });
   const noTerms = "지금은 위치정보 동의를 받을 수 없습니다. 관리자에게 문의해 주세요";
   assert.deepEqual(consentChangeFailure({ status: 500, message: noTerms }), { error: noTerms, refresh: false, log: false });
   const generic = consentChangeFailure({ status: 502, message: "Bad Gateway" });

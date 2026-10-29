@@ -22,11 +22,11 @@ function useConsentChange(onDone: () => void) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
   const [toast, setToast] = useState<{ key: number; text: string }>();
-  const change = (kind: ConsentChange) =>
+  const change = (kind: ConsentChange, termsVersion?: string) =>
     startTransition(async () => {
       setError(undefined);
       try {
-        const result = await changeConsentAction(kind);
+        const result = await changeConsentAction(kind, termsVersion);
         if (result.ok) setToast({ key: Date.now(), text: CONSENT_CHANGES[kind].done });
         else setError(result.error);
       } catch (thrown) {
@@ -188,7 +188,7 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
             {/* 동의는 약관을 보인 이 시트 안에서만 받는다(고지 후 동의, 2026-10-20 노영주). 읽었다는 값은 따로 두지 않는다 —
                 api 가 동의한 약관 버전과 일시를 남긴다. */}
             {(state === "NOT_AGREED" || state === "WITHDRAWN") && (
-              <Button disabled={pending} onClick={() => change("location-agree")}>
+              <Button disabled={pending} onClick={() => change("location-agree", terms.version)}>
                 동의합니다
               </Button>
             )}
