@@ -246,7 +246,7 @@ const HQ_SHARING_TERMS = [
  * 본사 제공 동의 카드(ATT-30, 데모 me 의 본사 제공 카드). 가맹 점포 소속이 있을 때만 보인다. 계정에 하나라 소속 가맹 점포 모두에
  * 같이 적용된다. 동의 중이면 내용 보기 · 동의 철회(확인 시트), 아니면 내용 보기 · 다시 동의하기(내용 시트 안의 「동의합니다」로 기록).
  * 더는 받아 주지 않는 문구 버전에 동의했으면(needsReconsent, api #183) 본사에는 미동의로 가려지므로 「다시 동의 필요」로 보이고 철회 대신
- * 다시 동의하기를 둔다 — api 는 이 상태의 동의를 지금 버전으로 덮는다(출근 화면의 다시 동의와 같은 값).
+ * 다시 동의하기를 둔다 — api 는 이 상태의 동의를 지금 버전으로 덮는다. 앱에서 사업자 제공 동의를 다시 받는 곳은 이 카드뿐이다.
  */
 export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharingConsentDto"] }) {
   const [sheet, setSheet] = useState<HqSheet>();
