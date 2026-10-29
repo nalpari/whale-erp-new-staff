@@ -4,7 +4,6 @@ import { Button } from "@/components/common";
 import { AuthScreen } from "@/app/(auth)/_components/auth-screen";
 import { useFocusedTitle } from "@/app/(auth)/_components/use-focused-title";
 import { MEMBERSHIPS_PATH } from "@/lib/join";
-import { HOME_PATH } from "@/lib/login-return";
 
 // 받은 초대(WHALEERP-604)의 갈래 화면. 안내 문구는 가입 첫 단계와 같고(Plane 604), 버튼만 로그인한 직원에 맞게 소속 근무지 · 홈이다.
 
@@ -50,11 +49,12 @@ export function InvitationJoined() {
     <AuthScreen
       titleRef={titleRef}
       title="이미 가입을 마친 초대입니다"
-      description="이 초대의 근무지는 이미 계정에 이어졌습니다. 근로계약을 체결하면 소속 근무지에 보입니다."
+      description="이 초대의 근무지는 이미 계정에 이어졌습니다. 근로계약서에 서명하면 근로계약이 체결되어 소속 근무지에 보입니다."
       dock={
         <>
-          <Button href={HOME_PATH} transitionTypes={["nav-forward"]}>
-            홈으로
+          {/* 완료 화면(invitations/done)과 같이 서명을 기다리는 근로계약서로 잇는다 */}
+          <Button href="/contracts" transitionTypes={["nav-forward"]}>
+            근로계약서 보기
           </Button>
           <BackToMemberships />
         </>
