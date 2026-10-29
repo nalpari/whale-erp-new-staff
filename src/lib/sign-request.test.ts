@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { ContractListItem } from "./contracts.ts";
-import { signRequestOf } from "./sign-request.ts";
+import { signRequestOf, signWaitingCards } from "./sign-request.ts";
 
 const NOW = new Date("2026-10-28T03:00:00Z"); // 한국 2026-10-28 12:00
 
@@ -48,4 +48,38 @@ test("서명할 수 없는 계약(기한 지남 · 퇴직 — awaitingSignature 
   assert.equal(signRequestOf([item(1, { awaitingSignature: false })], NOW), null);
   assert.equal(signRequestOf([item(1, { contractMethod: "PAPER" })], NOW), null);
   assert.equal(signRequestOf([item(1, { sentAt: null })], NOW), null);
+});
+
+test("홈 서명 대기 카드는 서명을 기다리는 전자계약 모두를 기한이 급한 순으로, 7일 이내만 강조", () => {
+  const cards = signWaitingCards(
+    [
+      item(1, { signDeadlineAt: "2026-11-19T01:00:00.000Z" }),
+      item(2, { storeName: "웨일카페 홍대점", storeId: 11, signDeadlineAt: "2026-11-02T01:00:00.000Z" }),
+      item(3, { status: "SIGNED", awaitingSignature: false }),
+      item(4, { contractMethod: "PAPER" }),
+      item(5, { sentAt: null }),
+    ],
+    NOW,
+  );
+  assert.deepEqual(
+    cards.map((c) => [c.contractId, c.storeName, c.href, c.daysLeft, c.urgent, c.until, c.left]),
+    [
+      [2, "웨일카페 홍대점", "/contracts/2?store=11", 5, true, "2026년 11월 2일까지", "남은 기한 5일"],
+      [1, "웨일카페 강남역점", "/contracts/1?store=10", 22, false, "2026년 11월 19일까지", "남은 기한 22일"],
+    ],
+  );
+});
+
+test("홈 서명 대기 카드 — 기한이 오늘 · 내일이면 시각까지, 기한이 없으면 날짜 없이", () => {
+  const [today, tomorrow] = signWaitingCards(
+    [item(1, { signDeadlineAt: "2026-10-28T05:00:00.000Z" }), item(2, { signDeadlineAt: "2026-10-29T01:30:00.000Z" })],
+    NOW,
+  );
+  assert.equal(today.daysLeft, 0);
+  assert.equal(today.until, "2026년 10월 28일 14:00까지");
+  assert.equal(today.left, "오늘 14:00 마감");
+  assert.equal(tomorrow.until, "2026년 10월 29일 10:30까지");
+  assert.equal(tomorrow.left, "내일 10:30 마감");
+  const [none] = signWaitingCards([item(1, { signDeadlineAt: null })], NOW);
+  assert.deepEqual([none.daysLeft, none.urgent, none.until, none.left], [null, false, null, null]);
 });
