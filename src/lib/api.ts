@@ -46,10 +46,15 @@ export function baseUrl(): string {
   return url;
 }
 
-export interface RequestOptions {
+/**
+ * 요청 본문 — JSON(`json`)이나 multipart(`form`, 파일 첨부 — 날인의 서명 PNG) 중 하나만. multipart 의 Content-Type 은 fetch 가
+ * 경계(boundary)와 함께 붙인다. 둘을 함께 주면 타입이 막는다.
+ */
+export type RequestBody = { json?: unknown; form?: never } | { form?: FormData; json?: never };
+
+/** 본문 밖의 옵션. Omit 은 유니온을 펴지 않아 본문(RequestBody)과 나눠 둔다 — 고를 때는 이것을 Omit 하고 RequestBody 를 붙인다. */
+export interface RequestSettings {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  /** 본문. 있으면 JSON 으로 보낸다. */
-  json?: unknown;
   /** 있으면 Authorization: Bearer 로 보낸다. */
   accessToken?: string;
   /** 모두에게 같은 응답(enum)만 초 단위로 캐시한다. 없으면 캐시하지 않는다. */
@@ -63,9 +68,11 @@ export interface RequestOptions {
   clientIp?: ClientIp;
 }
 
+export type RequestOptions = RequestSettings & RequestBody;
+
 export async function request<T>(
   path: string,
-  { method = "GET", json, accessToken, revalidate, timeoutMs = DEFAULT_TIMEOUT_MS, clientIp }: RequestOptions = {},
+  { method = "GET", json, form, accessToken, revalidate, timeoutMs = DEFAULT_TIMEOUT_MS, clientIp }: RequestOptions = {},
 ): Promise<T> {
   const url = `${baseUrl()}${path}`;
   const headers = new Headers();
@@ -73,7 +80,7 @@ export async function request<T>(
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
   if (clientIp) headers.set("X-Forwarded-For", clientIp);
   // 본문 직렬화는 try 밖이다. 여기서 나는 TypeError(순환 참조 등)는 코드 결함이라 연결 실패로 바꾸지 않는다.
-  const body = json === undefined ? undefined : JSON.stringify(json);
+  const body = json === undefined ? form : JSON.stringify(json);
   // 시간 제한은 본문을 다 읽을 때까지 걸린다. 헤더만 오고 본문에서 멈춰도 같은 NetworkError 가 된다.
   const signal = AbortSignal.timeout(timeoutMs);
   const fail = (error: unknown): never => {

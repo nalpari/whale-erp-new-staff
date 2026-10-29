@@ -7,6 +7,9 @@ import { useEffect, useRef, type ReactNode } from "react";
 // 흰 바탕 · 위 모서리 26 · 위로 그림자, 맨 위 40×4 손잡이(#DCE1E9), 제목 20px bold · 설명 14px 보조 글자 · 좌우 24.
 // 뒤 화면은 #17253D 38% + 1.5px 흐림. 열 때 아래에서 올라오고(260ms) 닫을 때 더 빨리 내려간다(200ms).
 // 뒤 화면을 누르거나 Esc·닫기를 누르면 onClose 를 부른다. 열림 상태는 쓰는 쪽이 open 으로 들고 있다.
+/** 닫힐 때 내려가는 시간(ms, 아래 duration-200). 시트를 차례로 띄우는 쪽이 앞 시트가 다 내려간 뒤 다음을 열 때 쓴다. */
+export const SHEET_CLOSE_MS = 200;
+
 export function BottomSheet({
   open,
   onClose,

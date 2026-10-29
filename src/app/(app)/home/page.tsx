@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
+import { unstable_rethrow } from "next/navigation";
 import { Suspense } from "react";
 import { BottomNav } from "@/components/common";
-import { popupSummary } from "@/lib/affiliation-requests";
+import { popupSummary, requestsLoadFailure } from "@/lib/affiliation-requests";
+import { ApiError, failureOf, logFailure, logUnexpected } from "@/lib/api";
+import { getContracts } from "@/lib/contracts";
 import { getCurrentMembership } from "@/lib/current-membership";
+import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { getMyNotifications } from "@/lib/my-notifications";
 import { getMyAffiliationRequests } from "@/lib/my-profile";
 import { requireSession } from "@/lib/session";
+import { signRequestOf } from "@/lib/sign-request";
 import { NotificationBell } from "../notification-bell";
-import { AffiliationPopup } from "./affiliation-popup";
+import { HomePopups } from "./home-popups";
 import { MyWorkInfo } from "./my-work-info";
 import { ScheduleCards, ScheduleCardsSkeleton } from "./schedule-cards";
 import { StoreTopBar } from "./store-top-bar";
@@ -60,16 +65,73 @@ export default async function HomePage() {
       <div className="sticky bottom-0 mt-auto">
         <BottomNav current="/" />
       </div>
-      {/* 소속 추가 요청(WHALEERP-144)은 팝업으로만 알린다. 따로 받아 api 가 느려도 홈을 먼저 보인다. */}
+      {/* 서명 요청(WHALEERP-148) · 소속 추가 요청(WHALEERP-144)은 팝업으로만 알린다. 따로 받아 api 가 느려도 홈을 먼저 보인다. */}
       <Suspense>
-        <AffiliationRequests />
+        <HomeRequests />
       </Suspense>
     </div>
   );
 }
 
-/** 소속 추가 요청 팝업. 못 받으면 팝업 없이 홈을 그대로 보인다. */
-async function AffiliationRequests() {
-  const summary = popupSummary((await getMyAffiliationRequests()) ?? []);
-  return summary && <AffiliationPopup requestKey={summary.key} rows={summary.rows} />;
+/**
+ * 홈 위 팝업 — 서명 요청(148)과 소속 추가 요청(144). 둘 다 있으면 한 번에 하나만, 서명 요청을 먼저 띄우고 그것을 닫으면 소속 추가
+ * 요청이 뜬다(home-popups.tsx). 근거: 서명 대기 계약은 기한(발송 + 30일)이 지나면 만료되고 서명해야 근무가 시작되는(데모 sign-req 문구)
+ * 지금 근무지의 일이고, 소속 추가 요청은 새 근무지를 더할지 묻는 것이며 수락해도 그 뒤 계약 서명이 따로 온다(가입 · 진입 가이드 JOIN-7 의
+ * 흐름이 가입 → 서명 요청 팝업). 데모 · 기획 문서에 둘이 함께일 때의 순서는 없다.
+ * 두 조회를 함께 기다린다 — 계약 목록이 느린 동안 소속 추가 팝업도 기다리지만, 따로 띄우면 소속 추가가 먼저 떴다가 서명 요청이 그 뒤를
+ * 잇는 순서가 뒤집힌다. 두 조회는 api 실패를 null 로 돌려주므로(그 팝업만 없이 홈 그대로) 여기까지 던져 오는 것은 코드 결함 · 만료 안내
+ * redirect 뿐이라 홈 오류로 드러나게 둔다. 고용 형태 enum 은 계약 목록이 오면 바로(소속 추가 조회와 나란히) 받는다.
+ */
+async function HomeRequests() {
+  const now = new Date();
+  const contracts = getContractsOrNull();
+  const employmentTypes = contracts.then((items) =>
+    items && signRequestOf(items, now)?.contract.employmentType ? employmentTypesOrEmpty() : [],
+  );
+  const [items, affiliationRequests, types] = await Promise.all([contracts, getMyAffiliationRequests(), employmentTypes]);
+  const sign = items && signRequestOf(items, now);
+  return (
+    <HomePopups
+      sign={
+        sign && {
+          key: sign.key,
+          href: sign.href,
+          rows: [
+            { label: "근무지", value: sign.contract.storeName },
+            ...(sign.contract.employmentType ? [{ label: "고용 형태", value: labelOf(types, sign.contract.employmentType) }] : []),
+            ...(sign.deadline ? [{ label: "서명 기한", value: sign.deadline }] : []),
+          ],
+        }
+      }
+      affiliation={popupSummary(affiliationRequests ?? [])}
+    />
+  );
+}
+
+/**
+ * 내 근로계약 목록 — 팝업 곁들임이라 api 실패(4xx · 5xx · 연결 실패)는 null 로 받아 팝업 없이 홈을 그대로 보인다(401 은 만료 안내로).
+ * 다루는 규칙은 소속 추가 요청 목록과 같다(requestsLoadFailure — 예상 밖 4xx 만 남긴다).
+ */
+async function getContractsOrNull() {
+  try {
+    return await getContracts();
+  } catch (error) {
+    const failure = failureOf(error);
+    const handling = requestsLoadFailure(failure);
+    if (handling === "throw") throw error;
+    if (handling === "log" && failure) logFailure("contracts-popup", failure);
+    return null;
+  }
+}
+
+/** 고용 형태 enum. getEnumOrEmpty 는 5xx · 연결 실패만 빈 목록이고 404 · 응답 모양 결함은 던진다 — 팝업 곁들임이라 남기고 빈 목록(값 그대로). */
+async function employmentTypesOrEmpty() {
+  try {
+    return await getEnumOrEmpty("EmploymentType");
+  } catch (error) {
+    unstable_rethrow(error);
+    if (error instanceof ApiError) logUnexpected("contracts-popup", error);
+    else console.error("[contracts-popup] EmploymentType enum 을 받지 못했습니다", error);
+    return [];
+  }
 }

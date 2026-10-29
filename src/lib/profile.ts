@@ -7,7 +7,7 @@ export type MyProfile = Schemas["MyProfileResponseDto"];
 export type MyMembership = Schemas["MyMembershipDto"];
 export type LocationConsentState = Schemas["LocationConsentState"];
 
-const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+export const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const pad = (n: number) => String(n).padStart(2, "0");
 
 /** YYYY-MM-DD → 「2025년 11월 3일」. 달력 날짜라 시간대를 따지지 않는다. */
