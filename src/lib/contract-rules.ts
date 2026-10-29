@@ -68,9 +68,12 @@ export function deadlineText(d: Deadline, style: "list" | "detail"): string {
   return `서명 기한 ${deadlineValue(d, style)}`;
 }
 
+/** 기한을 시각까지 보일 만큼 가까운지 — 오늘 · 내일(위 deadlineText 의 까닭). 목록 · 홈 서명 대기 카드가 같이 쓴다. */
+export const isDeadlineNear = (d: Deadline): boolean => d.daysLeft <= 1;
+
 /** deadlineText 의 「서명 기한」 뒤 — 이름 칸이 따로 있는 줄(홈 서명 요청 팝업)에 쓴다. */
 export function deadlineValue(d: Deadline, style: "list" | "detail"): string {
-  const withTime = style === "detail" || d.daysLeft <= 1;
+  const withTime = style === "detail" || isDeadlineNear(d);
   const left = style === "list" ? (d.daysLeft === 0 ? "D-day" : `D-${d.daysLeft}`) : d.daysLeft === 0 ? "오늘 마감" : `${d.daysLeft}일 남음`;
   return `${withTime ? `${d.dateTime}까지` : d.date} · ${left}`;
 }

@@ -125,7 +125,7 @@ async function getContractsOrNull() {
     const failure = failureOf(error);
     const handling = requestsLoadFailure(failure);
     if (handling === "throw") throw error;
-    if (handling === "log" && failure) logFailure("contracts-popup", failure);
+    if (handling === "log" && failure) logFailure("contracts-home", failure);
     return null;
   }
 }
@@ -139,7 +139,7 @@ async function employmentTypesOrEmpty() {
     return await getEnumOrEmpty("EmploymentType");
   } catch (error) {
     unstable_rethrow(error);
-    if (error instanceof ApiError) logUnexpected("contracts-popup", error);
+    if (error instanceof ApiError) logUnexpected("contracts-home", error);
     else console.error("[contracts-popup] EmploymentType enum 을 받지 못했습니다", error);
     return [];
   }
