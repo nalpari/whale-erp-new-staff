@@ -3,7 +3,10 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { Button, Dock, MaskIcon, Notice, PageHeader } from "@/components/common";
 import { Sunken, Values } from "@/app/_components/tax-profile-parts";
+import { failureOf, logFailure } from "@/lib/api";
 import { contentOf, contractHrefOf, parseResult } from "@/lib/affiliation-requests";
+import { getContracts } from "@/lib/contracts";
+import { HOME_PATH } from "@/lib/login-return";
 import { readAcceptedStore } from "@/lib/invitation-cookie";
 import { BODY, Lead } from "../screen-parts";
 
@@ -14,7 +17,9 @@ import { BODY, Lead } from "../screen-parts";
 // 남은 요청을 받아 버튼을 바꾸지 않는다 — 바꾸면 누르려는 순간 버튼이 바뀐다. 요청 목록은 빈 상태를 스스로 보인다. 수락 완료의 버튼 줄만
 // 함께 온 계약 유무로 갈린다 — 주소에 고정된 값이라 그리는 동안 바뀌지 않는다.
 // 수락 완료에 함께 온 계약이 있으면 「계약서 날인하러 가기」로 그 계약서(수락 응답의 contractIds, 근로계약서 화면 staff #44)로 보낸다 —
-// 하나면 그 계약서, 여럿이면 근로계약서 목록. 없으면 도착하면 알린다는 안내와 홈 · 요청 목록이다(데모 addsite-done).
+// 하나면 그 계약서, 여럿이면 근로계약서 목록 — 내 계약 목록에서 그 계약의 근무지를 찾아 ?store= 로 그 근무지만 보인다(수락 응답에 점포가
+// 없다). 없으면 도착하면 알린다는 안내와 홈 · 요청 목록이다(데모 addsite-done). 버튼은 근무지 추가 완료(/me/invitations/done)와 같이
+// 기록을 바꿔 넣어(replace) 날인하고 뒤로 가도 이 완료 화면에 들르지 않는다.
 
 type Params = Awaited<PageProps<"/affiliations/done">["searchParams"]>;
 const text = (value: string | string[] | undefined) => (typeof value === "string" ? value : undefined);
@@ -36,6 +41,20 @@ export async function generateMetadata({ searchParams }: PageProps<"/affiliation
   return { title: `${content?.title ?? "소속 추가 확인"} · Whale ERP` };
 }
 
+/** 수락으로 온 계약의 근무지. 목록을 못 읽으면 null 이고 거르지 않는다 — 완료 화면은 그대로 보인다. 401 의 만료 안내 등은 그대로 던진다 */
+async function storeOfContracts(contractIds: number[]): Promise<number | null> {
+  if (contractIds.length === 0) return null;
+  try {
+    return (await getContracts()).find((c) => contractIds.includes(c.contractId))?.storeId ?? null;
+  } catch (error) {
+    const failure = failureOf(error);
+    if (!failure) throw error;
+    // 5xx · 연결 실패는 request() 가 남겼다
+    if (failure !== "network" && failure.status < 500) logFailure("affiliation-done:contracts", failure);
+    return null;
+  }
+}
+
 export default async function AffiliationDonePage({ searchParams }: PageProps<"/affiliations/done">) {
   const content = await contentFor(await searchParams);
   if (!content) redirect("/home");
@@ -50,7 +69,7 @@ export default async function AffiliationDonePage({ searchParams }: PageProps<"/
   );
 
   if (result.kind === "accepted") {
-    const contractHref = contractHrefOf(result.contractIds);
+    const contractHref = contractHrefOf(result.contractIds, await storeOfContracts(result.contractIds));
     return (
       <>
         <PageHeader title="소속 추가 완료" backHref="/home" />
@@ -67,7 +86,7 @@ export default async function AffiliationDonePage({ searchParams }: PageProps<"/
           </Sunken>
           <div className="text-left">
             <Notice icon={<MaskIcon src="/icons/contract.svg" size={14} />}>
-              {result.contractIds.length > 0 ? (
+              {contractHref ? (
                 <>
                   이 소속의 <strong>근로계약서가 발송되었습니다.</strong> 날인해야 근무가 시작됩니다.
                 </>
@@ -79,11 +98,11 @@ export default async function AffiliationDonePage({ searchParams }: PageProps<"/
         </div>
         {contractHref ? (
           <Dock>
-            <Button href={contractHref}>
+            <Button href={contractHref} replace transitionTypes={["nav-forward"]}>
               <MaskIcon src="/icons/contract.svg" size={14} />
               계약서 날인하러 가기
             </Button>
-            <Button variant="ghost" href="/home">
+            <Button variant="ghost" href={HOME_PATH} replace transitionTypes={["nav-forward"]}>
               홈으로
             </Button>
           </Dock>

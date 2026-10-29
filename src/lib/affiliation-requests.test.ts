@@ -95,10 +95,19 @@ test("resultHref 는 읽는 쪽과 같은 기준으로 계약 ID 를 걸러 수�
   assert.deepEqual(parseResult(query(href)), { kind: "accepted", contractIds: [12, 34] });
 });
 
+test("겹친 계약 ID 는 하나로 — 한 계약이 목록으로 가지 않는다", () => {
+  assert.equal(resultHref({ kind: "accepted", contractIds: [12, 12] }), "/affiliations/done?result=accepted&contractIds=12");
+  assert.deepEqual(parseResult({ result: "accepted", contractIds: "12,12" }), { kind: "accepted", contractIds: [12] });
+});
+
 test("contractHrefOf 는 계약이 하나면 그 계약서, 여럿이면 목록, 없으면 null", () => {
   assert.equal(contractHrefOf([12]), "/contracts/12");
   assert.equal(contractHrefOf([12, 34]), "/contracts");
   assert.equal(contractHrefOf([]), null);
+  // 근무지를 알면 그 근무지로 거른다
+  assert.equal(contractHrefOf([12], 5), "/contracts/12?store=5");
+  assert.equal(contractHrefOf([12, 34], 5), "/contracts?store=5");
+  assert.equal(contractHrefOf([], 5), null);
 });
 
 test("parseResult 는 정한 값만 받고 나머지는 null", () => {

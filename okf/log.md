@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-29
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — staff #56 code-review: 소속 추가 완료의 「계약서 날인하러 가기」가 내 계약 목록에서 찾은 근무지로 `?store=` 를 붙이고, 버튼은 `replace` · `nav-forward`, 겹친 계약 ID 는 하나로, 안내 · 버튼 조건을 `contractHref` 하나로 묶었다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 소속 추가 완료 화면(WHALEERP-144)의 「계약 화면(#146)이 없어 홈으로」 안내를 걷고, 수락 응답의 `contractIds` 를 결과 주소에 실어(`contractIds=`, 계약 수 `contracts=` 대신) 「계약서 날인하러 가기」로 그 계약서(여럿이면 목록)에 보낸다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — staff #53 리뷰: 소속 목록을 못 받았을 때 사업자 제공 동의 카드는 동의 기록(동의 중 · 철회함)이 있으면 보인다(`hasHqSharingRecord`) — 다시 동의 필요일 때만 보이면 다시 동의 · 철회에 성공하는 순간 카드와 토스트가 사라졌다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 내 정보 사업자(본사) 제공 동의 카드가 `needsReconsent` 를 본다(ATT-30, api #183 후속): 옛 문구 버전에 동의했으면 배지 「다시 동의 필요」 · 「다시 동의하기」 · 내용 시트의 「동의합니다」로 새 버전에 동의(`hqSharingView`). 출근 화면의 동의 시트와 같은 기준.

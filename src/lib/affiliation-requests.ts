@@ -110,7 +110,7 @@ export function resultHref(result: AnswerResult): string {
   const params = new URLSearchParams({ result: result.kind });
   // 읽는 쪽(parseResult)과 같은 기준으로 거른다 — 하나라도 어긋나면 수락하고도 완료 화면 없이 홈으로 간다
   if (result.kind === "accepted")
-    params.set("contractIds", result.contractIds.filter((id) => parseId(String(id)) !== null).slice(0, RESULT_CONTRACTS_MAX).join(","));
+    params.set("contractIds", [...new Set(result.contractIds)].filter((id) => parseId(String(id)) !== null).slice(0, RESULT_CONTRACTS_MAX).join(","));
   if (result.kind === "closed") params.set("reason", result.reason);
   return `/affiliations/done?${params}`;
 }
@@ -134,18 +134,20 @@ export function parseResult(params: SearchParams): AnswerResult | null {
     if (raw === undefined) return null;
     const ids = raw === "" ? [] : raw.split(",").map((id) => parseId(id));
     if (ids.length > RESULT_CONTRACTS_MAX || ids.some((id) => id === null)) return null;
-    return { kind, contractIds: ids as number[] };
+    // 겹친 ID 는 하나로 — 한 계약이 목록으로 가지 않게
+    return { kind, contractIds: [...new Set(ids as number[])] };
   }
   return null;
 }
 
 /**
- * 수락 완료의 「계약서 날인하러 가기」 주소 — 함께 온 계약이 하나면 그 계약서, 여럿이면 근로계약서 목록(수락 응답에 점포가 없어 ?store= 는 싣지
- * 않는다), 없으면 null(버튼 없음).
+ * 수락 완료의 「계약서 날인하러 가기」 주소 — 함께 온 계약이 하나면 그 계약서, 여럿이면 근로계약서 목록, 없으면 null(버튼 없음). 근무지(storeId)를
+ * 알면 ?store= 를 붙여 목록을 그 근무지로 거르고 상세의 뒤로 가기도 그 목록으로 간다(서명 요청 팝업과 같다). 모르면 거르지 않는다.
  */
-export function contractHrefOf(contractIds: readonly number[]): string | null {
+export function contractHrefOf(contractIds: readonly number[], storeId: number | null = null): string | null {
   if (contractIds.length === 0) return null;
-  return contractIds.length === 1 ? `/contracts/${contractIds[0]}` : "/contracts";
+  const store = storeId === null ? "" : `?store=${storeId}`;
+  return contractIds.length === 1 ? `/contracts/${contractIds[0]}${store}` : `/contracts${store}`;
 }
 
 /** 소속 추가 확인 · 복귀 확인을 가르는 배지 글자. 화면 용어는 둘 다 「소속 추가 확인 요청」이다. */
