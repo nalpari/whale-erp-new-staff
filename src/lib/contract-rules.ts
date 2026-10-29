@@ -60,9 +60,9 @@ export function deadlineOf(c: PhaseFields, now: Date): Deadline | null {
 }
 
 /**
- * 목록 줄 「서명 기한 2026년 9월 12일 · D-2」, 기한 당일이면 시각까지 「서명 기한 2026년 9월 12일 10:23까지 · D-day」.
+ * 목록 줄 「서명 기한 2026년 9월 12일 · D-2」, 기한이 오늘 · 내일이면 시각까지 「서명 기한 2026년 9월 12일 10:23까지 · D-1」.
  * 상세 머리 카드는 늘 시각까지 「서명 기한 2026년 9월 12일 10:23까지 · 2일 남음」(당일은 「오늘 마감」). 기한은 하루 끝이 아니라
- * 발송 시각 + 30일 그 시각이라(api) 당일에 날짜만 보이면 저녁까지 남은 줄 안다.
+ * 발송 시각 + 30일 그 시각이라(api) 날짜만 보이면 그날 저녁까지 남은 줄 안다 — 내일 이른 시각이면 남은 시간이 한 시간일 수도 있다.
  */
 export function deadlineText(d: Deadline, style: "list" | "detail"): string {
   return `서명 기한 ${deadlineValue(d, style)}`;
@@ -70,7 +70,7 @@ export function deadlineText(d: Deadline, style: "list" | "detail"): string {
 
 /** deadlineText 의 「서명 기한」 뒤 — 이름 칸이 따로 있는 줄(홈 서명 요청 팝업)에 쓴다. */
 export function deadlineValue(d: Deadline, style: "list" | "detail"): string {
-  const withTime = style === "detail" || d.daysLeft === 0;
+  const withTime = style === "detail" || d.daysLeft <= 1;
   const left = style === "list" ? (d.daysLeft === 0 ? "D-day" : `D-${d.daysLeft}`) : d.daysLeft === 0 ? "오늘 마감" : `${d.daysLeft}일 남음`;
   return `${withTime ? `${d.dateTime}까지` : d.date} · ${left}`;
 }
@@ -205,6 +205,19 @@ export function maskPhone(phone: string | null): string | null {
 export function paperDocuments(documents: readonly ContractDocument[]): ContractDocument[] {
   const order = (d: ContractDocument) => (d.kind === "PAPER_EMPLOYMENT_CONTRACT" ? 0 : 1);
   return documents.filter((d) => d.kind === "PAPER_EMPLOYMENT_CONTRACT" || d.kind === "WAGE_CONTRACT").sort((a, b) => order(a) - order(b));
+}
+
+/**
+ * 내보낼 처리 완료본(WHALEERP-149) — 체결이 끝난 전자계약(체결 완료 · 종료)의 SIGNED_COPY. 서명 대기 · 수정 요청 · 거절 · 만료와
+ * 종이 계약은 null. 처리 완료본은 파일 생성(WHALEERP-131)이 만들어야 생기므로 없으면 null. 여럿이면 가장 나중 것.
+ * api(#182)는 체결 완료와 체결 완료에서 종료된 계약만 받고 그 밖은 409 — 받기 라우트가 상세의 「지금은 받을 수 없음」 안내로 돌린다.
+ */
+export function signedCopyOf(c: Pick<ContractDetail, "status" | "contractMethod" | "documents">): ContractDocument | null {
+  if (c.contractMethod === "PAPER" || (c.status !== "SIGNED" && c.status !== "ENDED")) return null;
+  return c.documents.reduce<ContractDocument | null>(
+    (last, d) => (d.kind === "SIGNED_COPY" && (!last || d.contractDocumentId > last.contractDocumentId) ? d : last),
+    null,
+  );
 }
 
 /** 계약서의 월 근로시간 줄(값이 있는 것만). 기본시간 중 휴일 · 월 추가 휴일은 관리자 작성 화면이 받지 않아 보이지 않는다. */

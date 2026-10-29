@@ -12,7 +12,7 @@ export { Switch, SwitchRow } from "./switch-row";
 export { AttendanceDayCard, DayOffRow, type AttendanceDayStatus } from "./attendance-day";
 export { BottomSheet, SHEET_CLOSE_MS, SheetOption } from "./bottom-sheet";
 export { RequestSheet, ReasonSheet } from "./request-sheet";
-export { Button, type ButtonVariant } from "./button";
+export { Button, buttonClass, type ButtonVariant } from "./button";
 export { TextField } from "./text-field";
 export { Notice } from "./notice";
 export { Badge, type BadgeTone } from "./badge";

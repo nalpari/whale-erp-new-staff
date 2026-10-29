@@ -12,6 +12,7 @@ import {
   maskPhone,
   monthlyHourRows,
   paperDocuments,
+  signedCopyOf,
   parseId,
   payDayText,
   periodText,
@@ -50,6 +51,9 @@ test("남은 기한은 한국 달력으로 센다 — 7일 이내만 강조, 상
   assert.equal(deadlineOf(item(), new Date("2026-09-04T15:30:00Z"))!.daysLeft, 7);
   assert.equal(deadlineOf(item(), new Date("2026-09-04T15:30:00Z"))!.urgent, true);
   assert.equal(deadlineOf(item(), new Date("2026-09-04T14:30:00Z"))!.urgent, false);
+
+  // 한국 9월 11일 오전 9시 — 내일이 기한이면 목록도 시각까지(내일 이른 시각이면 남은 시간이 짧다)
+  assert.equal(deadlineText(deadlineOf(item(), new Date("2026-09-11T00:00:00Z"))!, "list"), "서명 기한 2026년 9월 12일 10:23까지 · D-1");
 });
 
 test("기한 당일 오전(기한 전)은 시각까지 · D-day · 오늘 마감", () => {
@@ -95,7 +99,7 @@ test("목록 둘째 줄은 상태마다 다르다", () => {
     contractSubText(item({ status: "SIGNED", contractMethod: "PAPER", processedAt: "2026-04-02T01:00:00Z" }), now, "체결 완료"),
     "종이 계약 · 2026년 4월 2일 등록",
   );
-  assert.equal(contractSubText(item({ status: "REJECTED", processedAt: "2026-06-25T01:00:00Z" }), now, "거부"), "거부 2026년 6월 25일");
+  assert.equal(contractSubText(item({ status: "REJECTED", processedAt: "2026-06-25T01:00:00Z" }), now, phaseLabel("REJECTED", "거부")), "거절 2026년 6월 25일");
   assert.equal(contractSubText(item({ status: "EXPIRED", signDeadlineAt: "2026-07-31T14:59:59Z" }), now, "만료"), "서명 기한 2026년 7월 31일 지남");
   assert.equal(contractSubText(item({ status: "ENDED", startDate: "2025-03-01", endDate: "2026-08-31" }), now, "종료"), "2025년 3월 1일 – 2026년 8월 31일");
 });
@@ -220,4 +224,19 @@ test("상태 한글은 enum 한글 그대로 — 거부는 화면에서 거절(�
   assert.equal(phaseLabel("SIGNED", "체결 완료"), "체결 완료");
   assert.equal(phaseLabel("REJECTED", "거부"), "거절");
   assert.equal(phaseLabel("UNSIGNABLE", "UNSIGNABLE"), "서명 불가");
+});
+
+test("처리 완료본은 체결 완료 · 종료된 전자계약의 SIGNED_COPY 만, 여럿이면 나중 것", () => {
+  const doc = (contractDocumentId: number, kind: ContractDocument["kind"]): ContractDocument => ({ contractDocumentId, kind, fileName: `${kind}.pdf` });
+  const docs = [doc(1, "SIGNATURE"), doc(5, "SIGNED_COPY"), doc(3, "SIGNED_COPY")];
+  const electronic = { contractMethod: "ELECTRONIC" as const, documents: docs };
+  assert.equal(signedCopyOf({ ...electronic, status: "SIGNED" })?.contractDocumentId, 5);
+  assert.equal(signedCopyOf({ ...electronic, status: "ENDED" })?.contractDocumentId, 5);
+  for (const status of ["PENDING_SIGNATURE", "CORRECTION_REQUESTED", "REJECTED", "EXPIRED"] as const)
+    assert.equal(signedCopyOf({ ...electronic, status }), null, status);
+  // 아직 만들어지지 않았거나 종이 계약이면 없음
+  assert.equal(signedCopyOf({ ...electronic, status: "SIGNED", documents: [doc(1, "SIGNATURE")] }), null);
+  assert.equal(signedCopyOf({ contractMethod: "PAPER", status: "SIGNED", documents: docs }), null);
+  // 계약 방식이 비어 있는 옛 계약도 전자계약으로 본다
+  assert.equal(signedCopyOf({ contractMethod: null, status: "SIGNED", documents: docs })?.contractDocumentId, 5);
 });
