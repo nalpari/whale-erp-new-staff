@@ -2,6 +2,7 @@
 // 주소 저장 · 동의 바꾸기 실패를 화면 문구로 바꾸기. node --test 가 직접 읽으므로 값 import 는 같은 폴더의 순수 모듈(.ts 확장자)만 둔다.
 import { CONNECTION_FAILED, RETRY_LATER, isHangulReason, type ApiFailure } from "./action-errors.ts";
 import type { Schemas } from "./api";
+import type { BadgeTone } from "@/components/common";
 
 export type MyProfile = Schemas["MyProfileResponseDto"];
 export type MyMembership = Schemas["MyMembershipDto"];
@@ -143,3 +144,47 @@ export function membershipStatusOf(retiredDate: string | null, today: string): "
   if (retiredDate === null) return "working";
   return retiredDate < today ? "retired" : "retiring";
 }
+
+/**
+ * 내 정보의 사업자(본사) 제공 동의 카드 표시(ATT-30). 동의한 문구 버전을 더는 받아 주지 않으면(needsReconsent — 항목 · 목적이 넓어짐,
+ * api #183) 계정은 동의로 남아도 본사에는 미동의로 보여 가려진다 — 「다시 동의 필요」로 보이고 내용 시트의 「동의합니다」로 새 버전에
+ * 동의를 받는다(내 정보에서 — 앱이 들어올 때 다시 묻는 시트는 아직 없다). 새 문구에 동의하지 않으려는 직원도 옛 동의를 거둘 수 있게 그때는 카드에
+ * 「동의 철회」도 둔다(alsoWithdraw) — 선택 동의라 철회는 동의만큼 쉬워야 한다.
+ */
+export function hqSharingView(consent: Pick<Schemas["MyHqSharingConsentDto"], "isConsented" | "agreedAt" | "withdrawnAt" | "consentVersion" | "needsReconsent">): {
+  badge: { tone: BadgeTone; text: string };
+  line: string;
+  /**
+   * 내용 보기 옆 버튼 — withdraw 면 「동의 철회」, agree 면 그 글자로 내용 시트를 열고 시트의 「동의합니다」로 받는다. alsoWithdraw 면
+   * 「동의 철회」 버튼을 하나 더 둔다(다시 동의 필요 — 계정은 아직 동의라 철회도 동의만큼 쉽게)
+   */
+  action: { kind: "withdraw" } | { kind: "agree"; label: string; alsoWithdraw: boolean };
+  note: string;
+} {
+  const { isConsented, agreedAt, withdrawnAt, consentVersion, needsReconsent } = consent;
+  const version = consentVersion ? ` · 사업자 제공 동의 ${consentVersion}` : "";
+  if (isConsented && needsReconsent)
+    return {
+      badge: { tone: "warning", text: "다시 동의 필요" },
+      line: `${agreedAt ? `${kstDateTimeLabel(agreedAt)} 동의${version} — ` : ""}동의 내용이 바뀌어 다시 동의해야 합니다`,
+      action: { kind: "agree", label: "다시 동의하기", alsoWithdraw: true },
+      note: "다시 동의하기 전에는 본사에 점포별 숫자로만 보입니다. 다시 동의하면 개인 단위로 보입니다.",
+    };
+  if (isConsented)
+    return {
+      badge: { tone: "success", text: "동의함" },
+      line: agreedAt ? `${kstDateTimeLabel(agreedAt)} 동의${version}` : "동의했습니다",
+      action: { kind: "withdraw" },
+      note: "철회해도 가입과 근무는 그대로입니다. 본사에는 점포별 숫자로만 보입니다.",
+    };
+  return {
+    badge: { tone: "plain", text: "동의하지 않음" },
+    line: withdrawnAt ? `${kstDateTimeLabel(withdrawnAt)} 철회${version}` : "아직 동의하지 않았습니다",
+    action: { kind: "agree", label: withdrawnAt ? "다시 동의하기" : "동의하기", alsoWithdraw: false },
+    note: `지금은 본사에 점포별 숫자로만 보입니다. ${withdrawnAt ? "다시 동의하면" : "동의하면"} 개인 단위로 보입니다.`,
+  };
+}
+
+/** 사업자 제공 동의 기록이 있는가(동의 중 · 철회함) — 소속을 못 받았을 때 카드를 보일지. 기록이 있으면 가맹 소속이 있던 계정이다 */
+export const hasHqSharingRecord = (consent: Pick<Schemas["MyHqSharingConsentDto"], "isConsented" | "withdrawnAt">) =>
+  consent.isConsented || consent.withdrawnAt !== null;

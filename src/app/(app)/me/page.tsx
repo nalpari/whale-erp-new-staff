@@ -7,7 +7,7 @@ import { PRESS } from "@/components/common/theme";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { getMyInvitations } from "@/lib/my-invitations";
 import { getCurrentTerms, getMyAffiliationRequests, getMyMemberships, getMyProfile } from "@/lib/my-profile";
-import { PASSWORD_STALE_MONTHS, dateLabel, hasFranchiseMembership, isPasswordStale, kstDateLabel } from "@/lib/profile";
+import { PASSWORD_STALE_MONTHS, dateLabel, hasFranchiseMembership, hasHqSharingRecord, isPasswordStale, kstDateLabel } from "@/lib/profile";
 import { AddressForm } from "./address-form";
 import { ChangedToast } from "./changed-toast";
 import { HqSharingConsentCard, LocationConsentCard } from "./consent-cards";
@@ -115,8 +115,10 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
         </div>
 
         <LocationConsentCard consent={profile.locationConsent} terms={locationTerms} />
-        {/* 가맹 점포 소속이 있을 때만(ATT-30). 소속을 못 받았으면 판단할 수 없어 감춘다. */}
-        {memberships && hasFranchiseMembership(items) && <HqSharingConsentCard consent={profile.hqSharingConsent} />}
+        {/* 가맹 점포 소속이 있을 때만(ATT-30). 소속을 못 받았으면 판단할 수 없어 감추되, 동의 기록이 있으면(동의 · 철회 — 가맹 소속이
+            있던 계정) 보인다 — 다시 동의할 곳이 이 카드뿐이고(staff #53 code-review), 다시 동의 · 철회에 성공해도 카드 · 토스트가
+            사라지지 않게(staff #53 리뷰) */}
+        {(memberships ? hasFranchiseMembership(items) : hasHqSharingRecord(profile.hqSharingConsent)) && <HqSharingConsentCard consent={profile.hqSharingConsent} />}
 
         <Card>
           <CardLabel>연락처</CardLabel>
