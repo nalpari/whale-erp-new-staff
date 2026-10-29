@@ -8,6 +8,10 @@
 * **Update**: PR #44 리뷰 반영 — 날인 가능 · 기한 강조 · 날인 자리를 api `awaitingSignature` 로만 정하고, 날인할 수 없는 서명 대기는 목록 · 상세 모두 만료 · 서명 불가로 처리가 끝난 묶음에 둔다. 받기 실패는 글자 응답 대신 상세로 돌려보내 `?download=` 안내(Alert). 제9조에서 아직 사실이 아닌 「앱에서 처리 완료본을 내려받는다」를 뺐다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 146 PR 전 리뷰 반영 — 날인 기한을 상세는 늘 · 목록은 당일이면 시각까지 보이고(기한은 발송 시각 + 30일 그 시각), 번호 가리기 · 근로시간 소수 한 자리 · 수습 감액 없음 문구를 맞췄다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 근로계약서 조회 `/contracts` · `/contracts/[contractId]`(WHALEERP-146)를 더했다 — 전자계약은 조항 열 가지와 요일별 소정근로시간 표를 화면에 그리고, 종이 계약은 올라온 날인본 · 임금계약서와 「받기」(라우트가 api 의 300초 서명 주소로 302, 401 은 로그인), 처리가 끝난 계약은 읽기 전용, 기한 7일 이내 강조. 소속 근무지의 「근로계약서」 버튼을 열어 그 근무지 계약서만 보이게 했다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: PR #42 리뷰 반영 — 신고 정보 처음 넣기에서 이미 낸 신고 정보가 있으면(응답이 끊긴 앞 제출 · 다른 기기) 완료 대신 안내와 보기 링크를 보인다 — [Whale ERP Staff](/whale-erp-staff.md).
+
+## 2026-10-28
+* **Update**: 신고 정보 처음 넣기(WHALEERP-150) — `…/tax-profile/new` 안내 · 입력 · 완료, 보기 화면 미제출 상태의 「신고 정보 넣기」 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Fix**: api #185 머지 블로커에 맞춤 — 위치정보 동의 요청에 `termsVersion` 을 null 까지 늘 싣는다(api 가 칸을 필수로 바꿨다) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: main 병합(dewgong, main #38 소속 추가 확인까지) — okf 충돌은 양쪽 기록을 살렸다(출퇴근 줄은 이쪽, 소속 추가 확인 줄 · 출처는 main) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Fix**: PR #45 머지 블로커(⑥ 3차) — 위치정보 동의는 시트에 보인 약관 버전(`termsVersion`)을 함께 보낸다(출퇴근 · 내 정보). 시트를 연 사이 api 가 약관을 바꿨으면 api #185 가 409 로 거절하고 다시 받은 화면이 새 문구를 보인다 — [Whale ERP Staff](/whale-erp-staff.md).
