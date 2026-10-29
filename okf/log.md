@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-10-29
+* **Update**: PR #42 리뷰 반영 — 신고 정보 처음 넣기에서 이미 낸 신고 정보가 있으면(응답이 끊긴 앞 제출 · 다른 기기) 완료 대신 안내와 보기 링크를 보인다 — [Whale ERP Staff](/whale-erp-staff.md).
+
 ## 2026-10-28
 * **Update**: 신고 정보 처음 넣기(WHALEERP-150) — `…/tax-profile/new` 안내 · 입력 · 완료, 보기 화면 미제출 상태의 「신고 정보 넣기」 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Fix**: api #185 머지 블로커에 맞춤 — 위치정보 동의 요청에 `termsVersion` 을 null 까지 늘 싣는다(api 가 칸을 필수로 바꿨다) — [Whale ERP Staff](/whale-erp-staff.md).
