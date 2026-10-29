@@ -7,8 +7,8 @@ import { HOME_PATH } from "@/lib/login-return";
 export const metadata: Metadata = { title: "근무지 추가 완료 · Whale ERP" };
 
 // 근무지 추가 완료(WHALEERP-604). 근무지 이름은 더한 액션이 남긴 쿠키에서 읽는다(10분) — 없으면 이름 없이 보인다.
-// Plane 604 는 더한 뒤 그 점포의 날인을 기다리는 근로계약서로 가라고 하지만 근로계약서 화면(WHALEERP-146)이 아직 없어 가입 완료와
-// 같이 홈으로 안내한다. 근로계약서 화면이 생기면 그리로 잇는다.
+// Plane 604 대로 더한 뒤 근로계약서로 잇는다. 수락 응답에 점포 id 가 없어 그 점포만(`?store=`) 걸지 못하고 전체 목록으로 간다 —
+// 서명을 기다리는 계약은 목록 맨 위 진행 중 묶음에 보인다. 홈으로도 갈 수 있다.
 export default async function InvitationDonePage() {
   const storeName = await readJoinedStore();
   return (
@@ -24,14 +24,18 @@ export default async function InvitationDonePage() {
         )
       }
       dock={
-        <Button href={HOME_PATH} replace transitionTypes={["nav-forward"]}>
-          홈으로
-        </Button>
+        <>
+          <Button href="/contracts" replace transitionTypes={["nav-forward"]}>
+            근로계약서 보기
+          </Button>
+          <Button variant="ghost" href={HOME_PATH} replace transitionTypes={["nav-forward"]}>
+            홈으로
+          </Button>
+        </>
       }
     >
       <Notice>
-        근로계약서 확인 · 날인 화면은 준비 중입니다. 근로계약을 체결하면 소속 근무지에 보이고 그 근무지의 근무 정보를 볼 수
-        있습니다.
+        근로계약서에 서명하면 근로계약이 체결되어 소속 근무지에 보이고, 그 근무지의 근무 정보를 볼 수 있습니다.
       </Notice>
     </AuthScreen>
   );
