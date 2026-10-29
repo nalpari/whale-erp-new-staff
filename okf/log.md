@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-29
+* **Update**: 홈 서명 대기 카드(WHALEERP-146 후속) — 서명을 기다리는 전자계약을 기한이 급한 순으로, 근무지가 없으면 「서명할 근로계약서」 묶음. 7일 이내면 기한 글자만 강조. 계약 목록은 팝업과 한 번만 받는다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — staff #53 리뷰: 소속 목록을 못 받았을 때 사업자 제공 동의 카드는 동의 기록(동의 중 · 철회함)이 있으면 보인다(`hasHqSharingRecord`) — 다시 동의 필요일 때만 보이면 다시 동의 · 철회에 성공하는 순간 카드와 토스트가 사라졌다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 내 정보 사업자(본사) 제공 동의 카드가 `needsReconsent` 를 본다(ATT-30, api #183 후속): 옛 문구 버전에 동의했으면 배지 「다시 동의 필요」 · 「다시 동의하기」 · 내용 시트의 「동의합니다」로 새 버전에 동의(`hqSharingView`). 출근 화면의 동의 시트와 같은 기준.
 * **Update**: 근무지 추가 완료의 「근로계약서 보기」가 api #195 의 수락 응답 `storeId` 로 그 근무지 계약서만 연다(액션이 `?store=` 로 넘김). api 타입을 api main 기준으로 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
