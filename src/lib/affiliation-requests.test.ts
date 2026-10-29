@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CONNECTION_FAILED, RATE_LIMITED } from "./action-errors.ts";
 import {
+  contractHrefOf,
   ALREADY_EMPLOYED,
   answerFailure,
   contentOf,
@@ -67,8 +68,9 @@ const query = (href: string) => Object.fromEntries(new URL(href, "http://x").sea
 
 test("resultHref · parseResult 는 결과를 주소로 실었다 그대로 되읽는다", () => {
   const results: AnswerResult[] = [
-    { kind: "accepted", contractCount: 1 },
-    { kind: "accepted", contractCount: 0 },
+    { kind: "accepted", contractIds: [12] },
+    { kind: "accepted", contractIds: [12, 34] },
+    { kind: "accepted", contractIds: [] },
     { kind: "rejected" },
     { kind: "closed", reason: "answered" },
     { kind: "closed", reason: "ended" },
@@ -81,9 +83,31 @@ test("resultHref · parseResult 는 결과를 주소로 실었다 그대로 되�
   }
 });
 
-test("resultHref 는 점포 이름을 싣지 않고 계약 수를 0~99 에 맞춘다", () => {
-  assert.equal(resultHref({ kind: "accepted", contractCount: 500 }), "/affiliations/done?result=accepted&contracts=99");
-  assert.equal(resultHref({ kind: "accepted", contractCount: -1 }), "/affiliations/done?result=accepted&contracts=0");
+test("resultHref 는 점포 이름을 싣지 않고 계약 ID 를 쉼표로 20개까지 싣는다", () => {
+  assert.equal(resultHref({ kind: "accepted", contractIds: [12, 34] }), "/affiliations/done?result=accepted&contractIds=12%2C34");
+  assert.equal(resultHref({ kind: "accepted", contractIds: [] }), "/affiliations/done?result=accepted&contractIds=");
+  const many = Array.from({ length: 25 }, (_, i) => i + 1);
+  assert.deepEqual(parseResult(query(resultHref({ kind: "accepted", contractIds: many }))), { kind: "accepted", contractIds: many.slice(0, 20) });
+});
+
+test("resultHref 는 읽는 쪽과 같은 기준으로 계약 ID 를 걸러 수락 결과가 늘 되읽힌다", () => {
+  const href = resultHref({ kind: "accepted", contractIds: [12, 0, 2147483648, 34] });
+  assert.deepEqual(parseResult(query(href)), { kind: "accepted", contractIds: [12, 34] });
+});
+
+test("겹친 계약 ID 는 하나로 — 한 계약이 목록으로 가지 않는다", () => {
+  assert.equal(resultHref({ kind: "accepted", contractIds: [12, 12] }), "/affiliations/done?result=accepted&contractIds=12");
+  assert.deepEqual(parseResult({ result: "accepted", contractIds: "12,12" }), { kind: "accepted", contractIds: [12] });
+});
+
+test("contractHrefOf 는 계약이 하나면 그 계약서, 여럿이면 목록, 없으면 null", () => {
+  assert.equal(contractHrefOf([12]), "/contracts/12");
+  assert.equal(contractHrefOf([12, 34]), "/contracts");
+  assert.equal(contractHrefOf([]), null);
+  // 근무지를 알면 그 근무지로 거른다
+  assert.equal(contractHrefOf([12], 5), "/contracts/12?store=5");
+  assert.equal(contractHrefOf([12, 34], 5), "/contracts?store=5");
+  assert.equal(contractHrefOf([], 5), null);
 });
 
 test("parseResult 는 정한 값만 받고 나머지는 null", () => {
@@ -91,17 +115,22 @@ test("parseResult 는 정한 값만 받고 나머지는 null", () => {
   assert.equal(parseResult({ result: "deleted" }), null);
   assert.equal(parseResult({ result: ["rejected", "rejected"] }), null);
   assert.equal(parseResult({ result: "closed", reason: "toString" }), null);
-  assert.equal(parseResult({ result: "accepted", contracts: "-1" }), null);
-  assert.equal(parseResult({ result: "accepted", contracts: "1e2" }), null);
-  assert.equal(parseResult({ result: "accepted", contracts: "100" }), null);
+  assert.equal(parseResult({ result: "accepted", contractIds: "-1" }), null);
+  assert.equal(parseResult({ result: "accepted", contractIds: "1e2" }), null);
+  assert.equal(parseResult({ result: "accepted", contractIds: "0" }), null);
+  assert.equal(parseResult({ result: "accepted", contractIds: "12,,34" }), null);
+  assert.equal(parseResult({ result: "accepted", contractIds: "2147483648" }), null);
+  assert.equal(parseResult({ result: "accepted", contractIds: Array.from({ length: 21 }, (_, i) => i + 1).join(",") }), null);
   assert.equal(parseResult({ result: "accepted" }), null);
+  // 계약 수를 싣던 예전 주소(contracts=)는 받지 않는다 — 수를 ID 로 읽지 않게
+  assert.equal(parseResult({ result: "accepted", contracts: "1" }), null);
   // 점포 이름은 받지 않는다 — 남이 만든 링크의 글이 결과에 실리지 않는다
-  assert.deepEqual(parseResult({ result: "accepted", store: "가짜 점포", contracts: "1" }), { kind: "accepted", contractCount: 1 });
+  assert.deepEqual(parseResult({ result: "accepted", store: "가짜 점포", contractIds: "1" }), { kind: "accepted", contractIds: [1] });
 });
 
 test("contentOf 는 결과마다 제목 · 설명을 주고, 수락이면 쿠키의 점포 이름을 넣는다", () => {
-  assert.equal(contentOf({ kind: "accepted", contractCount: 1 }, "홍대점").title, "홍대점 소속이 추가되었습니다");
-  assert.equal(contentOf({ kind: "accepted", contractCount: 1 }).title, "소속이 추가되었습니다");
+  assert.equal(contentOf({ kind: "accepted", contractIds: [1] }, "홍대점").title, "홍대점 소속이 추가되었습니다");
+  assert.equal(contentOf({ kind: "accepted", contractIds: [1] }).title, "소속이 추가되었습니다");
   assert.equal(contentOf({ kind: "rejected" }, "홍대점").title, "소속 추가를 거절했습니다");
   assert.equal(contentOf({ kind: "closed", reason: "ended" }).title, "끝난 요청입니다");
   assert.equal(contentOf({ kind: "closed", reason: "answered" }).title, "이미 답한 요청입니다");
