@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { Button, Dock, MaskIcon, Notice, PageHeader } from "@/components/common";
+import { Alert, Button, Dock, MaskIcon, Notice, PageHeader } from "@/components/common";
 import { Sunken, Values } from "@/app/_components/tax-profile-parts";
 import { contentOf, parseResult } from "@/lib/affiliation-requests";
+import { HQ_NOT_RECORDED, HQ_NOT_RECORDED_NOTICE } from "@/lib/hq-sharing-terms";
 import { readAcceptedStore } from "@/lib/invitation-cookie";
 import { BODY, Lead } from "../screen-parts";
 
@@ -13,21 +14,23 @@ import { BODY, Lead } from "../screen-parts";
 // 바로 열려 버튼 앞에 선다. 점포 이름은 주소가 아니라 수락한 액션이 남긴 짧은 쿠키에서 읽고(가입 완료와 같다), 없으면 빼고 그린다.
 // 버튼 줄은 늘 같다 — 남은 요청을 받아 버튼을 바꾸면 누르려는 순간 버튼이 바뀐다. 요청 목록은 빈 상태를 스스로 보인다.
 // 수락 완료의 「계약서 날인하러 가기」는 직원 앱 계약 화면(#146)이 아직 없어 홈으로 보내고 안내만 둔다(2026-10-27).
+// 사업자 제공 동의를 보냈지만 본 문구 버전이 달라 남지 않았으면(ATT-30 v253 — 수락은 마쳤다) 다시 동의하라고 안내한다(parseResult 의 hqNotRecorded).
 
 type Params = Awaited<PageProps<"/affiliations/done">["searchParams"]>;
 const text = (value: string | string[] | undefined) => (typeof value === "string" ? value : undefined);
 
 /**
  * 결과와 그 제목 · 설명. generateMetadata 와 화면이 같이 불러 한 번만 읽는다 — cache 는 인자를 값으로 비교해야 맞으므로 쿼리에서
- * 쓰는 세 값만 글자로 넘긴다(여러 번 실린 값은 parseResult 처럼 받지 않는다).
+ * 쓰는 네 값만 글자로 넘긴다(여러 번 실린 값은 parseResult 처럼 받지 않는다).
  */
-const loadContent = cache(async (kind?: string, reason?: string, contracts?: string) => {
-  const result = parseResult({ result: kind, reason, contracts });
+const loadContent = cache(async (kind?: string, reason?: string, contracts?: string, hq?: string) => {
+  const result = parseResult({ result: kind, reason, contracts, [HQ_NOT_RECORDED.key]: hq });
   if (!result) return null;
   return { result, ...contentOf(result, result.kind === "accepted" ? await readAcceptedStore() : null) };
 });
 
-const contentFor = (params: Params) => loadContent(text(params.result), text(params.reason), text(params.contracts));
+const contentFor = (params: Params) =>
+  loadContent(text(params.result), text(params.reason), text(params.contracts), text(params[HQ_NOT_RECORDED.key]));
 
 export async function generateMetadata({ searchParams }: PageProps<"/affiliations/done">): Promise<Metadata> {
   const content = await contentFor(await searchParams);
@@ -62,7 +65,8 @@ export default async function AffiliationDonePage({ searchParams }: PageProps<"/
               ]}
             />
           </Sunken>
-          <div className="text-left">
+          <div className="flex flex-col gap-[10px] text-left">
+            {result.hqNotRecorded && <Alert tone="warning">{HQ_NOT_RECORDED_NOTICE}</Alert>}
             {/* 날인 화면(#146)이 생기면 이 안내 대신 「계약서 날인하러 가기」로 그 계약(api 응답의 contractIds)에 보낸다. */}
             <Notice icon={<MaskIcon src="/icons/contract.svg" size={14} />}>
               {result.contractCount > 0 ? (
