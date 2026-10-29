@@ -8,7 +8,8 @@ import { getContracts } from "@/lib/contracts";
 import { getCurrentMembership } from "@/lib/current-membership";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { getMyNotifications } from "@/lib/my-notifications";
-import { getMyAffiliationRequests } from "@/lib/my-profile";
+import { getMyAffiliationRequests, getMyProfile } from "@/lib/my-profile";
+import { hqReconsentOf } from "@/lib/profile";
 import { requireSession } from "@/lib/session";
 import { signRequestOf } from "@/lib/sign-request";
 import { NotificationBell } from "../notification-bell";
@@ -80,8 +81,8 @@ export default async function HomePage() {
 }
 
 /**
- * 홈 위 팝업 — 서명 요청(148)과 소속 추가 요청(144). 둘 다 있으면 한 번에 하나만, 서명 요청을 먼저 띄우고 그것을 닫으면 소속 추가
- * 요청이 뜬다(home-popups.tsx). 근거: 서명 대기 계약은 기한(발송 + 30일)이 지나면 만료되고 서명해야 근무가 시작되는(데모 sign-req 문구)
+ * 홈 위 팝업 — 서명 요청(148), 소속 추가 요청(144), 사업자 제공 다시 동의(ATT-30 v252). 여럿이면 한 번에 하나만, 서명 요청 → 소속 추가
+ * 요청 → 다시 동의 순으로 앞의 것을 닫으면 다음이 뜬다(home-popups.tsx, 다시 동의 순서는 2026-10-29 재영). 근거: 서명 대기 계약은 기한(발송 + 30일)이 지나면 만료되고 서명해야 근무가 시작되는(데모 sign-req 문구)
  * 지금 근무지의 일이고, 소속 추가 요청은 새 근무지를 더할지 묻는 것이며 수락해도 그 뒤 계약 서명이 따로 온다(가입 · 진입 가이드 JOIN-7 의
  * 흐름이 가입 → 서명 요청 팝업). 데모 · 기획 문서에 둘이 함께일 때의 순서는 없다.
  * 두 조회를 함께 기다린다 — 계약 목록이 느린 동안 소속 추가 팝업도 기다리지만, 따로 띄우면 소속 추가가 먼저 떴다가 서명 요청이 그 뒤를
@@ -94,7 +95,12 @@ async function HomeRequests() {
   const employmentTypes = contracts.then((items) =>
     items && signRequestOf(items, now)?.contract.employmentType ? employmentTypesOrEmpty() : [],
   );
-  const [items, affiliationRequests, types] = await Promise.all([contracts, getMyAffiliationRequests(), employmentTypes]);
+  const [items, affiliationRequests, types, hqSharing] = await Promise.all([
+    contracts,
+    getMyAffiliationRequests(),
+    employmentTypes,
+    hqSharingConsentOrNull(),
+  ]);
   const sign = items && signRequestOf(items, now);
   return (
     <HomePopups
@@ -110,6 +116,7 @@ async function HomeRequests() {
         }
       }
       affiliation={popupSummary(affiliationRequests ?? [])}
+      reconsent={hqSharing && hqReconsentOf(hqSharing)}
     />
   );
 }
@@ -126,6 +133,22 @@ async function getContractsOrNull() {
     const handling = requestsLoadFailure(failure);
     if (handling === "throw") throw error;
     if (handling === "log" && failure) logFailure("contracts-home", failure);
+    return null;
+  }
+}
+
+/**
+ * 사업자 제공 동의 — 다시 동의 팝업의 곁들임이라 api 실패는 null 로 받아 팝업 없이 홈을 그대로 보인다(401 은 만료 안내로). 다루는 규칙은
+ * 계약 목록과 같다.
+ */
+async function hqSharingConsentOrNull() {
+  try {
+    return (await getMyProfile()).hqSharingConsent;
+  } catch (error) {
+    const failure = failureOf(error);
+    const handling = requestsLoadFailure(failure);
+    if (handling === "throw") throw error;
+    if (handling === "log" && failure) logFailure("hq-reconsent-home", failure);
     return null;
   }
 }

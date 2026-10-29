@@ -148,7 +148,7 @@ export function membershipStatusOf(retiredDate: string | null, today: string): "
 /**
  * 내 정보의 사업자(본사) 제공 동의 카드 표시(ATT-30). 동의한 문구 버전을 더는 받아 주지 않으면(needsReconsent — 항목 · 목적이 넓어짐,
  * api #183) 계정은 동의로 남아도 본사에는 미동의로 보여 가려진다 — 「다시 동의 필요」로 보이고 내용 시트의 「동의합니다」로 새 버전에
- * 동의를 받는다(내 정보에서 — 앱이 들어올 때 다시 묻는 시트는 아직 없다). 새 문구에 동의하지 않으려는 직원도 옛 동의를 거둘 수 있게 그때는 카드에
+ * 동의를 받는다(내 정보와, 앱에 들어오거나 화면으로 돌아올 때 홈의 다시 동의 팝업 — ATT-30 v252). 새 문구에 동의하지 않으려는 직원도 옛 동의를 거둘 수 있게 그때는 카드에
  * 「동의 철회」도 둔다(alsoWithdraw) — 선택 동의라 철회는 동의만큼 쉬워야 한다.
  */
 export function hqSharingView(consent: Pick<Schemas["MyHqSharingConsentDto"], "isConsented" | "agreedAt" | "withdrawnAt" | "consentVersion" | "needsReconsent">): {
@@ -188,3 +188,14 @@ export function hqSharingView(consent: Pick<Schemas["MyHqSharingConsentDto"], "i
 /** 사업자 제공 동의 기록이 있는가(동의 중 · 철회함) — 소속을 못 받았을 때 카드를 보일지. 기록이 있으면 가맹 소속이 있던 계정이다 */
 export const hasHqSharingRecord = (consent: Pick<Schemas["MyHqSharingConsentDto"], "isConsented" | "withdrawnAt">) =>
   consent.isConsented || consent.withdrawnAt !== null;
+
+/**
+ * 홈의 사업자 제공 다시 동의 팝업(ATT-30 v252)을 띄울지 — 동의 중인데 옛 문구 버전이라 다시 동의해야 할 때만. key 는 닫을 때 기억할 지금
+ * 동의 버전이다 — 버전이 또 바뀌면 다시 뜬다.
+ */
+export const hqReconsentOf = (consent: Pick<Schemas["MyHqSharingConsentDto"], "isConsented" | "needsReconsent" | "consentVersion">) =>
+  consent.isConsented && consent.needsReconsent ? { key: consent.consentVersion ?? "-" } : null;
+
+/** 위치정보 동의를 내 정보에서 다시 받아야 하는가 — 약관 버전이 바뀌었고(needsReconsent) 동의 · 일시 중지일 때(api 도 그때만 참이다) */
+export const locationNeedsReconsent = (consent: Pick<Schemas["MyLocationConsentDto"], "state" | "needsReconsent">) =>
+  consent.needsReconsent && (consent.state === "AGREED" || consent.state === "PAUSED");

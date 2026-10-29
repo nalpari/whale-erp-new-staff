@@ -6,7 +6,8 @@ import { Alert, Badge, BottomSheet, Button, Card, Toast, type BadgeTone } from "
 import type { Schemas } from "@/lib/api";
 // 지금 시행 중인 위치정보 약관 — 받음 · 없음(설정 문제) · 잠시 못 받음. 타입만 가져온다(서버 모듈).
 import type { CurrentTerms } from "@/lib/my-profile";
-import { CONSENT_CHANGES, dateLabel, hqSharingView, kstDateTimeLabel, type ConsentChange, type LocationConsentState } from "@/lib/profile";
+import { HQ_SHARING_TERMS } from "@/lib/hq-sharing-terms";
+import { CONSENT_CHANGES, dateLabel, hqSharingView, kstDateTimeLabel, locationNeedsReconsent, type ConsentChange, type LocationConsentState } from "@/lib/profile";
 import { changeConsentAction } from "./actions";
 import { CardLabel } from "@/app/_components/read-only-field";
 import { TermsContent } from "./terms-content";
@@ -106,16 +107,21 @@ type LocationSheet = "terms" | "pause" | "withdraw";
  * 약관 보기 · 다시 켜기(새 동의 없음) · 동의 철회, 미동의면 약관 보기 · (흐린 일시 중지) · 동의하기, 철회 뒤면 그 자리가 다시 동의(ME-5 — 내 정보에서도 동의한다,
  * 2026-10-20 노영주). 데모와 달리 다시 켜기 · 다시 동의도 같은 크기의 작은 버튼이다(2026-10-20 노영주). 일시 중지 · 철회는 확인 시트를,
  * 동의하기 · 다시 동의는 약관 시트를 거친다 — 약관을 보이고 그 안의 「동의합니다」로만 기록한다(2026-10-20 노영주). 약관을 못 받으면 동의할 수 없다.
+ * 동의한 약관 버전이 바뀌어 다시 동의해야 하면(needsReconsent — 동의 · 일시 중지일 때) 사업자 제공 동의 카드처럼 「다시 동의 필요」 배지와
+ * 다시 동의(약관 시트의 「동의합니다」)를 두고, 가운데 칸은 동의 철회다 — 옛 동의로는 수집하지 않아 일시 중지가 뜻이 없고, 새 약관에 동의하지
+ * 않으려는 직원도 거둘 수 있게(ATT-30 v252, 2026-10-29 재영). 출근 화면의 다시 동의 시트는 그대로다.
  */
 export function LocationConsentCard({ consent, terms: current }: { consent: Schemas["MyLocationConsentDto"]; terms: CurrentTerms }) {
   const terms = current.status === "ok" ? current.terms : null;
   const [sheet, setSheet] = useState<LocationSheet>();
   const { pending, error, toast, change } = useConsentChange(() => setSheet(undefined));
   const { state, agreedAt, pausedAt, withdrawnAt, consentVersion } = consent;
+  const reconsent = locationNeedsReconsent(consent);
   const version = consentVersion ? ` · 위치정보 수집·이용 동의 ${consentVersion}` : "";
 
-  const line =
-    state === "AGREED" && agreedAt
+  const line = reconsent
+    ? `${agreedAt ? `${kstDateTimeLabel(agreedAt)} 동의${version} — ` : ""}약관이 바뀌어 다시 동의해야 합니다`
+    : state === "AGREED" && agreedAt
       ? `${kstDateTimeLabel(agreedAt)} 동의${version}`
       : state === "PAUSED" && pausedAt
         ? `${kstDateTimeLabel(pausedAt)} 부터 일시 중지${agreedAt ? ` · 동의는 ${kstDateTimeLabel(agreedAt)} 그대로` : ""}`
@@ -137,15 +143,18 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
     <>
       <ConsentCard
         title="위치정보 동의"
-        badge={LOCATION_BADGE[state]}
+        badge={reconsent ? { tone: "warning", text: "다시 동의 필요" } : LOCATION_BADGE[state]}
         line={line}
         error={error}
         actions={
           // 버튼 세 칸은 상태와 상관없이 같은 크기 · 같은 자리이고, 가운데 「일시 중지 ↔ 다시 켜기」, 오른쪽 「동의 철회 ↔ 다시 동의」만
           // 바뀐다(2026-10-20 노영주). 동의가 없으면 멈출 것도 없어 일시 중지를 흐리게 둔다.
+          // 다시 동의가 필요하면 가운데가 동의 철회, 오른쪽이 다시 동의다.
           <SmallButtons>
             {termsButton}
-            {state === "PAUSED" ? (
+            {reconsent ? (
+              withdrawButton
+            ) : state === "PAUSED" ? (
               <Button variant="outline" disabled={pending} onClick={() => change("location-resume")}>
                 다시 켜기
               </Button>
@@ -154,18 +163,20 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
                 일시 중지
               </Button>
             )}
-            {state === "AGREED" || state === "PAUSED" ? (
+            {!reconsent && (state === "AGREED" || state === "PAUSED") ? (
               withdrawButton
             ) : (
               <Button variant="outline" onClick={() => setSheet("terms")}>
                 {/* 세 칸(한 칸 약 100px)에 「다시 동의하기」는 넘쳐 줄였다. */}
-                {state === "WITHDRAWN" ? "다시 동의" : "동의하기"}
+                {state === "NOT_AGREED" ? "동의하기" : "다시 동의"}
               </Button>
             )}
           </SmallButtons>
         }
         note={
-          state === "AGREED"
+          reconsent
+            ? "새 약관에 다시 동의하기 전에는 앱으로 출퇴근을 등록할 수 없습니다. 이 화면이나 다음 출퇴근 등록 때 다시 동의할 수 있습니다."
+            : state === "AGREED"
             ? "동의하지 않으면 앱으로 출퇴근을 등록할 수 없고, 이 화면이나 다음 출퇴근 등록 때 다시 동의할 수 있습니다."
             : state === "PAUSED"
               ? "일시 중지 동안 출퇴근 기록은 근무지 관리자에게 문의해 주세요. 다시 켜면 새로 동의하지 않아도 됩니다."
@@ -187,7 +198,7 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
             <p className="text-[12px] text-staff-text-muted">약관 버전이 바뀌면 다음 출퇴근 등록 때 새 버전으로 다시 동의를 받습니다.</p>
             {/* 동의는 약관을 보인 이 시트 안에서만 받는다(고지 후 동의, 2026-10-20 노영주). 읽었다는 값은 따로 두지 않는다 —
                 api 가 동의한 약관 버전과 일시를 남긴다. */}
-            {(state === "NOT_AGREED" || state === "WITHDRAWN") && (
+            {(state === "NOT_AGREED" || state === "WITHDRAWN" || reconsent) && (
               <Button disabled={pending} onClick={() => change("location-agree", terms.version)}>
                 동의합니다
               </Button>
@@ -232,15 +243,6 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
 }
 
 type HqSheet = "content" | "withdraw";
-
-// 본사 제공 동의 내용(데모 me 의 bpshare 시트). 동의 문구를 내려 주는 api 가 아직 없어 데모 문구를 그대로 둔다(ATT-8 법무 검토 중).
-// 받는 자의 가맹본부 이름은 api 가 주지 않아 뺐다.
-const HQ_SHARING_TERMS = [
-  ["받는 자", "가맹본부"],
-  ["항목", "근로계약 · 근무스케줄 · 출퇴근 기록과 확인 필요 사유 · 급여명세서"],
-  ["목적", "가맹점 운영 지원과 점검"],
-  ["보유 기간", "철회 또는 가맹 관계 종료까지"],
-] as const;
 
 /**
  * 본사 제공 동의 카드(ATT-30, 데모 me 의 본사 제공 카드). 가맹 점포 소속이 있을 때만 보인다. 계정에 하나라 소속 가맹 점포 모두에

@@ -2,6 +2,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  hqReconsentOf,
+  locationNeedsReconsent,
   CONSENT_CHANGES,
   addressSaveFailure,
   consentChangeFailure,
@@ -158,4 +160,19 @@ test("hasHqSharingRecord — 동의 중 · 철회함이면 참, 한 번도 동�
   assert.equal(hasHqSharingRecord({ isConsented: true, withdrawnAt: null }), true);
   assert.equal(hasHqSharingRecord({ isConsented: false, withdrawnAt: "2026-10-02T01:00:00Z" }), true);
   assert.equal(hasHqSharingRecord({ isConsented: false, withdrawnAt: null }), false);
+});
+
+test("hqReconsentOf 는 동의 중이면서 다시 동의가 필요할 때만 지금 버전을 키로 준다", () => {
+  assert.deepEqual(hqReconsentOf({ isConsented: true, needsReconsent: true, consentVersion: "v1.0" }), { key: "v1.0" });
+  assert.deepEqual(hqReconsentOf({ isConsented: true, needsReconsent: true, consentVersion: null }), { key: "-" });
+  assert.equal(hqReconsentOf({ isConsented: true, needsReconsent: false, consentVersion: "v1.0" }), null);
+  // 철회한 계정은 다시 동의를 묻지 않는다
+  assert.equal(hqReconsentOf({ isConsented: false, needsReconsent: true, consentVersion: "v1.0" }), null);
+});
+
+test("locationNeedsReconsent 는 동의 · 일시 중지에서 약관이 바뀌었을 때만 참", () => {
+  assert.equal(locationNeedsReconsent({ state: "AGREED", needsReconsent: true }), true);
+  assert.equal(locationNeedsReconsent({ state: "PAUSED", needsReconsent: true }), true);
+  assert.equal(locationNeedsReconsent({ state: "AGREED", needsReconsent: false }), false);
+  assert.equal(locationNeedsReconsent({ state: "WITHDRAWN", needsReconsent: true }), false);
 });
