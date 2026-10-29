@@ -190,11 +190,17 @@ export const hasHqSharingRecord = (consent: Pick<Schemas["MyHqSharingConsentDto"
   consent.isConsented || consent.withdrawnAt !== null;
 
 /**
- * 홈의 사업자 제공 다시 동의 팝업(ATT-30 v252)을 띄울지 — 동의 중인데 옛 문구 버전이라 다시 동의해야 할 때만. key 는 닫을 때 기억할 지금
- * 동의 버전이다 — 버전이 또 바뀌면 다시 뜬다.
+ * 홈의 사업자 제공 다시 동의 팝업(ATT-30 v252)을 띄울지 — 동의 중인데 옛 문구 버전이라 다시 동의해야 하고, 지금 가맹 소속이 있을 때만.
+ * api 의 needsReconsent 는 소속을 보지 않는다 — 가맹 점포에서 퇴직한 계정은 내 정보에 카드가 없어 철회할 길이 없으니 묻지 않는다(카드와 같은
+ * 조건). 소속을 못 받았으면(null) 띄우지 않는다. key 는 닫을 때 기억할, 직원이 동의한 버전이다 — 다시 동의하거나 새로 열면 다시 판단한다.
  */
-export const hqReconsentOf = (consent: Pick<Schemas["MyHqSharingConsentDto"], "isConsented" | "needsReconsent" | "consentVersion">) =>
-  consent.isConsented && consent.needsReconsent ? { key: consent.consentVersion ?? "-" } : null;
+export const hqReconsentOf = (
+  consent: Pick<Schemas["MyHqSharingConsentDto"], "isConsented" | "needsReconsent" | "consentVersion">,
+  memberships: readonly MyMembership[] | null,
+) =>
+  consent.isConsented && consent.needsReconsent && memberships !== null && hasFranchiseMembership(memberships)
+    ? { key: consent.consentVersion ?? "-" }
+    : null;
 
 /** 위치정보 동의를 내 정보에서 다시 받아야 하는가 — 약관 버전이 바뀌었고(needsReconsent) 동의 · 일시 중지일 때(api 도 그때만 참이다) */
 export const locationNeedsReconsent = (consent: Pick<Schemas["MyLocationConsentDto"], "state" | "needsReconsent">) =>

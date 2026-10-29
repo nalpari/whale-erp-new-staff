@@ -119,8 +119,9 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
   const reconsent = locationNeedsReconsent(consent);
   const version = consentVersion ? ` · 위치정보 수집·이용 동의 ${consentVersion}` : "";
 
+  // 일시 중지 중이면 그 사실을 남긴다 — 다시 동의해도 멈춘 채다(api 가 새 동의 행에 일시 중지를 옮긴다, ATT-26)
   const line = reconsent
-    ? `${agreedAt ? `${kstDateTimeLabel(agreedAt)} 동의${version} — ` : ""}약관이 바뀌어 다시 동의해야 합니다`
+    ? `${state === "PAUSED" && pausedAt ? `${kstDateTimeLabel(pausedAt)} 부터 일시 중지 — ` : agreedAt ? `${kstDateTimeLabel(agreedAt)} 동의${version} — ` : ""}약관이 바뀌어 다시 동의해야 합니다`
     : state === "AGREED" && agreedAt
       ? `${kstDateTimeLabel(agreedAt)} 동의${version}`
       : state === "PAUSED" && pausedAt
@@ -175,7 +176,9 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
         }
         note={
           reconsent
-            ? "새 약관에 다시 동의하기 전에는 앱으로 출퇴근을 등록할 수 없습니다. 이 화면이나 다음 출퇴근 등록 때 다시 동의할 수 있습니다."
+            ? state === "PAUSED"
+              ? "새 약관에 다시 동의해도 일시 중지는 그대로입니다. 다시 동의한 뒤 「다시 켜기」로 수집을 켜면 앱으로 출퇴근을 등록할 수 있습니다."
+              : "새 약관에 다시 동의하기 전에는 앱으로 출퇴근을 등록할 수 없습니다. 이 화면이나 다음 출퇴근 등록 때 다시 동의할 수 있습니다."
             : state === "AGREED"
             ? "동의하지 않으면 앱으로 출퇴근을 등록할 수 없고, 이 화면이나 다음 출퇴근 등록 때 다시 동의할 수 있습니다."
             : state === "PAUSED"

@@ -8,7 +8,7 @@ import { getContracts } from "@/lib/contracts";
 import { getCurrentMembership } from "@/lib/current-membership";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { getMyNotifications } from "@/lib/my-notifications";
-import { getMyAffiliationRequests, getMyProfile } from "@/lib/my-profile";
+import { getMyAffiliationRequests, getMyMemberships, getMyProfile } from "@/lib/my-profile";
 import { hqReconsentOf } from "@/lib/profile";
 import { requireSession } from "@/lib/session";
 import { signRequestOf } from "@/lib/sign-request";
@@ -101,6 +101,8 @@ async function HomeRequests() {
     employmentTypes,
     hqSharingConsentOrNull(),
   ]);
+  // 다시 동의는 가맹 소속이 있을 때만 — 소속은 내 정보 카드와 같은 목록(퇴직 근무지 제외)이다. 다시 동의가 필요할 때만 받는다
+  const memberships = hqSharing?.isConsented && hqSharing.needsReconsent ? ((await getMyMemberships())?.items ?? null) : null;
   const sign = items && signRequestOf(items, now);
   return (
     <HomePopups
@@ -116,7 +118,7 @@ async function HomeRequests() {
         }
       }
       affiliation={popupSummary(affiliationRequests ?? [])}
-      reconsent={hqSharing && hqReconsentOf(hqSharing)}
+      reconsent={hqSharing && hqReconsentOf(hqSharing, memberships)}
     />
   );
 }

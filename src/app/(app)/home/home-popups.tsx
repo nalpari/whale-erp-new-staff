@@ -38,10 +38,13 @@ export function HomePopups({
 }: {
   sign: { key: string; href: string; rows: Rows } | null;
   affiliation: { key: string; rows: Rows } | null;
-  /** 다시 동의가 필요하면 그 동의 버전(닫을 때 기억) */
+  /** 다시 동의가 필요하면 직원이 동의한 버전(닫을 때 기억) */
   reconsent: { key: string } | null;
 }) {
   const router = useRouter();
+  // 다시 동의는 마지막 값을 붙잡아 둔다 — 동의하면 홈을 다시 받아 null 이 되는데, 바로 빼면 시트가 내려가지 않고 사라지고 성공 토스트도 잃는다
+  const [keptReconsent, setKeptReconsent] = useState(reconsent);
+  if (reconsent && reconsent.key !== keptReconsent?.key) setKeptReconsent(reconsent);
   const [refreshing, startRefresh] = useTransition();
   useEffect(() => {
     const reopen = () => {
@@ -91,7 +94,7 @@ export function HomePopups({
     <>
       {sign && <SignRequestSheet open={next === "sign"} requestKey={sign.key} href={sign.href} rows={sign.rows} />}
       {affiliation && <AffiliationPopup open={next === "affiliation"} requestKey={affiliation.key} rows={affiliation.rows} />}
-      {reconsent && <HqReconsentPopup open={next === "reconsent"} reconsentKey={reconsent.key} />}
+      {keptReconsent && <HqReconsentPopup open={next === "reconsent"} reconsentKey={keptReconsent.key} />}
     </>
   );
 }

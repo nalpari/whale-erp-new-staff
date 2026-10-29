@@ -162,12 +162,17 @@ test("hasHqSharingRecord — 동의 중 · 철회함이면 참, 한 번도 동�
   assert.equal(hasHqSharingRecord({ isConsented: false, withdrawnAt: null }), false);
 });
 
-test("hqReconsentOf 는 동의 중이면서 다시 동의가 필요할 때만 지금 버전을 키로 준다", () => {
-  assert.deepEqual(hqReconsentOf({ isConsented: true, needsReconsent: true, consentVersion: "v1.0" }), { key: "v1.0" });
-  assert.deepEqual(hqReconsentOf({ isConsented: true, needsReconsent: true, consentVersion: null }), { key: "-" });
-  assert.equal(hqReconsentOf({ isConsented: true, needsReconsent: false, consentVersion: "v1.0" }), null);
+test("hqReconsentOf 는 동의 중 · 다시 동의 필요 · 가맹 소속이 있을 때만 동의한 버전을 키로 준다", () => {
+  const franchise = [membership("FRANCHISE")];
+  const direct = [membership("DIRECT")];
+  assert.deepEqual(hqReconsentOf({ isConsented: true, needsReconsent: true, consentVersion: "v1.0" }, franchise), { key: "v1.0" });
+  assert.deepEqual(hqReconsentOf({ isConsented: true, needsReconsent: true, consentVersion: null }, franchise), { key: "-" });
+  assert.equal(hqReconsentOf({ isConsented: true, needsReconsent: false, consentVersion: "v1.0" }, franchise), null);
   // 철회한 계정은 다시 동의를 묻지 않는다
-  assert.equal(hqReconsentOf({ isConsented: false, needsReconsent: true, consentVersion: "v1.0" }), null);
+  assert.equal(hqReconsentOf({ isConsented: false, needsReconsent: true, consentVersion: "v1.0" }, franchise), null);
+  // 가맹 소속이 없거나(퇴직 — 내 정보에 카드가 없어 철회할 길이 없다) 소속을 못 받았으면 묻지 않는다
+  assert.equal(hqReconsentOf({ isConsented: true, needsReconsent: true, consentVersion: "v1.0" }, direct), null);
+  assert.equal(hqReconsentOf({ isConsented: true, needsReconsent: true, consentVersion: "v1.0" }, null), null);
 });
 
 test("locationNeedsReconsent 는 동의 · 일시 중지에서 약관이 바뀌었을 때만 참", () => {
