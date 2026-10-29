@@ -128,4 +128,7 @@ test("hqSharingPhaseOf — 옛 문구 버전 동의는 동의 중이어도 「�
   assert.equal(hqSharingPhaseOf({ isConsented: true, needsReconsent: true, withdrawnAt: null }), "reconsent");
   assert.equal(hqSharingPhaseOf({ isConsented: false, needsReconsent: false, withdrawnAt: at }), "withdrawn");
   assert.equal(hqSharingPhaseOf({ isConsented: false, needsReconsent: false, withdrawnAt: null }), "none");
+  // 철회한 뒤 다시 동의했으면 철회 시각이 남아도 동의다 · 철회 뒤엔 needsReconsent 가 와도 철회다(api 는 동의 중일 때만 참으로 준다).
+  assert.equal(hqSharingPhaseOf({ isConsented: true, needsReconsent: false, withdrawnAt: at }), "agreed");
+  assert.equal(hqSharingPhaseOf({ isConsented: false, needsReconsent: true, withdrawnAt: at }), "withdrawn");
 });
