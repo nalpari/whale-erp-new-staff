@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-29
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — staff #40 리뷰 후속: 근무지 추가 완료(`/me/invitations/done`)의 「근로계약서 화면 준비 중」 안내를 지우고 「근로계약서 보기」(`/contracts`)로 잇는다(WHALEERP-604, #44 근로계약서 화면).
 * **Update**: main 병합(#42 · #44 · #47 · #48 · #49 머지분) — 소속 근무지의 근로계약서 버튼은 #44 대로 그 근무지 계약서로 가고(퇴직 근무지는 버튼 없음 그대로), 문서 병합에서 겹쳐 들어간 `src/app/(app)/` · `affiliations/` · `contracts/` 설명 줄과 2026-10-28 머리를 하나씩으로 합쳤다(양쪽 내용 모두 살림) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: PR #42 리뷰 반영 — 신고 정보 처음 넣기에서 이미 낸 신고 정보가 있으면(응답이 끊긴 앞 제출 · 다른 기기) 완료 대신 안내와 보기 링크를 보인다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: PR #44 리뷰 반영 — 목록의 날인 기한은 오늘 · 내일이면 시각까지 보이고, 받기 404 도 `logUnexpected` 로 남긴다 — [Whale ERP Staff](/whale-erp-staff.md).
