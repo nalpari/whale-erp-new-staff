@@ -3831,7 +3831,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 내 소속 근무지 — TO-DO 와 같은 재직 직원 기준. 체결 완료 근로계약이 있고 가입 완료 · 퇴직 전인 직원 레코드. 퇴직 예정은 퇴직일과 함께 */
+        /**
+         * 내 소속 근무지 — TO-DO 와 같은 재직 직원 기준. 체결 완료 근로계약이 있고 가입 완료 · 퇴직 전인 직원 레코드. 퇴직 예정은
+         *     퇴직일과 함께. `includeRetired=true` 면 퇴직한 레코드도 지금 소속 뒤에 퇴직일 최근 순으로 넣는다 — 퇴직일(retiredDate)이
+         *     오늘보다 앞이면 퇴직, 오늘 · 뒤면 퇴직 예정이다(2026-10-28). 묶음은 재직 상태로 가르므로 퇴직 배치가 늦은 날에는 날짜와
+         *     어긋날 수 있다.
+         */
         get: operations["MyMembershipsController_list"];
         put?: never;
         post?: never;
@@ -4007,27 +4012,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/me/invitations/check": {
+    "/me/invitations": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /**
-         * 초대 확인 — 앱 안에서 넣은 초대 코드(계정의 번호로 찾는다) 또는 로그인한 채 연 초대 링크의 토큰. 근무지 · 고용 형태 ·
-         *     유효 기간과 본사 제공 동의를 물을지(직영이 아니고 계정이 아직 동의하지 않았을 때) 준다.
+         * 내게 온 가입 초대 — 계정의 휴대전화번호로 나간, 아직 쓸 수 있는 가입 초대 · 재초대(보냄 · 기한 안 · 아직 계정 없는
+         *     직원 레코드). 근로계약서 이름이 계정 이름과 다른 초대는 뺀다(본인 대조 규칙 — 번호 재활용 대비, 2026-10-28). 보낸 시각 최근 순. 근무지 · 고용 형태 · 직무 · 유효 기간과 본사 제공 동의를 물을지(직영이 아니고 계정이
+         *     아직 동의하지 않았을 때) 준다.
          */
-        post: operations["MyInvitationsController_check"];
+        get: operations["MyInvitationsController_list"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/me/invitations/accept": {
+    "/me/invitations/{invitationId}/accept": {
         parameters: {
             query?: never;
             header?: never;
@@ -4037,8 +4043,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 근무지 더하기 — 초대를 다시 확인하고 그 근무지의 직원 레코드를 이 계정에 잇는다(가입 완료 · 초대 수락). 가입을 기다리던
-         *     근로계약서는 서명 대기가 된다.
+         * 근무지 더하기 — 목록에서 고른 초대를 다시 확인하고 그 근무지의 직원 레코드를 이 계정에 잇는다(가입 완료 · 초대 수락).
+         *     가입을 기다리던 근로계약서는 서명 대기가 된다.
          */
         post: operations["MyInvitationsController_accept"];
         delete?: never;
@@ -9545,11 +9551,18 @@ export interface components {
             jobTitle: string;
             /** @description 입사일(YYYY-MM-DD) */
             hiredDate: string | null;
-            /** @description 퇴직일(YYYY-MM-DD). 값이 있으면 퇴직 예정 */
+            /**
+             * @description 퇴직일(YYYY-MM-DD) — 이날까지 일한다. 오늘(한국 시각) · 뒤면 퇴직 예정, 앞이면 퇴직(`includeRetired=true` 로 받은
+             *     퇴직한 소속)이다. 없으면 null. 목록의 묶음(지금 소속 · 퇴직)은 재직 상태로 가르므로, 퇴직 배치가 늦은 날에는 퇴직일이 지난
+             *     레코드가 지금 소속 쪽에 섞일 수 있다
+             */
             retiredDate: string | null;
         };
         MyMembershipListResponseDto: {
-            /** @description 체결 완료 근로계약이 있고 가입 완료 · 퇴직 전인 직원 레코드. 입사일(없으면 뒤) · id 순 */
+            /**
+             * @description 체결 완료 근로계약이 있고 가입 완료 · 퇴직 전인 직원 레코드. 입사일(없으면 뒤) · id 순. `includeRetired=true` 면 그 뒤에
+             *     퇴직한 레코드가 퇴직일 최근 순으로 붙는다
+             */
             items: components["schemas"]["MyMembershipDto"][];
             total: number;
         };
@@ -9652,19 +9665,40 @@ export interface components {
             /** @description 초대 코드 — 대문자 · 숫자 8자리, 0 · O · 1 · I 는 없다. 소문자로 넣어도 대문자로 맞춰 본다 */
             code?: string;
         };
-        MyInvitationLookupDto: {
-            /** @description 초대 링크의 토큰(base64url 43자) */
-            token?: string;
-            /** @description 초대 코드 — 대문자 · 숫자 8자리, 0 · O · 1 · I 는 없다. 소문자로 넣어도 대문자로 맞춰 본다 */
-            code?: string;
+        MyInvitationDto: {
+            /**
+             * @description 고용 형태 — 정직원 · 파트타이머
+             * @enum {string}
+             */
+            employmentType: "FULL_TIME" | "PART_TIME";
+            /** @description 직무 — 함께 온 계약의 값(없으면 직원 레코드), 고용 형태와 같은 곳에서 읽는다. 계약에 직무가 없는 옛 행이면 null 일 수 있다 */
+            jobTitle: string | null;
+            /** @description 초대 — 더하기(`POST /me/invitations/{invitationId}/accept`)의 경로 값 */
+            invitationId: number;
+            /** @description 초대한 근무지(점포) 이름 */
+            storeName: string;
+            /**
+             * Format: date-time
+             * @description 초대를 보낸 시각
+             */
+            sentAt: string;
+            /**
+             * Format: date-time
+             * @description 초대가 끝나는 시각(보낸 때부터 30일)
+             */
+            expiresAt: string;
+            /** @description 본사 제공 동의를 물을지 — 직영이 아닌 점포이고 계정이 아직 동의하지 않았다(운영 정책 ATT-30) */
+            asksHqSharingConsent: boolean;
+        };
+        MyInvitationListResponseDto: {
+            /** @description 보낸 시각 최근 순 */
+            items: components["schemas"]["MyInvitationDto"][];
+            /** @description items 의 개수 */
+            total: number;
         };
         AcceptMyInvitationDto: {
-            /** @description 초대 링크의 토큰(base64url 43자) */
-            token?: string;
-            /** @description 초대 코드 — 대문자 · 숫자 8자리, 0 · O · 1 · I 는 없다. 소문자로 넣어도 대문자로 맞춰 본다 */
-            code?: string;
             /**
-             * @description 본사 제공 동의(운영 정책 ATT-30, 선택). 확인의 asksHqSharingConsent 가 true 일 때만 쓴다 — 직영 점포이거나 계정이
+             * @description 본사 제공 동의(운영 정책 ATT-30, 선택). 목록의 asksHqSharingConsent 가 true 일 때만 쓴다 — 직영 점포이거나 계정이
              *     이미 동의했으면 보내도 바꾸지 않는다. 동의는 계정에 하나다(api #78)
              */
             hqSharingConsented?: boolean;
@@ -21975,7 +22009,13 @@ export interface operations {
     };
     MyMembershipsController_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /**
+                 * @description 퇴직한 소속도 넣을지(true · false, 없으면 false). true 면 지금 소속 뒤에 퇴직한 소속을 퇴직일 최근 순으로 붙인다 —
+                 *     응답 모양은 같고, 퇴직일(retiredDate)이 오늘보다 앞이면 퇴직한 소속이다. 'true' · 'false' 밖의 값은 400.
+                 */
+                includeRetired?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -21989,6 +22029,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MyMembershipListResponseDto"];
                 };
+            };
+            /** @description includeRetired 가 true · false 가 아님 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
             401: {
@@ -22479,33 +22526,22 @@ export interface operations {
             };
         };
     };
-    MyInvitationsController_check: {
+    MyInvitationsController_list: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MyInvitationLookupDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["InvitationCheckResponseDto"];
+                    "application/json": components["schemas"]["MyInvitationListResponseDto"];
                 };
-            };
-            /** @description 형식 오류 · 토큰과 코드를 함께 보내거나 둘 다 없음 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
             401: {
@@ -22521,21 +22557,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 맞는 초대가 없음(INVITATION_NOT_FOUND — 코드가 틀림, 링크의 초대 번호가 계정 번호와 다름) · 끝난 초대(INVITATION_ENDED) */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 이미 가입을 마친 초대(INVITATION_ALREADY_JOINED) */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 계정 번호로 코드를 5번 틀려 30분 잠김(INVITATION_CODE_LOCKED, 본문 lockExpiresAt — 재발송하면 풀림) · 기본 요청 제한 */
+            /** @description 계정 · IP 요청 한도 */
             429: {
                 headers: {
                     [name: string]: unknown;
@@ -22548,7 +22570,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                invitationId: number;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -22565,7 +22589,7 @@ export interface operations {
                     "application/json": components["schemas"]["AcceptMyInvitationResponseDto"];
                 };
             };
-            /** @description 형식 오류 · 토큰과 코드를 함께 보내거나 둘 다 없음 */
+            /** @description 형식 오류 */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -22586,21 +22610,21 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description INVITATION_NOT_FOUND · INVITATION_ENDED — 확인과 같다 */
+            /** @description INVITATION_NOT_FOUND — 없는 초대 · 범위 밖 id · 가입 초대가 아님 · 남의 번호로 온 초대 · 근로계약서 이름이 계정 이름과 다른 초대(그 초대의 상태와 상관없이 같다) · INVITATION_ENDED — 내 초대가 끝남(기한 · 다시 보냄 · 퇴직 · 가입 불가, 처리 중 번호 · 이름 변경) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description INVITATION_ALREADY_JOINED — 먼저 더했거나 같은 초대로 동시에 */
+            /** @description INVITATION_ALREADY_JOINED — 내 초대를 먼저 더했거나 같은 초대로 동시에 */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 계정 번호로 코드를 5번 틀려 30분 잠김(INVITATION_CODE_LOCKED, 본문 lockExpiresAt — 재발송하면 풀림) · 기본 요청 제한 */
+            /** @description 계정 · IP 요청 한도 */
             429: {
                 headers: {
                     [name: string]: unknown;

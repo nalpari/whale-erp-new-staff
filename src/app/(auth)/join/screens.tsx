@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { Button, Card, Notice } from "@/components/common";
+import { Button, Card, CheckBox, Notice } from "@/components/common";
 import { useNow } from "@/app/_components/countdown";
 import { type AttemptLock, lockCountdown } from "@/lib/attempt-lock";
+import { MEMBERSHIPS_PATH } from "@/lib/join";
+import { withNext } from "@/lib/login-return";
 import { AuthScreen } from "../_components/auth-screen";
 import { useFocusedTitle } from "../_components/use-focused-title";
 import type { LoadedInvitation } from "./load-invitation";
@@ -72,6 +74,23 @@ export function InvitationScreen({
         </>
       }
     >
+      <InvitationSummary storeName={storeName} employmentType={employmentType} expiresOn={expiresOn} />
+    </AuthScreen>
+  );
+}
+
+/** 초대 확인의 근무지 · 고용 형태 카드와 기한 안내. 로그인한 직원의 근무지 추가(WHALEERP-604) 확인 화면도 쓴다. */
+export function InvitationSummary({
+  storeName,
+  employmentType,
+  expiresOn,
+}: {
+  storeName: string;
+  employmentType: string;
+  expiresOn: string;
+}) {
+  return (
+    <>
       <Card>
         <dl className="flex flex-col text-[14px]">
           <div className="flex gap-[12px] border-b border-staff-border-light py-[10px]">
@@ -87,12 +106,27 @@ export function InvitationScreen({
       <Notice>
         초대는 받은 날부터 <strong>30일</strong> 동안 쓸 수 있습니다. 이 초대는 <strong>{expiresOn}까지</strong> 쓸 수 있습니다.
       </Notice>
-    </AuthScreen>
+    </>
   );
 }
 
-const ToLogin = ({ primary = false }: { primary?: boolean }) => (
-  <Button variant={primary ? "primary" : "ghost"} href="/login" transitionTypes={["nav-back"]}>
+/** 본사 제공 동의(선택, 운영 정책 ATT-30). api 가 물을 때(asksHqSharingConsent)만 그린다 — 계정 등록과 근무지 추가가 같이 쓴다. */
+export function HqSharingConsent({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) {
+  return (
+    <div className="flex flex-col gap-[4px]">
+      <CheckBox name="hqSharingConsented" checked={checked} onChange={onChange}>
+        사업자 제공 동의 (선택)
+      </CheckBox>
+      <p className="text-[12px] text-staff-text-muted">
+        가맹본부가 내 근무 정보(근로계약 · 근무스케줄 · 출퇴근 기록 · 급여명세서)를 개인 단위로 보는 것에 동의합니다. 동의하지
+        않아도 가입과 근무는 그대로이고, 본사에는 점포별 숫자로만 보입니다. 내 정보에서 언제든 철회할 수 있습니다.
+      </p>
+    </div>
+  );
+}
+
+const ToLogin = ({ primary = false, href = "/login" }: { primary?: boolean; href?: string }) => (
+  <Button variant={primary ? "primary" : "ghost"} href={href} transitionTypes={["nav-back"]}>
     {primary ? "로그인하러 가기" : "로그인으로 돌아가기"}
   </Button>
 );
@@ -146,17 +180,20 @@ export function JoinedInvitation() {
   );
 }
 
-/** 그 번호로 가입한 계정이 있다(운영 정책 JOI-02) — 새로 가입하지 않고 로그인한다. 기존 계정의 이메일은 보이지 않는다. */
+/**
+ * 그 번호로 가입한 계정이 있다(운영 정책 JOI-02) — 새로 가입하지 않고 로그인한다. 기존 계정의 이메일은 보이지 않는다.
+ * 가입한 사람은 초대 코드로 가입하지 않는다 — 로그인하면 소속 근무지 맨 위의 받은 초대에서 수락한다(WHALEERP-604, 2026-10-28 김민식).
+ */
 export function AccountExists() {
   const titleRef = useFocusedTitle();
   return (
     <AuthScreen
       titleRef={titleRef}
       title="이미 계정이 있습니다"
-      description="이 휴대전화번호로 가입한 계정이 있습니다. 새로 가입하지 않고 로그인해 주세요."
+      description="이 휴대전화번호로 가입한 계정이 있습니다. 새로 가입하지 않고 로그인하면 내 정보 - 소속 근무지에서 이 초대를 수락할 수 있습니다."
       dock={
         <>
-          <ToLogin primary />
+          <ToLogin primary href={withNext("/login", MEMBERSHIPS_PATH)} />
           <Button variant="ghost" href="/email-find" transitionTypes={["nav-forward"]}>
             이메일 찾기
           </Button>

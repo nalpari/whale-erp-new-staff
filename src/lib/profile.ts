@@ -24,6 +24,14 @@ export function kstDateLabel(iso: string): string {
   return `${k.getUTCFullYear()}년 ${k.getUTCMonth() + 1}월 ${k.getUTCDate()}일`;
 }
 
+const WEEKDAY_KO = ["일", "월", "화", "수", "목", "금", "토"];
+
+/** ISO 시각 → 한국 날짜 「9월 2일 (수)」 — 받은 초대의 받은 날 · 만료일(데모 me 의 sites, ME-8). */
+export function kstMonthDayLabel(iso: string): string {
+  const k = kst(iso);
+  return `${k.getUTCMonth() + 1}월 ${k.getUTCDate()}일 (${WEEKDAY_KO[k.getUTCDay()]})`;
+}
+
 /** ISO 시각 → 한국 시각 「2026년 3월 15일 09:04」. */
 export function kstDateTimeLabel(iso: string): string {
   const k = kst(iso);
@@ -125,4 +133,13 @@ export function consentChangeFailure(failure: ApiFailure): { error: string; refr
   if (status >= 500 && isHangulReason(message)) return { error: message, refresh: false, log: false };
   // 5xx 는 request() 가 남겼다. 예상 밖 4xx 는 남긴다.
   return { error: `동의 상태를 바꾸지 못했습니다. ${RETRY_LATER}`, refresh: false, log: status < 500 };
+}
+
+/**
+ * 소속의 재직 표시(WHALEERP-604, 내 정보 - 소속 근무지). 퇴직일은 그날까지 일하는 날이라, 오늘(한국 날짜 YYYY-MM-DD)보다 앞이면
+ * 퇴직, 오늘 · 뒤면 퇴직 예정, 없으면 근무 중이다. api 의 퇴직 묶음은 재직 상태로 가르지만(배치가 늦은 날 어긋남) 화면은 날짜로 본다.
+ */
+export function membershipStatusOf(retiredDate: string | null, today: string): "working" | "retiring" | "retired" {
+  if (retiredDate === null) return "working";
+  return retiredDate < today ? "retired" : "retiring";
 }

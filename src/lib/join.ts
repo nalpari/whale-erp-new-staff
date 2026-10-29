@@ -16,6 +16,9 @@ const INVITATION_TOKEN = /^[A-Za-z0-9_-]{43}$/;
 const INVITE_CODE = /^[A-HJ-NP-Z2-9]{8}$/;
 export const INVITE_CODE_LENGTH = 8;
 
+/** 내 정보 - 소속 근무지. 가입한 사람이 받은 초대를 수락하는 곳이다(WHALEERP-604) — 가입은 초대 코드로 하지 않는다. */
+export const MEMBERSHIPS_PATH = "/me/memberships";
+
 export const isInvitationToken = (token: string) => INVITATION_TOKEN.test(token);
 export const isInviteCode = (code: string) => INVITE_CODE.test(code);
 

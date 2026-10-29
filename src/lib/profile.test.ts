@@ -10,6 +10,8 @@ import {
   isConsentChange,
   isPasswordStale,
   kstDateLabel,
+  kstMonthDayLabel,
+  membershipStatusOf,
   kstDateTimeLabel,
   parseAddress,
   type MyMembership,
@@ -103,4 +105,18 @@ test("isPasswordStale 은 마지막 변경에서 6개월이 지나야 참", () =
   assert.equal(isPasswordStale("2027-08-31T00:00:00Z", new Date("2028-02-28T23:59:59Z")), false);
   // 읽을 수 없는 값이면 권하지 않는다.
   assert.equal(isPasswordStale("not-a-date", new Date("2030-01-01T00:00:00Z")), false);
+});
+
+test("membershipStatusOf 는 퇴직일이 오늘보다 앞일 때만 퇴직이다 — 퇴직일 당일까지는 퇴직 예정", () => {
+  assert.equal(membershipStatusOf(null, "2026-10-28"), "working");
+  assert.equal(membershipStatusOf("2026-10-28", "2026-10-28"), "retiring");
+  assert.equal(membershipStatusOf("2026-11-01", "2026-10-28"), "retiring");
+  assert.equal(membershipStatusOf("2026-10-27", "2026-10-28"), "retired");
+  // 해가 바뀌어도 문자열 비교가 날짜 순서와 같다.
+  assert.equal(membershipStatusOf("2025-12-31", "2026-01-01"), "retired");
+});
+
+test("kstMonthDayLabel 은 한국 날짜와 요일 — UTC 로는 전날이어도 한국 날짜로", () => {
+  assert.equal(kstMonthDayLabel("2026-09-02T03:00:00.000Z"), "9월 2일 (수)");
+  assert.equal(kstMonthDayLabel("2026-10-01T16:30:00.000Z"), "10월 2일 (금)");
 });

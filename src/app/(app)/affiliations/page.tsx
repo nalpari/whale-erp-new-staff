@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "소속 추가 확인 · Whale ERP" }
 
 // 소속 추가 확인 요청(WHALEERP-144). 로그인 뒤 홈 팝업 · 내 정보 - 소속 근무지 · 알림톡 · 메일 링크(STAFF_APP_URL/affiliations,
 // 토큰 없음)가 모두 여기로 온다. 로그인하지 않았으면 proxy 가 로그인으로 보냈다가 돌려보낸다.
-// 요청이 하나면 바로 확인 화면, 여럿이면 목록에서 고른다(`?id=`). 데모는 하나만 보여 목록은 소속 근무지 목록 모양으로 지었다(AffiliationRequestList, 내 정보 - 소속 근무지와 같다).
+// 요청이 하나면 바로 확인 화면, 여럿이면 목록에서 고른다(`?id=`). 데모는 하나만 보여 목록은 소속 근무지 목록 모양으로 지었다(AffiliationRequestList).
 export default async function AffiliationsPage({ searchParams }: PageProps<"/affiliations">) {
   const { id } = await searchParams;
   const items = await getMyAffiliationRequests();

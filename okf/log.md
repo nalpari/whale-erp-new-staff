@@ -1,9 +1,14 @@
 # Bundle history
 
 ## 2026-10-29
+* **Update**: main 병합(#42 · #44 · #47 · #48 · #49 머지분) — 소속 근무지의 근로계약서 버튼은 #44 대로 그 근무지 계약서로 가고(퇴직 근무지는 버튼 없음 그대로), 문서 병합에서 겹쳐 들어간 `src/app/(app)/` · `affiliations/` · `contracts/` 설명 줄과 2026-10-28 머리를 하나씩으로 합쳤다(양쪽 내용 모두 살림) — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: PR #42 리뷰 반영 — 신고 정보 처음 넣기에서 이미 낸 신고 정보가 있으면(응답이 끊긴 앞 제출 · 다른 기기) 완료 대신 안내와 보기 링크를 보인다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: PR #44 리뷰 반영 — 목록의 날인 기한은 오늘 · 내일이면 시각까지 보이고, 받기 404 도 `logUnexpected` 로 남긴다 — [Whale ERP Staff](/whale-erp-staff.md).
 
 ## 2026-10-28
+* **Update**: main 병합(#38 머지 뒤) — 소속 근무지 「확인을 기다리는 요청」을 가입 초대(604)와 소속 추가 · 복귀 확인(144)을 한 칸에 받은 때 최신순으로 합쳤다(`pendingRequestRows`, 데모 ME-8 줄 모양). 내 정보 「요청 N건」도 둘을 더해 센다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 소속 근무지의 받은 초대 · 퇴직 표시를 재영이 맞춘 데모 ME-8(staff #43)에 맞췄다 — 요청 줄은 점포 · 「고용 형태 · 9월 2일 (수) 받음 / 만료일 만료」 · 「가입 초대」 배지, 아래 「소속 근무지」 제목, 퇴직은 대기색 「퇴직」 · 「–」 기간(`kstMonthDayLabel`) — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 가입한 직원이 받은 초대를 소속 근무지에서 수락(WHALEERP-604) — 맨 위 「확인을 기다리는 요청」(받은 때 최신순) → `/me/invitations/[invitationId]` 확인 · 완료, 퇴직한 근무지도 보임, 로그인한 채 연 초대 링크 · 「이미 계정이 있습니다」 로그인 뒤는 소속 근무지로. 초대 코드 입력은 두지 않는다(2026-10-28 김민식) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: #49 재리뷰 반영 — 팝업 조회는 `Promise.all`(결함은 홈 오류로), 「앱을 다시 엶」은 홈 팝업이 홈에 있을 때 홈을 먼저 다시 받은 뒤 기억을 지움, 보던 시트는 서명 · 소속 추가 모두 유지하고 닫힘 애니메이션 뒤 다음 시트, 팝업 링크에 `?store=`, 「다음에 하기」 판정은 `popup-memory.ts` 의 공용 함수 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: PR #49 리뷰 반영 — 서명 요청 팝업은 데모처럼 계약서 상세로 보낸다. 「다음에 하기」는 부분집합 판정(줄면 그대로), 10분 백그라운드 뒤에는 홈을 다시 받아 띄운다. 두 팝업은 `home-popups.tsx` 한 곳에서 한 번에 하나(보던 소속 추가 시트는 닫지 않음), 조회는 `allSettled`. 판정은 의존 없는 `sign-request-seen.ts` 로 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 148 PR 전 리뷰 반영 — 서명 요청 팝업은 백그라운드에서 10분 넘게 숨었다 다시 보이면 「다음에 하기」 기억을 지워 다시 뜬다(HOME-4 해석, 소속 추가 요청 팝업은 그대로). 고용 형태 enum 은 서명 요청이 있을 때만, 목록 4xx 는 남긴다. 기한 줄은 `deadlineValue` 로 상세와 같은 규칙. 데모와 다른 점을 적었다 — [Whale ERP Staff](/whale-erp-staff.md).
@@ -22,9 +27,6 @@
 * **Update**: PR #44 리뷰 반영 — 날인 가능 · 기한 강조 · 날인 자리를 api `awaitingSignature` 로만 정하고, 날인할 수 없는 서명 대기는 목록 · 상세 모두 만료 · 서명 불가로 처리가 끝난 묶음에 둔다. 받기 실패는 글자 응답 대신 상세로 돌려보내 `?download=` 안내(Alert). 제9조에서 아직 사실이 아닌 「앱에서 처리 완료본을 내려받는다」를 뺐다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 146 PR 전 리뷰 반영 — 날인 기한을 상세는 늘 · 목록은 당일이면 시각까지 보이고(기한은 발송 시각 + 30일 그 시각), 번호 가리기 · 근로시간 소수 한 자리 · 수습 감액 없음 문구를 맞췄다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: 근로계약서 조회 `/contracts` · `/contracts/[contractId]`(WHALEERP-146)를 더했다 — 전자계약은 조항 열 가지와 요일별 소정근로시간 표를 화면에 그리고, 종이 계약은 올라온 날인본 · 임금계약서와 「받기」(라우트가 api 의 300초 서명 주소로 302, 401 은 로그인), 처리가 끝난 계약은 읽기 전용, 기한 7일 이내 강조. 소속 근무지의 「근로계약서」 버튼을 열어 그 근무지 계약서만 보이게 했다. api 타입을 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
-* **Update**: PR #42 리뷰 반영 — 신고 정보 처음 넣기에서 이미 낸 신고 정보가 있으면(응답이 끊긴 앞 제출 · 다른 기기) 완료 대신 안내와 보기 링크를 보인다 — [Whale ERP Staff](/whale-erp-staff.md).
-
-## 2026-10-28
 * **Update**: 신고 정보 처음 넣기(WHALEERP-150) — `…/tax-profile/new` 안내 · 입력 · 완료, 보기 화면 미제출 상태의 「신고 정보 넣기」 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Fix**: api #185 머지 블로커에 맞춤 — 위치정보 동의 요청에 `termsVersion` 을 null 까지 늘 싣는다(api 가 칸을 필수로 바꿨다) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: main 병합(dewgong, main #38 소속 추가 확인까지) — okf 충돌은 양쪽 기록을 살렸다(출퇴근 줄은 이쪽, 소속 추가 확인 줄 · 출처는 main) — [Whale ERP Staff](/whale-erp-staff.md).

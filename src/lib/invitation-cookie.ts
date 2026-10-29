@@ -35,14 +35,14 @@ export async function clearInvitation(): Promise<void> {
 
 // 가입 완료 화면(가이드 ④)이 보일 근무지 이름. 가입하면 초대가 수락돼 다시 확인할 수 없고, 소속 목록(/me/memberships)은 계약을
 // 맺은 뒤에야 나온다. 그래서 가입을 마친 액션이 계정 등록 화면에서 보던 이름을 잠깐 넘긴다. 주소에 실으면 남이 만든 링크로 아무
-// 이름이나 보이게 할 수 있어 쿠키에 둔다.
+// 이름이나 보이게 할 수 있어 쿠키에 둔다. 근무지 추가 완료 화면(WHALEERP-604)도 같은 까닭으로 쓴다 — path 로 그 완료 화면에만 보낸다.
 const JOINED_STORE_COOKIE = "joined_store";
 const JOINED_STORE_SECONDS = 10 * 60;
 const JOINED_STORE_MAX = 100;
 
-/** 서버 액션에서만 부른다. */
-export async function saveJoinedStore(storeName: string): Promise<void> {
-  (await cookies()).set(JOINED_STORE_COOKIE, clipChars(storeName, JOINED_STORE_MAX), cookieOptions(JOINED_STORE_SECONDS, "/join/done"));
+/** 서버 액션에서만 부른다. donePath 는 이름을 보일 완료 화면이다. */
+export async function saveJoinedStore(storeName: string, donePath = "/join/done"): Promise<void> {
+  (await cookies()).set(JOINED_STORE_COOKIE, clipChars(storeName, JOINED_STORE_MAX), cookieOptions(JOINED_STORE_SECONDS, donePath));
 }
 
 export async function readJoinedStore(): Promise<string | null> {

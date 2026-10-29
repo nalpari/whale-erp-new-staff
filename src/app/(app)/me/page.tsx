@@ -5,6 +5,7 @@ import { Suspense, type ReactNode } from "react";
 import { Alert, Badge, BottomNav, Button, Card, MaskIcon } from "@/components/common";
 import { PRESS } from "@/components/common/theme";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
+import { getMyInvitations } from "@/lib/my-invitations";
 import { getCurrentTerms, getMyAffiliationRequests, getMyMemberships, getMyProfile } from "@/lib/my-profile";
 import { PASSWORD_STALE_MONTHS, dateLabel, hasFranchiseMembership, isPasswordStale, kstDateLabel } from "@/lib/profile";
 import { AddressForm } from "./address-form";
@@ -102,7 +103,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
                   {first ? `${first.store.storeName}${items.length > 1 ? ` 외 ${items.length - 1}곳` : ""}` : "아직 없습니다"}
                 </span>
               </span>
-              {/* 답하지 않은 소속 추가 요청(WHALEERP-144) 수. 따로 받아 api 가 느려도 화면을 먼저 보인다. */}
+              {/* 확인을 기다리는 요청(받은 가입 초대 WHALEERP-604 + 소속 추가 · 복귀 확인 144) 수. 따로 받아 api 가 느려도 화면을 먼저 보인다. */}
               <Suspense>
                 <RequestCountBadge />
               </Suspense>
@@ -169,8 +170,9 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
   );
 }
 
-/** 소속 근무지 줄의 「요청 N건」 배지. 없거나 못 받았으면 두지 않는다. */
+/** 소속 근무지 줄의 「요청 N건」 배지 — 소속 근무지 맨 위 「확인을 기다리는 요청」과 같은 셈(가입 초대 + 소속 추가 · 복귀 확인). 없거나 못 받았으면 두지 않는다. */
 async function RequestCountBadge() {
-  const count = (await getMyAffiliationRequests())?.length ?? 0;
+  const [invitations, affiliations] = await Promise.all([getMyInvitations(), getMyAffiliationRequests()]);
+  const count = (invitations?.length ?? 0) + (affiliations?.length ?? 0);
   return count > 0 && <Badge tone="warning">요청 {count}건</Badge>;
 }
