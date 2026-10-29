@@ -60,12 +60,12 @@ export function deadlineOf(c: PhaseFields, now: Date): Deadline | null {
 }
 
 /**
- * 목록 줄 「서명 기한 2026년 9월 12일 · D-2」, 기한 당일이면 시각까지 「서명 기한 2026년 9월 12일 10:23까지 · D-day」.
+ * 목록 줄 「서명 기한 2026년 9월 12일 · D-2」, 기한이 오늘 · 내일이면 시각까지 「서명 기한 2026년 9월 12일 10:23까지 · D-1」.
  * 상세 머리 카드는 늘 시각까지 「서명 기한 2026년 9월 12일 10:23까지 · 2일 남음」(당일은 「오늘 마감」). 기한은 하루 끝이 아니라
- * 발송 시각 + 30일 그 시각이라(api) 당일에 날짜만 보이면 저녁까지 남은 줄 안다.
+ * 발송 시각 + 30일 그 시각이라(api) 날짜만 보이면 그날 저녁까지 남은 줄 안다 — 내일 이른 시각이면 남은 시간이 한 시간일 수도 있다.
  */
 export function deadlineText(d: Deadline, style: "list" | "detail"): string {
-  const withTime = style === "detail" || d.daysLeft === 0;
+  const withTime = style === "detail" || d.daysLeft <= 1;
   const left = style === "list" ? (d.daysLeft === 0 ? "D-day" : `D-${d.daysLeft}`) : d.daysLeft === 0 ? "오늘 마감" : `${d.daysLeft}일 남음`;
   return `서명 기한 ${withTime ? `${d.dateTime}까지` : d.date} · ${left}`;
 }

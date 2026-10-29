@@ -37,11 +37,11 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/contracts/[contr
   } catch (error) {
     if (error instanceof ApiError) {
       if (error.status === 401) redirect(withNext(EXPIRED_LOGIN_PATH, back));
-      if (error.status === 404) fail("notfound");
       // 처리 완료본은 체결이 끝난 계약에서만 받는다 — 그사이 상태가 바뀌었다
       if (error.status === 409) fail("unavailable");
-      // 5xx 는 request() 가 남겼다
+      // 404 도 남긴다 — 상세가 보인 파일이라 없으면 예상 밖이다(api 배포 전이면 매번 이리로 온다). 5xx 는 request() 가 남겼다.
       if (error.status < 500) logUnexpected("contract-document", error);
+      if (error.status === 404) fail("notfound");
       fail("failed");
     }
     // 연결 실패는 request() 가 남겼다.

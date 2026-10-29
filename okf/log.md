@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-10-29
+* **Update**: PR #44 리뷰 반영 — 목록의 날인 기한은 오늘 · 내일이면 시각까지 보이고, 받기 404 도 `logUnexpected` 로 남긴다 — [Whale ERP Staff](/whale-erp-staff.md).
+
 ## 2026-10-28
 * **Update**: 용어집 변경(2026-10-28 재영) — 근로계약 화면의 상태 「거부」를 화면에서 「거절」로 보인다(api enum 한글은 그대로, `phaseLabel`). 근로계약 화면 문구에는 「날인」 · 「본사 제공 동의」 · 「잠시 멈춤」이 없어 바꿀 것이 없었다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: PR #44 리뷰 반영 — 날인 가능 · 기한 강조 · 날인 자리를 api `awaitingSignature` 로만 정하고, 날인할 수 없는 서명 대기는 목록 · 상세 모두 만료 · 서명 불가로 처리가 끝난 묶음에 둔다. 받기 실패는 글자 응답 대신 상세로 돌려보내 `?download=` 안내(Alert). 제9조에서 아직 사실이 아닌 「앱에서 처리 완료본을 내려받는다」를 뺐다 — [Whale ERP Staff](/whale-erp-staff.md).
