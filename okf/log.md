@@ -2,6 +2,13 @@
 
 ## 2026-10-28
 * **Update**: 신고 정보 처음 넣기(WHALEERP-150) — `…/tax-profile/new` 안내 · 입력 · 완료, 보기 화면 미제출 상태의 「신고 정보 넣기」 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Fix**: api #185 머지 블로커에 맞춤 — 위치정보 동의 요청에 `termsVersion` 을 null 까지 늘 싣는다(api 가 칸을 필수로 바꿨다) — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: main 병합(dewgong, main #38 소속 추가 확인까지) — okf 충돌은 양쪽 기록을 살렸다(출퇴근 줄은 이쪽, 소속 추가 확인 줄 · 출처는 main) — [Whale ERP Staff](/whale-erp-staff.md).
+* **Fix**: PR #45 머지 블로커(⑥ 3차) — 위치정보 동의는 시트에 보인 약관 버전(`termsVersion`)을 함께 보낸다(출퇴근 · 내 정보). 시트를 연 사이 api 가 약관을 바꿨으면 api #185 가 409 로 거절하고 다시 받은 화면이 새 문구를 보인다 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Fix**: PR #45 머지 블로커(⑥ 재리뷰) — 위치정보 동의 시트 문구 · 표를 시행 중인 약관 버전으로 나눈다(v1.1 미만이면 v1.0 문구). api 가 동의를 시행 중인 버전으로 기록하므로, 배포 사이 · 롤백에 보인 고지와 기록이 어긋나지 않게 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Fix**: PR #45 머지 블로커 — 탭 진입 때 읽기 · 카카오 지도의 내 위치를 시행 중인 위치정보 약관이 v1.1 이상일 때만 켠다(`termsCoverMap`, 테스트). api 가 v1.1 을 시행하기 전(배포 순서 · 롤백)에는 v1.0 동의로 하지 않고 버튼 때만 읽고 지도는 근무지만 그린다. 배포는 이 앱 먼저 → api #185 마이그레이션 — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 출퇴근 등록 — 지도를 카카오 지도로 바꿨다(근무지 핀 · 반경 원 · 내 위치, 키가 없거나 불러오지 못하면 그림이나 빈 자리). 재영 답(2026-10-28, 운영 정책 v229) 반영 — 출퇴근 탭에 들어오면 위치 읽음을 남기고 위치를 읽어 지도에 보여 주고, 판정은 버튼을 누를 때 다시 읽어 정한다(ATT-22). 카카오에 대략적인 위치가 전달된다(ATT-05) — [Whale ERP Staff](/whale-erp-staff.md).
+* **Update**: 재영 답(2026-10-28) 반영 — 위치정보 동의 시트 문구를 탭 진입 때 읽기 · 지도 표시 · 카카오에 대략적인 위치 전달로 고치고, 표에 「전달하는 곳: 카카오」를 더했다. 약관 버전은 api 가 올려 기존 동의자에게 다시 받는다(ATT-23) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: #38 에 main 병합 — okf 양쪽 기록을 살리고, api 타입을 api main(#164 머지 뒤) 기준으로 다시 만들었다 — [Whale ERP Staff](/whale-erp-staff.md).
 
 ## 2026-10-27
