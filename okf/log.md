@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-10-29
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — WHALEERP-137 후속(ATT-30 v252, 2026-10-29 재영): 홈에 사업자 제공 다시 동의 팝업(서명 요청 → 소속 추가 요청 다음, 앱을 새로 열거나 돌아올 때 다시)과 내 정보 위치정보 카드의 「다시 동의 필요」 · 다시 동의를 더했다. 동의 내용 줄은 `hq-sharing-terms.ts` 로 옮겨 카드 · 팝업이 같이 쓴다.
 * **Update**: 홈 서명 대기 카드(WHALEERP-146 후속) — 서명을 기다리는 전자계약을 기한이 급한 순으로, 근무지가 없으면 「서명할 근로계약서」 묶음. 7일 이내면 기한 글자만 강조. 계약 목록은 팝업과 한 번만 받는다 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — staff #53 리뷰: 소속 목록을 못 받았을 때 사업자 제공 동의 카드는 동의 기록(동의 중 · 철회함)이 있으면 보인다(`hasHqSharingRecord`) — 다시 동의 필요일 때만 보이면 다시 동의 · 철회에 성공하는 순간 카드와 토스트가 사라졌다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 내 정보 사업자(본사) 제공 동의 카드가 `needsReconsent` 를 본다(ATT-30, api #183 후속): 옛 문구 버전에 동의했으면 배지 「다시 동의 필요」 · 「다시 동의하기」 · 내용 시트의 「동의합니다」로 새 버전에 동의(`hqSharingView`). 출근 화면의 동의 시트와 같은 기준.
