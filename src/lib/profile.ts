@@ -143,3 +143,14 @@ export function membershipStatusOf(retiredDate: string | null, today: string): "
   if (retiredDate === null) return "working";
   return retiredDate < today ? "retired" : "retiring";
 }
+
+/**
+ * 내 정보 「사업자 제공 동의」 카드의 상태(ATT-30). api 의 isConsented 는 옛 문구 버전 동의에도 참이라, 더는 받아 주지 않는 버전에
+ * 동의했으면(needsReconsent — 본사에는 미동의로 가려진다, api #183) 「다시 동의 필요」로 따로 본다. 철회 뒤 · 처음은 withdrawnAt 으로 가른다.
+ */
+export function hqSharingPhaseOf(
+  consent: Pick<Schemas["MyHqSharingConsentDto"], "isConsented" | "needsReconsent" | "withdrawnAt">,
+): "agreed" | "reconsent" | "withdrawn" | "none" {
+  if (consent.isConsented) return consent.needsReconsent ? "reconsent" : "agreed";
+  return consent.withdrawnAt ? "withdrawn" : "none";
+}

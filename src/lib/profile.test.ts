@@ -6,6 +6,7 @@ import {
   addressSaveFailure,
   consentChangeFailure,
   dateLabel,
+  hqSharingPhaseOf,
   hasFranchiseMembership,
   isConsentChange,
   isPasswordStale,
@@ -119,4 +120,12 @@ test("membershipStatusOf 는 퇴직일이 오늘보다 앞일 때만 퇴직이�
 test("kstMonthDayLabel 은 한국 날짜와 요일 — UTC 로는 전날이어도 한국 날짜로", () => {
   assert.equal(kstMonthDayLabel("2026-09-02T03:00:00.000Z"), "9월 2일 (수)");
   assert.equal(kstMonthDayLabel("2026-10-01T16:30:00.000Z"), "10월 2일 (금)");
+});
+
+test("hqSharingPhaseOf — 옛 문구 버전 동의는 동의 중이어도 「다시 동의 필요」", () => {
+  const at = "2026-10-01T00:00:00.000Z";
+  assert.equal(hqSharingPhaseOf({ isConsented: true, needsReconsent: false, withdrawnAt: null }), "agreed");
+  assert.equal(hqSharingPhaseOf({ isConsented: true, needsReconsent: true, withdrawnAt: null }), "reconsent");
+  assert.equal(hqSharingPhaseOf({ isConsented: false, needsReconsent: false, withdrawnAt: at }), "withdrawn");
+  assert.equal(hqSharingPhaseOf({ isConsented: false, needsReconsent: false, withdrawnAt: null }), "none");
 });
