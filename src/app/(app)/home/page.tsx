@@ -51,7 +51,8 @@ export default async function HomePage() {
             <ScheduleCards staffMemberId={current.staffMemberId} />
           </Suspense>
         )}
-        {/* 서명을 기다리는 근로계약서(146). 팝업과 같은 계약 목록을 한 번만 받는다. 근무지가 없으면(가입 직후) 「서명할 근로계약서」 묶음. */}
+        {/* 서명을 기다리는 근로계약서(146). 팝업과 같은 계약 목록을 한 번만 받는다. 근무지가 없으면(가입 직후) 「서명할 근로계약서」 묶음.
+            서명할 계약이 없는 때가 대부분이라 받는 동안 자리를 잡아 두지 않는다(늦게 오면 아래 카드가 내려간다). */}
         <Suspense>
           <SignWaitingCards contracts={contractsOrNull()} noSite={current === null} />
         </Suspense>

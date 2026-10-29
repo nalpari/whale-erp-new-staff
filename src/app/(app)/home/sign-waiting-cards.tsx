@@ -14,6 +14,8 @@ function Card({ card, title, sub }: { card: SignWaitingCard; title: string; sub:
       <MaskIcon src="/icons/contract.svg" size={18} />
       <span className="flex min-w-0 flex-1 flex-col gap-[2px]">
         <span className="text-[14px] font-semibold break-keep">{title}</span>
+        {/* 링크 이름에서 제목과 기한이 붙어 읽히지 않게 */}
+        <span className="sr-only">, </span>
         <span className={`text-[12px] ${card.urgent ? "font-bold" : ""}`}>{sub}</span>
       </span>
       <MaskIcon src="/icons/chevron-right-muted.svg" size={12} flipY />
@@ -24,7 +26,7 @@ function Card({ card, title, sub }: { card: SignWaitingCard; title: string; sub:
 /**
  * 근무지가 있으면 이번 주 근무 아래에 카드만(데모 todo 「강남역점 근로계약서 대기 · 남은 기한 26일」), 근무지가 아직 없으면(가입 직후 —
  * 체결 완료 계약이 없음, CTR-29) 「서명할 근로계약서」 묶음과 서명해야 근무를 시작한다는 안내(데모 empty). 계약 목록을 못 받았거나
- * 서명할 계약이 없으면 아무것도 두지 않는다.
+ * 서명할 계약이 없으면 아무것도 두지 않는다. 기한이 없는 서명 대기(api 는 발송 때 기한을 넣어 나오지 않는다 — 방어용)는 「서명을 기다립니다」.
  */
 export async function SignWaitingCards({ contracts, noSite }: { contracts: Promise<ContractListItem[] | null>; noSite: boolean }) {
   const items = await contracts;
@@ -38,7 +40,7 @@ export async function SignWaitingCards({ contracts, noSite }: { contracts: Promi
             key={c.contractId}
             card={c}
             title={`${c.storeName} 근로계약서 대기`}
-            sub={c.daysLeft === null ? "서명을 기다립니다" : c.daysLeft === 0 ? "오늘 마감" : `남은 기한 ${c.daysLeft}일`}
+            sub={c.left ?? "서명을 기다립니다"}
           />
         ))}
       </div>
