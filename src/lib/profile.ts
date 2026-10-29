@@ -3,6 +3,7 @@
 import { CONNECTION_FAILED, RETRY_LATER, isHangulReason, type ApiFailure } from "./action-errors.ts";
 import type { Schemas } from "./api";
 import type { BadgeTone } from "@/components/common";
+import { HQ_SHARING_TERMS_VERSION } from "./hq-sharing-terms.ts";
 
 export type MyProfile = Schemas["MyProfileResponseDto"];
 export type MyMembership = Schemas["MyMembershipDto"];
@@ -192,14 +193,14 @@ export const hasHqSharingRecord = (consent: Pick<Schemas["MyHqSharingConsentDto"
 /**
  * 홈의 사업자 제공 다시 동의 팝업(ATT-30 v252)을 띄울지 — 동의 중인데 옛 문구 버전이라 다시 동의해야 하고, 지금 가맹 소속이 있을 때만.
  * api 의 needsReconsent 는 소속을 보지 않는다 — 가맹 점포에서 퇴직한 계정은 내 정보에 카드가 없어 철회할 길이 없으니 묻지 않는다(카드와 같은
- * 조건). 소속을 못 받았으면(null) 띄우지 않는다. key 는 닫을 때 기억할, 직원이 동의한 버전이다 — 다시 동의하거나 새로 열면 다시 판단한다.
+ * 조건). 소속을 못 받았으면(null) 띄우지 않는다. key 는 닫을 때 기억할, 팝업이 보이는 문구 버전이다 — 문구가 바뀌면(앱이 새 버전을 보이면) 같은 탭에서도 다시 뜬다.
  */
 export const hqReconsentOf = (
   consent: Pick<Schemas["MyHqSharingConsentDto"], "isConsented" | "needsReconsent" | "consentVersion">,
   memberships: readonly MyMembership[] | null,
 ) =>
   consent.isConsented && consent.needsReconsent && memberships !== null && hasFranchiseMembership(memberships)
-    ? { key: consent.consentVersion ?? "-" }
+    ? { key: HQ_SHARING_TERMS_VERSION }
     : null;
 
 /** 위치정보 동의를 내 정보에서 다시 받아야 하는가 — 약관 버전이 바뀌었고(needsReconsent) 동의 · 일시 중지일 때(api 도 그때만 참이다) */

@@ -199,7 +199,11 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
             <div className="max-h-[45dvh] overflow-y-auto rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px]">
               <TermsContent markdown={terms.content} />
             </div>
-            <p className="text-[12px] text-staff-text-muted">약관 버전이 바뀌면 다음 출퇴근 등록 때 새 버전으로 다시 동의를 받습니다.</p>
+            <p className="text-[12px] text-staff-text-muted">
+              {reconsent
+                ? "약관이 바뀌었습니다. 이 버전에 다시 동의해야 앱으로 출퇴근을 등록할 수 있습니다."
+                : "약관 버전이 바뀌면 다음 출퇴근 등록 때 새 버전으로 다시 동의를 받습니다."}
+            </p>
             {/* 동의는 약관을 보인 이 시트 안에서만 받는다(고지 후 동의, 2026-10-20 노영주). 읽었다는 값은 따로 두지 않는다 —
                 api 가 동의한 약관 버전과 일시를 남긴다. */}
             {(state === "NOT_AGREED" || state === "WITHDRAWN" || reconsent) && (

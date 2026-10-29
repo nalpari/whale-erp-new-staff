@@ -38,7 +38,7 @@ export function HomePopups({
 }: {
   sign: { key: string; href: string; rows: Rows } | null;
   affiliation: { key: string; rows: Rows } | null;
-  /** 다시 동의가 필요하면 직원이 동의한 버전(닫을 때 기억) */
+  /** 다시 동의가 필요하면 팝업이 보이는 문구 버전(닫을 때 기억) */
   reconsent: { key: string } | null;
 }) {
   const router = useRouter();

@@ -96,14 +96,14 @@ async function HomeRequests() {
   const employmentTypes = contracts.then((items) =>
     items && signRequestOf(items, now)?.contract.employmentType ? employmentTypesOrEmpty() : [],
   );
-  const [items, affiliationRequests, types, hqSharing] = await Promise.all([
+  const [items, affiliationRequests, types, hqSharing, membership] = await Promise.all([
     contracts,
     getMyAffiliationRequests(),
     employmentTypes,
-    hqSharingConsentOrNull(),
+    popupLoad("hq-reconsent-home", async () => (await getMyProfile()).hqSharingConsent),
+    // 다시 동의의 가맹 소속 — 홈 머리줄이 받은 목록(퇴직 근무지 제외)을 같이 쓴다(cache, 한 요청에 한 번). 못 받았으면 null
+    getCurrentMembership(),
   ]);
-  // 다시 동의는 가맹 소속이 있을 때만 — 소속은 홈 머리줄이 이미 받은 목록(퇴직 근무지 제외, 한 요청에 한 번)을 같이 쓴다. 못 받았으면 null
-  const memberships = hqSharing?.isConsented && hqSharing.needsReconsent ? ((await getCurrentMembership())?.items ?? null) : null;
   const sign = items && signRequestOf(items, now);
   return (
     <HomePopups
@@ -119,45 +119,29 @@ async function HomeRequests() {
         }
       }
       affiliation={popupSummary(affiliationRequests ?? [])}
-      reconsent={hqSharing && hqReconsentOf(hqSharing, memberships)}
+      reconsent={hqSharing && hqReconsentOf(hqSharing, membership?.items ?? null)}
     />
   );
 }
 
 /**
- * 내 근로계약 목록 — 팝업 · 서명 대기 카드 곁들임이라 api 실패(4xx · 5xx · 연결 실패)는 null 로 받아 팝업 없이 홈을 그대로 보인다(401 은 만료 안내로).
- * 다루는 규칙은 소속 추가 요청 목록과 같다(requestsLoadFailure — 예상 밖 4xx 만 남긴다).
+ * 홈 팝업 · 카드의 곁들임 조회 — api 실패(4xx · 5xx · 연결 실패)는 null 로 받아 그 팝업 · 카드만 없이 홈을 그대로 보인다(401 은 만료 안내로).
+ * 다루는 규칙은 소속 추가 요청 목록과 같다(requestsLoadFailure — 예상 밖 4xx 만 남긴다). 내 근로계약 목록 · 내 정보의 사업자 제공 동의가 쓴다.
  */
-async function getContractsOrNull() {
+async function popupLoad<T>(scope: string, load: () => Promise<T>): Promise<T | null> {
   try {
-    return await getContracts();
+    return await load();
   } catch (error) {
     const failure = failureOf(error);
     const handling = requestsLoadFailure(failure);
     if (handling === "throw") throw error;
-    if (handling === "log" && failure) logFailure("contracts-home", failure);
-    return null;
-  }
-}
-
-/**
- * 사업자 제공 동의 — 다시 동의 팝업의 곁들임이라 api 실패는 null 로 받아 팝업 없이 홈을 그대로 보인다(401 은 만료 안내로). 다루는 규칙은
- * 계약 목록과 같다.
- */
-async function hqSharingConsentOrNull() {
-  try {
-    return (await getMyProfile()).hqSharingConsent;
-  } catch (error) {
-    const failure = failureOf(error);
-    const handling = requestsLoadFailure(failure);
-    if (handling === "throw") throw error;
-    if (handling === "log" && failure) logFailure("hq-reconsent-home", failure);
+    if (handling === "log" && failure) logFailure(scope, failure);
     return null;
   }
 }
 
 /** 한 요청 안에서 팝업과 서명 대기 카드가 계약 목록을 한 번만 받는다. */
-const contractsOrNull = cache(getContractsOrNull);
+const contractsOrNull = cache(() => popupLoad("contracts-home", getContracts));
 
 /** 고용 형태 enum. getEnumOrEmpty 는 5xx · 연결 실패만 빈 목록이고 404 · 응답 모양 결함은 던진다 — 팝업 곁들임이라 남기고 빈 목록(값 그대로). */
 async function employmentTypesOrEmpty() {

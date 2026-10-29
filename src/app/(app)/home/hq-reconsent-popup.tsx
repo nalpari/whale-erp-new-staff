@@ -18,14 +18,24 @@ const ROWS = HQ_SHARING_TERMS.map(([label, value]) => ({ label, value }));
 export function HqReconsentPopup({ open, reconsentKey }: { open: boolean; reconsentKey: string }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
-  const [toast, setToast] = useState<number>();
+  const [toast, setToast] = useState<{ key: number; text: string }>();
+  // 다시 열리면 지난 실패 문구를 지운다 — 시트는 기억 · 다시 엶 사이에도 붙어 있다(home-popups.tsx 의 keptReconsent)
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setError(undefined);
+  }
   const agree = () =>
     startTransition(async () => {
       setError(undefined);
       try {
         const result = await changeConsentAction("hq-sharing-agree");
-        if (result.ok) setToast(Date.now());
-        else setError(result.error);
+        if (result.ok) setToast({ key: Date.now(), text: CONSENT_CHANGES["hq-sharing-agree"].done });
+        else {
+          setError(result.error);
+          // 409 면 액션이 홈을 다시 받아 대상이 없어지면 시트가 내려간다 — 시트 안 문구만으로는 보이지 않아 토스트로도 알린다
+          setToast({ key: Date.now(), text: result.error });
+        }
       } catch (thrown) {
         unstable_rethrow(thrown);
         console.error("[hq-reconsent] 액션 호출 실패", thrown);
@@ -54,7 +64,7 @@ export function HqReconsentPopup({ open, reconsentKey }: { open: boolean; recons
         }
         closeLabel="다음에 하기"
       />
-      {toast && <Toast key={toast}>{CONSENT_CHANGES["hq-sharing-agree"].done}</Toast>}
+      {toast && <Toast key={toast.key}>{toast.text}</Toast>}
     </>
   );
 }

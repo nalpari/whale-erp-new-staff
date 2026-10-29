@@ -1,6 +1,7 @@
 // node --test src/lib/profile.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { HQ_SHARING_TERMS_VERSION } from "./hq-sharing-terms.ts";
 import {
   hqReconsentOf,
   locationNeedsReconsent,
@@ -162,11 +163,12 @@ test("hasHqSharingRecord — 동의 중 · 철회함이면 참, 한 번도 동�
   assert.equal(hasHqSharingRecord({ isConsented: false, withdrawnAt: null }), false);
 });
 
-test("hqReconsentOf 는 동의 중 · 다시 동의 필요 · 가맹 소속이 있을 때만 동의한 버전을 키로 준다", () => {
+test("hqReconsentOf 는 동의 중 · 다시 동의 필요 · 가맹 소속이 있을 때만 보이는 문구 버전을 키로 준다", () => {
   const franchise = [membership("FRANCHISE")];
   const direct = [membership("DIRECT")];
-  assert.deepEqual(hqReconsentOf({ isConsented: true, needsReconsent: true, consentVersion: "v1.0" }, franchise), { key: "v1.0" });
-  assert.deepEqual(hqReconsentOf({ isConsented: true, needsReconsent: true, consentVersion: null }, franchise), { key: "-" });
+  // 키는 팝업이 보이는 문구 버전 — 직원이 동의한 옛 버전이 아니다
+  assert.deepEqual(hqReconsentOf({ isConsented: true, needsReconsent: true, consentVersion: "v0.9" }, franchise), { key: HQ_SHARING_TERMS_VERSION });
+  assert.deepEqual(hqReconsentOf({ isConsented: true, needsReconsent: true, consentVersion: null }, franchise), { key: HQ_SHARING_TERMS_VERSION });
   assert.equal(hqReconsentOf({ isConsented: true, needsReconsent: false, consentVersion: "v1.0" }, franchise), null);
   // 철회한 계정은 다시 동의를 묻지 않는다
   assert.equal(hqReconsentOf({ isConsented: false, needsReconsent: true, consentVersion: "v1.0" }, franchise), null);
