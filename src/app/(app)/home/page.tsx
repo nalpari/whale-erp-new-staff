@@ -15,8 +15,8 @@ import { TodoCard, TodoCardSkeleton } from "./todo-card";
 
 export const metadata: Metadata = { title: "홈 · Whale ERP" };
 
-// 임시 홈 — 로그인 뒤 갈 곳. 실제 홈(WHALEERP-311 개인 근무 대시보드 · 313 앱 홈 카드)은
-// 다른 작업자가 이 파일을 바꿔 채운다. 로그아웃은 내 정보 화면(/me) 맨 아래로 옮겼다(WHALEERP-193).
+// 직원 근무 앱 홈(WHALEERP-311 · 313, 목업 home.html HOME-1 · 2 · 3 · 5). 머리줄(근무지 선택기 · 알림) → 오늘 근무(출퇴근 시작) ·
+// 이번 주 근무 → TO-DO → 나의 근무 정보. 영역마다 따로 받아 하나가 늦거나 실패해도 나머지는 보인다. 로그아웃은 내 정보(/me) 맨 아래(WHALEERP-193).
 export default async function HomePage() {
   const { account } = await requireSession();
   // 머리줄의 근무지 · 새 알림 점(HOME-2). 소속 목록을 못 받으면 선택기만 감추고 종만 둔다 — 홈 나머지는 그대로 보인다.

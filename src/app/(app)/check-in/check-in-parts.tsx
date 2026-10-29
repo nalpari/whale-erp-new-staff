@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { MaskIcon } from "@/components/common";
 
 // 출퇴근 화면 조각(데모 check-in 의 geoMap · geoBlank · siteCard · clock · sunken · values). 지도는 /design 견본(LocationMap)을
-// 옮기고 반경 밖(out) 모양을 더했다 — 실제 지도가 아니라 그림이고, 좌표는 화면에 그리지 않는다. 지도에만 나오는 색이라
+// 옮기고 반경 밖(out) 모양을 더했다 — 실제 지도가 아니라 그림이고, 좌표는 화면에 그리지 않는다. 화면의 지도는 kakao-map.tsx(카카오
+// 지도)이고, 이 그림은 키가 없거나 SDK 를 불러오지 못할 때의 대체다. 지도에만 나오는 색이라
 // 토큰으로 두지 않는다.
 export function GeoMap({ tone, caption }: { tone: "in" | "out"; caption: string }) {
   const out = tone === "out";
