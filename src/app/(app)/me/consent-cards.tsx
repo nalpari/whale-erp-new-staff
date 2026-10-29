@@ -6,7 +6,7 @@ import { Alert, Badge, BottomSheet, Button, Card, Toast, type BadgeTone } from "
 import type { Schemas } from "@/lib/api";
 // 지금 시행 중인 위치정보 약관 — 받음 · 없음(설정 문제) · 잠시 못 받음. 타입만 가져온다(서버 모듈).
 import type { CurrentTerms } from "@/lib/my-profile";
-import { CONSENT_CHANGES, dateLabel, kstDateTimeLabel, type ConsentChange, type LocationConsentState } from "@/lib/profile";
+import { CONSENT_CHANGES, dateLabel, hqSharingView, kstDateTimeLabel, type ConsentChange, type LocationConsentState } from "@/lib/profile";
 import { changeConsentAction } from "./actions";
 import { CardLabel } from "@/app/_components/read-only-field";
 import { TermsContent } from "./terms-content";
@@ -245,18 +245,12 @@ const HQ_SHARING_TERMS = [
 /**
  * 본사 제공 동의 카드(ATT-30, 데모 me 의 본사 제공 카드). 가맹 점포 소속이 있을 때만 보인다. 계정에 하나라 소속 가맹 점포 모두에
  * 같이 적용된다. 동의 중이면 내용 보기 · 동의 철회(확인 시트), 아니면 내용 보기 · 다시 동의하기(내용 시트 안의 「동의합니다」로 기록).
+ * 옛 문구 버전에 동의해 다시 동의해야 하면(needsReconsent, api #183) 「다시 동의 필요」 · 다시 동의하기다 — 표시는 hqSharingView.
  */
 export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharingConsentDto"] }) {
   const [sheet, setSheet] = useState<HqSheet>();
   const { pending, error, toast, change } = useConsentChange(() => setSheet(undefined));
-  const { isConsented, agreedAt, withdrawnAt, consentVersion } = consent;
-  const version = consentVersion ? ` · 사업자 제공 동의 ${consentVersion}` : "";
-  const line =
-    isConsented && agreedAt
-      ? `${kstDateTimeLabel(agreedAt)} 동의${version}`
-      : withdrawnAt
-        ? `${kstDateTimeLabel(withdrawnAt)} 철회${version}`
-        : "아직 동의하지 않았습니다";
+  const view = hqSharingView(consent);
   const contentButton = (
     <Button variant="outline" onClick={() => setSheet("content")}>
       내용 보기
@@ -267,29 +261,25 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
     <>
       <ConsentCard
         title="사업자 제공 동의"
-        badge={isConsented ? { tone: "success", text: "동의함" } : { tone: "plain", text: "동의하지 않음" }}
-        line={line}
+        badge={view.badge}
+        line={view.line}
         error={error}
         actions={
           // 위치정보 카드와 같이 크기는 그대로 두고 오른쪽 칸만 「동의 철회 ↔ 다시 동의하기」로 바뀐다.
           <SmallButtons>
             {contentButton}
-            {isConsented ? (
+            {view.action.kind === "withdraw" ? (
               <Button variant="outline" onClick={() => setSheet("withdraw")}>
                 동의 철회
               </Button>
             ) : (
               <Button variant="outline" onClick={() => setSheet("content")}>
-                {withdrawnAt ? "다시 동의하기" : "동의하기"}
+                {view.action.label}
               </Button>
             )}
           </SmallButtons>
         }
-        note={
-          isConsented
-            ? "철회해도 가입과 근무는 그대로입니다. 본사에는 점포별 숫자로만 보입니다."
-            : "지금은 본사에 점포별 숫자로만 보입니다. 다시 동의하면 개인 단위로 보입니다."
-        }
+        note={view.note}
       />
       {toast && <Toast key={toast.key}>{toast.text}</Toast>}
 
@@ -308,7 +298,7 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
         </p>
         <p className="text-[12px] text-staff-placeholder">동의 문구는 법무 검토 중(ATT-8)</p>
         {/* 위치정보와 같이 내용을 보인 이 시트 안에서만 동의를 받는다. */}
-        {!isConsented && (
+        {view.canAgree && (
           <Button disabled={pending} onClick={() => change("hq-sharing-agree")}>
             동의합니다
           </Button>
