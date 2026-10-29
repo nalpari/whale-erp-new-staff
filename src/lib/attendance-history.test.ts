@@ -1,7 +1,7 @@
 // node --test src/lib/attendance-history.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { barOf, dayLabel, durationLabel, editRows, flagDescription, flagsOf, flagTitle, rangeLabel, mondayOf, parsePeriod, periodTotals, stampLabel, statusChipOf, summaryOf, weekDays, weekRows, type MyAttendanceDay } from "./attendance-history.ts";
+import { barOf, dayLabel, durationLabel, editRows, flagDescription, flagsOf, flagTitle, rangeLabel, mondayOf, monthAttendanceLabel, parsePeriod, periodTotals, stampLabel, statusChipOf, summaryOf, weekDays, weekRows, type MyAttendanceDay } from "./attendance-history.ts";
 
 const TODAY = "2026-10-23";
 const punch = (date: string, time: string, extra: object = {}) => ({
@@ -73,6 +73,9 @@ test("이번 주 7일 · 날 라벨 · 주별 줄 · 누계", () => {
   const days = [day("2026-10-13"), day("2026-10-14", { status: "LATE", pairs: [{ checkIn: punch("2026-10-14", "09:10"), checkOut: punch("2026-10-14", "19:10") }] })];
   // 근무 · 연장은 api 값(급여 계산 규칙)을 그대로 — 지각만 날에서 센다
   assert.deepEqual(periodTotals({ items: days, totals: { workedMinutes: 17 * 60, overtimeMinutes: 60 } }, TODAY), { workedMinutes: 17 * 60, late: 1, overtimeMinutes: 60 });
+  // 홈 출퇴근 현황 줄 — 출근 기록이 있는 날만 센다(기록 없는 날 · 오늘 뒤는 빼고)
+  const withEmpty = [...days, day("2026-10-15", { pairs: [], status: "ABSENT" }), day("2026-10-30")];
+  assert.equal(monthAttendanceLabel({ items: withEmpty, totals: { workedMinutes: 0, overtimeMinutes: 0 } }, TODAY), "이번 달 출근 2회 · 지각 1회");
   const weeks = ["2026-10-12", "2026-10-19", "2026-10-26"].map((monday, i) => ({ monday, workedMinutes: i ? 0 : 19 * 60, overtimeMinutes: i ? 0 : 60 }));
   const rows = weekRows({ items: days, weeks }, TODAY);
   assert.equal(rows[0].title, "10월 3주 · 10/12 – 10/18");
