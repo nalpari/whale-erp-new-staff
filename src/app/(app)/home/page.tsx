@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { unstable_rethrow } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, cache } from "react";
 import { BottomNav } from "@/components/common";
 import { popupSummary, requestsLoadFailure } from "@/lib/affiliation-requests";
 import { ApiError, failureOf, logFailure, logUnexpected } from "@/lib/api";
@@ -15,13 +15,14 @@ import { NotificationBell } from "../notification-bell";
 import { HomePopups } from "./home-popups";
 import { MyWorkInfo } from "./my-work-info";
 import { ScheduleCards, ScheduleCardsSkeleton } from "./schedule-cards";
+import { SignWaitingCards } from "./sign-waiting-cards";
 import { StoreTopBar } from "./store-top-bar";
 import { TodoCard, TodoCardSkeleton } from "./todo-card";
 
 export const metadata: Metadata = { title: "홈 · Whale ERP" };
 
 // 직원 근무 앱 홈(WHALEERP-311 · 313, 목업 home.html HOME-1 · 2 · 3 · 5). 머리줄(근무지 선택기 · 알림) → 오늘 근무(출퇴근 시작) ·
-// 이번 주 근무 → TO-DO → 나의 근무 정보. 영역마다 따로 받아 하나가 늦거나 실패해도 나머지는 보인다. 로그아웃은 내 정보(/me) 맨 아래(WHALEERP-193).
+// 이번 주 근무 → 서명 대기 카드(146) → TO-DO → 나의 근무 정보. 영역마다 따로 받아 하나가 늦거나 실패해도 나머지는 보인다. 로그아웃은 내 정보(/me) 맨 아래(WHALEERP-193).
 export default async function HomePage() {
   const { account } = await requireSession();
   // 머리줄의 근무지 · 새 알림 점(HOME-2). 소속 목록을 못 받으면 선택기만 감추고 종만 둔다 — 홈 나머지는 그대로 보인다.
@@ -50,6 +51,11 @@ export default async function HomePage() {
             <ScheduleCards staffMemberId={current.staffMemberId} />
           </Suspense>
         )}
+        {/* 서명을 기다리는 근로계약서(146). 팝업과 같은 계약 목록을 한 번만 받는다. 근무지가 없으면(가입 직후) 「서명할 근로계약서」 묶음.
+            서명할 계약이 없는 때가 대부분이라 받는 동안 자리를 잡아 두지 않는다(늦게 오면 아래 카드가 내려간다). */}
+        <Suspense>
+          <SignWaitingCards contracts={contractsOrNull()} noSite={current === null} />
+        </Suspense>
         {/* 고른 근무지의 TO-DO 만. 소속 목록을 못 받았으면 모든 근무지, 근무지가 없으면 카드를 두지 않는다. */}
         {current !== null && (
           <Suspense fallback={<TodoCardSkeleton />}>
@@ -84,7 +90,7 @@ export default async function HomePage() {
  */
 async function HomeRequests() {
   const now = new Date();
-  const contracts = getContractsOrNull();
+  const contracts = contractsOrNull();
   const employmentTypes = contracts.then((items) =>
     items && signRequestOf(items, now)?.contract.employmentType ? employmentTypesOrEmpty() : [],
   );
@@ -109,7 +115,7 @@ async function HomeRequests() {
 }
 
 /**
- * 내 근로계약 목록 — 팝업 곁들임이라 api 실패(4xx · 5xx · 연결 실패)는 null 로 받아 팝업 없이 홈을 그대로 보인다(401 은 만료 안내로).
+ * 내 근로계약 목록 — 팝업 · 서명 대기 카드 곁들임이라 api 실패(4xx · 5xx · 연결 실패)는 null 로 받아 팝업 없이 홈을 그대로 보인다(401 은 만료 안내로).
  * 다루는 규칙은 소속 추가 요청 목록과 같다(requestsLoadFailure — 예상 밖 4xx 만 남긴다).
  */
 async function getContractsOrNull() {
@@ -119,10 +125,13 @@ async function getContractsOrNull() {
     const failure = failureOf(error);
     const handling = requestsLoadFailure(failure);
     if (handling === "throw") throw error;
-    if (handling === "log" && failure) logFailure("contracts-popup", failure);
+    if (handling === "log" && failure) logFailure("contracts-home", failure);
     return null;
   }
 }
+
+/** 한 요청 안에서 팝업과 서명 대기 카드가 계약 목록을 한 번만 받는다. */
+const contractsOrNull = cache(getContractsOrNull);
 
 /** 고용 형태 enum. getEnumOrEmpty 는 5xx · 연결 실패만 빈 목록이고 404 · 응답 모양 결함은 던진다 — 팝업 곁들임이라 남기고 빈 목록(값 그대로). */
 async function employmentTypesOrEmpty() {
@@ -130,7 +139,7 @@ async function employmentTypesOrEmpty() {
     return await getEnumOrEmpty("EmploymentType");
   } catch (error) {
     unstable_rethrow(error);
-    if (error instanceof ApiError) logUnexpected("contracts-popup", error);
+    if (error instanceof ApiError) logUnexpected("contracts-home", error);
     else console.error("[contracts-popup] EmploymentType enum 을 받지 못했습니다", error);
     return [];
   }
