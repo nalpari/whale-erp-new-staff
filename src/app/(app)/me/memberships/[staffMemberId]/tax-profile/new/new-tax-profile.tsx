@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent } from "react";
 import { Alert, BottomSheet, Button, Card, Dock, MaskIcon, Notice } from "@/components/common";
 import { CardLabel } from "@/app/_components/read-only-field";
@@ -8,6 +9,7 @@ import { TaxIdentity, TaxOwnerNotice } from "@/app/_components/tax-profile-parts
 import type { CodeValue } from "@/lib/codes";
 import {
   RRN_BIRTH_MISMATCH,
+  TAX_PROFILE_ALREADY_SUBMITTED,
   readTaxProfileForm,
   rrnBirthMismatch,
   validateTaxProfileCreate,
@@ -93,6 +95,7 @@ export function TaxProfileIntro({ storeName, formHref }: { storeName: string; fo
  */
 export function TaxProfileCreateForm({
   action,
+  viewHref,
   storeName,
   realName,
   birthDate,
@@ -101,6 +104,8 @@ export function TaxProfileCreateForm({
 }: {
   /** 소속 id 를 붙인 서버 액션(createTaxProfileAction.bind) — 서버 화면에서 붙여 넘긴다(고치기 화면 주석과 같은 까닭). */
   action: (previous: TaxProfileEditState, formData: FormData) => Promise<TaxProfileEditState>;
+  /** 이 소속의 신고 정보 보기 화면 */
+  viewHref: string;
   storeName: string;
   realName: string;
   birthDate: string;
@@ -171,6 +176,12 @@ export function TaxProfileCreateForm({
         {problem?.field === "form" && (
           <Alert tone="danger">
             <p>{problem.message}</p>
+            {/* 이미 낸 신고 정보(응답이 끊긴 앞 제출 · 다른 기기)는 보기 화면에서 확인한다. */}
+            {problem.message === TAX_PROFILE_ALREADY_SUBMITTED && (
+              <Link href={viewHref} replace className="mt-[4px] inline-flex min-h-[44px] items-center font-semibold underline underline-offset-2">
+                낸 신고 정보 보기
+              </Link>
+            )}
           </Alert>
         )}
         <TaxOwnerNotice storeName={storeName} noConsent />
