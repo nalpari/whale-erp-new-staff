@@ -1,8 +1,9 @@
 // 신고 정보(TAX-8, WHALEERP-333 · api 334)의 순수 계산 — 주소의 소속 id 읽기(parseStaffMemberId), 주민등록번호 앞자리 · 생년월일
 // 맞춰 보기(rrnBirthMismatch), 고치기 폼 값 읽기 · 거르기(readTaxProfileForm · validateTaxProfileEdit), 신고 정보가 없으면 고치지 않기
-// (taxProfileEditBlocked), 저장 실패를 화면 상태로 바꾸기(taxProfileSaveFailure). api 를 부르는 쪽은 me/memberships/[staffMemberId]/tax-profile/edit/actions.ts 다.
+// (taxProfileEditBlocked), 저장 실패를 화면 상태로 바꾸기(taxProfileSaveFailure), 날인 뒤 처음 넣기(WHALEERP-150)의 거르기 · 실패
+// (validateTaxProfileCreate · taxProfileCreateFailure). api 를 부르는 쪽은 me/memberships/[staffMemberId]/tax-profile 의 edit/actions.ts · new/actions.ts 다.
 // node --test 가 직접 읽으므로 값 import 는 같은 폴더의 순수 모듈(.ts 확장자)만 둔다.
-// 주민등록번호 · 계좌번호 · 지금 비밀번호 원문은 api 본문(validateTaxProfileEdit 의 body)에만 싣고, 화면 상태(TaxProfileEditState) · 문구에는 싣지 않는다.
+// 주민등록번호 · 계좌번호 · 지금 비밀번호 원문은 api 본문(validateTaxProfileEdit · validateTaxProfileCreate 의 body)에만 싣고, 화면 상태(TaxProfileEditState) · 문구에는 싣지 않는다.
 import {
   CONNECTION_FAILED,
   RATE_LIMITED,
@@ -177,4 +178,45 @@ export function taxProfileSaveFailure(failure: ApiFailure): { state: TaxProfileE
   // 500 — 저장된 값을 풀 수 없음(키 다름 · 손상). 다시 해도 풀리지 않는다.
   if (status === 500) return { state: problem("form", `신고 정보를 저장하지 못했습니다. ${REPORT_IF_REPEATED}`), log: false };
   return { state: problem("form", `신고 정보를 저장하지 못했습니다. ${RETRY_LATER}`), log: status < 500 };
+}
+
+/** 처음 넣기를 보냈는데 이 소속에 이미 낸 신고 정보가 있을 때 — 처음 넣기는 덮어쓰지 않는다. */
+export const TAX_PROFILE_ALREADY_SUBMITTED = "이 근무지에는 이미 낸 신고 정보가 있습니다. 바꾸려면 신고 정보의 「새로 넣기」에서 바꿔 주세요";
+/** 처음 넣기에서 은행을 고르지 않았을 때. */
+export const BANK_REQUIRED = "급여를 받을 은행을 골라 주세요";
+/** 처음 넣기의 api 404 — 내 소속이 아니다(퇴직 · 남의 id). */
+export const TAX_PROFILE_CREATE_NOT_FOUND = "이 근무지에는 신고 정보를 넣을 수 없습니다. 소속 근무지에서 다시 열어 주세요";
+
+/**
+ * 날인 뒤 처음 넣기(WHALEERP-150)의 값 거르기. 주민등록번호 · 은행 · 계좌번호 셋 다 필수이고, 지금 비밀번호는 보내지 않는다 —
+ * api 는 처음 작성에 비밀번호를 비교하지 않지만 빈 문자열은 형식 400 이다(api #138). 맞으면 api 본문, 아니면 화면 상태.
+ */
+export function validateTaxProfileCreate(input: TaxProfileEditInput): { body: SaveTaxProfileBody } | TaxProfileEditState {
+  const front = digitsOnly(input.rrnFront);
+  const back = digitsOnly(input.rrnBack);
+  const account = digitsOnly(input.payrollAccountNumber);
+  if (!/^\d{6}$/.test(front) || !/^\d{7}$/.test(back)) return problem("rrn", RRN_SHAPE);
+  if (!input.bankCode) return problem("bank", BANK_REQUIRED);
+  if (input.bankCode.length > 20) return problem("bank", "은행을 다시 골라 주세요");
+  if (!/^\d{10,16}$/.test(account)) return problem("account", ACCOUNT_SHAPE);
+  return { body: { rrn: front + back, bankCode: input.bankCode, payrollAccountNumber: account } };
+}
+
+/**
+ * 처음 넣기의 저장 실패. alreadySaved 면 화면에 오류를 보이지 말고 다시 읽어 저장됐는지 본다 — 처음 작성을 두 번 동시에 보내면
+ * 뒤쪽은 이미 낸 신고 정보를 고치는 것으로 읽혀 400 CURRENT_PASSWORD_MISMATCH 가 된다(api #138, 2026-10-23 노영주).
+ * 그 밖은 고치기와 같고, 처음 넣기에서 뜻이 다른 것(빠진 칸 · 404)만 문구를 바꾼다.
+ */
+export function taxProfileCreateFailure(failure: ApiFailure): { state: TaxProfileEditState; log: boolean; alreadySaved: boolean } {
+  if (failure !== "network" && failure.status === 400 && failure.code === "CURRENT_PASSWORD_MISMATCH")
+    return { state: problem("form", `신고 정보를 저장했는지 확인하지 못했습니다. ${RETRY_LATER}`), log: false, alreadySaved: true };
+  if (failure !== "network" && failure.status === 400 && (failure.code === "TAX_PROFILE_INCOMPLETE" || failure.code === "TAX_PROFILE_EMPTY"))
+    return { state: problem("form", "주민등록번호와 급여 계좌를 모두 넣어 주세요"), log: true, alreadySaved: false };
+  if (failure !== "network" && failure.status === 404)
+    return { state: problem("form", TAX_PROFILE_CREATE_NOT_FOUND), log: false, alreadySaved: false };
+  const { state, log } = taxProfileSaveFailure(failure);
+  // 처음 넣기 화면에는 지금 비밀번호 칸이 없다 — 그 칸의 오류는 버튼 위로 옮긴다(보내지 않으므로 오면 계약이 어긋난 것).
+  if (state.problem?.field === "currentPassword")
+    return { state: problem("form", `신고 정보를 저장하지 못했습니다. ${RETRY_LATER}`), log: true, alreadySaved: false };
+  return { state, log, alreadySaved: false };
 }
