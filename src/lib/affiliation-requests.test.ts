@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CONNECTION_FAILED, RATE_LIMITED } from "./action-errors.ts";
 import {
+  contractHrefOf,
   ALREADY_EMPLOYED,
   answerFailure,
   contentOf,
@@ -87,6 +88,17 @@ test("resultHref 는 점포 이름을 싣지 않고 계약 ID 를 쉼표로 20�
   assert.equal(resultHref({ kind: "accepted", contractIds: [] }), "/affiliations/done?result=accepted&contractIds=");
   const many = Array.from({ length: 25 }, (_, i) => i + 1);
   assert.deepEqual(parseResult(query(resultHref({ kind: "accepted", contractIds: many }))), { kind: "accepted", contractIds: many.slice(0, 20) });
+});
+
+test("resultHref 는 읽는 쪽과 같은 기준으로 계약 ID 를 걸러 수락 결과가 늘 되읽힌다", () => {
+  const href = resultHref({ kind: "accepted", contractIds: [12, 0, 2147483648, 34] });
+  assert.deepEqual(parseResult(query(href)), { kind: "accepted", contractIds: [12, 34] });
+});
+
+test("contractHrefOf 는 계약이 하나면 그 계약서, 여럿이면 목록, 없으면 null", () => {
+  assert.equal(contractHrefOf([12]), "/contracts/12");
+  assert.equal(contractHrefOf([12, 34]), "/contracts");
+  assert.equal(contractHrefOf([]), null);
 });
 
 test("parseResult 는 정한 값만 받고 나머지는 null", () => {

@@ -108,7 +108,9 @@ const CLOSED_REASONS = Object.keys(CLOSED) as ClosedReason[];
  */
 export function resultHref(result: AnswerResult): string {
   const params = new URLSearchParams({ result: result.kind });
-  if (result.kind === "accepted") params.set("contractIds", result.contractIds.slice(0, RESULT_CONTRACTS_MAX).join(","));
+  // 읽는 쪽(parseResult)과 같은 기준으로 거른다 — 하나라도 어긋나면 수락하고도 완료 화면 없이 홈으로 간다
+  if (result.kind === "accepted")
+    params.set("contractIds", result.contractIds.filter((id) => parseId(String(id)) !== null).slice(0, RESULT_CONTRACTS_MAX).join(","));
   if (result.kind === "closed") params.set("reason", result.reason);
   return `/affiliations/done?${params}`;
 }
@@ -135,6 +137,15 @@ export function parseResult(params: SearchParams): AnswerResult | null {
     return { kind, contractIds: ids as number[] };
   }
   return null;
+}
+
+/**
+ * 수락 완료의 「계약서 날인하러 가기」 주소 — 함께 온 계약이 하나면 그 계약서, 여럿이면 근로계약서 목록(수락 응답에 점포가 없어 ?store= 는 싣지
+ * 않는다), 없으면 null(버튼 없음).
+ */
+export function contractHrefOf(contractIds: readonly number[]): string | null {
+  if (contractIds.length === 0) return null;
+  return contractIds.length === 1 ? `/contracts/${contractIds[0]}` : "/contracts";
 }
 
 /** 소속 추가 확인 · 복귀 확인을 가르는 배지 글자. 화면 용어는 둘 다 「소속 추가 확인 요청」이다. */

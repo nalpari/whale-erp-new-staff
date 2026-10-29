@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { Button, Dock, MaskIcon, Notice, PageHeader } from "@/components/common";
 import { Sunken, Values } from "@/app/_components/tax-profile-parts";
-import { contentOf, parseResult } from "@/lib/affiliation-requests";
+import { contentOf, contractHrefOf, parseResult } from "@/lib/affiliation-requests";
 import { readAcceptedStore } from "@/lib/invitation-cookie";
 import { BODY, Lead } from "../screen-parts";
 
@@ -50,8 +50,7 @@ export default async function AffiliationDonePage({ searchParams }: PageProps<"/
   );
 
   if (result.kind === "accepted") {
-    const [onlyContract] = result.contractIds;
-    const contractHref = result.contractIds.length === 1 ? `/contracts/${onlyContract}` : "/contracts";
+    const contractHref = contractHrefOf(result.contractIds);
     return (
       <>
         <PageHeader title="소속 추가 완료" backHref="/home" />
@@ -78,7 +77,7 @@ export default async function AffiliationDonePage({ searchParams }: PageProps<"/
             </Notice>
           </div>
         </div>
-        {result.contractIds.length > 0 ? (
+        {contractHref ? (
           <Dock>
             <Button href={contractHref}>
               <MaskIcon src="/icons/contract.svg" size={14} />
