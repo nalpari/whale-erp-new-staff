@@ -184,3 +184,7 @@ export function hqSharingView(consent: Pick<Schemas["MyHqSharingConsentDto"], "i
     note: `지금은 본사에 점포별 숫자로만 보입니다. ${withdrawnAt ? "다시 동의하면" : "동의하면"} 개인 단위로 보입니다.`,
   };
 }
+
+/** 사업자 제공 동의 기록이 있는가(동의 중 · 철회함) — 소속을 못 받았을 때 카드를 보일지. 기록이 있으면 가맹 소속이 있던 계정이다 */
+export const hasHqSharingRecord = (consent: Pick<Schemas["MyHqSharingConsentDto"], "isConsented" | "withdrawnAt">) =>
+  consent.isConsented || consent.withdrawnAt !== null;

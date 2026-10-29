@@ -7,6 +7,7 @@ import {
   consentChangeFailure,
   dateLabel,
   hasFranchiseMembership,
+  hasHqSharingRecord,
   hqSharingView,
   isConsentChange,
   isPasswordStale,
@@ -150,4 +151,11 @@ test("hqSharingView — 미동의 · 철회 뒤는 동의하기 · 다시 동의
   const withdrawn = hqSharingView({ ...base, withdrawnAt: "2026-10-02T01:00:00Z", consentVersion: "v1.0" });
   assert.deepEqual(withdrawn.action, { kind: "agree", label: "다시 동의하기", alsoWithdraw: false });
   assert.match(withdrawn.line, /철회 · 사업자 제공 동의 v1\.0$/);
+});
+
+test("hasHqSharingRecord — 동의 중 · 철회함이면 참, 한 번도 동의하지 않았으면 거짓(소속을 못 받았을 때 카드)", () => {
+  // 다시 동의 · 철회에 성공해도 참이라 카드 · 토스트가 사라지지 않는다
+  assert.equal(hasHqSharingRecord({ isConsented: true, withdrawnAt: null }), true);
+  assert.equal(hasHqSharingRecord({ isConsented: false, withdrawnAt: "2026-10-02T01:00:00Z" }), true);
+  assert.equal(hasHqSharingRecord({ isConsented: false, withdrawnAt: null }), false);
 });
