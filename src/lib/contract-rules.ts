@@ -202,6 +202,19 @@ export function paperDocuments(documents: readonly ContractDocument[]): Contract
   return documents.filter((d) => d.kind === "PAPER_EMPLOYMENT_CONTRACT" || d.kind === "WAGE_CONTRACT").sort((a, b) => order(a) - order(b));
 }
 
+/**
+ * 내보낼 처리 완료본(WHALEERP-149) — 체결이 끝난 전자계약(체결 완료 · 종료)의 SIGNED_COPY. 서명 대기 · 수정 요청 · 거절 · 만료와
+ * 종이 계약은 null. 처리 완료본은 파일 생성(WHALEERP-131)이 만들어야 생기므로 없으면 null. 여럿이면 가장 나중 것.
+ * api(#182)는 체결 완료와 체결 완료에서 종료된 계약만 받고 그 밖은 409 — 받기 라우트가 상세의 「지금은 받을 수 없음」 안내로 돌린다.
+ */
+export function signedCopyOf(c: Pick<ContractDetail, "status" | "contractMethod" | "documents">): ContractDocument | null {
+  if (c.contractMethod === "PAPER" || (c.status !== "SIGNED" && c.status !== "ENDED")) return null;
+  return c.documents.reduce<ContractDocument | null>(
+    (last, d) => (d.kind === "SIGNED_COPY" && (!last || d.contractDocumentId > last.contractDocumentId) ? d : last),
+    null,
+  );
+}
+
 /** 계약서의 월 근로시간 줄(값이 있는 것만). 기본시간 중 휴일 · 월 추가 휴일은 관리자 작성 화면이 받지 않아 보이지 않는다. */
 export function monthlyHourRows(c: Pick<ContractDetail, "baseHours" | "monthlyOvertimeHours" | "baseNightHours">): [string, string][] {
   const rows: [string, number | null][] = [

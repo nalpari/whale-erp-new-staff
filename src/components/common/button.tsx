@@ -17,6 +17,9 @@ export type ButtonVariant = keyof typeof TONE;
 
 const SHELL = `inline-flex w-full items-center justify-center gap-[8px] px-[18px] whitespace-nowrap ${PRESS}`;
 
+/** Button 의 모양 클래스. Link 도 button 도 아닌 요소(라우트 핸들러로 가는 <a>)를 같은 모양으로 그릴 때 쓴다. */
+export const buttonClass = (variant: ButtonVariant = "primary") => `${SHELL} ${TONE[variant]}`;
+
 // href 를 주면 링크, 없으면 버튼이다. 둘을 하나의 props 로 두면 <Button href disabled> 가 눌리는 링크가 된다.
 type ButtonProps = { variant?: ButtonVariant } & (
   | ({ href: string } & Omit<ComponentProps<typeof Link>, "href" | "className">)
@@ -28,8 +31,8 @@ type ButtonProps = { variant?: ButtonVariant } & (
 export function Button(props: ButtonProps) {
   if (props.href !== undefined) {
     const { variant = "primary", ...rest } = props;
-    return <Link {...rest} className={`${SHELL} ${TONE[variant]}`} />;
+    return <Link {...rest} className={buttonClass(variant)} />;
   }
   const { variant = "primary", type = "button", ...rest } = props;
-  return <button {...rest} type={type} className={`${SHELL} ${TONE[variant]}`} />;
+  return <button {...rest} type={type} className={buttonClass(variant)} />;
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Alert, Badge, MaskIcon, Notice, PageHeader } from "@/components/common";
+import { Alert, Badge, Dock, MaskIcon, Notice, PageHeader, buttonClass } from "@/components/common";
 import {
   contractSubText,
   deadlineOf,
@@ -11,6 +11,7 @@ import {
   periodText,
   phaseLabel,
   phaseOf,
+  signedCopyOf,
   statusTone,
 } from "@/lib/contract-rules";
 import { mismatchText } from "@/lib/contract-actions";
@@ -123,7 +124,8 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
                     <span className="text-[14px] font-semibold">{labelOf(documentKinds, d.kind)}</span>
                     <span className="text-[12px] break-all text-staff-text-muted">{d.fileName}</span>
                   </span>
-                  {/* 이 앱의 라우트가 로그인 토큰으로 api 의 서명 주소를 받아 보낸다(documents/[contractDocumentId]/route.ts). 라우트
+                  {/* 받기 · 내보내기 링크의 근거(아래 「계약서 내보내기」도 이것을 따른다). 이 앱의 라우트가 로그인 토큰으로 api 의 서명
+                      주소를 받아 보낸다(documents/[contractDocumentId]/route.ts). 라우트
                       핸들러라 Link 의 미리 받기를 쓰지 않는다. 같은 탭에서 연다 — 성공하면 저장소가 attachment 로 내려줘 화면은 그대로
                       남고, 실패하면 라우트가 이 상세로 돌려보내 안내한다. target="_blank" 는 홈 화면에 둔 앱(PWA 단독 모드)에서 앱 밖
                       브라우저 창으로 빠져 실패 안내가 그 창에 뜨고, download 속성은 실패 때 돌려보낸 상세 HTML 을 파일로 저장해 버려 두지
@@ -147,6 +149,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const worker = c.worker;
   // 본인 대조가 다르면 다른 항목의 한글. 못 받았거나 한글이 없는 값이 섞이면 null — 항목 없이 일반 문구다.
   const mismatched = mismatchText(c.mismatches, identityFields);
+  const signedCopy = signedCopyOf(c);
   return (
     <>
       <ContractFrame header={header}>
@@ -228,11 +231,21 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           />
         </Sunken>
 
-        {/* TODO(149): 처리 완료본 파일 생성(WHALEERP-131) 뒤 documents 의 SIGNED_COPY 를 체결된 계약에서 같은 받기 라우트(documents/[contractDocumentId])로. */}
-
         {/* api 가 지금 날인할 수 있다고 할 때만(서명 대기 · 기한 안 · 재직 중) — 아래 버튼 줄과 같은 판정 */}
         {c.awaitingSignature && <Tiny>서명하거나 거절하면 근무지 관리자에게 알림이 전달됩니다.</Tiny>}
       </ContractFrame>
+      {signedCopy && (
+        // 체결이 끝난 계약의 처리 완료본 내보내기(WHALEERP-149). 서명 대기에서는 내보내지 않는다 — 처리 완료본은 체결 뒤 파일 생성
+        // (WHALEERP-131)이 만들어 documents 에 SIGNED_COPY 로 실린다. 아직 없으면 버튼도 없다.
+        <Dock inset={30}>
+          {/* 종이 계약 「받기」와 같은 <a>(근거는 그 주석). 모양만 공통 Button 의 outline(급여명세서 「명세서 내보내기」와 같음).
+              Plane 의 「공유 시트」는 휴대전화 브라우저가 받은 PDF 에 띄우는 저장 · 공유로 갈음한다 — Web Share API 는 서명 주소가
+              다른 출처라 파일을 읽어 올 수 없어 쓰지 않는다. */}
+          <a href={`/contracts/${c.contractId}/documents/${signedCopy.contractDocumentId}${storeQuery}`} className={buttonClass("outline")}>
+            계약서 내보내기
+          </a>
+        </Dock>
+      )}
       {c.awaitingSignature && c.sentAt && (
         <ContractDecision
           signHref={`/contracts/${c.contractId}/sign?${storeId === null ? "" : `store=${storeId}&`}sentAt=${encodeURIComponent(c.sentAt)}`}
