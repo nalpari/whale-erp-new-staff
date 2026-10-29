@@ -1,6 +1,10 @@
 # Bundle history
 
+## 2026-10-29
+* **Update**: PR #42 리뷰 반영 — 신고 정보 처음 넣기에서 이미 낸 신고 정보가 있으면(응답이 끊긴 앞 제출 · 다른 기기) 완료 대신 안내와 보기 링크를 보인다 — [Whale ERP Staff](/whale-erp-staff.md).
+
 ## 2026-10-28
+* **Update**: 신고 정보 처음 넣기(WHALEERP-150) — `…/tax-profile/new` 안내 · 입력 · 완료, 보기 화면 미제출 상태의 「신고 정보 넣기」 — [Whale ERP Staff](/whale-erp-staff.md).
 * **Fix**: api #185 머지 블로커에 맞춤 — 위치정보 동의 요청에 `termsVersion` 을 null 까지 늘 싣는다(api 가 칸을 필수로 바꿨다) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Update**: main 병합(dewgong, main #38 소속 추가 확인까지) — okf 충돌은 양쪽 기록을 살렸다(출퇴근 줄은 이쪽, 소속 추가 확인 줄 · 출처는 main) — [Whale ERP Staff](/whale-erp-staff.md).
 * **Fix**: PR #45 머지 블로커(⑥ 3차) — 위치정보 동의는 시트에 보인 약관 버전(`termsVersion`)을 함께 보낸다(출퇴근 · 내 정보). 시트를 연 사이 api 가 약관을 바꿨으면 api #185 가 409 로 거절하고 다시 받은 화면이 새 문구를 보인다 — [Whale ERP Staff](/whale-erp-staff.md).
