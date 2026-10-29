@@ -277,6 +277,11 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
                 {view.action.label}
               </Button>
             )}
+            {view.action.kind === "agree" && view.action.alsoWithdraw && (
+              <Button variant="outline" onClick={() => setSheet("withdraw")}>
+                동의 철회
+              </Button>
+            )}
           </SmallButtons>
         }
         note={view.note}
@@ -296,7 +301,7 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
           선택 동의입니다. 철회해도 가입과 근무는 그대로이고, 본사에는 점포별 숫자로만 보입니다. <strong>항목이나 목적이 넓어지면</strong> 새
           버전으로 다시 동의를 받습니다.
         </p>
-        {view.action.kind === "agree" && view.action.withdrawInSheet && (
+        {view.action.kind === "agree" && view.action.alsoWithdraw && (
           <Alert tone="warning">
             <p>동의한 뒤 내용이 바뀌었습니다. 위 내용으로 다시 동의해야 본사에 개인 단위로 보입니다 — 원하지 않으면 동의를 철회할 수 있습니다.</p>
           </Alert>
@@ -306,12 +311,6 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
         {view.action.kind === "agree" && (
           <Button disabled={pending} onClick={() => change("hq-sharing-agree")}>
             동의합니다
-          </Button>
-        )}
-        {/* 다시 동의해야 하는 직원도 새 문구에 동의하지 않고 옛 동의를 거둘 수 있다(선택 동의) */}
-        {view.action.kind === "agree" && view.action.withdrawInSheet && (
-          <Button variant="ghost" disabled={pending} onClick={() => setSheet("withdraw")}>
-            동의 철회
           </Button>
         )}
       </BottomSheet>

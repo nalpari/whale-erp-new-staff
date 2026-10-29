@@ -115,8 +115,9 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
         </div>
 
         <LocationConsentCard consent={profile.locationConsent} terms={locationTerms} />
-        {/* 가맹 점포 소속이 있을 때만(ATT-30). 소속을 못 받았으면 판단할 수 없어 감춘다. */}
-        {memberships && hasFranchiseMembership(items) && <HqSharingConsentCard consent={profile.hqSharingConsent} />}
+        {/* 가맹 점포 소속이 있을 때만(ATT-30). 소속을 못 받았으면 판단할 수 없어 감추되, 다시 동의해야 하면(needsReconsent — 동의한
+            적이 있어 가맹 소속이 있던 계정) 보인다 — 다시 동의할 곳이 이 카드뿐이라(staff #53 code-review) */}
+        {(memberships ? hasFranchiseMembership(items) : profile.hqSharingConsent.needsReconsent) && <HqSharingConsentCard consent={profile.hqSharingConsent} />}
 
         <Card>
           <CardLabel>연락처</CardLabel>
