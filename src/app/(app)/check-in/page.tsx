@@ -13,6 +13,7 @@ export const metadata: Metadata = { title: "출퇴근 · Whale ERP" };
 
 // 하단 메뉴 「출퇴근」(목업 attendance.html · 데모 check-in, WHALEERP-214 · 215). 근무지는 앱 전역에서 고른 소속이다(ATT-07) —
 // 이 화면에서 고르거나 가장 가까운 곳으로 바꾸지 않는다. 위치 판정은 화면(휴대전화)이 하고 서버에는 사유만 보낸다(ATT-05).
+// 카카오 지도 키는 요청 때 서버 env 에서 읽어 넘긴다 — 값 파일은 이미지 빌드 뒤에 마운트되므로 NEXT_PUBLIC_ 으로 빌드에 박을 수 없다.
 export default async function CheckInPage() {
   await requireSession();
   const memberships = await getMyMemberships();
@@ -47,7 +48,7 @@ export default async function CheckInPage() {
         </div>
       ) : (
         // 근무지를 바꾸면 화면 상태(위치 · 시트)를 새로 시작한다
-        <CheckInScreen key={current.staffMemberId} data={attendance} />
+        <CheckInScreen key={current.staffMemberId} data={attendance} mapKey={process.env.KAKAO_MAP_APP_KEY || null} />
       )}
       <div className="sticky bottom-0 mt-auto">
         <BottomNav current="/check-in" />
