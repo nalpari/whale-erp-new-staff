@@ -8,7 +8,8 @@ import { getContracts } from "@/lib/contracts";
 import { getCurrentMembership } from "@/lib/current-membership";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { getMyNotifications } from "@/lib/my-notifications";
-import { getMyAffiliationRequests } from "@/lib/my-profile";
+import { getMyAffiliationRequests, getMyProfile } from "@/lib/my-profile";
+import { hqReconsentOf } from "@/lib/profile";
 import { requireSession } from "@/lib/session";
 import { signRequestOf } from "@/lib/sign-request";
 import { NotificationBell } from "../notification-bell";
@@ -71,7 +72,7 @@ export default async function HomePage() {
       <div className="sticky bottom-0 mt-auto">
         <BottomNav current="/" />
       </div>
-      {/* 서명 요청(WHALEERP-148) · 소속 추가 요청(WHALEERP-144)은 팝업으로만 알린다. 따로 받아 api 가 느려도 홈을 먼저 보인다. */}
+      {/* 서명 요청(WHALEERP-148) · 소속 추가 요청(WHALEERP-144) · 사업자 제공 다시 동의(ATT-30 v252)는 팝업으로만 알린다. 따로 받아 api 가 느려도 홈을 먼저 보인다. */}
       <Suspense>
         <HomeRequests />
       </Suspense>
@@ -80,13 +81,14 @@ export default async function HomePage() {
 }
 
 /**
- * 홈 위 팝업 — 서명 요청(148)과 소속 추가 요청(144). 둘 다 있으면 한 번에 하나만, 서명 요청을 먼저 띄우고 그것을 닫으면 소속 추가
- * 요청이 뜬다(home-popups.tsx). 근거: 서명 대기 계약은 기한(발송 + 30일)이 지나면 만료되고 서명해야 근무가 시작되는(데모 sign-req 문구)
+ * 홈 위 팝업 — 서명 요청(148), 소속 추가 요청(144), 사업자 제공 다시 동의(ATT-30 v252). 여럿이면 한 번에 하나만, 서명 요청 → 소속 추가
+ * 요청 → 다시 동의 순으로 앞의 것을 닫으면 다음이 뜬다(home-popups.tsx, 다시 동의 순서는 2026-10-29 재영). 근거: 서명 대기 계약은 기한(발송 + 30일)이 지나면 만료되고 서명해야 근무가 시작되는(데모 sign-req 문구)
  * 지금 근무지의 일이고, 소속 추가 요청은 새 근무지를 더할지 묻는 것이며 수락해도 그 뒤 계약 서명이 따로 온다(가입 · 진입 가이드 JOIN-7 의
  * 흐름이 가입 → 서명 요청 팝업). 데모 · 기획 문서에 둘이 함께일 때의 순서는 없다.
- * 두 조회를 함께 기다린다 — 계약 목록이 느린 동안 소속 추가 팝업도 기다리지만, 따로 띄우면 소속 추가가 먼저 떴다가 서명 요청이 그 뒤를
- * 잇는 순서가 뒤집힌다. 두 조회는 api 실패를 null 로 돌려주므로(그 팝업만 없이 홈 그대로) 여기까지 던져 오는 것은 코드 결함 · 만료 안내
- * redirect 뿐이라 홈 오류로 드러나게 둔다. 고용 형태 enum 은 계약 목록이 오면 바로(소속 추가 조회와 나란히) 받는다.
+ * 조회(계약 목록 · 소속 추가 요청 · 내 정보의 사업자 제공 동의)를 함께 기다린다 — 계약 목록이 느린 동안 다른 팝업도 기다리지만, 따로
+ * 띄우면 뒤 순서의 팝업이 먼저 떴다가 서명 요청이 그 뒤를 잇는 순서가 뒤집힌다. 조회는 api 실패를 null 로 돌려주므로(그 팝업만 없이 홈
+ * 그대로) 여기까지 던져 오는 것은 코드 결함 · 만료 안내 redirect 뿐이라 홈 오류로 드러나게 둔다. 다시 동의의 가맹 소속은 홈 머리줄이 받은
+ * 소속 목록(getCurrentMembership — 한 요청에 한 번, 못 받으면 null)을 같이 쓴다. 고용 형태 enum 은 계약 목록이 오면 바로(소속 추가 조회와 나란히) 받는다.
  */
 async function HomeRequests() {
   const now = new Date();
@@ -94,7 +96,14 @@ async function HomeRequests() {
   const employmentTypes = contracts.then((items) =>
     items && signRequestOf(items, now)?.contract.employmentType ? employmentTypesOrEmpty() : [],
   );
-  const [items, affiliationRequests, types] = await Promise.all([contracts, getMyAffiliationRequests(), employmentTypes]);
+  const [items, affiliationRequests, types, hqSharing, membership] = await Promise.all([
+    contracts,
+    getMyAffiliationRequests(),
+    employmentTypes,
+    popupLoad("hq-reconsent-home", async () => (await getMyProfile()).hqSharingConsent),
+    // 다시 동의의 가맹 소속 — 홈 머리줄이 받은 목록(퇴직 근무지 제외)을 같이 쓴다(cache, 한 요청에 한 번). 못 받았으면 null
+    getCurrentMembership(),
+  ]);
   const sign = items && signRequestOf(items, now);
   return (
     <HomePopups
@@ -110,28 +119,29 @@ async function HomeRequests() {
         }
       }
       affiliation={popupSummary(affiliationRequests ?? [])}
+      reconsent={hqSharing && hqReconsentOf(hqSharing, membership?.items ?? null)}
     />
   );
 }
 
 /**
- * 내 근로계약 목록 — 팝업 · 서명 대기 카드 곁들임이라 api 실패(4xx · 5xx · 연결 실패)는 null 로 받아 팝업 없이 홈을 그대로 보인다(401 은 만료 안내로).
- * 다루는 규칙은 소속 추가 요청 목록과 같다(requestsLoadFailure — 예상 밖 4xx 만 남긴다).
+ * 홈 팝업 · 카드의 곁들임 조회 — api 실패(4xx · 5xx · 연결 실패)는 null 로 받아 그 팝업 · 카드만 없이 홈을 그대로 보인다(401 은 만료 안내로).
+ * 다루는 규칙은 소속 추가 요청 목록과 같다(requestsLoadFailure — 예상 밖 4xx 만 남긴다). 내 근로계약 목록 · 내 정보의 사업자 제공 동의가 쓴다.
  */
-async function getContractsOrNull() {
+async function popupLoad<T>(scope: string, load: () => Promise<T>): Promise<T | null> {
   try {
-    return await getContracts();
+    return await load();
   } catch (error) {
     const failure = failureOf(error);
     const handling = requestsLoadFailure(failure);
     if (handling === "throw") throw error;
-    if (handling === "log" && failure) logFailure("contracts-home", failure);
+    if (handling === "log" && failure) logFailure(scope, failure);
     return null;
   }
 }
 
 /** 한 요청 안에서 팝업과 서명 대기 카드가 계약 목록을 한 번만 받는다. */
-const contractsOrNull = cache(getContractsOrNull);
+const contractsOrNull = cache(() => popupLoad("contracts-home", getContracts));
 
 /** 고용 형태 enum. getEnumOrEmpty 는 5xx · 연결 실패만 빈 목록이고 404 · 응답 모양 결함은 던진다 — 팝업 곁들임이라 남기고 빈 목록(값 그대로). */
 async function employmentTypesOrEmpty() {
