@@ -23,12 +23,13 @@ function useConsentChange(onDone: () => void) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
   const [toast, setToast] = useState<{ key: number; text: string }>();
-  const change = (kind: ConsentChange, termsVersion?: string) =>
+  /** done 은 끝난 알림 문구를 바꿀 때(일시 중지 중 다시 동의) — 없으면 CONSENT_CHANGES 의 문구 */
+  const change = (kind: ConsentChange, termsVersion?: string, done?: string) =>
     startTransition(async () => {
       setError(undefined);
       try {
         const result = await changeConsentAction(kind, termsVersion);
-        if (result.ok) setToast({ key: Date.now(), text: CONSENT_CHANGES[kind].done });
+        if (result.ok) setToast({ key: Date.now(), text: done ?? CONSENT_CHANGES[kind].done });
         else setError(result.error);
       } catch (thrown) {
         unstable_rethrow(thrown);
@@ -202,7 +203,11 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
             {/* 동의는 약관을 보인 이 시트 안에서만 받는다(고지 후 동의, 2026-10-20 노영주). 읽었다는 값은 따로 두지 않는다 —
                 api 가 동의한 약관 버전과 일시를 남긴다. */}
             {(state === "NOT_AGREED" || state === "WITHDRAWN" || reconsent) && (
-              <Button disabled={pending} onClick={() => change("location-agree", terms.version)}>
+              <Button
+                disabled={pending}
+                // 일시 중지 중 다시 동의는 멈춘 채다 — 「수집에 동의했습니다」로 켜진 것처럼 읽히지 않게
+                onClick={() => change("location-agree", terms.version, reconsent && state === "PAUSED" ? "새 약관에 동의했습니다. 일시 중지는 그대로입니다" : undefined)}
+              >
                 동의합니다
               </Button>
             )}

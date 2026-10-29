@@ -8,7 +8,7 @@ import { getContracts } from "@/lib/contracts";
 import { getCurrentMembership } from "@/lib/current-membership";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { getMyNotifications } from "@/lib/my-notifications";
-import { getMyAffiliationRequests, getMyMemberships, getMyProfile } from "@/lib/my-profile";
+import { getMyAffiliationRequests, getMyProfile } from "@/lib/my-profile";
 import { hqReconsentOf } from "@/lib/profile";
 import { requireSession } from "@/lib/session";
 import { signRequestOf } from "@/lib/sign-request";
@@ -72,7 +72,7 @@ export default async function HomePage() {
       <div className="sticky bottom-0 mt-auto">
         <BottomNav current="/" />
       </div>
-      {/* 서명 요청(WHALEERP-148) · 소속 추가 요청(WHALEERP-144)은 팝업으로만 알린다. 따로 받아 api 가 느려도 홈을 먼저 보인다. */}
+      {/* 서명 요청(WHALEERP-148) · 소속 추가 요청(WHALEERP-144) · 사업자 제공 다시 동의(ATT-30 v252)는 팝업으로만 알린다. 따로 받아 api 가 느려도 홈을 먼저 보인다. */}
       <Suspense>
         <HomeRequests />
       </Suspense>
@@ -85,9 +85,10 @@ export default async function HomePage() {
  * 요청 → 다시 동의 순으로 앞의 것을 닫으면 다음이 뜬다(home-popups.tsx, 다시 동의 순서는 2026-10-29 재영). 근거: 서명 대기 계약은 기한(발송 + 30일)이 지나면 만료되고 서명해야 근무가 시작되는(데모 sign-req 문구)
  * 지금 근무지의 일이고, 소속 추가 요청은 새 근무지를 더할지 묻는 것이며 수락해도 그 뒤 계약 서명이 따로 온다(가입 · 진입 가이드 JOIN-7 의
  * 흐름이 가입 → 서명 요청 팝업). 데모 · 기획 문서에 둘이 함께일 때의 순서는 없다.
- * 두 조회를 함께 기다린다 — 계약 목록이 느린 동안 소속 추가 팝업도 기다리지만, 따로 띄우면 소속 추가가 먼저 떴다가 서명 요청이 그 뒤를
- * 잇는 순서가 뒤집힌다. 두 조회는 api 실패를 null 로 돌려주므로(그 팝업만 없이 홈 그대로) 여기까지 던져 오는 것은 코드 결함 · 만료 안내
- * redirect 뿐이라 홈 오류로 드러나게 둔다. 고용 형태 enum 은 계약 목록이 오면 바로(소속 추가 조회와 나란히) 받는다.
+ * 조회(계약 목록 · 소속 추가 요청 · 내 정보의 사업자 제공 동의)를 함께 기다린다 — 계약 목록이 느린 동안 다른 팝업도 기다리지만, 따로
+ * 띄우면 뒤 순서의 팝업이 먼저 떴다가 서명 요청이 그 뒤를 잇는 순서가 뒤집힌다. 조회는 api 실패를 null 로 돌려주므로(그 팝업만 없이 홈
+ * 그대로) 여기까지 던져 오는 것은 코드 결함 · 만료 안내 redirect 뿐이라 홈 오류로 드러나게 둔다. 다시 동의의 가맹 소속은 홈 머리줄이 받은
+ * 소속 목록(getCurrentMembership — 한 요청에 한 번, 못 받으면 null)을 같이 쓴다. 고용 형태 enum 은 계약 목록이 오면 바로(소속 추가 조회와 나란히) 받는다.
  */
 async function HomeRequests() {
   const now = new Date();
@@ -101,8 +102,8 @@ async function HomeRequests() {
     employmentTypes,
     hqSharingConsentOrNull(),
   ]);
-  // 다시 동의는 가맹 소속이 있을 때만 — 소속은 내 정보 카드와 같은 목록(퇴직 근무지 제외)이다. 다시 동의가 필요할 때만 받는다
-  const memberships = hqSharing?.isConsented && hqSharing.needsReconsent ? ((await getMyMemberships())?.items ?? null) : null;
+  // 다시 동의는 가맹 소속이 있을 때만 — 소속은 홈 머리줄이 이미 받은 목록(퇴직 근무지 제외, 한 요청에 한 번)을 같이 쓴다. 못 받았으면 null
+  const memberships = hqSharing?.isConsented && hqSharing.needsReconsent ? ((await getCurrentMembership())?.items ?? null) : null;
   const sign = items && signRequestOf(items, now);
   return (
     <HomePopups
