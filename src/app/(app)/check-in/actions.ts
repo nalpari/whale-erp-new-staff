@@ -12,8 +12,8 @@ export type RegisterResult = { ok: true; record: AttendanceRecordResult } | { ok
 export type LocationReadResult = { ok: true; locationReadId: number } | { ok: false; problem: RegisterProblem };
 
 /**
- * 위치 읽음(ATT-22, 2026-10-26 재영) — 출근 · 퇴근 버튼을 눌러 위치를 읽을 때마다 api 에 확인자료(수집 · 이용)를 남긴다. 읽기나 등록이
- * 실패해도 남는다. 받은 locationReadId 를 이어서 보내는 출근 · 퇴근에 넣는다. 위치는 보내지 않는다.
+ * 위치 읽음(ATT-22 v229, 2026-10-28 재영) — 출퇴근 탭에 들어오거나 출근 · 퇴근 버튼을 눌러 위치를 읽을 때마다 api 에 확인자료(수집 · 이용)를 남긴다. 읽기나 등록이
+ * 실패해도 남는다. 버튼을 눌러 받은 locationReadId 만 이어서 보내는 출근 · 퇴근에 넣는다(탭에 들어올 때 남긴 것은 등록에 잇지 않는다). 위치는 보내지 않는다.
  */
 export async function recordLocationReadAction(staffMemberId: number): Promise<LocationReadResult> {
   if (!Number.isSafeInteger(staffMemberId) || staffMemberId < 1) return { ok: false, problem: { kind: "error", message: "잘못된 요청입니다", log: false } };
