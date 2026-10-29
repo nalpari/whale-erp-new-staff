@@ -147,15 +147,14 @@ export function membershipStatusOf(retiredDate: string | null, today: string): "
 /**
  * 내 정보의 사업자(본사) 제공 동의 카드 표시(ATT-30). 동의한 문구 버전을 더는 받아 주지 않으면(needsReconsent — 항목 · 목적이 넓어짐,
  * api #183) 계정은 동의로 남아도 본사에는 미동의로 보여 가려진다 — 「다시 동의 필요」로 보이고 내용 시트의 「동의합니다」로 새 버전에
- * 동의를 받는다(출근 화면의 동의 시트와 같은 기준). 철회는 그대로 할 수 있다.
+ * 동의를 받는다(내 정보에서 — 앱이 들어올 때 다시 묻는 시트는 아직 없다). 새 문구에 동의하지 않으려는 직원도 옛 동의를 거둘 수 있게 그때는 내용 시트에
+ * 「동의 철회」를 함께 둔다(withdrawInSheet) — 선택 동의라 철회는 늘 할 수 있어야 한다.
  */
 export function hqSharingView(consent: Pick<Schemas["MyHqSharingConsentDto"], "isConsented" | "agreedAt" | "withdrawnAt" | "consentVersion" | "needsReconsent">): {
   badge: { tone: "success" | "warning" | "plain"; text: string };
   line: string;
-  /** 오른쪽 버튼 — withdraw 면 「동의 철회」, 아니면 그 글자로 내용 시트를 연다 */
-  action: { kind: "withdraw" } | { kind: "agree"; label: string };
-  /** 내용 시트에 「동의합니다」를 둘지 */
-  canAgree: boolean;
+  /** 오른쪽 버튼 — withdraw 면 「동의 철회」, agree 면 그 글자로 내용 시트를 열고 시트의 「동의합니다」로 받는다 */
+  action: { kind: "withdraw" } | { kind: "agree"; label: string; withdrawInSheet: boolean };
   note: string;
 } {
   const { isConsented, agreedAt, withdrawnAt, consentVersion, needsReconsent } = consent;
@@ -164,8 +163,7 @@ export function hqSharingView(consent: Pick<Schemas["MyHqSharingConsentDto"], "i
     return {
       badge: { tone: "warning", text: "다시 동의 필요" },
       line: `${agreedAt ? `${kstDateTimeLabel(agreedAt)} 동의${version} — ` : ""}동의 내용이 바뀌어 다시 동의해야 합니다`,
-      action: { kind: "agree", label: "다시 동의하기" },
-      canAgree: true,
+      action: { kind: "agree", label: "다시 동의하기", withdrawInSheet: true },
       note: "다시 동의하기 전에는 본사에 점포별 숫자로만 보입니다. 다시 동의하면 개인 단위로 보입니다.",
     };
   if (isConsented)
@@ -173,14 +171,12 @@ export function hqSharingView(consent: Pick<Schemas["MyHqSharingConsentDto"], "i
       badge: { tone: "success", text: "동의함" },
       line: agreedAt ? `${kstDateTimeLabel(agreedAt)} 동의${version}` : "동의했습니다",
       action: { kind: "withdraw" },
-      canAgree: false,
       note: "철회해도 가입과 근무는 그대로입니다. 본사에는 점포별 숫자로만 보입니다.",
     };
   return {
     badge: { tone: "plain", text: "동의하지 않음" },
     line: withdrawnAt ? `${kstDateTimeLabel(withdrawnAt)} 철회${version}` : "아직 동의하지 않았습니다",
-    action: { kind: "agree", label: withdrawnAt ? "다시 동의하기" : "동의하기" },
-    canAgree: true,
+    action: { kind: "agree", label: withdrawnAt ? "다시 동의하기" : "동의하기", withdrawInSheet: false },
     note: "지금은 본사에 점포별 숫자로만 보입니다. 다시 동의하면 개인 단위로 보입니다.",
   };
 }

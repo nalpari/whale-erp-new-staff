@@ -296,11 +296,22 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
           선택 동의입니다. 철회해도 가입과 근무는 그대로이고, 본사에는 점포별 숫자로만 보입니다. <strong>항목이나 목적이 넓어지면</strong> 새
           버전으로 다시 동의를 받습니다.
         </p>
+        {view.action.kind === "agree" && view.action.withdrawInSheet && (
+          <Alert tone="warning">
+            <p>동의한 뒤 내용이 바뀌었습니다. 위 내용으로 다시 동의해야 본사에 개인 단위로 보입니다 — 원하지 않으면 동의를 철회할 수 있습니다.</p>
+          </Alert>
+        )}
         <p className="text-[12px] text-staff-placeholder">동의 문구는 법무 검토 중(ATT-8)</p>
         {/* 위치정보와 같이 내용을 보인 이 시트 안에서만 동의를 받는다. */}
-        {view.canAgree && (
+        {view.action.kind === "agree" && (
           <Button disabled={pending} onClick={() => change("hq-sharing-agree")}>
             동의합니다
+          </Button>
+        )}
+        {/* 다시 동의해야 하는 직원도 새 문구에 동의하지 않고 옛 동의를 거둘 수 있다(선택 동의) */}
+        {view.action.kind === "agree" && view.action.withdrawInSheet && (
+          <Button variant="ghost" disabled={pending} onClick={() => setSheet("withdraw")}>
+            동의 철회
           </Button>
         )}
       </BottomSheet>
@@ -309,7 +320,7 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
         <p className="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">
           철회하면 가맹본부가 <strong>내 근무 정보를 개인 단위로 보지 않습니다.</strong> 점포별 숫자로만 보입니다.
         </p>
-        <Sunken>가입과 근무, 급여명세서 수령은 그대로입니다. 다시 동의하려면 이 화면에서 켜면 됩니다.</Sunken>
+        <Sunken>가입과 근무, 급여명세서 수령은 그대로입니다. 다시 동의하려면 이 화면의 「다시 동의하기」로 하면 됩니다.</Sunken>
         <Button disabled={pending} onClick={() => change("hq-sharing-withdraw")}>
           철회합니다
         </Button>
