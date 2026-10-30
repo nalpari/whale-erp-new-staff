@@ -4,7 +4,7 @@ import { unstable_rethrow } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Alert, Button, RequestSheet, Toast } from "@/components/common";
 import { rememberHqReconsentSeen } from "@/lib/hq-reconsent-popup-memory";
-import { HQ_SHARING_TERMS } from "@/lib/hq-sharing-terms";
+import { HQ_SHARING_TERMS, HQ_SHARING_TERMS_VERSION } from "@/lib/hq-sharing-terms";
 import { CONSENT_CHANGES } from "@/lib/profile";
 import { changeConsentAction } from "../me/actions";
 
@@ -29,7 +29,7 @@ export function HqReconsentPopup({ open, reconsentKey }: { open: boolean; recons
     startTransition(async () => {
       setError(undefined);
       try {
-        const result = await changeConsentAction("hq-sharing-agree");
+        const result = await changeConsentAction("hq-sharing-agree", HQ_SHARING_TERMS_VERSION);
         if (result.ok) setToast({ key: Date.now(), text: CONSENT_CHANGES["hq-sharing-agree"].done });
         else {
           setError(result.error);

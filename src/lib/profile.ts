@@ -213,3 +213,13 @@ export const hqReconsentOf = (
 /** 위치정보 동의를 내 정보에서 다시 받아야 하는가 — 약관 버전이 바뀌었고(needsReconsent) 동의 · 일시 중지일 때(api 도 그때만 참이다) */
 export const locationNeedsReconsent = (consent: Pick<Schemas["MyLocationConsentDto"], "state" | "needsReconsent">) =>
   consent.needsReconsent && (consent.state === "AGREED" || consent.state === "PAUSED");
+
+/**
+ * 동의 바꾸기 요청 본문. 위치정보 동의는 보인 약관이 없었어도(null) 늘 싣는다 — api 는 빠지면 400, null 이면 그사이 시행된 약관이 있을 때
+ * 409 다(api #185). 사업자 제공 동의는 화면이 보인 문구 버전을 consentVersion 으로 싣는다(ATT-30 v252). 나머지는 본문이 없다.
+ */
+export function consentRequestBody(change: ConsentChange, version: string | null | undefined): Record<string, string | null> | undefined {
+  if (change === "location-agree") return { termsVersion: version ?? null };
+  if (change === "hq-sharing-agree") return { consentVersion: version ?? null };
+  return undefined;
+}

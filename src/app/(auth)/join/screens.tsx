@@ -10,6 +10,7 @@ import { withNext } from "@/lib/login-return";
 import { AuthScreen } from "../_components/auth-screen";
 import { useFocusedTitle } from "../_components/use-focused-title";
 import type { LoadedInvitation } from "./load-invitation";
+import { HQ_SHARING_TERMS_VERSION, hqSharingSummary } from "@/lib/hq-sharing-terms";
 
 // 진입 · 가입(WHALEERP-141 · 142) 화면이 같이 쓰는 조각 — 단계 막대, 초대 확인(가이드 ②), 끝난 초대 · 계정 있음 · 잠김 같은 갈래 화면.
 // 기준: 목업 docs/mockup/app/join.html 의 code · code-locked · invite · has-account · minor · expired.
@@ -117,10 +118,9 @@ export function HqSharingConsent({ checked, onChange }: { checked: boolean; onCh
       <CheckBox name="hqSharingConsented" checked={checked} onChange={onChange}>
         사업자 제공 동의 (선택)
       </CheckBox>
-      <p className="text-[12px] text-staff-text-muted">
-        가맹본부가 내 근무 정보(근로계약 · 근무스케줄 · 출퇴근 기록 · 급여명세서)를 개인 단위로 보는 것에 동의합니다. 동의하지
-        않아도 가입과 근무는 그대로이고, 본사에는 점포별 숫자로만 보입니다. 내 정보에서 언제든 철회할 수 있습니다.
-      </p>
+      {/* 이 화면이 보인 문구의 버전(ATT-30 v252) — 액션이 그대로 api 에 실어 보내고, 다르면 api 가 동의만 남기지 않는다 */}
+      <input type="hidden" name="hqSharingConsentVersion" value={HQ_SHARING_TERMS_VERSION} />
+      <p className="text-[12px] text-staff-text-muted">{hqSharingSummary("가입")}</p>
     </div>
   );
 }

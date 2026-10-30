@@ -8,7 +8,7 @@ import type { AttemptLock } from "@/lib/attempt-lock";
 import { checkInvitation, signup } from "@/lib/auth";
 import { clientIpFrom } from "@/lib/client-ip";
 import { normalizeBirthDate, normalizePhone } from "@/lib/email-find";
-import { HQ_NOT_RECORDED, HQ_SHARING_TERMS_VERSION } from "@/lib/hq-sharing-terms";
+import { HQ_NOT_RECORDED, parseHqSharingVersion } from "@/lib/hq-sharing-terms";
 import { clearInvitation, readInvitation, saveInvitation, saveJoinedStore } from "@/lib/invitation-cookie";
 import {
   BAD_BIRTH_DATE,
@@ -159,7 +159,7 @@ export async function signupAction(_previous: SignupState, formData: FormData): 
         // 체크 칸은 api 가 물을 때(asksHqSharingConsent)만 그려진다. 묻지 않는 초대에 보내도 api 는 저장하지 않는다. 동의하면 본 문구
         // 버전을 함께 싣는다(ATT-30 v252) — 다르면 api 는 가입은 마치고 동의만 남기지 않는다(v253).
         ...(formData.get("hqSharingConsented") === "on"
-          ? { hqSharingConsented: true, hqSharingConsentVersion: HQ_SHARING_TERMS_VERSION }
+          ? { hqSharingConsented: true, hqSharingConsentVersion: parseHqSharingVersion(formData.get("hqSharingConsentVersion")) }
           : {}),
         deviceIdentifier,
       },
@@ -196,6 +196,6 @@ export async function signupAction(_previous: SignupState, formData: FormData): 
   // 계정 등록 화면이 숨은 칸에 실은 근무지 이름이다. 보낸 사람이 바꿀 수 있지만 자기 화면에만 보이고 글자로만 그린다.
   await saveJoinedStore(text("storeName"));
   // 계정 등록 화면을 히스토리에 남기지 않는다. 뒤로 가면 다 쓴 초대를 다시 확인하게 된다. 동의를 남기지 못했으면 완료 화면이 안내한다.
-  const query = result.hqSharingConsentRecorded === false ? `?${HQ_NOT_RECORDED.key}=${HQ_NOT_RECORDED.value}` : "";
+  const query = result.hqSharingConsentRecorded === false ? `?${new URLSearchParams({ [HQ_NOT_RECORDED.key]: HQ_NOT_RECORDED.value })}` : "";
   redirect(`/join/done${query}`, RedirectType.replace);
 }

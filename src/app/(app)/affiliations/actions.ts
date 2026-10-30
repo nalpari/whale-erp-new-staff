@@ -6,7 +6,7 @@ import { RedirectType, redirect } from "next/navigation";
 import { failureOf, logFailure, type Schemas } from "@/lib/api";
 import { answerFailure, parseRejectReason, resultHref, type AnswerResult, type AnswerState } from "@/lib/affiliation-requests";
 import { clientIpFrom } from "@/lib/client-ip";
-import { HQ_SHARING_TERMS_VERSION } from "@/lib/hq-sharing-terms";
+import { parseHqSharingVersion } from "@/lib/hq-sharing-terms";
 import { saveAcceptedStore } from "@/lib/invitation-cookie";
 import { authedRequest } from "@/lib/session";
 
@@ -43,7 +43,7 @@ async function answer(kind: "accept" | "reject", run: () => Promise<AnswerResult
  */
 export async function acceptAffiliationAction(invitationId: number, _previous: AnswerState, formData: FormData): Promise<AnswerState> {
   if (!isInvitationId(invitationId)) return { error: "잘못된 요청입니다" };
-  const json = formData.get("hqSharingConsented") === "on" ? { hqSharingConsented: true, hqSharingConsentVersion: HQ_SHARING_TERMS_VERSION } : {};
+  const json = formData.get("hqSharingConsented") === "on" ? { hqSharingConsented: true, hqSharingConsentVersion: parseHqSharingVersion(formData.get("hqSharingConsentVersion")) } : {};
   const clientIp = clientIpFrom(await headers());
   return answer("accept", async () => {
     const result = await authedRequest<Schemas["AcceptAffiliationResponseDto"]>(`/me/affiliation-requests/${invitationId}/accept`, {

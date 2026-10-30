@@ -1,8 +1,9 @@
 // node --test src/lib/profile.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { HQ_SHARING_TERMS_VERSION } from "./hq-sharing-terms.ts";
+import { HQ_SHARING_TERMS_VERSION, parseHqSharingVersion } from "./hq-sharing-terms.ts";
 import {
+  consentRequestBody,
   hqReconsentOf,
   locationNeedsReconsent,
   CONSENT_CHANGES,
@@ -185,4 +186,17 @@ test("locationNeedsReconsent 는 동의 · 일시 중지에서 약관이 바뀌�
   assert.equal(locationNeedsReconsent({ state: "PAUSED", needsReconsent: true }), true);
   assert.equal(locationNeedsReconsent({ state: "AGREED", needsReconsent: false }), false);
   assert.equal(locationNeedsReconsent({ state: "WITHDRAWN", needsReconsent: true }), false);
+});
+
+test("consentRequestBody 는 위치정보 · 사업자 제공 동의에 화면이 보인 버전을 싣고 나머지는 본문이 없다", () => {
+  assert.deepEqual(consentRequestBody("location-agree", "v2"), { termsVersion: "v2" });
+  assert.deepEqual(consentRequestBody("location-agree", null), { termsVersion: null });
+  assert.deepEqual(consentRequestBody("hq-sharing-agree", HQ_SHARING_TERMS_VERSION), { consentVersion: HQ_SHARING_TERMS_VERSION });
+  assert.equal(consentRequestBody("hq-sharing-withdraw", "v1.0"), undefined);
+  assert.equal(consentRequestBody("location-pause", undefined), undefined);
+});
+
+test("parseHqSharingVersion 은 비지 않은 64자 이하 문자열만 받는다", () => {
+  assert.equal(parseHqSharingVersion("v1.0"), "v1.0");
+  for (const raw of [null, "", "v".repeat(65), 1, undefined]) assert.equal(parseHqSharingVersion(raw), undefined);
 });
