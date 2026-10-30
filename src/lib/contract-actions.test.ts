@@ -4,12 +4,12 @@ import { test } from "node:test";
 import {
   OUTCOME_UNKNOWN,
   SIGN_DEADLINE_PASSED,
-  REJECT_REASON_MAX,
+  CORRECTION_REASON_MAX,
   SIGNATURE_MAX_BYTES,
   contractActionFailure,
   isSentAt,
   mismatchText,
-  readRejectReason,
+  readCorrectionReason,
   signatureProblem,
 } from "./contract-actions.ts";
 
@@ -29,14 +29,17 @@ test("mismatchText — api 순서대로 enum 한글, 한글이 없는 값이 있
   assert.equal(mismatchText([], IDENTITY_LABELS), null);
 });
 
-test("readRejectReason — 비면 보내지 않고, NFC · 앞뒤 공백을 지운 뒤 500자까지", () => {
-  assert.deepEqual(readRejectReason(null), {});
-  assert.deepEqual(readRejectReason("   "), {});
-  assert.deepEqual(readRejectReason("  근무 요일이 다릅니다 "), { reason: "근무 요일이 다릅니다" });
-  assert.deepEqual(readRejectReason(`  ${"가".repeat(REJECT_REASON_MAX)}  `), { reason: "가".repeat(REJECT_REASON_MAX) });
-  assert.ok("error" in readRejectReason("가".repeat(REJECT_REASON_MAX + 1)));
+test("readCorrectionReason — 필수, NFC · 앞뒤 공백을 지운 뒤 1~100자", () => {
+  const empty = { error: "수정 요청 사유를 입력해 주세요" };
+  assert.deepEqual(readCorrectionReason(null), empty);
+  assert.deepEqual(readCorrectionReason(""), empty);
+  assert.deepEqual(readCorrectionReason("   "), empty);
+  assert.deepEqual(readCorrectionReason("가".repeat(CORRECTION_REASON_MAX + 1)), { error: "수정 요청 사유는 100자 이하로 입력해 주세요" });
+  assert.deepEqual(readCorrectionReason("  시급이 다릅니다 "), { reason: "시급이 다릅니다" });
+  assert.deepEqual(readCorrectionReason("가"), { reason: "가" });
+  assert.deepEqual(readCorrectionReason(`  ${"가".repeat(CORRECTION_REASON_MAX)}  `), { reason: "가".repeat(CORRECTION_REASON_MAX) });
   // 풀어 쓴 한글(NFD)은 합친 뒤 센다
-  assert.deepEqual(readRejectReason("가".normalize("NFD").repeat(REJECT_REASON_MAX)), { reason: "가".repeat(REJECT_REASON_MAX) });
+  assert.deepEqual(readCorrectionReason("가".normalize("NFD").repeat(CORRECTION_REASON_MAX)), { reason: "가".repeat(CORRECTION_REASON_MAX) });
 });
 
 test("signatureProblem — 비었거나 1MB 초과 · PNG 가 아니면 문구", () => {
@@ -120,9 +123,18 @@ test("contractActionFailure — 404 · 429 · 400 · 5xx · 연결 실패", () =
     state: { message: "서명 이미지를 보내지 못했습니다. 다시 그려 주세요" },
     log: true,
   });
-  assert.deepEqual(contractActionFailure("reject", { status: 400, message: "거부 사유는 500자 이하로 입력해 주세요" }, null), {
-    state: { field: "reason", message: "거부 사유는 500자 이하로 입력해 주세요" },
+  assert.deepEqual(contractActionFailure("correction", { status: 400, message: "수정 요청 사유를 입력해 주세요." }, null), {
+    state: { field: "reason", message: "수정 요청 사유를 입력해 주세요." },
     log: false,
+  });
+  assert.deepEqual(contractActionFailure("correction", { status: 400, message: "reason must be a string" }, null), {
+    state: { field: "reason", message: "수정 요청 사유를 확인해 주세요" },
+    log: true,
+  });
+  // 거절은 본문이 없어 400 은 예상 밖 — 칸 없이 일반 문구로 두고 남긴다
+  assert.deepEqual(contractActionFailure("reject", { status: 400, message: "property reason should not exist" }, null), {
+    state: { message: "처리하지 못했습니다. 계약서를 다시 열어 확인해 주세요" },
+    log: true,
   });
   assert.deepEqual(contractActionFailure("sign", { status: 503, message: "서명을 저장하지 못했습니다. 잠시 뒤 다시 시도해 주세요" }, null), {
     state: { message: "서명을 저장하지 못했습니다. 잠시 뒤 다시 시도해 주세요" },

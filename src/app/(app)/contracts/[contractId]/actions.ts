@@ -9,7 +9,7 @@ import { getEnumOrEmpty } from "@/lib/enums";
 import {
   contractActionFailure,
   isSentAt,
-  readRejectReason,
+  readCorrectionReason,
   signatureProblem,
   type ContractAction,
   type ContractActionState,
@@ -52,8 +52,21 @@ export async function signContractAction(
   return run("sign", `/me/contracts/${contractId}/sign`, { form, timeoutMs: 30_000 }, `/contracts/${contractId}/done?${storePart(rawStoreId)}done=signed`);
 }
 
-/** 거절 — 사유는 선택(500자). */
-export async function rejectContractAction(
+/**
+ * 거절 — 받는 내용은 없다(WHALEERP-635). 확인 시트에서 한 번 더 묻는다. 본문은 빈 JSON 으로 둔다 — 사유 DTO 를 아직 받는 옛 api 가
+ * 본문 없는 요청을 400 으로 막지 않게(앱이 api 보다 먼저 나간다).
+ */
+export async function rejectContractAction(rawContractId: number, rawStoreId: number | null): Promise<ContractActionState> {
+  const contractId = parseId(String(rawContractId));
+  if (contractId === null) notFound();
+  return run("reject", `/me/contracts/${contractId}/reject`, { json: {} }, `/contracts/${contractId}/done?${storePart(rawStoreId)}done=rejected`);
+}
+
+/**
+ * 수정 요청 — 사유는 필수(NFC · 앞뒤 공백 뺀 100자, WHALEERP-635). 본인 대조와 상관없이 서명 대기 · 기한 안이면 받는다(WHALEERP-145 ⑦).
+ * 사유를 읽지 않는 옛 api 에 보내도 본문을 무시해 400 이 나지 않는다(api 배포 전에는 사유가 저장되지 않는다).
+ */
+export async function requestContractCorrectionAction(
   rawContractId: number,
   rawStoreId: number | null,
   _previous: ContractActionState,
@@ -61,16 +74,9 @@ export async function rejectContractAction(
 ): Promise<ContractActionState> {
   const contractId = parseId(String(rawContractId));
   if (contractId === null) notFound();
-  const read = readRejectReason(formData.get("reason"));
+  const read = readCorrectionReason(formData.get("reason"));
   if ("error" in read) return { field: "reason", message: read.error };
-  return run("reject", `/me/contracts/${contractId}/reject`, { json: read }, `/contracts/${contractId}/done?${storePart(rawStoreId)}done=rejected`);
-}
-
-/** 수정 요청 — 받는 내용은 없다. 본인 대조와 상관없이 서명 대기 · 기한 안이면 받는다(WHALEERP-145 ⑦). */
-export async function requestContractCorrectionAction(rawContractId: number, rawStoreId: number | null): Promise<ContractActionState> {
-  const contractId = parseId(String(rawContractId));
-  if (contractId === null) notFound();
-  return run("correction", `/me/contracts/${contractId}/correction-request`, {}, `/contracts/${contractId}?${storePart(rawStoreId)}done=correction`);
+  return run("correction", `/me/contracts/${contractId}/correction-request`, { json: read }, `/contracts/${contractId}?${storePart(rawStoreId)}done=correction`);
 }
 
 /**

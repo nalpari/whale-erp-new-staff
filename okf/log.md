@@ -1,5 +1,7 @@
 # Bundle history
 
+## 2026-10-30
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 근로계약 수정 요청에 사유(필수 한 줄 · 100자)를 받고, 근로계약서 거절 · 소속 추가 거절은 사유 없이 확인만 한다(WHALEERP-635). `ReasonSheet` 삭제.
 ## 2026-10-29
 * **Update**: main 병합(staff dodrio, main #57 까지): okf 충돌은 양쪽 기록을 살렸다.
 * **Update**: main 병합(staff dodrio, main #55 까지): okf/log 충돌은 양쪽 기록을 살렸고, [Whale ERP Staff](/whale-erp-staff.md) 충돌은 소속 추가 완료 설명(「계약서 날인하러 가기」 · `contractIds`)은 이 브랜치 것을, 홈 서명 대기 카드 설명은 main 것을 합쳤다.

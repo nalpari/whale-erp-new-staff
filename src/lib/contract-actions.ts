@@ -19,14 +19,15 @@ export function mismatchText(mismatches: readonly string[], labels: EnumLabels):
   return names.length > 0 && names.every((n) => n !== undefined) ? names.join(" · ") : null;
 }
 
-/** 거절 사유 상한(api REJECT_REASON_MAX). api 처럼 NFC 로 맞추고 앞뒤 공백을 지운 뒤 센다. */
-export const REJECT_REASON_MAX = 500;
+/** 수정 요청 사유 상한(api CORRECTION_REASON_MAX). api 처럼 NFC 로 맞추고 앞뒤 공백을 지운 뒤 센다. */
+export const CORRECTION_REASON_MAX = 100;
 
-/** 거절 사유 칸 — 비면 보내지 않는다(선택). 넘치면 칸 오류. */
-export function readRejectReason(raw: FormDataEntryValue | null): { reason?: string } | { error: string } {
+/** 수정 요청 사유 칸 — 필수(WHALEERP-635). 비거나 넘치면 칸 오류. */
+export function readCorrectionReason(raw: FormDataEntryValue | null): { reason: string } | { error: string } {
   const reason = typeof raw === "string" ? raw.normalize("NFC").trim() : "";
-  if (reason.length > REJECT_REASON_MAX) return { error: `거절 사유는 ${REJECT_REASON_MAX}자 이하로 입력해 주세요` };
-  return reason ? { reason } : {};
+  if (!reason) return { error: "수정 요청 사유를 입력해 주세요" };
+  if (reason.length > CORRECTION_REASON_MAX) return { error: `수정 요청 사유는 ${CORRECTION_REASON_MAX}자 이하로 입력해 주세요` };
+  return { reason };
 }
 
 /** 서명 이미지 상한(api SIGNATURE_MAX_BYTES, 1MB). */
@@ -53,7 +54,7 @@ export const isSentAt = (value: unknown): value is string =>
 
 /**
  * 버튼 결과. message 는 화면 문구다. stale 이면 계약이 그사이 바뀌어(상태 · 재발송 · 기한 · 대조 · 퇴직) 이 화면에서 다시 할 수
- * 없다 — 화면은 「계약서 다시 보기」로 이끈다. 아니면 같은 버튼으로 다시 시도한다. field 는 문구를 붙일 칸(거절 사유)이다.
+ * 없다 — 화면은 「계약서 다시 보기」로 이끈다. 아니면 같은 버튼으로 다시 시도한다. field 는 문구를 붙일 칸(수정 요청 사유)이다.
  */
 export interface ContractActionState {
   message?: string;
@@ -79,7 +80,7 @@ export const OUTCOME_UNKNOWN = "처리됐는지 확인하지 못했습니다. �
  * identityLabels 는 api enum `IdentityField` 의 값 · 한글(409 IDENTITY_MISMATCH 의 다른 항목을 적을 때만 쓴다).
  * - 409 CONTRACT_STATUS_CONFLICT 인데 지금 상태가 이 버튼의 결과면 done — 앞선 요청이 이미 처리됐다.
  * - 409(상태 · 기한 · 퇴직 · 재발송 · 대조) · 404 는 stale.
- * - 400 은 날인이면 서명 이미지 문제(다시 그리기), 거절이면 사유 칸.
+ * - 400 은 날인이면 서명 이미지 문제(다시 그리기), 수정 요청이면 사유 칸.
  * - 429 · 503 · 5xx · 연결 실패는 다시 시도. 5xx · 연결 실패는 처리됐는지 모른다.
  * log 는 예상하지 못한 응답(영어 원문 400 · 그 밖의 4xx)일 때 남기라는 뜻이다.
  */
@@ -111,8 +112,8 @@ export function contractActionFailure(
   if (status === 429) return { state: { message: RATE_LIMITED }, log: false };
   if (status === 400) {
     const hangul = isHangulReason(message);
-    if (action === "reject")
-      return { state: { field: "reason", message: hangul ? message : `거절 사유는 ${REJECT_REASON_MAX}자 이하로 입력해 주세요` }, log: !hangul };
+    if (action === "correction")
+      return { state: { field: "reason", message: hangul ? message : "수정 요청 사유를 확인해 주세요" }, log: !hangul };
     if (action === "sign") return { state: { message: hangul ? message : "서명 이미지를 보내지 못했습니다. 다시 그려 주세요" }, log: !hangul };
   }
   // 503 은 저장소 문제로 날인 전에 멈췄다(api 가 「잠시 뒤 다시 시도」 사유를 준다). 그 밖의 5xx 는 커밋 뒤에 끊겼을 수 있다.

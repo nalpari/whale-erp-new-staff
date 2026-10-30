@@ -12,23 +12,12 @@ import {
   isPopupDismissed,
   mergeSeenKey,
   parseResult,
-  parseRejectReason,
   popupSummary,
   requestsLoadFailure,
   resultHref,
   type AffiliationRequest,
   type AnswerResult,
 } from "./affiliation-requests.ts";
-
-test("parseRejectReason 은 다듬고, 비면 보내지 않는다", () => {
-  assert.deepEqual(parseRejectReason("  다른 곳에서 일하고 있어요 "), { ok: true, reason: "다른 곳에서 일하고 있어요" });
-  assert.deepEqual(parseRejectReason("   "), { ok: true, reason: undefined });
-});
-
-test("parseRejectReason 은 500자까지 받고 넘으면 막는다", () => {
-  assert.equal(parseRejectReason("가".repeat(500)).ok, true);
-  assert.deepEqual(parseRejectReason("가".repeat(501)), { ok: false, error: "거절 사유는 500자 이하로 입력해 주세요" });
-});
 
 const ERROR = { state: { error: "요청을 처리하지 못했습니다. 잠시 뒤 다시 시도해 주세요" }, log: true };
 

@@ -1,4 +1,4 @@
-// 소속 추가 확인 요청(WHALEERP-144, api #164)의 순수 계산 — 거절 사유 거르기, 수락 · 거절 실패를 화면 상태로 바꾸기, 팝업에 보일 요약.
+// 소속 추가 확인 요청(WHALEERP-144, api #164)의 순수 계산 — 수락 · 거절 실패를 화면 상태로 바꾸기, 팝업에 보일 요약.
 // node --test 가 직접 읽으므로 값 import 는 같은 폴더의 순수 모듈(.ts 확장자)만 둔다.
 import { CONNECTION_FAILED, RATE_LIMITED, RETRY_LATER, type ApiFailure } from "./action-errors.ts";
 import type { Schemas } from "./api";
@@ -6,9 +6,6 @@ import { parseId } from "./contract-rules.ts";
 import { isSeenSubset, mergeSeen } from "./popup-memory.ts";
 
 export type AffiliationRequest = Schemas["AffiliationRequestDto"];
-
-/** 거절 사유 상한 — api 의 REJECT_REASON_MAX(근로계약서 거부 사유와 같다). */
-export const REJECT_REASON_MAX = 500;
 
 /**
  * 확인 화면에 남는 상태 — 다시 누를 수 있는 실패(요청 제한 · 연결 실패 등)의 문구. acceptBlocked 면 수락은 막고 거절만 남긴다
@@ -27,13 +24,6 @@ export type AnswerResult =
   | { kind: "accepted"; contractIds: number[] }
   | { kind: "rejected" }
   | { kind: "closed"; reason: ClosedReason };
-
-/** 거절 사유. api 와 같이 NFC · 앞뒤 공백을 지우고, 비면 보내지 않는다(undefined). 500자를 넘으면 오류 문구. */
-export function parseRejectReason(raw: string): { ok: true; reason: string | undefined } | { ok: false; error: string } {
-  const reason = raw.normalize("NFC").trim();
-  if (reason.length > REJECT_REASON_MAX) return { ok: false, error: `거절 사유는 ${REJECT_REASON_MAX}자 이하로 입력해 주세요` };
-  return { ok: true, reason: reason || undefined };
-}
 
 const CLOSED = {
   answered: {
