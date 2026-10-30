@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { ContractListItem } from "./contracts.ts";
-import { signRequestOf, signWaitingCards } from "./sign-request.ts";
+import { blockedContractHref, checkInSignWaitingOf, nocontractHref, signRequestOf, signWaitingCards } from "./sign-request.ts";
 
 const NOW = new Date("2026-10-28T03:00:00Z"); // 한국 2026-10-28 12:00
 
@@ -82,4 +82,46 @@ test("홈 서명 대기 카드 — 기한이 오늘 · 내일이면 시각까지
   assert.equal(tomorrow.left, "내일 10:30 마감");
   const [none] = signWaitingCards([item(1, { signDeadlineAt: null })], NOW);
   assert.deepEqual([none.daysLeft, none.urgent, none.until, none.left], [null, false, null, null]);
+});
+
+test("checkInSignWaitingOf 는 지금 근무지의 서명 대기만 보고, 하나면 그 계약서 · 여럿이면 그 근무지 목록으로 잇는다", () => {
+  const other = item(9, { storeId: 20, signDeadlineAt: "2026-10-29T01:00:00.000Z" });
+  const one = checkInSignWaitingOf([item(1, { signDeadlineAt: "2026-11-19T01:00:00.000Z" }), other], NOW, 10, 1);
+  assert.deepEqual(one, { href: "/contracts/1?store=10", count: 1, left: "남은 기한 22일", urgent: false });
+  // 여럿이면 목록, 기한 줄은 가장 급한 계약 — 7일 이내면 강조
+  const many = checkInSignWaitingOf(
+    [item(1, { signDeadlineAt: "2026-11-19T01:00:00.000Z" }), item(2, { signDeadlineAt: "2026-11-02T01:00:00.000Z" }), other],
+    NOW,
+    10,
+    1,
+  );
+  assert.deepEqual(many, { href: "/contracts?store=10", count: 2, left: "남은 기한 5일", urgent: true });
+});
+
+test("checkInSignWaitingOf 는 계약 목록을 못 받으면 api 가 알려 준 막은 계약으로, 그것도 없으면 근무지 목록으로 잇는다", () => {
+  assert.deepEqual(checkInSignWaitingOf(null, NOW, 10, 7), { href: "/contracts/7?store=10", count: null, left: null, urgent: false });
+  assert.deepEqual(checkInSignWaitingOf(null, NOW, 10, null), { href: "/contracts?store=10", count: null, left: null, urgent: false });
+  // 목록에 그 근무지 서명 대기가 없어도 api 가 지목한 계약이 있으면 그 상세, 없으면 근무지 목록
+  assert.deepEqual(checkInSignWaitingOf([item(9, { storeId: 20 })], NOW, 10, 7), { href: "/contracts/7?store=10", count: 0, left: null, urgent: false });
+  assert.deepEqual(checkInSignWaitingOf([item(9, { storeId: 20 })], NOW, 10, null), { href: "/contracts?store=10", count: 0, left: null, urgent: false });
+});
+
+test("checkInSignWaitingOf 는 api 가 지목한 계약보다 앱에서 서명할 수 있는 카드를 앞세운다 — 경고판의 건수 · 기한과 링크가 같은 계약", () => {
+  const paper = 5; // 앱이 서명 대기로 보지 않는 계약(종이 계약 — 상세가 「서명할 필요 없음」)
+  const w = checkInSignWaitingOf([item(1), item(paper, { contractMethod: "PAPER" })], NOW, 10, paper);
+  assert.deepEqual(w, { href: "/contracts/1?store=10", count: 1, left: "남은 기한 22일", urgent: false });
+  // 지목한 계약이 카드에 있으면 카드 규칙대로
+  assert.equal(checkInSignWaitingOf([item(1)], NOW, 10, 1).href, "/contracts/1?store=10");
+});
+
+test("blockedContractHref 는 막은 계약이 있으면 그 상세, 없으면 그 근무지 계약서 목록", () => {
+  assert.equal(blockedContractHref(10, 7), "/contracts/7?store=10");
+  assert.equal(blockedContractHref(10, null), "/contracts?store=10");
+});
+
+test("nocontractHref 는 경고판과 같은 곳을 앞세우고, 없을 때만 출근 등록 응답의 계약 · 근무지 목록으로 간다", () => {
+  // 출근을 누른 뒤 막히면 화면을 다시 받아 signWaiting 이 새로 온다 — 그것이 가장 새 값
+  assert.equal(nocontractHref({ href: "/contracts/1?store=10" }, 10, 5), "/contracts/1?store=10");
+  assert.equal(nocontractHref(null, 10, 5), "/contracts/5?store=10");
+  assert.equal(nocontractHref(null, 10, null), "/contracts?store=10");
 });
