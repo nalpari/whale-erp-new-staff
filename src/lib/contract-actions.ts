@@ -25,7 +25,7 @@ export function mismatchText(mismatches: readonly string[], labels: EnumLabels):
  */
 export const REJECT_BODY: Readonly<Record<string, never>> = Object.freeze({});
 
-/** 수정 요청 사유 상한(api CORRECTION_REASON_MAX). api 처럼 NFC 로 맞추고 앞뒤 공백을 지운 뒤 센다. */
+/** 수정 요청 사유 상한 — api(WHALEERP-635 api PR 의 CORRECTION_REASON_MAX)와 같은 기준: NFC 로 맞추고 앞뒤 공백을 지운 뒤 `.length` 로 센다. */
 export const CORRECTION_REASON_MAX = 100;
 
 /** 수정 요청 사유 칸 — 필수(WHALEERP-635). 비거나 넘치면 칸 오류. */

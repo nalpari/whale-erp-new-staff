@@ -30,7 +30,7 @@ export function ContractDecision({
   const reject = useContractAction();
   const correction = useContractAction();
   const pending = reject.pending || correction.pending;
-  // 시트를 닫고 지난 실패 문구를 지운다 — 다시 열 때 새로 시작한다
+  // 시트를 닫고 지난 실패 문구를 지운다. 적던 수정 요청 사유는 남겨 다시 열면 이어 쓴다
   const closeSheet = () => {
     setSheet(null);
     reject.reset();
