@@ -19,6 +19,12 @@ export function mismatchText(mismatches: readonly string[], labels: EnumLabels):
   return names.length > 0 && names.every((n) => n !== undefined) ? names.join(" · ") : null;
 }
 
+/**
+ * 근로계약서 거절 · 소속 추가 거절의 요청 본문 — 사유를 싣지 않는다(WHALEERP-635). 빈 JSON 으로 두는 것은 사유 DTO 를 아직 받는
+ * 옛 api 가 본문 없는 요청을 400 으로 막지 않게(앱이 api 보다 먼저 나간다). 테스트가 이 값을 고정한다.
+ */
+export const REJECT_BODY: Readonly<Record<string, never>> = Object.freeze({});
+
 /** 수정 요청 사유 상한(api CORRECTION_REASON_MAX). api 처럼 NFC 로 맞추고 앞뒤 공백을 지운 뒤 센다. */
 export const CORRECTION_REASON_MAX = 100;
 
@@ -80,7 +86,8 @@ export const OUTCOME_UNKNOWN = "처리됐는지 확인하지 못했습니다. �
  * identityLabels 는 api enum `IdentityField` 의 값 · 한글(409 IDENTITY_MISMATCH 의 다른 항목을 적을 때만 쓴다).
  * - 409 CONTRACT_STATUS_CONFLICT 인데 지금 상태가 이 버튼의 결과면 done — 앞선 요청이 이미 처리됐다.
  * - 409(상태 · 기한 · 퇴직 · 재발송 · 대조) · 404 는 stale.
- * - 400 은 날인이면 서명 이미지 문제(다시 그리기), 수정 요청이면 사유 칸.
+ * - 400 은 날인이면 서명 이미지 문제(다시 그리기), 수정 요청이면 사유 칸(수정 요청의 400 은 지금 사유 검사뿐이다 — 다른 400 이
+ *   생기면 칸을 가려야 한다).
  * - 429 · 503 · 5xx · 연결 실패는 다시 시도. 5xx · 연결 실패는 처리됐는지 모른다.
  * log 는 예상하지 못한 응답(영어 원문 400 · 그 밖의 4xx)일 때 남기라는 뜻이다.
  */

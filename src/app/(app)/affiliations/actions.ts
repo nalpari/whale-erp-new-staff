@@ -6,6 +6,7 @@ import { RedirectType, redirect } from "next/navigation";
 import { failureOf, logFailure, type Schemas } from "@/lib/api";
 import { answerFailure, resultHref, type AnswerResult, type AnswerState } from "@/lib/affiliation-requests";
 import { clientIpFrom } from "@/lib/client-ip";
+import { REJECT_BODY } from "@/lib/contract-actions";
 import { saveAcceptedStore } from "@/lib/invitation-cookie";
 import { authedRequest } from "@/lib/session";
 
@@ -54,14 +55,14 @@ export async function acceptAffiliationAction(invitationId: number, _previous: A
 }
 
 /**
- * 거절(`POST /me/affiliation-requests/:id/reject`, 204). 받는 내용은 없고(WHALEERP-635), 함께 온 근로계약서는 서버가 거부로 닫는다.
- * 본문은 빈 JSON 으로 둔다 — 사유 DTO 를 아직 받는 옛 api 가 본문 없는 요청을 400 으로 막지 않게(앱이 api 보다 먼저 나간다).
+ * 거절(`POST /me/affiliation-requests/:id/reject`, 204). 받는 내용은 없고(WHALEERP-635, 본문은 근로계약서 거절과 같은 `REJECT_BODY`),
+ * 함께 온 근로계약서는 서버가 거부로 닫는다. useActionState 가 넘기는 이전 상태 · 폼 값은 쓰지 않는다.
  */
 export async function rejectAffiliationAction(invitationId: number): Promise<AnswerState> {
   if (!isInvitationId(invitationId)) return { error: "잘못된 요청입니다" };
   const clientIp = clientIpFrom(await headers());
   return answer("reject", async () => {
-    await authedRequest(`/me/affiliation-requests/${invitationId}/reject`, { method: "POST", json: {}, clientIp });
+    await authedRequest(`/me/affiliation-requests/${invitationId}/reject`, { method: "POST", json: REJECT_BODY, clientIp });
     return { kind: "rejected" };
   });
 }

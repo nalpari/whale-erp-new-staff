@@ -5,6 +5,7 @@ import {
   OUTCOME_UNKNOWN,
   SIGN_DEADLINE_PASSED,
   CORRECTION_REASON_MAX,
+  REJECT_BODY,
   SIGNATURE_MAX_BYTES,
   contractActionFailure,
   isSentAt,
@@ -27,6 +28,12 @@ test("mismatchText — api 순서대로 enum 한글, 한글이 없는 값이 있
   assert.equal(mismatchText(["name", "nationality"], IDENTITY_LABELS), null);
   assert.equal(mismatchText(["name"], []), null);
   assert.equal(mismatchText([], IDENTITY_LABELS), null);
+});
+
+test("REJECT_BODY — 두 거절(근로계약서 · 소속 추가)은 사유 없이 빈 JSON 을 보낸다", () => {
+  assert.deepEqual(REJECT_BODY, {});
+  assert.equal(JSON.stringify(REJECT_BODY), "{}");
+  assert.ok(Object.isFrozen(REJECT_BODY));
 });
 
 test("readCorrectionReason — 필수, NFC · 앞뒤 공백을 지운 뒤 1~100자", () => {

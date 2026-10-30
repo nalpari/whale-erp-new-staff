@@ -9,6 +9,7 @@ import { getEnumOrEmpty } from "@/lib/enums";
 import {
   contractActionFailure,
   isSentAt,
+  REJECT_BODY,
   readCorrectionReason,
   signatureProblem,
   type ContractAction,
@@ -52,14 +53,11 @@ export async function signContractAction(
   return run("sign", `/me/contracts/${contractId}/sign`, { form, timeoutMs: 30_000 }, `/contracts/${contractId}/done?${storePart(rawStoreId)}done=signed`);
 }
 
-/**
- * 거절 — 받는 내용은 없다(WHALEERP-635). 확인 시트에서 한 번 더 묻는다. 본문은 빈 JSON 으로 둔다 — 사유 DTO 를 아직 받는 옛 api 가
- * 본문 없는 요청을 400 으로 막지 않게(앱이 api 보다 먼저 나간다).
- */
+/** 거절 — 받는 내용은 없다(WHALEERP-635, 본문은 `REJECT_BODY`). 확인 시트에서 한 번 더 묻는다. */
 export async function rejectContractAction(rawContractId: number, rawStoreId: number | null): Promise<ContractActionState> {
   const contractId = parseId(String(rawContractId));
   if (contractId === null) notFound();
-  return run("reject", `/me/contracts/${contractId}/reject`, { json: {} }, `/contracts/${contractId}/done?${storePart(rawStoreId)}done=rejected`);
+  return run("reject", `/me/contracts/${contractId}/reject`, { json: REJECT_BODY }, `/contracts/${contractId}/done?${storePart(rawStoreId)}done=rejected`);
 }
 
 /**

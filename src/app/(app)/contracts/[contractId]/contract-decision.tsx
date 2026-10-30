@@ -47,6 +47,8 @@ export function ContractDecision({
   };
   const handleCorrection = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    // 계약이 그사이 바뀌었으면(「계약서 다시 보기」만 남음) 칸에서 Enter 를 눌러도 다시 보내지 않는다
+    if (correction.state.stale) return;
     const formData = new FormData(event.currentTarget);
     correction.run(() => correctionAction({}, formData));
   };
