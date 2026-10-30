@@ -18,7 +18,7 @@ import {
   type ReviewReason,
 } from "@/lib/attendance-rules";
 import type { AttendanceRecordResult, MyAttendance } from "@/lib/my-attendance";
-import { checkInSignWaitingOf, type CheckInSignWaiting } from "@/lib/sign-request";
+import { blockedContractHref, type CheckInSignWaiting } from "@/lib/sign-request";
 import { changeConsentAction } from "../me/actions";
 import { recordLocationReadAction, registerAttendanceAction } from "./actions";
 import { Clock, GeoBlank, GeoMap, SiteCard, Sunken, Values } from "./check-in-parts";
@@ -649,7 +649,7 @@ export function CheckInScreen({
             <MaskIcon src="/icons/chevron-right-muted.svg" size={12} flipY />
           </Link>
         )}
-        <Button href={signWaiting?.href ?? checkInSignWaitingOf(null, new Date(), store.storeId, pressBlockedId).href} transitionTypes={["nav-forward"]}>
+        <Button href={signWaiting?.href ?? blockedContractHref(store.storeId, pressBlockedId)} transitionTypes={["nav-forward"]}>
           계약서 서명하기
         </Button>
       </BottomSheet>

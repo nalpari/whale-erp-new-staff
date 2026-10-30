@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { ContractListItem } from "./contracts.ts";
-import { checkInSignWaitingOf, signRequestOf, signWaitingCards } from "./sign-request.ts";
+import { blockedContractHref, checkInSignWaitingOf, signRequestOf, signWaitingCards } from "./sign-request.ts";
 
 const NOW = new Date("2026-10-28T03:00:00Z"); // 한국 2026-10-28 12:00
 
@@ -104,4 +104,17 @@ test("checkInSignWaitingOf 는 계약 목록을 못 받으면 api 가 알려 준
   // 목록에 그 근무지 서명 대기가 없어도 api 가 지목한 계약이 있으면 그 상세, 없으면 근무지 목록
   assert.deepEqual(checkInSignWaitingOf([item(9, { storeId: 20 })], NOW, 10, 7), { href: "/contracts/7?store=10", count: 0, left: null, urgent: false });
   assert.deepEqual(checkInSignWaitingOf([item(9, { storeId: 20 })], NOW, 10, null), { href: "/contracts?store=10", count: 0, left: null, urgent: false });
+});
+
+test("checkInSignWaitingOf 는 api 가 지목한 계약이 서명 대기 카드에 없으면(종이 계약 등) 그 계약으로 잇는다 — 서명해야 출근이 풀린다", () => {
+  const paper = 5; // 앱이 서명 대기로 보지 않는 계약(종이 계약 등)
+  const w = checkInSignWaitingOf([item(1), item(paper, { contractMethod: "PAPER" })], NOW, 10, paper);
+  assert.deepEqual(w, { href: "/contracts/5?store=10", count: 1, left: "남은 기한 22일", urgent: false });
+  // 지목한 계약이 카드에 있으면 카드 규칙대로
+  assert.equal(checkInSignWaitingOf([item(1)], NOW, 10, 1).href, "/contracts/1?store=10");
+});
+
+test("blockedContractHref 는 막은 계약이 있으면 그 상세, 없으면 그 근무지 계약서 목록", () => {
+  assert.equal(blockedContractHref(10, 7), "/contracts/7?store=10");
+  assert.equal(blockedContractHref(10, null), "/contracts?store=10");
 });
