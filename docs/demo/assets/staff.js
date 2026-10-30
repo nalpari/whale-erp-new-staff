@@ -1,6 +1,6 @@
 // 직원 근무 앱 데모 HTML 의 동작. 옛 React 데모(src/app/demo)가 useState 로 바꾸던 것을 같은 클래스로 바꾼다.
 // 마크업은 docs/demo/src/ui.mjs 가 그린다 — 여기서 찾는 단서(data-*·role·aria)와 클래스 문자열은 그 파일과 같아야 한다.
-// 화면 조각은 공통 동작보다 먼저 듣는다(근로계약 거부 사유는 시트가 닫히기 전에 읽어야 한다). 선택자가 그 화면 마크업에만 맞는다.
+// 화면 조각은 공통 동작보다 먼저 듣는다. 선택자가 그 화면 마크업에만 맞는다.
 // ── 화면 조각: attendance (출퇴근 현황) ──
 // 출퇴근 현황 데모의 기간별 날짜 칸. 한 번에 고를 수 있는 폭이 1년이라 시작일·종료일 서로의 min·max 를 1년으로 묶는다
 // (옛 React 판 PeriodView 의 shiftYear). staff.js 단서로는 칸끼리 값을 주고받을 수 없어 여기 둔다.
@@ -18,17 +18,14 @@
 })();
 
 // ── 화면 조각: contract (근로계약) ──
-// 근로계약 데모에서 staff.js 단서로 못 하는 것 둘.
-// 1) 서명란(옛 signature-pad.tsx). 손가락·펜·마우스로 실제로 그린다. 서명란(sign)에서 첫 획을 마치면 서명 뒤(sign-drawn)로 간다 —
+// 근로계약 데모에서 staff.js 단서로 못 하는 것 — 서명란(옛 signature-pad.tsx). 손가락·펜·마우스로 실제로 그린다. 서명란(sign)에서 첫 획을 마치면 서명 뒤(sign-drawn)로 간다 —
 //    같은 화면이라 슬라이드 없이 주소만 바꾸고, 블록이 새로 그려지니 그린 것을 옮겨 그린다. 그린 적 없이 서명 뒤로 들어오면(상태 도구) 목업의 견본 서명.
 //    다시 그리기(data-redraw)는 서명란으로 주소만 바꾼다(빈 캔버스).
-// 2) 거부 사유 시트에 적은 글을 거부 완료 화면의 「거부 사유」 칸에 넣는다. 거부 확정 전에는 견본 문구 그대로.
 // ponytail: 캔버스 해상도는 상태가 보일 때 한 번만 맞춘다. 화면 폭이 바뀌면 선이 늘어나 보인다.
 (() => {
   const SAMPLE =
     "M14 58c14-30 26-40 30-30s-12 40-4 38 22-44 30-40-6 34 2 34 18-26 24-24-2 20 6 20 14-14 22-14 10 10 20 8 30-10 44-12M60 72c40-4 90-6 150-8";
   let carried = null; // 서명란에서 그린 그림(서명 뒤로 옮겨 갈 것)
-  let submitted = null; // 거부 확정 때 적은 사유
   let last = null;
 
   const canvasOf = (id) => document.querySelector(`[data-state="${id}"] canvas`);
@@ -65,10 +62,6 @@
       }
     }
     carried = null;
-    if (id === "rejected" && submitted !== null) {
-      const box = document.querySelector('[data-state="rejected"] p.pb-\\[6px\\]').parentElement;
-      box.lastChild.textContent = submitted || "사유를 남기지 않았습니다.";
-    }
   });
 
   const pointOf = (e) => {
@@ -105,9 +98,6 @@
 
   document.addEventListener("click", (e) => {
     if (e.target.closest("[data-redraw]")) location.hash = "sign";
-    // staff.js 보다 먼저 듣는다(이 스크립트가 먼저 실행된다) — 시트가 닫히고 상태가 바뀌기 전에 사유를 읽는다.
-    const confirm = e.target.closest('dialog [data-go="rejected"]');
-    if (confirm) submitted = confirm.closest("dialog").querySelector("textarea").value.trim();
   });
 })();
 

@@ -1,12 +1,14 @@
 // 근로계약 데모. 기준 목업: docs/mockup/app/contract.html — 상태 11개(목록 · 상세 · 서명란 · 서명 뒤 · 처리 중 · 날인 완료 · 다시 보기 ·
-// 종이 계약 · 거부 완료 · 빈 상태 · 만료)와 시트 1개(거부 사유), 화면 문구·가짜 값·계약서 본문·버튼의 이동(data-go)·알림(data-toast)을 옮겼다.
+// 종이 계약 · 거부 완료 · 빈 상태 · 만료)와 시트 1개(거부), 화면 문구·가짜 값·계약서 본문·버튼의 이동(data-go)·알림(data-toast)을 옮겼다.
 // 확정 쟁점: 계약서를 앱 글꼴(Pretendard)로 화면에 직접 그리고 체결 완료만 계약서 PDF 받기(CON-1) · 날인은 필기 서명 — 서명란에 그려야 서명 완료가 살아나고
-// 다시 그리기로 지운다(CON-2, 실제로 그리는 캔버스) · 거부 사유는 선택(CON-3) · 남은 기한 7일 이내만 강조색, 임박 알림 없음(CON-4) ·
+// 다시 그리기로 지운다(CON-2, 실제로 그리는 캔버스) · 거부는 사유 없이 확인만, 수정 요청은 사유 필수 100자(WHALEERP-635 — CON-3 을 바꿈) ·
+// 남은 기한 7일 이내만 강조색, 임박 알림 없음(CON-4) ·
 // 날인 기한 30일 · 근로계약 상태 6종, 발송 대기는 이 화면에 나오지 않는다(CON-5) · 종이 계약은 조항 없이 올라온 날인본 파일만, 임금계약서는 선택(CON-8).
 // 노무사 검토 중: 제4조 휴일(CON-6) · 제7조 연차유급휴가(CON-7)는 「문구 확정 전」, 제6조·제8조는 「문구는 노무사 검토 중(PAY-5)」 그대로.
 // Figma 없음 — DESIGN.md 기준 초안.
 // 목업과 다른 점: 목업 btn--quiet(계약서 PDF 받기 등)는 홈 데모처럼 outline 버튼이다. 종이 계약에도 목업에 없는 뒤로 가기를 둬 목록으로 간다.
-// 서명란 캔버스 그리기·견본 서명·다시 그리기와, 거부 사유가 거부 완료 화면에 들어가는 것은 assets/staff.js 가 맡는다.
+// 목업에 없는 수정 요청 시트(사유 입력)를 앱(contract-decision.tsx)에 맞춰 더했다.
+// 서명란 캔버스 그리기·견본 서명·다시 그리기는 assets/staff.js 가 맡는다.
 import {
   backHeader,
   badge,
@@ -21,6 +23,7 @@ import {
   pageHeader,
   state,
   sunken,
+  textField,
   tiny,
   values,
 } from "../../ui.mjs";
@@ -38,7 +41,8 @@ const STATES = [
   { id: "rejected", label: "거부 완료", note: "재발송 대기" },
   { id: "empty", label: "빈 상태", note: "계약 없음" },
   { id: "expired", label: "만료", note: "기한 지남" },
-  { id: "reject", label: "거부 사유", note: "선택 입력" },
+  { id: "reject", label: "거부 확인", note: "사유 없이 확인만" },
+  { id: "correction", label: "수정 요청", note: "사유 필수 · 100자" },
 ];
 
 // 머리줄 뒤로 가기(목업 data-go-back = 직전 상태). 목록·빈 상태는 홈으로, 날인 완료·거부 완료는 머리줄이 없다.
@@ -65,7 +69,6 @@ const CONTRACTS = [
 // 서명 대기만 강조, 거절·만료는 오류 색, 체결 완료는 정상, 종료는 중립(목업 해설 「이 화면이 하는 일」).
 const STATUS_TONE = { "서명 대기": "warning", "체결 완료": "success", 거절: "danger", 만료: "danger", 종료: "waiting" };
 
-const REJECT_SAMPLE = "근무 요일이 채용 공고 내용과 달라 다시 확인을 요청합니다.";
 
 const go = (id, toast) => ({ "data-go": id, "data-toast": toast });
 const back = (id) => ({ "data-go": id, "data-dir": "nav-back" });
@@ -149,7 +152,14 @@ const detailBody = () =>
       { prose: true, label: "계약서에 들어가는 내 정보" },
     )}${tiny("서명하거나 거절하면 근무지 관리자에게 알림이 전달됩니다.")}`,
     { variant: "detail" },
-  )}${dock(button("서명하기", go("sign")) + button("거절하기", { variant: "ghost", "data-open": "reject" }), 30)}`;
+  )}${dock(
+    button("서명하기", go("sign")) +
+      `<div class="flex gap-[8px]">${button("수정 요청", { variant: "ghost", "data-open": "correction" })}${button("거절하기", {
+        variant: "ghost",
+        "data-open": "reject",
+      })}</div>`,
+    30,
+  )}`;
 
 const signBody = (drawn) =>
   `${body(
@@ -261,10 +271,9 @@ const VIEWS = {
       30,
     )}`,
 
-  // 거부 사유 칸은 처음엔 견본, 거절하기로 왔으면 적은 사유(비었으면 「사유를 남기지 않았습니다.」)를 contract.js 가 넣는다.
   rejected: () =>
     `${body(
-      `${clock("거절 시각", "14:11")}${sunken(REJECT_SAMPLE, { prose: true, label: "거절 사유" })}${tiny(
+      `${clock("거절 시각", "14:11")}${tiny(
         "근무지 관리자에게 거절 사실을 알렸습니다.<br>관리자가 계약서를 다시 보내면 홈에 표시됩니다.",
       )}`,
       { variant: "detail", center: true },
@@ -293,7 +302,7 @@ const VIEWS = {
     )}${dock(button("목록으로", { variant: "ghost", ...back("list") }), 30)}`,
 };
 
-// 거부 사유는 선택이다(CON-3). 사유 없이도 거절하기를 누를 수 있다.
+// 거부는 사유를 받지 않고 확인만 한다(WHALEERP-635). 고칠 내용은 수정 요청으로 받는다.
 // 목업 btn--seal(빨강). 되돌릴 수 없는 확정이라 오류색이다.
 const rejectSheet = (a = {}) =>
   bottomSheet(
@@ -304,18 +313,42 @@ const rejectSheet = (a = {}) =>
       closeLabel: "취소",
       ...a,
     },
-    `<label class="flex flex-col gap-[8px]"><span class="text-[13px] font-semibold text-staff-text-sub">거절 사유 <span class="font-medium text-staff-placeholder">(선택)</span></span><textarea rows="3" placeholder="예: 근무 요일이 안내받은 내용과 다릅니다" class="min-h-[76px] w-full resize-y rounded-[12px] border border-staff-border bg-white px-[14px] py-[12px] text-[16px] text-staff-text outline-none! transition-[border-color] duration-150 ease-out placeholder:text-staff-placeholder focus:border-staff-primary"></textarea><span class="text-[12px] text-staff-text-muted">입력한 사유는 근무지 관리자에게 전달됩니다.</span></label>${dangerButton(
-      "거절하기",
-      { ...go("rejected", "계약서를 거절했습니다"), "data-close": true },
-    )}`,
+    dangerButton("거절하기", { ...go("rejected", "계약서를 거절했습니다"), "data-close": true }),
+  );
+
+// 수정 요청 사유는 필수 한 줄 입력이다(앞뒤 공백을 지운 뒤 1~100자, WHALEERP-635). 비면 앱은 칸 아래에 「수정 요청 사유를 입력해 주세요」.
+const correctionSheet = (a = {}) =>
+  bottomSheet(
+    "correction",
+    {
+      title: "계약서 수정을 요청하시겠습니까?",
+      description: "근무지 관리자에게 수정 요청이 전달됩니다. 관리자가 고쳐 다시 보내면 서명할 수 있습니다.",
+      closeLabel: "취소",
+      ...a,
+    },
+    `${textField({
+      label: "수정 요청 사유",
+      help: "입력한 사유는 근무지 관리자에게 전달됩니다.",
+      maxlength: 100,
+      placeholder: "예: 시급이 안내받은 금액과 다릅니다",
+      autocomplete: "off",
+    })}${button("수정 요청하기", { ...go("detail", "수정을 요청했습니다"), "data-close": true })}`,
   );
 
 function screen(id) {
-  const view = id === "reject" ? "detail" : id;
+  const view = id === "reject" || id === "correction" ? "detail" : id;
   const b = BACK[view];
   const head = view === "list" || view === "empty" ? pageHeader("근로계약", { backHref: page("home") }) : b ? backHeader("근로계약", b) : "";
-  // 상세의 거절하기는 같은 시트를 연다. 거부 사유 상태는 상세를 깔고 시트를 바로 띄운다(닫으면 상세로).
-  const sheet = id === "reject" ? rejectSheet({ "data-sheet-auto": true, "data-on-close": "#detail" }) : id === "detail" ? rejectSheet() : "";
+  // 상세의 거절하기 · 수정 요청은 같은 시트를 연다. 거부 확인 · 수정 요청 상태는 상세를 깔고 그 시트를 바로 띄운다(닫으면 상세로).
+  const auto = { "data-sheet-auto": true, "data-on-close": "#detail" };
+  const sheet =
+    id === "reject"
+      ? rejectSheet(auto) + correctionSheet()
+      : id === "correction"
+        ? rejectSheet() + correctionSheet(auto)
+        : id === "detail"
+          ? rejectSheet() + correctionSheet()
+          : "";
   return `<main class="flex flex-1 flex-col leading-[1.5]">${head}${VIEWS[view]()}</main>${sheet}`;
 }
 

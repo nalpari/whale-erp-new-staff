@@ -497,9 +497,6 @@
   .min-h-\[72px\] {
     min-height: 72px;
   }
-  .min-h-\[76px\] {
-    min-height: 76px;
-  }
   .min-h-\[82px\] {
     min-height: 82px;
   }
@@ -608,9 +605,6 @@
   }
   .touch-none {
     touch-action: none;
-  }
-  .resize-y {
-    resize: vertical;
   }
   .list-none {
     list-style-type: none;
