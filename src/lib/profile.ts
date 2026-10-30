@@ -99,7 +99,8 @@ export function addressSaveFailure(failure: ApiFailure): { error: string; log: b
 
 /**
  * 동의 바꾸기(ATT-23 · 26 · 30)와 그 api 경로 · 끝난 뒤 알림 문구. 모두 POST · 204, 상태가 맞지 않으면 409 다. 본문은 없고
- * 위치정보 동의만 시트에 보인 약관 버전 `{ termsVersion }` 을 늘 싣는다(보인 약관이 없으면 null, 다르면 409, api #185)
+ * 위치정보 동의만 시트에 보인 약관 버전 `{ termsVersion }` 을 늘 싣는다(보인 약관이 없으면 null, 다르면 409, api #185). 사업자 제공
+ * 동의도 본 문구 버전 `{ consentVersion }` 을 늘 싣는다(앱 문구의 HQ_SHARING_TERMS_VERSION, 다르면 409, ATT-30 v252)
  * (2026-10-20 api 확정). 알림 문구는 데모 me 의 토스트를 따르되, 처음 동의하는 경우도 있어 「다시」는 뺐다(다시 켜기는 데모에 없어 지었다).
  */
 export const CONSENT_CHANGES = {
@@ -118,16 +119,24 @@ export const isConsentChange = (value: unknown): value is ConsentChange =>
 
 /** api 가 위치정보 동의에서 「화면이 보여 준 약관 버전이 시행 중인 것과 다름」으로 409 를 줄 때의 사유 앞부분(api #185) */
 const TERMS_CHANGED = "그사이 위치정보 약관이 바뀌었습니다";
+/** api 가 사업자 제공 동의에서 「화면이 보여 준 문구 버전이 지금 것과 다름」으로 409 를 줄 때의 code(ATT-30 v252) */
+const HQ_TERMS_CHANGED_CODE = "HQ_SHARING_TERMS_CHANGED";
 
 /** 동의 바꾸기 실패를 화면 문구로. refresh 는 화면을 다시 받을지, log 는 계약 어긋남으로 남길지다. */
-export function consentChangeFailure(failure: ApiFailure): { error: string; refresh: boolean; log: boolean } {
+export function consentChangeFailure(failure: ApiFailure): { error: string; refresh: boolean; log: boolean; hqTermsChanged?: true } {
   if (failure === "network") return { error: CONNECTION_FAILED, refresh: false, log: false };
   const { status, message } = failure;
+  // 사업자 제공 동의 문구 버전이 바뀐 409 — code 로 가른다. 앱 문구가 번들이라 다시 받아도 같은 문구다 — 사유가 새로 고치라고 말하고,
+  // 홈 다시 동의 팝업은 이 탭에서 다시 띄우지 않는다(hqTermsChanged)
+  if (status === 409 && failure.code === HQ_TERMS_CHANGED_CODE) return { error: message, refresh: true, log: false, hqTermsChanged: true };
   // 409 에는 가를 코드가 없다(kyoto-61, 2026-10-20). 다른 기기에서 바꿨거나 화면이 낡은 것이라 다시 받는다. 동의 시트를 연 사이
   // 위치정보 약관이 바뀐 409(api 의 한글 사유, WHALEERP-628)만은 그 사유를 보인다 — 상태가 아니라 약관이 바뀌어 새 문구를 읽어야 한다.
   if (status === 409)
     return {
-      error: message.startsWith(TERMS_CHANGED) ? message : "그사이 동의 상태가 바뀌어 지금 상태를 다시 불러왔습니다",
+      error:
+        message.startsWith(TERMS_CHANGED)
+          ? message
+          : "그사이 동의 상태가 바뀌어 지금 상태를 다시 불러왔습니다",
       refresh: true,
       log: false,
     };
@@ -206,3 +215,13 @@ export const hqReconsentOf = (
 /** 위치정보 동의를 내 정보에서 다시 받아야 하는가 — 약관 버전이 바뀌었고(needsReconsent) 동의 · 일시 중지일 때(api 도 그때만 참이다) */
 export const locationNeedsReconsent = (consent: Pick<Schemas["MyLocationConsentDto"], "state" | "needsReconsent">) =>
   consent.needsReconsent && (consent.state === "AGREED" || consent.state === "PAUSED");
+
+/**
+ * 동의 바꾸기 요청 본문. 위치정보 동의는 보인 약관이 없었어도(null) 늘 싣는다 — api 는 빠지면 400, null 이면 그사이 시행된 약관이 있을 때
+ * 409 다(api #185). 사업자 제공 동의는 화면이 보인 문구 버전을 consentVersion 으로 싣는다(ATT-30 v252). 나머지는 본문이 없다.
+ */
+export function consentRequestBody(change: ConsentChange, version: string | null | undefined): Record<string, string | null> | undefined {
+  if (change === "location-agree") return { termsVersion: version ?? null };
+  if (change === "hq-sharing-agree") return { consentVersion: version ?? null };
+  return undefined;
+}

@@ -6,7 +6,7 @@ import { RedirectType, redirect } from "next/navigation";
 import { ApiError, NetworkError, failureOf, logFailure, logUnexpected } from "@/lib/api";
 import { logout } from "@/lib/auth";
 import { clientIpFrom } from "@/lib/client-ip";
-import { CONSENT_CHANGES, addressSaveFailure, consentChangeFailure, isConsentChange, parseAddress, type ConsentChange } from "@/lib/profile";
+import { CONSENT_CHANGES, addressSaveFailure, consentChangeFailure, consentRequestBody, isConsentChange, parseAddress, type ConsentChange } from "@/lib/profile";
 import { authedRequest, clearSession, getSession } from "@/lib/session";
 
 /** 주소 저장 결과 — 오류와 저장함 중 하나만. savedAt 은 성공할 때마다 바뀌어 화면이 토스트를 다시 띄운다. */
@@ -35,20 +35,24 @@ export async function saveAddressAction(_previous: AddressSaveState, formData: F
 }
 
 /** 동의 바꾸기 결과. 끝난 뒤 알림 문구는 화면이 CONSENT_CHANGES 에서 읽는다(출처 한 곳). */
-export type ConsentChangeResult = { ok: true } | { ok: false; error: string };
+export type ConsentChangeResult = { ok: true } | { ok: false; error: string; hqTermsChanged?: true };
 
 /**
  * 위치정보 동의 · 일시 중지 · 다시 켜기 · 철회, 본사 제공 동의 · 철회(ATT-23 · 26 · 30). 성공하거나 상태가 낡았으면(409) 화면을 다시 받는다.
  * 위치정보 동의는 화면이 보여 준 약관 버전(termsVersion)을 함께 보낸다 — 그사이 약관이 바뀌었으면 api 가 409 로 거절하고, 다시 받은
- * 화면이 새 약관을 보인다(보인 고지와 남는 동의 버전이 어긋나지 않게, WHALEERP-628).
+ * 화면이 새 약관을 보인다(보인 고지와 남는 동의 버전이 어긋나지 않게, WHALEERP-628). 사업자 제공 동의도 화면이 보인 문구 버전을 같은
+ * 인자로 받아 consentVersion 으로 싣는다 — 다르면 api 가 409 로 거절하고 화면은 새로 고치라는 사유를 보인다(ATT-30 v252). 본문은
+ * consentRequestBody 가 만든다.
  */
 export async function changeConsentAction(change: ConsentChange, termsVersion?: string | null): Promise<ConsentChangeResult> {
   // 서버 액션은 누구나 직접 부를 수 있어 값을 다시 거른다.
   if (!isConsentChange(change)) return { ok: false, error: "잘못된 요청입니다" };
   if (termsVersion != null && (typeof termsVersion !== "string" || termsVersion === "" || termsVersion.length > 64))
     return { ok: false, error: "잘못된 요청입니다" };
-  // 위치정보 동의는 보인 약관이 없었어도(null) 늘 싣는다 — api 는 빠지면 400, null 이면 그사이 시행된 약관이 있을 때 409 다(api #185)
-  const json = change === "location-agree" ? { termsVersion: termsVersion ?? null } : undefined;
+  // 사업자 제공 동의는 보인 문구 버전이 있어야 한다(화면은 늘 싣는다)
+  // 버전을 싣지 않는 화면은 이 버전 이전의 번들이다 — 새로 고치면 풀린다
+  if (change === "hq-sharing-agree" && termsVersion == null) return { ok: false, error: "화면을 새로 고친 뒤 다시 동의해 주세요" };
+  const json = consentRequestBody(change, termsVersion);
   try {
     await authedRequest(CONSENT_CHANGES[change].path, { method: "POST", json, clientIp: clientIpFrom(await headers()) });
   } catch (error) {
@@ -57,7 +61,7 @@ export async function changeConsentAction(change: ConsentChange, termsVersion?: 
     const result = consentChangeFailure(failure);
     if (result.log) logFailure(`consent:${change}`, failure);
     if (result.refresh) refresh();
-    return { ok: false, error: result.error };
+    return { ok: false, error: result.error, ...(result.hqTermsChanged && { hqTermsChanged: true }) };
   }
   refresh();
   return { ok: true };

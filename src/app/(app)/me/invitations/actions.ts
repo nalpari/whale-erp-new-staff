@@ -6,6 +6,7 @@ import { RedirectType, notFound, redirect } from "next/navigation";
 import { RATE_LIMITED } from "@/lib/action-errors";
 import { ApiError, NetworkError, logUnexpected } from "@/lib/api";
 import { clientIpFrom } from "@/lib/client-ip";
+import { hqNotRecordedParams, hqSharingConsentBody } from "@/lib/hq-sharing-terms";
 import { saveJoinedStore } from "@/lib/invitation-cookie";
 import { invitationProblemOf } from "@/lib/join";
 import { acceptMyInvitation } from "@/lib/my-invitations";
@@ -33,8 +34,9 @@ export async function acceptMyInvitationAction(
   try {
     result = await acceptMyInvitation(
       invitationId,
-      // 체크 칸은 api 가 물을 때(asksHqSharingConsent)만 그려진다. 묻지 않는 초대에 보내도 api 는 바꾸지 않는다.
-      formData.get("hqSharingConsented") === "on" ? { hqSharingConsented: true } : {},
+      // 체크 칸은 api 가 물을 때(asksHqSharingConsent)만 그려진다. 묻지 않는 초대에 보내도 api 는 바꾸지 않는다. 동의하면 본 문구 버전을
+      // 함께 싣는다(ATT-30 v252) — 다르면 api 는 근무지는 더하고 동의만 남기지 않는다(v253).
+      hqSharingConsentBody(formData),
       clientIpFrom(await headers()),
     );
   } catch (error) {
@@ -56,6 +58,9 @@ export async function acceptMyInvitationAction(
   // 확인 화면을 히스토리에 남기지 않는다. 뒤로 가면 다 쓴 초대를 다시 열게 된다. 점포 id 는 완료 화면의 「근로계약서 보기」가
   // 그 근무지 계약서만 열 때 쓴다 — 주소로 바꿔도 내 계약서 목록을 거르는 값일 뿐이라 쿠키에 두지 않는다. api #195 배포 전이라
   // 응답에 없으면 붙이지 않는다(완료 화면이 전체 목록으로 잇는다).
-  const query = typeof result.storeId === "number" ? `?store=${result.storeId}` : "";
+  // 동의를 남기지 못했으면(본 문구 버전이 달라) 완료 화면이 안내한다 — 주소에는 정한 값 하나만 싣는다.
+  const params = new URLSearchParams(hqNotRecordedParams(result.hqSharingConsentRecorded));
+  if (typeof result.storeId === "number") params.set("store", String(result.storeId));
+  const query = params.size > 0 ? `?${params}` : "";
   redirect(`/me/invitations/done${query}`, RedirectType.replace);
 }

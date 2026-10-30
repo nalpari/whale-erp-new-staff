@@ -2,7 +2,14 @@
 
 ## 2026-10-30
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 근로계약 수정 요청에 사유(필수 한 줄 · 100자)를 받고, 근로계약서 거절 · 소속 추가 거절은 사유 없이 확인만 한다(WHALEERP-635). `ReasonSheet` 삭제.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 출퇴근 등록 화면의 계약 미체결 시트가 홈으로 보내던 것을 걷고, 데모 nocontract 처럼 서명 대기 경고판(건수 · 남은 기한, 7일 이내면 기한 글자만 강조)과 [계약서 서명하기]로 그 계약서에 잇는다(WHALEERP-146, `checkInSignWaitingOf`). 리뷰: 출근을 누른 뒤 api 가 막았으면 그 응답의 계약 ID 로, 목록에서 서명 대기를 못 찾아도 api 가 지목한 계약으로 잇는다. 기한이 없으면 「서명을 기다립니다」. 막은 계약 주소는 `blockedContractHref` 하나로. code-review: 서명할 수 있는 카드를 api 가 지목한 계약보다 앞세우고(종이 계약 상세로 보내지 않게), 재리뷰: 막힌 뒤 액션이 화면을 다시 받아 경고판 값이 가장 새 값이라 버튼도 그것을 앞세운다(`nocontractHref`, 출근 등록 응답의 계약은 그 값이 없을 때만).
+
 ## 2026-10-29
+* **Update**: main 병합(staff weezing, main #56 · #57 까지): 소속 추가 수락 결과는 main 의 계약 ID(`contractIds`)에 이 브랜치의 동의 못 남김(`hqNotRecorded`)을 더해 합쳤고, okf 충돌은 양쪽 기록을 살렸다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — staff #58 code-review: 문구 버전 409 는 api code `HQ_SHARING_TERMS_CHANGED` 로 가르고(사유 글자로 가르지 않음), 그 409 뒤 홈 다시 동의 팝업은 이 탭에서 다시 띄우지 않는다(번들 문구로는 다시 눌러도 같다). 버전 없는 예전 화면의 동의는 「새로 고친 뒤 다시 동의」 안내. 세 폼의 동의 본문은 `hqSharingConsentBody`, 「남기지 못함」 판정은 `consentNotRecorded` 하나로.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 137 후속 3번 pr-review: 동의 요약의 조사를 흐름마다 맞추고(「가입와」 → 「가입과」, 근무지 추가는 「근무지 추가와」), 완료 화면 쿼리는 `hqNotRecordedParams`(false 일 때만)로 만들어 테스트했다. api 타입의 버전 칸 설명을 「빠지면 남기지 않음」으로 맞췄다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 137 후속 3번 리뷰: 사업자 제공 동의 버전은 서버 상수가 아니라 화면이 그린 버전을 싣는다(카드 · 팝업은 액션 인자, 가입 · 수락 폼은 숨은 칸). 가입 · 수락 체크 칸 아래 요약을 `hq-sharing-terms.ts` 로 옮겨 같은 버전으로 묶었다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — WHALEERP-137 후속(ATT-30 v252 · v253, 2026-10-29 재영): 사업자 제공 동의 네 곳(내 정보 카드 · 홈 다시 동의 팝업 · 가입 · 근무지 추가 · 소속 추가 수락)이 본 문구 버전을 싣는다. 다시 동의의 409 는 api 사유(새로 고침 안내)를 보이고, 가입 · 수락은 동의가 남지 않아도(`hqSharingConsentRecorded` false) 마치고 완료 화면이 다시 동의하라고 안내한다(주소 `hq=not-recorded`). api 타입은 api koffing 기준으로 이 변경 줄만 다시 만들었다.
 * **Update**: main 병합(staff dodrio, main #57 까지): okf 충돌은 양쪽 기록을 살렸다.
 * **Update**: main 병합(staff dodrio, main #55 까지): okf/log 충돌은 양쪽 기록을 살렸고, [Whale ERP Staff](/whale-erp-staff.md) 충돌은 소속 추가 완료 설명(「계약서 날인하러 가기」 · `contractIds`)은 이 브랜치 것을, 홈 서명 대기 카드 설명은 main 것을 합쳤다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — staff #56 code-review: 소속 추가 완료의 「계약서 날인하러 가기」가 내 계약 목록에서 찾은 근무지로 `?store=` 를 붙이고, 버튼은 `replace` · `nav-forward`, 겹친 계약 ID 는 하나로, 안내 · 버튼 조건을 `contractHref` 하나로 묶었다.

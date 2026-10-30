@@ -5,6 +5,7 @@ import { Alert, BottomSheet, Button, Card, CheckBox, DangerButton, Dock, MaskIco
 import { INITIAL_ANSWER_STATE, employmentLine, type AffiliationRequest, type AnswerState } from "@/lib/affiliation-requests";
 import { kstDateTimeLabel } from "@/lib/profile";
 import { BODY, Lead } from "./screen-parts";
+import { HQ_SHARING_TERMS_VERSION, hqSharingSummary } from "@/lib/hq-sharing-terms";
 
 // 소속 추가 확인(WHALEERP-144). 기준: 데모 docs/demo/join 의 addsite · addsite-done · reject(시트 — 사유 없이 확인만, WHALEERP-635).
 // 수락하기 전에는 초대한 사업자 · 점포와 고용 형태만 보인다 — 기존 계정 정보와 직원 레코드 값은 api 가 주지 않는다.
@@ -83,10 +84,9 @@ export function AnswerScreen({
               <CheckBox name="hqSharingConsented" checked={hqSharing} onChange={setHqSharing}>
                 본사 제공 동의 (선택)
               </CheckBox>
-              <p className="text-[12px] text-staff-text-muted">
-                가맹본부가 내 근무 정보(근로계약 · 근무스케줄 · 출퇴근 기록 · 급여명세서)를 개인 단위로 보는 것에 동의합니다. 동의하지 않아도
-                소속 추가와 근무는 그대로이고, 본사에는 점포별 숫자로만 보입니다. 내 정보에서 언제든 철회할 수 있습니다.
-              </p>
+              {/* 이 화면이 보인 문구의 버전(ATT-30 v252) — 계정 등록의 동의 칸과 같다 */}
+              <input type="hidden" name="hqSharingConsentVersion" value={HQ_SHARING_TERMS_VERSION} />
+              <p className="text-[12px] text-staff-text-muted">{hqSharingSummary("affiliation")}</p>
             </div>
           )}
           <p className="text-[12px] text-staff-text-muted">

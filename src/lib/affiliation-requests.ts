@@ -3,6 +3,7 @@
 import { CONNECTION_FAILED, RATE_LIMITED, RETRY_LATER, type ApiFailure } from "./action-errors.ts";
 import type { Schemas } from "./api";
 import { parseId } from "./contract-rules.ts";
+import { HQ_NOT_RECORDED, isHqNotRecorded } from "./hq-sharing-terms.ts";
 import { isSeenSubset, mergeSeen } from "./popup-memory.ts";
 
 export type AffiliationRequest = Schemas["AffiliationRequestDto"];
@@ -18,10 +19,11 @@ export const INITIAL_ANSWER_STATE: AnswerState = {};
 /**
  * 답한 결과 — 수락 · 거절했거나 더 답할 수 없는 요청(이미 답함 · 끝남 · 찾을 수 없음). 결과 경로(`/affiliations/done`)로 보내 그린다.
  * 액션 상태로만 그리면 액션 요청에서 proxy 가 토큰을 갱신해 쿠키를 쓸 때 Next 가 화면을 다시 그려(답한 요청이 목록에서 빠져)
- * 결과가 사라진다. 하이드레이션 전 제출(폼 POST)도 같다.
+ * 결과가 사라진다. 하이드레이션 전 제출(폼 POST)도 같다. hqNotRecorded 는 사업자 제공 동의를 보냈지만 본 문구 버전이 달라 남지 않았다는 뜻이다
+ * (ATT-30 v253 — 수락은 마쳤다).
  */
 export type AnswerResult =
-  | { kind: "accepted"; contractIds: number[] }
+  | { kind: "accepted"; contractIds: number[]; hqNotRecorded: boolean }
   | { kind: "rejected" }
   | { kind: "closed"; reason: ClosedReason };
 
@@ -93,14 +95,16 @@ const CLOSED_REASONS = Object.keys(CLOSED) as ClosedReason[];
 
 /**
  * 답한 결과의 경로(`/affiliations/done?…`). 점포 이름은 싣지 않는다 — 주소 · 기록에 남고, 남이 만든 링크로 가짜 「○○ 소속이
- * 추가되었습니다」를 보일 수 있어서다. 결과 갈래 · 사유 · 수락으로 서명 대기가 된 계약 ID(쉼표로, 20개까지)만 싣는다 — 완료 화면이
- * 「계약서 날인하러 가기」를 그 계약으로 보낸다. 남이 만든 링크의 ID 는 계약 화면에서 api 가 본인 계약인지 다시 본다.
+ * 추가되었습니다」를 보일 수 있어서다. 결과 갈래 · 사유 · 수락으로 서명 대기가 된 계약 ID(쉼표로, 20개까지)와 동의를 남기지 못함(정한 값
+ * 하나)만 싣는다 — 완료 화면이 「계약서 날인하러 가기」를 그 계약으로 보낸다. 남이 만든 링크의 ID 는 계약 화면에서 api 가 본인 계약인지 다시 본다.
  */
 export function resultHref(result: AnswerResult): string {
   const params = new URLSearchParams({ result: result.kind });
   // 읽는 쪽(parseResult)과 같은 기준으로 거른다 — 하나라도 어긋나면 수락하고도 완료 화면 없이 홈으로 간다
-  if (result.kind === "accepted")
+  if (result.kind === "accepted") {
     params.set("contractIds", [...new Set(result.contractIds)].filter((id) => parseId(String(id)) !== null).slice(0, RESULT_CONTRACTS_MAX).join(","));
+    if (result.hqNotRecorded) params.set(HQ_NOT_RECORDED.key, HQ_NOT_RECORDED.value);
+  }
   if (result.kind === "closed") params.set("reason", result.reason);
   return `/affiliations/done?${params}`;
 }
@@ -110,7 +114,8 @@ const one = (value: string | string[] | undefined) => (typeof value === "string"
 
 /**
  * 결과 경로의 쿼리를 결과로. 주소로 들어오는 값이라 정한 것만 받는다 — 모르는 result · reason, 계약 ID 가 아닌 값 · 20개 넘는 목록은
- * null. 계약이 없는 수락은 빈 값(contractIds=)이다.
+ * null. 계약이 없는 수락은 빈 값(contractIds=)이다. 동의를 남기지 못함은 정한 값일 때만 참이고, 다른 값이면 거짓으로 본다(안내 한 줄이라
+ * 결과 전체를 버리지 않는다).
  */
 export function parseResult(params: SearchParams): AnswerResult | null {
   const kind = one(params.result);
@@ -125,7 +130,7 @@ export function parseResult(params: SearchParams): AnswerResult | null {
     const ids = raw === "" ? [] : raw.split(",").map((id) => parseId(id));
     if (ids.length > RESULT_CONTRACTS_MAX || ids.some((id) => id === null)) return null;
     // 겹친 ID 는 하나로 — 한 계약이 목록으로 가지 않게
-    return { kind, contractIds: [...new Set(ids as number[])] };
+    return { kind, contractIds: [...new Set(ids as number[])], hqNotRecorded: isHqNotRecorded(params[HQ_NOT_RECORDED.key]) };
   }
   return null;
 }

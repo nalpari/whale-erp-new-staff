@@ -3,10 +3,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { Alert, BottomNav, MaskIcon, PageHeader } from "@/components/common";
+import { requestsLoadFailure } from "@/lib/affiliation-requests";
+import { failureOf, logFailure } from "@/lib/api";
+import { getContracts } from "@/lib/contracts";
 import { CURRENT_STAFF_MEMBER_COOKIE, pickCurrentMembership } from "@/lib/current-store";
 import { getMyAttendance } from "@/lib/my-attendance";
 import { getMyMemberships } from "@/lib/my-profile";
 import { requireSession } from "@/lib/session";
+import { checkInSignWaitingOf } from "@/lib/sign-request";
 import { CheckInScreen } from "./check-in-screen";
 
 export const metadata: Metadata = { title: "출퇴근 · Whale ERP" };
@@ -19,6 +23,12 @@ export default async function CheckInPage() {
   const memberships = await getMyMemberships();
   const current = memberships && pickCurrentMembership(memberships.items, (await cookies()).get(CURRENT_STAFF_MEMBER_COOKIE)?.value);
   const attendance = current && (await getMyAttendance(current.staffMemberId));
+  // 출근이 서명 대기 계약으로 막혔으면 시트가 그 계약서로 잇는다(146) — 그때만 내 계약 목록을 받는다
+  const block = attendance?.checkInBlock;
+  const signWaiting =
+    attendance && block?.reason === "CONTRACT_PENDING_SIGNATURE"
+      ? checkInSignWaitingOf(await contractsOrNull(), new Date(), attendance.store.storeId, block.contractId)
+      : null;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -48,11 +58,27 @@ export default async function CheckInPage() {
         </div>
       ) : (
         // 근무지를 바꾸면 화면 상태(위치 · 시트)를 새로 시작한다
-        <CheckInScreen key={current.staffMemberId} data={attendance} mapKey={process.env.KAKAO_MAP_APP_KEY || null} />
+        <CheckInScreen key={current.staffMemberId} data={attendance} mapKey={process.env.KAKAO_MAP_APP_KEY || null} signWaiting={signWaiting} />
       )}
       <div className="sticky bottom-0 mt-auto">
         <BottomNav current="/check-in" />
       </div>
     </div>
   );
+}
+
+/**
+ * 내 근로계약 목록 — 계약 미체결 시트의 곁들임이라 api 실패(4xx · 5xx · 연결 실패)는 null 로 받아 기한 줄 없이 그 계약서로 잇는다(401 은 만료
+ * 안내로). 홈과 같은 규칙(requestsLoadFailure — 예상 밖 4xx 만 남긴다)
+ */
+async function contractsOrNull() {
+  try {
+    return await getContracts();
+  } catch (error) {
+    const failure = failureOf(error);
+    const handling = requestsLoadFailure(failure);
+    if (handling === "throw") throw error;
+    if (handling === "log" && failure) logFailure("contracts-check-in", failure);
+    return null;
+  }
 }

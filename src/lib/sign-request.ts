@@ -81,3 +81,52 @@ export function signWaitingCards(items: readonly ContractListItem[], now: Date):
     };
   });
 }
+
+/** 출퇴근 등록 화면의 계약 미체결 시트에 보일 서명 대기(146, 데모 check-in 의 nocontract) */
+export interface CheckInSignWaiting {
+  /** 서명할 계약서 — 하나면 그 상세, 여럿이면 그 근무지 계약서 목록(뒤로 가기도 그 목록) */
+  href: string;
+  /** 그 근무지에서 서명을 기다리는 계약 수. 계약 목록을 못 받았으면 null(건수 줄 없이 버튼만) */
+  count: number | null;
+  /** 가장 급한 계약의 기한 줄 — 홈 카드와 같은 글자(「남은 기한 N일」 · 「오늘 14:00 마감」). 모르면 null */
+  left: string | null;
+  /** 남은 날이 7일 이내 — 기한 글자만 강조한다(146 · CON-4) */
+  urgent: boolean;
+}
+
+/** 출근을 막은 계약서 주소 — api 가 지목한 계약이 있으면 그 상세, 없으면 그 근무지 계약서 목록(뒤로 가기도 그 목록) */
+export const blockedContractHref = (storeId: number, blockedContractId: number | null) =>
+  blockedContractId === null ? `/contracts?store=${storeId}` : `/contracts/${blockedContractId}?store=${storeId}`;
+
+/**
+ * 출근이 「서명 대기 계약 있음」으로 막혔을 때 시트가 보일 것(146). 출퇴근 화면은 앱 전역의 지금 근무지라, 내 계약 목록에서 그 근무지(storeId)의
+ * 서명 대기만 홈 카드와 같은 규칙(signWaitingCards — 기한이 급한 순)으로 본다. 하나면 그 상세, 여럿이면 그 근무지 목록이다 — 경고판의
+ * 건수 · 기한이 가리키는 계약과 링크가 같아야 해서, api 가 지목한 막은 계약(blockedContractId — 그 직원 레코드의 서명 대기 중 가장 최근)보다
+ * 앱에서 서명할 수 있는 카드를 앞세운다(지목한 계약이 종이 계약이면 상세가 「서명할 필요 없음」이라 거기로 보내면 막힌다). 목록을 못
+ * 받았거나 카드가 없을 때만 그 계약으로, 그것도 없으면 근무지 목록이다(blockedContractHref). 출근을 누른 뒤에야 api 가 막았을 때는 화면이
+ * 그 응답의 계약으로 잇는다.
+ */
+export function checkInSignWaitingOf(
+  items: readonly ContractListItem[] | null,
+  now: Date,
+  storeId: number,
+  blockedContractId: number | null,
+): CheckInSignWaiting {
+  const blocked = blockedContractHref(storeId, blockedContractId);
+  if (!items) return { href: blocked, count: null, left: null, urgent: false };
+  const cards = signWaitingCards(
+    items.filter((c) => c.storeId === storeId),
+    now,
+  );
+  const first = cards[0];
+  if (!first) return { href: blocked, count: 0, left: null, urgent: false };
+  return { href: cards.length === 1 ? first.href : `/contracts?store=${storeId}`, count: cards.length, left: first.left, urgent: first.urgent };
+}
+
+/**
+ * 계약 미체결 시트의 [계약서 서명하기] 주소 — 경고판과 같은 곳(signWaiting). 출근을 누른 뒤 막히면 액션이 화면을 다시 받아(refresh)
+ * signWaiting 이 그때의 값으로 새로 오므로 그것이 가장 새 값이다. signWaiting 이 없을 때만(화면을 다시 받기 전 · 다시 받은 출퇴근 정보에
+ * 막힘이 안 보임) 출근 등록 응답이 지목한 계약(pressBlockedId), 그것도 없으면 그 근무지 계약서 목록이다.
+ */
+export const nocontractHref = (signWaiting: Pick<CheckInSignWaiting, "href"> | null, storeId: number, pressBlockedId: number | null) =>
+  signWaiting?.href ?? blockedContractHref(storeId, pressBlockedId);
