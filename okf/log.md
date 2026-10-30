@@ -1,5 +1,7 @@
 # Bundle history
 
+## 2026-10-30
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 출퇴근 등록 화면의 계약 미체결 시트가 홈으로 보내던 것을 걷고, 데모 nocontract 처럼 서명 대기 경고판(건수 · 남은 기한, 7일 이내면 기한 글자만 강조)과 [계약서 서명하기]로 그 계약서에 잇는다(WHALEERP-146, `checkInSignWaitingOf`).
 ## 2026-10-29
 * **Update**: main 병합(staff weezing, main #56 · #57 까지): 소속 추가 수락 결과는 main 의 계약 ID(`contractIds`)에 이 브랜치의 동의 못 남김(`hqNotRecorded`)을 더해 합쳤고, okf 충돌은 양쪽 기록을 살렸다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — staff #58 code-review: 문구 버전 409 는 api code `HQ_SHARING_TERMS_CHANGED` 로 가르고(사유 글자로 가르지 않음), 그 409 뒤 홈 다시 동의 팝업은 이 탭에서 다시 띄우지 않는다(번들 문구로는 다시 눌러도 같다). 버전 없는 예전 화면의 동의는 「새로 고친 뒤 다시 동의」 안내. 세 폼의 동의 본문은 `hqSharingConsentBody`, 「남기지 못함」 판정은 `consentNotRecorded` 하나로.

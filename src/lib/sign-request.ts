@@ -81,3 +81,37 @@ export function signWaitingCards(items: readonly ContractListItem[], now: Date):
     };
   });
 }
+
+/** 출퇴근 등록 화면의 계약 미체결 시트에 보일 서명 대기(146, 데모 check-in 의 nocontract) */
+export interface CheckInSignWaiting {
+  /** 서명할 계약서 — 하나면 그 상세, 여럿이면 그 근무지 계약서 목록(뒤로 가기도 그 목록) */
+  href: string;
+  /** 그 근무지에서 서명을 기다리는 계약 수. 계약 목록을 못 받았으면 null(건수 줄 없이 버튼만) */
+  count: number | null;
+  /** 가장 급한 계약의 기한 줄 — 홈 카드와 같은 글자(「남은 기한 N일」 · 「오늘 14:00 마감」). 모르면 null */
+  left: string | null;
+  /** 남은 날이 7일 이내 — 기한 글자만 강조한다(146 · CON-4) */
+  urgent: boolean;
+}
+
+/**
+ * 출근이 「서명 대기 계약 있음」으로 막혔을 때 시트가 보일 것(146). 출퇴근 화면은 앱 전역의 지금 근무지라, 내 계약 목록에서 그 근무지(storeId)의
+ * 서명 대기만 홈 카드와 같은 규칙(signWaitingCards — 기한이 급한 순)으로 본다. 목록을 못 받았으면(null) api 가 알려 준 막은 계약
+ * (blockedContractId)으로 잇고, 그것도 없으면 그 근무지 계약서 목록이다.
+ */
+export function checkInSignWaitingOf(
+  items: readonly ContractListItem[] | null,
+  now: Date,
+  storeId: number,
+  blockedContractId: number | null,
+): CheckInSignWaiting {
+  const list = `/contracts?store=${storeId}`;
+  if (!items) return { href: blockedContractId === null ? list : `/contracts/${blockedContractId}?store=${storeId}`, count: null, left: null, urgent: false };
+  const cards = signWaitingCards(
+    items.filter((c) => c.storeId === storeId),
+    now,
+  );
+  const first = cards[0];
+  if (!first) return { href: list, count: 0, left: null, urgent: false };
+  return { href: cards.length === 1 ? first.href : list, count: cards.length, left: first.left, urgent: first.urgent };
+}

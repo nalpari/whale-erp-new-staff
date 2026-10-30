@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useTransition, type ReactNode } from "react";
-import { Alert, BottomSheet, Button, Dock, Toast, WorkTimeBar } from "@/components/common";
+import { Alert, BottomSheet, Button, Dock, MaskIcon, Toast, WorkTimeBar } from "@/components/common";
 import {
   distanceMeters,
   elapsedLabel,
@@ -17,6 +18,7 @@ import {
   type ReviewReason,
 } from "@/lib/attendance-rules";
 import type { AttendanceRecordResult, MyAttendance } from "@/lib/my-attendance";
+import type { CheckInSignWaiting } from "@/lib/sign-request";
 import { changeConsentAction } from "../me/actions";
 import { recordLocationReadAction, registerAttendanceAction } from "./actions";
 import { Clock, GeoBlank, GeoMap, SiteCard, Sunken, Values } from "./check-in-parts";
@@ -41,7 +43,16 @@ const GEO_OPTIONS: PositionOptions = { enableHighAccuracy: true, timeout: 15_000
 
 // 출퇴근 등록 화면(목업 attendance.html · 데모 check-in). 출근은 확인 없이 바로 기록하고(ATT-9), 퇴근은 확인 시트를 한 번
 // 거친다(WHALEERP-215). 반경 밖은 출근 · 퇴근 모두 시트에서 확인 필요가 붙는다고 알리고 받는다(ATT-11).
-export function CheckInScreen({ data, mapKey }: { data: MyAttendance; mapKey: string | null }) {
+export function CheckInScreen({
+  data,
+  mapKey,
+  signWaiting,
+}: {
+  data: MyAttendance;
+  mapKey: string | null;
+  /** 출근이 서명 대기 계약으로 막혔을 때 계약 미체결 시트가 잇는 계약서(146). 막히지 않았으면 null */
+  signWaiting: CheckInSignWaiting | null;
+}) {
   const { store, locationConsent: consent, openCheckIn, checkInBlock } = data;
   const located = store.isLocationApplied;
   const target = store.latitude !== null && store.longitude !== null ? { latitude: store.latitude, longitude: store.longitude } : null;
@@ -611,14 +622,36 @@ export function CheckInScreen({ data, mapKey }: { data: MyAttendance; mapKey: st
         <Sunken prose>관리자는 최근 3개월 안의 기록을 수정할 수 있습니다.</Sunken>
       </BottomSheet>
 
-      {/* 근로계약 기간 밖 출근(ATT-12): 서명 대기 계약이 있으면 날인하면 바로 출근할 수 있다. 앱의 계약서 화면이 아직 없어 홈의 날인 대기 카드로 보낸다. */}
+      {/* 근로계약 기간 밖 출근(ATT-12): 서명 대기 계약이 있으면 서명하면 바로 출근할 수 있다 — 데모 check-in 의 nocontract 처럼 경고판(서명할
+          계약 수 · 남은 기한)과 「계약서 서명하기」로 그 계약서(staff #44)에 잇는다(146). 출근을 누른 뒤 api 가 막았는데 화면이 미리 몰랐으면
+          (signWaiting 없음) 그 근무지 계약서 목록으로 간다. 남은 기한이 7일 이내면 기한 글자만 굵게(홈 카드와 같다) */}
       <BottomSheet
         open={sheet === "nocontract"}
         onClose={() => setSheet(null)}
         title="근로계약을 체결해야 출근할 수 있습니다"
         description="오늘 날짜가 들어간 체결 완료 근로계약이 있어야 출퇴근을 등록할 수 있습니다. 받은 계약서에 서명하면 바로 출근할 수 있습니다."
       >
-        <Button href="/home">계약서 보러 가기</Button>
+        {signWaiting && signWaiting.count !== null && signWaiting.count > 0 && (
+          <Link
+            href={signWaiting.href}
+            transitionTypes={["nav-forward"]}
+            className="flex min-h-[52px] items-center gap-[12px] rounded-[12px] bg-[#fff6e5] p-[14px] text-[#956013] transition-opacity duration-150 ease-out active:opacity-80"
+          >
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="text-[14px] font-semibold">서명할 근로계약서 {signWaiting.count}건</span>
+              {signWaiting.left && (
+                <>
+                  <span className="sr-only">, </span>
+                  <span className={`text-[12px] ${signWaiting.urgent ? "font-bold" : ""}`}>{signWaiting.left}</span>
+                </>
+              )}
+            </span>
+            <MaskIcon src="/icons/chevron-right-muted.svg" size={12} flipY />
+          </Link>
+        )}
+        <Button href={signWaiting?.href ?? `/contracts?store=${store.storeId}`} transitionTypes={["nav-forward"]}>
+          계약서 서명하기
+        </Button>
       </BottomSheet>
 
       <BottomSheet
