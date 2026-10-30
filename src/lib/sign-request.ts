@@ -122,3 +122,11 @@ export function checkInSignWaitingOf(
   if (!first) return { href: blocked, count: 0, left: null, urgent: false };
   return { href: cards.length === 1 ? first.href : `/contracts?store=${storeId}`, count: cards.length, left: first.left, urgent: first.urgent };
 }
+
+/**
+ * 계약 미체결 시트의 [계약서 서명하기] 주소 — 경고판과 같은 곳(signWaiting). 출근을 누른 뒤 막히면 액션이 화면을 다시 받아(refresh)
+ * signWaiting 이 그때의 값으로 새로 오므로 그것이 가장 새 값이다. signWaiting 이 없을 때만(화면을 다시 받기 전 · 다시 받은 출퇴근 정보에
+ * 막힘이 안 보임) 출근 등록 응답이 지목한 계약(pressBlockedId), 그것도 없으면 그 근무지 계약서 목록이다.
+ */
+export const nocontractHref = (signWaiting: Pick<CheckInSignWaiting, "href"> | null, storeId: number, pressBlockedId: number | null) =>
+  signWaiting?.href ?? blockedContractHref(storeId, pressBlockedId);

@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { ContractListItem } from "./contracts.ts";
-import { blockedContractHref, checkInSignWaitingOf, signRequestOf, signWaitingCards } from "./sign-request.ts";
+import { blockedContractHref, checkInSignWaitingOf, nocontractHref, signRequestOf, signWaitingCards } from "./sign-request.ts";
 
 const NOW = new Date("2026-10-28T03:00:00Z"); // 한국 2026-10-28 12:00
 
@@ -117,4 +117,11 @@ test("checkInSignWaitingOf 는 api 가 지목한 계약보다 앱에서 서명�
 test("blockedContractHref 는 막은 계약이 있으면 그 상세, 없으면 그 근무지 계약서 목록", () => {
   assert.equal(blockedContractHref(10, 7), "/contracts/7?store=10");
   assert.equal(blockedContractHref(10, null), "/contracts?store=10");
+});
+
+test("nocontractHref 는 경고판과 같은 곳을 앞세우고, 없을 때만 출근 등록 응답의 계약 · 근무지 목록으로 간다", () => {
+  // 출근을 누른 뒤 막히면 화면을 다시 받아 signWaiting 이 새로 온다 — 그것이 가장 새 값
+  assert.equal(nocontractHref({ href: "/contracts/1?store=10" }, 10, 5), "/contracts/1?store=10");
+  assert.equal(nocontractHref(null, 10, 5), "/contracts/5?store=10");
+  assert.equal(nocontractHref(null, 10, null), "/contracts?store=10");
 });
