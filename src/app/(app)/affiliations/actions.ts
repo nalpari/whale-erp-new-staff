@@ -6,6 +6,7 @@ import { RedirectType, redirect } from "next/navigation";
 import { failureOf, logFailure, type Schemas } from "@/lib/api";
 import { answerFailure, parseRejectReason, resultHref, type AnswerResult, type AnswerState } from "@/lib/affiliation-requests";
 import { clientIpFrom } from "@/lib/client-ip";
+import { consentNotRecorded, hqSharingConsentBody } from "@/lib/hq-sharing-terms";
 import { saveAcceptedStore } from "@/lib/invitation-cookie";
 import { authedRequest } from "@/lib/session";
 
@@ -36,10 +37,13 @@ async function answer(kind: "accept" | "reject", run: () => Promise<AnswerResult
   redirect(resultHref(result), RedirectType.replace);
 }
 
-/** 수락(`POST /me/affiliation-requests/:id/accept`). 본사 제공 동의는 켰을 때만 싣는다(가입과 같다). */
+/**
+ * 수락(`POST /me/affiliation-requests/:id/accept`). 본사 제공 동의는 켰을 때만 본 문구 버전과 함께 싣는다(가입과 같다, ATT-30 v252). 버전이
+ * 달라 동의를 남기지 못했으면(v253) 수락은 마쳤으니 결과 화면이 안내한다.
+ */
 export async function acceptAffiliationAction(invitationId: number, _previous: AnswerState, formData: FormData): Promise<AnswerState> {
   if (!isInvitationId(invitationId)) return { error: "잘못된 요청입니다" };
-  const json = formData.get("hqSharingConsented") === "on" ? { hqSharingConsented: true } : {};
+  const json = hqSharingConsentBody(formData);
   const clientIp = clientIpFrom(await headers());
   return answer("accept", async () => {
     const result = await authedRequest<Schemas["AcceptAffiliationResponseDto"]>(`/me/affiliation-requests/${invitationId}/accept`, {
@@ -49,7 +53,7 @@ export async function acceptAffiliationAction(invitationId: number, _previous: A
     });
     // 완료 화면의 점포 이름은 주소가 아니라 짧은 쿠키로 넘긴다(가입 완료와 같다).
     await saveAcceptedStore(result.storeName);
-    return { kind: "accepted", contractIds: result.contractIds };
+    return { kind: "accepted", contractIds: result.contractIds, hqNotRecorded: consentNotRecorded(result.hqSharingConsentRecorded) };
   });
 }
 

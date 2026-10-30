@@ -4,7 +4,7 @@ import { unstable_rethrow } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Alert, Button, RequestSheet, Toast } from "@/components/common";
 import { rememberHqReconsentSeen } from "@/lib/hq-reconsent-popup-memory";
-import { HQ_SHARING_TERMS } from "@/lib/hq-sharing-terms";
+import { HQ_SHARING_TERMS, HQ_SHARING_TERMS_VERSION } from "@/lib/hq-sharing-terms";
 import { CONSENT_CHANGES } from "@/lib/profile";
 import { changeConsentAction } from "../me/actions";
 
@@ -29,12 +29,14 @@ export function HqReconsentPopup({ open, reconsentKey }: { open: boolean; recons
     startTransition(async () => {
       setError(undefined);
       try {
-        const result = await changeConsentAction("hq-sharing-agree");
+        const result = await changeConsentAction("hq-sharing-agree", HQ_SHARING_TERMS_VERSION);
         if (result.ok) setToast({ key: Date.now(), text: CONSENT_CHANGES["hq-sharing-agree"].done });
         else {
           setError(result.error);
           // 409 면 액션이 홈을 다시 받아 대상이 없어지면 시트가 내려간다 — 시트 안 문구만으로는 보이지 않아 토스트로도 알린다
           setToast({ key: Date.now(), text: result.error });
+          // 문구가 바뀌었으면(api 가 앱보다 앞섬) 이 번들로는 다시 눌러도 같다 — 이 탭에서는 다시 띄우지 않는다(새로 고치면 다시 묻는다)
+          if (result.hqTermsChanged) rememberHqReconsentSeen(reconsentKey);
         }
       } catch (thrown) {
         unstable_rethrow(thrown);

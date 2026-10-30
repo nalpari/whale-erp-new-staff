@@ -6,7 +6,7 @@ import { Alert, Badge, BottomSheet, Button, Card, Toast, type BadgeTone } from "
 import type { Schemas } from "@/lib/api";
 // 지금 시행 중인 위치정보 약관 — 받음 · 없음(설정 문제) · 잠시 못 받음. 타입만 가져온다(서버 모듈).
 import type { CurrentTerms } from "@/lib/my-profile";
-import { HQ_SHARING_TERMS } from "@/lib/hq-sharing-terms";
+import { HQ_SHARING_TERMS, HQ_SHARING_TERMS_VERSION } from "@/lib/hq-sharing-terms";
 import { CONSENT_CHANGES, dateLabel, hqSharingView, kstDateTimeLabel, locationNeedsReconsent, type ConsentChange, type LocationConsentState } from "@/lib/profile";
 import { changeConsentAction } from "./actions";
 import { CardLabel } from "@/app/_components/read-only-field";
@@ -323,7 +323,7 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
         <p className="text-[12px] text-staff-placeholder">동의 문구는 법무 검토 중(ATT-8)</p>
         {/* 위치정보와 같이 내용을 보인 이 시트 안에서만 동의를 받는다. */}
         {view.action.kind === "agree" && (
-          <Button disabled={pending} onClick={() => change("hq-sharing-agree")}>
+          <Button disabled={pending} onClick={() => change("hq-sharing-agree", HQ_SHARING_TERMS_VERSION)}>
             동의합니다
           </Button>
         )}

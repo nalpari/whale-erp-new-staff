@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { Button, Dock, MaskIcon, Notice, PageHeader } from "@/components/common";
+import { Alert, Button, Dock, MaskIcon, Notice, PageHeader } from "@/components/common";
 import { Sunken, Values } from "@/app/_components/tax-profile-parts";
 import { failureOf, logFailure } from "@/lib/api";
 import { contentOf, contractHrefOf, parseResult } from "@/lib/affiliation-requests";
 import { getContracts } from "@/lib/contracts";
 import { HOME_PATH } from "@/lib/login-return";
+import { HQ_NOT_RECORDED, HQ_NOT_RECORDED_NOTICE } from "@/lib/hq-sharing-terms";
 import { readAcceptedStore } from "@/lib/invitation-cookie";
 import { BODY, Lead } from "../screen-parts";
 
@@ -20,21 +21,23 @@ import { BODY, Lead } from "../screen-parts";
 // 하나면 그 계약서, 여럿이면 근로계약서 목록 — 내 계약 목록에서 그 계약의 근무지를 찾아 ?store= 로 그 근무지만 보인다(수락 응답에 점포가
 // 없다). 없으면 도착하면 알린다는 안내와 홈 · 요청 목록이다(데모 addsite-done). 버튼은 근무지 추가 완료(/me/invitations/done)와 같이
 // 기록을 바꿔 넣어(replace) 날인하고 뒤로 가도 이 완료 화면에 들르지 않는다.
+// 사업자 제공 동의를 보냈지만 본 문구 버전이 달라 남지 않았으면(ATT-30 v253 — 수락은 마쳤다) 다시 동의하라고 안내한다(parseResult 의 hqNotRecorded).
 
 type Params = Awaited<PageProps<"/affiliations/done">["searchParams"]>;
 const text = (value: string | string[] | undefined) => (typeof value === "string" ? value : undefined);
 
 /**
  * 결과와 그 제목 · 설명. generateMetadata 와 화면이 같이 불러 한 번만 읽는다 — cache 는 인자를 값으로 비교해야 맞으므로 쿼리에서
- * 쓰는 세 값만 글자로 넘긴다(여러 번 실린 값은 parseResult 처럼 받지 않는다).
+ * 쓰는 네 값만 글자로 넘긴다(여러 번 실린 값은 parseResult 처럼 받지 않는다).
  */
-const loadContent = cache(async (kind?: string, reason?: string, contractIds?: string) => {
-  const result = parseResult({ result: kind, reason, contractIds });
+const loadContent = cache(async (kind?: string, reason?: string, contractIds?: string, hq?: string) => {
+  const result = parseResult({ result: kind, reason, contractIds, [HQ_NOT_RECORDED.key]: hq });
   if (!result) return null;
   return { result, ...contentOf(result, result.kind === "accepted" ? await readAcceptedStore() : null) };
 });
 
-const contentFor = (params: Params) => loadContent(text(params.result), text(params.reason), text(params.contractIds));
+const contentFor = (params: Params) =>
+  loadContent(text(params.result), text(params.reason), text(params.contractIds), text(params[HQ_NOT_RECORDED.key]));
 
 export async function generateMetadata({ searchParams }: PageProps<"/affiliations/done">): Promise<Metadata> {
   const content = await contentFor(await searchParams);
@@ -84,7 +87,8 @@ export default async function AffiliationDonePage({ searchParams }: PageProps<"/
               ]}
             />
           </Sunken>
-          <div className="text-left">
+          <div className="flex flex-col gap-[10px] text-left">
+            {result.hqNotRecorded && <Alert tone="warning">{HQ_NOT_RECORDED_NOTICE}</Alert>}
             <Notice icon={<MaskIcon src="/icons/contract.svg" size={14} />}>
               {contractHref ? (
                 <>

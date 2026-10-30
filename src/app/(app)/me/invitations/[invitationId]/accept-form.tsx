@@ -48,7 +48,7 @@ export function AcceptInvitationForm({
         }
       >
         <InvitationSummary storeName={storeName} employmentType={employmentType} expiresOn={expiresOn} />
-        {asksHqSharingConsent && <HqSharingConsent checked={hqSharing} onChange={setHqSharing} />}
+        {asksHqSharingConsent && <HqSharingConsent checked={hqSharing} onChange={setHqSharing} flow="addStore" />}
         {"error" in state && state.error && <Alert tone="danger">{state.error}</Alert>}
       </AuthScreen>
     </form>

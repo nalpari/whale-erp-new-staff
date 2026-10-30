@@ -74,7 +74,8 @@ export function checkInvitation(body: Schemas["InvitationLookupDto"], clientIp: 
 /**
  * 가입(WHALEERP-142). 초대를 다시 확인하고 계정을 만들어 로그인 응답과 같은 모양을 준다. 계정 번호는 초대의 번호다(보내지 않는다).
  * 초대 확인의 오류에 더해 400 만 19세 미만(SIGNUP_UNDER_AGE, 초대는 가입 불가가 됨) · 생년월일이 오늘 뒤 · 비밀번호 규칙, 409 이미 쓰는 이메일.
+ * 응답의 hqSharingConsentRecorded 가 false 면 가입은 마쳤지만 사업자 제공 동의를 남기지 못했다(본 문구 버전이 달라, ATT-30 v253).
  */
 export function signup(body: Schemas["StaffSignupDto"], clientIp: ClientIp | undefined) {
-  return request<Schemas["LoginResponseDto"]>("/auth/account/signup", { method: "POST", json: body, clientIp });
+  return request<Schemas["StaffSignupResponseDto"]>("/auth/account/signup", { method: "POST", json: body, clientIp });
 }
