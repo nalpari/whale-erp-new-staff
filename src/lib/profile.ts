@@ -119,20 +119,22 @@ export const isConsentChange = (value: unknown): value is ConsentChange =>
 
 /** api 가 위치정보 동의에서 「화면이 보여 준 약관 버전이 시행 중인 것과 다름」으로 409 를 줄 때의 사유 앞부분(api #185) */
 const TERMS_CHANGED = "그사이 위치정보 약관이 바뀌었습니다";
-/** api 가 사업자 제공 동의에서 「화면이 보여 준 문구 버전이 지금 것과 다름」으로 409 를 줄 때의 사유 앞부분(ATT-30 v252) */
-const HQ_TERMS_CHANGED = "사업자 제공 동의 내용이 바뀌었습니다";
+/** api 가 사업자 제공 동의에서 「화면이 보여 준 문구 버전이 지금 것과 다름」으로 409 를 줄 때의 code(ATT-30 v252) */
+const HQ_TERMS_CHANGED_CODE = "HQ_SHARING_TERMS_CHANGED";
 
 /** 동의 바꾸기 실패를 화면 문구로. refresh 는 화면을 다시 받을지, log 는 계약 어긋남으로 남길지다. */
-export function consentChangeFailure(failure: ApiFailure): { error: string; refresh: boolean; log: boolean } {
+export function consentChangeFailure(failure: ApiFailure): { error: string; refresh: boolean; log: boolean; hqTermsChanged?: true } {
   if (failure === "network") return { error: CONNECTION_FAILED, refresh: false, log: false };
   const { status, message } = failure;
+  // 사업자 제공 동의 문구 버전이 바뀐 409 — code 로 가른다. 앱 문구가 번들이라 다시 받아도 같은 문구다 — 사유가 새로 고치라고 말하고,
+  // 홈 다시 동의 팝업은 이 탭에서 다시 띄우지 않는다(hqTermsChanged)
+  if (status === 409 && failure.code === HQ_TERMS_CHANGED_CODE) return { error: message, refresh: true, log: false, hqTermsChanged: true };
   // 409 에는 가를 코드가 없다(kyoto-61, 2026-10-20). 다른 기기에서 바꿨거나 화면이 낡은 것이라 다시 받는다. 동의 시트를 연 사이
-  // 위치정보 약관이 바뀐 409(api 의 한글 사유, WHALEERP-628)와 사업자 제공 동의 문구 버전이 바뀐 409(ATT-30 v252 — 앱 문구가 번들이라
-  // 사유가 새로 고치라고 말한다)만은 그 사유를 보인다 — 상태가 아니라 내용이 바뀌어 새 문구를 읽어야 한다.
+  // 위치정보 약관이 바뀐 409(api 의 한글 사유, WHALEERP-628)만은 그 사유를 보인다 — 상태가 아니라 약관이 바뀌어 새 문구를 읽어야 한다.
   if (status === 409)
     return {
       error:
-        message.startsWith(TERMS_CHANGED) || message.startsWith(HQ_TERMS_CHANGED)
+        message.startsWith(TERMS_CHANGED)
           ? message
           : "그사이 동의 상태가 바뀌어 지금 상태를 다시 불러왔습니다",
       refresh: true,

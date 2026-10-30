@@ -35,7 +35,7 @@ export async function saveAddressAction(_previous: AddressSaveState, formData: F
 }
 
 /** 동의 바꾸기 결과. 끝난 뒤 알림 문구는 화면이 CONSENT_CHANGES 에서 읽는다(출처 한 곳). */
-export type ConsentChangeResult = { ok: true } | { ok: false; error: string };
+export type ConsentChangeResult = { ok: true } | { ok: false; error: string; hqTermsChanged?: true };
 
 /**
  * 위치정보 동의 · 일시 중지 · 다시 켜기 · 철회, 본사 제공 동의 · 철회(ATT-23 · 26 · 30). 성공하거나 상태가 낡았으면(409) 화면을 다시 받는다.
@@ -50,7 +50,8 @@ export async function changeConsentAction(change: ConsentChange, termsVersion?: 
   if (termsVersion != null && (typeof termsVersion !== "string" || termsVersion === "" || termsVersion.length > 64))
     return { ok: false, error: "잘못된 요청입니다" };
   // 사업자 제공 동의는 보인 문구 버전이 있어야 한다(화면은 늘 싣는다)
-  if (change === "hq-sharing-agree" && termsVersion == null) return { ok: false, error: "잘못된 요청입니다" };
+  // 버전을 싣지 않는 화면은 이 버전 이전의 번들이다 — 새로 고치면 풀린다
+  if (change === "hq-sharing-agree" && termsVersion == null) return { ok: false, error: "화면을 새로 고친 뒤 다시 동의해 주세요" };
   const json = consentRequestBody(change, termsVersion);
   try {
     await authedRequest(CONSENT_CHANGES[change].path, { method: "POST", json, clientIp: clientIpFrom(await headers()) });
@@ -60,7 +61,7 @@ export async function changeConsentAction(change: ConsentChange, termsVersion?: 
     const result = consentChangeFailure(failure);
     if (result.log) logFailure(`consent:${change}`, failure);
     if (result.refresh) refresh();
-    return { ok: false, error: result.error };
+    return { ok: false, error: result.error, ...(result.hqTermsChanged && { hqTermsChanged: true }) };
   }
   refresh();
   return { ok: true };

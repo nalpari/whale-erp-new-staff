@@ -41,7 +41,19 @@ export const HQ_NOT_RECORDED = { key: "hq", value: "not-recorded" } as const;
  * 동의하지 않은 직원에게 「남지 않았습니다」가 뜨지 않게
  */
 export const hqNotRecordedParams = (recorded: boolean | null | undefined): Record<string, string> =>
-  recorded === false ? { [HQ_NOT_RECORDED.key]: HQ_NOT_RECORDED.value } : {};
+  consentNotRecorded(recorded) ? { [HQ_NOT_RECORDED.key]: HQ_NOT_RECORDED.value } : {};
+
+/** api 응답 hqSharingConsentRecorded 가 「동의했지만 남기지 못함」인가 — false 만. 세 흐름의 완료 안내가 같은 규칙을 쓴다 */
+export const consentNotRecorded = (recorded: boolean | null | undefined) => recorded === false;
+
+/**
+ * 가입 · 근무지 추가 · 소속 추가 폼의 사업자 제공 동의 칸을 api 본문으로 — 체크했으면 숨은 칸의 화면 버전을 함께(형식이 틀리면 싣지 않아
+ * api 가 동의만 남기지 않는다), 아니면 비운다. 폼 값은 브라우저에서 오므로 여기서만 거른다
+ */
+export const hqSharingConsentBody = (form: { get: (name: string) => unknown }) =>
+  form.get("hqSharingConsented") === "on"
+    ? { hqSharingConsented: true as const, hqSharingConsentVersion: parseHqSharingVersion(form.get("hqSharingConsentVersion")) }
+    : {};
 
 /** 완료 화면 쿼리에서 「동의를 남기지 못함」인가 — 정한 값 하나만 참이다. 여러 번 실린 값은 받지 않는다 */
 export const isHqNotRecorded = (value: string | string[] | undefined) => value === HQ_NOT_RECORDED.value;

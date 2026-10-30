@@ -6,7 +6,7 @@ import { RedirectType, notFound, redirect } from "next/navigation";
 import { RATE_LIMITED } from "@/lib/action-errors";
 import { ApiError, NetworkError, logUnexpected } from "@/lib/api";
 import { clientIpFrom } from "@/lib/client-ip";
-import { hqNotRecordedParams, parseHqSharingVersion } from "@/lib/hq-sharing-terms";
+import { hqNotRecordedParams, hqSharingConsentBody } from "@/lib/hq-sharing-terms";
 import { saveJoinedStore } from "@/lib/invitation-cookie";
 import { invitationProblemOf } from "@/lib/join";
 import { acceptMyInvitation } from "@/lib/my-invitations";
@@ -36,7 +36,7 @@ export async function acceptMyInvitationAction(
       invitationId,
       // 체크 칸은 api 가 물을 때(asksHqSharingConsent)만 그려진다. 묻지 않는 초대에 보내도 api 는 바꾸지 않는다. 동의하면 본 문구 버전을
       // 함께 싣는다(ATT-30 v252) — 다르면 api 는 근무지는 더하고 동의만 남기지 않는다(v253).
-      formData.get("hqSharingConsented") === "on" ? { hqSharingConsented: true, hqSharingConsentVersion: parseHqSharingVersion(formData.get("hqSharingConsentVersion")) } : {},
+      hqSharingConsentBody(formData),
       clientIpFrom(await headers()),
     );
   } catch (error) {

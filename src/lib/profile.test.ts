@@ -1,7 +1,7 @@
 // node --test src/lib/profile.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { HQ_SHARING_TERMS_VERSION, hqNotRecordedParams, hqSharingSummary, parseHqSharingVersion } from "./hq-sharing-terms.ts";
+import { HQ_SHARING_TERMS_VERSION, hqNotRecordedParams, hqSharingConsentBody, hqSharingSummary, parseHqSharingVersion } from "./hq-sharing-terms.ts";
 import {
   consentRequestBody,
   hqReconsentOf,
@@ -89,9 +89,16 @@ test("consentChangeFailure — 409 는 다시 받기, 500 한글 사유는 그�
   // 동의 시트를 연 사이 약관이 바뀐 409 는 api 사유를 그대로(WHALEERP-628)
   const termsChanged = "그사이 위치정보 약관이 바뀌었습니다. 바뀐 약관을 확인하고 다시 동의해 주세요";
   assert.deepEqual(consentChangeFailure({ status: 409, message: termsChanged }), { error: termsChanged, refresh: true, log: false });
-  // 사업자 제공 동의 문구 버전이 바뀐 409 도 api 사유(새로 고치라는 안내)를 그대로(ATT-30 v252)
+  // 사업자 제공 동의 문구 버전이 바뀐 409 는 code 로 가려 api 사유(새로 고치라는 안내)를 그대로 보이고, 팝업이 이 탭에서 멈추게 표시한다(ATT-30 v252)
   const hqChanged = "사업자 제공 동의 내용이 바뀌었습니다. 화면을 새로 고쳐 바뀐 내용을 확인한 뒤 다시 동의해 주세요.";
-  assert.deepEqual(consentChangeFailure({ status: 409, message: hqChanged }), { error: hqChanged, refresh: true, log: false });
+  assert.deepEqual(consentChangeFailure({ status: 409, message: hqChanged, code: "HQ_SHARING_TERMS_CHANGED" }), {
+    error: hqChanged,
+    refresh: true,
+    log: false,
+    hqTermsChanged: true,
+  });
+  // code 가 없으면 사유 글자로 가르지 않는다 — 일반 409
+  assert.match(consentChangeFailure({ status: 409, message: hqChanged }).error, /그사이 동의 상태가 바뀌어/);
   const noTerms = "지금은 위치정보 동의를 받을 수 없습니다. 관리자에게 문의해 주세요";
   assert.deepEqual(consentChangeFailure({ status: 500, message: noTerms }), { error: noTerms, refresh: false, log: false });
   const generic = consentChangeFailure({ status: 502, message: "Bad Gateway" });
@@ -212,4 +219,17 @@ test("hqNotRecordedParams 는 동의를 남기지 못했을 때(false)만 싣는
   assert.deepEqual(hqNotRecordedParams(null), {});
   assert.deepEqual(hqNotRecordedParams(true), {});
   assert.deepEqual(hqNotRecordedParams(undefined), {});
+});
+
+test("hqSharingConsentBody 는 체크했을 때만 화면 버전과 함께 싣고, 형식이 틀린 버전은 싣지 않는다", () => {
+  const form = (entries: Record<string, string>) => ({ get: (name: string) => entries[name] ?? null });
+  assert.deepEqual(hqSharingConsentBody(form({ hqSharingConsented: "on", hqSharingConsentVersion: "v1.0" })), {
+    hqSharingConsented: true,
+    hqSharingConsentVersion: "v1.0",
+  });
+  assert.deepEqual(hqSharingConsentBody(form({ hqSharingConsented: "on", hqSharingConsentVersion: "" })), {
+    hqSharingConsented: true,
+    hqSharingConsentVersion: undefined,
+  });
+  assert.deepEqual(hqSharingConsentBody(form({ hqSharingConsentVersion: "v1.0" })), {});
 });
