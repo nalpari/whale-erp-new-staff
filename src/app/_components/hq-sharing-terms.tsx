@@ -29,17 +29,19 @@ export function HqSharingTermsBody() {
 }
 
 /**
- * 동의 체크 칸 옆 「내용 보기」 — 누르면 전문 시트를 연다(가입 · 근무지 추가 · 소속 추가 수락, ATT-30 · ATT-8 v257). 동의는 체크 칸으로만
+ * 동의 칸 요약 아래 「내용 보기」 — 누르면 전문 시트를 연다(가입 · 근무지 추가 · 소속 추가 수락, ATT-30 · ATT-8 v257). 동의는 체크 칸으로만
  * 받는다 — 시트는 보이기만 한다.
  */
-export function HqSharingTermsLink() {
+export function HqSharingTermsButton() {
   const [open, setOpen] = useState(false);
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex min-h-[44px] items-center self-start text-[12px] font-semibold text-staff-text-sub underline underline-offset-2"
+        aria-haspopup="dialog"
+        // 누르는 칸 44px 는 두고 글자 위아래 빈칸만 당겨 요약에 붙인다(request-pin-form 의 -mt 와 같은 방식)
+        className="-my-[10px] flex min-h-[44px] items-center self-start text-[12px] font-semibold text-staff-text-sub underline underline-offset-2"
       >
         내용 보기
       </button>

@@ -6,7 +6,7 @@ import { INITIAL_ANSWER_STATE, REJECT_REASON_MAX, employmentLine, type Affiliati
 import { kstDateTimeLabel } from "@/lib/profile";
 import { BODY, Lead } from "./screen-parts";
 import { HQ_SHARING_TERMS_VERSION, hqSharingSummary } from "@/lib/hq-sharing-terms";
-import { HqSharingTermsLink } from "@/app/_components/hq-sharing-terms";
+import { HqSharingTermsButton } from "@/app/_components/hq-sharing-terms";
 
 // 소속 추가 확인(WHALEERP-144). 기준: 데모 docs/demo/join 의 addsite · addsite-done · reject(시트).
 // 수락하기 전에는 초대한 사업자 · 점포와 고용 형태만 보인다 — 기존 계정 정보와 직원 레코드 값은 api 가 주지 않는다.
@@ -89,7 +89,7 @@ export function AnswerScreen({
               <input type="hidden" name="hqSharingConsentVersion" value={HQ_SHARING_TERMS_VERSION} />
               <p className="text-[12px] text-staff-text-muted">{hqSharingSummary("affiliation")}</p>
               {/* 계정 등록의 동의 칸과 같이 전문을 「내용 보기」로(ATT-30 · ATT-8 v257) */}
-              <HqSharingTermsLink />
+              <HqSharingTermsButton />
             </div>
           )}
           <p className="text-[12px] text-staff-text-muted">
