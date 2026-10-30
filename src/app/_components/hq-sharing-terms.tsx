@@ -28,6 +28,11 @@ export function HqSharingTermsBody() {
   );
 }
 
+/** 법무 검토가 끝나기 전 문구라는 안내(ATT-8) — 카드 시트와 「내용 보기」 시트가 같이 쓴다. 검토가 끝나면 여기 하나만 지운다. */
+export function HqSharingTermsReviewNote() {
+  return <p className="text-[12px] text-staff-placeholder">동의 문구는 법무 검토 중(ATT-8)</p>;
+}
+
 /**
  * 동의 칸 요약 아래 「내용 보기」 — 누르면 전문 시트를 연다(가입 · 근무지 추가 · 소속 추가 수락, ATT-30 · ATT-8 v257). 동의는 체크 칸으로만
  * 받는다 — 시트는 보이기만 한다.
@@ -40,14 +45,16 @@ export function HqSharingTermsButton() {
         type="button"
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
-        // 누르는 칸 44px 는 두고 글자 위아래 빈칸만 당겨 요약에 붙인다(request-pin-form 의 -mt 와 같은 방식)
-        className="-my-[10px] flex min-h-[44px] items-center self-start text-[12px] font-semibold text-staff-text-sub underline underline-offset-2"
+        aria-expanded={open}
+        aria-label="사업자 제공 동의 내용 보기"
+        // 빈칸을 음수 여백으로 당기면 44px 누르는 칸이 위 요약 글자를 덮어 요약을 눌러도 시트가 열린다 — 당기지 않는다
+        className="flex min-h-[44px] items-center self-start text-[12px] font-semibold text-staff-text-sub underline underline-offset-2"
       >
         내용 보기
       </button>
       <BottomSheet open={open} onClose={() => setOpen(false)} title="사업자 제공 동의">
         <HqSharingTermsBody />
-        <p className="text-[12px] text-staff-placeholder">동의 문구는 법무 검토 중(ATT-8)</p>
+        <HqSharingTermsReviewNote />
       </BottomSheet>
     </>
   );
