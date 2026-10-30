@@ -23,7 +23,7 @@ const STATES = [
   { id: "addsite-done", label: "소속 추가 완료", note: "수락 후" },
   { id: "expired", label: "초대 만료", note: "30일 경과 · 재초대로 무효" },
   { id: "login", label: "로그인", note: "이미 가입을 마친 초대" },
-  { id: "reject", label: "소속 추가 거절", note: "사유 입력(선택)" },
+  { id: "reject", label: "소속 추가 거절", note: "사유 없이 확인만" },
 ];
 
 // 아직 없는 화면(2·3장)은 데모 입구로 건다.
@@ -124,11 +124,12 @@ const bpShareSheet = (a = {}) =>
     )}<p class="text-[12px] text-staff-text-sub [&_b]:font-bold">동의하지 않아도 가입과 근무는 그대로 됩니다. 이때 본사에는 <b>점포별 숫자로만</b> 보입니다. 동의는 내 정보에서 언제든 철회할 수 있고, <b>항목이나 목적이 넓어지면</b> 새 버전으로 다시 동의를 받습니다. <span class="text-staff-text-muted">사업자 제공 동의 v1.0</span></p><p class="text-[12px] text-staff-text-muted">동의 문구는 법무 검토 중(ATT-8)</p>`,
   );
 
+// 거절은 사유를 받지 않고 확인만 한다(WHALEERP-635, 근로계약서 거부와 같다).
 const rejectSheet = (a = {}) =>
   bottomSheet(
     "reject",
     { title: "소속 추가를 거절하시겠습니까?", description: "거절해도 기존 근무지와 계정은 유지됩니다.", closeLabel: "취소", ...a },
-    textField({ label: "거절 사유 (선택)", placeholder: "예: 다른 곳에서 일하고 있어요" }) + button("거절하기", { "data-close": true, "data-toast": "소속 추가를 거절했습니다" }),
+    button("거절하기", { "data-close": true, "data-toast": "소속 추가를 거절했습니다" }),
   );
 
 const VIEWS = {

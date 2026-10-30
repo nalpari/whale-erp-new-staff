@@ -1,7 +1,9 @@
 # Bundle history
 
 ## 2026-10-30
+* **Update**: main 병합(staff aerodactyl, main #59 까지): okf 충돌은 양쪽 기록을 살렸다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 가입 · 근무지 추가 · 소속 추가 수락의 사업자 제공 동의 칸에 요약 한 문장은 두고 「내용 보기」를 더해, 내 정보 카드와 같은 전문(받는 자 · 항목 · 목적 · 보유 기간 · 거부할 권리)을 시트로 보인다(WHALEERP-137 후속, ATT-30 · ATT-8 v257). 전문은 `_components/hq-sharing-terms.tsx` 하나로 같이 쓴다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 근로계약 수정 요청에 사유(필수 한 줄 · 100자)를 받고, 근로계약서 거절 · 소속 추가 거절은 사유 없이 확인만 한다(WHALEERP-635). `ReasonSheet` 삭제.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 출퇴근 등록 화면의 계약 미체결 시트가 홈으로 보내던 것을 걷고, 데모 nocontract 처럼 서명 대기 경고판(건수 · 남은 기한, 7일 이내면 기한 글자만 강조)과 [계약서 서명하기]로 그 계약서에 잇는다(WHALEERP-146, `checkInSignWaitingOf`). 리뷰: 출근을 누른 뒤 api 가 막았으면 그 응답의 계약 ID 로, 목록에서 서명 대기를 못 찾아도 api 가 지목한 계약으로 잇는다. 기한이 없으면 「서명을 기다립니다」. 막은 계약 주소는 `blockedContractHref` 하나로. code-review: 서명할 수 있는 카드를 api 가 지목한 계약보다 앞세우고(종이 계약 상세로 보내지 않게), 재리뷰: 막힌 뒤 액션이 화면을 다시 받아 경고판 값이 가장 새 값이라 버튼도 그것을 앞세운다(`nocontractHref`, 출근 등록 응답의 계약은 그 값이 없을 때만).
 
 ## 2026-10-29
