@@ -11,6 +11,7 @@ import { AuthScreen } from "../_components/auth-screen";
 import { useFocusedTitle } from "../_components/use-focused-title";
 import type { LoadedInvitation } from "./load-invitation";
 import { HQ_SHARING_TERMS_VERSION, hqSharingSummary } from "@/lib/hq-sharing-terms";
+import { HqSharingTermsLink } from "@/app/_components/hq-sharing-terms";
 
 // 진입 · 가입(WHALEERP-141 · 142) 화면이 같이 쓰는 조각 — 단계 막대, 초대 확인(가이드 ②), 끝난 초대 · 계정 있음 · 잠김 같은 갈래 화면.
 // 기준: 목업 docs/mockup/app/join.html 의 code · code-locked · invite · has-account · minor · expired.
@@ -130,6 +131,8 @@ export function HqSharingConsent({
       {/* 이 화면이 보인 문구의 버전(ATT-30 v252) — 액션이 그대로 api 에 실어 보내고, 다르면 api 가 동의만 남기지 않는다 */}
       <input type="hidden" name="hqSharingConsentVersion" value={HQ_SHARING_TERMS_VERSION} />
       <p className="text-[12px] text-staff-text-muted">{hqSharingSummary(flow)}</p>
+      {/* 요약에는 보유 기간 · 거부할 권리가 없어 전문을 「내용 보기」로 보인다(ATT-30 · ATT-8 v257, 2026-10-30 재영) */}
+      <HqSharingTermsLink />
     </div>
   );
 }

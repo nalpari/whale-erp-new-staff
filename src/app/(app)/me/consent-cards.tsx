@@ -6,7 +6,8 @@ import { Alert, Badge, BottomSheet, Button, Card, Toast, type BadgeTone } from "
 import type { Schemas } from "@/lib/api";
 // 지금 시행 중인 위치정보 약관 — 받음 · 없음(설정 문제) · 잠시 못 받음. 타입만 가져온다(서버 모듈).
 import type { CurrentTerms } from "@/lib/my-profile";
-import { HQ_SHARING_TERMS, HQ_SHARING_TERMS_VERSION } from "@/lib/hq-sharing-terms";
+import { HQ_SHARING_TERMS_VERSION } from "@/lib/hq-sharing-terms";
+import { HqSharingTermsBody } from "@/app/_components/hq-sharing-terms";
 import { CONSENT_CHANGES, dateLabel, hqSharingView, kstDateTimeLabel, locationNeedsReconsent, type ConsentChange, type LocationConsentState } from "@/lib/profile";
 import { changeConsentAction } from "./actions";
 import { CardLabel } from "@/app/_components/read-only-field";
@@ -303,18 +304,7 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
       {toast && <Toast key={toast.key}>{toast.text}</Toast>}
 
       <BottomSheet open={sheet === "content"} onClose={() => setSheet(undefined)} title="사업자 제공 동의">
-        <dl className="rounded-[12px] border border-staff-border-light bg-staff-info-bg px-[14px] py-[5px] text-[13px]">
-          {HQ_SHARING_TERMS.map(([name, value]) => (
-            <div key={name} className="flex gap-[12px] border-b border-staff-border-light py-[9px] last:border-b-0">
-              <dt className="shrink-0 text-staff-text-sub">{name}</dt>
-              <dd className="min-w-0 flex-1 text-right">{value}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="text-[12px] text-staff-text-muted [&_strong]:font-bold [&_strong]:text-staff-text">
-          선택 동의입니다. 철회해도 가입과 근무는 그대로이고, 본사에는 점포별 숫자로만 보입니다. <strong>항목이나 목적이 넓어지면</strong> 새
-          버전으로 다시 동의를 받습니다.
-        </p>
+        <HqSharingTermsBody />
         {view.action.kind === "agree" && view.action.alsoWithdraw && (
           <Alert tone="warning">
             <p>동의한 뒤 내용이 바뀌었습니다. 위 내용으로 다시 동의해야 본사에 개인 단위로 보입니다 — 원하지 않으면 동의를 철회할 수 있습니다.</p>
