@@ -100,10 +100,11 @@ export const blockedContractHref = (storeId: number, blockedContractId: number |
 
 /**
  * 출근이 「서명 대기 계약 있음」으로 막혔을 때 시트가 보일 것(146). 출퇴근 화면은 앱 전역의 지금 근무지라, 내 계약 목록에서 그 근무지(storeId)의
- * 서명 대기만 홈 카드와 같은 규칙(signWaitingCards — 기한이 급한 순)으로 본다. 하나면 그 상세, 여럿이면 그 근무지 목록이다. 다만 api 가
- * 지목한 막은 계약(blockedContractId — api 는 그 직원 레코드의 서명 대기 중 가장 최근 것을 고른다)이 카드에 없으면(종이 계약 · 본인 대조가 달라
- * 앱이 서명 대기로 보지 않는 계약 등) 그 계약으로 간다 — 서명해야 출근이 풀리는 계약이다. 목록을 못 받았으면(null) 그 계약으로, 그것도
- * 없으면 근무지 목록이다(blockedContractHref). 출근을 누른 뒤에야 api 가 막았을 때는 화면이 blockedContractHref 로 그 응답의 계약에 잇는다.
+ * 서명 대기만 홈 카드와 같은 규칙(signWaitingCards — 기한이 급한 순)으로 본다. 하나면 그 상세, 여럿이면 그 근무지 목록이다 — 경고판의
+ * 건수 · 기한이 가리키는 계약과 링크가 같아야 해서, api 가 지목한 막은 계약(blockedContractId — 그 직원 레코드의 서명 대기 중 가장 최근)보다
+ * 앱에서 서명할 수 있는 카드를 앞세운다(지목한 계약이 종이 계약이면 상세가 「서명할 필요 없음」이라 거기로 보내면 막힌다). 목록을 못
+ * 받았거나 카드가 없을 때만 그 계약으로, 그것도 없으면 근무지 목록이다(blockedContractHref). 출근을 누른 뒤에야 api 가 막았을 때는 화면이
+ * 그 응답의 계약으로 잇는다.
  */
 export function checkInSignWaitingOf(
   items: readonly ContractListItem[] | null,
@@ -119,7 +120,5 @@ export function checkInSignWaitingOf(
   );
   const first = cards[0];
   if (!first) return { href: blocked, count: 0, left: null, urgent: false };
-  const blockedOutside = blockedContractId !== null && !cards.some((c) => c.contractId === blockedContractId);
-  const href = blockedOutside ? blocked : cards.length === 1 ? first.href : `/contracts?store=${storeId}`;
-  return { href, count: cards.length, left: first.left, urgent: first.urgent };
+  return { href: cards.length === 1 ? first.href : `/contracts?store=${storeId}`, count: cards.length, left: first.left, urgent: first.urgent };
 }

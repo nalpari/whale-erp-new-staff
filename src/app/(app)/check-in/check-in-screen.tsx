@@ -649,7 +649,11 @@ export function CheckInScreen({
             <MaskIcon src="/icons/chevron-right-muted.svg" size={12} flipY />
           </Link>
         )}
-        <Button href={signWaiting?.href ?? blockedContractHref(store.storeId, pressBlockedId)} transitionTypes={["nav-forward"]}>
+        {/* 출근을 누른 뒤 api 가 알려 준 막은 계약이 화면을 그릴 때 받은 것보다 새 값이라 먼저 쓴다(그사이 새로 발송 · 앞 계약에 서명) */}
+        <Button
+          href={pressBlockedId !== null ? blockedContractHref(store.storeId, pressBlockedId) : (signWaiting?.href ?? blockedContractHref(store.storeId, null))}
+          transitionTypes={["nav-forward"]}
+        >
           계약서 서명하기
         </Button>
       </BottomSheet>

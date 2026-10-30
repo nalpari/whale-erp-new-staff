@@ -106,10 +106,10 @@ test("checkInSignWaitingOf 는 계약 목록을 못 받으면 api 가 알려 준
   assert.deepEqual(checkInSignWaitingOf([item(9, { storeId: 20 })], NOW, 10, null), { href: "/contracts?store=10", count: 0, left: null, urgent: false });
 });
 
-test("checkInSignWaitingOf 는 api 가 지목한 계약이 서명 대기 카드에 없으면(종이 계약 등) 그 계약으로 잇는다 — 서명해야 출근이 풀린다", () => {
-  const paper = 5; // 앱이 서명 대기로 보지 않는 계약(종이 계약 등)
+test("checkInSignWaitingOf 는 api 가 지목한 계약보다 앱에서 서명할 수 있는 카드를 앞세운다 — 경고판의 건수 · 기한과 링크가 같은 계약", () => {
+  const paper = 5; // 앱이 서명 대기로 보지 않는 계약(종이 계약 — 상세가 「서명할 필요 없음」)
   const w = checkInSignWaitingOf([item(1), item(paper, { contractMethod: "PAPER" })], NOW, 10, paper);
-  assert.deepEqual(w, { href: "/contracts/5?store=10", count: 1, left: "남은 기한 22일", urgent: false });
+  assert.deepEqual(w, { href: "/contracts/1?store=10", count: 1, left: "남은 기한 22일", urgent: false });
   // 지목한 계약이 카드에 있으면 카드 규칙대로
   assert.equal(checkInSignWaitingOf([item(1)], NOW, 10, 1).href, "/contracts/1?store=10");
 });
