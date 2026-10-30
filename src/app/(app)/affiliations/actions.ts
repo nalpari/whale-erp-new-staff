@@ -4,8 +4,9 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { RedirectType, redirect } from "next/navigation";
 import { failureOf, logFailure, type Schemas } from "@/lib/api";
-import { answerFailure, parseRejectReason, resultHref, type AnswerResult, type AnswerState } from "@/lib/affiliation-requests";
+import { answerFailure, resultHref, type AnswerResult, type AnswerState } from "@/lib/affiliation-requests";
 import { clientIpFrom } from "@/lib/client-ip";
+import { REJECT_BODY } from "@/lib/contract-actions";
 import { consentNotRecorded, hqSharingConsentBody } from "@/lib/hq-sharing-terms";
 import { saveAcceptedStore } from "@/lib/invitation-cookie";
 import { authedRequest } from "@/lib/session";
@@ -57,15 +58,15 @@ export async function acceptAffiliationAction(invitationId: number, _previous: A
   });
 }
 
-/** 거절(`POST /me/affiliation-requests/:id/reject`, 204). 사유는 선택이고, 함께 온 근로계약서는 서버가 같은 사유로 거부한다. */
-export async function rejectAffiliationAction(invitationId: number, _previous: AnswerState, formData: FormData): Promise<AnswerState> {
+/**
+ * 거절(`POST /me/affiliation-requests/:id/reject`, 204). 받는 내용은 없고(WHALEERP-635, 본문은 근로계약서 거절과 같은 `REJECT_BODY`),
+ * 함께 온 근로계약서는 서버가 거부로 닫는다. useActionState 가 넘기는 이전 상태 · 폼 값은 쓰지 않는다.
+ */
+export async function rejectAffiliationAction(invitationId: number): Promise<AnswerState> {
   if (!isInvitationId(invitationId)) return { error: "잘못된 요청입니다" };
-  const parsed = parseRejectReason(String(formData.get("reason") ?? ""));
-  if (!parsed.ok) return { error: parsed.error };
-  const json = parsed.reason === undefined ? {} : { reason: parsed.reason };
   const clientIp = clientIpFrom(await headers());
   return answer("reject", async () => {
-    await authedRequest(`/me/affiliation-requests/${invitationId}/reject`, { method: "POST", json, clientIp });
+    await authedRequest(`/me/affiliation-requests/${invitationId}/reject`, { method: "POST", json: REJECT_BODY, clientIp });
     return { kind: "rejected" };
   });
 }

@@ -1,13 +1,13 @@
 "use client";
 
 import { useActionState, useState, useSyncExternalStore } from "react";
-import { Alert, Button, Card, CheckBox, Dock, MaskIcon, Notice, PageHeader, ReasonSheet } from "@/components/common";
-import { INITIAL_ANSWER_STATE, REJECT_REASON_MAX, employmentLine, type AffiliationRequest, type AnswerState } from "@/lib/affiliation-requests";
+import { Alert, BottomSheet, Button, Card, CheckBox, DangerButton, Dock, MaskIcon, Notice, PageHeader } from "@/components/common";
+import { INITIAL_ANSWER_STATE, employmentLine, type AffiliationRequest, type AnswerState } from "@/lib/affiliation-requests";
 import { kstDateTimeLabel } from "@/lib/profile";
 import { BODY, Lead } from "./screen-parts";
 import { HQ_SHARING_TERMS_VERSION, hqSharingSummary } from "@/lib/hq-sharing-terms";
 
-// 소속 추가 확인(WHALEERP-144). 기준: 데모 docs/demo/join 의 addsite · addsite-done · reject(시트).
+// 소속 추가 확인(WHALEERP-144). 기준: 데모 docs/demo/join 의 addsite · addsite-done · reject(시트 — 사유 없이 확인만, WHALEERP-635).
 // 수락하기 전에는 초대한 사업자 · 점포와 고용 형태만 보인다 — 기존 계정 정보와 직원 레코드 값은 api 가 주지 않는다.
 // 데모와 다른 점: 점포 주소는 api 가 주지 않아 사업자 이름을 대신 둔다. 거절 확정은 근로계약서 거부와 같이 오류색 버튼이다.
 // 답한 뒤의 화면(소속 추가 완료 · 거절 · 더 답할 수 없음)은 액션이 결과 경로(done/page.tsx)로 보낸다.
@@ -105,21 +105,21 @@ export function AnswerScreen({
           </div>
         </Dock>
       </form>
-      {/* 시트 안에 거절 폼이 있어 수락 폼 밖에 둔다(폼 안의 폼은 안 된다). */}
-      <ReasonSheet
+      {/* 시트 안에 거절 폼이 있어 수락 폼 밖에 둔다(폼 안의 폼은 안 된다). 사유는 받지 않고 확인만 한다 — 근로계약서 거절과 같다. */}
+      <BottomSheet
         open={rejectOpen}
         onClose={() => setRejectOpen(false)}
         title="소속 추가를 거절하시겠어요?"
         description="거절해도 기존 소속과 계정에는 영향이 없습니다. 이 요청과 함께 온 근로계약서는 거부로 닫힙니다."
-        label="거절 사유"
-        placeholder="예: 다른 곳에서 일하고 있어요"
-        help="사유를 남기면 점포 관리자가 참고합니다."
-        maxLength={REJECT_REASON_MAX}
-        confirmLabel="거절하기"
-        action={rejectAction}
-        pending={pending}
-        error={rejected.error}
-      />
+        closeLabel="취소"
+      >
+        <form action={rejectAction} className="flex flex-col gap-[13px]">
+          {rejected.error && <Alert tone="danger">{rejected.error}</Alert>}
+          <DangerButton type="submit" disabled={pending}>
+            거절하기
+          </DangerButton>
+        </form>
+      </BottomSheet>
     </>
   );
 }
