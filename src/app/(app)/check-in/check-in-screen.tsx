@@ -18,7 +18,7 @@ import {
   type ReviewReason,
 } from "@/lib/attendance-rules";
 import type { AttendanceRecordResult, MyAttendance } from "@/lib/my-attendance";
-import type { CheckInSignWaiting } from "@/lib/sign-request";
+import { checkInSignWaitingOf, type CheckInSignWaiting } from "@/lib/sign-request";
 import { changeConsentAction } from "../me/actions";
 import { recordLocationReadAction, registerAttendanceAction } from "./actions";
 import { Clock, GeoBlank, GeoMap, SiteCard, Sunken, Values } from "./check-in-parts";
@@ -71,6 +71,8 @@ export function CheckInScreen({
   // 이번 버튼에서 읽은 위치 읽음 — 범위 밖 출근 · 퇴근 확인 시트가 등록할 때 함께 보낸다
   const [readId, setReadId] = useState<number | null>(null);
   const [sheet, setSheet] = useState<Sheet>(needsConsent ? "consent" : null);
+  // 출근을 누른 뒤에야 api 가 서명 대기로 막았을 때 그 응답이 지목한 계약 — 화면이 미리 몰랐던(signWaiting 없음) 경우에 시트가 그 계약서로 잇는다
+  const [pressBlockedId, setPressBlockedId] = useState<number | null>(null);
   const [declined, setDeclined] = useState(false);
   const [done, setDone] = useState<AttendanceRecordResult | null>(null);
   const [toast, setToast] = useState<{ key: number; text: string } | null>(null);
@@ -136,6 +138,7 @@ export function CheckInScreen({
       case "no-open-check-in":
         return setSheet("nopunch");
       case "contract-pending":
+        setPressBlockedId(problem.contractId);
         return setSheet("nocontract");
       case "no-contract":
         return setSheet("noperiod");
@@ -624,7 +627,7 @@ export function CheckInScreen({
 
       {/* 근로계약 기간 밖 출근(ATT-12): 서명 대기 계약이 있으면 서명하면 바로 출근할 수 있다 — 데모 check-in 의 nocontract 처럼 경고판(서명할
           계약 수 · 남은 기한)과 「계약서 서명하기」로 그 계약서(staff #44)에 잇는다(146). 출근을 누른 뒤 api 가 막았는데 화면이 미리 몰랐으면
-          (signWaiting 없음) 그 근무지 계약서 목록으로 간다. 남은 기한이 7일 이내면 기한 글자만 굵게(홈 카드와 같다) */}
+          (signWaiting 없음) api 응답이 지목한 계약서로, 그것도 없으면 그 근무지 계약서 목록으로 간다. 남은 기한이 7일 이내면 기한 글자만 굵게(홈 카드와 같다) */}
       <BottomSheet
         open={sheet === "nocontract"}
         onClose={() => setSheet(null)}
@@ -639,17 +642,14 @@ export function CheckInScreen({
           >
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="text-[14px] font-semibold">서명할 근로계약서 {signWaiting.count}건</span>
-              {signWaiting.left && (
-                <>
-                  <span className="sr-only">, </span>
-                  <span className={`text-[12px] ${signWaiting.urgent ? "font-bold" : ""}`}>{signWaiting.left}</span>
-                </>
-              )}
+              <span className="sr-only">, </span>
+              {/* 기한이 없는 서명 대기(api 는 발송 때 기한을 넣어 나오지 않는다 — 방어용)는 홈 카드와 같은 글자 */}
+              <span className={`text-[12px] ${signWaiting.urgent ? "font-bold" : ""}`}>{signWaiting.left ?? "서명을 기다립니다"}</span>
             </span>
             <MaskIcon src="/icons/chevron-right-muted.svg" size={12} flipY />
           </Link>
         )}
-        <Button href={signWaiting?.href ?? `/contracts?store=${store.storeId}`} transitionTypes={["nav-forward"]}>
+        <Button href={signWaiting?.href ?? checkInSignWaitingOf(null, new Date(), store.storeId, pressBlockedId).href} transitionTypes={["nav-forward"]}>
           계약서 서명하기
         </Button>
       </BottomSheet>

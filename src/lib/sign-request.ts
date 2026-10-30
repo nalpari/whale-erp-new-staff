@@ -96,8 +96,9 @@ export interface CheckInSignWaiting {
 
 /**
  * 출근이 「서명 대기 계약 있음」으로 막혔을 때 시트가 보일 것(146). 출퇴근 화면은 앱 전역의 지금 근무지라, 내 계약 목록에서 그 근무지(storeId)의
- * 서명 대기만 홈 카드와 같은 규칙(signWaitingCards — 기한이 급한 순)으로 본다. 목록을 못 받았으면(null) api 가 알려 준 막은 계약
- * (blockedContractId)으로 잇고, 그것도 없으면 그 근무지 계약서 목록이다.
+ * 서명 대기만 홈 카드와 같은 규칙(signWaitingCards — 기한이 급한 순)으로 본다. 목록을 못 받았거나(null) 그 근무지 서명 대기를 찾지
+ * 못하면 api 가 알려 준 막은 계약(blockedContractId)으로 잇고, 그것도 없으면 그 근무지 계약서 목록이다. 출근을 누른 뒤에야 api 가
+ * 막았을 때도 이 함수에 목록 없이(null) 그 응답의 계약을 넘겨 같은 규칙으로 잇는다.
  */
 export function checkInSignWaitingOf(
   items: readonly ContractListItem[] | null,
@@ -112,6 +113,8 @@ export function checkInSignWaitingOf(
     now,
   );
   const first = cards[0];
-  if (!first) return { href: list, count: 0, left: null, urgent: false };
+  // 목록에서 이 근무지 서명 대기를 찾지 못해도(그사이 서명함 · 목록과 api 판정이 어긋남) api 가 지목한 계약이 있으면 그 상세로 간다
+  if (!first)
+    return { href: blockedContractId === null ? list : `/contracts/${blockedContractId}?store=${storeId}`, count: 0, left: null, urgent: false };
   return { href: cards.length === 1 ? first.href : list, count: cards.length, left: first.left, urgent: first.urgent };
 }

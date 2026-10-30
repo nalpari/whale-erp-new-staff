@@ -101,6 +101,7 @@ test("checkInSignWaitingOf 는 지금 근무지의 서명 대기만 보고, 하�
 test("checkInSignWaitingOf 는 계약 목록을 못 받으면 api 가 알려 준 막은 계약으로, 그것도 없으면 근무지 목록으로 잇는다", () => {
   assert.deepEqual(checkInSignWaitingOf(null, NOW, 10, 7), { href: "/contracts/7?store=10", count: null, left: null, urgent: false });
   assert.deepEqual(checkInSignWaitingOf(null, NOW, 10, null), { href: "/contracts?store=10", count: null, left: null, urgent: false });
-  // 목록에 그 근무지 서명 대기가 없으면(그사이 서명함 등) 근무지 목록
-  assert.deepEqual(checkInSignWaitingOf([item(9, { storeId: 20 })], NOW, 10, 7), { href: "/contracts?store=10", count: 0, left: null, urgent: false });
+  // 목록에 그 근무지 서명 대기가 없어도 api 가 지목한 계약이 있으면 그 상세, 없으면 근무지 목록
+  assert.deepEqual(checkInSignWaitingOf([item(9, { storeId: 20 })], NOW, 10, 7), { href: "/contracts/7?store=10", count: 0, left: null, urgent: false });
+  assert.deepEqual(checkInSignWaitingOf([item(9, { storeId: 20 })], NOW, 10, null), { href: "/contracts?store=10", count: 0, left: null, urgent: false });
 });
