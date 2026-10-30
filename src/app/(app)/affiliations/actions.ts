@@ -53,7 +53,7 @@ export async function acceptAffiliationAction(invitationId: number, _previous: A
     });
     // 완료 화면의 점포 이름은 주소가 아니라 짧은 쿠키로 넘긴다(가입 완료와 같다).
     await saveAcceptedStore(result.storeName);
-    return { kind: "accepted", contractCount: result.contractIds.length, hqNotRecorded: consentNotRecorded(result.hqSharingConsentRecorded) };
+    return { kind: "accepted", contractIds: result.contractIds, hqNotRecorded: consentNotRecorded(result.hqSharingConsentRecorded) };
   });
 }
 
