@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { Alert, BottomSheet, Button, DangerButton, Dock, TextField } from "@/components/common";
-import { CORRECTION_REASON_MAX, type ContractActionState } from "@/lib/contract-actions";
+import type { ContractActionState } from "@/lib/contract-actions";
 import { useContractAction } from "../_components/use-contract-action";
 
 type Sheet = "reject" | "correction" | null;
@@ -40,9 +40,11 @@ export function ContractDecision({
     if (!pending) closeSheet();
   };
   const router = useRouter();
-  // 계약이 그사이 바뀌었다 — 시트를 닫고 화면을 다시 받는다
+  const correctionForm = useRef<HTMLFormElement>(null);
+  // 계약이 그사이 바뀌었다 — 시트를 닫고 화면을 다시 받는다. 지난 계약에 쓴 수정 요청 사유는 비운다
   const reload = () => {
     closeSheet();
+    correctionForm.current?.reset();
     router.refresh();
   };
   const handleCorrection = (event: FormEvent<HTMLFormElement>) => {
@@ -102,12 +104,12 @@ export function ContractDecision({
       >
         {/* 시트는 하이드레이션 뒤 JS 로만 열려 이 폼은 늘 onSubmit 이 막고 서버 액션을 직접 부른다(연결 실패까지 문구로 받으려고).
             action 이 없어도 하이드레이션 전 GET 제출은 일어나지 않고, 실었더라도 수정 요청 사유뿐이라 민감한 값이 아니다.
-            비었는지 · 길이는 서버 액션이 거르고 칸 아래에 문구를 보인다 — 브라우저 기본 말풍선(required)은 쓰지 않는다. */}
-        <form onSubmit={handleCorrection} noValidate className="flex flex-col gap-[13px]">
+            비었는지 · 길이는 서버 액션이 거르고 칸 아래에 문구를 보인다 — 브라우저 기본 말풍선(required)은 쓰지 않는다.
+            maxLength 도 두지 않는다 — 브라우저는 공백을 지우고 NFC 로 맞추기 전 길이로 잘라, 서버라면 받을 사유를 말없이 자른다. */}
+        <form ref={correctionForm} onSubmit={handleCorrection} noValidate className="flex flex-col gap-[13px]">
           <TextField
             label="수정 요청 사유"
             name="reason"
-            maxLength={CORRECTION_REASON_MAX}
             placeholder="예: 시급이 안내받은 금액과 다릅니다"
             help="입력한 사유는 근무지 관리자에게 전달됩니다."
             error={reasonError}

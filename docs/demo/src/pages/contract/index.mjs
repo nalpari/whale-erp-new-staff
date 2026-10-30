@@ -329,7 +329,6 @@ const correctionSheet = (a = {}) =>
     `${textField({
       label: "수정 요청 사유",
       help: "입력한 사유는 근무지 관리자에게 전달됩니다.",
-      maxlength: 100,
       placeholder: "예: 시급이 안내받은 금액과 다릅니다",
       autocomplete: "off",
     })}${button("수정 요청하기", { ...go("detail", "수정을 요청했습니다"), "data-close": true })}`,
