@@ -190,7 +190,7 @@ export function SignupForm({
           </p>
         </div>
 
-        {asksHqSharingConsent && <HqSharingConsent checked={hqSharing} onChange={setHqSharing} />}
+        {asksHqSharingConsent && <HqSharingConsent checked={hqSharing} onChange={setHqSharing} flow="signup" />}
 
         {failed?.field === "form" ? (
           <Alert tone="danger">{failed.error}</Alert>

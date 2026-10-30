@@ -112,7 +112,16 @@ export function InvitationSummary({
 }
 
 /** 본사 제공 동의(선택, 운영 정책 ATT-30). api 가 물을 때(asksHqSharingConsent)만 그린다 — 계정 등록과 근무지 추가가 같이 쓴다. */
-export function HqSharingConsent({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) {
+export function HqSharingConsent({
+  checked,
+  onChange,
+  flow,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  /** 요약 문구의 흐름 — 계정 등록(가입) · 근무지 추가 */
+  flow: "signup" | "addStore";
+}) {
   return (
     <div className="flex flex-col gap-[4px]">
       <CheckBox name="hqSharingConsented" checked={checked} onChange={onChange}>
@@ -120,7 +129,7 @@ export function HqSharingConsent({ checked, onChange }: { checked: boolean; onCh
       </CheckBox>
       {/* 이 화면이 보인 문구의 버전(ATT-30 v252) — 액션이 그대로 api 에 실어 보내고, 다르면 api 가 동의만 남기지 않는다 */}
       <input type="hidden" name="hqSharingConsentVersion" value={HQ_SHARING_TERMS_VERSION} />
-      <p className="text-[12px] text-staff-text-muted">{hqSharingSummary("가입")}</p>
+      <p className="text-[12px] text-staff-text-muted">{hqSharingSummary(flow)}</p>
     </div>
   );
 }

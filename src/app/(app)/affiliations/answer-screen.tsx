@@ -86,7 +86,7 @@ export function AnswerScreen({
               </CheckBox>
               {/* 이 화면이 보인 문구의 버전(ATT-30 v252) — 계정 등록의 동의 칸과 같다 */}
               <input type="hidden" name="hqSharingConsentVersion" value={HQ_SHARING_TERMS_VERSION} />
-              <p className="text-[12px] text-staff-text-muted">{hqSharingSummary("소속 추가")}</p>
+              <p className="text-[12px] text-staff-text-muted">{hqSharingSummary("affiliation")}</p>
             </div>
           )}
           <p className="text-[12px] text-staff-text-muted">

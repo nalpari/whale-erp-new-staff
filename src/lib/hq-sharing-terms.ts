@@ -18,9 +18,12 @@ export const HQ_SHARING_TERMS = [
   ["보유 기간", "철회 또는 가맹 관계 종료까지"],
 ] as const;
 
-/** 가입 · 근무지 추가 · 소속 추가의 체크 칸 아래 요약. flow 는 그 흐름의 이름(「가입」 · 「소속 추가」) */
-export const hqSharingSummary = (flow: string) =>
-  `가맹본부가 내 근무 정보(근로계약 · 근무스케줄 · 출퇴근 기록 · 급여명세서)를 개인 단위로 보는 것에 동의합니다. 동의하지 않아도 ${flow}와 근무는 그대로이고, 본사에는 점포별 숫자로만 보입니다. 내 정보에서 언제든 철회할 수 있습니다.`;
+/** 체크 칸 아래 요약이 「…해도 ○○ 근무는 그대로」에 넣는 흐름 이름 — 조사까지 둔다(받침에 따라 과 · 와) */
+export const HQ_SHARING_FLOWS = { signup: "가입과", addStore: "근무지 추가와", affiliation: "소속 추가와" } as const;
+
+/** 가입 · 근무지 추가 · 소속 추가의 체크 칸 아래 요약 */
+export const hqSharingSummary = (flow: keyof typeof HQ_SHARING_FLOWS) =>
+  `가맹본부가 내 근무 정보(근로계약 · 근무스케줄 · 출퇴근 기록 · 급여명세서)를 개인 단위로 보는 것에 동의합니다. 동의하지 않아도 ${HQ_SHARING_FLOWS[flow]} 근무는 그대로이고, 본사에는 점포별 숫자로만 보입니다. 내 정보에서 언제든 철회할 수 있습니다.`;
 
 /** 화면이 실어 보낸 문구 버전 — 비지 않은 64자 이하 문자열만(api 와 같은 형식). 아니면 undefined 라 싣지 않는다(api 는 동의를 남기지 않는다) */
 export const parseHqSharingVersion = (raw: unknown): string | undefined =>
@@ -32,6 +35,13 @@ export const parseHqSharingVersion = (raw: unknown): string | undefined =>
  * 값이라 이 한 값만 받는다(남이 만든 링크로 띄워도 안내 한 줄이다).
  */
 export const HQ_NOT_RECORDED = { key: "hq", value: "not-recorded" } as const;
+
+/**
+ * 완료 화면 주소에 실을 값 — api 응답이 false(동의했지만 남기지 못함)일 때만. null(묻지 않음 · 동의 안 함) · true 는 싣지 않는다 —
+ * 동의하지 않은 직원에게 「남지 않았습니다」가 뜨지 않게
+ */
+export const hqNotRecordedParams = (recorded: boolean | null | undefined): Record<string, string> =>
+  recorded === false ? { [HQ_NOT_RECORDED.key]: HQ_NOT_RECORDED.value } : {};
 
 /** 완료 화면 쿼리에서 「동의를 남기지 못함」인가 — 정한 값 하나만 참이다. 여러 번 실린 값은 받지 않는다 */
 export const isHqNotRecorded = (value: string | string[] | undefined) => value === HQ_NOT_RECORDED.value;

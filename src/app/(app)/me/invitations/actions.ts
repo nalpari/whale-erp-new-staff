@@ -6,7 +6,7 @@ import { RedirectType, notFound, redirect } from "next/navigation";
 import { RATE_LIMITED } from "@/lib/action-errors";
 import { ApiError, NetworkError, logUnexpected } from "@/lib/api";
 import { clientIpFrom } from "@/lib/client-ip";
-import { HQ_NOT_RECORDED, parseHqSharingVersion } from "@/lib/hq-sharing-terms";
+import { hqNotRecordedParams, parseHqSharingVersion } from "@/lib/hq-sharing-terms";
 import { saveJoinedStore } from "@/lib/invitation-cookie";
 import { invitationProblemOf } from "@/lib/join";
 import { acceptMyInvitation } from "@/lib/my-invitations";
@@ -59,9 +59,8 @@ export async function acceptMyInvitationAction(
   // 그 근무지 계약서만 열 때 쓴다 — 주소로 바꿔도 내 계약서 목록을 거르는 값일 뿐이라 쿠키에 두지 않는다. api #195 배포 전이라
   // 응답에 없으면 붙이지 않는다(완료 화면이 전체 목록으로 잇는다).
   // 동의를 남기지 못했으면(본 문구 버전이 달라) 완료 화면이 안내한다 — 주소에는 정한 값 하나만 싣는다.
-  const params = new URLSearchParams();
+  const params = new URLSearchParams(hqNotRecordedParams(result.hqSharingConsentRecorded));
   if (typeof result.storeId === "number") params.set("store", String(result.storeId));
-  if (result.hqSharingConsentRecorded === false) params.set(HQ_NOT_RECORDED.key, HQ_NOT_RECORDED.value);
   const query = params.size > 0 ? `?${params}` : "";
   redirect(`/me/invitations/done${query}`, RedirectType.replace);
 }

@@ -1,7 +1,7 @@
 // node --test src/lib/profile.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { HQ_SHARING_TERMS_VERSION, parseHqSharingVersion } from "./hq-sharing-terms.ts";
+import { HQ_SHARING_TERMS_VERSION, hqNotRecordedParams, hqSharingSummary, parseHqSharingVersion } from "./hq-sharing-terms.ts";
 import {
   consentRequestBody,
   hqReconsentOf,
@@ -199,4 +199,17 @@ test("consentRequestBody 는 위치정보 · 사업자 제공 동의에 화면�
 test("parseHqSharingVersion 은 비지 않은 64자 이하 문자열만 받는다", () => {
   assert.equal(parseHqSharingVersion("v1.0"), "v1.0");
   for (const raw of [null, "", "v".repeat(65), 1, undefined]) assert.equal(parseHqSharingVersion(raw), undefined);
+});
+
+test("hqSharingSummary 는 흐름 이름에 맞는 조사를 쓴다", () => {
+  assert.match(hqSharingSummary("signup"), /동의하지 않아도 가입과 근무는/);
+  assert.match(hqSharingSummary("addStore"), /동의하지 않아도 근무지 추가와 근무는/);
+  assert.match(hqSharingSummary("affiliation"), /동의하지 않아도 소속 추가와 근무는/);
+});
+
+test("hqNotRecordedParams 는 동의를 남기지 못했을 때(false)만 싣는다 — null · true 는 싣지 않는다", () => {
+  assert.deepEqual(hqNotRecordedParams(false), { hq: "not-recorded" });
+  assert.deepEqual(hqNotRecordedParams(null), {});
+  assert.deepEqual(hqNotRecordedParams(true), {});
+  assert.deepEqual(hqNotRecordedParams(undefined), {});
 });
