@@ -671,13 +671,9 @@ export function CheckInScreen({
         <Sunken prose>근무지 관리자에게 문의해 주세요.</Sunken>
       </BottomSheet>
 
-      {/* 폐점한 근무지(WHALEERP-643) — 출근은 막고 폐점 전에 연 출근의 퇴근은 받는다 */}
-      <BottomSheet
-        open={sheet === "closed"}
-        onClose={() => setSheet(null)}
-        title="폐점한 근무지입니다"
-        description="폐점한 근무지에는 출근을 등록할 수 없습니다."
-      >
+      {/* 폐점한 근무지(WHALEERP-643) — 출근은 막고 폐점 전에 연 출근의 퇴근은 받는다. 직원 앱에는 「폐점」을 보이지 않는다 — 폐점은 시스템을
+          쓰지 않는 것일 뿐 실제로 문을 닫은 게 아닐 수 있다(2026-11-03 재영) */}
+      <BottomSheet open={sheet === "closed"} onClose={() => setSheet(null)} title="이 근무지에서는 출근을 등록할 수 없습니다">
         <Sunken prose>근무지 관리자에게 문의해 주세요.</Sunken>
       </BottomSheet>
 
