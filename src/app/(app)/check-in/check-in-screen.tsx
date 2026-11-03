@@ -37,7 +37,13 @@ type Geo =
   | { status: "unavailable" }
   | { status: "ok"; distance: number; inRange: boolean; mocked: boolean; position: { latitude: number; longitude: number } };
 
-type Sheet = "consent" | "bye" | "hifar" | "dup" | "nopunch" | "nocontract" | "noperiod" | null;
+type Sheet = "consent" | "bye" | "hifar" | "dup" | "nopunch" | "nocontract" | "noperiod" | "closed" | null;
+
+/** 화면이 미리 아는 출근 막힘(checkInBlock)마다 여는 시트 */
+const blockSheet = { STORE_CLOSED: "closed", CONTRACT_PENDING_SIGNATURE: "nocontract", NO_CONTRACT: "noperiod" } as const satisfies Record<
+  NonNullable<MyAttendance["checkInBlock"]>["reason"],
+  Sheet
+>;
 
 const GEO_OPTIONS: PositionOptions = { enableHighAccuracy: true, timeout: 15_000, maximumAge: 0 };
 
@@ -142,6 +148,8 @@ export function CheckInScreen({
         return setSheet("nocontract");
       case "no-contract":
         return setSheet("noperiod");
+      case "store-closed":
+        return setSheet("closed");
       case "consent-required":
         setDeclined(false);
         return setSheet("consent");
@@ -186,7 +194,7 @@ export function CheckInScreen({
   };
 
   const pressCheckIn = () => {
-    if (checkInBlock) return setSheet(checkInBlock.reason === "CONTRACT_PENDING_SIGNATURE" ? "nocontract" : "noperiod");
+    if (checkInBlock) return setSheet(blockSheet[checkInBlock.reason]);
     if (openCheckIn) return setSheet("dup");
     if (!located) return register("CHECK_IN", null);
     startTransition(async () => {
@@ -660,6 +668,12 @@ export function CheckInScreen({
         title="오늘은 근로계약 기간이 아닙니다"
         description="오늘 날짜가 들어간 체결 완료 근로계약이 있어야 출퇴근을 등록할 수 있습니다."
       >
+        <Sunken prose>근무지 관리자에게 문의해 주세요.</Sunken>
+      </BottomSheet>
+
+      {/* 폐점한 근무지(WHALEERP-643) — 출근은 막고 폐점 전에 연 출근의 퇴근은 받는다. 직원 앱에는 「폐점」을 보이지 않는다 — 폐점은 시스템을
+          쓰지 않는 것일 뿐 실제로 문을 닫은 게 아닐 수 있다(2026-11-03 재영) */}
+      <BottomSheet open={sheet === "closed"} onClose={() => setSheet(null)} title="이 근무지에서는 출근을 등록할 수 없습니다">
         <Sunken prose>근무지 관리자에게 문의해 주세요.</Sunken>
       </BottomSheet>
 

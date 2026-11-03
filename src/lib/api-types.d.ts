@@ -9223,8 +9223,8 @@ export interface components {
         };
         CheckInBlockDto: {
             /** @enum {string} */
-            reason: "CONTRACT_PENDING_SIGNATURE" | "NO_CONTRACT";
-            /** @description 서명 대기 계약 — 「계약서 보기」로 연다. NO_CONTRACT 면 null */
+            reason: "STORE_CLOSED" | "CONTRACT_PENDING_SIGNATURE" | "NO_CONTRACT";
+            /** @description 서명 대기 계약 — 「계약서 보기」로 연다. 그 밖에는 null */
             contractId: number | null;
         };
         OpenCheckInDto: {
@@ -21601,7 +21601,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description CONTRACT_PENDING_SIGNATURE — 서명 대기 계약(contractId) / NO_CONTRACT — 오늘이 체결 완료 근로계약 기간 밖이거나 퇴직일이 지남 (ATT-12) */
+            /** @description STORE_CLOSED — 폐점한 근무지 / CONTRACT_PENDING_SIGNATURE — 서명 대기 계약(contractId) / NO_CONTRACT — 오늘이 체결 완료 근로계약 기간 밖이거나 퇴직일이 지남 (ATT-12) */
             422: {
                 headers: {
                     [name: string]: unknown;

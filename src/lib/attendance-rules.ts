@@ -57,6 +57,7 @@ export type RegisterProblem =
   | { kind: "no-open-check-in"; message: string }
   | { kind: "contract-pending"; message: string; contractId: number | null }
   | { kind: "no-contract"; message: string }
+  | { kind: "store-closed"; message: string }
   | { kind: "consent-required"; message: string }
   | { kind: "paused"; message: string }
   | { kind: "stale"; message: string }
@@ -81,6 +82,8 @@ export function registerProblemOf(failure: ApiFailure, body: unknown): RegisterP
     return { kind: "contract-pending", message, contractId: typeof contractId === "number" ? contractId : null };
   }
   if (failure.status === 422 && code === "NO_CONTRACT") return { kind: "no-contract", message };
+  // 폐점한 근무지(WHALEERP-643) — 화면이 미리 몰랐으면(화면을 연 뒤 폐점) 폐점 시트로
+  if (failure.status === 422 && code === "STORE_CLOSED") return { kind: "store-closed", message };
   // 화면을 연 뒤 근무지 좌표가 지워졌다 — 다시 해도 안 되니 api 문구(관리자 문의)를 그대로 보이고 화면을 다시 받는다
   if (failure.status === 422 && code === "STORE_LOCATION_MISSING") return { kind: "stale", message };
   // 화면을 연 뒤 근무지 좌표가 생겨 위치 없이 보냈다 — 화면을 다시 받으면 위치를 읽고 등록한다
@@ -123,7 +126,7 @@ export type HomeAttendanceAction = "check-in" | "check-out" | null;
  * - 위치를 보는 근무지의 위치 수집 일시 중지(ATT-26) — 출근 · 퇴근 모두 앱으로 못 한다. 미동의 · 철회 · 다시 동의 필요는 출퇴근 화면이
  *   동의부터 받으므로 버튼을 둔다(ATT-06 · ATT-32, HOME-12 2026-10-28 재영)
  * - 이 근무지의 열린 출근이 있으면 퇴근하기, 퇴근 기한이 지났거나 다른 근무지의 열린 출근이면 없음(보정 · 근무지 바꾸기는 출퇴근 화면 몫)
- * - 출근을 막는 까닭(서명 대기 · 체결 계약 없음)이 있거나, 위치를 보는 근무지인데 좌표가 없거나(운영 정책 ATT-36 — api 는 출근 때 422
+ * - 출근을 막는 까닭(폐점 · 서명 대기 · 체결 계약 없음)이 있거나, 위치를 보는 근무지인데 좌표가 없거나(운영 정책 ATT-36 — api 는 출근 때 422
  *   STORE_LOCATION_MISSING), 오늘 근무스케줄이 없으면 출근하기 없음. 퇴근은 좌표와 상관없이 둔다
  */
 export function homeAttendanceAction(
