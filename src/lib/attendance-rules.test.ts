@@ -41,6 +41,7 @@ test("api 실패는 code 로 갈래를 나눈다", () => {
     contractId: 44,
   });
   assert.equal(registerProblemOf(f(422), { code: "NO_CONTRACT" }).kind, "no-contract");
+  assert.deepEqual(registerProblemOf(f(422), { code: "STORE_CLOSED" }), { kind: "error", message: "원문", log: false });
   assert.equal(registerProblemOf(f(403), { code: "LOCATION_CONSENT_REQUIRED" }).kind, "consent-required");
   assert.equal(registerProblemOf(f(403), { code: "LOCATION_PAUSED" }).kind, "paused");
   assert.equal(registerProblemOf(f(404), null).kind, "stale");

@@ -81,6 +81,8 @@ export function registerProblemOf(failure: ApiFailure, body: unknown): RegisterP
     return { kind: "contract-pending", message, contractId: typeof contractId === "number" ? contractId : null };
   }
   if (failure.status === 422 && code === "NO_CONTRACT") return { kind: "no-contract", message };
+  // 폐점한 근무지 — 다시 해도 안 되니 api 문구(관리자 문의)를 그대로 보인다(WHALEERP-643)
+  if (failure.status === 422 && code === "STORE_CLOSED") return { kind: "error", message, log: false };
   // 화면을 연 뒤 근무지 좌표가 지워졌다 — 다시 해도 안 되니 api 문구(관리자 문의)를 그대로 보이고 화면을 다시 받는다
   if (failure.status === 422 && code === "STORE_LOCATION_MISSING") return { kind: "stale", message };
   // 화면을 연 뒤 근무지 좌표가 생겨 위치 없이 보냈다 — 화면을 다시 받으면 위치를 읽고 등록한다
