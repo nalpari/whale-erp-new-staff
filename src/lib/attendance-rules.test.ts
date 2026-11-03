@@ -41,7 +41,7 @@ test("api 실패는 code 로 갈래를 나눈다", () => {
     contractId: 44,
   });
   assert.equal(registerProblemOf(f(422), { code: "NO_CONTRACT" }).kind, "no-contract");
-  assert.deepEqual(registerProblemOf(f(422), { code: "STORE_CLOSED" }), { kind: "error", message: "원문", log: false });
+  assert.deepEqual(registerProblemOf(f(422), { code: "STORE_CLOSED" }), { kind: "store-closed", message: "원문" });
   assert.equal(registerProblemOf(f(403), { code: "LOCATION_CONSENT_REQUIRED" }).kind, "consent-required");
   assert.equal(registerProblemOf(f(403), { code: "LOCATION_PAUSED" }).kind, "paused");
   assert.equal(registerProblemOf(f(404), null).kind, "stale");
@@ -94,6 +94,7 @@ test("홈 출퇴근 버튼 — 열린 출근이면 퇴근하기, 오늘 근무�
   assert.equal(homeAttendanceAction({ ...base, store: { isLocationApplied: false, latitude: null, longitude: null } }, true), "check-in");
   // 서명 대기 · 체결 계약 없음
   assert.equal(homeAttendanceAction({ ...base, checkInBlock: { reason: "NO_CONTRACT" } }, true), null);
+  assert.equal(homeAttendanceAction({ ...base, checkInBlock: { reason: "STORE_CLOSED" } }, true), null);
   // 열린 출근 — 이 근무지면 퇴근하기(오늘 근무가 없어도, 밤샘), 기한이 지났거나 다른 근무지면 없음
   assert.equal(homeAttendanceAction({ ...base, openCheckIn: { staffMemberId: 7, isCheckOutExpired: false } }, false), "check-out");
   assert.equal(homeAttendanceAction({ ...base, openCheckIn: { staffMemberId: 7, isCheckOutExpired: true } }, true), null);
