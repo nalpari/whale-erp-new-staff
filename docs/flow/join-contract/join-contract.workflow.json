@@ -227,8 +227,8 @@
       "lane": "sys",
       "col": 3,
       "type": "messagebus",
-      "label": "계약서 자동 발송",
-      "sublabel": "관리자 개입 없이",
+      "label": "계약서 발송",
+      "sublabel": "저장하면 바로 발송",
       "width": 160
     },
     {
