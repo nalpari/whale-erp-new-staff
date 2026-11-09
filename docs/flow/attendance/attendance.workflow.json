@@ -7,44 +7,58 @@
     "views": [
       {
         "id": "happy",
-        "label": "점포 안에서 찍기",
+        "label": "점포 안에서 등록",
         "focus": [
           "open",
+          "consent",
           "perm",
+          "mock",
           "gps",
-          "pick",
-          "punch",
+          "sheet",
           "record"
         ],
-        "note": "앱을 열면 위치를 확인하고 점포 반경 안이면 찍는다. 근무지가 여럿이면 가장 가까운 곳을 먼저 고르고 직원이 바꿀 수 있다. 퇴근은 확인 시트에서 한 번 더 누른다."
+        "note": "고른 근무지로 등록한다. 출근 · 퇴근을 누를 때 위치를 다시 읽어 휴대전화에서 반경을 판정한다. 출근은 바로 기록하고 퇴근은 확인 시트에서 한 번 더 누른다."
+      },
+      {
+        "id": "flag",
+        "label": "확인 필요로 받을 때",
+        "focus": [
+          "mock",
+          "gps",
+          "sheet",
+          "record",
+          "review"
+        ],
+        "note": "반경 밖이어도 출근 · 퇴근을 받고 시트로 알린 뒤 확정하면 확인 필요가 붙는다. 사유는 반경 밖 출근 · 반경 밖 퇴근 · 위치 조작 감지 · 근무 12시간 초과 넷이다. 관리자가 보정하거나 이상 없음으로 검토를 마치면 지운다."
+      },
+      {
+        "id": "consent",
+        "label": "앱으로 등록할 수 없을 때",
+        "focus": [
+          "consent",
+          "noconsent",
+          "proxy",
+          "perm",
+          "denied"
+        ],
+        "note": "위치정보 동의를 거부 · 철회하거나 일시 중지하면 근무지 관리자에게 문의 안내를 보이고 관리자가 대신 등록한다. 휴대전화 위치 권한만 끈 경우는 대신 등록 없이 권한을 켜도록 안내한다."
       },
       {
         "id": "blocked",
-        "label": "찍을 수 없을 때",
+        "label": "막히는 경우",
         "focus": [
-          "perm",
-          "denied",
-          "gps",
-          "far",
+          "mock",
+          "mockblock",
+          "record",
           "block"
         ],
-        "note": "권한을 거부하면 등록할 수 없다. 반경 밖에서는 출근을 할 수 없고 퇴근만 확인 필요로 등록한다. 중복이나 계약 미체결은 막는다."
-      },
-      {
-        "id": "fuzzy",
-        "label": "위치가 흐릴 때",
-        "focus": [
-          "gps",
-          "punch",
-          "record"
-        ],
-        "note": "오차가 반경보다 크면 막지 않고 확인 필요 꼬리표를 달아 등록한다. 관리자가 뒤에서 확인한다."
+        "note": "위치 조작이 감지되면 출근을 막고 모의 위치를 끄라고 안내한다. 퇴근은 막지 않는다. 체결 완료 계약이 없거나 열린 출근과 겹치거나 근무지 좌표가 없으면 막는다."
       }
     ],
     "legend": {
       "entries": {
         "frontend": {
-          "label": "앱 화면"
+          "label": "화면"
         },
         "security": {
           "label": "판정 · 예외"
@@ -56,11 +70,7 @@
           "label": "기록"
         }
       }
-    },
-    "viewBox": [
-      1088,
-      542
-    ]
+    }
   },
   "lanes": [
     {
@@ -69,12 +79,16 @@
     },
     {
       "id": "sys",
-      "label": "시스템 판정"
+      "label": "판정 · 기록"
     },
     {
       "id": "exc",
       "label": "막히는 경우",
       "variant": "exception"
+    },
+    {
+      "id": "adm",
+      "label": "관리자 웹"
     }
   ],
   "phases": [
@@ -82,19 +96,19 @@
       "id": "p-open",
       "label": "진입",
       "fromCol": 0,
-      "toCol": 0
+      "toCol": 2
     },
     {
       "id": "p-check",
       "label": "위치 판정",
-      "fromCol": 1,
-      "toCol": 3,
+      "fromCol": 3,
+      "toCol": 4,
       "variant": "emphasis"
     },
     {
       "id": "p-punch",
       "label": "등록",
-      "fromCol": 4,
+      "fromCol": 5,
       "toCol": 5
     }
   ],
@@ -103,8 +117,8 @@
       "id": "g-radius",
       "label": "ATT-2 · 반경 100m",
       "lane": "sys",
-      "fromCol": 2,
-      "toCol": 2,
+      "fromCol": 4,
+      "toCol": 4,
       "variant": "security"
     },
     {
@@ -114,14 +128,22 @@
       "fromCol": 5,
       "toCol": 5,
       "variant": "dashed"
+    },
+    {
+      "id": "g-reasons",
+      "label": "사유 넷 · 반경 밖 출근 · 반경 밖 퇴근 · 위치 조작 감지 · 근무 12시간 초과",
+      "lane": "adm",
+      "fromCol": 3,
+      "toCol": 5,
+      "variant": "dashed"
     }
   ],
   "mainPath": [
     "open",
+    "consent",
     "perm",
+    "mock",
     "gps",
-    "pick",
-    "punch",
     "record"
   ],
   "nodes": [
@@ -131,74 +153,91 @@
       "col": 0,
       "type": "frontend",
       "label": "출퇴근 열기",
-      "sublabel": "지도와 현재 시각",
+      "sublabel": "고른 근무지로",
       "width": 150
+    },
+    {
+      "id": "consent",
+      "lane": "sys",
+      "col": 1,
+      "type": "security",
+      "label": "위치정보 동의",
+      "sublabel": "첫 등록 때 받는다",
+      "width": 150
+    },
+    {
+      "id": "noconsent",
+      "lane": "exc",
+      "col": 1,
+      "type": "security",
+      "label": "앱으로 등록 불가",
+      "sublabel": "근무지 관리자에게 문의",
+      "width": 155
     },
     {
       "id": "perm",
       "lane": "sys",
-      "col": 1,
+      "col": 2,
       "type": "security",
-      "label": "동의 · 위치 권한",
-      "sublabel": "첫 등록 때 동의",
+      "label": "휴대전화 위치 권한",
+      "sublabel": "켜져 있어야 한다",
       "width": 150,
       "tag": "ATT-3"
     },
     {
       "id": "denied",
       "lane": "exc",
-      "col": 1,
+      "col": 2,
       "type": "security",
-      "label": "권한 없음",
-      "sublabel": "설정에서 허용",
-      "width": 145
+      "label": "권한 꺼짐",
+      "sublabel": "권한을 켜도록 안내",
+      "width": 150
+    },
+    {
+      "id": "proxy",
+      "lane": "adm",
+      "col": 1,
+      "type": "frontend",
+      "label": "대신 등록",
+      "sublabel": "최근 3개월 · 사유 필수",
+      "width": 150
+    },
+    {
+      "id": "mock",
+      "lane": "sys",
+      "col": 3,
+      "type": "security",
+      "label": "위치 조작 감지",
+      "sublabel": "누를 때 위치를 읽는다",
+      "width": 150
+    },
+    {
+      "id": "mockblock",
+      "lane": "exc",
+      "col": 3,
+      "type": "security",
+      "label": "출근 막힘",
+      "sublabel": "모의 위치를 끄라고 안내",
+      "width": 150
     },
     {
       "id": "gps",
       "lane": "sys",
-      "col": 2,
+      "col": 4,
       "type": "security",
       "label": "반경 판정",
-      "sublabel": "점포에서 100m",
+      "sublabel": "휴대전화에서 · 100m",
       "width": 150,
       "tag": "ATT-1"
     },
     {
-      "id": "far",
-      "lane": "exc",
-      "col": 2,
-      "type": "security",
-      "label": "반경 밖",
-      "sublabel": "출근 불가 · 퇴근만",
-      "width": 150
-    },
-    {
-      "id": "pick",
-      "lane": "sys",
-      "col": 3,
-      "type": "backend",
-      "label": "근무지 선택",
-      "sublabel": "가까운 곳 먼저",
-      "width": 150,
-      "tag": "ATT-6"
-    },
-    {
-      "id": "punch",
+      "id": "sheet",
       "lane": "app",
       "col": 4,
       "type": "frontend",
-      "label": "출근 · 퇴근 찍기",
-      "sublabel": "퇴근은 확인 시트",
-      "width": 160
-    },
-    {
-      "id": "block",
-      "lane": "exc",
-      "col": 4,
-      "type": "security",
-      "label": "막히는 경우",
-      "sublabel": "중복 · 계약 미체결",
-      "width": 160
+      "label": "확인 시트",
+      "sublabel": "퇴근 확정 · 반경 밖 알림",
+      "width": 150
     },
     {
       "id": "record",
@@ -206,8 +245,17 @@
       "col": 5,
       "type": "database",
       "label": "기록 저장",
-      "sublabel": "시각과 근무지만",
+      "sublabel": "시각 · 근무지 · 사유",
       "width": 150
+    },
+    {
+      "id": "block",
+      "lane": "exc",
+      "col": 4,
+      "type": "security",
+      "label": "막히는 경우",
+      "sublabel": "계약 · 중복 · 좌표 없음",
+      "width": 155
     },
     {
       "id": "history",
@@ -216,71 +264,103 @@
       "type": "frontend",
       "label": "현황 보기",
       "sublabel": "이번 주 · 기간별",
-      "width": 145
+      "width": 150
+    },
+    {
+      "id": "review",
+      "lane": "adm",
+      "col": 5,
+      "type": "frontend",
+      "label": "확인 필요 검토",
+      "sublabel": "보정 · 이상 없음",
+      "width": 150
     }
   ],
   "edges": [
     {
-      "id": "e-open-perm",
+      "id": "e-open-consent",
       "from": "open",
-      "to": "perm",
+      "to": "consent",
       "variant": "emphasis"
     },
     {
-      "id": "e-perm-gps",
-      "from": "perm",
-      "to": "gps",
-      "label": "허용",
+      "id": "e-consent-perm",
+      "from": "consent",
+      "to": "perm",
+      "label": "동의",
       "variant": "emphasis"
+    },
+    {
+      "id": "e-consent-noconsent",
+      "from": "consent",
+      "to": "noconsent",
+      "label": "거부 · 철회 · 일시 중지",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "e-noconsent-proxy",
+      "from": "noconsent",
+      "to": "proxy",
+      "label": "관리자가 대신",
+      "role": "branch"
     },
     {
       "id": "e-perm-denied",
       "from": "perm",
       "to": "denied",
-      "label": "거부",
+      "label": "꺼짐",
       "variant": "security",
       "role": "error"
     },
     {
-      "id": "e-gps-pick",
-      "from": "gps",
-      "to": "pick",
-      "label": "반경 안",
+      "id": "e-mock-gps",
+      "from": "mock",
+      "to": "gps",
+      "label": "없음",
       "variant": "emphasis"
     },
     {
-      "id": "e-gps-far",
-      "from": "gps",
-      "to": "far",
-      "label": "반경 밖",
+      "id": "e-mock-mockblock",
+      "from": "mock",
+      "to": "mockblock",
+      "label": "출근",
       "variant": "security",
       "role": "error"
     },
     {
-      "id": "e-gps-punch",
-      "from": "gps",
-      "to": "punch",
-      "label": "오차가 크면 확인 필요",
+      "id": "e-mock-sheet",
+      "from": "mock",
+      "to": "sheet",
+      "label": "퇴근은 사유를 붙여",
       "role": "branch"
     },
     {
-      "id": "e-pick-punch",
-      "from": "pick",
-      "to": "punch",
-      "variant": "emphasis"
+      "id": "e-gps-sheet",
+      "from": "gps",
+      "to": "sheet",
+      "label": "퇴근 · 반경 밖",
+      "role": "branch"
     },
     {
-      "id": "e-punch-record",
-      "from": "punch",
+      "id": "e-gps-record",
+      "from": "gps",
       "to": "record",
-      "label": "등록",
+      "label": "반경 안 출근",
       "variant": "emphasis"
     },
     {
-      "id": "e-punch-block",
-      "from": "punch",
+      "id": "e-sheet-record",
+      "from": "sheet",
+      "to": "record",
+      "label": "확정",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e-record-block",
+      "from": "record",
       "to": "block",
-      "label": "중복 · 미체결",
+      "label": "요청을 거절",
       "variant": "security",
       "role": "error"
     },
@@ -290,6 +370,20 @@
       "to": "history",
       "label": "현황에 쌓인다",
       "role": "branch"
+    },
+    {
+      "id": "e-record-review",
+      "from": "record",
+      "to": "review",
+      "label": "확인 필요면",
+      "role": "branch"
+    },
+    {
+      "id": "e-perm-mock",
+      "from": "perm",
+      "to": "mock",
+      "label": "누르면",
+      "variant": "emphasis"
     }
   ],
   "cards": [
@@ -297,15 +391,15 @@
       "dot": "emerald",
       "title": "확정된 결정",
       "items": [
-        "ATT-1 현장 확인은 GPS · ATT-2 반경 100m · ATT-3 권한을 거부하면 등록할 수 없다 · ATT-4 오차가 반경보다 크면 막지 않고 확인 필요 꼬리표 · ATT-5 좌표는 저장하지 않는다 · 위치정보 동의는 첫 등록 때 받는다 · 근무지가 여럿이면 가장 가까운 곳을 먼저 고르고 바꿀 수 있다",
-        "퇴근은 확인 시트에서 퇴근 확정을 눌러야 기록한다 · 반경 밖에서는 출근을 못 하고 퇴근만 확인 필요로 등록한다 · 등록한 기록은 직원이 되돌리지 못하고 관리자 보정으로만 고친다 · 보정된 기록에는 연필 표시가 붙는다 · 현황은 이번 주·기간별 두 탭이고 기간별은 최대 1년"
+        "ATT-1 현장 확인은 GPS · ATT-2 반경 100m · ATT-3 휴대전화 위치 권한을 끄면 켜도록 안내만 한다 · ATT-5 좌표는 저장하지 않는다 · 근무지는 앱에서 고른 곳이고 이 화면에서 고르지 않는다",
+        "반경 밖도 시트로 알리고 받아 확인 필요로 기록한다 · 사유는 반경 밖 출근 · 반경 밖 퇴근 · 위치 조작 감지 · 근무 12시간 초과 · 위치 조작 감지는 출근을 막고 퇴근은 받는다 · 동의를 거부 · 철회하거나 일시 중지하면 관리자가 대신 등록한다 · 등록한 기록은 관리자 보정으로만 고치고 연필 표시가 붙는다"
       ]
     },
     {
       "dot": "slate",
       "title": "여기서 하지 않는 것",
       "items": [
-        "2차에서 볼 기기 등록과 QR 은 범위 밖 · 매장용 등록 앱은 없앴다 · 위치정보 수집 주체는 플랫폼으로 정했고 법무 확인이 남았다(ATT-8)"
+        "점포별 전용 기기와 QR · 바코드는 2차 · 위치 적용이 꺼진 점포는 동의를 묻지 않는다 · 위치정보 수집 주체는 플랫폼으로 정했고 법무 확인이 남았다(ATT-8)"
       ]
     }
   ]
