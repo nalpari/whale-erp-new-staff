@@ -640,7 +640,7 @@ export function CheckInScreen({
         open={sheet === "nocontract"}
         onClose={() => setSheet(null)}
         title="근로계약을 체결해야 출근할 수 있습니다"
-        description="오늘 날짜가 들어간 체결 완료 근로계약이 있어야 출퇴근을 등록할 수 있습니다. 받은 계약서에 서명하면 바로 출근할 수 있습니다."
+        description="오늘 날짜가 들어간 서명 완료된 근로계약이 있어야 출퇴근을 등록할 수 있습니다. 받은 계약서에 서명하면 바로 출근할 수 있습니다."
       >
         {signWaiting && signWaiting.count !== null && signWaiting.count > 0 && (
           <Link
@@ -666,7 +666,7 @@ export function CheckInScreen({
         open={sheet === "noperiod"}
         onClose={() => setSheet(null)}
         title="오늘은 근로계약 기간이 아닙니다"
-        description="오늘 날짜가 들어간 체결 완료 근로계약이 있어야 출퇴근을 등록할 수 있습니다."
+        description="오늘 날짜가 들어간 서명 완료된 근로계약이 있어야 출퇴근을 등록할 수 있습니다."
       >
         <Sunken prose>근무지 관리자에게 문의해 주세요.</Sunken>
       </BottomSheet>

@@ -17,7 +17,7 @@ import { BODY, Lead } from "../screen-parts";
 // 바로 열려 버튼 앞에 선다. 점포 이름은 주소가 아니라 수락한 액션이 남긴 짧은 쿠키에서 읽고(가입 완료와 같다), 없으면 빼고 그린다.
 // 남은 요청을 받아 버튼을 바꾸지 않는다 — 바꾸면 누르려는 순간 버튼이 바뀐다. 요청 목록은 빈 상태를 스스로 보인다. 수락 완료의 버튼 줄만
 // 함께 온 계약 유무로 갈린다 — 주소에 고정된 값이라 그리는 동안 바뀌지 않는다.
-// 수락 완료에 함께 온 계약이 있으면 「계약서 날인하러 가기」로 그 계약서(수락 응답의 contractIds, 근로계약서 화면 staff #44)로 보낸다 —
+// 수락 완료에 함께 온 계약이 있으면 「계약서 서명하러 가기」로 그 계약서(수락 응답의 contractIds, 근로계약서 화면 staff #44)로 보낸다 —
 // 하나면 그 계약서, 여럿이면 근로계약서 목록 — 내 계약 목록에서 그 계약의 근무지를 찾아 ?store= 로 그 근무지만 보인다(수락 응답에 점포가
 // 없다). 없으면 도착하면 알린다는 안내와 홈 · 요청 목록이다(데모 addsite-done). 버튼은 근무지 추가 완료(/me/invitations/done)와 같이
 // 기록을 바꿔 넣어(replace) 날인하고 뒤로 가도 이 완료 화면에 들르지 않는다.
@@ -92,10 +92,10 @@ export default async function AffiliationDonePage({ searchParams }: PageProps<"/
             <Notice icon={<MaskIcon src="/icons/contract.svg" size={14} />}>
               {contractHref ? (
                 <>
-                  이 소속의 <strong>근로계약서가 발송되었습니다.</strong> 날인해야 근무가 시작됩니다.
+                  이 소속의 <strong>근로계약서가 발송되었습니다.</strong> 서명해야 근무가 시작됩니다.
                 </>
               ) : (
-                <>근로계약서가 도착하면 알림으로 알려 드립니다. 날인해야 근무가 시작됩니다.</>
+                <>근로계약서가 도착하면 알림으로 알려 드립니다. 서명해야 근무가 시작됩니다.</>
               )}
             </Notice>
           </div>
@@ -104,7 +104,7 @@ export default async function AffiliationDonePage({ searchParams }: PageProps<"/
           <Dock>
             <Button href={contractHref} replace transitionTypes={["nav-forward"]}>
               <MaskIcon src="/icons/contract.svg" size={14} />
-              계약서 날인하러 가기
+              계약서 서명하러 가기
             </Button>
             <Button variant="ghost" href={HOME_PATH} replace transitionTypes={["nav-forward"]}>
               홈으로
