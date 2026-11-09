@@ -15,10 +15,10 @@ const STATES = [
   { id: "today", label: "평상시", note: "오늘 근무 있음" },
   { id: "todo", label: "처리할 일 쌓임", note: "계약·TO-DO·알림" },
   { id: "off", label: "오늘 휴무", note: "근무 없음" },
-  { id: "empty", label: "가입 직후", note: "날인 대기 계약서만" },
-  { id: "no-site", label: "근무지 없음 · 계약 전", note: "거부·만료·종료 뒤" },
+  { id: "empty", label: "가입 직후", note: "서명 대기 계약서만" },
+  { id: "no-site", label: "근무지 없음 · 계약 전", note: "거절·만료·종료 뒤" },
   { id: "retired", label: "퇴직 후", note: "연결된 근무지 없음" },
-  { id: "sign-req", label: "날인 요청 팝업", note: "가입 직후 빈 홈 위" },
+  { id: "sign-req", label: "서명 요청 팝업", note: "가입 직후 빈 홈 위" },
   { id: "store", label: "근무지 고르기", note: "근무지 전환" },
 ];
 const SHEET_VIEW = { store: "today", "sign-req": "empty" };

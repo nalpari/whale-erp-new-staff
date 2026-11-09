@@ -31,7 +31,7 @@ const STATES = [
   { id: "byefar", label: "범위 밖 퇴근 확인", note: "240m" },
   { id: "dup", label: "이미 출근함", note: "열린 출근이 있을 때" },
   { id: "nopunch", label: "출근 기록 없음", note: "퇴근만 찍을 때" },
-  { id: "nocontract", label: "계약 미체결", note: "서명 대기 계약 있음" },
+  { id: "nocontract", label: "서명 완료 계약 없음", note: "서명 대기 계약 있음" },
   { id: "noperiod", label: "계약 기간 아님", note: "시작 전·종료 후·계약 없음" },
 ];
 const SHEET_BASE = {
