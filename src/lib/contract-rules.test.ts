@@ -99,7 +99,7 @@ test("목록 둘째 줄은 상태마다 다르다", () => {
     contractSubText(item({ status: "SIGNED", contractMethod: "PAPER", processedAt: "2026-04-02T01:00:00Z" }), now, "체결 완료"),
     "종이 계약 · 2026년 4월 2일 등록",
   );
-  assert.equal(contractSubText(item({ status: "REJECTED", processedAt: "2026-06-25T01:00:00Z" }), now, phaseLabel("REJECTED", "거부")), "거절 2026년 6월 25일");
+  assert.equal(contractSubText(item({ status: "REJECTED", processedAt: "2026-06-25T01:00:00Z" }), now, phaseLabel("REJECTED", "서명 거절")), "거절 2026년 6월 25일");
   assert.equal(contractSubText(item({ status: "EXPIRED", signDeadlineAt: "2026-07-31T14:59:59Z" }), now, "만료"), "서명 기한 2026년 7월 31일 지남");
   assert.equal(contractSubText(item({ status: "ENDED", startDate: "2025-03-01", endDate: "2026-08-31" }), now, "종료"), "2025년 3월 1일 – 2026년 8월 31일");
 });
@@ -220,10 +220,20 @@ test("번호는 1..2147483647 의 맨 숫자만", () => {
   }
 });
 
-test("상태 한글은 enum 한글 그대로 — 거부는 화면에서 거절(용어집 2026-10-28), 서명 불가는 화면 단계", () => {
-  assert.equal(phaseLabel("SIGNED", "체결 완료"), "체결 완료");
-  assert.equal(phaseLabel("REJECTED", "거부"), "거절");
+test("상태 한글은 enum 한글 그대로 — 서명 거절은 화면에서 거절(용어집 2026-10-28), 서명 불가는 화면 단계", () => {
+  assert.equal(phaseLabel("SIGNED", "서명 완료"), "서명 완료");
+  assert.equal(phaseLabel("REJECTED", "서명 거절"), "거절");
   assert.equal(phaseLabel("UNSIGNABLE", "UNSIGNABLE"), "서명 불가");
+});
+
+test("직원 본인 화면이라 enum 한글의 「직원」을 뗀다 — 서명 대기 · 수정 요청 (WHALEERP-659)", () => {
+  assert.equal(phaseLabel("PENDING_SIGNATURE", "직원 서명 대기"), "서명 대기");
+  assert.equal(phaseLabel("CORRECTION_REQUESTED", "직원 수정 요청"), "수정 요청");
+  assert.equal(phaseLabel("EXPIRED", "계약 기간 만료"), "계약 기간 만료");
+  assert.equal(phaseLabel("ENDED", "계약 종료"), "계약 종료");
+  const now = new Date("2026-10-28T00:00:00Z");
+  const asked = item({ status: "CORRECTION_REQUESTED", processedAt: "2026-06-25T01:00:00Z" });
+  assert.equal(contractSubText(asked, now, phaseLabel("CORRECTION_REQUESTED", "직원 수정 요청")), "수정 요청 2026년 6월 25일");
 });
 
 test("처리 완료본은 체결 완료 · 종료된 전자계약의 SIGNED_COPY 만, 여럿이면 나중 것", () => {

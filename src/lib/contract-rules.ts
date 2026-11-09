@@ -28,13 +28,15 @@ export function phaseOf(c: PhaseFields, now: Date): ContractPhase {
 }
 
 /**
- * 화면 단계의 한글. 보통은 api enum 한글(enumLabel, ContractStatus)을 그대로 쓴다. 예외 둘만 값을 코드에 적는다:
- * 서명 불가(UNSIGNABLE)는 enum 값이 아닌 화면 단계이고, 거부(REJECTED)는 용어집(2026-10-28 재영)이 직원 앱 화면에서 「거절」로
- * 부르기로 해서다 — enum 한글은 표준(거부) 그대로 두고 관리자 웹도 그것을 쓴다.
+ * 화면 단계의 한글. 보통은 api enum 한글(enumLabel, ContractStatus)을 그대로 쓴다. 예외만 값을 코드에 적는다:
+ * 서명 불가(UNSIGNABLE)는 enum 값이 아닌 화면 단계이고, 서명 거절(REJECTED)은 용어집(2026-10-28 재영)이 직원 앱 화면에서 「거절」로
+ * 부르기로 해서다. 직원 서명 대기 · 직원 수정 요청은 직원 본인 화면이라 「직원」을 떼고 부른다(WHALEERP-659). enum 한글은 관리자 웹이 쓴다.
  */
 export function phaseLabel(phase: ContractPhase, enumLabel: string): string {
   if (phase === "UNSIGNABLE") return "서명 불가";
   if (phase === "REJECTED") return "거절";
+  if (phase === "PENDING_SIGNATURE") return "서명 대기";
+  if (phase === "CORRECTION_REQUESTED") return "수정 요청";
   return enumLabel;
 }
 
