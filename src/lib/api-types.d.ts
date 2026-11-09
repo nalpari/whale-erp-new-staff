@@ -371,9 +371,53 @@ export interface paths {
         };
         /**
          * 화면을 그릴 정보 — 계정 · 메뉴(+권한) · 관리 점포 · 공통코드. 부르는 시점의 값이다. 관리자 웹은 로그인
-         *     직후 한 번 받아 쓰고, 바뀐 값은 다시 로그인할 때 받는다. 업무 API 의 판정은 요청마다 현재 값으로 한다.
+         *     직후 받아 쓰고, 로그인 정보 버전(`me/login-info-version`)이 바뀌면 다시 받는다. 업무 API 의 판정은 요청마다
+         *     현재 값으로 한다. 지운 계정 401, 사용중지 · 탈퇴 계정 403.
          */
         get: operations["AdminAuthController_getLoginInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/admin/me/stores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 관리 점포만 — 로그인 정보의 `stores` 와 같은 목록을 `{ items, total }` 로. 관리자 웹이 점포 목록 버전
+         *     (`GET /bp-codes/:id/stores-version`)이 바뀌었을 때 메뉴 · 공통코드 없이 점포만 다시 받는다. 버전 경로와 같이
+         *     강제 비밀번호 변경 중에는 403 이다 — 그동안은 팝업만 열려 점포를 다시 받을 화면이 없다. 플랫폼 계정은 빈 목록,
+         *     없거나 삭제된 계정은 401.
+         */
+        get: operations["AdminAuthController_getMyStores"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/admin/me/login-info-version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 로그인 정보 버전 — 내 계정 행 · 권한 그룹 · 메뉴 권한 · 메뉴 · 소속 BP 가 바뀌었는지. 관리자 웹이 새로고침 · 메뉴
+         *     이동 · 창 포커스 때 점포 목록 버전과 같이 묻고, 바뀌었으면 login-info 를 다시 받는다. `me/stores` 와 같이 강제
+         *     비밀번호 변경 중에는 403 이다. 지웠거나 사용 중이 아닌 계정은 403.
+         */
+        get: operations["AdminAuthController_getMyLoginInfoVersion"];
         put?: never;
         post?: never;
         delete?: never;
@@ -483,7 +527,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 회원 탈퇴 조건 조회(마이페이지, S-JHQQNR). 탈퇴 버튼을 누르기 전에 보여줄 영향 범위 — BP명 · 함께 탈퇴될
+         * 회원 탈퇴 조건 조회(마이페이지, S-JHQQNR). 탈퇴 버튼을 누르기 전에 보여줄 영향 범위 — BP명 · 함께 미사용(개인정보 지움)될
          *     하위 관리자 수 · 함께 강제 폐점될 점포 수 · 가로막는 진행 중 계약 여부. BP 마스터만 받는다 — 그 밖의
          *     권한은 403, 계정이 지워졌으면 404. 조회만 하고 실제 탈퇴는 하지 않는다.
          */
@@ -506,8 +550,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 회원 탈퇴 실행(마이페이지, S-JHQQNR). BP 마스터가 현재 비밀번호와 사유를 보내면 본인 · 같은 BP 의 하위 관리자가
-         *     모두 탈퇴하고 점포는 모두 폐점된다. 진행 중인 근로계약이 있으면 막는다(조건 조회와 같은 기준). 비밀번호를
+         * 회원 탈퇴 실행(마이페이지, S-JHQQNR). BP 마스터가 현재 비밀번호와 사유를 보내면 본인은 탈퇴, 같은 BP 의 하위 관리자는
+         *     미사용(개인정보는 지움)이 되고 점포는 모두 폐점된다. 진행 중인 근로계약이 있으면 막는다(조건 조회와 같은 기준). 비밀번호를
          *     받는 경로라 내 비밀번호 변경과 같은 한도를 건다.
          */
         post: operations["AdminAuthController_withdraw"];
@@ -730,9 +774,9 @@ export interface paths {
         };
         /** 공통코드 그룹 목록. 플랫폼고정 · 플랫폼제공 그룹을 표시 순서대로, 그룹 코드 · 그룹명 검색(부분 일치). */
         get: operations["CodeGroupsController_listGroups"];
-        /** 그룹 수정. 기존 그룹 여러 개를 한 번에 — 하나라도 없으면 아무것도 고치지 않는다. */
+        /** 그룹 수정. 기존 그룹 여러 개를 한 번에 — 하나라도 없거나 그 사이 고쳐졌으면(행마다 updatedAt) 아무것도 고치지 않는다. */
         put: operations["CodeGroupsController_updateGroups"];
-        /** 그룹 등록. 새 그룹 여러 개를 한 번에 — 하나라도 막히면 아무것도 생기지 않는다. */
+        /** 그룹 등록. 새 그룹 여러 개를 한 번에 — 하나라도 막히면 아무것도 생기지 않는다. 표시 순서는 api 가 지우지 않은 플랫폼고정 · 플랫폼제공 그룹 전체의 최대 + 1 부터 요청 순서대로 매긴다. */
         post: operations["CodeGroupsController_createGroups"];
         delete?: never;
         options?: never;
@@ -749,13 +793,13 @@ export interface paths {
         };
         /** 고른 그룹의 상세 코드(플랫폼 원본). BP전용 코드는 나오지 않는다. */
         get: operations["CodeGroupsController_listItems"];
-        /** 상세 코드 수정. 기존 코드 여러 개를 한 번에 — 하나라도 없으면 아무것도 고치지 않는다. */
+        /** 상세 코드 수정. 기존 코드 여러 개를 한 번에 — 하나라도 없거나 그 사이 고쳐졌으면(행마다 updatedAt) 아무것도 고치지 않는다. */
         put: operations["CodeGroupsController_updateItems"];
         /** 상세 코드 등록. 새 코드 여러 개를 한 번에 — 하나라도 막히면 아무것도 생기지 않는다. */
         post: operations["CodeGroupsController_createItems"];
         /**
          * 상세 코드 삭제(논리) — 플랫폼제공 그룹만, 여러 개를 한 번에, 하나라도 막히면 아무것도 지우지 않는다. 플랫폼 원본만
-         *     지우고 BP 에 복사된 행은 건드리지 않는다. 플랫폼고정 그룹은 시스템이 값을 참조해 409(사용 상태로 관리). 같은 코드로 다시 등록하면 되살아난다 — 단 어느 BP 에 복사본이 살아 있으면 등록이 409 다.
+         *     지우고 BP 에 복사된 행은 건드리지 않는다. 플랫폼고정 그룹은 시스템이 값을 참조해 409(사용 상태로 관리). 같은 코드로 다시 등록하면 되살아난다 — BP 에 플랫폼제공 복사본이 살아 있어도 되살린다.
          */
         delete: operations["CodeGroupsController_deleteItems"];
         options?: never;
@@ -967,7 +1011,7 @@ export interface paths {
         };
         /** 고른 플랫폼제공 그룹의 상세 코드 — 이 BP 의 행(BP전용 포함). 플랫폼고정 · 사용중지 그룹은 404. */
         get: operations["BpCodeGroupsController_listItems"];
-        /** 상세 코드 수정 — 이 BP 의 행 여러 개를 한 번에. 하나라도 막히면 아무것도 고치지 않는다. */
+        /** 상세 코드 수정 — 이 BP 의 행 여러 개를 한 번에. 하나라도 막히거나 그 사이 고쳐졌으면(행마다 updatedAt) 아무것도 고치지 않는다. */
         put: operations["BpCodeGroupsController_updateItems"];
         /** 상세 코드 등록 — BP전용 코드 여러 개를 한 번에. 하나라도 막히면 아무것도 생기지 않는다. */
         post: operations["BpCodeGroupsController_createItems"];
@@ -1003,7 +1047,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 사용자 권한 선택지. 플랫폼 관리자에게는 플랫폼 마스터 권한을 빼고 준다. */
+        /**
+         * 사용자 권한 선택지. 플랫폼 관리자에게는 플랫폼 마스터 권한을 빼고 준다.
+         *     `purpose=filter` 는 목록 필터 「권한명」용 — 호출자와 상관없이 PM · PA 그룹을 다 준다.
+         */
         get: operations["PlatformAdminsController_roleGroups"];
         put?: never;
         post?: never;
@@ -1025,6 +1072,23 @@ export interface paths {
          *     `:id` 보다 먼저 둔다 — 뒤에 두면 이 경로가 상세(:id)로 잡힌다.
          */
         get: operations["PlatformAdminsController_loginIdAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform-admins/email-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 이메일 중복 확인. 아이디 확인과 같은 등록 권한이고, 판정은 등록의 409 와 같다. `:id` 보다 먼저 둔다. */
+        get: operations["PlatformAdminsController_emailAvailability"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1425,6 +1489,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/bp-codes/{bpCodeId}/stores-version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 그 BP 점포 목록의 버전 — 관리자 웹이 새로고침 · 메뉴 이동 · 창 포커스 때 버전만 묻고, 바뀌었을 때만 점포 목록
+         *     (자기 BP 는 `GET /auth/admin/me/stores`, 연 BP 는 위 점포 목록)을 다시 받는다 — 버전을 먼저 받고 목록을 받는다.
+         *     여러 PC 에서 같은 계정으로 쓸 때 다른 PC 의 점포 등록 · 수정 · 폐점 · 삭제와 담당 점포 매핑 · 관리 범위 변경을
+         *     잡는다(BP · 가맹 관리자만 매핑 · 범위까지). 볼 수 있는 BP 와 오류는 점포 목록과 같다(bpStoresAccess) — 볼 수 없는
+         *     BP · 플랫폼 BP 는 404, 사용 중인 관리자 계정이 아니면 403(판정 뒤 버전을 만드는 사이에 바뀌어도).
+         */
+        get: operations["BpCodesController_findStoresVersion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/bp-codes/{bpCodeId}/code-items": {
         parameters: {
             query?: never;
@@ -1473,7 +1560,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 엑셀(xlsx). 목록과 같은 조건으로 전부, 연락처 · 대표자 연락처는 가운데 자리를 가린다. 공통 엑셀 규칙을 따른다 —
+         * 엑셀(xlsx). 목록과 같은 조건으로 전부, 목록 표와 같은 열만 담고 연락처만 가운데 자리를 가린다. 공통 엑셀 규칙을 따른다 —
          *     1만 건 미만은 바로 파일(200), 이상은 예약 생성(202, 등록한 이메일로 링크). 같은 사람 · 같은 화면은 생성 중이면 409, 1분에
          *     한 번(429). `:id` 보다 먼저 둔다.
          */
@@ -1661,6 +1748,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/staff-members/bulk-exports/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 담을 직원 수(재직 · 퇴직)와 범위 점포 수. 0 이면 화면이 요청 버튼을 끈다 */
+        get: operations["BulkExportsController_preview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/staff-members/bulk-exports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 볼 수 있는 요청 — 같은 BP · 같은 권한 유형이고 요청의 점포를 모두 관리하는 마스터. 최근 순 */
+        get: operations["BulkExportsController_list"];
+        put?: never;
+        /** 요청. 1분 배치가 만든다 */
+        post: operations["BulkExportsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/staff-members/bulk-exports/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 5분짜리 내려받기 주소. 내려받기 이력을 남긴다 */
+        post: operations["BulkExportsController_download"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/staff-members": {
         parameters: {
             query?: never;
@@ -1705,7 +1844,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 근로계약 영역 — 가장 최근 계약의 유형 · 기간 · 상태 · 최근 발송일 · 갱신 예정일. 근로계약 관리 조회 권한 */
+        /** 근로계약 영역 — 가장 최근 계약의 유형 · 기간 · 상태 · 최근 발송일 · 갱신 예정일 · 신고 정보의 급여 계좌(전체 번호, 가리지 않음). 근로계약 관리 조회 권한 */
         get: operations["StaffMemberSummaryController_contract"];
         put?: never;
         post?: never;
@@ -1741,6 +1880,26 @@ export interface paths {
         };
         /** 급여명세서 영역 — 최근 명세서 3건 · 미발송 건수. 급여명세서 관리 조회 권한 */
         get: operations["StaffMemberSummaryController_payslips"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/staff-members/{id}/summary/send-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 발송 이력 영역 — 근로계약이 보낸 가입 초대 · 소속 추가 확인 요청(재발송 포함)의 결과 · 실패 사유 · 재시도 가능 여부, 최근 순
+         *     (WHALEERP-136). 근로계약 관리 조회 권한
+         */
+        get: operations["StaffMemberSummaryController_sendLogs"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1832,7 +1991,7 @@ export interface paths {
         get?: never;
         /**
          * 직원 생년월일 정정
-         * @description 가입 때 잘못 넣은 생년월일을 관리자가 확인해 정정한다(WHALEERP-602). 직원 레코드의 계정 생년월일을 바꾸므로 같은 사람의 다른 BP 소속에도 같이 바뀐다. 계약서에 적힌 생년월일은 바꾸지 않고, 날인 대기 중인 계약이 있어도 막지 않는다. 날인 대기 계약은 날인 때 계약서 생년월일과 계정 생년월일을 다시 대조하므로 정정으로 대조가 풀릴 수도 있고(보통) 새로 어긋날 수도 있다(계정 하나라 다른 BP 의 계약도 같다). 정정은 계정 변경 이력(BIRTH_DATE · ADMIN_CORRECTION)에 남는다. 오류 응답은 `code` 로 가른다.
+         * @description 가입 때 잘못 넣은 생년월일을 관리자가 확인해 정정한다(WHALEERP-602). 직원 레코드의 계정 생년월일을 바꾸므로 같은 사람의 다른 BP 소속에도 같이 바뀐다. 계약서에 적힌 생년월일은 바꾸지 않고, 서명 대기 중인 계약이 있어도 막지 않는다. 서명 대기 계약은 서명 때 계약서 생년월일과 계정 생년월일을 다시 대조하므로 정정으로 대조가 풀릴 수도 있고(보통) 새로 어긋날 수도 있다(계정 하나라 다른 BP 의 계약도 같다). 정정은 계정 변경 이력(BIRTH_DATE · ADMIN_CORRECTION)에 남는다. 오류 응답은 `code` 로 가른다.
          */
         put: operations["StaffBirthDateController_correct"];
         post?: never;
@@ -2011,7 +2170,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 확정 — 보이는 공제가 모두 있어야 한다. 검토 사유는 확인한 것으로 남는다. */
+        /** 확정 — 급여 기간이 끝나야 하고(그 전에 퇴직 · 계약 종료면 그 다음 날부터), 보이는 공제가 모두 있어야 한다. 검토 사유는 확인한 것으로 남는다. */
         post: operations["PayslipsController_confirm"];
         delete?: never;
         options?: never;
@@ -2133,10 +2292,27 @@ export interface paths {
         put?: never;
         /**
          * 근로계약서 초안 저장 — 직원 레코드와 계약을 만들고 곧바로 보낸다(2026-10-19 재영). 계정이 없는 번호면 가입 초대
-         *     알림톡과 발송 대기, 계정이 있는 번호면 소속 추가 확인 요청과 발송 대기(직원이 수락하면 서명 대기, WHALEERP-130). 임시저장은
+         *     알림톡과 서명 요청 전, 계정이 있는 번호면 소속 추가 확인 요청과 서명 요청 전(직원이 수락하면 서명 대기, WHALEERP-130). 임시저장하면
          *     보내지 않는다.
          */
         post: operations["ContractsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/contracts/store-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 작성 · 이어 쓰기의 근무지 선택지. 업무 범위(플랫폼 계정은 탭 BP) 안에서 지우지 않았고 폐점이 아닌 점포, 이름순. 작성 또는 수정 권한. */
+        get: operations["ContractsController_storeOptions"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2153,11 +2329,32 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 종이 계약 등록(CTR-23). 당사자가 모두 날인한 근로계약서(필수) · 임금계약서(선택) 파일과 근로계약서 내용(data,
-         *     JSON)을 multipart 한 번으로 받아 발송 · 날인 없이 체결 완료로 저장한다. 검사 · 대체 · 겹침 · 초대 유형 판별은
+         * 종이 계약 등록(CTR-23). 당사자가 모두 서명한 근로계약서(필수) · 임금계약서(선택) 파일과 근로계약서 내용(data,
+         *     JSON)을 multipart 한 번으로 받아 발송 · 앱 서명 없이 서명 완료로 저장한다. 검사 · 대체 · 겹침 · 초대 유형 판별은
          *     초안 저장과 같다. 저장이 실패하면 올린 파일도 지운다.
          */
         post: operations["ContractsController_createPaper"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/contracts/minimum-wage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 지금 최저임금(공통코드 MINIMUM_WAGE · HOURLY) — 작성 · 이어 쓰기 화면이 시급 칸 도움말과 수습 중 시급 확인에 쓴다
+         *     (WHALEERP-595). 저장도 같은 값으로 다시 본다. 공통코드를 쓸 수 없으면 hourlyWage 는 null, problem 이 저장 400 문장이다.
+         *     `:contractId` 보다 먼저 둔다.
+         */
+        get: operations["ContractsController_minimumWage"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2171,16 +2368,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 작성 화면을 다시 채울 값 — 임시저장 이어 쓰기 */
+        /** 작성 화면을 다시 채울 값 — 작성 중 근로계약서 이어 쓰기 */
         get: operations["ContractsController_findOne"];
         /**
-         * 임시저장 이어 쓰기. 폼 전체를 다시 보낸다. isTemporarySave 를 빼면 초안 저장으로 넘어가 곧바로 보낸다(POST 와 같다).
+         * 작성 중 근로계약서 이어 쓰기. 폼 전체를 다시 보낸다. isTemporarySave 를 빼면 초안 저장으로 넘어가 곧바로 보낸다(POST 와 같다).
          *     직원이 수정을 요청한 계약(수정 요청)도 고친다 — 고쳐 저장하면 곧바로 서명 대기 · 새 기한으로 다시 보내고(번호를 계정이
-         *     없는 번호로 고쳤으면 가입 초대 · 발송 대기), 임시저장은 할 수 없다(400).
+         *     없는 번호로 고쳤으면 가입 초대 · 서명 요청 전), 임시저장은 할 수 없다(400).
          */
         put: operations["ContractsController_update"];
         post?: never;
-        /** 임시저장 삭제. 계약 · 근무 요일 · 당사자 · 이력과 그 계약에만 쓰인 초안 직원 레코드를 지운다 */
+        /** 작성 중 근로계약서 삭제. 계약 · 근무 요일 · 당사자 · 이력과 그 계약에만 쓰인 초안 직원 레코드를 지운다 */
         delete: operations["ContractsController_remove"];
         options?: never;
         head?: never;
@@ -2201,9 +2398,9 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * 날인 전 당사자 정보 수정(WHALEERP-125 · 126, CTR-28). 발송 대기 · 서명 대기 · 수정 요청 계약의 이름 · 번호 · 생년월일 ·
+         * 서명 전 당사자 정보 수정(WHALEERP-125 · 126, CTR-28). 서명 요청 전 · 서명 대기 · 수정 요청 계약의 이름 · 번호 · 생년월일 ·
          *     성별 · 외국인 여부를 고친다. 저장하면 곧바로 새 서명 기한으로 다시 보내고 앞서 나간 링크는 무효다 — 가입 초대면
-         *     발송 대기, 앱으로 받는 직원이면 서명 대기.
+         *     서명 요청 전, 앱으로 받는 직원이면 서명 대기.
          */
         patch: operations["ContractsController_updateWorker"];
         trace?: never;
@@ -2216,7 +2413,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** 임시저장을 이어 써서 종이 계약으로 등록한다. 받는 것 · 하는 일은 POST /contracts/paper 와 같다 */
+        /** 작성 중 근로계약서를 이어 써서 종이 계약으로 등록한다. 받는 것 · 하는 일은 POST /contracts/paper 와 같다 */
         put: operations["ContractsController_updatePaper"];
         post?: never;
         delete?: never;
@@ -2232,7 +2429,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 종이 계약 날인본 내려받기 주소(300초). 받으면 원래 파일 이름으로 저장된다 */
+        /** 종이 계약 서명본 내려받기 주소(300초). 받으면 원래 파일 이름으로 저장된다 */
         get: operations["ContractsController_documentDownloadUrl"];
         put?: never;
         post?: never;
@@ -2252,11 +2449,11 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 재발송 — 발송 대기 · 서명 대기 · 거부 · 만료(WHALEERP-153)에서 새 서명 기한(30일)으로 다시 보낸다. 가입 전 · 계정 없는 번호는 가입 초대 알림톡을 새
-         *     초대 코드로(상태 그대로, 앞서 나간 초대 코드는 무효), 가입한 직원은 앱 알림(근로계약서 발송 알림)으로 보낸다 — 발송 대기였으면
+         * 재발송 — 서명 요청 전 · 서명 대기 · 서명 거절 · 계약 기간 만료(WHALEERP-153)에서 새 서명 기한(30일)으로 다시 보낸다. 가입 전 · 계정 없는 번호는 가입 초대 알림톡을 새
+         *     초대 코드로(상태 그대로, 앞서 나간 초대 코드는 무효), 가입한 직원은 앱 알림(근로계약서 발송 알림)으로 보낸다 — 서명 요청 전이었으면
          *     서명 대기로 넘긴다(WHALEERP-611). 가입한 직원의 알림은 알림함 알림이고(앱 푸시는 #261 전까지 나가지 않는다), 알림 템플릿을
          *     쓸 수 없거나 탈퇴 계정이면 알림 없이 기한만 새로 잡는다. 계정은 있고 이 점포에 가입하지 않은 번호(소속 추가 확인 · 복귀
-         *     확인)는 소속 추가 확인 요청 알림톡 · 메일을 새로 보내고 발송 대기로 둔다 — 날인 기한은 직원이 수락한 때부터라 응답의 기한은
+         *     확인)는 소속 추가 확인 요청 알림톡 · 메일을 새로 보내고 서명 요청 전으로 둔다 — 서명 기한은 직원이 수락한 때부터라 응답의 기한은
          *     null 이다(WHALEERP-130).
          */
         post: operations["ContractSendController_send"];
@@ -2276,7 +2473,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 발송 대기 계약 종료(WHALEERP-327). 채용을 접을 때 계약을 종료로 닫고 나간 초대(코드 · 링크)를 무효로 한다. 행은 남고 상태
+         * 서명 요청 전 계약 종료(WHALEERP-327). 채용을 접을 때 계약을 종료로 닫고 나간 초대(코드 · 링크)를 무효로 한다. 행은 남고 상태
          *     이력에 남는다. 기존 계약을 바꾸므로 수정 권한이다.
          */
         post: operations["ContractSendController_end"];
@@ -2296,7 +2493,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 날인 — 서명 PNG(파일 칸 `signature`, 1MB)와 직원이 본 계약의 발송 일시(`sentAt`, 시간대 표기 필수). 날인 전에 계약서의 직원
+         * 서명 — 서명 PNG(파일 칸 `signature`, 1MB)와 직원이 본 계약의 발송 일시(`sentAt`, 시간대 표기 필수). 서명 전에 계약서의 직원
          *     정보(이름 · 휴대전화번호 · 생년월일 · 성별 · 외국인 여부)를 가입 정보와 대조해, 다르면 409 IDENTITY_MISMATCH(mismatches)
          *     — 직원은 수정 요청을 낸다. 성별은 가입 때 필수라 다섯 가지를 늘 본다.
          */
@@ -2316,7 +2513,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 거부 — 사유는 선택(500자) */
+        /** 서명 거절 — 사유는 받지 않는다(WHALEERP-635, 본문은 읽지 않는다) */
         post: operations["MyContractsController_reject"];
         delete?: never;
         options?: never;
@@ -2333,7 +2530,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 수정 요청 — 계약서가 틀렸을 때(대조 결과와 상관없이). 따로 받는 내용은 없다 */
+        /** 수정 요청 — 계약서가 틀렸을 때(대조 결과와 상관없이). 사유는 필수(1~100자, WHALEERP-635) */
         post: operations["MyContractsController_requestCorrection"];
         delete?: never;
         options?: never;
@@ -2348,7 +2545,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 내 근로계약 목록 — 서명 대기 이후(임시저장 · 발송 대기 제외). 소속 확인 대기 계약은 없다 */
+        /** 내 근로계약 목록 — 서명 대기 이후(작성 중 · 서명 요청 전 제외). 소속 확인 대기 계약은 없다 */
         get: operations["MyContractViewsController_list"];
         put?: never;
         post?: never;
@@ -2365,7 +2562,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 내 근로계약 상세 — 계약서에 그릴 값 · 사용자 칸 · 본인 대조 미리보기(날인할 수 있는지 · 다른 항목) */
+        /** 내 근로계약 상세 — 계약서에 그릴 값 · 사용자 칸 · 본인 대조 미리보기(서명할 수 있는지 · 다른 항목) */
         get: operations["MyContractViewsController_findOne"];
         put?: never;
         post?: never;
@@ -2546,23 +2743,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/stores/options": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** 근무지 선택지. 업무 범위 안에서 지우지 않았고 폐점이 아닌 점포, 이름순. `:id` 보다 먼저 둔다. */
-        get: operations["StoresController_options"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/stores": {
         parameters: {
             query?: never;
@@ -2589,7 +2769,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 엑셀(xlsx). 목록과 같은 검색 조건으로 전부 담고, 대표자 연락처만 가운데 자리를 가린다. 공통 엑셀 규칙을 따른다 —
+         * 엑셀(xlsx). 목록과 같은 검색 조건으로 전부 담고, 목록 [표] 보기와 같은 열만 담고 가리는 칸은 없다. 공통 엑셀 규칙을 따른다 —
          *     1만 건 미만은 바로 파일(200), 이상은 예약 생성(202, 다 만들어지면 등록한 이메일로 링크). 같은 사람 · 같은 화면은 생성
          *     중이면 409, 1분에 한 번(429). `:id` 보다 먼저 둔다.
          */
@@ -2630,7 +2810,11 @@ export interface paths {
             cookie?: never;
         };
         get: operations["StoresController_detail"];
-        /** 수정 · 상태 전환. 상세에서 받은 updatedAt 을 함께 보낸다 — 그 사이 다른 사람이 고쳤으면 409. */
+        /**
+         * 수정 · 상태 전환. 상세에서 받은 updatedAt 을 함께 보낸다 — 그 사이 다른 사람이 고쳤으면 409.
+         *     폐점이면 같은 트랜잭션에서 소속 직원의 퇴직일을 폐점일로 정하고(이미 더 이르면 그대로) 대기 계약 종료 · 초대 만료를 하고,
+         *     처리한 수를 closing 으로 준다.
+         */
         put: operations["StoresController_update"];
         post?: never;
         /** 삭제(논리 삭제). 미운영이면서 진행 중인 근로계약이 없을 때만. */
@@ -3303,7 +3487,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 등록의 직원 고르기 — 그 근무지에 체결 완료 계약이 있고 가입을 마쳤고 퇴직하지 않은 직원, 이름순 */
+        /** 등록의 직원 고르기 — 그 근무지에 서명 완료 계약이 있고 가입을 마쳤고 퇴직하지 않은 직원, 이름순 */
         get: operations["TodosController_assignableStaff"];
         put?: never;
         post?: never;
@@ -3448,7 +3632,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 등록의 직원 선택지 — 가입을 마쳤고 그 근무일에 체결 완료 계약이 있고 퇴직일 전인 직원, 이름순(STAFF-29 · CTR-24) */
+        /** 등록의 직원 선택지 — 가입을 마쳤고 그 근무일에 서명 완료 계약이 있고 퇴직일 전인 직원, 이름순(STAFF-29 · CTR-24) */
         get: operations["WorkSchedulesController_assignableStaff"];
         put?: never;
         post?: never;
@@ -3682,6 +3866,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/attendance-records/open-check-ins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 점포의 열린 출근(퇴근하지 않은 출근, WHALEERP-644) — 폐점 전에 묻는다. 보정할 수 있는 3개월 안의 것, 출근 시각순. 본사에게
+         *     가려지는 직원은 줄을 빼고 수만 `hiddenCount` 로(ATT-30)
+         */
+        get: operations["AttendanceRecordsController_openCheckIns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/attendance-records/proxy-staff": {
         parameters: {
             query?: never;
@@ -3689,7 +3893,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 대신 등록 선택지 — 그날 대신 등록할 수 있는 직원(위치정보 동의 없음 · 일시 중지, 체결 완료 계약, ATT-20 · 26) */
+        /** 대신 등록 선택지 — 그날 대신 등록할 수 있는 직원(위치정보 동의 없음 · 일시 중지, 서명 완료 계약, ATT-20 · 26) */
         get: operations["AttendanceRecordsController_proxyStaff"];
         put?: never;
         post?: never;
@@ -3873,7 +4077,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 내 소속 근무지 — TO-DO 와 같은 재직 직원 기준. 체결 완료 근로계약이 있고 가입 완료 · 퇴직 전인 직원 레코드. 퇴직 예정은
+         * 내 소속 근무지 — TO-DO 와 같은 재직 직원 기준. 서명 완료 근로계약이 있고 가입 완료 · 퇴직 전인 직원 레코드. 퇴직 예정은
          *     퇴직일과 함께. `includeRetired=true` 면 퇴직한 레코드도 지금 소속 뒤에 퇴직일 최근 순으로 넣는다 — 퇴직일(retiredDate)이
          *     오늘보다 앞이면 퇴직, 오늘 · 뒤면 퇴직 예정이다(2026-10-28). 묶음은 재직 상태로 가르므로 퇴직 배치가 늦은 날에는 날짜와
          *     어긋날 수 있다.
@@ -4130,8 +4334,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 수락 — 그 점포의 직원 레코드를 이 계정에 잇고(가입 완료) 함께 온 근로계약서를 서명 대기로 넘긴다. 날인 기한은 지금부터 30일,
-         *     날인 요청 직원 알림이 나간다.
+         * 수락 — 그 점포의 직원 레코드를 이 계정에 잇고(가입 완료) 함께 온 근로계약서를 서명 대기로 넘긴다. 서명 기한은 지금부터 30일,
+         *     서명 요청 직원 알림이 나간다.
          */
         post: operations["MyAffiliationRequestsController_accept"];
         delete?: never;
@@ -4150,7 +4354,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 거절 — 요청을 거절로 두고(사유 선택) 함께 온 근로계약서를 거부로 닫는다(같은 사유). 직원 레코드 · 지금 소속 · 계정은 그대로다.
+         * 거절 — 요청을 거절로 두고(사유 선택) 함께 온 근로계약서를 서명 거절로 닫는다(같은 사유). 직원 레코드 · 지금 소속 · 계정은 그대로다.
          *     초안을 쓴 관리자에게 「소속 추가 확인 거절」 운영 알림이 간다.
          */
         post: operations["MyAffiliationRequestsController_reject"];
@@ -4391,7 +4595,7 @@ export interface components {
             /**
              * @description 맞는 계정의 로그인 이메일을 가린 것. 휴대전화번호는 고유하지 않아 여럿일 수 있고(탈퇴 계정은 뺀다),
              *     가입 순서대로다. @ 앞은 처음 2글자와 마지막 1글자만 보이고(3글자 이하면 첫 글자만), 도메인은 그대로다.
-             *     예: st*****m@gmail.com
+             *     예: st*****m@example.com
              */
             emails: string[];
         };
@@ -4598,6 +4802,18 @@ export interface components {
             /** @description 관리 점포 — 점포 선택 목록. 플랫폼 계정은 빈 목록이다(BP 를 골라 일한다). */
             stores: components["schemas"]["AdminStoreDto"][];
         };
+        AdminStoreListResponseDto: {
+            /** @description 관리 점포 — 로그인 정보의 `stores` 와 같은 항목 · 순서(점포 이름순). 플랫폼 계정은 빈 목록이다. */
+            items: components["schemas"]["AdminStoreDto"][];
+            total: number;
+        };
+        AdminLoginInfoVersionResponseDto: {
+            /**
+             * @description 로그인 정보 버전 — 이전에 받은 값과 다르면 login-info 를 다시 받는다. 형식은 정해 두지 않으니 비교에만 쓴다.
+             * @example k3J9xQ0b2nXyK1pV0aWmTg
+             */
+            version: string;
+        };
         AdminPasswordChangeDto: {
             /** @description 새 비밀번호 — 영문 · 숫자 · 특수문자 각 1자 이상 8~20자. 규칙 위반은 400 과 정책 문구 하나. */
             newPassword: string;
@@ -4679,11 +4895,11 @@ export interface components {
         WithdrawEligibilityResponseDto: {
             /** @description BP 상호명. */
             bpName: string;
-            /** @description 함께 탈퇴될 하위 관리자 수(BP 관리자 · 가맹마스터 · 가맹관리자) — 요청한 BP 마스터 자신은 빼고 센다. */
+            /** @description 함께 미사용(개인정보 지움)될 하위 관리자 수(BP 관리자 · 가맹마스터 · 가맹관리자) — 요청한 BP 마스터 자신은 빼고 센다. */
             adminCount: number;
             /** @description 함께 강제 폐점될 점포 수 — 이미 폐점한 점포는 빼고 센다. */
             storeCount: number;
-            /** @description 진행 중인 근로계약(임시저장 · 발송 대기 · 서명 대기 · 수정 요청 · 체결 완료)이 있으면 true — 있으면 탈퇴를 막는다. */
+            /** @description 진행 중인 근로계약(작성 중 · 서명 요청 전 · 서명 대기 · 수정 요청 · 서명 완료)이 있으면 true — 있으면 탈퇴를 막는다. */
             hasInProgressContract: boolean;
         };
         CreateWithdrawalDto: {
@@ -4909,7 +5125,7 @@ export interface components {
         EnumValueDto: {
             /** @description 저장·전송 값. 예: PENDING_SEND */
             value: string;
-            /** @description 화면에 보이는 한글. 예: 발송 대기 */
+            /** @description 화면에 보이는 한글. 예: 서명 요청 전 */
             label: string;
             /** @description 선택지 순서. 1부터. */
             order: number;
@@ -4925,17 +5141,17 @@ export interface components {
              *       "ContractStatus": [
              *         {
              *           "value": "PENDING_SEND",
-             *           "label": "발송 대기",
+             *           "label": "서명 요청 전",
              *           "order": 1
              *         },
              *         {
              *           "value": "PENDING_SIGNATURE",
-             *           "label": "서명 대기",
+             *           "label": "직원 서명 대기",
              *           "order": 2
              *         },
              *         {
              *           "value": "SIGNED",
-             *           "label": "체결 완료",
+             *           "label": "서명 완료",
              *           "order": 3
              *         }
              *       ]
@@ -4969,6 +5185,11 @@ export interface components {
             isBpApplied: boolean;
             /** @description 표시 순서. */
             sortOrder: number;
+            /**
+             * Format: date-time
+             * @description 최종 수정 시각. 수정(PUT) 때 그 행의 updatedAt 으로 그대로 보낸다.
+             */
+            updatedAt: string;
         };
         CodeGroupListResponseDto: {
             items: components["schemas"]["CodeGroupResponseDto"][];
@@ -4993,14 +5214,16 @@ export interface components {
              * @enum {string}
              */
             status: "ACTIVE" | "INACTIVE";
-            /** @description 표시 순서. 화면이 끌어 옮긴 뒤 1부터 다시 매긴 값. */
-            sortOrder: number;
         };
         CreateCodeGroupsDto: {
             /** @description 만들 그룹. 1~200행. 한 요청 안에서 그룹 코드가 겹치면 409. */
             items: components["schemas"]["CreateCodeGroupDto"][];
         };
-        CodeGroupInputDto: {
+        UpdateCodeGroupDto: {
+            /** @description 목록에서 받은 그 행의 updatedAt 그대로. 그 사이 다른 관리자가 고쳤으면 요청 전체를 저장하지 않고 409. */
+            updatedAt: string;
+            /** @description 표시 순서. 화면이 끌어 옮긴 뒤 1부터 다시 매긴 값. */
+            sortOrder: number;
             /**
              * @description 그룹 코드. 등록 뒤 바뀌지 않는다 — 수정 본문에서는 대상을 가리킬 뿐이다.
              * @example EMP_TYPE
@@ -5013,12 +5236,10 @@ export interface components {
              * @enum {string}
              */
             status: "ACTIVE" | "INACTIVE";
-            /** @description 표시 순서. 화면이 끌어 옮긴 뒤 1부터 다시 매긴 값. */
-            sortOrder: number;
         };
         UpdateCodeGroupsDto: {
             /** @description 고칠 그룹. 1~200행. 한 요청 안에서 그룹 코드가 겹치면 409. */
-            items: components["schemas"]["CodeGroupInputDto"][];
+            items: components["schemas"]["UpdateCodeGroupDto"][];
         };
         CodeItemResponseDto: {
             /** @description 사용 상태. */
@@ -5035,6 +5256,11 @@ export interface components {
             label: string;
             /** @description 표시 순서. */
             sortOrder: number;
+            /**
+             * Format: date-time
+             * @description 최종 수정 시각. 수정(PUT) 때 그 행의 updatedAt 으로 그대로 보낸다.
+             */
+            updatedAt: string;
         };
         CodeItemListResponseDto: {
             items: components["schemas"]["CodeItemResponseDto"][];
@@ -5064,9 +5290,30 @@ export interface components {
             /** @description 만들 상세 코드. 1~500행. 한 요청 안에서 코드가 겹치면 409. */
             items: components["schemas"]["CodeItemInputDto"][];
         };
+        UpdateCodeItemDto: {
+            /** @description 목록에서 받은 그 행의 updatedAt 그대로. 그 사이 다른 관리자가 고쳤으면 요청 전체를 저장하지 않고 409. */
+            updatedAt: string;
+            /**
+             * @description 상세 코드. 등록 뒤 바뀌지 않는다 — 수정 본문에서는 대상을 가리킬 뿐이다. SERVICE 그룹이면 서비스 코드다.
+             * @example FULL
+             */
+            itemCode: string;
+            /**
+             * @description 코드명. 앞뒤 공백을 지우고 1~50자. SERVICE 그룹이면 서비스명이다.
+             * @example 정규직
+             */
+            label: string;
+            /**
+             * @description 사용 상태.
+             * @enum {string}
+             */
+            status: "ACTIVE" | "INACTIVE";
+            /** @description 표시 순서. 화면이 끌어 옮긴 뒤 1부터 다시 매긴 값. */
+            sortOrder: number;
+        };
         UpdateCodeItemsDto: {
             /** @description 고칠 상세 코드. 1~500행. 한 요청 안에서 코드가 겹치면 409. */
-            items: components["schemas"]["CodeItemInputDto"][];
+            items: components["schemas"]["UpdateCodeItemDto"][];
         };
         DeleteCodeItemsDto: {
             /**
@@ -5088,9 +5335,9 @@ export interface components {
         /** @enum {string} */
         StoreType: "DIRECT" | "FRANCHISE";
         /** @enum {string} */
-        AdminAccountStatus: "ACTIVE" | "INACTIVE";
-        /** @enum {string} */
         BpAdminRole: "BA" | "FM" | "FA";
+        /** @enum {string} */
+        AdminAccountStatus: "ACTIVE" | "INACTIVE";
         BpAdminRoleGroupDto: {
             roleTypeCode: components["schemas"]["BpAdminRole"];
             roleGroupId: number;
@@ -5233,8 +5480,8 @@ export interface components {
              */
             name: string;
             /**
-             * @description 휴대전화. 하이픈 없이 숫자 9~12자리 — 화면 이름은 휴대전화지만 1팀 연락처 범위(02 지역번호 9자리 · 050X
-             *     평생번호 12자리)를 그대로 받는다. 중복 검사는 하지 않는다.
+             * @description 연락처. 하이픈 없이 숫자 9~12자리 — 1팀 연락처 범위(02 지역번호 9자리 · 050X 평생번호 12자리)를
+             *     그대로 받는다. 중복 검사는 하지 않는다.
              * @example 01012345678
              */
             phone: string;
@@ -5267,8 +5514,8 @@ export interface components {
              */
             name: string;
             /**
-             * @description 휴대전화. 하이픈 없이 숫자 9~12자리 — 화면 이름은 휴대전화지만 1팀 연락처 범위(02 지역번호 9자리 · 050X
-             *     평생번호 12자리)를 그대로 받는다. 중복 검사는 하지 않는다.
+             * @description 연락처. 하이픈 없이 숫자 9~12자리 — 1팀 연락처 범위(02 지역번호 9자리 · 050X 평생번호 12자리)를
+             *     그대로 받는다. 중복 검사는 하지 않는다.
              * @example 01012345678
              */
             phone: string;
@@ -5337,6 +5584,11 @@ export interface components {
             label: string;
             /** @description 표시 순서. */
             sortOrder: number;
+            /**
+             * Format: date-time
+             * @description 최종 수정 시각. 수정(PUT) 때 그 행의 updatedAt 으로 그대로 보낸다.
+             */
+            updatedAt: string;
             /**
              * @description 플랫폼 원본이 사용중지인가(안내용). BP전용은 늘 거짓. 플랫폼제공 그룹에서 BP 는 이 값과 관계없이 사용 상태를
              *     자유롭게 바꾼다(2026-10-22 결정).
@@ -5698,8 +5950,8 @@ export interface components {
             editBlockedReason: components["schemas"]["PlatformRoleGroupLockReason"] | null;
             deleteBlockedReason: components["schemas"]["PlatformRoleGroupLockReason"] | null;
             /**
-             * @description 역할로 권한명 · 설명 · 메뉴를 고칠 수 있고 본인이 연결된 그룹도 아닌가 — BM 은 그 BP 의 BA, FM 은 본인 FA. false 의
-             *     이유는 editBlockedReason. 메뉴 권한은 화면이 합친다.
+             * @description 역할로 권한명 · 설명을 고칠 수 있는가 — BM 은 그 BP 의 BA, FM 은 본인 FA. 본인이 연결된 그룹도 고친다(재영
+             *     2026-10-30). false 의 이유는 editBlockedReason. 메뉴 칸은 메뉴 트리의 칸별 값을 본다(본인 연결은 거기서 막힌다).
              */
             isEditable: boolean;
             /**
@@ -5844,7 +6096,7 @@ export interface components {
             /** @description 고칠 수 없는 이유. 고칠 수 있으면 null. 한글은 GET /enums/PlatformRoleGroupLockReason. */
             editBlockedReason: components["schemas"]["PlatformRoleGroupLockReason"] | null;
             deleteBlockedReason: components["schemas"]["PlatformRoleGroupLockReason"] | null;
-            /** @description 권한명 · 설명을 고칠 수 있는가. 메뉴 칸은 메뉴 트리의 칸별 값을 본다. */
+            /** @description 권한명 · 설명을 고칠 수 있는가. 본인이 연결된 권한도 고친다(재영 2026-10-30). 메뉴 칸은 메뉴 트리의 칸별 값을 본다. */
             isEditable: boolean;
             /** @description 지울 수 있는가. 연결 사용자가 있는데 대체 후보가 없는 것은 삭제 후보 조회로 알린다. */
             isDeletable: boolean;
@@ -6043,14 +6295,11 @@ export interface components {
              */
             holidayDate: string;
             /**
-             * @description 휴일명.
-             * @example 삼일절
+             * @description 휴일명. 공공 API 표기 — 대체공휴일도 이름에 담는다.
+             * @example 대체공휴일(삼일절)
              */
             name: string;
-            /**
-             * @description 비고. 없으면 null(대체공휴일이면 그 사유).
-             * @example 대체공휴일 — 삼일절
-             */
+            /** @description 비고. 지금은 모두 null 이다 — 동기화도 규칙 계산 행도 대체공휴일을 이름에 담는다(2026-10-30). */
             note: string | null;
         };
         PublicHolidaySynchronizationResponseDto: {
@@ -6101,6 +6350,13 @@ export interface components {
             /** @description 점포 이름순. 운영 상태와 상관없이 미삭제 점포 전체. 항목 모양은 로그인 정보의 `stores` 와 같다. */
             items: components["schemas"]["AdminStoreDto"][];
             total: number;
+        };
+        BpStoresVersionResponseDto: {
+            /**
+             * @description 점포 목록 버전 — 이전에 받은 값과 다르면 점포 목록을 다시 받는다. 형식은 정해 두지 않으니 비교에만 쓴다.
+             * @example q3Zr8l0b2nXyK1pV0aWmTg
+             */
+            version: string;
         };
         BpMasterSummaryResponseDto: {
             /**
@@ -6470,6 +6726,61 @@ export interface components {
             /** @description 약관 본문(Markdown) */
             content: string;
         };
+        BulkExportPreviewResponseDto: {
+            /** @description 범위 점포 수 */
+            storeCount: number;
+            /** @description 담을 직원 수(재직 + 퇴직). 0 이면 요청 버튼을 끈다 */
+            staffCount: number;
+            /** @description 재직 */
+            employedCount: number;
+            /** @description 퇴직(퇴직일 다음 날부터 3년 안) */
+            retiredCount: number;
+            /** @description 같은 범위의 파일을 만드는 중인가 */
+            inProgress: boolean;
+        };
+        CreateBulkExportDto: {
+            /**
+             * @description 업무 범위 점포. 비거나 없으면 관리하는 점포 전부. 관리하지 않는 점포가 섞이면 400
+             * @example [
+             *       3,
+             *       5
+             *     ]
+             */
+            storeIds?: number[];
+        };
+        /** @enum {string} */
+        BulkExportStatus: "PENDING" | "PROCESSING" | "SUCCEEDED" | "FAILED";
+        BulkExportItemDto: {
+            status: components["schemas"]["BulkExportStatus"];
+            bulkExportId: number;
+            /** @description 요청의 업무 범위 점포(오름차순) — 「다시 요청」이 같은 범위로 보낸다 */
+            storeIds: number[];
+            /** @description 요청 일시(ISO) */
+            requestedAt: string;
+            /** @description 요청한 관리자 이름(없으면 로그인 아이디) */
+            requesterName: string;
+            /** @description 담은 직원 수 */
+            staffCount: number;
+            /** @description 완료 일시(ISO) */
+            completedAt: string | null;
+            /** @description 받을 수 있는 기한(ISO) — 완료 + 7일 */
+            expiresAt: string | null;
+            /** @description 기한이 지났는가 */
+            isExpired: boolean;
+            /** @description 실패 사유 */
+            failureReason: string | null;
+        };
+        BulkExportListResponseDto: {
+            items: components["schemas"]["BulkExportItemDto"][];
+            total: number;
+        };
+        BulkExportDownloadResponseDto: {
+            /** @description 5분짜리 내려받기 주소 */
+            url: string;
+            fileName: string;
+            /** @description 파일을 받을 수 있는 기한(ISO) */
+            expiresAt: string;
+        };
         /** @enum {string} */
         EmploymentStatus: "EMPLOYED" | "RETIRED";
         /** @enum {string} */
@@ -6545,15 +6856,15 @@ export interface components {
             endDate: string | null;
             /**
              * Format: date-time
-             * @description 최종 수정 일시. 거부일을 따로 저장하지 않아 「거부 · MM-DD」는 이 값으로 보인다
+             * @description 최종 수정 일시. 서명 거절일을 따로 저장하지 않아 「서명 거절 · MM-DD」는 이 값으로 보인다
              */
             updatedAt: string | null;
             /**
              * @description 가입 · 인증 칸 재발송용 — 근로계약 상세의 canResend 와 달리 가입한 직원은 거짓이다(가입한 직원의 앱 알림 재발송은 근로계약
              *     상세에서). 이 칸의 버튼은 이 값 하나만 본다. 참이면 이 계약으로 근로계약 재발송(POST
              *     /contracts/{contractId}/send)이 가입 초대 알림톡 또는 소속 추가 확인 요청을 보낸다(설정 누락 503 · 그사이 바뀐 상태 409 · 발송
-             *     실패 502 는 남는다). 발송 대기 · 서명 대기(거부 · 만료 재발송은 근로계약 상세에서, WHALEERP-153) 위에 모두 맞을 때만 참이다: 가입 전 ·
-             *     가입 상태가 초대 발송 · 초대 만료 · 소속 추가 확인 · 복귀 확인(연결 보류 · 만 19세 미만 · 거절은 거짓), 또는 초안이고 이
+             *     실패 502 는 남는다). 서명 요청 전 · 서명 대기(서명 거절 · 계약 기간 만료 재발송은 근로계약 상세에서, WHALEERP-153) 위에 모두 맞을 때만 참이다: 가입 전 ·
+             *     가입 상태가 가입 대기 · 초대 만료 · 소속 승인 대기 · 복귀 확인(정보 확인 필요 · 만 19세 미만 · 거절은 거짓), 또는 초안이고 이
              *     계약이 소속 추가 확인 · 복귀 확인으로 판별된 것(WHALEERP-130 전 요청 없이 서명 대기가 된 옛 계약) · 보이는 초대가 수락되지
              *     않음 · 휴대폰 번호 · 가린 줄 아님. 간격 제한은 없다.
              */
@@ -6608,7 +6919,7 @@ export interface components {
             email: string | null;
             /** @description 직무 */
             jobTitle: string;
-            /** @description 입사일(YYYY-MM-DD) — 그 점포에서 처음 체결 완료된 근로계약의 시작일. 채우기 전 레코드는 null */
+            /** @description 입사일(YYYY-MM-DD) — 그 점포에서 처음 서명 완료된 근로계약의 시작일. 채우기 전 레코드는 null */
             hiredDate: string | null;
             /**
              * @description 생년월일(YYYY-MM-DD). 가입한 계정 값이고, 가입 전 · 탈퇴 계정이면 생년월일이 적힌 가장 최근 계약의 값이다. 둘 다 없으면
@@ -6625,11 +6936,11 @@ export interface components {
             birthDateCorrectable: boolean;
             /**
              * @description 이전 재직 기간 — 퇴직 뒤 같은 점포에 다시 입사해 이은 옛 레코드들(WHALEERP-615), 가까운 것부터. 누르면 그 레코드의
-             *     상세로 간다. 체결 완료된 계약이 없는 레코드와 이 관리자에게 가려지는 레코드는 빠진다
+             *     상세로 간다. 서명 완료된 계약이 없는 레코드와 이 관리자에게 가려지는 레코드는 빠진다
              */
             previousRecords: components["schemas"]["StaffMemberEmploymentPeriodDto"][];
             /**
-             * @description 이후 재직 기간 — 이 레코드 뒤에 다시 입사한 레코드들, 가까운 것부터. 체결 완료 전(임시저장 · 발송만 한) 레코드와 가려지는
+             * @description 이후 재직 기간 — 이 레코드 뒤에 다시 입사한 레코드들, 가까운 것부터. 서명 완료 전(작성 중 · 발송만 한) 레코드와 가려지는
              *     레코드는 빠진다
              */
             laterRecords: components["schemas"]["StaffMemberEmploymentPeriodDto"][];
@@ -6644,10 +6955,16 @@ export interface components {
             /** @description 퇴직일(YYYY-MM-DD). 재직이면서 값이 있으면 퇴직 예정 */
             retiredDate: string | null;
         };
+        StaffMemberPayrollAccountDto: {
+            /** @description 은행 이름(BANK 공통코드 이름, 예 KB국민은행). 공통코드에 없으면 은행 코드 그대로 */
+            bankName: string;
+            /** @description 계좌번호 전체 — 하이픈 없음, 가리지 않음 */
+            accountNumber: string;
+        };
         /** @enum {string} */
         ContractMethod: "ELECTRONIC" | "PAPER";
         StaffMemberContractSummaryDto: {
-            /** @description 계약 유형. 임시저장이면 비어 있을 수 있다 */
+            /** @description 계약 유형. 작성 중이면 비어 있을 수 있다 */
             employmentType: components["schemas"]["EmploymentType"] | null;
             contractMethod: components["schemas"]["ContractMethod"] | null;
             status: components["schemas"]["ContractStatus"] | null;
@@ -6662,14 +6979,27 @@ export interface components {
              */
             lastSentAt: string | null;
             /**
-             * @description 갱신 예정일(YYYY-MM-DD) — 체결 완료이고 종료일이 오늘 이후일 때 종료일 30일 전. 종료일이 30일 안이면 이미 지난
+             * @description 갱신 예정일(YYYY-MM-DD) — 서명 완료이고 종료일이 오늘 이후일 때 종료일 30일 전. 종료일이 30일 안이면 이미 지난
              *     날짜일 수 있다. 아니면 null
              */
             renewalDate: string | null;
         };
         StaffMemberContractSummaryResponseDto: {
+            /**
+             * @description 신고 정보의 급여 계좌 — 은행 이름 · 계좌번호 전체(하이픈 없음, 가리지 않음). 신고 정보가 없으면 null. 계약이 없어도
+             *     신고 정보가 있으면 오고, 급여 지급 방식(계좌 · 현금)과 상관없다. canViewPayrollAccount 가 false 이면 신고 정보를
+             *     읽지 않고 항상 null
+             */
+            payrollAccount: components["schemas"]["StaffMemberPayrollAccountDto"] | null;
             /** @description 계약이 없으면 null */
             contract: components["schemas"]["StaffMemberContractSummaryDto"] | null;
+            /**
+             * @description 이 관리자가 이 직원의 급여 계좌를 볼 수 있는가. 본사 역할(BP 마스터 · BP 관리자)이 가맹 점포 직원을 보면 false —
+             *     본사 제공 동의를 했어도 그렇다(동의 범위에 신고 정보가 없고 계좌는 가맹 점포 사업주가 받는 정보, 운영 정책 TAX-07 ·
+             *     TAX-08, 재영 2026-10-29). 그 밖(직영 점포 직원, 가맹마스터 · 가맹관리자)은 true. false 이면 화면은 「급여 계좌」 줄
+             *     자체를 숨긴다
+             */
+            canViewPayrollAccount: boolean;
         };
         StaffMemberWeekScheduleItemDto: {
             workScheduleId: number;
@@ -6719,6 +7049,34 @@ export interface components {
             recent: components["schemas"]["StaffMemberRecentPayslipDto"][];
             /** @description 발송 완료가 아닌 명세서 수 — 작성 중 · 검토 중 · 확정 */
             unsentCount: number;
+        };
+        /** @enum {string} */
+        StaffSendKind: "SIGNUP_INVITE" | "AFFILIATION_REQUEST";
+        /**
+         * @description 비즈뿌리오 접수 기준. 접수 여부 모름(UNCONFIRMED)은 다시 보내면 두 번 갈 수 있다
+         * @enum {string}
+         */
+        StaffSendResult: "SUCCEEDED" | "FAILED" | "UNCONFIRMED";
+        StaffMemberSendLogDto: {
+            kind: components["schemas"]["StaffSendKind"];
+            /** @description 비즈뿌리오 접수 기준. 접수 여부 모름(UNCONFIRMED)은 다시 보내면 두 번 갈 수 있다 */
+            result: components["schemas"]["StaffSendResult"];
+            /** @description 알림톡 발송 이력 ID(alimtalk_send_logs) */
+            sendLogId: number;
+            /** @description 보낸 근로계약 */
+            contractId: number;
+            /** @description 같은 계약으로 앞서 직원에게 나갔을 수 있는 발송(성공 · 접수 여부 모름)이 있었다 — 재발송 · 고쳐 다시 보냄. 계약 재발송 횟수와는 다를 수 있다 */
+            isResend: boolean;
+            /** @description 관리자에게 보일 실패 사유. 성공이면 null */
+            failureReason: string | null;
+            /** @description 다시 보내도 되는가 — 확실히 나가지 않은 실패만 true, 접수 여부 모름은 false. 성공이면 null */
+            retryable: boolean | null;
+            /** Format: date-time */
+            sentAt: string;
+        };
+        StaffMemberSendLogResponseDto: {
+            /** @description 이 직원 레코드의 모든 근로계약 발송, 최근 순 */
+            items: components["schemas"]["StaffMemberSendLogDto"][];
         };
         /** @enum {string} */
         TodoStatus: "PENDING" | "IN_PROGRESS" | "DONE";
@@ -6775,7 +7133,7 @@ export interface components {
             totalWorkMinutes: number;
         };
         ContractToEndDto: {
-            /** @description 임시저장 · 발송 대기 · 서명 대기 · 수정 요청 */
+            /** @description 작성 중 · 서명 요청 전 · 서명 대기 · 수정 요청 */
             status: components["schemas"]["ContractStatus"];
             contractId: number;
         };
@@ -6784,7 +7142,7 @@ export interface components {
             schedulesToRemove: number;
             /** @description 개인으로 배정된 미완료 TO-DO 수 — 배정을 푼다 */
             todosToUnassign: number;
-            /** @description 임시저장 · 발송 대기 · 서명 대기 · 수정 요청 계약 — 종료로 닫는다 */
+            /** @description 작성 중 · 서명 요청 전 · 서명 대기 · 수정 요청 계약 — 종료로 닫는다 */
             contractsToEnd: components["schemas"]["ContractToEndDto"][];
         };
         RetirementDateDto: {
@@ -6871,7 +7229,7 @@ export interface components {
             staffName: string;
             storeId: number;
             storeName: string;
-            /** @description 급여 기간에 걸친 체결 완료 근로계약 중 가장 늦게 시작한 것. 없으면 null — 초안을 만들 수 없다 */
+            /** @description 급여 기간에 걸친 서명 완료 근로계약 중 가장 늦게 시작한 것. 없으면 null — 초안을 만들 수 없다 */
             contractId: number | null;
             /** @description 이 달 명세서가 이미 있으면 그 ID — 새로 만들지 않는다 */
             payslipId: number | null;
@@ -7243,7 +7601,7 @@ export interface components {
             draftAction: components["schemas"]["ContractDraftAction"] | null;
             /** @description 발송 일시 (ISO 8601). 발송 전이면 null */
             sentAt: string | null;
-            /** @description 날인 기한 (ISO 8601) */
+            /** @description 서명 기한 (ISO 8601) */
             signDeadlineAt: string | null;
             /**
              * @description 직원의 지금 가입 · 초대 상태(직원 목록 joinState 와 같은 규칙, WHALEERP-133). draftAction 은 저장 때 판별한 값이라 초대가
@@ -7251,7 +7609,7 @@ export interface components {
              */
             staffJoinState: components["schemas"]["StaffJoinState"];
             /**
-             * @description 갱신 예정일 YYYY-MM-DD — 체결 완료이고 종료일이 오늘 이후면 종료일 30일 전(직원 상세 요약과 같은 규칙, WHALEERP-156).
+             * @description 갱신 예정일 YYYY-MM-DD — 서명 완료이고 종료일이 오늘 이후면 종료일 30일 전(직원 상세 요약과 같은 규칙, WHALEERP-156).
              *     종료일이 30일 안이면 이미 지난 날짜다. 이미 재계약했으면(진행 중이거나 체결을 거친 재계약이 있음) null, 그 밖에도 null
              * @example 2026-11-01
              */
@@ -7289,6 +7647,15 @@ export interface components {
              */
             statusCounts: components["schemas"]["ContractStatusCountsDto"];
         };
+        StoreOptionDto: {
+            storeId: number;
+            /** @description 점포명 */
+            name: string;
+        };
+        StoreOptionListResponseDto: {
+            items: components["schemas"]["StoreOptionDto"][];
+            total: number;
+        };
         /**
          * @description 성별 — 남 · 여. 가입 때 직원이 넣은 값과 본인 대조한다(WHALEERP-125). 임시저장은 비워도 된다
          * @enum {string}
@@ -7315,8 +7682,8 @@ export interface components {
             gender?: components["schemas"]["Gender"];
             employmentType: components["schemas"]["EmploymentType"];
             /**
-             * @description 전자계약 · 종이 계약. 임시저장이면 비워도 된다. 종이 계약은 날인본 파일과 함께 `POST /contracts/paper`
-             *     (이어 쓰기는 `PUT /contracts/:contractId/paper`)로 등록하고 체결 완료가 된다(CTR-23). 여기(JSON)로는 임시저장만 된다.
+             * @description 전자계약 · 종이 계약. 임시저장이면 비워도 된다. 종이 계약은 서명본 파일과 함께 `POST /contracts/paper`
+             *     (이어 쓰기는 `PUT /contracts/:contractId/paper`)로 등록하고 서명 완료가 된다(CTR-23). 여기(JSON)로는 임시저장만 된다.
              */
             contractMethod?: components["schemas"]["ContractMethod"];
             /**
@@ -7330,7 +7697,7 @@ export interface components {
             payMethod?: components["schemas"]["PayMethod"];
             /** @description 앞뒤 공백은 지운다(NFC) — 같은 사람의 가입 전 레코드를 이름으로 찾으므로 공백 하나로 갈리지 않게. */
             name: string;
-            /** @description 숫자만 10~11자리 (예: 01090145563) */
+            /** @description 숫자만 10~11자리 (예: 01012345678) */
             phone: string;
             /** @description YYYY-MM-DD. 계약 시작일 기준 만 19세 미만이면 저장하지 않는다 */
             birthDate?: string;
@@ -7376,13 +7743,13 @@ export interface components {
             workLocation?: string;
             isHealthPensionInsured?: boolean;
             isEmploymentInjuryInsured?: boolean;
-            /** @description true 면 임시저장(DRAFT) — 초대 · 계약서를 보내지 않는다. 없으면 초안 저장(발송 대기) */
+            /** @description true 면 임시저장(DRAFT) — 초대 · 계약서를 보내지 않는다. 없으면 초안 저장(서명 요청 전) */
             isTemporarySave?: boolean;
             /**
-             * @description 재계약의 직전 계약(WHALEERP-156) — 저장(POST)에서만 본다. 체결 완료이거나 체결 뒤 종료된 같은 근무지 · 같은 번호의
+             * @description 재계약의 직전 계약(WHALEERP-156) — 저장(POST)에서만 본다. 서명 완료이거나 서명 완료 뒤 종료된 같은 근무지 · 같은 번호의
              *     계약이어야 하고, 이미 체결을 거친 재계약이 있으면 409 다(진행 중 재계약은 같은 점포 진행 중 계약처럼 대체를 묻는다). 그 직원이 재직 중이면(퇴직 · 퇴직 예정이
              *     아니면) 연장이라 같은 직원 레코드에 새 계약을 붙인다 — 가입한 재직 직원이어도 막지 않는다. 퇴직한 직원이면 재입사라 지금처럼
-             *     새 레코드를 만든다(가입한 직원이 퇴직 예정이면 아직 재직이라 409 — 퇴직 뒤에). 앞 계약은 새 계약이 체결 완료이고 그 시작일이
+             *     새 레코드를 만든다(가입한 직원이 퇴직 예정이면 아직 재직이라 409 — 퇴직 뒤에). 앞 계약은 새 계약이 서명 완료이고 그 시작일이
              *     되면 하루 배치가 종료로 바꾼다(2026-10-26 김민식). 고르지 않아도 이 점포에 같은 번호로 가입한 재직 직원이 있으면 그 사람의
              *     가장 최근 체결 계약에 잇는 재계약으로 저장한다(WHALEERP-130, 2026-10-26 재영 — 재직 중인 직원에게 새 계약을 보내는 것이 곧
              *     재계약). 재계약의 시작일은 직전 계약 시작일보다 하루 이상 뒤여야 하고(400), 그러면 직전 계약과 기간이 겹쳐도 된다
@@ -7391,23 +7758,23 @@ export interface components {
              */
             previousContractId?: number;
             /**
-             * @description 잘못 올린 계약 바로잡기(WHALEERP-156) — 종이 계약 등록에서만 쓴다(그 밖이면 400). 종이 계약은 체결 완료 계약을 대체하지 않고,
-             *     같은 점포 · 같은 번호에 기간이 겹치는 체결 완료 계약이 있으면 409(code SIGNED_CONTRACT_OVERLAP)다. 잘못 올린 계약을 고치려면
-             *     이 값을 켜고 그 409 의 contracts id 를 모두 replaceContractIds 로 넣어 다시 보낸다 — 체결 완료 계약도 곧바로 종료한다(수정
+             * @description 잘못 올린 계약 바로잡기(WHALEERP-156) — 종이 계약 등록에서만 쓴다(그 밖이면 400). 종이 계약은 서명 완료 계약을 대체하지 않고,
+             *     같은 점포 · 같은 번호에 기간이 겹치는 서명 완료 계약이 있으면 409(code SIGNED_CONTRACT_OVERLAP)다. 잘못 올린 계약을 고치려면
+             *     이 값을 켜고 그 409 의 contracts id 를 모두 replaceContractIds 로 넣어 다시 보낸다 — 서명 완료 계약도 곧바로 종료한다(수정
              *     권한). 재계약이 아니다 — previousContractId 와 함께 보낼 수 없고(400), 직전 계약을 저절로 찾지 않는다. 사유는 받지 않는다.
              */
             correctSignedContracts?: boolean;
             /**
-             * @description 대체할 진행 중 계약(WHALEERP-129). 같은 점포에 같은 번호의 진행 중 계약(임시저장 · 발송 대기 · 서명 대기 · 수정 요청)이
+             * @description 대체할 진행 중 계약(WHALEERP-129). 같은 점포에 같은 번호의 진행 중 계약(작성 중 · 서명 요청 전 · 서명 대기 · 수정 요청)이
              *     있으면 409(code CONTRACT_IN_PROGRESS)가 그 목록(id · 상태 · 직원 이름 · 계약 기간)을 준다. 관리자가 대체를 확인하면
-             *     그 id 를 모두 넣어 다시 보낸다 — 임시저장은 지우고 발송 대기 · 서명 대기 · 수정 요청은 종료한다. 종이 계약 바로잡기
-             *     (correctSignedContracts)면 체결 완료도 묻고 종료한다. 체결 완료는 같은 번호로 퇴직 · 재입사가 되풀이되면 쌓이므로 상한을 넉넉히 둔다 — 409 목록을 모두
+             *     그 id 를 모두 넣어 다시 보낸다 — 작성 중 계약은 지우고 서명 요청 전 · 서명 대기 · 수정 요청은 종료한다. 종이 계약 바로잡기
+             *     (correctSignedContracts)면 서명 완료도 묻고 종료한다. 서명 완료는 같은 번호로 퇴직 · 재입사가 되풀이되면 쌓이므로 상한을 넉넉히 둔다 — 409 목록을 모두
              *     다시 보낼 수 없으면 그 번호로는 종이 계약을 등록할 수 없다(api #49 리뷰, WHALEERP-600).
              */
             replaceContractIds?: number[];
         };
         CreatedContractResponseDto: {
-            /** @description 저장한 뒤의 상태 — 임시저장 · 발송 대기 · 서명 대기 · 체결 완료(종이 계약) 등 */
+            /** @description 저장한 뒤의 상태 — 작성 중 · 서명 요청 전 · 서명 대기 · 서명 완료(종이 계약) 등 */
             status: components["schemas"]["ContractStatus"];
             /**
              * @description 시스템이 실제로 한 처리(WHALEERP-132). 보내지 않은 저장(임시저장 · 종이 계약 등록)은 null, 가입한 직원에게 앱으로 보냈으면
@@ -7419,6 +7786,19 @@ export interface components {
             contractId: number;
             staffMemberId: number;
         };
+        MinimumWageResponseDto: {
+            /**
+             * @description 시급(원). 공통코드를 쓸 수 없으면 null
+             * @example 10320
+             */
+            hourlyWage: number | null;
+            /**
+             * @description 공통코드를 쓸 수 없는 까닭(없음 · 사용 중지 · 코드명이 숫자 아님) — 수습이 있는 계약을 저장하면 이 문장으로 400 이다.
+             *     쓸 수 있으면 null
+             * @example null
+             */
+            problem: string | null;
+        };
         ContractStatusHistoryDto: {
             /** @description 처음 만든 줄은 null */
             fromStatus: components["schemas"]["ContractStatus"] | null;
@@ -7428,16 +7808,27 @@ export interface components {
             changedAt: string;
         };
         /**
-         * @description 종이 계약 근로계약서 · 임금계약서
+         * @description 종이 계약 근로계약서 · 임금계약서 · 보낸 원본 · 처리 완료본
          * @enum {string}
          */
         ContractDocumentKind: "SENT_ORIGINAL" | "SIGNED_COPY" | "PAPER_EMPLOYMENT_CONTRACT" | "WAGE_CONTRACT" | "SIGNATURE";
         ContractDocumentDto: {
-            /** @description 종이 계약 근로계약서 · 임금계약서 */
+            /** @description 종이 계약 근로계약서 · 임금계약서 · 보낸 원본 · 처리 완료본 */
             kind: components["schemas"]["ContractDocumentKind"];
             contractDocumentId: number;
             /** @description 올린 파일의 원래 이름 */
             fileName: string;
+        };
+        /** @enum {string} */
+        ContractTaxProfileState: "OK" | "NONE" | "HIDDEN" | "UNAVAILABLE";
+        ContractTaxProfileDto: {
+            status: components["schemas"]["ContractTaxProfileState"];
+            /** @description 가린 주민등록번호 — 앞 6자리 + 뒷자리 첫 자(예 900101-1******). 원문은 API 밖으로 나가지 않는다 */
+            rrnMasked: string | null;
+            /** @description 은행 이름(BANK 공통코드 이름, 예 KB국민은행). 공통코드에 없으면 은행 코드 그대로 */
+            bankName: string | null;
+            /** @description 계좌번호 전체 — 하이픈 없음, 가리지 않음(직원 상세 급여 계좌와 같다) */
+            accountNumber: string | null;
         };
         ContractDetailDto: {
             startDate: string | null;
@@ -7489,27 +7880,30 @@ export interface components {
             draftAction: components["schemas"]["ContractDraftAction"] | null;
             /** @description 상태 변경 이력. 최근 것부터 */
             histories: components["schemas"]["ContractStatusHistoryDto"][];
-            /** @description 종이 계약 날인본(근로계약서 · 임금계약서). 전자계약 · 임시저장이면 빈 배열 */
+            /** @description 종이 계약 서명본(근로계약서 · 임금계약서). 전자계약 · 작성 중이면 빈 배열 */
             documents: components["schemas"]["ContractDocumentDto"][];
             /**
-             * @description 처음 보낸 때(ISO 8601) — 상태 이력에서 발송 대기 · 서명 대기로 처음 간 때(WHALEERP-328). 보낸 적 없는 임시저장 · 종이
+             * @description 처음 보낸 때(ISO 8601) — 상태 이력에서 서명 요청 전 · 서명 대기로 처음 간 때(WHALEERP-328). 보낸 적 없는 작성 중 · 종이
              *     계약이면 null
              */
             firstSentAt: string | null;
             /** @description 마지막으로 보낸 때(ISO 8601) — 재발송 · 고쳐 다시 보내면 바뀐다. 보낸 적 없으면 null */
             lastSentAt: string | null;
-            /** @description 날인 기한(ISO 8601) — 마지막으로 보낸 때부터 30일. 보낸 적 없으면 null */
+            /** @description 서명 기한(ISO 8601) — 마지막으로 보낸 때부터 30일. 보낸 적 없으면 null */
             signDeadlineAt: string | null;
             /** @description 최종 처리일(ISO 8601) — 가장 최근 상태 변경 일시. 이력이 없으면 null */
             lastProcessedAt: string | null;
-            /** @description 직원이 남긴 거부 사유 — 거부된 계약에만, 그 밖은 null */
-            rejectReason: string | null;
+            /**
+             * @description 직원이 남긴 수정 요청 사유(1~100자, WHALEERP-635) — 수정 요청된 계약에만, 그 밖은 null. 사유를 받기 전의 수정 요청도 null.
+             *     고쳐 다시 보내도 행에는 남지만 다른 상태에서는 주지 않는다(지난 사유가 지금 사유처럼 읽히지 않게)
+             */
+            correctionReason: string | null;
             /** @description 재계약으로 만든 계약이면 직전 계약 ID. 재계약(WHALEERP-156) 전이라 지금은 늘 null */
             previousContractId: number | null;
-            /** @description 종이 계약 등록일(ISO 8601) — 체결 완료가 된 때. 종이 계약만 — 전자계약 · 등록 전 임시저장(등록 전에 종료된 것 포함)은 null */
+            /** @description 종이 계약 등록일(ISO 8601) — 서명 완료가 된 때. 종이 계약만 — 전자계약 · 등록 전 작성 중 계약(등록 전에 종료된 것 포함)은 null */
             registeredAt: string | null;
             /**
-             * @description 종이 계약을 작성한 관리자 — 등록한 종이 계약만(registeredAt 이 있을 때), 그 밖은 null. 이름이 없으면 로그인 아이디. 임시저장을 다른 관리자가 이어 써 등록했어도
+             * @description 종이 계약을 작성한 관리자 — 등록한 종이 계약만(registeredAt 이 있을 때), 그 밖은 null. 이름이 없으면 로그인 아이디. 작성 중 계약을 다른 관리자가 이어 써 등록했어도
              *     처음 작성한 관리자다(상태 이력은 관리자를 남기지 않는다)
              */
             registeredBy: string | null;
@@ -7527,38 +7921,40 @@ export interface components {
             /** @description 외국인 여부 — 체크하지 않았으면 false */
             isForeigner: boolean;
             /**
-             * @description 재발송 횟수 — 처음 발송 뒤 다시 보낸 횟수(재발송 · 고쳐 다시 보냄). 알림 없이 날인 기한만 새로 잡은 것도 센다. 알림톡이 나가지
+             * @description 재발송 횟수 — 처음 발송 뒤 다시 보낸 횟수(재발송 · 고쳐 다시 보냄). 알림 없이 서명 기한만 새로 잡은 것도 센다. 알림톡이 나가지
              *     않으면 되돌려 빼지만, 드물게 다른 요청과 겹친 실패 · 그사이 다른 요청이 초대를 무효로 해 보내지 않은 재발송은 빼지 못해 실제보다
              *     클 수 있다. 이 칸이 생기기 전의 재발송은 세지 않았다.
              *     재발송 여부는 이 값으로 본다(firstSentAt · lastSentAt 은 시각 출처가 달라 첫 발송에도 ms 가 다를 수 있다)
              */
             resendCount: number;
             /**
-             * @description 재발송(POST …/send)을 정책상 할 수 있는가 — 발송 대기 · 서명 대기 · 거부 · 만료(WHALEERP-153). 가입한 직원은 앱 알림, 가입 전
-             *     직원은 가입 초대이거나 그 번호에 계정이 있으면 소속 추가 확인 요청이다(WHALEERP-130). 거부 · 만료는 되살릴 수 없거나
+             * @description 재발송(POST …/send)을 정책상 할 수 있는가 — 서명 요청 전 · 서명 대기 · 서명 거절 · 계약 기간 만료(WHALEERP-153). 가입한 직원은 앱 알림, 가입 전
+             *     직원은 가입 초대이거나 그 번호에 계정이 있으면 소속 추가 확인 요청이다(WHALEERP-130). 서명 거절 · 계약 기간 만료는 되살릴 수 없거나
              *     (REOPEN_BLOCKED) 다른 점포 근무 시간과 겹치면(WORK_TIME_OVERLAP) false. 상세 화면이 재발송 버튼을 이 값으로 보인다. 정책만
              *     본다 — 유선번호(409 SEND_PHONE_NOT_MOBILE) · 발송 설정 없음(503) · 그 계정이 이 점포에 재직 중(409)은 true 여도 보낼 때 막힌다
              */
             canResend: boolean;
-            /** @description 직원이 가입을 마쳤는가 — 거부 · 만료 재발송이 앱(서명 대기)으로 가는지 가입 초대(발송 대기)로 가는지 확인창 문구를 가른다 */
+            /** @description 직원이 가입을 마쳤는가 — 서명 거절 · 계약 기간 만료 재발송이 앱(서명 대기)으로 가는지 가입 초대(서명 요청 전)로 가는지 확인창 문구를 가른다 */
             staffJoined: boolean;
+            /** @description 직원의 신고 정보(주민등록번호 · 급여 계좌) — 읽기만. 풀 수 없어도 상세는 열리고 이 칸만 UNAVAILABLE 이다 */
+            taxProfile: components["schemas"]["ContractTaxProfileDto"];
         };
         UpdateWorkerDto: {
             /** @description 성별 — 남 · 여. 가입 때 직원이 넣은 값과 본인 대조한다(WHALEERP-125). 임시저장은 비워도 된다 */
             gender?: components["schemas"]["Gender"];
             /** @description 앞뒤 공백은 지운다(NFC) — 같은 사람의 가입 전 레코드를 이름으로 찾으므로 공백 하나로 갈리지 않게. */
             name: string;
-            /** @description 숫자만 10~11자리 (예: 01090145563) */
+            /** @description 숫자만 10~11자리 (예: 01012345678) */
             phone: string;
             /** @description YYYY-MM-DD. 계약 시작일 기준 만 19세 미만이면 저장하지 않는다 */
             birthDate?: string;
             /** @description 외국인 여부 — 체크하지 않으면 내국인(false). 본인 대조에 쓴다(WHALEERP-125) */
             isForeigner?: boolean;
             /**
-             * @description 대체할 진행 중 계약(WHALEERP-129). 같은 점포에 같은 번호의 진행 중 계약(임시저장 · 발송 대기 · 서명 대기 · 수정 요청)이
+             * @description 대체할 진행 중 계약(WHALEERP-129). 같은 점포에 같은 번호의 진행 중 계약(작성 중 · 서명 요청 전 · 서명 대기 · 수정 요청)이
              *     있으면 409(code CONTRACT_IN_PROGRESS)가 그 목록(id · 상태 · 직원 이름 · 계약 기간)을 준다. 관리자가 대체를 확인하면
-             *     그 id 를 모두 넣어 다시 보낸다 — 임시저장은 지우고 발송 대기 · 서명 대기 · 수정 요청은 종료한다. 종이 계약 바로잡기
-             *     (correctSignedContracts)면 체결 완료도 묻고 종료한다. 체결 완료는 같은 번호로 퇴직 · 재입사가 되풀이되면 쌓이므로 상한을 넉넉히 둔다 — 409 목록을 모두
+             *     그 id 를 모두 넣어 다시 보낸다 — 작성 중 계약은 지우고 서명 요청 전 · 서명 대기 · 수정 요청은 종료한다. 종이 계약 바로잡기
+             *     (correctSignedContracts)면 서명 완료도 묻고 종료한다. 서명 완료는 같은 번호로 퇴직 · 재입사가 되풀이되면 쌓이므로 상한을 넉넉히 둔다 — 409 목록을 모두
              *     다시 보낼 수 없으면 그 번호로는 종이 계약을 등록할 수 없다(api #49 리뷰, WHALEERP-600).
              */
             replaceContractIds?: number[];
@@ -7568,26 +7964,26 @@ export interface components {
         };
         SendContractDto: {
             /**
-             * @description 화면이 본 계약 상태. 재발송은 서명 대기 · 발송 대기 · 거부 · 만료를 모두 받아, 이 값이 없으면 열어 둔 서명 대기 화면에서 그사이
-             *     거부 · 만료된 계약을 모르고 되살린다
+             * @description 화면이 본 계약 상태. 재발송은 서명 대기 · 서명 요청 전 · 서명 거절 · 계약 기간 만료를 모두 받아, 이 값이 없으면 열어 둔 서명 대기 화면에서 그사이
+             *     서명 거절 · 계약 기간 만료된 계약을 모르고 되살린다
              */
             expectedStatus?: components["schemas"]["ContractStatus"];
             /**
              * Format: date-time
-             * @description 화면이 본 마지막 발송 시각(상세 lastSentAt, ISO 8601). 재발송하면 바뀐다 — 상태가 그대로인 발송 대기 · 서명 대기를 두 탭에서 각각
+             * @description 화면이 본 마지막 발송 시각(상세 lastSentAt, ISO 8601). 재발송하면 바뀐다 — 상태가 그대로인 서명 요청 전 · 서명 대기를 두 탭에서 각각
              *     다시 보내면 상태만으로는 잡히지 않아 알림이 두 번 가고 앞 초대 코드가 무효가 된다. 아직 보낸 적 없으면(lastSentAt null) 비운다
              */
             expectedSentAt?: string;
         };
         SendContractResponseDto: {
             /**
-             * @description 보낸 뒤의 상태 — 가입 초대는 그대로(발송 대기 · 서명 대기), 가입한 직원은 서명 대기, 소속 추가 확인 요청은 발송 대기(직원이
-             *     수락하면 서명 대기). 거부 · 만료를 되살리면 가입한 직원은 서명 대기, 그 밖에는 발송 대기다(WHALEERP-153). 보내는 사이 직원이
-             *     소속 추가 확인 요청에 먼저 답했으면 그 답의 상태(서명 대기 · 거부)를 그대로 싣는다
+             * @description 보낸 뒤의 상태 — 가입 초대는 그대로(서명 요청 전 · 서명 대기), 가입한 직원은 서명 대기, 소속 추가 확인 요청은 서명 요청 전(직원이
+             *     수락하면 서명 대기). 서명 거절 · 계약 기간 만료를 되살리면 가입한 직원은 서명 대기, 그 밖에는 서명 요청 전이다(WHALEERP-153). 보내는 사이 직원이
+             *     소속 추가 확인 요청에 먼저 답했으면 그 답의 상태(서명 대기 · 서명 거절)를 그대로 싣는다
              * @enum {string}
              */
             status: "DRAFT" | "PENDING_SEND" | "PENDING_SIGNATURE" | "CORRECTION_REQUESTED" | "SIGNED" | "REJECTED" | "EXPIRED" | "ENDED";
-            /** @description 새 날인 기한(보낸 때부터 30일). 소속 추가 확인 요청은 직원이 수락한 때부터 세어 아직 없다(null) */
+            /** @description 새 서명 기한(보낸 때부터 30일). 소속 추가 확인 요청은 직원이 수락한 때부터 세어 아직 없다(null) */
             signDeadlineAt: string | null;
             contractId: number;
             /** @description 이번 발송 일시 */
@@ -7598,16 +7994,20 @@ export interface components {
             status: components["schemas"]["ContractStatus"];
             /**
              * Format: date-time
-             * @description 날인 시각
+             * @description 서명 시각
              */
             signedAt: string;
-        };
-        RejectMyContractDto: {
-            reason?: string;
         };
         MyContractActionResponseDto: {
             contractId: number;
             status: components["schemas"]["ContractStatus"];
+        };
+        RequestMyContractCorrectionDto: {
+            /**
+             * @description 수정 요청 사유 — 앞뒤 공백을 지운 뒤 1~100자
+             * @example 시급이 안내받은 금액과 다릅니다
+             */
+            reason: string;
         };
         MyContractListItemDto: {
             status: components["schemas"]["ContractStatus"];
@@ -7624,12 +8024,12 @@ export interface components {
              * @example null
              */
             endDate: string | null;
-            /** @description 발송 일시 (ISO 8601) — 날인할 때 이 값을 그대로 보낸다(sentAt). 종이 계약이면 null */
+            /** @description 발송 일시 (ISO 8601) — 서명할 때 이 값을 그대로 보낸다(sentAt). 종이 계약이면 null */
             sentAt: string | null;
-            /** @description 날인 기한 (ISO 8601) */
+            /** @description 서명 기한 (ISO 8601) */
             signDeadlineAt: string | null;
             /**
-             * @description 지금 상태가 된 시각 (ISO 8601). 체결 완료면 날인 일자(종이 계약이면 관리자 등록일), 거부 · 만료 · 종료 · 수정
+             * @description 지금 상태가 된 시각 (ISO 8601). 서명 완료면 서명 일자(종이 계약이면 관리자 등록일), 서명 거절 · 계약 기간 만료 · 종료 · 수정
              *     요청이면 그 일자(상태 이력의 처리 시각). 서명 대기면 마지막 발송 시각(sentAt) — 서명 대기 그대로 다시 보내면
              *     이력이 쌓이지 않아 발송 일시를 쓴다
              */
@@ -7638,16 +8038,16 @@ export interface components {
             /** @description 근무지(소속) — 점포가 지워졌어도 이름은 보인다 */
             storeId: number;
             storeName: string;
-            /** @description 지금 날인할 수 있는가 — 서명 대기 · 날인 기한 안 · 재직 중. 날인 요청 팝업(WHALEERP-148)이 쓴다. 본인 대조는 상세에서 */
+            /** @description 지금 서명할 수 있는가 — 서명 대기 · 서명 기한 안 · 재직 중. 서명 요청 팝업(WHALEERP-148)이 쓴다. 본인 대조는 상세에서 */
             awaitingSignature: boolean;
         };
         MyContractListResponseDto: {
-            /** @description 날인을 기다리는 계약(기한이 급한 순) 먼저, 그다음 최근 것부터 */
+            /** @description 서명을 기다리는 계약(기한이 급한 순) 먼저, 그다음 최근 것부터 */
             items: components["schemas"]["MyContractListItemDto"][];
             total: number;
         };
         /**
-         * @description 계약서 값과 계정 값이 다른 항목 — 날인 API 의 409 IDENTITY_MISMATCH 와 같다. 다르면 직원은 수정 요청을 낸다
+         * @description 계약서 값과 계정 값이 다른 항목 — 서명 API 의 409 IDENTITY_MISMATCH 와 같다. 다르면 직원은 수정 요청을 낸다
          * @enum {string}
          */
         IdentityField: "name" | "phone" | "birthDate" | "gender" | "isForeigner";
@@ -7657,7 +8057,7 @@ export interface components {
             /** @description YYYY-MM-DD */
             birthDate: string | null;
             gender: components["schemas"]["Gender"] | null;
-            /** @description 주소 — 날인할 때 계정 주소로 고정된다. 날인 전이면 비어 있다(본인인증 정보의 주소를 보인다) */
+            /** @description 주소 — 서명할 때 계정 주소로 고정된다. 서명 전이면 비어 있다(본인인증 정보의 주소를 보인다) */
             zipCode: string | null;
             address: string | null;
             addressDetail: string | null;
@@ -7697,6 +8097,28 @@ export interface components {
             kind: components["schemas"]["ContractDocumentKind"];
             contractDocumentId: number;
             fileName: string;
+        };
+        ContractTableRowDto: {
+            cells: string[];
+            /** @description 근무하지 않는 날(휴무 · 주휴일) — 흐리게 그린다 */
+            off: boolean;
+        };
+        ContractValueDto: {
+            label: string;
+            value: string;
+        };
+        ContractBlockDto: {
+            /** @enum {string} */
+            type: "TEXT" | "TABLE" | "VALUES";
+            tableRows?: components["schemas"]["ContractTableRowDto"][];
+            values?: components["schemas"]["ContractValueDto"][];
+            text?: string;
+            header?: string[];
+        };
+        ContractArticleDto: {
+            blocks: components["schemas"]["ContractBlockDto"][];
+            /** @description 「제1조(근로계약기간)」 */
+            title: string;
         };
         MyContractDetailDto: {
             startDate: string | null;
@@ -7739,22 +8161,24 @@ export interface components {
             status: components["schemas"]["ContractStatus"];
             employmentType: components["schemas"]["EmploymentType"] | null;
             contractMethod: components["schemas"]["ContractMethod"] | null;
-            /** @description 발송 일시 (ISO 8601) — 날인할 때 그대로 보낸다(sentAt). 다르면 409 CONTRACT_RESENT */
+            /** @description 발송 일시 (ISO 8601) — 서명할 때 그대로 보낸다(sentAt). 다르면 409 CONTRACT_RESENT */
             sentAt: string | null;
             signDeadlineAt: string | null;
             /** @description 목록과 같다 — 지금 상태가 된 시각 */
             processedAt: string | null;
-            /** @description 계약서 값과 계정 값이 다른 항목 — 날인 API 의 409 IDENTITY_MISMATCH 와 같다. 다르면 직원은 수정 요청을 낸다 */
+            /** @description 계약서 값과 계정 값이 다른 항목 — 서명 API 의 409 IDENTITY_MISMATCH 와 같다. 다르면 직원은 수정 요청을 낸다 */
             mismatches: components["schemas"]["IdentityField"][];
             worker: components["schemas"]["MyContractWorkerDto"];
             employer: components["schemas"]["MyContractEmployerDto"];
             account: components["schemas"]["MyContractAccountDto"];
             documents: components["schemas"]["MyContractDocumentDto"][];
+            /** @description 계약서 조항 열 가지 — 보낸 원본 · 처리 완료본 PDF 와 같은 템플릿(WHALEERP-131). 화면은 이 순서대로 그린다 */
+            articles: components["schemas"]["ContractArticleDto"][];
             contractId: number;
             storeId: number;
             /** @description 목록과 같다 — 서명 대기 · 기한 안 · 재직 중 */
             awaitingSignature: boolean;
-            /** @description 지금 날인하면 받는가 — awaitingSignature 이고 본인 대조가 맞을 때. 날인 API 와 같은 판정이다 */
+            /** @description 지금 서명하면 받는가 — awaitingSignature 이고 본인 대조가 맞을 때. 서명 API 와 같은 판정이다 */
             signable: boolean;
         };
         /** @enum {string} */
@@ -7847,15 +8271,6 @@ export interface components {
             /** @description 앱 푸시 받기 */
             isEnabled: boolean;
         };
-        StoreOptionDto: {
-            storeId: number;
-            /** @description 점포명 */
-            name: string;
-        };
-        StoreOptionListResponseDto: {
-            items: components["schemas"]["StoreOptionDto"][];
-            total: number;
-        };
         StoreSummaryResponseDto: {
             /** @enum {string} */
             storeTypeCode: "DIRECT" | "FRANCHISE";
@@ -7882,7 +8297,7 @@ export interface components {
              * @example 서울특별시 서초구
              */
             region: string | null;
-            /** @description 재직 직원 수 — 이 점포가 근무지이고 퇴직하지 않았으며 지금 체결 완료 근로계약이 있는 직원 레코드. 체결 완료 계약이 없는 레코드(초안 · 발송 대기 · 서명 대기 · 수정 요청 · 거부 · 만료 · 종료뿐)는 세지 않는다. 퇴직 예정은 퇴직일까지 센다 */
+            /** @description 재직 직원 수 — 이 점포가 근무지이고 퇴직하지 않았으며 지금 서명 완료 근로계약이 있는 직원 레코드. 서명 완료 계약이 없는 레코드(초안 · 서명 요청 전 · 서명 대기 · 수정 요청 · 서명 거절 · 계약 기간 만료 · 종료뿐)는 세지 않는다. 퇴직 예정은 퇴직일까지 센다 */
             staffCount: number;
             /** @description 대표 이미지 썸네일 주소(5분 동안 유효). 이미지가 없거나 저장소를 쓸 수 없으면 null — 화면은 점포 아이콘. */
             imageUrl: string | null;
@@ -7966,17 +8381,77 @@ export interface components {
          * @enum {string}
          */
         StoreOperationRequirement: "BUSINESS_VERIFICATION" | "COORDINATES" | "BP_INACTIVE";
+        StoreClosingOpenCheckInsDto: {
+            /** @description 본사 역할에게도 이름이 보이는 직원의 열린 출근 수 */
+            count: number;
+            /** @description 본사 역할에게 가려지는 직원(본사 제공 동의를 하지 않은 가맹 직원 등)의 열린 출근 수 */
+            hiddenCount: number;
+        };
+        StoreClosingStoreCheckDto: {
+            storeId: number;
+            /** @description 점포명 */
+            storeName: string;
+            /** @description 점포코드 */
+            storeCode: string;
+            openCheckIns: components["schemas"]["StoreClosingOpenCheckInsDto"];
+            /**
+             * @description 폐점하면 퇴직될 직원 수 — 퇴직일이 없거나 폐점일보다 뒤면 폐점일(한국 날짜 오늘)로 정하고, 이미 그 이전이면 그대로 둔다.
+             *     작성 중 계약만 있는 가입 전 레코드는 세지 않는다(그 작성 중 계약은 draftContracts 로 드러난다)
+             */
+            retiringStaff: number;
+            /** @description 폐점하면 종료될 작성 중 계약 수 */
+            draftContracts: number;
+            /** @description 폐점하면 종료될 서명 요청 전 계약 수 */
+            pendingSendContracts: number;
+            /** @description 폐점하면 종료될 서명 대기 + 수정 요청 계약 수 */
+            pendingSignatureContracts: number;
+            /** @description 확정하지 않은(작성 중 · 검토 중) 급여명세서 수 — 폐점 뒤에도 처리할 수 있다 */
+            unconfirmedPayslips: number;
+            /** @description 폐점할 수 없다 — 퇴근하지 않은 출근이 있다(openCheckIns.count + hiddenCount > 0). 합계의 값은 응답 최상위 isBlocked 와 같다 */
+            isBlocked: boolean;
+        };
+        StoreClosingCountsDto: {
+            openCheckIns: components["schemas"]["StoreClosingOpenCheckInsDto"];
+            /**
+             * @description 폐점하면 퇴직될 직원 수 — 퇴직일이 없거나 폐점일보다 뒤면 폐점일(한국 날짜 오늘)로 정하고, 이미 그 이전이면 그대로 둔다.
+             *     작성 중 계약만 있는 가입 전 레코드는 세지 않는다(그 작성 중 계약은 draftContracts 로 드러난다)
+             */
+            retiringStaff: number;
+            /** @description 폐점하면 종료될 작성 중 계약 수 */
+            draftContracts: number;
+            /** @description 폐점하면 종료될 서명 요청 전 계약 수 */
+            pendingSendContracts: number;
+            /** @description 폐점하면 종료될 서명 대기 + 수정 요청 계약 수 */
+            pendingSignatureContracts: number;
+            /** @description 확정하지 않은(작성 중 · 검토 중) 급여명세서 수 — 폐점 뒤에도 처리할 수 있다 */
+            unconfirmedPayslips: number;
+            /** @description 폐점할 수 없다 — 퇴근하지 않은 출근이 있다(openCheckIns.count + hiddenCount > 0). 합계의 값은 응답 최상위 isBlocked 와 같다 */
+            isBlocked: boolean;
+        };
+        StoreClosingCheckResponseDto: {
+            /** @description 점포별 결과 — 점포 id 오름차순 */
+            stores: components["schemas"]["StoreClosingStoreCheckDto"][];
+            /** @description 같은 칸의 합계 */
+            total: components["schemas"]["StoreClosingCountsDto"];
+            /** @description 하나라도 막히면 true — total.isBlocked 와 같은 값(편의용) */
+            isBlocked: boolean;
+        };
         StoreTransitionCheckResponseDto: {
             /** @description 운영으로 바꾸는 데 모자란 것. 비어 있으면 운영할 수 있다. 한글은 GET /enums/StoreOperationRequirement. */
             missingForOperation: components["schemas"]["StoreOperationRequirement"][];
-            /** @description 진행 중인 근로계약 수 — 거부 · 만료 · 종료되지 않은 계약. 0 이어야 폐점 · 삭제된다. */
+            /** @description 진행 중인 근로계약 수 — 서명 거절 · 계약 기간 만료 · 종료되지 않은 계약. 0 이어야 삭제된다(폐점은 막지 않는다 — 대기 계약은 폐점이 종료하고 서명 완료는 남는다). */
             inProgressContractCount: number;
-            /** @description 폐점할 수 있는가 */
+            /** @description 폐점할 수 있는가 — 소속 BP 사용 중 · 폐점 아님 · 퇴근하지 않은 출근 없음(closing.isBlocked false) */
             canClose: boolean;
-            /** @description 삭제할 수 있는가 — 미운영이면서 폐점 조건을 채울 때 */
+            /** @description 삭제할 수 있는가 — 소속 BP 사용 중 · 미운영 · 진행 중인 근로계약 없음 */
             canDelete: boolean;
             /** @description 구독 · 정산 조건은 1차 범위 밖이라 보지 않는다 — 화면은 「1차 범위 밖」으로 보인다 */
             isSubscriptionChecked: boolean;
+            /**
+             * @description 폐점 확인 — 막힘(퇴근하지 않은 출근)과 폐점하면 처리될 것(퇴직될 직원 · 종료될 대기 계약 · 확정하지 않은 급여명세서).
+             *     점포 하나라 stores 는 한 건이고 total 과 같다. 이미 폐점한 점포는 null.
+             */
+            closing: components["schemas"]["StoreClosingCheckResponseDto"] | null;
         };
         StoreDetailResponseDto: {
             /** @enum {string} */
@@ -8177,6 +8652,54 @@ export interface components {
              *     저장한다. 이미 번호가 있는 점포는 재인증이라 번호 · 개업일자가 저장된 값과 같아야 한다.
              */
             businessVerification?: components["schemas"]["BusinessIdentityInputDto"];
+        };
+        StoreClosingStoreResultDto: {
+            storeId: number;
+            /** @description 점포명 */
+            storeName: string;
+            /** @description 점포코드 */
+            storeCode: string;
+            /**
+             * @description 퇴직될 직원 수 — 확인의 retiringStaff 와 같은 기준(퇴직일이 없거나 폐점일보다 뒤면 폐점일로 정함, 이미 그 이전이면 그대로,
+             *     작성 중 계약만 있는 가입 전 레코드는 세지 않음)
+             */
+            retiringStaff: number;
+            /** @description 퇴직일을 폐점일로 당긴 직원 수. 늘 retiringStaff 안에 드는 것은 아니다 — 세지 않는 가입 전 레코드의 당김도 들어간다 */
+            pulledForwardStaff: number;
+            /** @description 종료로 닫은 작성 중 계약 수 */
+            draftContracts: number;
+            /** @description 종료로 닫은 서명 요청 전 계약 수 */
+            pendingSendContracts: number;
+            /** @description 종료로 닫은 서명 대기 + 수정 요청 계약 수 */
+            pendingSignatureContracts: number;
+            /** @description 만료로 바꾼 초대 수 — 그 점포 직원에게 발송한(SENT) 초대 전부 */
+            expiredInvitations: number;
+        };
+        StoreClosingRetirementDto: {
+            /**
+             * @description 퇴직될 직원 수 — 확인의 retiringStaff 와 같은 기준(퇴직일이 없거나 폐점일보다 뒤면 폐점일로 정함, 이미 그 이전이면 그대로,
+             *     작성 중 계약만 있는 가입 전 레코드는 세지 않음)
+             */
+            retiringStaff: number;
+            /** @description 퇴직일을 폐점일로 당긴 직원 수. 늘 retiringStaff 안에 드는 것은 아니다 — 세지 않는 가입 전 레코드의 당김도 들어간다 */
+            pulledForwardStaff: number;
+            /** @description 종료로 닫은 작성 중 계약 수 */
+            draftContracts: number;
+            /** @description 종료로 닫은 서명 요청 전 계약 수 */
+            pendingSendContracts: number;
+            /** @description 종료로 닫은 서명 대기 + 수정 요청 계약 수 */
+            pendingSignatureContracts: number;
+            /** @description 만료로 바꾼 초대 수 — 그 점포 직원에게 발송한(SENT) 초대 전부 */
+            expiredInvitations: number;
+        };
+        StoreClosingResultResponseDto: {
+            /** @description 점포별 결과 — 점포 id 오름차순 */
+            stores: components["schemas"]["StoreClosingStoreResultDto"][];
+            /** @description 같은 칸의 합계 */
+            total: components["schemas"]["StoreClosingRetirementDto"];
+        };
+        UpdateStoreResponseDto: {
+            closing: components["schemas"]["StoreClosingResultResponseDto"] | null;
         };
         /**
          * @description 게시 상태. 게시하려면 노출 대상이 하나 이상 있어야 한다.
@@ -8390,7 +8913,7 @@ export interface components {
             bodySummary: string;
             kakaoTemplateCode: string | null;
             isActive: boolean;
-            /** @description 기본 문구가 있는지(마이그레이션으로 넣은 기본 템플릿 46건) — 되돌리기를 보일지 */
+            /** @description 기본 문구가 있는지(마이그레이션으로 넣은 기본 템플릿 47건) — 되돌리기를 보일지 */
             hasDefault: boolean;
             /** @description 마지막으로 고친 관리자 이름. 아무도 고치지 않았으면 null — 화면은 「기본 문구」 */
             updatedByName: string | null;
@@ -8430,7 +8953,7 @@ export interface components {
             bodySummary: string;
             kakaoTemplateCode: string | null;
             isActive: boolean;
-            /** @description 기본 문구가 있는지(마이그레이션으로 넣은 기본 템플릿 46건) — 되돌리기를 보일지 */
+            /** @description 기본 문구가 있는지(마이그레이션으로 넣은 기본 템플릿 47건) — 되돌리기를 보일지 */
             hasDefault: boolean;
             /** @description 마지막으로 고친 관리자 이름. 아무도 고치지 않았으면 null — 화면은 「기본 문구」 */
             updatedByName: string | null;
@@ -9483,6 +10006,33 @@ export interface components {
              */
             weekStaff?: components["schemas"]["AttendanceWeekStaffDto"][];
         };
+        OpenCheckInItemDto: {
+            /** @description 출근 기록 */
+            attendanceRecordId: number;
+            /** @description 직원 레코드 — 퇴직한 직원의 것도 나온다 */
+            staffMemberId: number;
+            /** @description 직원 이름 */
+            name: string;
+            /**
+             * Format: date-time
+             * @description 출근 시각
+             */
+            recordedAt: string;
+            /** @description 출근한 다음 날이 지나 직원 앱으로는 퇴근할 수 없다 — 관리자 보정으로 닫는다. false 면 아직 근무 중일 수 있다 */
+            isCheckOutExpired: boolean;
+        };
+        OpenCheckInsResponseDto: {
+            storeId: number;
+            /** @description items 의 수 — 가려진 것은 빠진다. 폐점 전 확인은 `count + hiddenCount` 로 한다 */
+            count: number;
+            /**
+             * @description 본사 역할에게 가려지는 직원(`hidesPersonalData` — 동의 없는 가맹 직원, 폐점한 가맹 점포면 동의했어도)의 열린 출근 수. 줄은 주지
+             *     않고 수만(2026-11-03 재영). 그 밖에는 0
+             */
+            hiddenCount: number;
+            /** @description 출근 시각이 이른 것부터 */
+            items: components["schemas"]["OpenCheckInItemDto"][];
+        };
         ProxyStaffItemDto: {
             staffMemberId: number;
             name: string;
@@ -9646,7 +10196,7 @@ export interface components {
         };
         MyMembershipListResponseDto: {
             /**
-             * @description 체결 완료 근로계약이 있고 가입 완료 · 퇴직 전인 직원 레코드. 입사일(없으면 뒤) · id 순. `includeRetired=true` 면 그 뒤에
+             * @description 서명 완료 근로계약이 있고 가입 완료 · 퇴직 전인 직원 레코드. 입사일(없으면 뒤) · id 순. `includeRetired=true` 면 그 뒤에
              *     퇴직한 레코드가 퇴직일 최근 순으로 붙는다
              */
             items: components["schemas"]["MyMembershipDto"][];
@@ -9722,7 +10272,7 @@ export interface components {
         };
         StaffSignupDto: {
             /**
-             * @description 성별 — 남 · 여. 필수다 — 날인 때 근로계약서 값과 본인 대조하므로 빈 계정을 만들지 않는다(가입 화면도 필수,
+             * @description 성별 — 남 · 여. 필수다 — 서명 때 근로계약서 값과 본인 대조하므로 빈 계정을 만들지 않는다(가입 화면도 필수,
              *     운영 정책 ACC-23 · JOI-10, 2026-10-21 재영)
              * @enum {string}
              */
@@ -9892,12 +10442,8 @@ export interface components {
             staffMemberId: number;
             /** @description 근무지(점포) 이름 */
             storeName: string;
-            /** @description 서명 대기로 넘어간 근로계약 — 날인 기한은 수락한 때부터 30일 */
+            /** @description 서명 대기로 넘어간 근로계약 — 서명 기한은 수락한 때부터 30일 */
             contractIds: number[];
-        };
-        RejectAffiliationRequestDto: {
-            /** @description 거절 사유 — 함께 온 계약의 거부 사유로도 남는다 */
-            reason?: string;
         };
         BpHolidayTargetResponseDto: {
             isAllStores: boolean;
@@ -9975,6 +10521,7 @@ export interface components {
             bpHolidayId: number;
             /** @example 정기휴무 */
             holidayName: string;
+            /** @example 대상점포 */
             field: string;
             beforeValue: string | null;
             /** @example 온기식당 판교점 추가(2026-10-26부터) */
@@ -10342,7 +10889,7 @@ export interface components {
         HomeCardsDto: {
             /** @description 직원 정보 관리 조회 권한 */
             staff: components["schemas"]["HomeStaffCardDto"] | null;
-            /** @description 미체결 계약(발송 대기 + 서명 대기 + 수정 요청). 본사 역할에게 가려지는 점포는 동의한 직원의 계약만. 근로계약 관리 조회 권한 */
+            /** @description 서명 전 계약(서명 요청 전 + 서명 대기 + 수정 요청). 본사 역할에게 가려지는 점포는 동의한 직원의 계약만. 근로계약 관리 조회 권한 */
             unsignedContractCount: number | null;
             stores: components["schemas"]["HomeStoreCardDto"];
             /** @description 출퇴근 현황 · 근무스케줄 관리 조회 권한 둘 다 */
@@ -10637,7 +11184,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 맞는 계정이 없음. 어느 값이 틀렸든 같은 메시지(「일치하는 계정이 없습니다」)이고 실패 1회로 센다 */
+            /** @description 맞는 계정이 없음. 어느 값이 틀렸든 같은 메시지(「일치하는 계정이 없습니다.」)이고 실패 1회로 센다 */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -10747,14 +11294,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 직원 정보 관리 수정 권한 없음 · 접속이 살아 있는 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 직원 정보 관리 수정 권한 없음 · 접속이 살아 있는 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 직원이거나 관리 범위 밖 */
+            /** @description 없는 직원이거나 관리 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 누락(직원 단위라 400 이 아니라 404) · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -10775,7 +11322,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 보내기 전에 막힘(메일 템플릿 꺼짐 · 제목 없음 · DB 오류) — 「메일 설정 문제로 … 플랫폼 관리자에게 문의해 주세요」 */
+            /** @description 보내기 전에 막힘(메일 템플릿 꺼짐 · 제목 없음 · DB 오류) — 「메일 설정 문제로 … 플랫폼 관리자에게 문의해 주세요.」 */
             500: {
                 headers: {
                     [name: string]: unknown;
@@ -10989,6 +11536,58 @@ export interface operations {
                     "application/json": components["schemas"]["AdminLoginInfoResponseDto"];
                 };
             };
+            /** @description 사용할 수 없는 관리자 계정 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminAuthController_getMyStores: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminStoreListResponseDto"];
+                };
+            };
+        };
+    };
+    AdminAuthController_getMyLoginInfoVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminLoginInfoVersionResponseDto"];
+                };
+            };
+            /** @description 사용할 수 없는 관리자 계정 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     AdminAuthController_changeRequiredPassword: {
@@ -11042,6 +11641,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AdminProfileResponseDto"];
                 };
+            };
+            /** @description 사용할 수 없는 관리자 계정 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -11657,7 +12263,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 한 요청에 같은 그룹 코드가 두 번 */
+            /** @description 한 요청에 같은 그룹 코드가 두 번 · 목록에서 읽은 뒤 다른 관리자가 먼저 수정(updatedAt 이 다름) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -11695,7 +12301,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 이미 있는(지운 것 포함) 그룹 코드 · 요청 안에서 겹친 그룹 코드 */
+            /** @description 이미 있는(지운 것 포함) 그룹 코드 · 요청 안에서 겹친 그룹 코드 · 매길 표시 순서가 integer 최댓값을 넘음 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -11780,7 +12386,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 한 요청에 같은 상세 코드가 두 번 · 확인 뒤 다른 관리자가 먼저 지운 코드 */
+            /** @description 한 요청에 같은 상세 코드가 두 번 · 목록에서 읽은 뒤 다른 관리자가 먼저 수정(updatedAt 이 다름) · 먼저 지운 코드 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -11827,7 +12433,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 이 그룹의 살아 있는 행(플랫폼 원본 · BP별 · BP전용)과 겹친 상세 코드 · 요청 안에서 겹친 상세 코드 · 확인 뒤 다른 관리자가 같은 코드를 먼저 등록 · 되살림 — 지운 원본과 같은 코드는 되살린다 */
+            /** @description 이 그룹의 살아 있는 플랫폼 원본 · BP전용 행과 겹친 상세 코드 · 요청 안에서 겹친 상세 코드 · 확인 뒤 다른 관리자가 같은 코드를 먼저 등록 · 되살림 — 지운 원본과 같은 코드는 BP 에 플랫폼제공 복사본이 살아 있어도 되살린다 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -11933,6 +12539,11 @@ export interface operations {
             query: {
                 /** @description 이 유형의 점포를 관리하는 계정 — 헤더의 직영 · 가맹 전체 범위용. 전체 점포 계정은 늘 나온다. */
                 storeTypeCode?: components["schemas"]["StoreType"];
+                /**
+                 * @description 역할 — 고른 역할의 계정만. 여러 개는 반복 또는 쉼표로. 주지 않거나 비우면 세 역할 모두
+                 *     (역할을 하나도 고르지 않은 화면은 api 를 부르지 않는다).
+                 */
+                roleTypeCodes?: components["schemas"]["BpAdminRole"][];
                 /** @description 계정 상태. 주지 않으면 사용 · 미사용 둘 다. */
                 accountStatus?: components["schemas"]["AdminAccountStatus"];
                 /** @description 아이디 · 이름 중 하나에 들어 있으면 나온다. */
@@ -12605,7 +13216,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 한 요청에 같은 코드가 두 번 · 확인 뒤 다른 관리자가 먼저 지운 코드(「다른 관리자가 먼저 지운…저장해 주세요」) */
+            /** @description 한 요청에 같은 코드가 두 번 · 목록에서 읽은 뒤 다른 관리자가 먼저 수정(「다른 관리자가 먼저 수정했습니다…」) · 먼저 지운 코드(「다른 관리자가 먼저 지운…저장해 주세요.」) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -12811,7 +13422,10 @@ export interface operations {
     };
     PlatformAdminsController_roleGroups: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description `filter` 면 목록 필터용 — 호출자와 상관없이 플랫폼 권한(PM · PA) 그룹을 다 준다. 없으면 등록 · 수정 선택지. */
+                purpose?: "filter";
+            };
             header?: {
                 /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
                 "X-Bp-Code-Id"?: string;
@@ -12828,6 +13442,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PlatformRoleGroupListResponseDto"];
                 };
+            };
+            /** @description purpose 값 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님 · 마스터 보호 · 본인 보호 */
             403: {
@@ -12862,6 +13483,44 @@ export interface operations {
                 };
             };
             /** @description 아이디 형식 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님 · 마스터 보호 · 본인 보호 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PlatformAdminsController_emailAvailability: {
+        parameters: {
+            query: {
+                email: string;
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminProfileEmailAvailabilityResponseDto"];
+                };
+            };
+            /** @description 이메일 형식 */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -13132,7 +13791,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13179,7 +13838,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13229,7 +13888,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13274,7 +13933,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13321,7 +13980,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13375,7 +14034,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13427,7 +14086,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13476,7 +14135,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13532,7 +14191,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13577,7 +14236,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · BP · 가맹 사용자의 다른 BP 헤더 · 역할로 쓸 수 없음 · 연결 가맹 마스터 없는 가맹 관리자(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13613,7 +14272,7 @@ export interface operations {
                     "application/json": components["schemas"]["PlatformRoleGroupSummaryListResponseDto"];
                 };
             };
-            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13653,7 +14312,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13691,7 +14350,7 @@ export interface operations {
                     "application/json": components["schemas"]["PlatformRoleGroupDetailResponseDto"];
                 };
             };
-            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13738,7 +14397,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13792,7 +14451,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13837,7 +14496,7 @@ export interface operations {
                     "application/json": components["schemas"]["RoleGroupMenuTreeResponseDto"];
                 };
             };
-            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13886,7 +14545,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13942,7 +14601,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13987,7 +14646,7 @@ export interface operations {
                     "application/json": components["schemas"]["RoleGroupDeletionCandidatesResponseDto"];
                 };
             };
-            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한 */
+            /** @description 메뉴 권한 없음 · 플랫폼 계정이 아님(공용 문구) · 본인이 연결된 권한(메뉴 권한 저장 · 삭제) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14123,7 +14782,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 같거나 겹치는 URL 을 쓰는 사용 중 메뉴 · API 권한 주소(경로 방식 @MenuPermission 컨트롤러의 경로)인 URL · 메뉴 코드를 더 만들 수 없음 */
+            /** @description 같거나 겹치는 URL을 쓰는 사용 중 메뉴 · API 권한 주소(경로 방식 @MenuPermission 컨트롤러의 경로)인 URL · 메뉴 코드를 더 만들 수 없음 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -14168,7 +14827,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴를 찾을 수 없습니다 */
+            /** @description 메뉴를 찾을 수 없습니다. */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -14215,14 +14874,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴를 찾을 수 없습니다 */
+            /** @description 메뉴를 찾을 수 없습니다. */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 같거나 겹치는 URL 을 쓰는 사용 중 메뉴 · API 권한 주소인 URL 을 바꾸거나 다른 메뉴가 가져가려 함 · 동시 수정 */
+            /** @description 같거나 겹치는 URL을 쓰는 사용 중 메뉴 · API 권한 주소인 URL을 바꾸거나 다른 메뉴가 가져가려 함 · 동시 수정 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -14276,7 +14935,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 메뉴를 찾을 수 없습니다 */
+            /** @description 메뉴를 찾을 수 없습니다. */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -14295,7 +14954,7 @@ export interface operations {
     PublicHolidaysController_list: {
         parameters: {
             query: {
-                /** @description 연도. 2000~2100(공식 휴일 테이블의 범위). */
+                /** @description 연도. 2000~2100(공식 휴일 테이블의 범위 — 2051년부터는 양력 휴일만 있다). */
                 year: number;
                 /** @description 월 1~12. 주면 그 달(캘린더), 없으면 그 해 전체(목록). 목록은 키를 빼고 보낸다 — 빈 값(`month=`)은 400. */
                 month?: number;
@@ -14388,6 +15047,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BpStoreListResponseDto"];
+                };
+            };
+            /** @description 사용할 수 없는 관리자 계정 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없거나 삭제된 BP */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BpCodesController_findStoresVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bpCodeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BpStoresVersionResponseDto"];
                 };
             };
             /** @description 사용할 수 없는 관리자 계정 */
@@ -15153,6 +15847,188 @@ export interface operations {
             };
         };
     };
+    BulkExportsController_preview: {
+        parameters: {
+            query?: {
+                /**
+                 * @description 업무 범위 점포(범위 선택기). 반복(`storeIds=1&storeIds=2`)과 쉼표(`storeIds=1,2`)를 모두 받는다. 주지 않으면 관리하는
+                 *     점포 전부. 관리하지 않는 점포가 섞이면 400
+                 */
+                storeIds?: number[];
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkExportPreviewResponseDto"];
+                };
+            };
+            /** @description 관리하지 않는 점포가 섞임 · 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 직원 정보 관리 조회 권한 없음 · BP 마스터 · 가맹마스터가 아님 · 직원 앱 토큰 · 쓸 수 없는 계정 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BulkExportsController_list: {
+        parameters: {
+            query?: {
+                /** @description 페이지, 1부터 */
+                page?: number;
+                /** @description 페이지당 건수, 기본 20 · 최대 100 */
+                pageSize?: number;
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkExportListResponseDto"];
+                };
+            };
+            /** @description 직원 정보 관리 조회 권한 없음 · BP 마스터 · 가맹마스터가 아님 · 직원 앱 토큰 · 쓸 수 없는 계정 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BulkExportsController_create: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateBulkExportDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkExportItemDto"];
+                };
+            };
+            /** @description 관리하지 않는 점포가 섞임 · 담을 직원이 없음 · 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 직원 정보 관리 조회 권한 없음 · BP 마스터 · 가맹마스터가 아님 · 직원 앱 토큰 · 쓸 수 없는 계정 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 같은 범위의 파일을 만드는 중 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 저장소(AWS_S3_*) 설정 없음 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    BulkExportsController_download: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkExportDownloadResponseDto"];
+                };
+            };
+            /** @description 직원 정보 관리 조회 권한 없음 · BP 마스터 · 가맹마스터가 아님 · 직원 앱 토큰 · 쓸 수 없는 계정 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없음 · 볼 수 없는 요청 · ID 형식 오류 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 아직 만드는 중 · 만들지 못함 · BP 마스터 파일에 담긴 직원의 본사 제공 동의나 가맹 점포 상태가 바뀜 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 받을 수 있는 기한(7일)이 지남 */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     StaffMembersController_findAll: {
         parameters: {
             query?: {
@@ -15175,7 +16051,7 @@ export interface operations {
                  */
                 employmentType?: string;
                 /**
-                 * @description 쉼표로 구분한 가입·인증 상태(StaffJoinState). 고른 상태 중 하나라도 맞으면 나온다 — 화면의 묶음(초대 발송 =
+                 * @description 쉼표로 구분한 가입·인증 상태(StaffJoinState). 고른 상태 중 하나라도 맞으면 나온다 — 화면의 묶음(가입 대기 =
                  *     INVITED,EXPIRED,REJECTED)을 그대로 보낸다. 없으면 전체. 빈 값 · 모르는 값이 하나라도 있으면 400 이다.
                  *     화면에서 하나도 고르지 않았으면 이 api 를 부르지 않고 0건으로 그린다.
                  */
@@ -15209,15 +16085,22 @@ export interface operations {
                     "application/json": components["schemas"]["StaffMemberListResponseDto"];
                 };
             };
-            /** @description 쿼리 형식 오류 */
+            /** @description 쿼리 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 직원 정보 관리 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 직원 정보 관리 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -15247,14 +16130,14 @@ export interface operations {
                     "application/json": components["schemas"]["StaffMemberDetailResponseDto"];
                 };
             };
-            /** @description 직원 정보 관리 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 직원 정보 관리 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 직원 · 관리 범위 밖 · 가려지는 직원 · ID 형식 오류 */
+            /** @description 없는 직원 · 관리 범위 밖 · 가려지는 직원 · ID 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락(직원 단위라 400 이 아니라 404) · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -15285,15 +16168,22 @@ export interface operations {
                     "application/json": components["schemas"]["StaffMemberContractSummaryResponseDto"];
                 };
             };
-            /** @description 직원 정보 관리 · 그 영역 메뉴의 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 직원 정보 관리 · 그 영역 메뉴의 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 직원 · 관리 범위 밖 · 가려지는 직원 · ID 형식 오류 */
+            /** @description 없는 직원 · 관리 범위 밖 · 가려지는 직원 · ID 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락(직원 단위라 400 이 아니라 404) · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 서버에 암호화 키가 없음(신고 정보가 있을 때만) */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -15333,14 +16223,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 직원 정보 관리 · 그 영역 메뉴의 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 직원 정보 관리 · 그 영역 메뉴의 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 직원 · 관리 범위 밖 · 가려지는 직원 · ID 형식 오류 */
+            /** @description 없는 직원 · 관리 범위 밖 · 가려지는 직원 · ID 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락(직원 단위라 400 이 아니라 404) · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -15371,14 +16261,52 @@ export interface operations {
                     "application/json": components["schemas"]["StaffMemberPayslipSummaryResponseDto"];
                 };
             };
-            /** @description 직원 정보 관리 · 그 영역 메뉴의 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 직원 정보 관리 · 그 영역 메뉴의 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 직원 · 관리 범위 밖 · 가려지는 직원 · ID 형식 오류 */
+            /** @description 없는 직원 · 관리 범위 밖 · 가려지는 직원 · ID 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락(직원 단위라 400 이 아니라 404) · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StaffMemberSummaryController_sendLogs: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffMemberSendLogResponseDto"];
+                };
+            };
+            /** @description 직원 정보 관리 · 그 영역 메뉴의 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 없는 직원 · 관리 범위 밖 · 가려지는 직원 · ID 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락(직원 단위라 400 이 아니라 404) · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -15409,14 +16337,14 @@ export interface operations {
                     "application/json": components["schemas"]["StaffMemberTodoSummaryResponseDto"];
                 };
             };
-            /** @description 직원 정보 관리 · 그 영역 메뉴의 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 직원 정보 관리 · 그 영역 메뉴의 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 직원 · 관리 범위 밖 · 가려지는 직원 · ID 형식 오류 */
+            /** @description 없는 직원 · 관리 범위 밖 · 가려지는 직원 · ID 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락(직원 단위라 400 이 아니라 404) · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -15468,14 +16396,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 직원 정보 관리 조회 권한 없음(가드, 쿼리 · ID 검사보다 먼저) · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · 근무스케줄 관리 조회 권한 없음(「조회 권한이 없습니다.」, ID 형식 404 뒤 · 범위 404 앞 — 형식이 맞는 어떤 ID 든 같은 403) */
+            /** @description 직원 정보 관리 조회 권한 없음(가드, 쿼리 · ID 검사보다 먼저) · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · 근무스케줄 관리 조회 권한 없음(「조회 권한이 없습니다.」, ID 형식 404 뒤 · 범위 404 앞 — 형식이 맞는 어떤 ID 든 같은 403) · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description ID 형식 오류(쿼리 400 뒤 · 영역 403 앞) · 없는 직원 · 관리 범위 밖 · 가려지는 직원(영역 403 뒤) */
+            /** @description ID 형식 오류(쿼리 400 뒤 · 영역 403 앞) · 없는 직원 · 관리 범위 밖 · 가려지는 직원(영역 403 뒤) · 플랫폼 계정의 X-Bp-Code-Id 누락(직원 단위라 400 이 아니라 404) · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -15519,14 +16447,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 직원 정보 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 직원 정보 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 직원이거나 관리 범위 밖 */
+            /** @description 없는 직원이거나 관리 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 누락(직원 단위라 400 이 아니라 404) · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -15573,14 +16501,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 직원 정보 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 직원 정보 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 직원이거나 관리 범위 밖 */
+            /** @description 없는 직원이거나 관리 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 누락(직원 단위라 400 이 아니라 404) · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -15627,14 +16555,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 직원 정보 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 직원 정보 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 직원이거나 관리 범위 밖 */
+            /** @description 없는 직원이거나 관리 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 누락(직원 단위라 400 이 아니라 404) · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -15677,14 +16605,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 직원 정보 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 직원 정보 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 직원이거나 관리 범위 밖 */
+            /** @description 없는 직원이거나 관리 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 누락(직원 단위라 400 이 아니라 404) · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -15732,14 +16660,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 직원 정보 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 직원 정보 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 직원이거나 관리 범위 밖 · 본사 제공 동의로 가려진 직원 */
+            /** @description 없는 직원이거나 관리 범위 밖 · 본사 제공 동의로 가려진 직원 · 플랫폼 계정의 X-Bp-Code-Id 누락(직원 단위라 400 이 아니라 404) · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -15808,15 +16736,22 @@ export interface operations {
                     "application/json": components["schemas"]["PayslipListResponseDto"];
                 };
             };
-            /** @description 쿼리 형식 오류(month 누락 포함) */
+            /** @description 쿼리 형식 오류(month 누락 포함) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -15848,21 +16783,21 @@ export interface operations {
                     "application/json": components["schemas"]["PayslipCreatedDto"];
                 };
             };
-            /** @description 본문 형식 오류 */
+            /** @description 본문 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 직원 · 관리 범위 밖 · 가려지는 직원(본사 제공 동의 없음) */
+            /** @description 없는 직원 · 관리 범위 밖 · 가려지는 직원(본사 제공 동의 없음) · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -15910,15 +16845,22 @@ export interface operations {
                     "application/json": components["schemas"]["PayslipSummaryResponseDto"];
                 };
             };
-            /** @description 쿼리 형식 오류(month · storeId 누락 포함) */
+            /** @description 쿼리 형식 오류(month · storeId 누락 포함) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -15948,15 +16890,22 @@ export interface operations {
                     "application/json": components["schemas"]["PayslipCandidatesResponseDto"];
                 };
             };
-            /** @description 쿼리 형식 오류(month 누락 포함) */
+            /** @description 쿼리 형식 오류(month 누락 포함) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -15988,15 +16937,22 @@ export interface operations {
                     "application/json": components["schemas"]["PayslipBulkCreateResponseDto"];
                 };
             };
-            /** @description 본문 형식 오류 */
+            /** @description 본문 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -16028,15 +16984,22 @@ export interface operations {
                     "application/json": components["schemas"]["PayslipSendResultDto"];
                 };
             };
-            /** @description 본문 형식 오류 */
+            /** @description 본문 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -16064,7 +17027,14 @@ export interface operations {
                     "application/json": components["schemas"]["PayslipAdditionalItemsResponseDto"];
                 };
             };
-            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16095,14 +17065,21 @@ export interface operations {
                     "application/json": components["schemas"]["PayslipDetailResponseDto"];
                 };
             };
-            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 */
+            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -16137,21 +17114,21 @@ export interface operations {
                     "application/json": components["schemas"]["PayslipDetailResponseDto"];
                 };
             };
-            /** @description 본문 형식 오류 · 정직원 3.3% · 같은 항목 두 번 · 붙일 수 없는 항목 · 합계 초과 */
+            /** @description 본문 형식 오류 · 정직원 3.3% · 같은 항목 두 번 · 붙일 수 없는 항목 · 합계 초과 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 */
+            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -16189,14 +17166,21 @@ export interface operations {
                     "application/json": components["schemas"]["PayslipPreviousResponseDto"];
                 };
             };
-            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 */
+            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -16231,14 +17215,21 @@ export interface operations {
                     "application/json": components["schemas"]["PayslipDetailResponseDto"];
                 };
             };
-            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 */
+            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -16280,14 +17271,21 @@ export interface operations {
                     "application/json": components["schemas"]["PayslipDetailResponseDto"];
                 };
             };
-            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 */
+            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -16301,7 +17299,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description DEDUCTION_MISSING — 비어 있는 공제(본문 items) */
+            /** @description PERIOD_NOT_ENDED — 확정할 수 있는 날(퇴직일 · 마지막 계약 종료일 · 급여 기간 마지막 날 가운데 가장 빠른 날의 다음 날, 그 계약의 보낸 갱신(작성 중 제외)이 기간 안에 시작하면 계약 종료일은 보지 않는다) 전 · DEDUCTION_MISSING — 비어 있는 공제(본문 items) */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -16336,14 +17334,21 @@ export interface operations {
                     "application/json": components["schemas"]["PayslipDetailResponseDto"];
                 };
             };
-            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 */
+            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -16385,14 +17390,21 @@ export interface operations {
                     "application/json": components["schemas"]["PayslipDetailResponseDto"];
                 };
             };
-            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 */
+            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -16455,14 +17467,21 @@ export interface operations {
                     "application/json": components["schemas"]["PayslipDetailResponseDto"];
                 };
             };
-            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 급여명세서 관리의 해당 권한(조회 · 등록 · 수정) 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 */
+            /** @description 없는 명세서 · 관리 범위 밖 · 가려지는 명세서 · ID 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -16646,8 +17665,22 @@ export interface operations {
                     "application/json": components["schemas"]["ContractListResponseDto"];
                 };
             };
-            /** @description 근로계약 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 검색 조건 형식 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 근로계약 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -16679,21 +17712,21 @@ export interface operations {
                     "application/json": components["schemas"]["CreatedContractResponseDto"];
                 };
             };
-            /** @description 입력 오류 · 만 19세 미만 · 재계약 시작일이 직전 계약 시작일 다음 날보다 이름 · 종이 계약 등록이 아닌데 잘못 올린 계약 바로잡기 */
+            /** @description 입력 오류 · 만 19세 미만 · 재계약 시작일이 직전 계약 시작일 다음 날보다 이름 · 종이 계약 등록이 아닌데 잘못 올린 계약 바로잡기 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근로계약 관리 작성 권한 없음 · 대체하는데 권한 없음(진행 중 계약은 수정, 임시저장은 삭제 — 409 로 묻기 전에 403) · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 근로계약 관리 작성 권한 없음 · 대체하는데 권한 없음(진행 중 계약은 수정, 작성 중 계약은 삭제 — 409 로 묻기 전에 403) · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무지 점포가 없거나 폐점이거나 업무 범위 밖 */
+            /** @description 근무지 점포가 없거나 폐점이거나 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -16707,7 +17740,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 저장했지만 가입 초대 알림톡이 실패(본문 contractId): SEND_FAILED(나가지 않아 보내기 직전으로 되돌림 — status, 새 계약 · 임시저장에서 넘긴 것은 임시저장) · SEND_UNCONFIRMED(접수 여부 모름 — 상세를 다시 읽을 것) */
+            /** @description 저장했지만 가입 초대 알림톡이 실패(본문 contractId): SEND_FAILED(나가지 않아 보내기 직전으로 되돌림 — status, 새 계약 · 작성 중에서 넘긴 것은 작성 중) · SEND_UNCONFIRMED(접수 여부 모름 — 상세를 다시 읽을 것) */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -16716,6 +17749,53 @@ export interface operations {
             };
             /** @description 같은 번호의 다른 저장이 길어져 시간 초과(잠시 뒤 다시) · 가입 초대를 보낼 수 없음(직원 앱 주소 STAFF_APP_URL 없음, 대체 문자 발신번호 BIZPPURIO_SMS_FROM 없음, 가입 초대 템플릿 꺼짐 — 저장하지 않음) */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ContractsController_storeOptions: {
+        parameters: {
+            query: {
+                /** @description 쪽 번호. 1부터. */
+                page: number;
+                pageSize: number;
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreOptionListResponseDto"];
+                };
+            };
+            /** @description 검색 조건 형식 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 근로계약 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -16740,12 +17820,12 @@ export interface operations {
                     data: string;
                     /**
                      * Format: binary
-                     * @description 당사자가 모두 날인한 근로계약서(PDF · JPG · PNG, 10MB)
+                     * @description 당사자가 모두 서명한 근로계약서(PDF · JPG · PNG, 10MB)
                      */
                     employmentContract: string;
                     /**
                      * Format: binary
-                     * @description 따로 날인한 임금계약서(선택)
+                     * @description 따로 서명한 임금계약서(선택)
                      */
                     wageContract?: string;
                 };
@@ -16760,28 +17840,28 @@ export interface operations {
                     "application/json": components["schemas"]["CreatedContractResponseDto"];
                 };
             };
-            /** @description 입력 오류 · 만 19세 미만 · 근로계약서 날인본 없음 · 파일 종류 · 크기 · 개수 · 재계약 시작일이 직전 계약 시작일 다음 날보다 이름 · 잘못 올린 계약 바로잡기를 재계약과 함께 보냄 */
+            /** @description 입력 오류 · 만 19세 미만 · 근로계약서 서명본 없음 · 파일 종류 · 크기 · 개수 · 재계약 시작일이 직전 계약 시작일 다음 날보다 이름 · 잘못 올린 계약 바로잡기를 재계약과 함께 보냄 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근로계약 관리 작성 권한 없음 · 대체하는데 권한 없음(진행 중 계약은 수정, 임시저장은 삭제 — 409 로 묻기 전에 403) · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 근로계약 관리 작성 권한 없음 · 대체하는데 권한 없음(진행 중 계약은 수정, 작성 중 계약은 삭제 — 409 로 묻기 전에 403) · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무지 점포가 없거나 폐점이거나 업무 범위 밖 */
+            /** @description 근무지 점포가 없거나 폐점이거나 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 대체할 계약을 다른 요청이 먼저 고침 · SIGNED_CONTRACT_OVERLAP(종이 계약 — 기간이 겹치는 체결 완료 계약, contracts 목록. 잘못 올린 계약이면 correctSignedContracts 와 그 id 를 모두 replaceContractIds 로) · RENEWAL_SIGNED_OVERLAP(종이 재계약이 직전 계약이 아닌 체결 완료와 겹침 — 바로잡기 없이 막음) */
+            /** @description 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 대체할 계약을 다른 요청이 먼저 고침 · SIGNED_CONTRACT_OVERLAP(종이 계약 — 기간이 겹치는 서명 완료 계약, contracts 목록. 잘못 올린 계약이면 correctSignedContracts 와 그 id 를 모두 replaceContractIds 로) · RENEWAL_SIGNED_OVERLAP(종이 재계약이 직전 계약이 아닌 서명 완료와 겹침 — 바로잡기 없이 막음) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -16790,6 +17870,42 @@ export interface operations {
             };
             /** @description 첨부파일 저장소가 설정되지 않음 · 저장소 오류 · 저장이 몰려 시간 초과(잠시 뒤 다시) */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ContractsController_minimumWage: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MinimumWageResponseDto"];
+                };
+            };
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 근로계약 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -16819,14 +17935,21 @@ export interface operations {
                     "application/json": components["schemas"]["ContractDetailDto"];
                 };
             };
-            /** @description 근로계약 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 근로계약 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 계약 · 업무 범위 밖 */
+            /** @description 없는 계약 · 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -16861,35 +17984,35 @@ export interface operations {
                     "application/json": components["schemas"]["CreatedContractResponseDto"];
                 };
             };
-            /** @description 입력 오류 · 만 19세 미만 · 수정 요청인데 임시저장 · 근무지 변경 · 가입한 직원의 번호 변경 · 재계약 시작일이 직전 계약 시작일 다음 날보다 이름 · 종이 계약 등록이 아닌데 잘못 올린 계약 바로잡기 */
+            /** @description 입력 오류 · 만 19세 미만 · 수정 요청인데 임시저장 · 근무지 변경 · 가입한 직원의 번호 변경 · 재계약 시작일이 직전 계약 시작일 다음 날보다 이름 · 종이 계약 등록이 아닌데 잘못 올린 계약 바로잡기 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근로계약 관리 권한 없음(임시저장 이어 쓰기는 작성, 수정 요청은 수정) · 대체하는데 권한 없음(진행 중 계약은 수정, 임시저장은 삭제 — 409 로 묻기 전에 403) · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · 번호를 바꾸는데 점포 직원 관리 권한이 없음(동의로만 보이는 직원) */
+            /** @description 근로계약 관리 권한 없음(작성 중 이어 쓰기는 작성, 수정 요청은 수정) · 대체하는데 권한 없음(진행 중 계약은 수정, 작성 중 계약은 삭제 — 409 로 묻기 전에 403) · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · 번호를 바꾸는데 점포 직원 관리 권한이 없음(동의로만 보이는 직원) · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 계약 · 근무지 점포가 없거나 폐점 · 업무 범위 밖 */
+            /** @description 없는 계약 · 근무지 점포가 없거나 폐점 · 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 임시저장 · 수정 요청이 아님 · 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 다른 요청이 먼저 고침 · SEND_PHONE_NOT_MOBILE(가입 초대인데 휴대폰 번호가 아님) */
+            /** @description 작성 중 · 직원 수정 요청이 아님 · 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 다른 요청이 먼저 고침 · SEND_PHONE_NOT_MOBILE(가입 초대인데 휴대폰 번호가 아님) */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 저장했지만 가입 초대 알림톡이 실패(본문 contractId): SEND_FAILED(나가지 않아 보내기 직전으로 되돌림 — status, 새 계약 · 임시저장에서 넘긴 것은 임시저장) · SEND_UNCONFIRMED(접수 여부 모름 — 상세를 다시 읽을 것) */
+            /** @description 저장했지만 가입 초대 알림톡이 실패(본문 contractId): SEND_FAILED(나가지 않아 보내기 직전으로 되돌림 — status, 새 계약 · 작성 중에서 넘긴 것은 작성 중) · SEND_UNCONFIRMED(접수 여부 모름 — 상세를 다시 읽을 것) */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -16926,21 +18049,28 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 근로계약 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 근로계약 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 계약 · 업무 범위 밖 */
+            /** @description 없는 계약 · 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 임시저장이 아님 */
+            /** @description 작성 중이 아님 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -16975,35 +18105,35 @@ export interface operations {
                     "application/json": components["schemas"]["CreatedContractResponseDto"];
                 };
             };
-            /** @description 입력 오류 · 만 19세 미만 · 가입한 직원의 번호 변경 */
+            /** @description 입력 오류 · 만 19세 미만 · 가입한 직원의 번호 변경 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근로계약 관리 수정 권한 없음 · 새 번호의 같은 점포 임시저장을 대체하는데 삭제 권한 없음(409 로 묻기 전에 403) · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · 번호를 바꾸는데 점포 직원 관리 권한이 없음(동의로만 보이는 직원) */
+            /** @description 근로계약 관리 수정 권한 없음 · 새 번호의 같은 점포 작성 중 계약을 대체하는데 삭제 권한 없음(409 로 묻기 전에 403) · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · 번호를 바꾸는데 점포 직원 관리 권한이 없음(동의로만 보이는 직원) · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 계약 · 업무 범위 밖 */
+            /** @description 없는 계약 · 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description CONTRACT_STATUS_CONFLICT(발송 대기 · 서명 대기 · 수정 요청이 아님) · 새 번호로 이 점포에 재직 중 · CONTRACT_IN_PROGRESS(새 번호의 같은 점포 진행 중 계약 — replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 다른 요청이 먼저 고침 · SEND_PHONE_NOT_MOBILE(가입 초대인데 휴대폰 번호가 아님) */
+            /** @description CONTRACT_STATUS_CONFLICT(서명 요청 전 · 직원 서명 대기 · 직원 수정 요청이 아님) · 새 번호로 이 점포에 재직 중 · CONTRACT_IN_PROGRESS(새 번호의 같은 점포 진행 중 계약 — replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 다른 요청이 먼저 고침 · SEND_PHONE_NOT_MOBILE(가입 초대인데 휴대폰 번호가 아님) */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 저장했지만 가입 초대 알림톡이 실패(본문 contractId): SEND_FAILED(나가지 않아 보내기 직전으로 되돌림 — status, 새 계약 · 임시저장에서 넘긴 것은 임시저장) · SEND_UNCONFIRMED(접수 여부 모름 — 상세를 다시 읽을 것) */
+            /** @description 저장했지만 가입 초대 알림톡이 실패(본문 contractId): SEND_FAILED(나가지 않아 보내기 직전으로 되돌림 — status, 새 계약 · 작성 중에서 넘긴 것은 작성 중) · SEND_UNCONFIRMED(접수 여부 모름 — 상세를 다시 읽을 것) */
             502: {
                 headers: {
                     [name: string]: unknown;
@@ -17038,12 +18168,12 @@ export interface operations {
                     data: string;
                     /**
                      * Format: binary
-                     * @description 당사자가 모두 날인한 근로계약서(PDF · JPG · PNG, 10MB)
+                     * @description 당사자가 모두 서명한 근로계약서(PDF · JPG · PNG, 10MB)
                      */
                     employmentContract: string;
                     /**
                      * Format: binary
-                     * @description 따로 날인한 임금계약서(선택)
+                     * @description 따로 서명한 임금계약서(선택)
                      */
                     wageContract?: string;
                 };
@@ -17058,28 +18188,28 @@ export interface operations {
                     "application/json": components["schemas"]["CreatedContractResponseDto"];
                 };
             };
-            /** @description 입력 오류 · 만 19세 미만 · 근로계약서 날인본 없음 · 파일 종류 · 크기 · 개수 · 재계약 시작일이 직전 계약 시작일 다음 날보다 이름 · 잘못 올린 계약 바로잡기를 재계약과 함께 보냄 */
+            /** @description 입력 오류 · 만 19세 미만 · 근로계약서 서명본 없음 · 파일 종류 · 크기 · 개수 · 재계약 시작일이 직전 계약 시작일 다음 날보다 이름 · 잘못 올린 계약 바로잡기를 재계약과 함께 보냄 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근로계약 관리 권한 없음(임시저장 이어 쓰기는 작성 — 수정 요청은 종이 계약으로 바꿀 수 없어 400) · 대체하는데 권한 없음(진행 중 계약은 수정, 임시저장은 삭제 — 409 로 묻기 전에 403) · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · 번호를 바꾸는데 점포 직원 관리 권한이 없음(동의로만 보이는 직원) */
+            /** @description 근로계약 관리 권한 없음(작성 중 이어 쓰기는 작성 — 수정 요청은 종이 계약으로 바꿀 수 없어 400) · 대체하는데 권한 없음(진행 중 계약은 수정, 작성 중 계약은 삭제 — 409 로 묻기 전에 403) · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · 번호를 바꾸는데 점포 직원 관리 권한이 없음(동의로만 보이는 직원) · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 계약 · 근무지 점포가 없거나 폐점 · 업무 범위 밖 */
+            /** @description 없는 계약 · 근무지 점포가 없거나 폐점 · 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 임시저장이 아님 · 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 다른 요청이 먼저 고침 · SIGNED_CONTRACT_OVERLAP(종이 계약 — 기간이 겹치는 체결 완료 계약, contracts 목록. 잘못 올린 계약이면 correctSignedContracts 와 그 id 를 모두 replaceContractIds 로) · RENEWAL_SIGNED_OVERLAP(종이 재계약이 직전 계약이 아닌 체결 완료와 겹침 — 바로잡기 없이 막음) */
+            /** @description 작성 중이 아님 · 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 다른 요청이 먼저 고침 · SIGNED_CONTRACT_OVERLAP(종이 계약 — 기간이 겹치는 서명 완료 계약, contracts 목록. 잘못 올린 계약이면 correctSignedContracts 와 그 id 를 모두 replaceContractIds 로) · RENEWAL_SIGNED_OVERLAP(종이 재계약이 직전 계약이 아닌 서명 완료와 겹침 — 바로잡기 없이 막음) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -17118,14 +18248,21 @@ export interface operations {
                     "application/json": components["schemas"]["DownloadUrlResponseDto"];
                 };
             };
-            /** @description 근로계약 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 근로계약 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 계약 · 파일 · 업무 범위 밖 */
+            /** @description 없는 계약 · 파일 · 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -17159,7 +18296,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description status — 가입 초대는 그대로 PENDING_SEND · PENDING_SIGNATURE, 가입한 직원은 PENDING_SIGNATURE, 소속 추가 확인 요청은 PENDING_SEND(signDeadlineAt null — 수락부터 30일). 거부 · 만료(WHALEERP-153)는 가입한 직원이면 PENDING_SIGNATURE, 그 밖에는 PENDING_SEND 로 되살린다. 가입한 직원은 알림함 알림(앱 푸시는 #261 전까지 나가지 않음) — 알림 템플릿을 쓸 수 없거나 탈퇴 계정이면 알림 없이 기한만 새로 */
+            /** @description status — 가입 초대는 그대로 PENDING_SEND · PENDING_SIGNATURE, 가입한 직원은 PENDING_SIGNATURE, 소속 추가 확인 요청은 PENDING_SEND(signDeadlineAt null — 수락부터 30일). 서명 거절 · 계약 기간 만료(WHALEERP-153)는 가입한 직원이면 PENDING_SIGNATURE, 그 밖에는 PENDING_SEND 로 되살린다. 가입한 직원은 알림함 알림(앱 푸시는 #261 전까지 나가지 않음) — 알림 템플릿을 쓸 수 없거나 탈퇴 계정이면 알림 없이 기한만 새로 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -17168,21 +18305,28 @@ export interface operations {
                     "application/json": components["schemas"]["SendContractResponseDto"];
                 };
             };
-            /** @description 근로계약 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 본문 형식(expectedStatus · expectedSentAt) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 근로계약 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 계약 · 업무 범위 밖 */
+            /** @description 없는 계약 · 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description CONTRACT_STATUS_CONFLICT(발송 대기 · 서명 대기 · 거부 · 만료가 아님, 또는 본문 expectedStatus · expectedSentAt 이 지금 계약과 다름 — 그사이 거부 · 만료되었거나 다른 탭에서 먼저 보냄) · REOPEN_BLOCKED(거부 · 만료를 되살릴 수 없음 — 퇴직 · 퇴직일 있음, 폐점 · 삭제 점포, 같은 점포 · 번호의 다른 진행 중 계약, 계약 기간이 끝남, 기간이 겹치거나 더 늦게 시작한 다른 체결 완료, 같은 직전 계약의 다른 재계약. message 에 까닭) · WORK_TIME_OVERLAP(거부 · 만료를 되살리면 다른 점포 근무 시간과 겹침) · SEND_PHONE_NOT_MOBILE(휴대폰 번호가 아님) · 코드 없음 「이 점포에 이미 재직 중인 직원입니다」(가입 전 레코드인데 그 번호의 계정이 이 점포에 재직 중) · 다른 요청이 먼저 고침 */
+            /** @description CONTRACT_STATUS_CONFLICT(서명 요청 전 · 직원 서명 대기 · 서명 거절 · 계약 기간 만료가 아님, 또는 본문 expectedStatus · expectedSentAt 이 지금 계약과 다름 — 그사이 서명을 거절했거나 서명 기한이 지나 만료되었거나 다른 탭에서 먼저 보냄) · REOPEN_BLOCKED(서명 거절 · 계약 기간 만료를 되살릴 수 없음 — 퇴직 · 퇴직일 있음, 폐점 · 삭제 점포, 같은 점포 · 번호의 다른 진행 중 계약, 계약 종료일이 지남, 기간이 겹치거나 더 늦게 시작한 다른 서명 완료, 같은 직전 계약의 다른 재계약. message 에 까닭) · WORK_TIME_OVERLAP(서명 거절 · 계약 기간 만료를 되살리면 다른 점포 근무 시간과 겹침) · SEND_PHONE_NOT_MOBILE(휴대폰 번호가 아님) · 코드 없음 「이 점포에 이미 재직 중인 직원입니다.」(가입 전 레코드인데 그 번호의 계정이 이 점포에 재직 중) · 다른 요청이 먼저 고침 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -17196,7 +18340,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 가입 초대 · 소속 추가 확인 요청 알림톡일 때만 — 직원 앱 주소(STAFF_APP_URL)가 없음 · 대체 문자 발신번호(BIZPPURIO_SMS_FROM)가 없음 · 그 알림톡 템플릿이 없거나 꺼짐 */
+            /** @description 가입 초대 · 소속 추가 확인 요청 알림톡일 때만 — 직원 앱 주소(STAFF_APP_URL)가 없거나 https 가 아님(가입 초대만 — 소속 추가 확인 요청 알림톡은 링크가 없다) · 대체 문자 발신번호(BIZPPURIO_SMS_FROM)가 없음 · 그 알림톡 템플릿이 없거나 꺼졌거나 버튼 설정이 맞지 않음 */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -17226,21 +18370,28 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 근로계약 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 근로계약 관리 수정 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 계약 · 업무 범위 밖 */
+            /** @description 없는 계약 · 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description CONTRACT_STATUS_CONFLICT(발송 대기가 아님 — 지금 상태를 싣는다) · 다른 요청이 먼저 고침 */
+            /** @description CONTRACT_STATUS_CONFLICT(서명 요청 전이 아님 — 지금 상태를 싣는다) · 다른 요청이 먼저 고침 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -17304,21 +18455,21 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 내 계약이 아님 — 없는 id · 남의 계약 · 임시저장 · 소속 추가 확인을 기다리는 계약(후보 계정만). 모두 같은 본문 */
+            /** @description 내 계약이 아님 — 없는 id · 남의 계약 · 작성 중 · 소속 추가 확인을 기다리는 계약(후보 계정만). 모두 같은 본문 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description CONTRACT_STATUS_CONFLICT(서명 대기가 아님 — 본문 status 에 지금 상태, 이미 처리했으면 그 결과) · SIGN_DEADLINE_PASSED(날인 기한이 지남) · STAFF_RETIRED(퇴직했거나 퇴직일이 지남) · IDENTITY_MISMATCH(mismatches: name · phone · birthDate · gender · isForeigner) · CONTRACT_RESENT(그사이 다시 발송됨) */
+            /** @description CONTRACT_STATUS_CONFLICT(직원 서명 대기가 아님 — 본문 status 에 지금 상태, 이미 처리했으면 그 결과) · SIGN_DEADLINE_PASSED(서명 기한이 지남) · STAFF_RETIRED(퇴직했거나 퇴직일이 지남) · IDENTITY_MISMATCH(mismatches: name · phone · birthDate · gender · isForeigner) · CONTRACT_RESENT(그사이 다시 발송됨) */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 경로마다 계정당 10분에 20번(날인 · 거부 · 수정 요청을 따로 센다) */
+            /** @description 경로마다 계정당 10분에 20번(서명 · 서명 거절 · 수정 요청을 따로 센다) */
             429: {
                 headers: {
                     [name: string]: unknown;
@@ -17335,73 +18486,6 @@ export interface operations {
         };
     };
     MyContractsController_reject: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                contractId: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RejectMyContractDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MyContractActionResponseDto"];
-                };
-            };
-            /** @description 사유 500자 넘음 · null */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 관리자 토큰 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 내 계약이 아님 — 없는 id · 남의 계약 · 임시저장 · 소속 추가 확인을 기다리는 계약(후보 계정만). 모두 같은 본문 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description CONTRACT_STATUS_CONFLICT(서명 대기가 아님 — 본문 status 에 지금 상태, 이미 처리했으면 그 결과) · SIGN_DEADLINE_PASSED(날인 기한이 지남) · STAFF_RETIRED(퇴직했거나 퇴직일이 지남) */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 경로마다 계정당 10분에 20번(날인 · 거부 · 수정 요청을 따로 센다) */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    MyContractsController_requestCorrection: {
         parameters: {
             query?: never;
             header?: never;
@@ -17434,21 +18518,88 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 내 계약이 아님 — 없는 id · 남의 계약 · 임시저장 · 소속 추가 확인을 기다리는 계약(후보 계정만). 모두 같은 본문 */
+            /** @description 내 계약이 아님 — 없는 id · 남의 계약 · 작성 중 · 소속 추가 확인을 기다리는 계약(후보 계정만). 모두 같은 본문 */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description CONTRACT_STATUS_CONFLICT(서명 대기가 아님 — 본문 status 에 지금 상태, 이미 처리했으면 그 결과) · SIGN_DEADLINE_PASSED(날인 기한이 지남) · STAFF_RETIRED(퇴직했거나 퇴직일이 지남) */
+            /** @description CONTRACT_STATUS_CONFLICT(직원 서명 대기가 아님 — 본문 status 에 지금 상태, 이미 처리했으면 그 결과) · SIGN_DEADLINE_PASSED(서명 기한이 지남) · STAFF_RETIRED(퇴직했거나 퇴직일이 지남) */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 경로마다 계정당 10분에 20번(날인 · 거부 · 수정 요청을 따로 센다) */
+            /** @description 경로마다 계정당 10분에 20번(서명 · 서명 거절 · 수정 요청을 따로 센다) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MyContractsController_requestCorrection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contractId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestMyContractCorrectionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyContractActionResponseDto"];
+                };
+            };
+            /** @description 사유 없음 · 비었음(앞뒤 공백을 지운 뒤) · 100자 넘음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 계약이 아님 — 없는 id · 남의 계약 · 작성 중 · 소속 추가 확인을 기다리는 계약(후보 계정만). 모두 같은 본문 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description CONTRACT_STATUS_CONFLICT(직원 서명 대기가 아님 — 본문 status 에 지금 상태, 이미 처리했으면 그 결과) · SIGN_DEADLINE_PASSED(서명 기한이 지남) · STAFF_RETIRED(퇴직했거나 퇴직일이 지남) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 경로마다 계정당 10분에 20번(서명 · 서명 거절 · 수정 요청을 따로 센다) */
             429: {
                 headers: {
                     [name: string]: unknown;
@@ -17523,7 +18674,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 내 계약이 아님 — 없는 id · 남의 계약 · 임시저장 · 발송 대기 · 소속 확인 대기 계약(후보 계정만). 모두 같은 본문 */
+            /** @description 내 계약이 아님 — 없는 id · 남의 계약 · 작성 중 · 서명 요청 전 · 소속 확인 대기 계약(후보 계정만). 모두 같은 본문 */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -17573,7 +18724,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description CONTRACT_STATUS_CONFLICT — 처리 완료본(SIGNED_COPY)인데 체결된 계약이 아님(서명 대기 · 수정 요청 · 거부 · 만료, 체결 완료를 거치지 않은 종료). 본문 status 에 지금 상태 */
+            /** @description CONTRACT_STATUS_CONFLICT — 처리 완료본(SIGNED_COPY)인데 서명 완료된 계약이 아님(직원 서명 대기 · 직원 수정 요청 · 서명 거절 · 계약 기간 만료, 서명 완료를 거치지 않은 종료). 본문 status 에 지금 상태 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -17921,43 +19072,6 @@ export interface operations {
             };
         };
     };
-    StoresController_options: {
-        parameters: {
-            query: {
-                /** @description 쪽 번호. 1부터. */
-                page: number;
-                pageSize: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StoreOptionListResponseDto"];
-                };
-            };
-            /** @description 검색 조건 형식 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     StoresController_list: {
         parameters: {
             query: {
@@ -18295,11 +19409,13 @@ export interface operations {
             };
         };
         responses: {
-            204: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UpdateStoreResponseDto"];
+                };
             };
             /** @description 입력 형식 · 위도 · 경도 중 하나만 있음 · 바꿀 수 없는 상태 전환 · 운영으로 바꿀 때 운영 조건(인증 · 좌표) 미충족 · 운영 중인 점포의 좌표 삭제 · 국세청 정보와 다름 · 재인증 번호 불일치 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
@@ -18322,7 +19438,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 동시 수정 · 폐점한 점포 · 소속 BP 미사용 · 진행 중인 근로계약(폐점) · 사업자등록번호 중복 */
+            /** @description 동시 수정 · 폐점한 점포 · 소속 BP 미사용 · 사업자등록번호 중복 · 퇴근 기록이 없는 출근(폐점, code OPEN_CHECK_IN · storeId) · 다른 처리와 겹침(폐점, 교착이 다시 해도 나면 — 바뀐 것 없음, 다시 시도) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -20497,15 +21613,22 @@ export interface operations {
                     "application/json": components["schemas"]["TodoListResponseDto"];
                 };
             };
-            /** @description 쿼리 형식 오류 */
+            /** @description 쿼리 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description TO-DO 리스트 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description TO-DO 리스트 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -20537,21 +21660,21 @@ export interface operations {
                     "application/json": components["schemas"]["CreatedTodoResponseDto"];
                 };
             };
-            /** @description 입력 오류 · 지난 날짜 · 배정 대상과 수행 방식이 맞지 않음 · 퇴직했거나 체결 완료 계약이 없거나 가입 전이거나 다른 근무지 직원 · 그런 재직 직원 없음 */
+            /** @description 입력 오류 · 지난 날짜 · 배정 대상과 수행 방식이 맞지 않음 · 퇴직했거나 서명 완료 계약이 없거나 가입 전이거나 다른 근무지 직원 · 그런 재직 직원 없음 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description TO-DO 리스트 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description TO-DO 리스트 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무지 점포가 없거나 업무 범위 밖 */
+            /** @description 근무지 점포가 없거나 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -20583,21 +21706,21 @@ export interface operations {
                     "application/json": components["schemas"]["AssignableStaffResponseDto"];
                 };
             };
-            /** @description storeId 형식 오류 */
+            /** @description storeId 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description TO-DO 리스트 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description TO-DO 리스트 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무지 점포가 없거나 업무 범위 밖 */
+            /** @description 근무지 점포가 없거나 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -20628,14 +21751,21 @@ export interface operations {
                     "application/json": components["schemas"]["TodoDetailDto"];
                 };
             };
-            /** @description TO-DO 리스트 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description TO-DO 리스트 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 TO-DO · 지움 · 업무 범위 밖 */
+            /** @description 없는 TO-DO · 지움 · 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -20666,14 +21796,21 @@ export interface operations {
                     "application/json": components["schemas"]["TodoDeleteResponseDto"];
                 };
             };
-            /** @description TO-DO 리스트 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description TO-DO 리스트 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 TO-DO · 지움 · 업무 범위 밖 */
+            /** @description 없는 TO-DO · 지움 · 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -20715,21 +21852,21 @@ export interface operations {
                     "application/json": components["schemas"]["TodoDetailDto"];
                 };
             };
-            /** @description 입력 오류 · 지난 날짜 · 바꿀 수 없는 칸 */
+            /** @description 입력 오류 · 지난 날짜 · 바꿀 수 없는 칸 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description TO-DO 리스트 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description TO-DO 리스트 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 TO-DO · 지움 · 업무 범위 밖 */
+            /** @description 없는 TO-DO · 지움 · 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -20764,14 +21901,21 @@ export interface operations {
                     "application/json": components["schemas"]["TodoItemDto"];
                 };
             };
-            /** @description TO-DO 리스트 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description TO-DO 리스트 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 TO-DO · 지움 · 업무 범위 밖 */
+            /** @description 없는 TO-DO · 지움 · 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -20821,14 +21965,14 @@ export interface operations {
                     "application/json": components["schemas"]["TodoItemListResponseDto"];
                 };
             };
-            /** @description 직원 정보 관리 · TO-DO 관리 조회 권한 없음(TO-DO 관리는 「조회 권한이 없습니다.」) · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 직원 정보 관리 · TO-DO 관리 조회 권한 없음(TO-DO 관리는 「조회 권한이 없습니다.」) · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 직원 · 관리 범위 밖 · 가려지는 직원 · ID 형식 오류 */
+            /** @description 없는 직원 · 관리 범위 밖 · 가려지는 직원 · ID 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락(직원 단위라 400 이 아니라 404) · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -20905,7 +22049,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 내게 배정되지 않았거나 지운 TO-DO · 내 직원 레코드가 대상 조건(체결 완료 계약 · 가입 · 퇴직) 밖 */
+            /** @description 내게 배정되지 않았거나 지운 TO-DO · 내 직원 레코드가 대상 조건(서명 완료 계약 · 가입 · 퇴직) 밖 */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -20948,21 +22092,21 @@ export interface operations {
                     "application/json": components["schemas"]["WorkScheduleListResponseDto"];
                 };
             };
-            /** @description 쿼리 형식 오류 · 기간이 42일 넘음 · 끝이 시작보다 앞 */
+            /** @description 쿼리 형식 오류 · 기간이 42일 넘음 · 끝이 시작보다 앞 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무지 점포가 없거나 업무 범위 밖 */
+            /** @description 근무지 점포가 없거나 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -20995,21 +22139,21 @@ export interface operations {
                     "application/json": components["schemas"]["WorkScheduleDto"];
                 };
             };
-            /** @description 입력 오류 · 24시간짜리 · 휴게가 근무시간 이상 · WORK_SCHEDULE_NO_CONTRACT(근무일에 체결 완료 계약 없음) · WORK_SCHEDULE_AFTER_RETIREMENT(퇴직일 뒤) · WORK_SCHEDULE_NOT_JOINED(가입 전) · WORK_SCHEDULE_HIDDEN(본사에게 가려지는 가맹 직원) · WORK_SCHEDULE_STORE_CLOSED(폐점 점포 — 등록만, 수정은 받는다) */
+            /** @description 입력 오류 · 24시간짜리 · 휴게가 근무시간 이상 · WORK_SCHEDULE_NO_CONTRACT(근무일에 서명 완료 계약 없음) · WORK_SCHEDULE_AFTER_RETIREMENT(퇴직일 뒤) · WORK_SCHEDULE_NOT_JOINED(가입 전) · WORK_SCHEDULE_HIDDEN(본사에게 가려지는 가맹 직원) · WORK_SCHEDULE_STORE_CLOSED(폐점 점포 — 등록만, 수정은 받는다) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 직원이 없거나 업무 범위 밖 */
+            /** @description 직원이 없거나 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21058,21 +22202,21 @@ export interface operations {
                     "application/json": components["schemas"]["WorkScheduleHistoryListResponseDto"];
                 };
             };
-            /** @description 쿼리 형식 오류(날짜 · 페이지 · 페이지당 건수 20 · 50 · 100) */
+            /** @description 쿼리 형식 오류(날짜 · 페이지 · 페이지당 건수 20 · 50 · 100) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무지 점포가 없거나 업무 범위 밖 · 직원 필터가 그 점포 직원이 아니거나 본사에게 가려진 직원 */
+            /** @description 근무지 점포가 없거나 업무 범위 밖 · 직원 필터가 그 점포 직원이 아니거나 본사에게 가려진 직원 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21106,21 +22250,21 @@ export interface operations {
                     "application/json": components["schemas"]["WorkScheduleStaffResponseDto"];
                 };
             };
-            /** @description 쿼리 형식 오류 */
+            /** @description 쿼리 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무지 점포가 없거나 업무 범위 밖 */
+            /** @description 근무지 점포가 없거나 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21154,21 +22298,21 @@ export interface operations {
                     "application/json": components["schemas"]["WorkScheduleDefaultsDto"];
                 };
             };
-            /** @description 입력 오류 · 24시간짜리 · 휴게가 근무시간 이상 · WORK_SCHEDULE_NO_CONTRACT(근무일에 체결 완료 계약 없음) · WORK_SCHEDULE_AFTER_RETIREMENT(퇴직일 뒤) · WORK_SCHEDULE_NOT_JOINED(가입 전) · WORK_SCHEDULE_HIDDEN(본사에게 가려지는 가맹 직원) · WORK_SCHEDULE_STORE_CLOSED(폐점 점포 — 등록만, 수정은 받는다) */
+            /** @description 입력 오류 · 24시간짜리 · 휴게가 근무시간 이상 · WORK_SCHEDULE_NO_CONTRACT(근무일에 서명 완료 계약 없음) · WORK_SCHEDULE_AFTER_RETIREMENT(퇴직일 뒤) · WORK_SCHEDULE_NOT_JOINED(가입 전) · WORK_SCHEDULE_HIDDEN(본사에게 가려지는 가맹 직원) · WORK_SCHEDULE_STORE_CLOSED(폐점 점포 — 등록만, 수정은 받는다) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 직원이 없거나 업무 범위 밖 */
+            /** @description 직원이 없거나 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21201,15 +22345,22 @@ export interface operations {
                     "application/json": components["schemas"]["BulkCreateWorkSchedulesResponseDto"];
                 };
             };
-            /** @description 요청 형식 오류(근무일 · 줄 수 1~100 · 줄의 시각 형식) — 이때는 아무 줄도 저장하지 않는다 */
+            /** @description 요청 형식 오류(근무일 · 줄 수 1~100 · 줄의 시각 형식) — 이때는 아무 줄도 저장하지 않는다 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -21242,21 +22393,21 @@ export interface operations {
                     "application/json": components["schemas"]["CopyLastWeekResponseDto"];
                 };
             };
-            /** @description 쿼리 형식 오류 · weekStart 가 월요일이 아님 · WORK_SCHEDULE_STORE_CLOSED(폐점 점포) */
+            /** @description 쿼리 형식 오류 · weekStart 가 월요일이 아님 · WORK_SCHEDULE_STORE_CLOSED(폐점 점포) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무지 점포가 없거나 업무 범위 밖 */
+            /** @description 근무지 점포가 없거나 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21296,21 +22447,21 @@ export interface operations {
                     "application/json": components["schemas"]["CopyLastWeekResponseDto"];
                 };
             };
-            /** @description 요청 형식 오류 · weekStart 가 월요일이 아님 · WORK_SCHEDULE_STORE_CLOSED(폐점 점포) */
+            /** @description 요청 형식 오류 · weekStart 가 월요일이 아님 · WORK_SCHEDULE_STORE_CLOSED(폐점 점포) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무지 점포가 없거나 업무 범위 밖 */
+            /** @description 근무지 점포가 없거나 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21348,14 +22499,21 @@ export interface operations {
                     "application/json": components["schemas"]["WorkScheduleDeleteResponseDto"];
                 };
             };
-            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 근무스케줄 · 지움 · 업무 범위 밖 */
+            /** @description 없는 근무스케줄 · 지움 · 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21390,21 +22548,21 @@ export interface operations {
                     "application/json": components["schemas"]["WorkScheduleDto"];
                 };
             };
-            /** @description 입력 오류 · 24시간짜리 · 휴게가 근무시간 이상 · WORK_SCHEDULE_NO_CONTRACT(근무일에 체결 완료 계약 없음) · WORK_SCHEDULE_AFTER_RETIREMENT(퇴직일 뒤) · WORK_SCHEDULE_NOT_JOINED(가입 전) · WORK_SCHEDULE_HIDDEN(본사에게 가려지는 가맹 직원) · WORK_SCHEDULE_STORE_CLOSED(폐점 점포 — 등록만, 수정은 받는다) */
+            /** @description 입력 오류 · 24시간짜리 · 휴게가 근무시간 이상 · WORK_SCHEDULE_NO_CONTRACT(근무일에 서명 완료 계약 없음) · WORK_SCHEDULE_AFTER_RETIREMENT(퇴직일 뒤) · WORK_SCHEDULE_NOT_JOINED(가입 전) · WORK_SCHEDULE_HIDDEN(본사에게 가려지는 가맹 직원) · WORK_SCHEDULE_STORE_CLOSED(폐점 점포 — 등록만, 수정은 받는다) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 근무스케줄 관리 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 근무스케줄 · 지움 · 업무 범위 밖 */
+            /** @description 없는 근무스케줄 · 지움 · 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21456,7 +22614,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 체결 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
+            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 서명 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21499,7 +22657,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 체결 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
+            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 서명 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21543,7 +22701,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 체결 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
+            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 서명 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21587,7 +22745,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 체결 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
+            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 서명 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21601,7 +22759,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description STORE_CLOSED — 폐점한 근무지 / CONTRACT_PENDING_SIGNATURE — 서명 대기 계약(contractId) / NO_CONTRACT — 오늘이 체결 완료 근로계약 기간 밖이거나 퇴직일이 지남 (ATT-12) */
+            /** @description STORE_CLOSED — 폐점한 근무지 / CONTRACT_PENDING_SIGNATURE — 직원 서명 대기 계약(contractId) / NO_CONTRACT — 오늘이 서명 완료 근로계약 기간 밖이거나 퇴직일이 지남 (ATT-12) */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -21645,7 +22803,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 체결 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
+            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 서명 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21699,7 +22857,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 체결 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
+            /** @description 내 소속이 아님 — 없는 id, 남의 레코드, 퇴직했거나 서명 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21735,15 +22893,22 @@ export interface operations {
                     "application/json": components["schemas"]["DailyAttendanceResponseDto"];
                 };
             };
-            /** @description 쿼리 형식 오류 */
+            /** @description 쿼리 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -21782,21 +22947,67 @@ export interface operations {
                     "application/json": components["schemas"]["PeriodAttendanceResponseDto"];
                 };
             };
-            /** @description 쿼리 형식 오류 · 기간이 92일 넘음 · 끝이 시작보다 앞 */
+            /** @description 쿼리 형식 오류 · 기간이 92일 넘음 · 끝이 시작보다 앞 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 직원이 점포 조건 안의 직원이 아니거나 본사에게 가려진 직원 */
+            /** @description 직원이 점포 조건 안의 직원이 아니거나 본사에게 가려진 직원 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AttendanceRecordsController_openCheckIns: {
+        parameters: {
+            query: {
+                /** @description 점포 */
+                storeId: number;
+            };
+            header?: {
+                /** @description 대상 BP(bpCodeId). WHALE_ERP 메뉴 경로에서만 읽는다 — 없으면 소속 BP. 플랫폼 계정은 없는 BP · 플랫폼 BP 면 404, BP · 가맹 계정은 소속 BP 가 아니면 403 */
+                "X-Bp-Code-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenCheckInsResponseDto"];
+                };
+            };
+            /** @description 쿼리 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 점포가 없거나 업무 범위 밖 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21832,15 +23043,22 @@ export interface operations {
                     "application/json": components["schemas"]["ProxyStaffResponseDto"];
                 };
             };
-            /** @description 쿼리 형식 오류 */
+            /** @description 쿼리 형식 오류 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -21872,15 +23090,22 @@ export interface operations {
                     "application/json": components["schemas"]["AttendanceEditResultDto"];
                 };
             };
-            /** @description 본문 형식 오류 · 3개월이 지났거나 오늘 이후 · 아직 오지 않은 시각 */
+            /** @description 본문 형식 오류 · 3개월이 지났거나 오늘 이후 · 아직 오지 않은 시각 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -21893,7 +23118,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description PROXY_NOT_ALLOWED — 위치정보 동의가 있는 직원 · 위치를 보지 않는 점포 / NO_CONTRACT — 그날 체결 완료 계약 없음 · 퇴직 뒤 */
+            /** @description PROXY_NOT_ALLOWED — 위치정보 동의가 있는 직원 · 위치를 보지 않는 점포 / NO_CONTRACT — 그날 서명 완료 계약 없음 · 퇴직 뒤 */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -21928,21 +23153,21 @@ export interface operations {
                     "application/json": components["schemas"]["AttendanceEditResultDto"];
                 };
             };
-            /** @description 본문 형식 오류 · 3개월이 지남 · 있던 쪽 시각을 비움 · 바뀐 값 없음 · 아직 오지 않은 시각 */
+            /** @description 본문 형식 오류 · 3개월이 지남 · 있던 쪽 시각을 비움 · 바뀐 값 없음 · 아직 오지 않은 시각 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 기록 · 업무 범위 밖 · 본사에게 가려진 직원 */
+            /** @description 없는 기록 · 업무 범위 밖 · 본사에게 가려진 직원 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -21980,14 +23205,21 @@ export interface operations {
                     "application/json": components["schemas"]["AttendanceEditResultDto"];
                 };
             };
-            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 기록 · 업무 범위 밖 · 본사에게 가려진 직원 */
+            /** @description 없는 기록 · 업무 범위 밖 · 본사에게 가려진 직원 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -22025,14 +23257,21 @@ export interface operations {
                     "application/json": components["schemas"]["AttendanceHistoryResponseDto"];
                 };
             };
-            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 */
+            /** @description 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 출·퇴근 현황 조회 권한 없음 · 직원 앱 토큰 · 사용 중인 관리자 계정이 아님 · BP · 가맹 계정의 다른 BP · 형식이 틀린 헤더 */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description 없는 기록 · 업무 범위 밖 · 본사에게 가려진 직원 */
+            /** @description 없는 기록 · 업무 범위 밖 · 본사에게 가려진 직원 · 플랫폼 계정의 X-Bp-Code-Id 가 없는 · 지운 · 플랫폼 BP 이거나 형식이 틀림(가드) */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -22187,7 +23426,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 지금 비밀번호가 맞지 않음(「지금 비밀번호가 맞지 않습니다」) · 이메일 형식 · 지금 이메일과 같음 */
+            /** @description 지금 비밀번호가 맞지 않음(「지금 비밀번호가 맞지 않습니다.」) · 이메일 형식 · 지금 이메일과 같음 */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -22222,7 +23461,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 보내기 전에 막힘(메일 템플릿 꺼짐 · 제목 없음 · DB 오류) — 「메일 설정 문제로 … 관리자에게 문의해 주세요」 */
+            /** @description 보내기 전에 막힘(메일 템플릿 꺼짐 · 제목 없음 · DB 오류) — 「메일 설정 문제로 … 관리자에게 문의해 주세요.」 */
             500: {
                 headers: {
                     [name: string]: unknown;
@@ -22374,7 +23613,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 내 소속이 아님 — 없는 id · 범위 밖 id, 남의 레코드, 퇴직했거나 체결 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
+            /** @description 내 소속이 아님 — 없는 id · 범위 밖 id, 남의 레코드, 퇴직했거나 서명 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -22420,7 +23659,7 @@ export interface operations {
                     "application/json": components["schemas"]["MyTaxProfileResponseDto"];
                 };
             };
-            /** @description 형식 오류 · 바꿀 값 없음(TAX_PROFILE_EMPTY) · 고치는데 지금 비밀번호가 없거나 틀림(CURRENT_PASSWORD_MISMATCH — 「지금 비밀번호가 맞지 않습니다」, 내 소속 확인 뒤 · 다른 검사 전에 본다) · 처음인데 셋 중 빠짐(TAX_PROFILE_INCOMPLETE) · 은행 · 계좌번호 한쪽만(TAX_PROFILE_ACCOUNT_INCOMPLETE) · 주민등록번호 앞자리와 가입 생년월일이 다름(RRN_BIRTH_MISMATCH — 관리자에게 정정 요청) · 없는 은행(BANK_CODE_UNKNOWN) */
+            /** @description 형식 오류 · 바꿀 값 없음(TAX_PROFILE_EMPTY) · 고치는데 지금 비밀번호가 없거나 틀림(CURRENT_PASSWORD_MISMATCH — 「지금 비밀번호가 맞지 않습니다.」, 내 소속 확인 뒤 · 다른 검사 전에 본다) · 처음인데 셋 중 빠짐(TAX_PROFILE_INCOMPLETE) · 은행 · 계좌번호 한쪽만(TAX_PROFILE_ACCOUNT_INCOMPLETE) · 주민등록번호 앞자리와 가입 생년월일이 다름(RRN_BIRTH_MISMATCH — 관리자에게 정정 요청) · 없는 은행(BANK_CODE_UNKNOWN) */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -22665,6 +23904,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description consentVersion 없음 · 빈 문자열 · 문자열 아님 · 64자 초과 · 모르는 칸 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
             401: {
                 headers: {
@@ -22679,7 +23925,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 지금 동의 상태에서 할 수 없는 동작 */
+            /** @description 이미 지금 버전에 동의함 · 화면이 보여 준 문구 버전(consentVersion)이 지금 것과 다름 — 「사업자 제공 동의 내용이 바뀌었습니다. …」(화면은 새로 고친다) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -22718,7 +23964,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 이미 지금 버전에 동의함 · 화면이 보여 준 문구 버전(consentVersion)이 지금 것과 다름 — 「사업자 제공 동의 내용이 바뀌었습니다. …」(화면은 새로 고친다) */
+            /** @description 지금 동의 상태에서 할 수 없는 동작 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -23045,11 +24291,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RejectAffiliationRequestDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             204: {
                 headers: {
@@ -23057,14 +24299,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 형식 오류 · 사유 500자 넘음 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description consentVersion 없음 · 빈 문자열 · 문자열 아님 · 64자 초과 · 모르는 칸 */
+            /** @description 형식 오류(요청 ID) */
             400: {
                 headers: {
                     [name: string]: unknown;
