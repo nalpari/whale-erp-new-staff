@@ -45,7 +45,7 @@
           "reset",
           "newpw"
         ],
-        "note": "관리자가 초기화하면 재설정 링크가 직원 이메일로 온다. 24시간 안에 메일의 링크를 열어 새 비밀번호를 정하고, 로그인 화면에서 새 비밀번호로 로그인한다."
+        "note": "관리자가 초기화하면 재설정 링크가 직원 이메일로 온다. 링크는 한 번만 쓴다. 24시간 안에 메일의 링크를 열어 새 비밀번호를 정하고, 로그인 화면에서 새 비밀번호로 로그인한다."
       },
       {
         "id": "findmail",
@@ -75,7 +75,11 @@
           "label": "관리자 웹"
         }
       }
-    }
+    },
+    "viewBox": [
+      1198,
+      660
+    ]
   },
   "lanes": [
     {
@@ -101,13 +105,13 @@
       "id": "p-in",
       "label": "로그인",
       "fromCol": 0,
-      "toCol": 1,
+      "toCol": 2,
       "variant": "emphasis"
     },
     {
       "id": "p-pin",
       "label": "핀",
-      "fromCol": 2,
+      "fromCol": 3,
       "toCol": 3
     },
     {
@@ -136,11 +140,11 @@
     {
       "id": "reset",
       "lane": "mail",
-      "col": 5,
+      "col": 4,
       "type": "external",
       "label": "관리자 초기화",
       "width": 160,
-      "sublabel": "재설정 링크 · 24시간",
+      "sublabel": "재설정 링크 · 24시간 · 한 번만",
       "tag": "ACC-11"
     },
     {
@@ -155,7 +159,7 @@
     {
       "id": "findmail",
       "lane": "app",
-      "col": 1,
+      "col": 2,
       "type": "frontend",
       "label": "이메일 찾기",
       "sublabel": "이름 · 번호 · 생년월일",
@@ -175,7 +179,7 @@
     {
       "id": "forgot",
       "lane": "app",
-      "col": 2,
+      "col": 1,
       "type": "frontend",
       "label": "비밀번호 찾기",
       "sublabel": "이메일 입력",
@@ -232,8 +236,8 @@
       "col": 5,
       "type": "database",
       "label": "접속 유지",
-      "sublabel": "자동로그인 30일 · 끄면 7일",
-      "width": 185,
+      "sublabel": "마지막 접속부터 자동로그인 30일 · 끄면 7일",
+      "width": 225,
       "tag": "LOGIN-4"
     }
   ],
@@ -242,20 +246,23 @@
       "id": "e-reset-newpw",
       "from": "reset",
       "to": "newpw",
-      "label": "메일의 링크를 열어",
+      "label": "링크가 유효하면",
       "role": "branch",
-      "fromSide": "left",
+      "fromSide": "bottom",
       "toSide": "top",
+      "route": "straight",
       "labelAt": [
-        910,
-        185
+        985,
+        187
       ]
     },
     {
       "id": "e-login-auth",
       "from": "login",
       "to": "auth",
-      "variant": "emphasis"
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "left"
     },
     {
       "id": "e-auth-session",
@@ -278,8 +285,8 @@
       "to": "forgot",
       "label": "비밀번호를 잊음",
       "role": "branch",
-      "fromSide": "left",
-      "toSide": "top"
+      "fromSide": "right",
+      "toSide": "left"
     },
     {
       "id": "e-forgot-mailpin",
@@ -313,23 +320,23 @@
       "toSide": "right",
       "via": [
         [
-          666.9,
+          748.9,
           204
         ],
         [
-          758,
+          835,
           204
         ],
         [
-          758,
+          835,
           72
         ],
         [
-          1080,
+          1182,
           72
         ],
         [
-          1080,
+          1182,
           498
         ]
       ]
@@ -355,7 +362,7 @@
       "dot": "emerald",
       "title": "확정된 결정",
       "items": [
-        "아이디는 이메일 · 연속 5회 실패면 5분 잠금 · 핀은 낸 시각부터 10분(새 비밀번호 저장까지 같은 시계), 5회 틀리면 닫혀 새 핀을 받고 쿨다운은 없다 · 새 비밀번호를 정하면 잠금이 풀린다 · 관리자 초기화는 재설정 링크 24시간, 메일의 링크를 열어 새 비밀번호를 정한다 · 이메일을 잊으면 이름·번호·생년월일로 찾는다"
+        "아이디는 이메일 · 연속 5회 실패면 5분 잠금 · 핀은 낸 시각부터 10분(새 비밀번호 저장까지 같은 시계), 5회 틀리면 닫혀 새 핀을 받고 쿨다운은 없다 · 새 비밀번호를 정하면 잠금이 풀린다 · 관리자 초기화는 재설정 링크 24시간, 메일의 링크를 열어 새 비밀번호를 정하고 한 번만 쓴다(운영 정책 ACC-19) · 이메일을 잊으면 이름·번호·생년월일로 찾는다"
       ]
     },
     {
