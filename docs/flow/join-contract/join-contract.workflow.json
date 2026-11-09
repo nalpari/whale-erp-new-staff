@@ -37,11 +37,12 @@
           "token",
           "has-account",
           "relogin",
+          "request",
           "addsite",
           "sign",
           "done"
         ],
-        "note": "그 번호로 계정이 있으면 가입을 다시 하지 않는다. 초대 확인에서 「이미 계정이 있습니다」와 로그인 버튼만 보이고, 로그인한 뒤 앱 안에서 소속 추가 확인이 뜬다(운영 정책 JOI-02). 수락은 소속 연결까지이고 조건은 계약서에서 날인한다."
+        "note": "그 번호로 계정이 있으면 가입을 다시 하지 않는다. 「이미 계정이 있습니다」에서 로그인하면 소속 근무지의 「확인을 기다리는 요청」으로 간다(운영 정책 JOI-09). 수락은 소속 연결까지이고 조건은 계약서에서 날인한다."
       },
       {
         "id": "rrn",
@@ -121,14 +122,6 @@
       "variant": "security"
     },
     {
-      "id": "g-addsite",
-      "label": "JOIN-5 · 거절 사유는 선택",
-      "lane": "multi",
-      "fromCol": 4,
-      "toCol": 4,
-      "variant": "dashed"
-    },
-    {
       "id": "g-rrn",
       "label": "TAX-4·5 · 건너뛸 수 없다",
       "lane": "app",
@@ -154,7 +147,7 @@
       "type": "frontend",
       "label": "로그인 화면",
       "sublabel": "앱을 직접 열면",
-      "width": 150
+      "width": 115
     },
     {
       "id": "code",
@@ -163,7 +156,7 @@
       "type": "frontend",
       "label": "초대 코드 입력",
       "sublabel": "휴대전화번호 + 8자리",
-      "width": 170
+      "width": 150
     },
     {
       "id": "invite",
@@ -200,7 +193,7 @@
       "type": "frontend",
       "label": "계정 등록",
       "sublabel": "번호는 읽기 전용",
-      "width": 170
+      "width": 150
     },
     {
       "id": "has-account",
@@ -218,16 +211,16 @@
       "type": "frontend",
       "label": "로그인",
       "sublabel": "기존 계정으로",
-      "width": 110
+      "width": 100
     },
     {
       "id": "addsite",
       "lane": "multi",
       "col": 4,
       "type": "frontend",
-      "label": "소속 추가 확인",
-      "sublabel": "수락 · 거절",
-      "width": 140
+      "label": "소속 근무지 · 확인 요청",
+      "sublabel": "수락 · 거절 · 이름이 같아야",
+      "width": 180
     },
     {
       "id": "send",
@@ -243,9 +236,9 @@
       "lane": "app",
       "col": 4,
       "type": "frontend",
-      "label": "계약서 날인 · 거부",
-      "sublabel": "필기 서명으로 날인",
-      "width": 160
+      "label": "본인 대조 · 날인 · 거부",
+      "sublabel": "다섯 값이 같아야 날인",
+      "width": 170
     },
     {
       "id": "done",
@@ -254,7 +247,7 @@
       "type": "database",
       "label": "체결 완료",
       "sublabel": "처리 완료본 보존",
-      "width": 150
+      "width": 132
     },
     {
       "id": "reject",
@@ -263,7 +256,7 @@
       "type": "security",
       "label": "거부 · 만료",
       "sublabel": "날인 기한 30일",
-      "width": 150
+      "width": 132
     },
     {
       "id": "rrn",
@@ -272,8 +265,25 @@
       "type": "frontend",
       "label": "신고 정보 넣기",
       "sublabel": "주민등록번호 · 계좌",
-      "width": 170,
-      "tag": "STAFF-16"
+      "width": 132
+    },
+    {
+      "id": "request",
+      "lane": "multi",
+      "col": 5,
+      "type": "messagebus",
+      "label": "소속 추가 확인 요청",
+      "sublabel": "알림톡 · 메일 · 30일 · 팝업",
+      "width": 142
+    },
+    {
+      "id": "fix",
+      "lane": "exc",
+      "col": 4,
+      "type": "security",
+      "label": "수정 요청",
+      "sublabel": "사유 필수 · 날인 기한 멈춤",
+      "width": 170
     }
   ],
   "edges": [
@@ -328,35 +338,63 @@
       "id": "e-relogin-addsite",
       "from": "relogin",
       "to": "addsite",
-      "role": "branch"
+      "role": "branch",
+      "label": "소속 근무지로"
     },
     {
       "id": "e-signup-send",
       "from": "signup",
       "to": "send",
       "label": "레코드 연결",
-      "variant": "emphasis"
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
     },
     {
       "id": "e-addsite-sign",
       "from": "addsite",
       "to": "sign",
-      "label": "수락 · 자동 발송",
-      "role": "branch"
+      "label": "이름 같으면 수락",
+      "role": "branch",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "route": "straight",
+      "labelAt": [
+        940,
+        183
+      ]
     },
     {
       "id": "e-send-sign",
       "from": "send",
       "to": "sign",
       "variant": "emphasis",
-      "label": "날인 요청 팝업"
+      "label": "날인 요청 팝업",
+      "fromSide": "right",
+      "toSide": "left"
     },
     {
       "id": "e-sign-done",
       "from": "sign",
       "to": "done",
       "label": "날인",
-      "variant": "emphasis"
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          1020,
+          246
+        ],
+        [
+          1020,
+          372
+        ]
+      ],
+      "labelAt": [
+        1030,
+        309
+      ]
     },
     {
       "id": "e-sign-reject",
@@ -365,7 +403,22 @@
       "label": "거부 · 기한 경과",
       "variant": "security",
       "role": "error",
-      "toSide": "left"
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          1002,
+          246
+        ],
+        [
+          1002,
+          498
+        ]
+      ],
+      "labelAt": [
+        1065,
+        424
+      ]
     },
     {
       "id": "e-reject-send",
@@ -373,14 +426,104 @@
       "to": "send",
       "label": "재발송",
       "variant": "dashed",
-      "role": "return"
+      "role": "return",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "via": [
+        [
+          1110.8,
+          546
+        ],
+        [
+          558,
+          546
+        ],
+        [
+          558,
+          372
+        ]
+      ],
+      "labelDy": 20
     },
     {
       "id": "e-sign-rrn",
       "from": "sign",
       "to": "rrn",
       "label": "날인 뒤 본인이",
-      "role": "branch"
+      "role": "branch",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-request-addsite",
+      "from": "request",
+      "to": "addsite",
+      "label": "확인하러 가기",
+      "role": "branch",
+      "fromSide": "left",
+      "toSide": "right",
+      "labelAt": [
+        1002,
+        106
+      ]
+    },
+    {
+      "id": "e-addsite-reject",
+      "from": "addsite",
+      "to": "reject",
+      "label": "거절 · 계약 거부",
+      "variant": "security",
+      "role": "error",
+      "fromSide": "top",
+      "toSide": "right",
+      "via": [
+        [
+          874.6,
+          82
+        ],
+        [
+          1193,
+          82
+        ],
+        [
+          1193,
+          498
+        ]
+      ]
+    },
+    {
+      "id": "e-sign-fix",
+      "from": "sign",
+      "to": "fix",
+      "label": "다르면 · 정보가 틀리면",
+      "variant": "security",
+      "role": "error",
+      "labelAt": [
+        936,
+        374
+      ],
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-fix-send",
+      "from": "fix",
+      "to": "send",
+      "label": "관리자가 고쳐 저장 · 새 30일",
+      "variant": "dashed",
+      "role": "return",
+      "fromSide": "left",
+      "toSide": "bottom",
+      "via": [
+        [
+          654.2,
+          498
+        ]
+      ],
+      "labelAt": [
+        724,
+        455
+      ]
     }
   ],
   "cards": [
@@ -388,7 +531,7 @@
       "dot": "emerald",
       "title": "확정된 결정",
       "items": [
-        "JOIN-1 가입하면 초대의 직원 레코드에 바로 잇는다 · JOIN-2 초대 30일 · JOIN-5 거절 사유는 선택 · JOIN-7 앱을 직접 열면 초대 코드로 가입하고 계정 등록의 휴대전화번호는 읽기 전용 · 계약서가 오면 날인 요청 팝업 · 주민등록번호와 급여 계좌는 날인 뒤 직접 넣고 건너뛸 수 없다"
+        "JOIN-1 가입하면 초대의 직원 레코드에 바로 잇는다 · JOIN-2 초대 30일 · 거절은 사유 없이 확인창으로만(운영 정책 JOI-09 · 운영 정책 CTR-07) · JOIN-7 앱을 직접 열면 초대 코드로 가입하고 계정 등록의 휴대전화번호는 읽기 전용 · 계약서가 오면 날인 요청 팝업 · 주민등록번호와 급여 계좌는 날인 뒤 직접 넣고 건너뛸 수 없다"
       ]
     },
     {

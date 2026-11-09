@@ -1,0 +1,23 @@
+# 직원 근무 앱 유저플로우를 운영 정책 v272에 맞춘다
+
+근거: 2026-11-09 재영 지시(기획 세션 header 전달). 유저플로우 19개 대조에서 나온 직원 근무 앱 흐름의 어긋남을 고친다. 흐름 사본 갱신은 api 쪽에서 따로 한다.
+
+## 고칠 것
+
+- `docs/flow/join-contract`
+  - 거절 사유를 받지 않는다(운영 정책 JOI-09, CTR-07).
+  - 계정이 있으면 로그인 뒤 소속 근무지로 간다(운영 정책 JOI-09).
+  - 소속 추가 확인 요청의 본래 경로, 이름이 다르면 수락을 막는 조건, 거절 선, 본인 대조·수정 요청을 넣는다(운영 정책 JOI-02·09·10, CTR-27).
+- `docs/flow/login-account`: 접속 유지(운영 정책 ACC-05), 이메일 찾기 진입(운영 정책 ACC-06), 재설정 링크(운영 정책 ACC-11, NTF-18).
+- `docs/flow/notify-me`: 수행 임박은 직원 알림함만(운영 정책 NTF-12), 신고 정보 진입은 소속 근무지(운영 정책 TAX-07).
+- `docs/flow/work-pay`: 급여만 근무지와 상관없이 모든 소속을 보인다(운영 정책 PAY-08).
+
+## 하지 않는 것
+
+- 「확인 필요」 항목, 빠짐 항목 가운데 notify-me 2건, work-pay 1건.
+
+## 검증
+
+- archify `validate --quality showcase`, `deliver`, `visual-check` 통과.
+- 그림을 열어 선과 글자가 겹치지 않는지 본다.
+- 저장소 밖 사본에서 api `deliverables/test_build_userflow.py` 를 돌린다.

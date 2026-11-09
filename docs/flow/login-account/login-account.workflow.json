@@ -13,7 +13,7 @@
           "auth",
           "session"
         ],
-        "note": "이메일과 비밀번호로 들어온다. 마지막 접속으로부터 30일이 지나면 다시 로그인한다."
+        "note": "이메일과 비밀번호로 들어온다. 자동로그인을 켜면 마지막 접속으로부터 30일, 끄면 7일 동안 로그인이 유지되고, 지나면 다시 로그인한다."
       },
       {
         "id": "locked",
@@ -43,20 +43,18 @@
         "label": "관리자가 초기화했을 때",
         "focus": [
           "reset",
-          "login",
-          "auth",
           "newpw"
         ],
-        "note": "관리자가 초기화하면 재설정 링크가 메일로 온다. 링크는 앱의 로그인 화면으로 열리고 거기서 새 비밀번호를 정한다. 앱이 없으면 앱 스토어로 간다."
+        "note": "관리자가 초기화하면 재설정 링크가 직원 이메일로 온다. 24시간 안에 메일의 링크를 열어 새 비밀번호를 정하고, 로그인 화면에서 새 비밀번호로 로그인한다."
       },
       {
         "id": "findmail",
         "label": "이메일을 잊었을 때",
         "focus": [
-          "login",
+          "forgot",
           "findmail"
         ],
-        "note": "이름·휴대전화번호·생년월일을 넣으면 가입할 때 쓴 로그인 이메일을 찾아 준다. 세 값 모두 가입 때 직원이 넣은 계정 값이다."
+        "note": "비밀번호 찾기 화면의 「이메일이 기억나지 않나요」로 들어간다. 이름·휴대전화번호·생년월일을 넣으면 가입할 때 쓴 로그인 이메일을 찾아 준다. 세 값 모두 가입 때 직원이 넣은 계정 값이다."
       }
     ],
     "legend": {
@@ -77,11 +75,7 @@
           "label": "관리자 웹"
         }
       }
-    },
-    "viewBox": [
-      1090,
-      660
-    ]
+    }
   },
   "lanes": [
     {
@@ -142,7 +136,7 @@
     {
       "id": "reset",
       "lane": "mail",
-      "col": 0,
+      "col": 5,
       "type": "external",
       "label": "관리자 초기화",
       "width": 160,
@@ -238,18 +232,24 @@
       "col": 5,
       "type": "database",
       "label": "접속 유지",
-      "sublabel": "마지막 접속 30일",
-      "width": 155,
+      "sublabel": "자동로그인 30일 · 끄면 7일",
+      "width": 185,
       "tag": "LOGIN-4"
     }
   ],
   "edges": [
     {
-      "id": "e-reset-login",
+      "id": "e-reset-newpw",
       "from": "reset",
-      "to": "login",
-      "label": "링크가 앱으로 열림",
-      "role": "branch"
+      "to": "newpw",
+      "label": "메일의 링크를 열어",
+      "role": "branch",
+      "fromSide": "left",
+      "toSide": "top",
+      "labelAt": [
+        910,
+        185
+      ]
     },
     {
       "id": "e-login-auth",
@@ -273,24 +273,21 @@
       "role": "error"
     },
     {
-      "id": "e-auth-newpw",
-      "from": "auth",
-      "to": "newpw",
-      "label": "링크가 유효하면",
-      "role": "branch"
-    },
-    {
       "id": "e-login-forgot",
       "from": "login",
       "to": "forgot",
       "label": "비밀번호를 잊음",
-      "role": "branch"
+      "role": "branch",
+      "fromSide": "left",
+      "toSide": "top"
     },
     {
       "id": "e-forgot-mailpin",
       "from": "forgot",
       "to": "mailpin",
-      "role": "branch"
+      "role": "branch",
+      "fromSide": "top",
+      "toSide": "left"
     },
     {
       "id": "e-mailpin-pinin",
@@ -311,7 +308,31 @@
       "to": "pinclosed",
       "label": "다섯 번 실패",
       "variant": "security",
-      "role": "error"
+      "role": "error",
+      "fromSide": "top",
+      "toSide": "right",
+      "via": [
+        [
+          666.9,
+          204
+        ],
+        [
+          758,
+          204
+        ],
+        [
+          758,
+          72
+        ],
+        [
+          1080,
+          72
+        ],
+        [
+          1080,
+          498
+        ]
+      ]
     },
     {
       "id": "e-newpw-session",
@@ -322,8 +343,8 @@
       "role": "branch"
     },
     {
-      "id": "e-login-findmail",
-      "from": "login",
+      "id": "e-forgot-findmail",
+      "from": "forgot",
       "to": "findmail",
       "label": "이메일을 잊음",
       "role": "branch"
@@ -334,7 +355,7 @@
       "dot": "emerald",
       "title": "확정된 결정",
       "items": [
-        "아이디는 이메일 · 연속 5회 실패면 5분 잠금 · 핀은 낸 시각부터 10분(새 비밀번호 저장까지 같은 시계), 5회 틀리면 닫혀 새 핀을 받고 쿨다운은 없다 · 새 비밀번호를 정하면 잠금이 풀린다 · 관리자 초기화는 재설정 링크 24시간, 앱으로 열리고 앱이 없으면 스토어로 · 이메일을 잊으면 이름·번호·생년월일로 찾는다"
+        "아이디는 이메일 · 연속 5회 실패면 5분 잠금 · 핀은 낸 시각부터 10분(새 비밀번호 저장까지 같은 시계), 5회 틀리면 닫혀 새 핀을 받고 쿨다운은 없다 · 새 비밀번호를 정하면 잠금이 풀린다 · 관리자 초기화는 재설정 링크 24시간, 메일의 링크를 열어 새 비밀번호를 정한다 · 이메일을 잊으면 이름·번호·생년월일로 찾는다"
       ]
     },
     {
