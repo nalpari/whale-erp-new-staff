@@ -40,7 +40,7 @@ const STATES = [
   { id: "paper", label: "종이 계약", note: "관리자가 올린 날인본" },
   { id: "rejected", label: "거절 완료", note: "재발송 대기" },
   { id: "empty", label: "빈 상태", note: "계약 없음" },
-  { id: "expired", label: "만료", note: "기한 지남" },
+  { id: "expired", label: "계약 기간 만료", note: "기한 지남" },
   { id: "reject", label: "거절 확인", note: "사유 없이 확인만" },
   { id: "correction", label: "수정 요청", note: "사유 필수 · 100자" },
 ];

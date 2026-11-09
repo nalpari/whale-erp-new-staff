@@ -179,11 +179,11 @@ const screen = (view) =>
 const signReqSheet = (a = {}) =>
   bottomSheet(
     "sign-req",
-    { title: "날인할 계약서가 도착했습니다", closeLabel: "나중에", ...a },
+    { title: "서명할 계약서가 도착했습니다", closeLabel: "나중에", ...a },
     `<dl class="flex flex-col divide-y divide-[#f5e3c0] rounded-[12px] bg-[#fff6e5] px-[14px] py-[4px]">${[
       ["근무지", "웨일카페 강남역점"],
       ["고용 형태", "파트타이머"],
-      ["날인 기한", "2026-10-11 · 26일 남음"],
+      ["서명 기한", "2026-10-11 · 26일 남음"],
     ]
       .map(
         ([k, v]) =>
@@ -191,8 +191,8 @@ const signReqSheet = (a = {}) =>
       )
       .join(
         "",
-      )}</dl><p class="text-[14px] text-staff-text-sub">날인해야 근무가 시작됩니다. 지금 확인하지 않아도 계약서 화면에서 다시 볼 수 있습니다.</p>${button(
-      `${maskIcon("contract.svg", 14)}날인하러 가기`,
+      )}</dl><p class="text-[14px] text-staff-text-sub">서명해야 근무가 시작됩니다. 지금 확인하지 않아도 계약서 화면에서 다시 볼 수 있습니다.</p>${button(
+      `${maskIcon("contract.svg", 14)}서명하러 가기`,
       { href: CONTRACT },
     )}`,
   );
