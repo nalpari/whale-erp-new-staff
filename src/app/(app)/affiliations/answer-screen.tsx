@@ -77,7 +77,7 @@ export function AnswerScreen({
           </Notice>
           <Notice icon={<MaskIcon src="/icons/contract.svg" size={14} />}>
             <strong>여기서 수락하는 것은 소속 연결까지입니다.</strong> 시급 · 근무 시간대를 포함한 근무 조건은 수락한 뒤 도착하는
-            근로계약서에서 확인하고 날인합니다.
+            근로계약서에서 확인하고 서명합니다.
           </Notice>
           {/* 가맹 점포이고 아직 동의하지 않았을 때만(ATT-30). 계정 등록의 동의 칸과 같다. */}
           {request.asksHqSharingConsent && (
@@ -113,7 +113,7 @@ export function AnswerScreen({
         open={rejectOpen}
         onClose={() => setRejectOpen(false)}
         title="소속 추가를 거절하시겠어요?"
-        description="거절해도 기존 소속과 계정에는 영향이 없습니다. 이 요청과 함께 온 근로계약서는 거부로 닫힙니다."
+        description="거절해도 기존 소속과 계정에는 영향이 없습니다. 이 요청과 함께 온 근로계약서는 거절로 닫힙니다."
         closeLabel="취소"
       >
         <form action={rejectAction} className="flex flex-col gap-[13px]">

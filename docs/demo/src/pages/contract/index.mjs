@@ -33,15 +33,15 @@ const STATES = [
   { id: "list", label: "목록", note: "처리할 것과 지난 것" },
   { id: "detail", label: "상세", note: "서명 대기" },
   { id: "sign", label: "서명란", note: "비어 있음" },
-  { id: "sign-drawn", label: "서명 뒤", note: "날인 확정 가능" },
+  { id: "sign-drawn", label: "서명 뒤", note: "서명 확정 가능" },
   { id: "signing", label: "처리 중", note: "버튼 비활성" },
-  { id: "signed", label: "날인 완료", note: "확정" },
+  { id: "signed", label: "서명 완료", note: "확정" },
   { id: "readonly", label: "다시 보기", note: "읽기 전용" },
   { id: "paper", label: "종이 계약", note: "관리자가 올린 날인본" },
-  { id: "rejected", label: "거부 완료", note: "재발송 대기" },
+  { id: "rejected", label: "거절 완료", note: "재발송 대기" },
   { id: "empty", label: "빈 상태", note: "계약 없음" },
-  { id: "expired", label: "만료", note: "기한 지남" },
-  { id: "reject", label: "거부 확인", note: "사유 없이 확인만" },
+  { id: "expired", label: "계약 기간 만료", note: "기한 지남" },
+  { id: "reject", label: "거절 확인", note: "사유 없이 확인만" },
   { id: "correction", label: "수정 요청", note: "사유 필수 · 100자" },
 ];
 
@@ -60,14 +60,14 @@ const BACK = {
 const CONTRACTS = [
   { title: "웨일카페 강남역점 · 파트타이머", sub: "서명 기한 2026.09.12 · D-2", status: "서명 대기", to: "detail", urgent: true },
   { title: "웨일카페 홍대점 · 파트타이머", sub: "서명 기한 2026.10.11 · D-30", status: "서명 대기", to: "detail" },
-  { title: "웨일카페 홍대점 · 정직원", sub: "서명 2026.08.23", status: "체결 완료", to: "readonly" },
-  { title: "웨일카페 홍대점 · 파트타이머", sub: "종이 계약 · 2026.04.02 등록", status: "체결 완료", to: "paper" },
+  { title: "웨일카페 홍대점 · 정직원", sub: "서명 2026.08.23", status: "서명 완료", to: "readonly" },
+  { title: "웨일카페 홍대점 · 파트타이머", sub: "종이 계약 · 2026.04.02 등록", status: "서명 완료", to: "paper" },
   { title: "웨일카페 강남역점 · 파트타이머", sub: "거절 2026.06.25", status: "거절", to: "rejected" },
-  { title: "웨일카페 홍대점 · 파트타이머", sub: "서명 기한 2026.07.31 지남", status: "만료", to: "expired" },
-  { title: "웨일카페 강남역점 · 파트타이머", sub: "2025.03.01 – 2026.08.31", status: "종료", to: "readonly" },
+  { title: "웨일카페 홍대점 · 파트타이머", sub: "서명 기한 2026.07.31 지남", status: "계약 기간 만료", to: "expired" },
+  { title: "웨일카페 강남역점 · 파트타이머", sub: "2025.03.01 – 2026.08.31", status: "계약 종료", to: "readonly" },
 ];
-// 서명 대기만 강조, 거절·만료는 오류 색, 체결 완료는 정상, 종료는 중립(목업 해설 「이 화면이 하는 일」).
-const STATUS_TONE = { "서명 대기": "warning", "체결 완료": "success", 거절: "danger", 만료: "danger", 종료: "waiting" };
+// 서명 대기만 강조, 거절·계약 기간 만료는 오류 색, 서명 완료는 정상, 계약 종료는 중립(목업 해설 「이 화면이 하는 일」).
+const STATUS_TONE = { "서명 대기": "warning", "서명 완료": "success", 거절: "danger", "계약 기간 만료": "danger", "계약 종료": "waiting" };
 
 
 const go = (id, toast) => ({ "data-go": id, "data-toast": toast });
@@ -235,7 +235,7 @@ const VIEWS = {
         "<strong>이미 처리가 끝난 계약서입니다.</strong><br>다시 서명하거나 거절할 수 없습니다.<br>계약 내용을 바꾸려면 근무지 관리자에게 문의해 주세요.",
       )}<section class="flex items-center gap-[12px] rounded-[16px] border border-staff-border-light bg-white p-[16px]"><div class="flex min-w-0 flex-1 flex-col gap-[2px]"><p class="text-[15px] font-bold">웨일카페 홍대점 · 정직원</p><p class="text-[12px] text-staff-text-muted">서명 2026.08.23 · 받은 날 2026.08.01</p></div>${badge(
         "success",
-        "체결 완료",
+        "서명 완료",
       )}</section>${contractDocument(FULL_TIME)}`,
       { variant: "detail" },
     )}${dock(
@@ -296,7 +296,7 @@ const VIEWS = {
         18,
       )}</span><div class="flex min-w-0 flex-1 flex-col gap-[2px]"><p class="text-[15px] font-bold">웨일카페 홍대점 · 파트타이머</p><p class="text-[12px] text-staff-text-muted">받은 날 2026.07.01 · 서명 기한 2026.07.31</p></div>${badge(
         "danger",
-        "만료",
+        "계약 기간 만료",
       )}</section>${sunken("계약을 진행하려면 근무지 관리자에게 계약서를 다시 요청해 주세요.", { prose: true })}`,
       { variant: "detail" },
     )}${dock(button("목록으로", { variant: "ghost", ...back("list") }), 30)}`,

@@ -58,7 +58,7 @@ export function contentOf(result: AnswerResult, storeName: string | null = null)
       message: "기존 계정은 그대로이고, 계정의 이름 · 휴대전화번호 · 생년월일 · 성별 · 외국인 여부만 이 근무지의 새 직원 레코드에 이어졌습니다.",
     };
   if (result.kind === "rejected")
-    return { title: "소속 추가를 거절했습니다", message: "기존 소속과 계정은 그대로입니다. 함께 온 근로계약서는 거부로 닫혔습니다." };
+    return { title: "소속 추가를 거절했습니다", message: "기존 소속과 계정은 그대로입니다. 함께 온 근로계약서는 거절로 닫혔습니다." };
   return closedMessage(result.reason);
 }
 
@@ -96,7 +96,7 @@ const CLOSED_REASONS = Object.keys(CLOSED) as ClosedReason[];
 /**
  * 답한 결과의 경로(`/affiliations/done?…`). 점포 이름은 싣지 않는다 — 주소 · 기록에 남고, 남이 만든 링크로 가짜 「○○ 소속이
  * 추가되었습니다」를 보일 수 있어서다. 결과 갈래 · 사유 · 수락으로 서명 대기가 된 계약 ID(쉼표로, 20개까지)와 동의를 남기지 못함(정한 값
- * 하나)만 싣는다 — 완료 화면이 「계약서 날인하러 가기」를 그 계약으로 보낸다. 남이 만든 링크의 ID 는 계약 화면에서 api 가 본인 계약인지 다시 본다.
+ * 하나)만 싣는다 — 완료 화면이 「계약서 서명하러 가기」를 그 계약으로 보낸다. 남이 만든 링크의 ID 는 계약 화면에서 api 가 본인 계약인지 다시 본다.
  */
 export function resultHref(result: AnswerResult): string {
   const params = new URLSearchParams({ result: result.kind });
@@ -136,7 +136,7 @@ export function parseResult(params: SearchParams): AnswerResult | null {
 }
 
 /**
- * 수락 완료의 「계약서 날인하러 가기」 주소 — 함께 온 계약이 하나면 그 계약서, 여럿이면 근로계약서 목록, 없으면 null(버튼 없음). 근무지(storeId)를
+ * 수락 완료의 「계약서 서명하러 가기」 주소 — 함께 온 계약이 하나면 그 계약서, 여럿이면 근로계약서 목록, 없으면 null(버튼 없음). 근무지(storeId)를
  * 알면 ?store= 를 붙여 목록을 그 근무지로 거르고 상세의 뒤로 가기도 그 목록으로 간다(서명 요청 팝업과 같다). 모르면 거르지 않는다.
  */
 export function contractHrefOf(contractIds: readonly number[], storeId: number | null = null): string | null {

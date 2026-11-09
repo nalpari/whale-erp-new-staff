@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-11-09
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 근로계약 상태 이름을 바꿨다(WHALEERP-659, api enum 한글: 작성 중 · 서명 요청 전 · 직원 서명 대기 · 직원 수정 요청 · 서명 완료 · 서명 거절 · 계약 기간 만료 · 계약 종료). 직원 앱은 `phaseLabel` 에서 직원 서명 대기 → 「서명 대기」, 직원 수정 요청 → 「수정 요청」으로 덮어쓰고 서명 거절은 「거절」 그대로다. 화면 문구도 맞췄다: 출퇴근 안내 「서명 완료된 근로계약」, 소속 추가 거절의 계약서는 「거절로 닫힘」, 소속 추가 완료의 「날인」 → 「서명」(안내 둘 · 버튼). 서명 기한이 지난 설명 문장은 그대로 둔다. 데모 contract · home · check-in 라벨도 같은 표기로 고쳤다(docs/mockup 은 쟁점 기록용이라 그대로).
+
 ## 2026-10-30
 * **Update**: main 병합(staff aerodactyl, main #59 까지): okf 충돌은 양쪽 기록을 살렸다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 가입 · 근무지 추가 · 소속 추가 수락의 사업자 제공 동의 칸에 요약 한 문장은 두고 「내용 보기」를 더해, 내 정보 카드와 같은 전문(받는 자 · 항목 · 목적 · 보유 기간 · 거부할 권리)을 시트로 보인다(WHALEERP-137 후속, ATT-30 · ATT-8 v257). 전문은 `_components/hq-sharing-terms.tsx` 하나로 같이 쓴다.

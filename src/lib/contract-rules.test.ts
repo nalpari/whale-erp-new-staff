@@ -74,7 +74,7 @@ test("기한 당일 오후(기한 뒤) — 날인 여부는 api 의 awaitingSign
   const closed = item({ awaitingSignature: false });
   assert.equal(deadlineOf(closed, afternoon), null);
   assert.equal(phaseOf(closed, afternoon), "EXPIRED");
-  assert.equal(contractSubText(closed, afternoon, "만료"), "서명 기한 2026년 9월 12일 지남");
+  assert.equal(contractSubText(closed, afternoon, "계약 기간 만료"), "서명 기한 2026년 9월 12일 지남");
 });
 
 test("기한 전인데 api 가 날인할 수 없다고 하면(퇴직 등) 서명 불가 — 기한 · 강조 없음", () => {
@@ -94,14 +94,14 @@ test("서명 대기가 아니거나 기한이 없으면 기한이 없다", () =>
 
 test("목록 둘째 줄은 상태마다 다르다", () => {
   const now = new Date("2026-10-28T00:00:00Z");
-  assert.equal(contractSubText(item({ status: "SIGNED", processedAt: "2026-08-22T16:00:00Z" }), now, "체결 완료"), "서명 2026년 8월 23일");
+  assert.equal(contractSubText(item({ status: "SIGNED", processedAt: "2026-08-22T16:00:00Z" }), now, "서명 완료"), "서명 2026년 8월 23일");
   assert.equal(
-    contractSubText(item({ status: "SIGNED", contractMethod: "PAPER", processedAt: "2026-04-02T01:00:00Z" }), now, "체결 완료"),
+    contractSubText(item({ status: "SIGNED", contractMethod: "PAPER", processedAt: "2026-04-02T01:00:00Z" }), now, "서명 완료"),
     "종이 계약 · 2026년 4월 2일 등록",
   );
-  assert.equal(contractSubText(item({ status: "REJECTED", processedAt: "2026-06-25T01:00:00Z" }), now, phaseLabel("REJECTED", "거부")), "거절 2026년 6월 25일");
-  assert.equal(contractSubText(item({ status: "EXPIRED", signDeadlineAt: "2026-07-31T14:59:59Z" }), now, "만료"), "서명 기한 2026년 7월 31일 지남");
-  assert.equal(contractSubText(item({ status: "ENDED", startDate: "2025-03-01", endDate: "2026-08-31" }), now, "종료"), "2025년 3월 1일 – 2026년 8월 31일");
+  assert.equal(contractSubText(item({ status: "REJECTED", processedAt: "2026-06-25T01:00:00Z" }), now, phaseLabel("REJECTED", "서명 거절")), "거절 2026년 6월 25일");
+  assert.equal(contractSubText(item({ status: "EXPIRED", signDeadlineAt: "2026-07-31T14:59:59Z" }), now, "계약 기간 만료"), "서명 기한 2026년 7월 31일 지남");
+  assert.equal(contractSubText(item({ status: "ENDED", startDate: "2025-03-01", endDate: "2026-08-31" }), now, "계약 종료"), "2025년 3월 1일 – 2026년 8월 31일");
 });
 
 test("계약 기간 — 끝이 없으면 기간 정함 없음", () => {
@@ -137,7 +137,7 @@ test("묶음: api 가 날인할 수 없다고 한 서명 대기(기한 지남 ·
   assert.deepEqual(finished.map((c) => phaseOf(c, now)), ["EXPIRED", "UNSIGNABLE"]);
 });
 
-test("배지 색 — 서명 대기 경고, 거부 · 만료 오류, 체결 완료 정상, 종료 중립", () => {
+test("배지 색 — 서명 대기 경고, 거절 · 계약 기간 만료 오류, 서명 완료 정상, 계약 종료 중립", () => {
   assert.equal(statusTone("PENDING_SIGNATURE"), "warning");
   assert.equal(statusTone("REJECTED"), "danger");
   assert.equal(statusTone("EXPIRED"), "danger");
@@ -220,10 +220,20 @@ test("번호는 1..2147483647 의 맨 숫자만", () => {
   }
 });
 
-test("상태 한글은 enum 한글 그대로 — 거부는 화면에서 거절(용어집 2026-10-28), 서명 불가는 화면 단계", () => {
-  assert.equal(phaseLabel("SIGNED", "체결 완료"), "체결 완료");
-  assert.equal(phaseLabel("REJECTED", "거부"), "거절");
+test("상태 한글은 enum 한글 그대로 — 서명 거절은 화면에서 거절(용어집 2026-10-28), 서명 불가는 화면 단계", () => {
+  assert.equal(phaseLabel("SIGNED", "서명 완료"), "서명 완료");
+  assert.equal(phaseLabel("REJECTED", "서명 거절"), "거절");
   assert.equal(phaseLabel("UNSIGNABLE", "UNSIGNABLE"), "서명 불가");
+});
+
+test("직원 본인 화면이라 enum 한글의 「직원」을 뗀다 — 서명 대기 · 수정 요청 (WHALEERP-659)", () => {
+  assert.equal(phaseLabel("PENDING_SIGNATURE", "직원 서명 대기"), "서명 대기");
+  assert.equal(phaseLabel("CORRECTION_REQUESTED", "직원 수정 요청"), "수정 요청");
+  assert.equal(phaseLabel("EXPIRED", "계약 기간 만료"), "계약 기간 만료");
+  assert.equal(phaseLabel("ENDED", "계약 종료"), "계약 종료");
+  const now = new Date("2026-10-28T00:00:00Z");
+  const asked = item({ status: "CORRECTION_REQUESTED", processedAt: "2026-06-25T01:00:00Z" });
+  assert.equal(contractSubText(asked, now, phaseLabel("CORRECTION_REQUESTED", "직원 수정 요청")), "수정 요청 2026년 6월 25일");
 });
 
 test("처리 완료본은 체결 완료 · 종료된 전자계약의 SIGNED_COPY 만, 여럿이면 나중 것", () => {
