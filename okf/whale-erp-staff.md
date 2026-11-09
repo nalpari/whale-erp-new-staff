@@ -9,8 +9,8 @@ sources:
   - { id: app-dir, resource: ../src/app, title: App Router entry }
   - { id: common, resource: ../src/components/common, title: Common UI components }
   - { id: design-md, resource: ../DESIGN.md, title: Design system }
-  - { id: affiliation-done, resource: ../src/app/(app)/affiliations/done/page.tsx, title: 소속 추가 확인 결과 화면 — 수락 완료의 「계약서 날인하러 가기」 }
-generated: { by: claude-code/opus-5.5, at: 2026-10-30T10:00:00Z }
+  - { id: affiliation-done, resource: ../src/app/(app)/affiliations/done/page.tsx, title: 소속 추가 확인 결과 화면 — 수락 완료의 「계약서 서명하러 가기」 }
+generated: { by: claude-code/opus-5.5, at: 2026-11-09T09:00:00Z }
 ---
 
 # Stack
