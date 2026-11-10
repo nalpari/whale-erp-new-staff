@@ -8,6 +8,9 @@ export type ContractListItem = Schemas["MyContractListItemDto"];
 export type ContractDetail = Schemas["MyContractDetailDto"];
 export type ContractDocument = Schemas["MyContractDocumentDto"];
 export type ContractWorkDay = Schemas["ContractDetailWorkDayDto"];
+/** 계약서 조항 하나 — api 조항 템플릿(WHALEERP-131). 보낸 원본 · 처리 완료본 PDF 와 같은 문장이다 */
+export type ContractArticle = Schemas["ContractArticleDto"];
+export type ContractBlock = Schemas["ContractBlockDto"];
 export type ContractStatus = Schemas["ContractStatus"];
 export type Weekday = Schemas["Weekday"];
 

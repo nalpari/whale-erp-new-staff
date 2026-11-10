@@ -46,13 +46,10 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const contractId = parseId(rawId);
   if (contractId === null) notFound();
 
-  const [c, statuses, employmentTypes, weekdays, payMonths, payMethods, documentKinds, identityFields] = await Promise.all([
+  const [c, statuses, employmentTypes, documentKinds, identityFields] = await Promise.all([
     getContract(contractId),
     getEnumOrEmpty("ContractStatus"),
     getEnumOrEmpty("EmploymentType"),
-    getEnumOrEmpty("Weekday"),
-    getEnumOrEmpty("PayMonth"),
-    getEnumOrEmpty("PayMethod"),
     getEnumOrEmpty("ContractDocumentKind"),
     // 본인 대조 항목 한글(api enum IdentityField) — 대조가 다를 때만 쓰지만 캐시되니 함께 받는다. getEnumOrEmpty 는 5xx · 연결 실패만
     // 빈 목록으로 바꾸고 404 · 응답에 이름 없음(api 가 아직 등록 전)은 던지므로, 여기서 남기고 빈 목록으로 받아 상세 전체가 깨지지
@@ -205,7 +202,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           badge={<Badge tone={statusTone(phase)}>{status}</Badge>}
         />
 
-        <ContractDocument c={c} enums={{ employmentTypes, weekdays, payMonths, payMethods }} />
+        <ContractDocument articles={c.articles} employmentTypeLabel={employmentType} />
 
         <Sunken label="계약서에 들어가는 내 정보">
           <Values

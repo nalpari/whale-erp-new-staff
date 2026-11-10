@@ -8,21 +8,15 @@ import {
   groupContracts,
   phaseLabel,
   phaseOf,
-  hoursText,
+  articleLayout,
   maskPhone,
-  monthlyHourRows,
   paperDocuments,
   signedCopyOf,
   parseId,
-  payDayText,
   periodText,
-  probationText,
   statusTone,
-  weekdayRows,
-  weeklyHours,
-  wonText,
 } from "./contract-rules.ts";
-import type { ContractDocument, ContractListItem, ContractWorkDay } from "./contracts.ts";
+import type { ContractArticle, ContractBlock, ContractDocument, ContractListItem } from "./contracts.ts";
 
 const item = (over: Partial<ContractListItem> = {}): ContractListItem => ({
   contractId: 1,
@@ -145,52 +139,30 @@ test("배지 색 — 서명 대기 경고, 거절 · 계약 기간 만료 오류
   assert.equal(statusTone("ENDED"), "waiting");
 });
 
-const day = (weekday: ContractWorkDay["weekday"], startTime: string, endTime: string, rest?: [string, string]): ContractWorkDay => ({
-  weekday,
-  startTime,
-  endTime,
-  breakStartTime: rest?.[0] ?? null,
-  breakEndTime: rest?.[1] ?? null,
+const text = (t: string): ContractBlock => ({ type: "TEXT", text: t });
+const article = (blocks: ContractBlock[]): ContractArticle => ({ title: "제3조(소정근로시간)", blocks });
+
+test("조항 첫 TEXT 는 제목 뒤에 잇고, 나머지 블록은 받은 순서대로 아래에 둔다 — api PDF 와 같은 규칙", () => {
+  const table: ContractBlock = { type: "TABLE", header: ["요일", "근로"], tableRows: [{ cells: ["월", "5시간"], off: false }] };
+  const values: ContractBlock = { type: "VALUES", values: [{ label: "주 소정근로시간", value: "14시간" }] };
+  const tail = text("세부 근무일정은 근무스케줄로 정한다.");
+  assert.deepEqual(articleLayout(article([text("요일별 근로시간은 아래와 같다."), table, values, tail])), {
+    lead: "요일별 근로시간은 아래와 같다.",
+    rest: [table, values, tail],
+  });
 });
 
-test("소정근로시간 표는 월~일 일곱 줄 — 근무하지 않는 날은 휴무, 주휴일은 주휴일", () => {
-  const days = [day("WED", "10:00", "15:30", ["12:00", "12:30"]), day("FRI", "10:00", "15:30", ["12:00", "12:30"]), day("SAT", "09:00", "13:00")];
-  const rows = weekdayRows(days, "SUN");
-  assert.deepEqual(
-    rows.map((r) => r.weekday),
-    ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"],
-  );
-  assert.deepEqual(rows[2], { weekday: "WED", start: "10:00", end: "15:30", rest: "12:00–12:30", hours: "5시간", off: false });
-  assert.deepEqual(rows[5], { weekday: "SAT", start: "09:00", end: "13:00", rest: "없음", hours: "4시간", off: false });
-  assert.equal(rows[0].hours, "휴무");
-  assert.equal(rows[0].off, true);
-  assert.equal(rows[6].hours, "주휴일");
-  assert.equal(weeklyHours(days), 14);
+test("문장 하나뿐인 조항은 제목 뒤 문장만 — 아래 블록이 없다", () => {
+  assert.deepEqual(articleLayout(article([text("2026년 9월 15일부터 기간의 정함이 없는 것으로 한다.")])), {
+    lead: "2026년 9월 15일부터 기간의 정함이 없는 것으로 한다.",
+    rest: [],
+  });
 });
 
-test("근로시간은 소수 한 자리, 끝의 0 은 지운다", () => {
-  assert.equal(weekdayRows([day("MON", "09:00", "17:00", ["12:00", "12:30"])], null)[0].hours, "7.5시간");
-  // 7시간 20분 = 7.333…
-  assert.equal(weekdayRows([day("MON", "09:00", "16:20")], null)[0].hours, "7.3시간");
-  assert.equal(hoursText(8), "8시간");
-  assert.equal(hoursText(8.0), "8시간");
-});
-
-test("금액 · 지급일 · 수습 문구", () => {
-  assert.equal(wonText(10320), "10,320원");
-  assert.equal(payDayText("익월", 10), "익월 10일");
-  assert.equal(payDayText("당월", 31), "당월 말일");
-  assert.equal(payDayText(null, 10), null);
-  assert.equal(probationText(3, 10, 10320), "3개월 · 시급의 10% 감액(수습 중 시급 9,288원)");
-  assert.equal(probationText(3, 0, 10320), "3개월 · 감액 없음");
-  assert.equal(probationText(null, null, 10320), null);
-});
-
-test("월 근로시간 줄은 값이 있는 것만", () => {
-  assert.deepEqual(monthlyHourRows({ baseHours: 209, monthlyOvertimeHours: null, baseNightHours: 10.5 }), [
-    ["월 기본 근로", "209시간"],
-    ["기본 근로 중 야간", "10.5시간"],
-  ]);
+test("첫 블록이 TEXT 가 아니면 제목만 한 줄, 모든 블록을 아래에", () => {
+  const values: ContractBlock = { type: "VALUES", values: [] };
+  assert.deepEqual(articleLayout(article([values, text("뒤 문장")])), { lead: null, rest: [values, text("뒤 문장")] });
+  assert.deepEqual(articleLayout(article([])), { lead: null, rest: [] });
 });
 
 test("휴대전화번호는 가운데를 가린다", () => {
