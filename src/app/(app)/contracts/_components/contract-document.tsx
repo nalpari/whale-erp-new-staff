@@ -4,14 +4,15 @@ import type { ContractArticle, ContractBlock } from "@/lib/contracts";
 import { Values } from "./parts";
 
 // 전자계약 계약서 본문(CON-1 · WHALEERP-146). 조항 문장은 api 조항 템플릿(articles, WHALEERP-131 · 661)을 받은 순서대로 그린다 —
-// 보낸 원본 · 처리 완료본 PDF 와 같은 템플릿이라 앱 본문과 보관 원본이 같은 문장이고, 템플릿 문구가 바뀌면 앱 배포 없이 따라 바뀐다.
+// 보낸 원본 · 처리 완료본 PDF 와 같은 템플릿이라 앱 본문과 보관 원본이 같은 문장이고, 템플릿 문구가 바뀌면 앱 배포 없이 따라 바뀐다 —
+// 그때는 이미 서명한 계약도 새 문구로 보여 만든 때 문구인 PDF 와 달라진다(서명 때 조항을 저장하는 것은 api 쪽 후속).
 // 서명한 계약의 점포명 · 근무 장소 · 직무는 api 가 서명 때 값으로 고정해 준다. 종이 계약(CTR-23)은 이 본문을 그리지 않는다.
 export function ContractDocument({ articles, employmentTypeLabel }: { articles: ContractArticle[]; employmentTypeLabel: string | null }) {
   return (
     <section aria-label="계약서 본문" className="rounded-[16px] border border-staff-border-light bg-white p-[16px]">
       <h2 className="text-[13px] font-semibold text-staff-text-sub">근로계약서{employmentTypeLabel && ` · ${employmentTypeLabel}`}</h2>
       {articles.length === 0 ? (
-        // api 가 조항을 늘 열 개 보내므로 api 오류일 때만이다. 상세는 이때 서명 버튼을 열지 않는다(page.tsx canDecide)
+        // api 가 조항을 늘 열 개 보내므로 api 오류일 때만이다. 상세 · 서명 화면은 이때 서명을 열지 않는다(bodyMissing)
         <div className="pt-[8px]">
           <Notice>계약서 본문을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Notice>
         </div>
@@ -52,20 +53,22 @@ function Block({ block, caption }: { block: ContractBlock; caption: string }) {
   if (block.type === "TEXT") return <p>{block.text}</p>;
   if (block.type === "VALUES") return <Values rows={(block.values ?? []).map((v): [string, string] => [v.label, v.value])} />;
   const header = block.header ?? [];
-  // 마지막 칸(근로시간)은 오른쪽 정렬, 첫 칸(요일)은 줄 머리
-  const align = (i: number) => (i === header.length - 1 ? "text-right" : "text-left");
+  // 줄마다 마지막 칸(근로시간)은 오른쪽 정렬, 첫 칸(요일)은 줄 머리 — api PDF 처럼 머리글 · 줄 각자의 칸 수로 고른다
+  const align = (i: number, count: number) => (i === count - 1 ? "text-right" : "text-left");
   return (
     <table className="w-full border-collapse text-[13px] leading-[1.5]">
       <caption className="sr-only">{caption}</caption>
-      <thead>
-        <tr className="border-b border-staff-border-light text-staff-text-muted">
-          {header.map((h, i) => (
-            <th key={i} scope="col" className={`py-[4px] font-medium ${align(i)}`}>
-              {h}
-            </th>
-          ))}
-        </tr>
-      </thead>
+      {header.length > 0 && (
+        <thead>
+          <tr className="border-b border-staff-border-light text-staff-text-muted">
+            {header.map((h, i) => (
+              <th key={i} scope="col" className={`py-[4px] font-medium ${align(i, header.length)}`}>
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+      )}
       <tbody>
         {(block.tableRows ?? []).map((r, ri) => (
           <tr key={ri} className={r.off ? "text-staff-text-muted" : undefined}>
@@ -75,7 +78,7 @@ function Block({ block, caption }: { block: ContractBlock; caption: string }) {
                   {cell}
                 </th>
               ) : (
-                <td key={i} className={`py-[5px] tabular-nums ${align(i)}`}>
+                <td key={i} className={`py-[5px] tabular-nums ${align(i, r.cells.length)}`}>
                   {cell}
                 </td>
               ),

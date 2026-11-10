@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Alert, Badge, Dock, MaskIcon, Notice, PageHeader, buttonClass } from "@/components/common";
 import {
+  bodyMissing,
   contractSubText,
   deadlineOf,
   isFinished,
@@ -147,8 +148,9 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   // 본인 대조가 다르면 다른 항목의 한글. 못 받았거나 한글이 없는 값이 섞이면 null — 항목 없이 일반 문구다.
   const mismatched = mismatchText(c.mismatches, identityFields);
   const signedCopy = signedCopyOf(c);
-  // 조항(articles)이 비어 오면 본문 없이 서명하게 두지 않는다 — 본문 자리에 안내만 보이고 서명 · 거절 · 수정 요청을 열지 않는다
-  const canDecide = c.awaitingSignature && c.articles.length > 0;
+  // 조항(articles)이 비어 오면 본문 없이 서명하게 두지 않는다 — 위 안내만 보이고 서명 · 거절 · 수정 요청을 열지 않는다(bodyMissing)
+  const noBody = bodyMissing(c);
+  const canDecide = c.awaitingSignature && !noBody;
   return (
     <>
       <ContractFrame header={header}>
@@ -169,6 +171,15 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
             <br />
             재직 중이 아니면 서명할 수 없습니다. 계약을 진행하려면 근무지 관리자에게 문의해 주세요.
           </Notice>
+        ) : c.awaitingSignature && noBody ? (
+          // 본문을 받지 못한 서명 대기 — 서명 · 수정 요청을 열지 않으므로(canDecide) 본인 대조 경고보다 먼저 이것만 알린다
+          <Alert tone="warning">
+            <p>
+              <strong>계약서 본문을 불러오지 못해 지금은 서명할 수 없습니다.</strong>
+              <br />
+              잠시 뒤 다시 열어 주세요. 계속되면 근무지 관리자에게 문의해 주세요.
+            </p>
+          </Alert>
         ) : c.awaitingSignature && !c.signable ? (
           // 본인 대조(WHALEERP-125): 다른 항목만 알린다 — 계정 값은 보이지 않는다. 날인 대신 수정 요청을 낸다.
           <Alert tone="warning">

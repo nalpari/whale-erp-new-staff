@@ -153,6 +153,12 @@ export function parseId(raw: string | string[] | undefined): number | null {
  * 계약서 조항 하나를 화면에 놓는 모양(WHALEERP-661). 첫 블록이 TEXT 면 제목 뒤에 잇는 문장(lead)이고, 나머지 블록은 받은 순서대로
  * 아래에 둔다 — api 조항 템플릿(WHALEERP-131)이 정한 규칙이고 보낸 원본 · 처리 완료본 PDF 도 이렇게 그린다.
  */
+/**
+ * 전자계약인데 조항(articles)이 비었다 — api 가 조항을 늘 열 개 보내므로 api 오류일 때만이다. 본문 없는 계약서에 서명하지 않게
+ * 상세는 서명 · 거절 · 수정 요청을 열지 않고 안내만 보이며, 서명 화면은 상세로 돌려보낸다. 종이 계약은 본문을 그리지 않아 해당 없다.
+ */
+export const bodyMissing = (c: Pick<ContractDetail, "contractMethod" | "articles">) => c.contractMethod !== "PAPER" && c.articles.length === 0;
+
 export function articleLayout(article: ContractArticle): { lead: string | null; rest: ContractBlock[] } {
   const [first, ...rest] = article.blocks;
   if (first?.type === "TEXT") return { lead: first.text ?? "", rest };

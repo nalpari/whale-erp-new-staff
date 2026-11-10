@@ -1,7 +1,7 @@
 # Bundle history
 
 ## 2026-11-10
-* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 근로계약서 상세 본문을 api 조항 템플릿(`articles`)으로 그린다(WHALEERP-661). 앱이 제1~10조 문장을 조립하던 코드와 그것만 쓰던 규칙 함수(`weekdayRows` · `hoursText` · `weeklyHours` · `wonText` · `payDayText` · `probationText` · `insuredText` · `monthlyHourRows`)와 테스트를 걷고, 첫 TEXT 를 제목 뒤에 잇는 규칙 `articleLayout` 과 테스트를 더했다. 상세가 더 쓰지 않는 enum 조회(Weekday · PayMonth · PayMethod)를 뺐다. 리뷰 반영: 표 캡션은 조항 제목, 목록 key 는 순서, 조항이 비어 오면 안내만 보이고 서명 버튼을 열지 않는다. 이제 앱 본문과 보낸 원본 · 처리 완료본 PDF 가 같은 문장이다(서명 뒤 점포명이 바뀐 계약 · 직무가 빈 옛 계약 · 주휴일이 빈 옛 계약 포함).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 근로계약서 상세 본문을 api 조항 템플릿(`articles`)으로 그린다(WHALEERP-661). 앱이 제1~10조 문장을 조립하던 코드와 그것만 쓰던 규칙 함수(`weekdayRows` · `hoursText` · `weeklyHours` · `wonText` · `payDayText` · `probationText` · `insuredText` · `monthlyHourRows`)와 테스트를 걷고, 첫 TEXT 를 제목 뒤에 잇는 규칙 `articleLayout` 과 테스트를 더했다. 상세가 더 쓰지 않는 enum 조회(Weekday · PayMonth · PayMethod)를 뺐다. 리뷰 반영: 표 캡션은 조항 제목, 목록 key 는 순서, 조항이 비어 오면 안내만 보이고 서명 버튼을 열지 않으며 서명 화면도 상세로 돌려보낸다(`bodyMissing`). 표 정렬은 줄마다 칸 수로. 템플릿 문구를 바꾸면 서명한 계약의 앱 본문이 PDF 와 달라지는 점을 적었다(서명 때 조항 저장은 api 후속). 이제 앱 본문과 보낸 원본 · 처리 완료본 PDF 가 같은 문장이다(서명 뒤 점포명이 바뀐 계약 · 직무가 빈 옛 계약 · 주휴일이 빈 옛 계약 포함).
 
 ## 2026-11-09
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 근로계약 상태 이름을 바꿨다(WHALEERP-659, api enum 한글: 작성 중 · 서명 요청 전 · 직원 서명 대기 · 직원 수정 요청 · 서명 완료 · 서명 거절 · 계약 기간 만료 · 계약 종료). 직원 앱은 `phaseLabel` 에서 직원 서명 대기 → 「서명 대기」, 직원 수정 요청 → 「수정 요청」으로 덮어쓰고 서명 거절은 「거절」 그대로다. 화면 문구도 맞췄다: 출퇴근 안내 「서명 완료된 근로계약」, 소속 추가 거절의 계약서는 「거절로 닫힘」, 소속 추가 완료의 「날인」 → 「서명」(안내 둘 · 버튼). 서명 기한이 지난 설명 문장은 그대로 둔다. 데모 contract · home · check-in 라벨도 같은 표기로 고쳤다(docs/mockup 은 쟁점 기록용이라 그대로).

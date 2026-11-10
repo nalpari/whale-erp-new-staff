@@ -9,6 +9,7 @@ import {
   phaseLabel,
   phaseOf,
   articleLayout,
+  bodyMissing,
   maskPhone,
   paperDocuments,
   signedCopyOf,
@@ -157,6 +158,12 @@ test("문장 하나뿐인 조항은 제목 뒤 문장만 — 아래 블록이 �
     lead: "2026년 9월 15일부터 기간의 정함이 없는 것으로 한다.",
     rest: [],
   });
+});
+
+test("전자계약인데 조항이 비면 본문이 없는 것 — 서명 · 거절 · 수정 요청을 열지 않는다. 종이 계약은 본문을 그리지 않아 해당 없음", () => {
+  assert.equal(bodyMissing({ contractMethod: "ELECTRONIC", articles: [] }), true);
+  assert.equal(bodyMissing({ contractMethod: "ELECTRONIC", articles: [article([text("…")])] }), false);
+  assert.equal(bodyMissing({ contractMethod: "PAPER", articles: [] }), false);
 });
 
 test("첫 블록이 TEXT 가 아니면 제목만 한 줄, 모든 블록을 아래에", () => {
