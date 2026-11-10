@@ -10,8 +10,9 @@ export function ContractDocument({ articles, employmentTypeLabel }: { articles: 
     <section aria-label="계약서 본문" className="rounded-[16px] border border-staff-border-light bg-white p-[16px]">
       <h2 className="text-[13px] font-semibold text-staff-text-sub">근로계약서{employmentTypeLabel && ` · ${employmentTypeLabel}`}</h2>
       <div className="flex flex-col gap-[10px] pt-[8px] text-[14px] leading-[1.85]">
-        {articles.map((a) => (
-          <Article key={a.title} article={a} />
+        {/* 조항 · 블록 · 칸은 서버가 한 번 그리는 고정 목록이고 값(제목 · 머리글 · 요일)이 유일하다는 보장은 api 템플릿에 있어 index 로 둔다 */}
+        {articles.map((a, i) => (
+          <Article key={i} article={a} />
         ))}
       </div>
     </section>
@@ -32,13 +33,14 @@ function Article({ article }: { article: ContractArticle }) {
     <div className="flex flex-col gap-[6px]">
       {head}
       {rest.map((b, i) => (
-        <Block key={i} block={b} />
+        <Block key={i} block={b} caption={`${article.title} 표`} />
       ))}
     </div>
   );
 }
 
-function Block({ block }: { block: ContractBlock }) {
+/** caption 은 표일 때 스크린리더가 읽는 이름(조항 제목) — 표가 어느 조항에 붙어도 맞게 */
+function Block({ block, caption }: { block: ContractBlock; caption: string }) {
   if (block.type === "TEXT") return <p>{block.text}</p>;
   if (block.type === "VALUES") return <Values rows={(block.values ?? []).map((v): [string, string] => [v.label, v.value])} />;
   const header = block.header ?? [];
@@ -46,19 +48,19 @@ function Block({ block }: { block: ContractBlock }) {
   const align = (i: number) => (i === header.length - 1 ? "text-right" : "text-left");
   return (
     <table className="w-full border-collapse text-[13px] leading-[1.5]">
-      <caption className="sr-only">요일별 소정근로시간</caption>
+      <caption className="sr-only">{caption}</caption>
       <thead>
         <tr className="border-b border-staff-border-light text-staff-text-muted">
           {header.map((h, i) => (
-            <th key={h} scope="col" className={`py-[4px] font-medium ${align(i)}`}>
+            <th key={i} scope="col" className={`py-[4px] font-medium ${align(i)}`}>
               {h}
             </th>
           ))}
         </tr>
       </thead>
       <tbody>
-        {(block.tableRows ?? []).map((r) => (
-          <tr key={r.cells[0]} className={r.off ? "text-staff-text-muted" : undefined}>
+        {(block.tableRows ?? []).map((r, ri) => (
+          <tr key={ri}className={r.off ? "text-staff-text-muted" : undefined}>
             {r.cells.map((cell, i) =>
               i === 0 ? (
                 <th key={i} scope="row" className="py-[5px] text-left font-normal">
