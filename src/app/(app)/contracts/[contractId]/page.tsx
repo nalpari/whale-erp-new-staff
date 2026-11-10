@@ -147,6 +147,8 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   // 본인 대조가 다르면 다른 항목의 한글. 못 받았거나 한글이 없는 값이 섞이면 null — 항목 없이 일반 문구다.
   const mismatched = mismatchText(c.mismatches, identityFields);
   const signedCopy = signedCopyOf(c);
+  // 조항(articles)이 비어 오면 본문 없이 서명하게 두지 않는다 — 본문 자리에 안내만 보이고 서명 · 거절 · 수정 요청을 열지 않는다
+  const canDecide = c.awaitingSignature && c.articles.length > 0;
   return (
     <>
       <ContractFrame header={header}>
@@ -229,7 +231,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
         </Sunken>
 
         {/* api 가 지금 날인할 수 있다고 할 때만(서명 대기 · 기한 안 · 재직 중) — 아래 버튼 줄과 같은 판정 */}
-        {c.awaitingSignature && <Tiny>서명하거나 거절하면 근무지 관리자에게 알림이 전달됩니다.</Tiny>}
+        {canDecide && <Tiny>서명하거나 거절하면 근무지 관리자에게 알림이 전달됩니다.</Tiny>}
       </ContractFrame>
       {signedCopy && (
         // 체결이 끝난 계약의 처리 완료본 내보내기(WHALEERP-149). 서명 대기에서는 내보내지 않는다 — 처리 완료본은 체결 뒤 파일 생성
@@ -243,7 +245,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           </a>
         </Dock>
       )}
-      {c.awaitingSignature && c.sentAt && (
+      {canDecide && c.sentAt && (
         <ContractDecision
           signHref={`/contracts/${c.contractId}/sign?${storeId === null ? "" : `store=${storeId}&`}sentAt=${encodeURIComponent(c.sentAt)}`}
           signable={c.signable}

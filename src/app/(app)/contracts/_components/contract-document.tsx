@@ -1,3 +1,4 @@
+import { Notice } from "@/components/common";
 import { articleLayout } from "@/lib/contract-rules";
 import type { ContractArticle, ContractBlock } from "@/lib/contracts";
 import { Values } from "./parts";
@@ -9,12 +10,19 @@ export function ContractDocument({ articles, employmentTypeLabel }: { articles: 
   return (
     <section aria-label="계약서 본문" className="rounded-[16px] border border-staff-border-light bg-white p-[16px]">
       <h2 className="text-[13px] font-semibold text-staff-text-sub">근로계약서{employmentTypeLabel && ` · ${employmentTypeLabel}`}</h2>
-      <div className="flex flex-col gap-[10px] pt-[8px] text-[14px] leading-[1.85]">
-        {/* 조항 · 블록 · 칸은 서버가 한 번 그리는 고정 목록이고 값(제목 · 머리글 · 요일)이 유일하다는 보장은 api 템플릿에 있어 index 로 둔다 */}
-        {articles.map((a, i) => (
-          <Article key={i} article={a} />
-        ))}
-      </div>
+      {articles.length === 0 ? (
+        // api 가 조항을 늘 열 개 보내므로 api 오류일 때만이다. 상세는 이때 서명 버튼을 열지 않는다(page.tsx canDecide)
+        <div className="pt-[8px]">
+          <Notice>계약서 본문을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Notice>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-[10px] pt-[8px] text-[14px] leading-[1.85]">
+          {/* 제목 · 머리글 · 요일이 유일한지는 api 템플릿만 알고, 목록은 다시 정렬되지 않으므로 조항 · 블록 · 칸 key 는 순서로 둔다 */}
+          {articles.map((a, i) => (
+            <Article key={i} article={a} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -60,7 +68,7 @@ function Block({ block, caption }: { block: ContractBlock; caption: string }) {
       </thead>
       <tbody>
         {(block.tableRows ?? []).map((r, ri) => (
-          <tr key={ri}className={r.off ? "text-staff-text-muted" : undefined}>
+          <tr key={ri} className={r.off ? "text-staff-text-muted" : undefined}>
             {r.cells.map((cell, i) =>
               i === 0 ? (
                 <th key={i} scope="row" className="py-[5px] text-left font-normal">
