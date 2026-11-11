@@ -84,7 +84,7 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
             </Sunken>
             <TaxOwnerNotice storeName={storeName} />
             <Notice icon={<MaskIcon src="/icons/shield.svg" size={14} flipY />}>
-              관리자 화면에도 <strong>가려진 형태로만</strong> 보입니다. 원본은 신고 서류를 만들 때만 꺼내 씁니다.
+              관리자에게 주민등록번호는 일부를 가린 형태로만 보이고, 급여 계좌는 급여를 이체하도록 그대로 보입니다. 신고 서류를 만들고 급여를 이체할 때만 씁니다.
             </Notice>
           </>
         )}
