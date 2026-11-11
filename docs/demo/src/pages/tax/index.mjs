@@ -60,7 +60,7 @@ const intro = () =>
             sub: "급여에서 공제한 세금 신고",
           })}${iconRow({ icon: "nav-pay.svg", title: "급여 지급", sub: "매달 급여를 받을 계좌" })}</div>`,
       ) +
-      notice("입력한 정보는 <strong>암호화해 보관</strong>합니다.<br>관리자에게는 일부를 가린 형태로만 보이고, 신고 서류를 만들 때만 사용합니다.", maskIcon("shield.svg", 14, true)) +
+      notice("입력한 정보는 <strong>암호화해 보관</strong>합니다.<br>관리자에게 주민등록번호는 일부를 가린 형태로만 보이고, 급여 계좌는 급여를 이체하도록 그대로 보입니다. 신고 서류를 만들고 급여를 이체할 때만 사용합니다.", maskIcon("shield.svg", 14, true)) +
       button("주민등록번호를 따로 받는 이유", { variant: "ghost", "data-open": "why" }),
   ) +
   // 건너뛰는 길을 두지 않는다(TAX-4).
@@ -130,7 +130,7 @@ const VIEWS = {
         ) +
         sunken(label("수집 근거") + basis(`<b>주민등록번호</b> — ${RRN_BASIS.join(" ")}`) + basis(`<b>급여 계좌</b> — ${ACCOUNT_BASIS.join(" ")}`)) +
         notice("이 정보는 <strong>강남역점(사업주)</strong>이 수집하며, WHALE ERP는 위탁을 받아 암호화해 보관합니다.") +
-        notice("관리자에게도 <strong>일부를 가린 형태로만</strong> 보입니다.", maskIcon("shield.svg", 14, true)),
+        notice("관리자에게 주민등록번호는 일부를 가린 형태로만 보이고, 급여 계좌는 급여를 이체하도록 그대로 보입니다.", maskIcon("shield.svg", 14, true)),
     ) +
     dock(button("다시 입력하기", { variant: "ghost", "data-go": "form" })),
 

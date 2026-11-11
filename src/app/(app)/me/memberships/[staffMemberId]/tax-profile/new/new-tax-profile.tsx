@@ -60,7 +60,7 @@ export function TaxProfileIntro({ storeName, formHref }: { storeName: string; fo
           </ul>
         </Card>
         <Notice icon={<MaskIcon src="/icons/shield.svg" size={14} flipY />}>
-          넣은 정보는 <strong>암호화해 보관</strong>합니다. 관리자에게는 일부를 가린 형태로만 보이고, 신고 서류를 만들 때만 씁니다.
+          넣은 정보는 <strong>암호화해 보관</strong>합니다. 관리자에게 주민등록번호는 일부를 가린 형태로만 보이고, 급여 계좌는 급여를 이체하도록 그대로 보입니다. 신고 서류를 만들고 급여를 이체할 때만 씁니다.
         </Notice>
         <Button variant="ghost" onClick={() => setWhy(true)}>
           주민등록번호를 따로 받는 이유
