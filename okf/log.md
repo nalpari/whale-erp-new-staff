@@ -1,5 +1,9 @@
 # Bundle history
 
+## 2026-11-11
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 목업 tax 근거 칸의 옛 명세 인용(「암호화 저장·마스킹 노출」)을 Manyfast 지금 원문으로 바꿨다. 「근로계약서 입력 항목과 계약 조건」 비즈니스 규칙 두 줄과 「근무지별 신고 정보 조회와 수정」의 급여 계좌 한 줄이고, 라벨은 명세 이름으로 적었다. 데모 · 앱은 그대로다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 신고 정보 안내 문구를 운영 정책 TAX-07에 맞췄다. 관리자에게 가려 보이는 것은 주민등록번호뿐이고, 급여 계좌는 급여 이체에 쓰도록 그대로 보인다. 처음 넣기 안내(`…/tax-profile/new`)와 등록된 값 화면(`…/tax-profile`)을 함께 고쳤고, 데모 tax와 목업 tax의 안내 · 설계 메모도 같은 뜻으로 맞췄다. 동작과 api는 그대로다.
+
 ## 2026-11-10
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 근로계약서 상세 본문을 api 조항 템플릿(`articles`)으로 그린다(WHALEERP-661). 앱이 제1~10조 문장을 조립하던 코드와 그것만 쓰던 규칙 함수(`weekdayRows` · `hoursText` · `weeklyHours` · `wonText` · `payDayText` · `probationText` · `insuredText` · `monthlyHourRows`)와 테스트를 걷고, 첫 TEXT 를 제목 뒤에 잇는 규칙 `articleLayout` 과 테스트를 더했다. 상세가 더 쓰지 않는 enum 조회(Weekday · PayMonth · PayMethod)를 뺐다. 리뷰 반영: 표 캡션은 조항 제목, 목록 key 는 순서, 조항이 비어 오면 안내만 보이고 서명 버튼을 열지 않으며 서명 화면도 상세로 돌려보낸다(`bodyMissing`). 표 정렬은 줄마다 칸 수로. 템플릿 문구를 바꾸면 서명한 계약의 앱 본문이 PDF 와 달라지는 점을 적었다(서명 때 조항 저장은 api 후속). 이제 앱 본문과 보낸 원본 · 처리 완료본 PDF 가 같은 문장이다(서명 뒤 점포명이 바뀐 계약 · 직무가 빈 옛 계약 · 주휴일이 빈 옛 계약 포함).
 
