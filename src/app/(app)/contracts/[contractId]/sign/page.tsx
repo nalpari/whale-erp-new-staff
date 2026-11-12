@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { RedirectType, notFound, redirect } from "next/navigation";
 import { Alert, Button, Dock, PageHeader } from "@/components/common";
 import { isSentAt } from "@/lib/contract-actions";
-import { parseId } from "@/lib/contract-rules";
+import { bodyMissing, parseId } from "@/lib/contract-rules";
 import { getContract } from "@/lib/contracts";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { requireSession } from "@/lib/session";
@@ -25,7 +25,8 @@ export default async function SignContractPage({ params, searchParams }: PagePro
   const storeId = parseId(query.store);
   const detailHref = `/contracts/${c.contractId}${storeId === null ? "" : `?store=${storeId}`}`;
   const seen = query.sentAt;
-  if (!c.signable || c.contractMethod === "PAPER" || !isSentAt(seen)) redirect(detailHref, RedirectType.replace);
+  // 본문(조항)을 받지 못한 계약은 상세가 서명 버튼을 열지 않는다 — 앞서 받은 서명 링크로 와도 같다(bodyMissing)
+  if (!c.signable || c.contractMethod === "PAPER" || bodyMissing(c) || !isSentAt(seen)) redirect(detailHref, RedirectType.replace);
 
   const header = <PageHeader title="근로계약" backHref={detailHref} />;
   if (seen !== c.sentAt)

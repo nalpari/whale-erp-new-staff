@@ -1,8 +1,7 @@
 // 근로계약서 화면 규칙과 문구(WHALEERP-146). 상태 없는 순수 함수만 둔다 — 가져오기는 contracts.ts 다.
 // node --test 가 직접 읽으므로 값 import 는 같은 폴더의 순수 모듈(.ts 확장자)만 둔다.
-import { formatWon } from "./payslip-rules.ts";
 import { KST_OFFSET_MS, dateLabel, kstDateLabel, kstDateTimeLabel } from "./profile.ts";
-import type { ContractDetail, ContractDocument, ContractListItem, ContractStatus, ContractWorkDay, Weekday } from "./contracts";
+import type { ContractArticle, ContractBlock, ContractDetail, ContractDocument, ContractListItem, ContractStatus } from "./contracts";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_ID = 2_147_483_647;
@@ -150,53 +149,21 @@ export function parseId(raw: string | string[] | undefined): number | null {
   return id <= MAX_ID ? id : null;
 }
 
-const WEEKDAYS: readonly Weekday[] = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
-const minutes = (hm: string) => Number(hm.slice(0, 2)) * 60 + Number(hm.slice(3, 5));
-
-/** 하루 근로시간(시간) — 종업 − 시업 − 휴게. */
-const dayHours = (d: ContractWorkDay) =>
-  (minutes(d.endTime) - minutes(d.startTime) - (d.breakStartTime && d.breakEndTime ? minutes(d.breakEndTime) - minutes(d.breakStartTime) : 0)) / 60;
-
-/** 「5시간」 · 「7.5시간」 — 소수 한 자리, 끝의 0 은 지운다(7시간 20분 → 「7.3시간」). */
-export const hoursText = (hours: number) => `${Number(hours.toFixed(1))}시간`;
-
-export type WeekdayRow = { weekday: Weekday; start: string; end: string; rest: string; hours: string; off: boolean };
-
 /**
- * 제3조 소정근로시간 표(CTR-21) — 월요일부터 일요일까지 일곱 줄. 근무 요일은 시업 · 종업 · 휴게 · 근로시간, 근무하지 않는 날은
- * 「—」와 「휴무」, 주휴일이면 「주휴일」.
+ * 계약서 조항 하나를 화면에 놓는 모양(WHALEERP-661). 첫 블록이 TEXT 면 제목 뒤에 잇는 문장(lead)이고, 나머지 블록은 받은 순서대로
+ * 아래에 둔다 — api 조항 템플릿(WHALEERP-131)이 정한 규칙이고 보낸 원본 · 처리 완료본 PDF 도 이렇게 그린다.
  */
-export function weekdayRows(workDays: readonly ContractWorkDay[], weeklyHoliday: Weekday | null): WeekdayRow[] {
-  return WEEKDAYS.map((weekday) => {
-    const d = workDays.find((w) => w.weekday === weekday);
-    if (!d) return { weekday, start: "—", end: "—", rest: "—", hours: weekday === weeklyHoliday ? "주휴일" : "휴무", off: true };
-    const rest = d.breakStartTime && d.breakEndTime ? `${d.breakStartTime}–${d.breakEndTime}` : "없음";
-    return { weekday, start: d.startTime, end: d.endTime, rest, hours: hoursText(dayHours(d)), off: false };
-  });
+/**
+ * 전자계약인데 조항(articles)이 비었다 — api 가 조항을 늘 열 개 보내므로 api 오류일 때만이다. 본문 없는 계약서에 서명하지 않게
+ * 상세는 서명 · 거절 · 수정 요청을 열지 않고 안내만 보이며, 서명 화면은 상세로 돌려보낸다. 종이 계약은 본문을 그리지 않아 해당 없다.
+ */
+export const bodyMissing = (c: Pick<ContractDetail, "contractMethod" | "articles">) => c.contractMethod !== "PAPER" && c.articles.length === 0;
+
+export function articleLayout(article: ContractArticle): { lead: string | null; rest: ContractBlock[] } {
+  const [first, ...rest] = article.blocks;
+  if (first?.type === "TEXT") return { lead: first.text ?? "", rest };
+  return { lead: null, rest: article.blocks };
 }
-
-/** 주 소정근로시간(시간). */
-export const weeklyHours = (workDays: readonly ContractWorkDay[]) => workDays.reduce((sum, d) => sum + dayHours(d), 0);
-
-/** 「10,320원」 */
-export const wonText = (amount: number) => `${formatWon(amount)}원`;
-
-/** 임금 지급일 「익월 10일」 · 「당월 말일」(31 은 말일). payMonthLabel 은 enum 한글(PayMonth). */
-export function payDayText(payMonthLabel: string | null, payDay: number | null): string | null {
-  if (!payMonthLabel || payDay === null) return null;
-  return `${payMonthLabel} ${payDay === 31 ? "말일" : `${payDay}일`}`;
-}
-
-/** 수습 「3개월 · 시급의 10% 감액(수습 중 시급 9,288원)」, 감액률 0 이면 「3개월 · 감액 없음」. 수습이 없으면 null. */
-export function probationText(months: number | null, rate: number | null, wage: number | null): string | null {
-  if (months === null || rate === null) return null;
-  if (rate === 0) return `${months}개월 · 감액 없음`;
-  const during = wage === null ? "" : `(수습 중 시급 ${wonText(Math.round(wage * (1 - rate / 100)))})`;
-  return `${months}개월 · 시급의 ${rate}% 감액${during}`;
-}
-
-/** 사회보험 한 묶음 — 가입 · 가입하지 않음, 정하지 않았으면 「-」. */
-export const insuredText = (v: boolean | null) => (v === null ? "-" : v ? "가입" : "가입하지 않음");
 
 /** 「010-****-5521」 — 가운데를 가린다. 휴대전화번호 모양(01 로 시작하는 10~11자리)이 아니면 끝 4자리만 남긴다 「****-1234」. */
 export function maskPhone(phone: string | null): string | null {
@@ -223,14 +190,4 @@ export function signedCopyOf(c: Pick<ContractDetail, "status" | "contractMethod"
     (last, d) => (d.kind === "SIGNED_COPY" && (!last || d.contractDocumentId > last.contractDocumentId) ? d : last),
     null,
   );
-}
-
-/** 계약서의 월 근로시간 줄(값이 있는 것만). 기본시간 중 휴일 · 월 추가 휴일은 관리자 작성 화면이 받지 않아 보이지 않는다. */
-export function monthlyHourRows(c: Pick<ContractDetail, "baseHours" | "monthlyOvertimeHours" | "baseNightHours">): [string, string][] {
-  const rows: [string, number | null][] = [
-    ["월 기본 근로", c.baseHours],
-    ["월 연장 근로", c.monthlyOvertimeHours],
-    ["기본 근로 중 야간", c.baseNightHours],
-  ];
-  return rows.filter((r): r is [string, number] => r[1] !== null).map(([label, h]) => [label, hoursText(h)]);
 }

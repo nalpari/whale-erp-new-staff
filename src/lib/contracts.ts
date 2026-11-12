@@ -7,9 +7,10 @@ import { authedRequest } from "./session";
 export type ContractListItem = Schemas["MyContractListItemDto"];
 export type ContractDetail = Schemas["MyContractDetailDto"];
 export type ContractDocument = Schemas["MyContractDocumentDto"];
-export type ContractWorkDay = Schemas["ContractDetailWorkDayDto"];
+/** 계약서 조항 하나 — api 조항 템플릿(WHALEERP-131). 보낸 원본 · 처리 완료본 PDF 와 같은 문장이다 */
+export type ContractArticle = Schemas["ContractArticleDto"];
+export type ContractBlock = Schemas["ContractBlockDto"];
 export type ContractStatus = Schemas["ContractStatus"];
-export type Weekday = Schemas["Weekday"];
 
 /** 내 근로계약 목록. 날인을 기다리는 계약(기한이 급한 순)이 먼저, 그다음 최근 것부터(api 순서). 점포로 거르는 칸은 api 에 없다. */
 export async function getContracts(): Promise<ContractListItem[]> {

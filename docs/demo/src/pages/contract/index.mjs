@@ -102,6 +102,7 @@ const pending = (article) =>
   `<p class="text-staff-text-muted"><strong>${article}</strong> <span class="border-b border-dashed border-staff-warning">문구 확정 전</span> — 노무사 검토 중입니다.</p>`;
 
 // CON-1: 화면에 직접 그린다. 글꼴은 앱 글꼴(Pretendard) 그대로다(2026-10-08 명조체에서 바꿈). 줄 간격만 읽기용으로 넓힌다.
+// 실제 앱은 조항 문장을 api 조항 템플릿(articles — 보낸 원본 · 처리 완료본 PDF 와 같은 템플릿)으로 받아 그린다(WHALEERP-661). 아래 문장은 목업 값이다.
 const contractDocument = ({ kind, term, place, hours, wage }) =>
   `<section class="rounded-[16px] border border-staff-border-light bg-white p-[16px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">${kind}</h2><div class="flex flex-col gap-[6px] pt-[8px] text-[14px] leading-[1.85] [&_strong]:font-bold"><p><strong>제1조(근로계약기간)</strong> ${term}</p><p><strong>제2조(근무장소와 업무)</strong> ${place}</p><p><strong>제3조(소정근로시간)</strong> 요일별 근로시간은 아래와 같다.</p><table class="w-full border-collapse text-[13px]"><thead><tr class="border-b border-staff-border-light text-staff-text-muted">${["요일", "시업", "종업", "휴게"]
     .map((h) => `<th class="py-[4px] text-left font-medium">${h}</th>`)

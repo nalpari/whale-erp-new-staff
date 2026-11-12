@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Alert, Badge, Dock, MaskIcon, Notice, PageHeader, buttonClass } from "@/components/common";
 import {
+  bodyMissing,
   contractSubText,
   deadlineOf,
   isFinished,
@@ -46,13 +47,10 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const contractId = parseId(rawId);
   if (contractId === null) notFound();
 
-  const [c, statuses, employmentTypes, weekdays, payMonths, payMethods, documentKinds, identityFields] = await Promise.all([
+  const [c, statuses, employmentTypes, documentKinds, identityFields] = await Promise.all([
     getContract(contractId),
     getEnumOrEmpty("ContractStatus"),
     getEnumOrEmpty("EmploymentType"),
-    getEnumOrEmpty("Weekday"),
-    getEnumOrEmpty("PayMonth"),
-    getEnumOrEmpty("PayMethod"),
     getEnumOrEmpty("ContractDocumentKind"),
     // 본인 대조 항목 한글(api enum IdentityField) — 대조가 다를 때만 쓰지만 캐시되니 함께 받는다. getEnumOrEmpty 는 5xx · 연결 실패만
     // 빈 목록으로 바꾸고 404 · 응답에 이름 없음(api 가 아직 등록 전)은 던지므로, 여기서 남기고 빈 목록으로 받아 상세 전체가 깨지지
@@ -150,6 +148,9 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   // 본인 대조가 다르면 다른 항목의 한글. 못 받았거나 한글이 없는 값이 섞이면 null — 항목 없이 일반 문구다.
   const mismatched = mismatchText(c.mismatches, identityFields);
   const signedCopy = signedCopyOf(c);
+  // 조항(articles)이 비어 오면 본문 없이 서명하게 두지 않는다 — 위 안내만 보이고 서명 · 거절 · 수정 요청을 열지 않는다(bodyMissing)
+  const noBody = bodyMissing(c);
+  const canDecide = c.awaitingSignature && !noBody;
   return (
     <>
       <ContractFrame header={header}>
@@ -170,6 +171,15 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
             <br />
             재직 중이 아니면 서명할 수 없습니다. 계약을 진행하려면 근무지 관리자에게 문의해 주세요.
           </Notice>
+        ) : c.awaitingSignature && noBody ? (
+          // 본문을 받지 못한 서명 대기 — 서명 · 수정 요청을 열지 않으므로(canDecide) 본인 대조 경고보다 먼저 이것만 알린다
+          <Alert tone="warning">
+            <p>
+              <strong>계약서 본문을 불러오지 못해 지금은 서명할 수 없습니다.</strong>
+              <br />
+              잠시 뒤 다시 열어 주세요. 계속되면 근무지 관리자에게 문의해 주세요.
+            </p>
+          </Alert>
         ) : c.awaitingSignature && !c.signable ? (
           // 본인 대조(WHALEERP-125): 다른 항목만 알린다 — 계정 값은 보이지 않는다. 날인 대신 수정 요청을 낸다.
           <Alert tone="warning">
@@ -205,7 +215,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           badge={<Badge tone={statusTone(phase)}>{status}</Badge>}
         />
 
-        <ContractDocument c={c} enums={{ employmentTypes, weekdays, payMonths, payMethods }} />
+        <ContractDocument articles={c.articles} employmentTypeLabel={employmentType} />
 
         <Sunken label="계약서에 들어가는 내 정보">
           <Values
@@ -232,7 +242,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
         </Sunken>
 
         {/* api 가 지금 날인할 수 있다고 할 때만(서명 대기 · 기한 안 · 재직 중) — 아래 버튼 줄과 같은 판정 */}
-        {c.awaitingSignature && <Tiny>서명하거나 거절하면 근무지 관리자에게 알림이 전달됩니다.</Tiny>}
+        {canDecide && <Tiny>서명하거나 거절하면 근무지 관리자에게 알림이 전달됩니다.</Tiny>}
       </ContractFrame>
       {signedCopy && (
         // 체결이 끝난 계약의 처리 완료본 내보내기(WHALEERP-149). 서명 대기에서는 내보내지 않는다 — 처리 완료본은 체결 뒤 파일 생성
@@ -246,7 +256,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           </a>
         </Dock>
       )}
-      {c.awaitingSignature && c.sentAt && (
+      {canDecide && c.sentAt && (
         <ContractDecision
           signHref={`/contracts/${c.contractId}/sign?${storeId === null ? "" : `store=${storeId}&`}sentAt=${encodeURIComponent(c.sentAt)}`}
           signable={c.signable}
