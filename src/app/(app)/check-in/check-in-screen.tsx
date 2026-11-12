@@ -167,7 +167,7 @@ export function CheckInScreen({
     if (!result.ok) return fail(result.problem);
     setSheet(null);
     if (kind === "CHECK_OUT") setDone(result.record);
-    else show(reason ? "확인 필요로 출근을 등록했습니다" : "출근을 등록했습니다");
+    else show(reason ? "출근을 등록했습니다 (관리자 확인 필요)" : "출근을 등록했습니다");
   };
   // 좌표 없는 근무지의 퇴근은 위치를 읽지 않으므로 위치 읽음도 보내지 않는다(api 가 위치 없이 받는다)
   const register = (kind: AttendanceKind, reason: ReviewReason | null) => startTransition(() => registerNow(kind, reason, target ? readId : null));
@@ -228,17 +228,16 @@ export function CheckInScreen({
       show(done);
     });
 
-  const adminNote = `출퇴근 기록은 근태 확인을 위해 ${store.name} 관리자가 확인합니다.`;
   const schedule = data.todaySchedules[0];
   const elapsed = working ? elapsedOf(new Date(working.recordedAt), now) : null;
   const distanceText = geo.status === "ok" ? `매장까지 ${Math.round(geo.distance)}m` : "";
-  const outOfRange = `${distanceText} · 범위 ${store.radiusMeters}m 밖입니다`;
+  const outOfRange = `${distanceText} · 출퇴근 범위 ${store.radiusMeters}m`;
   const workSummary = working && elapsed && (
     <Sunken>
       <Values
         rows={[
           ["출근", kstTime(new Date(working.recordedAt))],
-          ["지금까지", elapsedLabel(elapsed)],
+          ["근무 시간", elapsedLabel(elapsed)],
         ]}
       />
     </Sunken>
@@ -252,7 +251,7 @@ export function CheckInScreen({
     const checkedIn = done.checkInRecordedAt ? new Date(done.checkInRecordedAt) : null;
     body = (
       <>
-        <Clock label="퇴근 기록">{kstTime(new Date(done.recordedAt))}</Clock>
+        <Clock label="퇴근 시각">{kstTime(new Date(done.recordedAt))}</Clock>
         <Sunken>
           <Values
             rows={[
@@ -262,7 +261,7 @@ export function CheckInScreen({
             ]}
           />
         </Sunken>
-        <p className="text-[12px] text-staff-text-muted">기록이 저장되었습니다. {adminNote}</p>
+        <p className="text-[12px] text-staff-text-muted">오늘도 수고하셨습니다.</p>
       </>
     );
     dock = (
@@ -273,14 +272,14 @@ export function CheckInScreen({
   } else if (paused) {
     body = (
       <>
-        <GeoBlank tone="warning" text="위치를 읽지 않습니다" />
+        <GeoBlank tone="warning" text="위치 수집이 일시 중지되었습니다" />
         <Alert tone="warning">
           <strong>일시 중지 중에는 앱으로 출퇴근을 등록할 수 없습니다.</strong>
           <br />
-          출퇴근 기록은 근무지 관리자에게 문의해 주세요.
+          다시 켜거나, 근무지 관리자에게 문의해 주세요.
         </Alert>
         <Sunken prose label="다시 켜면 바로 등록할 수 있습니다">
-          동의는 그대로 남아 있어 <b>새로 동의하지 않아도 됩니다.</b> 내 정보에서도 켤 수 있습니다.
+          <b>새로 동의하지 않아도 됩니다.</b>
         </Sunken>
       </>
     );
@@ -297,15 +296,14 @@ export function CheckInScreen({
   } else if (needsConsent && declined) {
     body = (
       <>
-        <GeoBlank tone="muted" text="위치정보 동의가 없습니다" />
+        <GeoBlank tone="muted" text="위치정보 동의가 필요합니다" />
         <Alert tone="danger">
           <strong>위치정보 이용에 동의하지 않으면 앱으로 출퇴근을 등록할 수 없습니다.</strong>
           <br />
           출퇴근 기록은 근무지 관리자에게 문의해 주세요.
         </Alert>
-        <Sunken prose label="권한을 끈 것과 다릅니다">
-          휴대전화 위치 권한은 설정에서 켜면 바로 등록할 수 있습니다. 여기는 <b>위치정보 수집 동의 자체를 하지 않았거나 철회한</b> 경우라,
-          설정을 바꿔도 앱에서는 등록되지 않습니다. 문의를 받은 관리자가 <b>대신 등록</b>할 수 있습니다.
+        <Sunken prose label="관리자가 대신 등록하면">
+          관리자가 <b>대신 등록</b>한 기록은 출퇴근 현황에 연필 표시로 보입니다.
         </Sunken>
       </>
     );
@@ -346,7 +344,7 @@ export function CheckInScreen({
         <Alert tone="danger">
           <strong>위치 권한이 꺼져 있습니다.</strong>
           <br />
-          출퇴근은 매장에 있는지를 위치로 확인합니다. 설정에서 위치 접근을 허용한 뒤 다시 시도해 주세요.
+          출퇴근하려면 설정에서 위치 접근을 허용해 주세요.
         </Alert>
       </>
     ) : geo.status === "unavailable" ? (
@@ -357,8 +355,12 @@ export function CheckInScreen({
     ) : geo.mocked && !working ? (
       // 위치 조작 감지 — 출근은 막는다(ATT-21). 다시 확인 버튼은 두지 않고 출근을 다시 누르게 한다(2026-10-26 재영, ATT-22)
       <>
-        <GeoBlank tone="muted" text="위치 조작이 감지되었습니다" />
-        <Alert tone="danger">모의 위치를 끈 뒤 출근을 다시 눌러 주세요.</Alert>
+        <GeoBlank tone="muted" text="출근할 수 없습니다" />
+        <Alert tone="danger">
+          <strong>모의 위치가 켜져 있습니다.</strong>
+          <br />
+          모의 위치 설정이나 가상 위치 앱을 끄고 다시 시도해 주세요.
+        </Alert>
       </>
     ) : !mapConsented ? (
       // 카카오 지도에 내 위치를 그리는 데 동의하지 않았으면 근무지만 그린 지도를 그대로 두고 거리만 알린다
@@ -393,7 +395,6 @@ export function CheckInScreen({
             퇴근은 출근한 다음 날까지 등록할 수 있습니다. <strong>근무지 관리자에게 퇴근 보정</strong>을 요청해 주세요. 보정되면 다시 출근할 수
             있습니다.
           </Alert>
-          <p className="text-center text-[12px] text-staff-text-muted">{adminNote}</p>
         </>
       );
     } else if (working && elapsed) {
@@ -405,7 +406,7 @@ export function CheckInScreen({
             <Alert tone="warning">
               <strong>매장 범위 밖입니다.</strong>
               <br />
-              퇴근은 여기서도 등록할 수 있습니다. 다만 기록에 <strong>확인 필요</strong>가 붙고 관리자가 확인합니다.
+              여기서 퇴근하면 <strong>관리자 확인이 필요한 기록</strong>으로 남습니다.
             </Alert>
           )}
           <section className="flex flex-col gap-[9px] rounded-[18px] border border-staff-border-light bg-white p-[20px]">
@@ -415,15 +416,14 @@ export function CheckInScreen({
               worked={{ start: kstTime(new Date(working.recordedAt)), end: kstTime(now) }}
               ongoing
             />
-            <p className="text-[12px] text-staff-text-muted">점선은 예정, 채운 칠은 실제 기록입니다</p>
+            <p className="text-[12px] text-staff-text-muted">점선은 예정, 채운 막대는 실제 근무입니다</p>
           </section>
-          <Clock label="근무 경과" note={`현재 시각 ${kstTime(now)}`}>
+          <Clock label="근무 시간" note={`현재 시각 ${kstTime(now)}`}>
             {elapsed.hours}
             <span className="text-[17px]">시간 </span>
             {elapsed.minutes}
             <span className="text-[17px]">분</span>
           </Clock>
-          <p className="text-center text-[12px] text-staff-text-muted">{adminNote}</p>
         </>
       );
       dock = (
@@ -440,9 +440,11 @@ export function CheckInScreen({
           {out ? (
             <>
               <Alert tone="warning">
-                <strong>매장에서 {Math.round(geo.status === "ok" ? geo.distance : 0)}m 떨어져 있습니다.</strong>
+                <strong>매장 범위 밖입니다.</strong>
                 <br />
-                이대로 출근하면 기록에 <strong>확인 필요</strong>가 붙고 관리자가 확인합니다. 근무지가 맞는지 한 번 더 확인해 주세요.
+                여기서 출근하면 <strong>관리자 확인이 필요한 기록</strong>으로 남습니다.
+                <br />
+                근무지가 맞는지 확인해 주세요.
               </Alert>
               <section className="flex flex-col rounded-[18px] border border-staff-border-light bg-white p-[20px]">
                 <h2 className="text-[13px] font-semibold text-staff-text-sub">근무지</h2>
@@ -455,7 +457,7 @@ export function CheckInScreen({
                 !located
                   ? "위치를 확인하지 않는 근무지입니다"
                   : geo.status === "ok"
-                    ? "매장 범위 안에 있습니다"
+                    ? "출퇴근할 수 있는 위치입니다"
                     : geo.status === "loading"
                       ? "위치를 확인하고 있습니다"
                       : "출근하기를 누르면 위치를 확인합니다"
@@ -463,7 +465,7 @@ export function CheckInScreen({
           )}
           {schedule && (
             <section className="flex flex-col gap-[7px] rounded-[18px] border border-staff-border-light bg-white p-[20px]">
-              <h2 className="text-[13px] font-semibold text-staff-text-sub">오늘 예정 근무</h2>
+              <h2 className="text-[13px] font-semibold text-staff-text-sub">오늘 근무</h2>
               {data.todaySchedules.map((s) => (
                 <div key={s.startAt} className="flex items-center gap-[8px]">
                   <p className="min-w-0 flex-1 text-[20px] font-bold tracking-[-0.42px]">
@@ -476,7 +478,7 @@ export function CheckInScreen({
               ))}
             </section>
           )}
-          <Clock label="현재 시각" note="기록 시각은 서버가 요청을 받은 때로 정해집니다" dim={!usable || out}>
+          <Clock label="현재 시각" dim={!usable || out}>
             {kstTime(now)}
           </Clock>
         </>
@@ -514,7 +516,7 @@ export function CheckInScreen({
           탭 진입 때 읽기 · 카카오 전달은 2026-10-28 재영 안(ATT-05 · ATT-22 v229). 카카오 전달을 「제공」 · 「위탁」 중 무엇으로 쓸지는 법무 결과에 따라 고친다.
           문구는 버전 갈래별 고정 요약이다 — 새 버전이 받는 곳 · 쓰는 곳을 바꾸면 갈래를 더한다. 문구는 시행 중인 약관 버전(mapConsented)에 맞춘다 — api 는 동의를 그 버전으로 기록하므로, v1.1 미만이면 v1.0 문구를 보여야
           보인 고지와 기록이 맞는다(배포 사이 · 롤백, 2026-10-28 PR #45 리뷰). v1.0 문구는 이미 나가 동의를 받은 문구라 고치지 않는다. */}
-      <BottomSheet open={sheet === "consent"} onClose={() => setSheet(null)} title="위치정보 수집에 동의해 주세요">
+      <BottomSheet open={sheet === "consent"} onClose={() => setSheet(null)} title="위치정보 수집·이용 동의">
         {mapConsented ? (
           <p className="text-[14px] text-staff-text-sub [&_b]:font-bold [&_b]:text-staff-text">
             출퇴근 탭에 들어올 때와 출근 · 퇴근 버튼을 누를 때 위치를 읽어 <b>매장 안인지</b> 확인하고, 지도에 근무지와 내 위치를 보여
@@ -563,7 +565,7 @@ export function CheckInScreen({
             setSheet(null);
           }}
         >
-          동의하지 않음
+          동의하지 않습니다
         </Button>
       </BottomSheet>
 
@@ -571,19 +573,19 @@ export function CheckInScreen({
       <BottomSheet
         open={sheet === "bye"}
         onClose={() => setSheet(null)}
-        title={checkOutReason === "MOCK_LOCATION" ? "확인 필요로 퇴근할까요" : checkOutReason ? "매장 범위 밖에서 퇴근할까요" : "퇴근할까요"}
+        title={checkOutReason === "MOCK_LOCATION" ? "모의 위치 상태로 퇴근하시겠습니까?" : checkOutReason ? "매장 범위 밖에서 퇴근하시겠습니까?" : "퇴근하시겠습니까?"}
         description={
           checkOutReason
-            ? "이대로 등록하면 기록에 확인 필요가 붙고 관리자가 확인합니다. 퇴근을 등록하면 오늘 근무가 끝납니다."
-            : "퇴근을 등록하면 오늘 근무가 끝납니다. 뒤에 다시 출근하려면 새로 등록해야 합니다."
+            ? "관리자 확인이 필요한 기록으로 남습니다. 퇴근하면 오늘 근무가 종료됩니다."
+            : "퇴근하면 오늘 근무가 종료됩니다. 다시 출근하려면 출근을 새로 등록해야 합니다."
         }
-        closeLabel="아직 아닙니다"
+        closeLabel="취소"
       >
         {workSummary}
         {checkOutReason === "OUT_OF_RADIUS_CHECKOUT" && <Alert tone="warning">{outOfRange}</Alert>}
-        {checkOutReason === "MOCK_LOCATION" && <Alert tone="warning">확인 필요 사유 · 위치 조작 감지</Alert>}
+        {checkOutReason === "MOCK_LOCATION" && <Alert tone="warning">사유 · 모의 위치 감지</Alert>}
         <Button disabled={pending} onClick={() => register("CHECK_OUT", checkOutReason)}>
-          퇴근 확정
+          퇴근하기
         </Button>
       </BottomSheet>
 
@@ -591,30 +593,30 @@ export function CheckInScreen({
       <BottomSheet
         open={sheet === "hifar"}
         onClose={() => setSheet(null)}
-        title="매장 범위 밖에서 출근할까요"
-        description="이대로 등록하면 기록에 확인 필요가 붙고 관리자가 확인합니다."
-        closeLabel="아직 아닙니다"
+        title="매장 범위 밖에서 출근하시겠습니까?"
+        description="관리자 확인이 필요한 기록으로 남습니다."
+        closeLabel="취소"
       >
         <Sunken prose label="출근할 근무지">
           <p className="text-[16px] font-bold text-staff-text">{store.name}</p>
-          <p className="pt-[3px] text-[12px] text-staff-text-muted">근무지가 다르면 닫고 홈이나 근무 정보에서 바꿔 주세요</p>
+          <p className="pt-[3px] text-[12px] text-staff-text-muted">근무지가 다르면 취소한 뒤 홈에서 근무지를 바꿔 주세요.</p>
         </Sunken>
         <Alert tone="warning">{outOfRange}</Alert>
         <Button disabled={pending} onClick={() => register("CHECK_IN", "OUT_OF_RADIUS_CHECKIN")}>
-          출근 확정
+          출근하기
         </Button>
       </BottomSheet>
 
       <BottomSheet
         open={sheet === "dup"}
         onClose={() => setSheet(null)}
-        title="이미 출근해 있습니다"
+        title="이미 출근했습니다"
         description={
           openCheckIn?.isCheckOutExpired
-            ? `${kstMonthDayTime(new Date(openCheckIn.recordedAt))}에 ${openCheckIn.storeName}으로 출근한 기록이 열려 있고 퇴근 등록 기한이 지났습니다. 그 근무지 관리자에게 퇴근 보정을 요청해 주세요.`
+            ? `${kstMonthDayTime(new Date(openCheckIn.recordedAt))}에 ${openCheckIn.storeName}에 출근했고 퇴근 등록 기한이 지났습니다. 그 근무지 관리자에게 퇴근 보정을 요청해 주세요.`
             : openCheckIn
-            ? `${kstTime(new Date(openCheckIn.recordedAt))}에 ${openCheckIn.storeName}으로 출근한 기록이 열려 있습니다. 퇴근을 먼저 등록해 주세요.`
-            : "열린 출근 기록이 있습니다. 퇴근을 먼저 등록해 주세요."
+            ? `${kstTime(new Date(openCheckIn.recordedAt))}에 ${openCheckIn.storeName}에 출근했습니다. 퇴근을 먼저 등록해 주세요.`
+            : "이미 출근한 기록이 있습니다. 퇴근을 먼저 등록해 주세요."
         }
       >
         {openCheckIn && !openCheckIn.isCheckOutExpired && openCheckIn.staffMemberId !== data.staffMemberId && (
@@ -628,9 +630,9 @@ export function CheckInScreen({
         open={sheet === "nopunch"}
         onClose={() => setSheet(null)}
         title="출근 기록이 없습니다"
-        description="퇴근은 열려 있는 출근 기록이 있어야 등록할 수 있습니다. 오늘 출근을 찍지 않았다면 근무지 관리자에게 알려 주세요."
+        description="출근을 등록해야 퇴근할 수 있습니다. 오늘 출근을 등록하지 못했다면 관리자에게 알려 주세요."
       >
-        <Sunken prose>관리자는 최근 3개월 안의 기록을 수정할 수 있습니다.</Sunken>
+        <Sunken prose>관리자는 최근 3개월 이내의 기록만 수정할 수 있습니다.</Sunken>
       </BottomSheet>
 
       {/* 근로계약 기간 밖 출근(ATT-12): 서명 대기 계약이 있으면 서명하면 바로 출근할 수 있다 — 데모 check-in 의 nocontract 처럼 경고판(서명할
@@ -639,8 +641,8 @@ export function CheckInScreen({
       <BottomSheet
         open={sheet === "nocontract"}
         onClose={() => setSheet(null)}
-        title="근로계약을 체결해야 출근할 수 있습니다"
-        description="오늘 날짜가 들어간 서명 완료된 근로계약이 있어야 출퇴근을 등록할 수 있습니다. 받은 계약서에 서명하면 바로 출근할 수 있습니다."
+        title="근로계약서 서명이 필요합니다"
+        description="근로계약서에 서명해야 출퇴근을 등록할 수 있습니다."
       >
         {signWaiting && signWaiting.count !== null && signWaiting.count > 0 && (
           <Link
@@ -666,9 +668,9 @@ export function CheckInScreen({
         open={sheet === "noperiod"}
         onClose={() => setSheet(null)}
         title="오늘은 근로계약 기간이 아닙니다"
-        description="오늘 날짜가 들어간 서명 완료된 근로계약이 있어야 출퇴근을 등록할 수 있습니다."
+        description="근로계약 기간에만 출퇴근을 등록할 수 있습니다. 근무지 관리자에게 문의해 주세요."
       >
-        <Sunken prose>근무지 관리자에게 문의해 주세요.</Sunken>
+        {null}
       </BottomSheet>
 
       {/* 폐점한 근무지(WHALEERP-643) — 출근은 막고 폐점 전에 연 출근의 퇴근은 받는다. 직원 앱에는 「폐점」을 보이지 않는다 — 폐점은 시스템을

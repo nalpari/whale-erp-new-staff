@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Alert, BottomNav, Notice, PageHeader } from "@/components/common";
 import { getCurrentMembership } from "@/lib/current-membership";
+import { getMyMemberships } from "@/lib/my-profile";
 import { getMyTodos } from "@/lib/my-todos";
 import { getMyWorkSchedules } from "@/lib/my-work-schedules";
 import { requireSession } from "@/lib/session";
@@ -26,6 +27,8 @@ export default async function WorkPage({ searchParams }: PageProps<"/work">) {
   const day = typeof params.day === "string" && params.day.startsWith(`${month}-`) && /^\d{4}-\d{2}-\d{2}$/.test(params.day) ? params.day : undefined;
   const memberships = await getCurrentMembership();
   const current = memberships?.current;
+  // 퇴직한 소속이 있을 때만 퇴직 후 안내 — 가입 직후 · 계약 전(거절 · 만료)에는 중립 안내. 퇴직 포함 목록을 못 받으면 중립 안내
+  const retired = memberships && !current && ((await getMyMemberships(true))?.items.some((m) => m.retiredDate !== null) ?? false);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -36,10 +39,23 @@ export default async function WorkPage({ searchParams }: PageProps<"/work">) {
           <Alert tone="warning">근무지를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>
         ) : !current ? (
           <div className="flex flex-col items-center gap-[6px] py-[40px] text-center">
-            <p className="text-[18px] font-bold">근무지가 없습니다</p>
-            <p className="max-w-[300px] text-[14px] text-staff-text-sub">
-              연결된 근무지가 없어 스케줄과 TO-DO 를 보여 줄 수 없습니다. 받은 급여명세서는 급여 탭에서 계속 볼 수 있습니다.
-            </p>
+            {retired ? (
+              <>
+                <p className="text-[18px] font-bold">근무가 종료되었습니다</p>
+                <p className="max-w-[300px] text-[14px] text-staff-text-sub">
+                  급여명세서는 보존 기간(3년) 동안
+                  <br />
+                  급여 탭에서 확인할 수 있습니다.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-[18px] font-bold">연결된 근무지가 없습니다</p>
+                <p className="max-w-[300px] text-[14px] text-staff-text-sub">
+                  근무지에 연결되면 스케줄과 TO-DO 를 볼 수 있습니다. 받은 급여명세서는 급여 탭에서 계속 볼 수 있습니다.
+                </p>
+              </>
+            )}
           </div>
         ) : (
           <>

@@ -22,6 +22,8 @@ export default async function CheckInPage() {
   await requireSession();
   const memberships = await getMyMemberships();
   const current = memberships && pickCurrentMembership(memberships.items, (await cookies()).get(CURRENT_STAFF_MEMBER_COOKIE)?.value);
+  // 퇴직한 소속이 있을 때만 퇴직 후 안내 — 가입 직후 · 계약 전(거절 · 만료)에는 중립 안내. 퇴직 포함 목록을 못 받으면 중립 안내
+  const retired = memberships && !current && ((await getMyMemberships(true))?.items.some((m) => m.retiredDate !== null) ?? false);
   const attendance = current && (await getMyAttendance(current.staffMemberId));
   // 출근이 서명 대기 계약으로 막혔으면 시트가 그 계약서로 잇는다(146) — 그때만 내 계약 목록을 받는다
   const block = attendance?.checkInBlock;
@@ -51,10 +53,23 @@ export default async function CheckInPage() {
           <span className="flex text-staff-placeholder">
             <MaskIcon src="/icons/store.svg" size={30} flipY />
           </span>
-          <p className="pt-[6px] text-[18px] font-bold">근무지가 없습니다</p>
-          <p className="max-w-[250px] text-[14px] text-staff-text-sub">
-            연결된 근무지가 없어 출퇴근을 등록할 수 없습니다. 받은 급여명세서는 급여 탭에서 볼 수 있습니다.
-          </p>
+          {retired ? (
+            <>
+              <p className="pt-[6px] text-[18px] font-bold">근무가 종료되었습니다</p>
+              <p className="max-w-[250px] text-[14px] text-staff-text-sub">
+                급여명세서는 보존 기간(3년) 동안
+                <br />
+                급여 탭에서 확인할 수 있습니다.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="pt-[6px] text-[18px] font-bold">연결된 근무지가 없습니다</p>
+              <p className="max-w-[250px] text-[14px] text-staff-text-sub">
+                근무지에 연결되면 출퇴근을 등록할 수 있습니다. 받은 급여명세서는 급여 탭에서 볼 수 있습니다.
+              </p>
+            </>
+          )}
         </div>
       ) : (
         // 근무지를 바꾸면 화면 상태(위치 · 시트)를 새로 시작한다

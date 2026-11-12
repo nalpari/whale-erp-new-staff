@@ -56,16 +56,17 @@ export function SchedulePanel({
   return (
     <div className="flex flex-col gap-[20px]">
       <div className="flex flex-col gap-[6px] rounded-[18px] border border-staff-border-light bg-white px-[8px] pt-[14px] pb-[10px]">
-        <div className="flex items-center justify-between px-[6px] pb-[8px] leading-[1.5]">
+        {/* 양쪽 화살표 칸을 같은 폭(36)으로 두어 가운데 칸(달 이름 · 「오늘」)이 한가운데에 온다(데모 work) */}
+        <div className="grid grid-cols-[36px_1fr_36px] items-center gap-[8px] px-[6px] pb-[8px] leading-[1.5]">
           <button type="button" aria-label="이전 달" onClick={() => go(-1)} className={navButton}>
             <Image src="/icons/chevron-left-24.svg" alt="" width={20} height={20} className="-scale-y-100" />
           </button>
-          <div className="flex items-center gap-[8px]">
-            <p className="text-[16px] font-bold">{monthLabel(month)}</p>
+          <div className="flex min-w-0 items-center justify-center gap-[8px]">
+            <p className="text-[16px] font-bold whitespace-nowrap">{monthLabel(month)}</p>
             <button
               type="button"
               onClick={goToday}
-              className="flex h-[32px] items-center rounded-[10px] bg-staff-primary-inactive px-[10px] text-[13px] font-semibold text-staff-primary transition-colors duration-150 ease-out active:bg-[#dcdcf7]"
+              className="flex h-[32px] shrink-0 items-center rounded-[10px] bg-staff-primary-inactive px-[10px] text-[13px] font-semibold text-staff-primary transition-colors duration-150 ease-out active:bg-[#dcdcf7]"
             >
               오늘
             </button>
@@ -127,7 +128,7 @@ export function SchedulePanel({
             {/* 근무가 없는 달도 달력은 그대로 그리고 안내 줄만 둔다(2026-10-23 재영). */}
             {items.length === 0 && (
               <p className="border-t border-staff-border-light px-[4px] pt-[10px] text-[12px] text-staff-text-muted">
-                이 달에 등록된 근무가 없습니다. 관리자가 등록하면 이 달력에 표시됩니다.
+                이 달 근무가 없습니다. 근무지에서 근무스케줄을 등록하면 여기에 표시됩니다.
               </p>
             )}
       </div>

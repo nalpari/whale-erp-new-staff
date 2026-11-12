@@ -22,7 +22,7 @@ export function useStoreSheet(stores: StoreChoice[], currentId: number) {
   };
 
   const sheet = (
-    <BottomSheet open={open} onClose={() => setOpen(false)} title="어디에서 근무하시나요?" description="선택한 근무지의 정보를 보여드려요.">
+    <BottomSheet open={open} onClose={() => setOpen(false)} title="근무지 선택" description="선택한 근무지의 근무 정보가 표시됩니다.">
       {stores.map((s) => (
         <SheetOption key={s.staffMemberId} selected={s.staffMemberId === currentId} onClick={() => handlePick(s.staffMemberId)}>
           {s.storeName}

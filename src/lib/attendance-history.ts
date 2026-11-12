@@ -59,23 +59,34 @@ export function flagsOf(d: MyAttendanceDay): Flag[] {
     ...(p.checkOut?.reviewReason ? [{ kind: "퇴근" as const, time: p.checkOut.time, reason: p.checkOut.reviewReason }] : []),
   ]);
 }
-/** 「출근 위치 확인 실패」 · 「반경 밖 퇴근」 — 반경 밖은 관리자 웹 꼬리표와 같은 말(2026-10-23 사용자 결정) */
+/** 「출근 위치를 확인하지 못했습니다」 · 「반경 밖 퇴근」 — 반경 밖은 관리자 웹 꼬리표와 같은 말(2026-10-23 사용자 결정) */
 export function flagTitle(f: Flag): string {
-  if (f.reason === "ACCURACY_EXCEEDED") return `${f.kind} 위치 확인 실패`;
+  if (f.reason === "ACCURACY_EXCEEDED") return `${f.kind} 위치를 확인하지 못했습니다`;
   if (f.reason === "MOCK_LOCATION") return `${f.kind} 위치 조작 감지`;
   // 출근부터 12시간이 넘은 퇴근에 api 가 붙인다(2026-10-27 재영) — 관리자 웹과 같은 말
   if (f.reason === "LONG_SHIFT") return "근무 12시간 초과";
   return `반경 밖 ${f.kind}`;
 }
-export function flagDescription(f: Flag): string {
-  const why =
+/** 확인 필요 카드의 한 줄 — 「출근 09:58 · 위치 확인 실패」 · 「퇴근 18:40 · 반경 밖」 */
+export function flagLine(f: Flag): string {
+  const what =
     f.reason === "ACCURACY_EXCEEDED"
-      ? "오차가 매장 범위보다 넓어 매장 안인지 자동으로 확인하지 못했습니다."
+      ? "위치 확인 실패"
       : f.reason === "MOCK_LOCATION"
-        ? "휴대전화 위치가 조작된 것으로 감지되었습니다."
+        ? "위치 조작 감지"
         : f.reason === "LONG_SHIFT"
-          ? "출근부터 퇴근까지 12시간이 넘었습니다."
-          : "근무지 반경 밖에서 등록되었습니다.";
+          ? "근무 12시간 초과"
+          : "반경 밖";
+  return `${f.kind} ${f.time} · ${what}`;
+}
+export function flagDescription(f: Flag): string {
+  if (f.reason === "ACCURACY_EXCEEDED") return `위치 오차가 커서 매장 안에 있는지 확인하지 못했습니다. ${f.kind} 시각 ${f.time}은 등록되었습니다.`;
+  const why =
+    f.reason === "MOCK_LOCATION"
+      ? "휴대전화 위치가 조작된 것으로 감지되었습니다."
+      : f.reason === "LONG_SHIFT"
+        ? "출근부터 퇴근까지 12시간이 넘었습니다."
+        : "근무지 반경 밖에서 등록되었습니다.";
   return `${why} ${f.kind} 시각 ${f.time}은 등록되었고 관리자가 검토하고 있습니다.`;
 }
 
@@ -103,14 +114,14 @@ export function statusChipOf(d: MyAttendanceDay, today: string): { label: string
   return undefined;
 }
 
-/** 카드 한 줄 요약 — 「출근 09:02 · 퇴근 18:00」, 근무 중이면 「퇴근 진행 중」, 아직 오지 않은 날은 「아직 근무 전입니다 · 예정 …」 */
+/** 카드 한 줄 요약 — 「출근 09:02 · 퇴근 18:00」, 근무 중이면 「퇴근 전」, 아직 오지 않은 날은 「예정 …」 */
 export function summaryOf(d: MyAttendanceDay, today: string): string {
   const s = d.schedules[0];
-  if (d.date > today || (!d.pairs.length && d.date === today)) return s ? `아직 근무 전입니다 · 예정 ${s.startTime} – ${s.endTime}` : "아직 근무 전입니다";
+  if (d.date > today || (!d.pairs.length && d.date === today)) return s ? `예정 ${s.startTime} – ${s.endTime}` : "아직 근무 전입니다";
   if (!d.pairs.length) return d.status === "ABSENT" ? "출근 기록이 없습니다" : "-";
   return d.pairs
     .map((p) => {
-      const out = p.checkOut ? `퇴근 ${p.checkOut.time}` : d.date === today ? "퇴근 진행 중" : "퇴근 기록 없음 · 근무지 관리자에게 문의";
+      const out = p.checkOut ? `퇴근 ${p.checkOut.time}` : d.date === today ? "퇴근 전" : "퇴근 기록 없음";
       return `출근 ${p.checkIn?.time ?? "기록 없음"} · ${out}`;
     })
     .join(" / ");
@@ -164,7 +175,7 @@ export interface WeekRow {
   upcoming: boolean;
 }
 
-/** 기간별 주별 줄(데모 weekRow) — 「9월 1주 · 8/31 – 9/6」, 「근무 5일 · 40시간 12분 · 지각 0 · 연장 1시간 20분」. 근무 · 연장은 api 의 주 값 */
+/** 기간별 주별 줄(데모 weekRow) — 「9월 1주 · 8/31 – 9/6」, 「근무 5일 · 40시간 12분 · 지각 0회 · 연장 1시간 20분」. 근무 · 연장은 api 의 주 값 */
 export function weekRows(records: Pick<MyAttendanceRecords, "items" | "weeks">, today: string): WeekRow[] {
   const rows: WeekRow[] = [];
   for (const week of records.weeks) {
@@ -180,8 +191,8 @@ export function weekRows(records: Pick<MyAttendanceRecords, "items" | "weeks">, 
     const worked = inWeek.filter((d) => d.date <= today && d.pairs.some((p) => p.checkIn));
     const t = { workedMinutes: week.workedMinutes, overtimeMinutes: week.overtimeMinutes, late: inWeek.filter((d) => d.status === "LATE").length };
     const sub = upcoming
-      ? "예정 · 아직 근무 전입니다"
-      : `${current ? "이번 주 · 진행 중 · " : `근무 ${worked.length}일 · `}${durationLabel(t.workedMinutes)} · 지각 ${t.late}${current ? "회" : ""}${t.overtimeMinutes ? ` · 연장 ${durationLabel(t.overtimeMinutes)}` : ""}`;
+      ? "근무 예정"
+      : `${current ? "이번 주 · " : `근무 ${worked.length}일 · `}${durationLabel(t.workedMinutes)} · 지각 ${t.late}회${t.overtimeMinutes ? ` · 연장 ${durationLabel(t.overtimeMinutes)}` : ""}`;
     rows.push({ title, sub, current, upcoming });
   }
   return rows;
@@ -248,5 +259,5 @@ export function editRows(e: Edit): [string, string][] {
         ["수정 전", e.before ?? "-"],
         ["수정 후", e.after],
       ];
-  return [...diff, ["수정자", e.by], ["수정 시각", stampLabel(e.at)], ["사유", e.reason]];
+  return [...diff, ["수정한 사람", e.by], ["수정 시각", stampLabel(e.at)], ["사유", e.reason]];
 }

@@ -59,16 +59,16 @@ export function InvitationScreen({
   return (
     <AuthScreen
       eyebrow={<JoinSteps via={via} step="초대 확인" />}
-      title="초대를 확인해 주세요"
+      title="초대가 도착했습니다"
       description={
         <>
-          <strong>{storeName}</strong>에서 함께 일하자고 초대를 보냈습니다.
+          <strong>{storeName}</strong>에서 함께 일하자고 초대했습니다.
         </>
       }
       dock={
         <>
           <Button href="/join/signup" transitionTypes={["nav-forward"]}>
-            가입 시작
+            가입하기
           </Button>
           <Button variant="ghost" href="/login" transitionTypes={["nav-back"]}>
             로그인으로 돌아가기
@@ -106,7 +106,7 @@ export function InvitationSummary({
         </dl>
       </Card>
       <Notice>
-        초대는 받은 날부터 <strong>30일</strong> 동안 쓸 수 있습니다. 이 초대는 <strong>{expiresOn}까지</strong> 쓸 수 있습니다.
+        이 초대는 <strong>{expiresOn}까지</strong> 사용할 수 있습니다.
       </Notice>
     </>
   );
@@ -153,22 +153,26 @@ export function EndedInvitation({ onRetry }: { onRetry?: () => void }) {
     <AuthScreen
       titleRef={titleRef}
       title="쓸 수 없는 초대입니다"
-      description="초대가 만료되었거나 새 초대로 바뀌었습니다. 근무지에 다시 초대해 달라고 요청해 주세요."
+      description={
+        <>
+          초대 기한이 지났거나 더 이상 사용할 수 없는 초대입니다.
+          <br />
+          <strong>근무지 관리자에게 다시 초대를 요청해 주세요.</strong>
+        </>
+      }
       dock={
         <>
           {onRetry ? (
-            <Button onClick={onRetry}>새 초대 코드 넣기</Button>
+            <Button onClick={onRetry}>새 초대 코드 입력하기</Button>
           ) : (
             <Button href="/join" transitionTypes={["nav-back"]}>
-              새 초대 코드 넣기
+              새 초대 코드 입력하기
             </Button>
           )}
           <ToLogin />
         </>
       }
-    >
-      <Notice>다시 초대를 받으면 알림톡 · 문자로 새 링크와 초대 코드가 갑니다. 앞서 받은 링크와 코드는 쓸 수 없습니다.</Notice>
-    </AuthScreen>
+    />
   );
 }
 
@@ -178,8 +182,8 @@ export function JoinedInvitation() {
   return (
     <AuthScreen
       titleRef={titleRef}
-      title="이미 가입을 마친 초대입니다"
-      description="가입할 때 정한 이메일과 비밀번호로 로그인해 주세요."
+      title="이미 가입이 완료된 초대입니다"
+      description="로그인하면 이어서 진행할 수 있습니다."
       dock={
         <>
           <ToLogin primary />
@@ -201,8 +205,14 @@ export function AccountExists() {
   return (
     <AuthScreen
       titleRef={titleRef}
-      title="이미 계정이 있습니다"
-      description="이 휴대전화번호로 가입한 계정이 있습니다. 새로 가입하지 않고 로그인하면 내 정보 - 소속 근무지에서 이 초대를 수락할 수 있습니다."
+      title="이미 가입된 계정이 있습니다"
+      description={
+        <>
+          이 휴대전화번호로 가입한 계정이 있습니다.
+          <br />
+          로그인하면 소속 근무지에서 초대를 수락할 수 있습니다.
+        </>
+      }
       dock={
         <>
           <ToLogin primary href={withNext("/login", MEMBERSHIPS_PATH)} />
@@ -217,18 +227,24 @@ export function AccountExists() {
 
 /**
  * 같은 번호로 초대 코드를 5번 틀려 30분 잠겼다(JOIN-7). 재발송하면 api 가 그 번호의 잠금을 푼다. onRetry 가 있으면(초대 코드 입력)
- * 「다시 넣기」로 입력 화면에 돌아가고, 없으면(계정 등록 중 잠김) 초대 코드 입력으로 간다.
+ * 「다시 입력하기」로 입력 화면에 돌아가고, 없으면(계정 등록 중 잠김) 초대 코드 입력으로 간다.
  */
 export function CodeLocked({ lock, onRetry }: { lock: AttemptLock; onRetry?: () => void }) {
   const titleRef = useFocusedTitle();
-  // 「다시 넣기」를 언제 여는지는 lockCountdown 이 정한다. 일찍 넣어도 api 가 다시 잠김으로 답할 뿐이다.
+  // 「다시 입력하기」를 언제 여는지는 lockCountdown 이 정한다. 일찍 넣어도 api 가 다시 잠김으로 답할 뿐이다.
   const { text, waiting } = lockCountdown(lock, useNow(lock.serverNow));
-  const label = waiting ? `다시 넣기 · ${text} 뒤` : "다시 넣기";
+  const label = waiting ? `다시 입력하기 · ${text} 뒤` : "다시 입력하기";
   return (
     <AuthScreen
       titleRef={titleRef}
-      title="잠시 뒤 다시 시도해 주세요"
-      description="휴대전화번호나 초대 코드를 여러 번 잘못 넣어 입력을 잠갔습니다."
+      title="초대 코드 입력이 잠시 잠겼습니다"
+      description={
+        <>
+          잠시 뒤 다시 시도하거나,
+          <br />
+          <strong>근무지 관리자에게 초대 코드 재발송을 요청해 주세요.</strong>
+        </>
+      }
       dock={
         <>
           {onRetry ? (
@@ -254,10 +270,6 @@ export function CodeLocked({ lock, onRetry }: { lock: AttemptLock; onRetry?: () 
           <p className="pt-[6px] text-[12px] text-staff-text-muted">같은 번호로 다섯 번 틀리면 30분 동안 잠급니다.</p>
         </div>
       </Card>
-      <Notice>
-        30분 뒤 다시 시도하거나, <strong>근무지 관리자에게 재발송을 요청해 주세요.</strong> 다시 보내면 잠금이 바로 풀리고 새 초대
-        코드가 갑니다.
-      </Notice>
     </AuthScreen>
   );
 }
@@ -268,18 +280,18 @@ export function UnderAge() {
   return (
     <AuthScreen
       titleRef={titleRef}
-      title="가입을 진행할 수 없습니다"
-      description="만 19세 미만은 WHALE ERP로 근로계약과 출퇴근을 관리하지 않습니다. 근무지 관리자에게 알려 주세요."
-      dock={
-        <Button variant="ghost" href="/login" transitionTypes={["nav-back"]}>
-          닫기
-        </Button>
+      title="가입할 수 없습니다"
+      description={
+        <>
+          만 19세 미만은 가입할 수 없습니다.
+          <br />
+          <strong>근무지 관리자에게 문의해 주세요.</strong>
+        </>
       }
+      dock={<ToLogin />}
     >
       <Card>
-        <p className="text-[13px] text-staff-text-sub">
-          계정은 만들지 않았습니다. 가입 때 넣은 생년월일은 남기지 않습니다. 근로계약과 출퇴근은 근무지에서 따로 관리합니다.
-        </p>
+        <p className="text-[13px] text-staff-text-sub">입력한 정보는 저장되지 않았습니다.</p>
       </Card>
     </AuthScreen>
   );
@@ -292,11 +304,11 @@ export function InvitationExpired() {
     <AuthScreen
       titleRef={titleRef}
       title="처음부터 다시 해 주세요"
-      description="확인한 초대를 찾을 수 없습니다. 초대를 확인한 지 30분이 지났을 수 있습니다. 받은 초대 링크를 다시 누르거나 초대 코드를 넣어 주세요."
+      description="확인한 초대를 찾을 수 없습니다. 초대를 확인한 지 30분이 지났을 수 있습니다. 받은 초대 링크를 다시 누르거나 초대 코드를 입력해 주세요."
       dock={
         <>
           <Button href="/join" transitionTypes={["nav-back"]}>
-            초대 코드 넣기
+            초대 코드 입력하기
           </Button>
           <ToLogin />
         </>

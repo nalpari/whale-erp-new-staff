@@ -19,14 +19,14 @@ export default async function JoinDonePage({ searchParams }: PageProps<"/join/do
   const [storeName, hqNotRecorded] = await Promise.all([readJoinedStore(), searchParams.then((p) => isHqNotRecorded(p[HQ_NOT_RECORDED.key]))]);
   return (
     <AuthScreen
-      title="가입을 마쳤습니다"
+      title="가입이 완료되었습니다"
       description={
         storeName ? (
           <>
-            <strong>{storeName}</strong> 근무지에 계정이 이어졌습니다.
+            <strong>{storeName}</strong>에 계정이 연결되었습니다.
           </>
         ) : (
-          "초대한 근무지에 계정이 이어졌습니다."
+          "초대한 근무지에 계정이 연결되었습니다."
         )
       }
       dock={
@@ -46,10 +46,10 @@ export default async function JoinDonePage({ searchParams }: PageProps<"/join/do
             <dd className="min-w-0 flex-1 text-right font-semibold break-all">{session.account.email}</dd>
           </div>
         </dl>
-        <p className="pt-[6px] text-[12px] text-staff-text-muted">생년월일은 가입한 뒤 직접 고칠 수 없습니다.</p>
+        <p className="pt-[6px] text-[12px] text-staff-text-muted">생년월일은 가입한 뒤 앱에서 변경할 수 없습니다.</p>
       </Card>
       {hqNotRecorded && <Alert tone="warning">{HQ_NOT_RECORDED_NOTICE}</Alert>}
-      <Notice>근무지에서 보낸 근로계약서는 홈에서 확인하고 서명할 수 있습니다.</Notice>
+      <Notice>근무지에서 보낸 근로계약서는 홈에서 내용을 확인하고 서명해 주세요.</Notice>
     </AuthScreen>
   );
 }
