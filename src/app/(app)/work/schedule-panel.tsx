@@ -56,17 +56,17 @@ export function SchedulePanel({
   return (
     <div className="flex flex-col gap-[20px]">
       <div className="flex flex-col gap-[6px] rounded-[18px] border border-staff-border-light bg-white px-[8px] pt-[14px] pb-[10px]">
-        <div className="flex items-center justify-between px-[6px] pb-[8px] leading-[1.5]">
+        {/* 양쪽 화살표 칸을 같은 폭(36)으로 두어 가운데 칸(달 이름 · 「오늘」)이 한가운데에 온다(데모 work) */}
+        <div className="grid grid-cols-[36px_1fr_36px] items-center gap-[8px] px-[6px] pb-[8px] leading-[1.5]">
           <button type="button" aria-label="이전 달" onClick={() => go(-1)} className={navButton}>
             <Image src="/icons/chevron-left-24.svg" alt="" width={20} height={20} className="-scale-y-100" />
           </button>
-          {/* 달 이름을 가운데에 두고 「오늘」은 그 오른쪽에 띄운다(데모 work — 이전 달 · 다음 달 칸 폭이 같아 달 이름이 한가운데) */}
-          <div className="relative">
-            <p className="text-[16px] font-bold">{monthLabel(month)}</p>
+          <div className="flex min-w-0 items-center justify-center gap-[8px]">
+            <p className="text-[16px] font-bold whitespace-nowrap">{monthLabel(month)}</p>
             <button
               type="button"
               onClick={goToday}
-              className="absolute top-1/2 left-full ml-[8px] flex h-[32px] -translate-y-1/2 items-center rounded-[10px] bg-staff-primary-inactive px-[10px] text-[13px] font-semibold whitespace-nowrap text-staff-primary transition-colors duration-150 ease-out active:bg-[#dcdcf7]"
+              className="flex h-[32px] shrink-0 items-center rounded-[10px] bg-staff-primary-inactive px-[10px] text-[13px] font-semibold text-staff-primary transition-colors duration-150 ease-out active:bg-[#dcdcf7]"
             >
               오늘
             </button>

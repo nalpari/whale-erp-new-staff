@@ -8,7 +8,7 @@ import { getContracts } from "@/lib/contracts";
 import { getCurrentMembership } from "@/lib/current-membership";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { getMyNotifications } from "@/lib/my-notifications";
-import { getMyAffiliationRequests, getMyProfile } from "@/lib/my-profile";
+import { getMyAffiliationRequests, getMyMemberships, getMyProfile } from "@/lib/my-profile";
 import { hqReconsentOf } from "@/lib/profile";
 import { requireSession } from "@/lib/session";
 import { signRequestOf } from "@/lib/sign-request";
@@ -29,10 +29,14 @@ export default async function HomePage() {
   // 머리줄의 근무지 · 새 알림 점(HOME-2). 소속 목록을 못 받으면 선택기만 감추고 종만 둔다 — 홈 나머지는 그대로 보인다.
   const [memberships, notifications] = await Promise.all([getCurrentMembership(), getMyNotifications("pageSize=1")]);
   const current = memberships?.current;
+  // 퇴직한 소속이 있을 때만 머리줄에 「근무 종료」 — 가입 직후 · 계약 전은 「연결된 근무지 없음」. 퇴직 포함 목록을 못 받으면 중립 표시
+  const retired = !!memberships && !current && ((await getMyMemberships(true))?.items.some((m) => m.retiredDate !== null) ?? false);
 
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex flex-col gap-[16px] px-[24px] pt-[52px] pb-[24px] leading-[1.5]">
+        {/* 화면 제목은 보이지 않게만 둔다(인사말 줄을 뺐다) */}
+        <h1 className="sr-only">홈</h1>
         {/* 머리줄 아래 인사말은 두지 않고 20px 만 띄운다(데모 home) — 사이 16 에 4 를 더한다 */}
         <div className="flex flex-col gap-[16px] pb-[4px]">
           {memberships ? (
@@ -40,6 +44,7 @@ export default async function HomePage() {
               stores={memberships.items.map((m) => ({ staffMemberId: m.staffMemberId, storeName: m.store.storeName }))}
               currentId={current?.staffMemberId ?? null}
               hasNewAlarm={(notifications?.unreadCount ?? 0) > 0}
+              retired={retired}
             />
           ) : (
             <div className="flex justify-end">

@@ -26,6 +26,8 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
 
   const memberships = await getMyMemberships();
   const current = memberships && pickCurrentMembership(memberships.items, (await cookies()).get(CURRENT_STAFF_MEMBER_COOKIE)?.value);
+  // 퇴직한 소속이 있을 때만 퇴직 후 안내 — 가입 직후 · 계약 전(거절 · 만료)에는 중립 안내. 퇴직 포함 목록을 못 받으면 중립 안내
+  const retired = memberships && !current && ((await getMyMemberships(true))?.items.some((m) => m.retiredDate !== null) ?? false);
   const records = current && (await getMyAttendanceRecords(current.staffMemberId, range.from, range.to));
 
   return (
@@ -48,12 +50,21 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
           <span className="flex pb-[6px] text-staff-text-muted">
             <MaskIcon src="/icons/store.svg" size={40} flipY />
           </span>
-          <h2 className="text-[18px] font-bold">근무가 종료되었습니다</h2>
-          <p className="max-w-[250px] text-[14px] text-staff-text-sub">
-            지난 출퇴근 기록은
-            <br />
-            근무지 관리자에게 문의해 주세요.
-          </p>
+          {retired ? (
+            <>
+              <h2 className="text-[18px] font-bold">근무가 종료되었습니다</h2>
+              <p className="max-w-[250px] text-[14px] text-staff-text-sub">
+                지난 출퇴근 기록은
+                <br />
+                근무지 관리자에게 문의해 주세요.
+              </p>
+            </>
+          ) : (
+            <>
+              <h2 className="text-[18px] font-bold">연결된 근무지가 없습니다</h2>
+              <p className="max-w-[250px] text-[14px] text-staff-text-sub">근무지에 연결되면 출퇴근 기록을 볼 수 있습니다. 지난 기록은 관리자에게 문의해 주세요.</p>
+            </>
+          )}
         </div>
       ) : (
         <AttendanceHistoryScreen key={`${current.staffMemberId}-${tab}`} tab={tab} records={records} today={today} weekStart={monday} now={now.toISOString()} />
