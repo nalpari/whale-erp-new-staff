@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "급여명세서 · Whale ERP" };
 // 급여명세서 상세. 기준: 데모 docs/demo/src/pages/pay 의 상세 · 다시 보낸 명세서(Figma 없음, DESIGN.md 기준 초안).
 // 다시 보낸 명세서(PAY-1)는 따로 화면이 없다 — 발송이 두 번 이상인 명세서다. 최신 값으로 덮어 이전 금액은 보이지 않는다.
 // 위쪽 「다시 발송되었습니다」 안내도, 바뀐 줄 표시(「· 정정됨」)도 두지 않는다(2026-10-20 재영, 알림 NOTI-6 과 같다).
-// 데모 resent 와 같이 다시 보낸 명세서는 머리 메타에서 발송일을, 아래에서 「급여 지급은 …」 안내를 뺀다 — 발송 시각은 처리 이력에 있다.
+// 데모 resent 와 같이 다시 보낸 명세서는 머리 메타에 가장 최근에 받은 날을 적고, 아래 「실제 급여 입금은 …」 안내를 뺀다.
 // 보낸 뒤 확정을 취소해 고치는 중이면(api correcting) 「검토 중」과 안내만 — 금액 · 항목 · 내보내기는 다시 받을 때까지 없다
 // (2026-10-21 사용자 결정, 고치는 중인 값을 보이지 않게).
 export default async function PayslipPage({ params }: PageProps<"/pay/[payslipId]">) {
@@ -34,7 +34,7 @@ export default async function PayslipPage({ params }: PageProps<"/pay/[payslipId
   const items = payslip.items.filter((i) => isItemShown(i, payslip.isWithholdingApplied));
   const earnings = items.filter(isEarning);
   const deductions = items.filter((i) => !isEarning(i));
-  const meta = [payslip.storeName, labelOf(employmentTypes, payslip.employmentType), !resent && sentAt ? `${sentDateLabel(sentAt)} 발송` : null]
+  const meta = [payslip.storeName, labelOf(employmentTypes, payslip.employmentType), sentAt ? `${sentDateLabel(sentAt)} 받음` : null]
     .filter(Boolean)
     .join(" · ");
 
@@ -76,7 +76,7 @@ export default async function PayslipPage({ params }: PageProps<"/pay/[payslipId
 
       {/* PAY-1 · PAY-20: 가장 최근 발송 한 줄과 확정 취소만, 시각과 짧은 꼬리표로. 관리자 이름은 적지 않는다. 최근 것이 위. */}
       <Card>
-        <p className="text-[13px] font-semibold text-staff-text-sub">처리 이력</p>
+        <p className="text-[13px] font-semibold text-staff-text-sub">처리 내역</p>
         <ul className="flex flex-col gap-[4px] pt-[8px] text-[12px] text-staff-text-muted">
           {historyEntries(payslip.logs).map((e) => (
             <li key={`${e.at}-${e.label}`}>
@@ -87,7 +87,7 @@ export default async function PayslipPage({ params }: PageProps<"/pay/[payslipId
       </Card>
 
       {!correcting && <ExportButton payslipId={payslip.payslipId} />}
-      {!correcting && !resent && <Tiny>급여 지급은 이 화면에서 처리하지 않습니다. 실제 지급은 회사의 지급 절차를 따릅니다.</Tiny>}
+      {!correcting && !resent && <Tiny>실제 급여 입금은 근무지에서 진행합니다.</Tiny>}
     </PayFrame>
   );
 }

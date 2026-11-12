@@ -9,7 +9,7 @@ import { TAX_VIEW_UNAVAILABLE, parseStaffMemberId } from "@/lib/tax-profile";
 import { createTaxProfileAction } from "./actions";
 import { TaxProfileCreateForm, TaxProfileIntro } from "./new-tax-profile";
 
-export const metadata: Metadata = { title: "신고 정보 넣기 · Whale ERP" };
+export const metadata: Metadata = { title: "신고 정보 입력 · Whale ERP" };
 
 // 날인 뒤 신고 정보 처음 넣기(WHALEERP-150). 안내(데모 intro) → `?step=form` 입력(데모 form) → 완료(`./done`).
 // 들어오는 곳: 날인 완료(WHALEERP-147 이 이리로 잇는다)와 신고 정보 보기 화면의 「신고 정보 넣기」 버튼. 이미 낸 소속이면 보기 화면으로

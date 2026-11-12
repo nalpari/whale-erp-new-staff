@@ -50,7 +50,7 @@ export function AddressForm({ zipCode, address, addressDetail }: { zipCode: stri
         className={FIELD}
       />
       <p className="pt-[2px] text-[12px] text-staff-text-muted">
-        도로명 주소는 검색해서 고르고 상세 주소만 직접 적습니다. 주소 변경은 다음 계약부터 반영됩니다.
+        주소를 변경해도 이미 서명한 계약서에는 반영되지 않습니다.
       </p>
       {state.error && (
         <Alert tone="danger">

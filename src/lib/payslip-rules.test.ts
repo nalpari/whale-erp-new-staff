@@ -6,20 +6,20 @@ import type { PayslipItem, PayslipLog } from "./payslips.ts";
 
 const log = (payslipLogId: number, logType: PayslipLog["logType"], changedAt: string): PayslipLog => ({ payslipLogId, logType, changedAt });
 
-test("처리 이력은 가장 최근 발송 한 줄과 확정 취소만 — 「재발송」 줄은 없다(PAY-20)", () => {
+test("처리 내역은 가장 최근 발송 한 줄(「다시 발송」)과 확정 취소만 — 「재발송」 줄을 따로 두지 않는다(PAY-20)", () => {
   const logs = [
     log(1, "SEND", "2026-08-03T00:12:00Z"),
     log(2, "CANCEL_CONFIRMATION", "2026-08-19T08:40:00Z"),
     log(3, "SEND", "2026-08-20T01:05:00Z"),
   ];
   assert.deepEqual(historyEntries(logs), [
-    { at: "08-20 10:05", label: "발송" },
-    { at: "08-19 17:40", label: "확정 취소" },
+    { at: "8월 20일 10:05", label: "다시 발송" },
+    { at: "8월 19일 17:40", label: "정정을 위해 확정 취소" },
   ]);
 });
 
 test("발송이 한 번이면 그 한 줄", () => {
-  assert.deepEqual(historyEntries([log(1, "SEND", "2026-09-10T00:12:00Z")]), [{ at: "09-10 09:12", label: "발송" }]);
+  assert.deepEqual(historyEntries([log(1, "SEND", "2026-09-10T00:12:00Z")]), [{ at: "9월 10일 09:12", label: "발송" }]);
 });
 
 test("받은 달 라벨은 api 의 YYYY-MM 그대로 — 「9월」", () => {

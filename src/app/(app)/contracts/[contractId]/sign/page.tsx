@@ -35,7 +35,7 @@ export default async function SignContractPage({ params, searchParams }: PagePro
         <ContractFrame header={header}>
           <Alert tone="warning">
             <p>
-              <strong>근로계약서가 다시 발송됐습니다.</strong>
+              <strong>근로계약서를 다시 받았습니다.</strong>
               <br />
               바뀐 계약서를 확인한 뒤 서명해 주세요.
             </p>

@@ -85,7 +85,7 @@ export function parseAddress(
   const road = address.trim();
   const detail = addressDetail.trim();
   if (!/^[0-9]{5}$/.test(zip) || !road || road.length > ADDRESS_MAX) return { ok: false, error: "주소를 검색해서 다시 골라 주세요" };
-  if (detail.length > ADDRESS_DETAIL_MAX) return { ok: false, error: `상세 주소는 ${ADDRESS_DETAIL_MAX}자까지 넣을 수 있습니다` };
+  if (detail.length > ADDRESS_DETAIL_MAX) return { ok: false, error: `상세 주소는 ${ADDRESS_DETAIL_MAX}자까지 입력할 수 있습니다` };
   return { ok: true, value: { zipCode: zip, address: road, addressDetail: detail || null } };
 }
 
@@ -178,20 +178,20 @@ export function hqSharingView(consent: Pick<Schemas["MyHqSharingConsentDto"], "i
       badge: { tone: "warning", text: "다시 동의 필요" },
       line: `${agreedAt ? `${kstDateTimeLabel(agreedAt)} 동의${version} — ` : ""}동의 내용이 바뀌어 다시 동의해야 합니다`,
       action: { kind: "agree", label: "다시 동의하기", alsoWithdraw: true },
-      note: "다시 동의하기 전에는 본사에 점포별 숫자로만 보입니다. 다시 동의하면 개인 단위로 보입니다.",
+      note: "다시 동의하기 전에는 가맹본부에 점포별 숫자로만 보입니다. 다시 동의하면 개인 단위로 보입니다.",
     };
   if (isConsented)
     return {
       badge: { tone: "success", text: "동의함" },
       line: agreedAt ? `${kstDateTimeLabel(agreedAt)} 동의${version}` : "동의했습니다",
       action: { kind: "withdraw" },
-      note: "철회해도 가입과 근무는 그대로입니다. 본사에는 점포별 숫자로만 보입니다.",
+      note: "철회해도 근무에는 영향이 없으며, 가맹본부에는 점포별 숫자로만 보입니다.",
     };
   return {
     badge: { tone: "plain", text: "동의하지 않음" },
     line: withdrawnAt ? `${kstDateTimeLabel(withdrawnAt)} 철회${version}` : "아직 동의하지 않았습니다",
     action: { kind: "agree", label: withdrawnAt ? "다시 동의하기" : "동의하기", alsoWithdraw: false },
-    note: `지금은 본사에 점포별 숫자로만 보입니다. ${withdrawnAt ? "다시 동의하면" : "동의하면"} 개인 단위로 보입니다.`,
+    note: `지금은 가맹본부에 점포별 숫자로만 보입니다. ${withdrawnAt ? "다시 동의하면" : "동의하면"} 개인 단위로 보입니다.`,
   };
 }
 

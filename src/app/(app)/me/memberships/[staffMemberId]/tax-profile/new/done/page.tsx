@@ -33,7 +33,7 @@ export default async function NewTaxProfileDonePage({ params }: PageProps<"/me/m
     <div className="flex flex-1 flex-col">
       <div className="flex flex-1 flex-col justify-center gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
         <div className="flex flex-col gap-[6px]">
-          <h1 className="text-[22px] font-bold">{profile ? "신고 정보를 등록했습니다" : "신고 정보를 확인하지 못했습니다"}</h1>
+          <h1 className="text-[22px] font-bold">{profile ? "신고 정보 등록이 완료되었습니다" : "신고 정보를 확인하지 못했습니다"}</h1>
           {profile && <p className="text-[14px] text-staff-text-sub">이제 근무를 시작할 수 있습니다.</p>}
         </div>
         {profile ? (
@@ -43,17 +43,17 @@ export default async function NewTaxProfileDonePage({ params }: PageProps<"/me/m
               rows={[
                 ["주민등록번호", profile.rrnMasked],
                 ["급여 계좌", `${labelOf(banks, profile.bankCode)} ${profile.payrollAccountNumberMasked}`],
-                ["쓰는 곳", profile.purpose],
-                ["받은 때", kstDateTimeLabel(profile.collectedAt)],
+                ["이용 목적", profile.purpose],
+                ["등록 일시", kstDateTimeLabel(profile.collectedAt)],
               ]}
             />
           </Sunken>
         ) : (
           <Alert tone="warning">
-            <p>등록됐는지 지금 확인할 수 없습니다. 잠시 뒤 신고 정보에서 확인하고, 없으면 다시 넣어 주세요.</p>
+            <p>등록됐는지 지금 확인할 수 없습니다. 잠시 뒤 신고 정보에서 확인하고, 없으면 다시 입력해 주세요.</p>
           </Alert>
         )}
-        <p className="text-[12px] text-staff-text-muted">내 정보 - 소속 근무지의 신고 정보에서 언제든 확인하고 새로 넣을 수 있습니다.</p>
+        <p className="text-[12px] text-staff-text-muted">내 정보에서 언제든 확인하고 수정할 수 있습니다.</p>
       </div>
       <Dock>
         <Button href={HOME_PATH} replace transitionTypes={["nav-forward"]}>

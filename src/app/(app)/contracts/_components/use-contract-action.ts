@@ -25,7 +25,7 @@ export function useContractAction() {
         setState({
           message:
             typeof digest === "string"
-              ? `처리하지 못했습니다. 계속되면 근무지 점포에 알려 주세요 (오류 번호 ${digest})`
+              ? `처리하지 못했습니다. 계속되면 근무지에 알려 주세요 (오류 번호 ${digest})`
               : `서버에 연결하지 못했습니다. ${OUTCOME_UNKNOWN}`,
         });
       }

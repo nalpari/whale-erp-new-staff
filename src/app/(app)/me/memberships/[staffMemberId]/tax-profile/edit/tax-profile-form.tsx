@@ -91,9 +91,9 @@ export function TaxProfileForm({
     <form action={formAction} onSubmit={onSubmit} className="flex flex-1 flex-col" autoComplete="off">
       <div className="flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
         <div className="flex flex-col gap-[6px]">
-          <h2 className="text-[22px] font-bold">바꿀 값만 새로 넣어 주세요</h2>
+          <h2 className="text-[22px] font-bold">바꿀 값만 새로 입력해 주세요</h2>
           <p className="text-[14px] text-staff-text-sub">
-            비워 둔 쪽은 지금 값 그대로 둡니다. 신고 서류와 급여 이체에 그대로 쓰이니 다시 한 번 확인해 주세요.
+            비워 둔 쪽은 지금 값 그대로 둡니다. 신고와 급여 이체에 그대로 사용되니 정확히 입력해 주세요.
           </p>
         </div>
         <RrnField
@@ -101,7 +101,7 @@ export function TaxProfileForm({
           back={rrnBack}
           onFrontChange={edit(setRrnFront)}
           onBackChange={edit(setRrnBack)}
-          help="뒷자리는 본인에게도 다시 보여주지 않습니다. 고치려면 새로 넣습니다."
+          help="보안을 위해 뒷자리는 다시 보여 드리지 않습니다. 수정하려면 다시 입력해 주세요."
           error={mismatch ? RRN_BIRTH_MISMATCH : errorOf("rrn")}
         />
         <PayrollAccountFields
@@ -110,7 +110,7 @@ export function TaxProfileForm({
           accountNumber={accountNumber}
           onBankChange={edit(setBankCode)}
           onAccountChange={edit(setAccountNumber)}
-          help="예금주가 본인이어야 합니다. 계좌를 바꾸면 다음 급여부터 새 계좌로 들어갑니다."
+          help="본인 명의 계좌만 입력할 수 있습니다. 계좌를 변경하면 다음 급여부터 새 계좌로 지급됩니다."
           bankError={errorOf("bank")}
           accountError={errorOf("account")}
         />
@@ -123,7 +123,7 @@ export function TaxProfileForm({
           autoComplete="current-password"
           required
           maxLength={128}
-          placeholder="본인 확인을 위해 넣어 주세요"
+          placeholder="본인 확인을 위해 입력해 주세요"
           value={currentPassword}
           onChange={(event) => edit(setCurrentPassword)(event.target.value)}
           error={errorOf("currentPassword")}
@@ -140,7 +140,7 @@ export function TaxProfileForm({
           저장하기
         </Button>
         <Button variant="ghost" href={backHref} transitionTypes={["nav-back"]}>
-          그대로 두기
+          취소
         </Button>
       </Dock>
     </form>

@@ -6,7 +6,7 @@ import { Button } from "@/components/common";
 export function ExportButton({ payslipId }: { payslipId: number }) {
   return (
     <Button variant="outline" href={`/pay/${payslipId}/pdf`} download prefetch={false}>
-      명세서 내보내기
+      명세서 PDF 받기
     </Button>
   );
 }

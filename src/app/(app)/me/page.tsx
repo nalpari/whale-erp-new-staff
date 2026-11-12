@@ -47,7 +47,7 @@ function IconLine({
 /** 하위 화면에서 바꾸고 돌아왔을 때의 알림(`?changed=`). 비밀번호(194) · 이메일(195). */
 const CHANGED_TOAST: Record<string, string> = {
   password: "비밀번호를 변경했습니다",
-  email: "아이디를 새 이메일로 바꿨습니다. 다음 로그인부터 새 이메일을 씁니다",
+  email: "로그인 아이디를 새 이메일로 변경했습니다",
 };
 
 // 하단 메뉴 「내 정보」(WHALEERP-193). 기준: 데모 docs/demo/me 의 view(Figma 없음) — 기본 정보 · 소속 근무지 · 위치정보 동의 ·
@@ -83,7 +83,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
             {/* 소속이 여럿이면 입사일도 여럿이다 — 가장 먼저 입사한 곳(api 가 입사일 순으로 준다). 소속마다는 소속 근무지 화면에. */}
             {first?.hiredDate && <ReadOnlyField label="입사일" value={dateLabel(first.hiredDate)} />}
           </div>
-          <p className="pt-[8px] text-[12px] text-staff-text-muted">이름과 생년월일은 본인인증으로 확정된 값이라 앱에서 고칠 수 없습니다.</p>
+          <p className="pt-[8px] text-[12px] text-staff-text-muted">생년월일을 변경하려면 근무지 관리자에게 문의해 주세요.</p>
         </Card>
 
         <div className="flex flex-col gap-[6px]">
@@ -111,7 +111,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
               <Image src="/icons/chevron-right-muted.svg" alt="" width={12} height={12} className="-scale-y-100" />
             </Link>
           )}
-          <p className="px-[4px] text-[12px] text-staff-text-muted">소속 근무지와 고용 형태는 근로계약으로만 바뀝니다.</p>
+          <p className="px-[4px] text-[12px] text-staff-text-muted">소속 근무지와 고용 형태는 근로계약에 따라 정해집니다.</p>
         </div>
 
         <LocationConsentCard consent={profile.locationConsent} terms={locationTerms} />
@@ -123,11 +123,11 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
         <Card>
           <CardLabel>연락처</CardLabel>
           <div className="flex flex-col gap-[10px] pt-[8px]">
-            <ReadOnlyField label="휴대전화번호" value={profile.phone} help="가입 때 넣은 번호로, 앱에서 바꿀 수 없습니다." />
+            <ReadOnlyField label="휴대전화번호" value={profile.phone} help="번호 변경이 필요하면 근무지 관리자에게 문의해 주세요." />
             <ReadOnlyField
               label="이메일 · 로그인 아이디"
               value={profile.email}
-              help="로그인할 때 쓰는 아이디라 새 이메일로 인증번호를 받아 확인한 뒤에 바뀝니다."
+              help="로그인 아이디로 사용되며, 변경하려면 새 이메일 인증이 필요합니다."
               action={
                 <Button variant="outline" href="/me/email" transitionTypes={["nav-forward"]}>
                   변경
@@ -148,7 +148,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
                 마지막 변경 {kstDateLabel(profile.passwordChangedAt)}
                 {/* 오래됐으면 권하기만 한다(WHALEERP-194). 지각 칩 · 경고 판과 같은 글자색(#956013). */}
                 {isPasswordStale(profile.passwordChangedAt, new Date()) && (
-                  <span className="block text-[#956013]">바꾼 지 {PASSWORD_STALE_MONTHS}개월이 넘었습니다. 새 비밀번호로 바꿔 두세요.</span>
+                  <span className="block text-[#956013]">바꾼 지 {PASSWORD_STALE_MONTHS}개월이 넘었습니다. 새 비밀번호로 바꿔 주세요.</span>
                 )}
               </>
             }

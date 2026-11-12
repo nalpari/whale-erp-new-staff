@@ -59,7 +59,7 @@ test("parseAddress 는 api 가 400 으로 거를 값을 먼저 막고, 어느 �
   assert.deepEqual(parseAddress("040441", "서울", ""), PICK_AGAIN);
   assert.deepEqual(parseAddress("04044", "  ", ""), PICK_AGAIN);
   assert.deepEqual(parseAddress("04044", "가".repeat(201), ""), PICK_AGAIN);
-  assert.deepEqual(parseAddress("04044", "서울", "가".repeat(101)), { ok: false, error: "상세 주소는 100자까지 넣을 수 있습니다" });
+  assert.deepEqual(parseAddress("04044", "서울", "가".repeat(101)), { ok: false, error: "상세 주소는 100자까지 입력할 수 있습니다" });
 });
 
 test("parseAddress 는 api 상한과 같은 길이(도로명 200 · 상세 100)를 받는다", () => {

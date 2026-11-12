@@ -51,7 +51,15 @@ export function SignForm({
         <div className="flex flex-col gap-[6px]" aria-live="polite">
           <h2 className="text-[22px] font-bold">{pending ? "서명을 처리하고 있습니다" : "서명란에 서명해 주세요"}</h2>
           <p className="text-[14px] text-staff-text-sub">
-            {pending ? "처리가 끝날 때까지 화면을 닫지 마세요." : "서명을 완료하면 되돌릴 수 없습니다."}
+            {pending ? (
+              <>
+                잠시만 기다려 주세요.
+                <br />
+                처리가 끝날 때까지 화면을 닫지 마세요.
+              </>
+            ) : (
+              "서명을 완료하면 되돌릴 수 없습니다."
+            )}
           </p>
         </div>
         <SignaturePad ref={pad} drawn={drawn} disabled={pending || state.stale} onDrawnChange={setDrawn} />

@@ -42,11 +42,13 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
   return (
     <form action={send} className="flex flex-1 flex-col">
       <div className={BODY}>
-        <Lead title="이메일을 바꾸면 아이디가 바뀝니다">
-          새 이메일로 인증번호를 보냅니다. 확인이 끝나면 다음 로그인부터 새 이메일을 씁니다.
+        <Lead title="이메일을 변경하면 로그인 아이디도 바뀝니다">
+          새 이메일로 인증번호를 보내 드립니다.
+          <br />
+          인증이 끝나면 다음 로그인부터 새 이메일을 사용합니다.
         </Lead>
         <div className="flex items-center gap-[12px] rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px]">
-          <span className="text-[13px] font-semibold text-staff-text-sub">지금 아이디</span>
+          <span className="text-[13px] font-semibold text-staff-text-sub">현재 아이디</span>
           <span className="min-w-0 flex-1 truncate text-right text-[13px]">{currentEmail}</span>
         </div>
         {/* 인증번호 단계에서 돌아오면 폼이 새로 붙어 defaultValue 로 넣은 값을 되돌린다. */}
@@ -57,7 +59,7 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
           autoComplete="email"
           required
           maxLength={254}
-          placeholder="새로 쓸 이메일"
+          placeholder="새 이메일을 입력해 주세요"
           defaultValue={state.newEmail}
           error={state.problem?.field === "newEmail" ? state.problem.message : undefined}
         />
@@ -68,7 +70,7 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
           autoComplete="current-password"
           required
           maxLength={128}
-          placeholder="본인 확인을 위해 넣어 주세요"
+          placeholder="본인 확인을 위해 입력해 주세요"
           value={currentPassword}
           onChange={(event) => setCurrentPassword(event.target.value)}
           error={state.problem?.field === "currentPassword" ? state.problem.message : undefined}
@@ -80,7 +82,9 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
         ) : (
           <Alert tone="warning">
             <p>
-              비밀번호를 잊었을 때 인증번호가 이 주소로 갑니다. <strong>받을 수 있는 주소</strong>인지 확인해 주세요.
+              비밀번호 재설정 인증번호도 이 이메일로 보내 드립니다.
+              <br />
+              <strong>메일을 받을 수 있는 주소</strong>인지 확인해 주세요.
             </p>
           </Alert>
         )}
@@ -90,7 +94,7 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
           인증번호 받기
         </Button>
         <Button variant="ghost" href="/me" transitionTypes={["nav-back"]}>
-          그대로 두기
+          취소
         </Button>
       </Dock>
     </form>
@@ -117,7 +121,11 @@ function PinStep({
     <form action={action} className="flex flex-1 flex-col">
       <div className={BODY}>
         {/* 방금 직접 넣은 주소라 가리지 않는다 — 오타를 여기서 알아챌 수 있게(데모는 가렸다). */}
-        <Lead title="새 이메일로 보낸 번호를 넣어 주세요">{state.newEmail} 으로 보냈습니다.</Lead>
+        <Lead title="인증번호 입력">
+          {state.newEmail}으로 보낸
+          <br />
+          인증번호 6자리를 입력해 주세요.
+        </Lead>
         <TextField
           label="인증번호"
           name="pin"
@@ -125,6 +133,7 @@ function PinStep({
           autoComplete="one-time-code"
           required
           maxLength={20}
+          placeholder="인증번호 6자리"
           value={pin}
           onChange={(event) => setPin(event.target.value)}
           error={feedback?.kind === "error" && feedback.field === "pin" ? feedback.message : undefined}
@@ -139,7 +148,7 @@ function PinStep({
         )}
         {/* 다시 받기에 성공하면 제목은 그대로라 초점이 옮겨 가지 않는다. 화면 낭독기가 읽도록 status 로 둔다. */}
         <div role="status">{feedback?.kind === "notice" && <Notice>{feedback.message}</Notice>}</div>
-        <Notice>확인이 끝날 때까지 아이디는 그대로 이전 이메일입니다.</Notice>
+        <Notice>인증이 끝나기 전까지는 기존 이메일로 로그인합니다.</Notice>
       </div>
       {/* 「확인」이 첫 제출 버튼이어야 인증번호 칸에서 Enter 를 눌렀을 때 확인이 된다. */}
       <Dock>
@@ -150,7 +159,7 @@ function PinStep({
           {canResend || resendLeft === null ? "인증번호 다시 받기" : `${formatLeft(resendLeft)} 뒤 다시 받기`}
         </Button>
         <Button variant="ghost" type="submit" name="intent" value="edit" disabled={pending} formNoValidate>
-          이메일 다시 입력
+          이메일 다시 입력하기
         </Button>
       </Dock>
     </form>

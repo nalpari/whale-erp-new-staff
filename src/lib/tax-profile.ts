@@ -54,16 +54,16 @@ export interface TaxProfileEditInput {
 }
 
 /** 지금 비밀번호를 비웠을 때 — 비밀번호 변경 화면(validatePasswordChange)과 같은 문구. */
-export const CURRENT_PASSWORD_EMPTY = "지금 비밀번호를 넣어 주세요";
+export const CURRENT_PASSWORD_EMPTY = "지금 비밀번호를 입력해 주세요";
 export { CURRENT_PASSWORD_MISMATCH };
 
 /** 은행 · 계좌번호 한쪽만 넣었을 때. api TAX_PROFILE_ACCOUNT_INCOMPLETE 의 화면 쪽 문구. */
-export const ACCOUNT_INCOMPLETE = "급여 계좌는 은행과 계좌번호를 함께 넣어 주세요";
+export const ACCOUNT_INCOMPLETE = "급여 계좌는 은행과 계좌번호를 함께 입력해 주세요";
 /** 주민등록번호 앞자리 · 가입 생년월일이 다를 때 — 데모 tax 의 mismatch 문구(생년월일 값은 넣지 않는다, 운영 정책 TAX-09). */
-export const RRN_BIRTH_MISMATCH = "주민등록번호 앞자리가 가입 때 넣은 생년월일과 다릅니다. 근무지 관리자에게 생년월일 정정을 요청해 주세요.";
-export const RRN_SHAPE = "주민등록번호 앞 6자리와 뒤 7자리를 숫자로 넣어 주세요";
+export const RRN_BIRTH_MISMATCH = "주민등록번호 앞자리가 생년월일과 다릅니다. 생년월일이 잘못되었다면 근무지 관리자에게 수정을 요청해 주세요.";
+export const RRN_SHAPE = "주민등록번호 앞 6자리와 뒤 7자리를 숫자로 입력해 주세요";
 export const ACCOUNT_SHAPE = "계좌번호는 숫자 10~16자리입니다";
-export const NOTHING_TO_CHANGE = "바꿀 주민등록번호나 급여 계좌를 넣어 주세요";
+export const NOTHING_TO_CHANGE = "바꿀 주민등록번호나 급여 계좌를 입력해 주세요";
 
 const problem = (field: TaxProfileField, message: string): TaxProfileEditState => ({ problem: { field, message } });
 
@@ -168,7 +168,7 @@ export function taxProfileSaveFailure(failure: ApiFailure): { state: TaxProfileE
     if (message.includes("계좌번호")) return { state: problem("account", ACCOUNT_SHAPE), log: true };
     // 지금 비밀번호의 형식 검증(빈 글자 · 129자 이상)은 영어 원문이다.
     if (message.includes("currentPassword")) return { state: problem("currentPassword", CURRENT_PASSWORD_EMPTY), log: true };
-    return { state: problem("form", "넣은 값을 다시 확인해 주세요"), log: true };
+    return { state: problem("form", "입력한 값을 다시 확인해 주세요"), log: true };
   }
   if (status === 404)
     return { state: problem("form", "이 근무지의 신고 정보를 고칠 수 없습니다. 소속 근무지에서 다시 열어 주세요"), log: false };
@@ -181,11 +181,11 @@ export function taxProfileSaveFailure(failure: ApiFailure): { state: TaxProfileE
 }
 
 /** 처음 넣기를 보냈는데 이 소속에 이미 낸 신고 정보가 있을 때 — 처음 넣기는 덮어쓰지 않는다. */
-export const TAX_PROFILE_ALREADY_SUBMITTED = "이 근무지에는 이미 낸 신고 정보가 있습니다. 바꾸려면 신고 정보의 「새로 넣기」에서 바꿔 주세요";
+export const TAX_PROFILE_ALREADY_SUBMITTED = "이 근무지에는 이미 낸 신고 정보가 있습니다. 바꾸려면 신고 정보의 「다시 입력하기」에서 바꿔 주세요";
 /** 처음 넣기에서 은행을 고르지 않았을 때. */
 export const BANK_REQUIRED = "급여를 받을 은행을 골라 주세요";
 /** 처음 넣기의 api 404 — 내 소속이 아니다(퇴직 · 남의 id). */
-export const TAX_PROFILE_CREATE_NOT_FOUND = "이 근무지에는 신고 정보를 넣을 수 없습니다. 소속 근무지에서 다시 열어 주세요";
+export const TAX_PROFILE_CREATE_NOT_FOUND = "이 근무지에는 신고 정보를 입력할 수 없습니다. 소속 근무지에서 다시 열어 주세요";
 
 /**
  * 날인 뒤 처음 넣기(WHALEERP-150)의 값 거르기. 주민등록번호 · 은행 · 계좌번호 셋 다 필수이고, 지금 비밀번호는 보내지 않는다 —
@@ -211,7 +211,7 @@ export function taxProfileCreateFailure(failure: ApiFailure): { state: TaxProfil
   if (failure !== "network" && failure.status === 400 && failure.code === "CURRENT_PASSWORD_MISMATCH")
     return { state: problem("form", `신고 정보를 저장했는지 확인하지 못했습니다. ${RETRY_LATER}`), log: false, alreadySaved: true };
   if (failure !== "network" && failure.status === 400 && (failure.code === "TAX_PROFILE_INCOMPLETE" || failure.code === "TAX_PROFILE_EMPTY"))
-    return { state: problem("form", "주민등록번호와 급여 계좌를 모두 넣어 주세요"), log: true, alreadySaved: false };
+    return { state: problem("form", "주민등록번호와 급여 계좌를 모두 입력해 주세요"), log: true, alreadySaved: false };
   if (failure !== "network" && failure.status === 404)
     return { state: problem("form", TAX_PROFILE_CREATE_NOT_FOUND), log: false, alreadySaved: false };
   const { state, log } = taxProfileSaveFailure(failure);

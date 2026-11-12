@@ -128,7 +128,7 @@ test("invalidCurrentPassword — 비었으면 넣어 달라고, 128자를 넘으
   assert.deepEqual(invalidCurrentPassword("", "x@y.z"), {
     step: "email",
     newEmail: "x@y.z",
-    problem: { field: "currentPassword", message: "지금 비밀번호를 넣어 주세요" },
+    problem: { field: "currentPassword", message: "지금 비밀번호를 입력해 주세요" },
   });
   const long = invalidCurrentPassword("a".repeat(129), "x@y.z");
   assert.equal(long?.step === "email" && long.problem?.message, "지금 비밀번호가 맞지 않습니다");

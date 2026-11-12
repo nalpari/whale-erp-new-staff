@@ -38,7 +38,7 @@ function useConsentChange(onDone: () => void) {
         const digest = (thrown as { digest?: unknown } | null)?.digest;
         setError(
           typeof digest === "string"
-            ? `동의 상태를 바꾸지 못했습니다. 계속되면 근무지 점포에 알려 주세요 (오류 번호 ${digest})`
+            ? `동의 상태를 바꾸지 못했습니다. 계속되면 근무지에 알려 주세요 (오류 번호 ${digest})`
             : "서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요",
         );
       }
@@ -123,11 +123,11 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
 
   // 일시 중지 중이면 그 사실을 남긴다 — 다시 동의해도 멈춘 채다(api 가 새 동의 행에 일시 중지를 옮긴다, ATT-26)
   const line = reconsent
-    ? `${state === "PAUSED" && pausedAt ? `${kstDateTimeLabel(pausedAt)} 부터 일시 중지 — ` : agreedAt ? `${kstDateTimeLabel(agreedAt)} 동의${version} — ` : ""}약관이 바뀌어 다시 동의해야 합니다`
+    ? `${state === "PAUSED" && pausedAt ? `${kstDateTimeLabel(pausedAt)}부터 일시 중지 — ` : agreedAt ? `${kstDateTimeLabel(agreedAt)} 동의${version} — ` : ""}약관이 바뀌어 다시 동의해야 합니다`
     : state === "AGREED" && agreedAt
       ? `${kstDateTimeLabel(agreedAt)} 동의${version}`
       : state === "PAUSED" && pausedAt
-        ? `${kstDateTimeLabel(pausedAt)} 부터 일시 중지${agreedAt ? ` · 동의는 ${kstDateTimeLabel(agreedAt)} 그대로` : ""}`
+        ? `${kstDateTimeLabel(pausedAt)}부터 일시 중지${agreedAt ? " · 동의는 유지 중" : ""}`
         : state === "WITHDRAWN" && withdrawnAt
           ? `${kstDateTimeLabel(withdrawnAt)} 철회${version}`
           : "아직 동의하지 않았습니다";
@@ -182,10 +182,10 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
               ? "새 약관에 다시 동의해도 일시 중지는 그대로입니다. 다시 동의한 뒤 「다시 켜기」로 수집을 켜면 앱으로 출퇴근을 등록할 수 있습니다."
               : "새 약관에 다시 동의하기 전에는 앱으로 출퇴근을 등록할 수 없습니다. 이 화면이나 다음 출퇴근 등록 때 다시 동의할 수 있습니다."
             : state === "AGREED"
-            ? "동의하지 않으면 앱으로 출퇴근을 등록할 수 없고, 이 화면이나 다음 출퇴근 등록 때 다시 동의할 수 있습니다."
+            ? "동의를 철회하면 앱으로 출퇴근을 등록할 수 없습니다."
             : state === "PAUSED"
-              ? "일시 중지 동안 출퇴근 기록은 근무지 관리자에게 문의해 주세요. 다시 켜면 새로 동의하지 않아도 됩니다."
-              : "동의하지 않은 동안 출퇴근 기록은 근무지 관리자에게 문의해 주세요. 이 화면이나 다음 출퇴근 등록 때 동의해도 됩니다."
+              ? "일시 중지 중에는 출퇴근 기록을 근무지 관리자에게 문의해 주세요. 다시 켜면 새로 동의하지 않아도 됩니다."
+              : "동의 전까지 출퇴근 기록은 근무지 관리자에게 문의해 주세요. 다음 출퇴근 등록 때 다시 동의할 수 있습니다."
         }
       />
       {toast && <Toast key={toast.key}>{toast.text}</Toast>}
@@ -230,25 +230,32 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
       </BottomSheet>
 
       {/* 일시 중지(ATT-26). 동의는 남고 수집만 멎어 다시 켤 때 동의 절차가 없다. */}
-      <BottomSheet open={sheet === "pause"} onClose={() => setSheet(undefined)} title="위치 수집을 일시 중지할까요" closeLabel="그대로 두기">
+      <BottomSheet open={sheet === "pause"} onClose={() => setSheet(undefined)} title="위치 수집을 일시 중지하시겠습니까?" closeLabel="취소">
         <p className="text-[14px] font-bold text-staff-text">
-          일시 중지 중에는 앱으로 출퇴근을 등록할 수 없습니다. 출퇴근 기록은 근무지 관리자에게 문의해 주세요. 다시 켜면 새로 동의하지 않아도
-          됩니다
+          일시 중지 중에는 앱으로 출퇴근을 등록할 수 없습니다.
+          <br />
+          출퇴근 기록은 근무지 관리자에게 문의해 주세요.
         </p>
-        <Sunken>동의는 그대로 남고 수집만 멎습니다. 철회와 달리 다시 켤 때 동의 절차가 없습니다.</Sunken>
+        <Sunken>동의는 그대로 유지되어, 다시 켤 때 새로 동의하지 않아도 됩니다.</Sunken>
         <Button disabled={pending} onClick={() => change("location-pause")}>
           일시 중지
         </Button>
       </BottomSheet>
 
       {/* 동의 철회(ATT-23). 다시 등록하려면 새로 동의해야 한다. */}
-      <BottomSheet open={sheet === "withdraw"} onClose={() => setSheet(undefined)} title="위치정보 동의를 철회할까요" closeLabel="그대로 두기">
+      <BottomSheet open={sheet === "withdraw"} onClose={() => setSheet(undefined)} title="위치정보 동의를 철회하시겠습니까?" closeLabel="취소">
         <p className="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">
-          철회하면 <strong>앱으로 출퇴근을 등록할 수 없습니다. 출퇴근 기록은 근무지 관리자에게 문의해 주세요.</strong>
+          철회하면 앱으로 출퇴근을 등록할 수 없습니다.
+          <br />
+          <strong>출퇴근 기록은 근무지 관리자에게 문의해 주세요.</strong>
         </p>
-        <Sunken>다시 등록하려면 이 화면이나 다음 출퇴근 등록 때 새로 동의하면 됩니다. 이미 남은 기록은 그대로 보존됩니다.</Sunken>
+        <Sunken>
+          다음 출퇴근 등록 때 다시 동의할 수 있습니다.
+          <br />
+          지금까지의 기록은 그대로 남습니다.
+        </Sunken>
         <Button disabled={pending} onClick={() => change("location-withdraw")}>
-          철회합니다
+          철회하기
         </Button>
       </BottomSheet>
     </>
@@ -307,25 +314,32 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
         <HqSharingTermsBody />
         {view.action.kind === "agree" && view.action.alsoWithdraw && (
           <Alert tone="warning">
-            <p>동의한 뒤 내용이 바뀌었습니다. 위 내용으로 다시 동의해야 본사에 개인 단위로 보입니다 — 원하지 않으면 동의를 철회할 수 있습니다.</p>
+            <p>동의한 뒤 내용이 바뀌었습니다. 위 내용으로 다시 동의해야 가맹본부에 개인 단위로 보입니다 — 원하지 않으면 동의를 철회할 수 있습니다.</p>
           </Alert>
         )}
         <HqSharingTermsReviewNote />
         {/* 위치정보와 같이 내용을 보인 이 시트 안에서만 동의를 받는다. */}
         {view.action.kind === "agree" && (
-          <Button disabled={pending} onClick={() => change("hq-sharing-agree", HQ_SHARING_TERMS_VERSION)}>
+          // 내 정보의 끝난 알림은 「동의를 완료했습니다」 — 홈 다시 동의 팝업이 같이 쓰는 CONSENT_CHANGES 문구는 그대로 둔다
+          <Button disabled={pending} onClick={() => change("hq-sharing-agree", HQ_SHARING_TERMS_VERSION, "사업자 제공 동의를 완료했습니다")}>
             동의합니다
           </Button>
         )}
       </BottomSheet>
 
-      <BottomSheet open={sheet === "withdraw"} onClose={() => setSheet(undefined)} title="사업자 제공 동의를 철회할까요" closeLabel="그대로 두기">
+      <BottomSheet open={sheet === "withdraw"} onClose={() => setSheet(undefined)} title="사업자 제공 동의를 철회하시겠습니까?" closeLabel="취소">
         <p className="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">
-          철회하면 가맹본부가 <strong>내 근무 정보를 개인 단위로 보지 않습니다.</strong> 점포별 숫자로만 보입니다.
+          철회하면 가맹본부에는 내 근무 정보가
+          <br />
+          <strong>점포별 숫자로만 보입니다.</strong>
         </p>
-        <Sunken>가입과 근무, 급여명세서 수령은 그대로입니다. 다시 동의하려면 이 화면의 「다시 동의하기」로 하면 됩니다.</Sunken>
+        <Sunken>
+          근무와 급여명세서에는 영향이 없습니다.
+          <br />
+          내 정보에서 언제든 다시 동의할 수 있습니다.
+        </Sunken>
         <Button disabled={pending} onClick={() => change("hq-sharing-withdraw")}>
-          철회합니다
+          철회하기
         </Button>
       </BottomSheet>
     </>

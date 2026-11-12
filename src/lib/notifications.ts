@@ -38,10 +38,10 @@ export function timeLabel(createdAt: string, now: Date): string {
 
 /** 수신 설정 묶음(api enum 순서)과 화면 글자 — 목업 「알림 설정」. 네 묶음 모두 끌 수 있다(NOTI-8) */
 export const PREFERENCE_ITEMS: { category: PreferenceCategory; title: string; description: string }[] = [
-  { category: "CONTRACT", title: "근로계약서 발송", description: "근로계약서가 도착하면 알립니다" },
-  { category: "SCHEDULE", title: "근무스케줄 변경", description: "근무 시간이나 근무일이 바뀌면 알립니다" },
-  { category: "TODO", title: "TO-DO 수행 임박", description: "수행 예정 일시가 다가오면 알립니다" },
-  { category: "PAYSLIP", title: "급여명세서 발송", description: "급여명세서가 발송되면 알립니다" },
+  { category: "CONTRACT", title: "근로계약서", description: "근로계약서를 받으면 알려 드립니다" },
+  { category: "SCHEDULE", title: "근무스케줄 변경", description: "근무 시간이나 근무일이 바뀌면 알려 드립니다" },
+  { category: "TODO", title: "TO-DO", description: "해야 할 시간이 다가오면 알려 드립니다" },
+  { category: "PAYSLIP", title: "급여명세서", description: "급여명세서를 받으면 알려 드립니다" },
 ];
 
 export const isPreferenceCategory = (value: unknown): value is PreferenceCategory =>

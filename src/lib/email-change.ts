@@ -131,7 +131,7 @@ export function confirmPinFailure(failure: ApiFailure, previous: PinState): Fail
 /** 넣은 인증번호를 거른다. 맞으면 null, 아니면 인증번호 칸 오류 상태. */
 export function invalidPin(pin: string, previous: PinState): PinState | null {
   if (pin && pin.length <= 20) return null;
-  return { ...previous, feedback: { kind: "error", field: "pin", message: "받은 인증번호를 넣어 주세요" } };
+  return { ...previous, feedback: { kind: "error", field: "pin", message: "받은 인증번호를 입력해 주세요" } };
 }
 
 /**
@@ -140,7 +140,7 @@ export function invalidPin(pin: string, previous: PinState): PinState | null {
  */
 export function invalidCurrentPassword(currentPassword: string, newEmail: string): EmailChangeState | null {
   if (currentPassword && currentPassword.length <= 128) return null;
-  const message = currentPassword ? CURRENT_PASSWORD_MISMATCH : "지금 비밀번호를 넣어 주세요";
+  const message = currentPassword ? CURRENT_PASSWORD_MISMATCH : "지금 비밀번호를 입력해 주세요";
   return { step: "email", newEmail, problem: { field: "currentPassword", message } };
 }
 

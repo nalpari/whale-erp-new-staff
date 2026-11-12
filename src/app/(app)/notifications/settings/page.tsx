@@ -15,7 +15,11 @@ export default async function NotificationSettingsPage() {
     <div className="flex flex-1 flex-col">
       <PageHeader title="알림 설정" backHref="/notifications" />
       <div className="flex flex-col gap-[16px] px-[22px] pt-[16px] pb-[24px] leading-[1.5]">
-        <p className="text-[14px] text-staff-text-sub">유형별로 받을 앱 푸시를 고릅니다. 꺼 둔 유형도 알림함에서는 확인할 수 있습니다.</p>
+        <p className="text-[14px] text-staff-text-sub">
+          받을 푸시 알림을 선택해 주세요.
+          <br />
+          꺼 둔 알림도 알림함에서 확인할 수 있습니다.
+        </p>
         {!preferences ? (
           <>
             <Alert tone="warning">알림 설정을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>
@@ -26,7 +30,11 @@ export default async function NotificationSettingsPage() {
         ) : (
           <PreferenceList items={preferences.items} />
         )}
-        <Notice>기본 채널은 앱 푸시입니다. 근로계약서처럼 꼭 확인해야 하는 알림은 카카오 알림톡을 함께 보내는 경우가 있습니다.</Notice>
+        <Notice>
+          근로계약서처럼 꼭 확인해야 하는 알림은
+          <br />
+          카카오 알림톡으로도 함께 보낼 수 있습니다.
+        </Notice>
       </div>
     </div>
   );
