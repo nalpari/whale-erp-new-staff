@@ -29,7 +29,7 @@ export type EmailFindState =
   | ({ step: "locked"; values: EmailFindValues } & AttemptLock);
 
 const RATE_LIMITED_MESSAGE = "시도가 많아 잠시 막았습니다. 잠시 뒤에 다시 시도해 주세요";
-const BAD_BIRTH_DATE = "생년월일을 확인해 주세요. 1999-04-12 처럼 넣어 주세요";
+const BAD_BIRTH_DATE = "생년월일을 확인해 주세요. 19990412 처럼 입력해 주세요";
 /** api EmailFindDto 의 이름 최대 길이. api 는 NFC 로 바꾼 뒤 센다. */
 const NAME_MAX = 50;
 
@@ -48,11 +48,11 @@ export async function findEmailAction(_previous: EmailFindState, formData: FormD
     error,
   });
   // api 가 400 으로 거를 모양은 먼저 칸별로 알린다. 400 은 번호 잠금 횟수에 들지 않지만 요청 제한에는 든다.
-  if (!values.name) return input("name", "이름을 넣어 주세요");
+  if (!values.name) return input("name", "이름을 입력해 주세요");
   // 칸의 maxLength 는 화면만 막는다. JS 없이 보낸 긴 이름이 api 400 이 되어 생년월일 오류로 보이지 않게 여기서 거른다.
-  if (values.name.normalize("NFC").length > NAME_MAX) return input("name", `이름은 ${NAME_MAX}자까지 넣을 수 있습니다`);
+  if (values.name.normalize("NFC").length > NAME_MAX) return input("name", `이름은 ${NAME_MAX}자까지 입력할 수 있습니다`);
   const phone = normalizePhone(values.phone);
-  if (!/^\d{10,11}$/.test(phone)) return input("phone", "휴대전화번호를 확인해 주세요. 010-1234-5678 처럼 넣어 주세요");
+  if (!/^\d{10,11}$/.test(phone)) return input("phone", "휴대전화번호를 확인해 주세요. 01012345678 처럼 숫자만 입력해 주세요");
   const birthDate = normalizeBirthDate(values.birthDate);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return input("birthDate", BAD_BIRTH_DATE);
 

@@ -107,7 +107,7 @@ export function signupFieldOf(message: string): SignupField {
   return "form";
 }
 
-export const BAD_BIRTH_DATE = "생년월일 8자리를 넣어 주세요. 19990412 처럼 넣어 주세요";
+export const BAD_BIRTH_DATE = "생년월일 8자리를 입력해 주세요. 19990412 처럼 입력해 주세요";
 
 /** 가입할 수 있는 나이(만). api 는 가입하는 날(한국 날짜)에 이 나이가 안 되면 계정을 만들지 않고 초대를 「가입 불가」로 끝낸다. */
 export const SIGNUP_MIN_AGE = 19;
@@ -145,11 +145,11 @@ export interface SignupFields {
  */
 export function signupFieldProblem(fields: SignupFields): { field: SignupField; error: string } | null {
   const { name, birthDate, gender, email, newPassword } = fields;
-  if (!name) return { field: "name", error: "이름을 넣어 주세요" };
-  if (name.normalize("NFC").length > SIGNUP_NAME_MAX) return { field: "name", error: `이름은 ${SIGNUP_NAME_MAX}자까지 넣을 수 있습니다` };
+  if (!name) return { field: "name", error: "이름을 입력해 주세요" };
+  if (name.normalize("NFC").length > SIGNUP_NAME_MAX) return { field: "name", error: `이름은 ${SIGNUP_NAME_MAX}자까지 입력할 수 있습니다` };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return { field: "birthDate", error: BAD_BIRTH_DATE };
   if (!isGender(gender)) return { field: "gender", error: "성별을 골라 주세요" };
-  if (!email) return { field: "email", error: "이메일을 넣어 주세요" };
+  if (!email) return { field: "email", error: "이메일을 입력해 주세요" };
   const rules = checkPasswordRules(newPassword, email);
   if (!rules.kinds || !rules.length || !rules.notEmail) return { field: "newPassword", error: "아래 비밀번호 조건을 확인해 주세요" };
   if (newPassword !== fields.newPasswordConfirmation) return { field: "newPasswordConfirmation", error: "두 칸의 비밀번호가 다릅니다" };

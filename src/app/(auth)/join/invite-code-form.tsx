@@ -15,7 +15,7 @@ export function InviteCodeForm() {
   const [state, formAction, pending] = useActionState<InviteCodeState, FormData>(checkInviteCodeAction, { step: "input" });
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
-  // 「다시 넣기」 · 「새 초대 코드 넣기」로 걷어 낸 결과. 같은 결과 객체로는 그 화면을 다시 그리지 않는다(로그인 잠금과 같다).
+  // 「다시 입력하기」 · 「새 초대 코드 넣기」로 걷어 낸 결과. 같은 결과 객체로는 그 화면을 다시 그리지 않는다(로그인 잠금과 같다).
   const [dismissed, setDismissed] = useState<InviteCodeState | null>(null);
 
   if (state.step === "locked" && state !== dismissed) return <CodeLocked lock={state} onRetry={() => setDismissed(state)} />;
@@ -30,8 +30,8 @@ export function InviteCodeForm() {
     <form action={formAction} className="flex flex-1 flex-col">
       <AuthScreen
         eyebrow={<JoinSteps via="code" step="초대 코드" />}
-        title="초대 코드를 넣어 주세요"
-        description="초대를 받은 휴대전화번호와 8자리 초대 코드를 함께 넣습니다."
+        title="초대 코드 입력"
+        description="초대받은 휴대전화번호와 초대 코드 8자리를 입력해 주세요."
         dock={
           <>
             <Button type="submit" disabled={pending || !filled}>
@@ -52,10 +52,9 @@ export function InviteCodeForm() {
             autoComplete="tel"
             required
             maxLength={13}
-            placeholder="010-1234-5678"
+            placeholder="숫자만 입력해 주세요"
             value={phone}
             onChange={(event) => setPhone(formatPhone(event.target.value))}
-            help="초대를 받은 번호입니다. 숫자만 넣으면 하이픈은 저절로 들어갑니다."
             error={error?.field === "phone" ? error.error : undefined}
           />
           <TextField
@@ -66,18 +65,21 @@ export function InviteCodeForm() {
             autoCapitalize="characters"
             spellCheck={false}
             required
-            placeholder="K7M4Q9TX"
+            placeholder="초대 코드 8자리"
             value={code}
             // 띄어 쓴 코드(「K7M4 Q9TX」)를 붙여 넣어도 공백을 뺀 8자리가 남게 칸이 아니라 여기서 자른다.
             onChange={(event) => setCode(normalizeInviteCode(event.target.value).slice(0, INVITE_CODE_LENGTH))}
-            help="8자리입니다. 두 칸을 모두 채우면 「다음」이 켜집니다."
             error={error?.field === "code" ? error.error : undefined}
           />
         </div>
         {error?.field === "form" ? (
           <Alert tone="danger">{error.error}</Alert>
         ) : (
-          <Notice>초대 코드는 근무지에서 보낸 알림톡 · 문자에 있습니다. 받지 못했으면 근무지에 다시 보내 달라고 요청해 주세요.</Notice>
+          <Notice>
+            초대 코드는 근무지에서 보낸 알림톡·문자에서 확인할 수 있습니다.
+            <br />
+            받지 못했다면 근무지 관리자에게 요청해 주세요.
+          </Notice>
         )}
       </AuthScreen>
     </form>

@@ -61,9 +61,9 @@ export function AnswerScreen({
       <PageHeader title="소속 추가 확인" backHref={backHref} />
       <form action={acceptAction} className="flex flex-1 flex-col">
         <div className={BODY}>
-          <Lead title={returning ? "다시 함께 일하자는 요청" : "새 소속 추가 요청"}>
+          <Lead title={returning ? "다시 함께 일하자는 요청" : "새 근무지 초대가 도착했습니다"}>
             <strong>{request.storeName}</strong>
-            {returning ? "에서 다시 함께 일해 달라고 요청했습니다." : "에서 함께 일해 달라고 요청했습니다."}
+            {returning ? "에서 다시 함께 일해 달라고 요청했습니다." : "에서 함께 일하자고 초대했습니다."}
           </Lead>
           <Card>
             <div className="flex flex-col divide-y divide-staff-border-light">
@@ -72,18 +72,18 @@ export function AnswerScreen({
             </div>
           </Card>
           <Notice icon={<MaskIcon src="/icons/shield.svg" size={14} flipY />}>
-            수락하면 <strong>이름 · 휴대전화번호 · 생년월일 · 성별 · 외국인 여부만</strong> 새 소속에 복사됩니다. 다른 소속의 계약 · 급여 ·
-            출퇴근 기록은 넘어가지 않습니다.
+            수락하면 <strong>이름·휴대전화번호·생년월일·성별·외국인 여부</strong>만 새 근무지에 공유됩니다.
+            <br />
+            기존 근무지의 계약·급여·출퇴근 기록은 공유되지 않습니다.
           </Notice>
           <Notice icon={<MaskIcon src="/icons/contract.svg" size={14} />}>
-            <strong>여기서 수락하는 것은 소속 연결까지입니다.</strong> 시급 · 근무 시간대를 포함한 근무 조건은 수락한 뒤 도착하는
-            근로계약서에서 확인하고 서명합니다.
+            시급·근무 시간 등 근무 조건은 수락한 뒤 받는 근로계약서에서 확인할 수 있습니다.
           </Notice>
           {/* 가맹 점포이고 아직 동의하지 않았을 때만(ATT-30). 계정 등록의 동의 칸과 같다. */}
           {request.asksHqSharingConsent && (
             <div className="flex flex-col gap-[4px]">
               <CheckBox name="hqSharingConsented" checked={hqSharing} onChange={setHqSharing}>
-                본사 제공 동의 (선택)
+                사업자 제공 동의 (선택)
               </CheckBox>
               {/* 이 화면이 보인 문구의 버전(ATT-30 v252) — 계정 등록의 동의 칸과 같다 */}
               <input type="hidden" name="hqSharingConsentVersion" value={HQ_SHARING_TERMS_VERSION} />
@@ -93,7 +93,7 @@ export function AnswerScreen({
             </div>
           )}
           <p className="text-[12px] text-staff-text-muted">
-            이 요청은 {kstDateTimeLabel(request.expiresAt)}까지 답할 수 있습니다. 거절해도 기존 소속과 계정에는 영향이 없습니다.
+            이 요청은 {kstDateTimeLabel(request.expiresAt)}까지 답할 수 있습니다. 거절해도 기존 근무지와 계정은 유지됩니다.
           </p>
           {accepted.error && <Alert tone={acceptBlocked ? "warning" : "danger"}>{accepted.error}</Alert>}
         </div>
@@ -112,8 +112,8 @@ export function AnswerScreen({
       <BottomSheet
         open={rejectOpen}
         onClose={() => setRejectOpen(false)}
-        title="소속 추가를 거절하시겠어요?"
-        description="거절해도 기존 소속과 계정에는 영향이 없습니다. 이 요청과 함께 온 근로계약서는 거절로 닫힙니다."
+        title="소속 추가를 거절하시겠습니까?"
+        description="거절해도 기존 근무지와 계정은 유지됩니다. 이 요청과 함께 온 근로계약서는 거절로 닫힙니다."
         closeLabel="취소"
       >
         <form action={rejectAction} className="flex flex-col gap-[13px]">
