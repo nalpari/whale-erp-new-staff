@@ -48,8 +48,12 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
           <span className="flex pb-[6px] text-staff-text-muted">
             <MaskIcon src="/icons/store.svg" size={40} flipY />
           </span>
-          <h2 className="text-[18px] font-bold">근무지가 없습니다</h2>
-          <p className="max-w-[250px] text-[14px] text-staff-text-sub">연결된 근무지가 없어 출퇴근 기록을 보여 줄 수 없습니다. 지난 기록은 관리자에게 문의해 주세요.</p>
+          <h2 className="text-[18px] font-bold">근무가 종료되었습니다</h2>
+          <p className="max-w-[250px] text-[14px] text-staff-text-sub">
+            지난 출퇴근 기록은
+            <br />
+            근무지 관리자에게 문의해 주세요.
+          </p>
         </div>
       ) : (
         <AttendanceHistoryScreen key={`${current.staffMemberId}-${tab}`} tab={tab} records={records} today={today} weekStart={monday} now={now.toISOString()} />

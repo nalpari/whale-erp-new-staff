@@ -51,9 +51,11 @@ export default async function CheckInPage() {
           <span className="flex text-staff-placeholder">
             <MaskIcon src="/icons/store.svg" size={30} flipY />
           </span>
-          <p className="pt-[6px] text-[18px] font-bold">근무지가 없습니다</p>
+          <p className="pt-[6px] text-[18px] font-bold">근무가 종료되었습니다</p>
           <p className="max-w-[250px] text-[14px] text-staff-text-sub">
-            연결된 근무지가 없어 출퇴근을 등록할 수 없습니다. 받은 급여명세서는 급여 탭에서 볼 수 있습니다.
+            급여명세서는 보존 기간(3년) 동안
+            <br />
+            급여 탭에서 확인할 수 있습니다.
           </p>
         </div>
       ) : (

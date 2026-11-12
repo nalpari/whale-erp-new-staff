@@ -60,12 +60,13 @@ export function SchedulePanel({
           <button type="button" aria-label="이전 달" onClick={() => go(-1)} className={navButton}>
             <Image src="/icons/chevron-left-24.svg" alt="" width={20} height={20} className="-scale-y-100" />
           </button>
-          <div className="flex items-center gap-[8px]">
+          {/* 달 이름을 가운데에 두고 「오늘」은 그 오른쪽에 띄운다(데모 work — 이전 달 · 다음 달 칸 폭이 같아 달 이름이 한가운데) */}
+          <div className="relative">
             <p className="text-[16px] font-bold">{monthLabel(month)}</p>
             <button
               type="button"
               onClick={goToday}
-              className="flex h-[32px] items-center rounded-[10px] bg-staff-primary-inactive px-[10px] text-[13px] font-semibold text-staff-primary transition-colors duration-150 ease-out active:bg-[#dcdcf7]"
+              className="absolute top-1/2 left-full ml-[8px] flex h-[32px] -translate-y-1/2 items-center rounded-[10px] bg-staff-primary-inactive px-[10px] text-[13px] font-semibold whitespace-nowrap text-staff-primary transition-colors duration-150 ease-out active:bg-[#dcdcf7]"
             >
               오늘
             </button>
@@ -127,7 +128,7 @@ export function SchedulePanel({
             {/* 근무가 없는 달도 달력은 그대로 그리고 안내 줄만 둔다(2026-10-23 재영). */}
             {items.length === 0 && (
               <p className="border-t border-staff-border-light px-[4px] pt-[10px] text-[12px] text-staff-text-muted">
-                이 달에 등록된 근무가 없습니다. 관리자가 등록하면 이 달력에 표시됩니다.
+                이 달 근무가 없습니다. 근무지에서 근무스케줄을 등록하면 여기에 표시됩니다.
               </p>
             )}
       </div>

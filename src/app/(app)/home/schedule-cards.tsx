@@ -4,7 +4,7 @@ import { Alert, Button, SectionTitle } from "@/components/common";
 import { homeAttendanceAction, type HomeAttendanceAction } from "@/lib/attendance-rules";
 import { getMyAttendance } from "@/lib/my-attendance";
 import { getMyWorkSchedules } from "@/lib/my-work-schedules";
-import { durationLabel, kstDate, weekDates, workMinutes, type MyWorkSchedule } from "@/lib/work-schedules";
+import { dayTitle, durationLabel, kstDate, weekDates, workMinutes, type MyWorkSchedule } from "@/lib/work-schedules";
 import { ThisWeek } from "./this-week";
 
 const md = (ymd: string) => `${Number(ymd.slice(5, 7))}.${Number(ymd.slice(8, 10))}`;
@@ -22,12 +22,16 @@ export async function ScheduleCards({ staffMemberId }: { staffMemberId: number }
   if (lists.some((l) => !l)) return <Alert tone="warning">근무스케줄을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>;
   const items = lists.flatMap((l) => l!.items).filter((i) => week.includes(i.workDate));
   const todays = items.filter((i) => i.workDate === today);
+  // 휴무 카드의 「다음 근무」 — 이번 주 안에서 오늘 뒤 첫 근무(이번 주 근무스케줄만 받으므로 다음 주 근무는 보이지 않는다)
+  const next = items
+    .filter((i) => i.workDate > today)
+    .sort((a, b) => a.workDate.localeCompare(b.workDate) || a.startTime.localeCompare(b.startTime))[0];
   const workDays = new Set(items.map((i) => i.workDate)).size;
   const weekMinutes = items.reduce((sum, i) => sum + workMinutes(i), 0);
 
   return (
     <>
-      <TodayCard items={todays} action={attendance && homeAttendanceAction(attendance, todays.length > 0)} />
+      <TodayCard items={todays} next={next} action={attendance && homeAttendanceAction(attendance, todays.length > 0)} />
       <section className="flex flex-col gap-[13px]">
         <SectionTitle title="이번 주 근무">
           <span className="text-[14px] text-staff-text-sub">
@@ -73,12 +77,16 @@ function AttendanceButton({ action }: { action: Exclude<HomeAttendanceAction, nu
 }
 
 // 데모(/design/home) 「오늘의 근무」 카드 모양. #DBE5FF · #BCCFFF 는 남보라 위의 흐린 글자다.
-function TodayCard({ items, action }: { items: MyWorkSchedule[]; action: HomeAttendanceAction }) {
+function TodayCard({ items, next, action }: { items: MyWorkSchedule[]; next?: MyWorkSchedule; action: HomeAttendanceAction }) {
   if (items.length === 0)
     return (
       <section aria-label="오늘의 근무" className="flex flex-col gap-[2px] rounded-[18px] border border-staff-border-light bg-white px-[20px] py-[18px] leading-[1.5]">
-        <p className="text-[15px] font-bold">오늘은 근무가 없는 날입니다</p>
-        <p className="text-[12px] text-staff-text-sub">이번 주 다른 근무일은 아래에서 확인하세요</p>
+        <p className="text-[15px] font-bold">오늘은 휴무입니다</p>
+        {next && (
+          <p className="text-[12px] text-staff-text-sub">
+            다음 근무 · {dayTitle(next.workDate)} {next.startTime} – {next.endTime}
+          </p>
+        )}
         {/* 어제 시작해 자정을 넘긴 근무처럼 오늘 근무스케줄 없이 출근이 열려 있으면 퇴근은 여기서 */}
         {action === "check-out" && (
           <div className="pt-[12px]">

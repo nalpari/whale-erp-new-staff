@@ -6,11 +6,11 @@ import { getMyWorkSchedules } from "@/lib/my-work-schedules";
 import { getPayslips } from "@/lib/payslips";
 import { kstDate } from "@/lib/work-schedules";
 
-/** 가장 최근 명세서의 달, 받은 명세서가 없으면 null. 못 받으면 undefined — 바로가기 줄 하나 때문에 홈을 오류로 만들지 않고 설명만 뺀다 */
-async function latestPayslipMonth(): Promise<number | null | undefined> {
+/** 가장 최근 명세서의 「2026년 8월분」, 받은 명세서가 없으면 null. 못 받으면 undefined — 바로가기 줄 하나 때문에 홈을 오류로 만들지 않고 설명만 뺀다 */
+async function latestPayslipMonth(): Promise<string | null | undefined> {
   try {
     const latest = (await getPayslips()).items[0];
-    return latest ? Number(latest.periodStartDate.slice(5, 7)) : null;
+    return latest ? `${latest.periodStartDate.slice(0, 4)}년 ${Number(latest.periodStartDate.slice(5, 7))}월분` : null;
   } catch (error) {
     // 5xx · 연결 실패는 request() 가 이미 남겼다. 401 의 만료 안내 redirect 등 그 밖은 던진다.
     if (error instanceof ApiError && error.status < 500) logUnexpected("home-payslips", error);
@@ -36,7 +36,7 @@ export async function MyWorkInfo({ staffMemberId }: { staffMemberId?: number }) 
         href="/pay"
         icon="/icons/menu-payslip.svg"
         title="급여명세서"
-        description={payMonth === undefined ? undefined : payMonth === null ? "받은 급여명세서가 없습니다" : `${payMonth}월 명세서가 도착했어요`}
+        description={payMonth === undefined ? undefined : payMonth === null ? "받은 급여명세서가 없습니다" : `${payMonth} 받음`}
       />
       {staffMemberId && (
         <InfoRow
