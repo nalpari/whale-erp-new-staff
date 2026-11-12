@@ -18,7 +18,10 @@ export const metadata: Metadata = { title: "신고 정보 입력 · Whale ERP" }
 export default async function NewTaxProfilePage({ params, searchParams }: PageProps<"/me/memberships/[staffMemberId]/tax-profile/new">) {
   const staffMemberId = parseStaffMemberId((await params).staffMemberId);
   if (staffMemberId === null) notFound();
-  const step = (await searchParams).step === "form" ? "form" : "intro";
+  const query = await searchParams;
+  const step = query.step === "form" ? "form" : "intro";
+  // 서명 완료 화면에서 넘어왔을 때만 안내가 「근로계약이 완료되었습니다」라고 말한다
+  const signed = query.from === "sign";
   const viewHref = `/me/memberships/${staffMemberId}/tax-profile`;
   const newHref = `${viewHref}/new`;
 
@@ -53,7 +56,7 @@ export default async function NewTaxProfilePage({ params, searchParams }: PagePr
           </Dock>
         </>
       ) : !forForm ? (
-        <TaxProfileIntro storeName={storeName} formHref={`${newHref}?step=form`} />
+        <TaxProfileIntro storeName={storeName} formHref={`${newHref}?step=form`} signed={signed} />
       ) : (
         <TaxProfileCreateForm
           action={createTaxProfileAction.bind(null, String(staffMemberId))}

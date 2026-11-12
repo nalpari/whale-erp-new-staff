@@ -26,14 +26,24 @@ const PURPOSES = [
   { icon: "/icons/nav-pay.svg", flipY: false, title: "급여 지급", sub: "매달 급여를 받을 계좌" },
 ];
 
-/** 「웨일카페 강남역점과」 · 「웨일카페와」 — 끝 글자 받침에 따라 과 · 와. 한글로 끝나지 않으면 「과」. */
+/** 끝 글자에 받침이 있는지 — 닫는 괄호 · 따옴표 · 공백은 건너뛴다. 숫자는 읽는 소리(영 · 일 · 삼 · 육 · 칠 · 팔 · 십은 받침), 영문 등 판단할 수 없으면 null. */
+const hasBatchim = (word: string): boolean | null => {
+  const t = word.replace(/[\s)\]}」』"'’”]+$/u, "");
+  const ch = t.charAt(t.length - 1);
+  const code = ch.charCodeAt(0) - 0xac00;
+  if (code >= 0 && code <= 11171) return code % 28 !== 0;
+  if (/[0-9]/.test(ch)) return "0136780".includes(ch);
+  return null;
+};
+
+/** 「웨일카페 강남역점과」 · 「웨일카페와」 — 받침에 따라 과 · 와, 판단할 수 없으면(영문으로 끝남) 「와(과)」. */
 const withGwa = (name: string) => {
-  const code = name.charCodeAt(name.length - 1) - 0xac00;
-  return `${name}${code >= 0 && code <= 11171 && code % 28 === 0 ? "와" : "과"}`;
+  const b = hasBatchim(name);
+  return `${name}${b === null ? "와(과)" : b ? "과" : "와"}`;
 };
 
 /** 안내(데모 intro). formHref 는 입력 단계(`?step=form`). */
-export function TaxProfileIntro({ storeName, formHref }: { storeName: string; formHref: string }) {
+export function TaxProfileIntro({ storeName, formHref, signed }: { storeName: string; formHref: string; signed: boolean }) {
   const [why, setWhy] = useState(false);
   return (
     <>
@@ -44,7 +54,8 @@ export function TaxProfileIntro({ storeName, formHref }: { storeName: string; fo
           </span>
           <h2 className="text-[22px] font-bold">신고 정보를 입력해 주세요</h2>
           <p className="text-[14px] text-staff-text-sub">
-            {withGwa(storeName)} 근로계약이 완료되었습니다.
+            {/* 「근로계약이 완료되었습니다」는 서명 완료 화면에서 넘어왔을 때만 — 내 정보에서 서명 전에 들어오면 사실과 달라진다(PR #73 리뷰) */}
+            {signed ? <>{withGwa(storeName)} 근로계약이 완료되었습니다.</> : <><strong className="text-staff-text">{storeName}</strong>에 제출할 정보입니다.</>}
             <br />
             4대보험 신고와 급여 지급에 필요한 정보입니다.
           </p>

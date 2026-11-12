@@ -123,7 +123,7 @@ export default async function ContractDonePage({ params, searchParams }: PagePro
           </>
         ) : taxHref ? (
           // 신고 정보 처음 넣기 화면은 WHALEERP-150(PR #42)이 만든다. 건너뛰기는 두지 않는다(TAX-4).
-          <Button href={`${taxHref}/new`}>신고 정보 입력하기</Button>
+          <Button href={`${taxHref}/new?from=sign`}>신고 정보 입력하기</Button>
         ) : (
           <Button variant="ghost" href="/home">
             홈으로
