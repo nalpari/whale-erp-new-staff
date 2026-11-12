@@ -47,10 +47,20 @@ export type ClosedReason = keyof typeof CLOSED;
 /** 더 답할 수 없는 요청의 제목 · 설명. */
 export const closedMessage = (reason: ClosedReason) => CLOSED[reason];
 
-/** 주격 조사 — 마지막 글자가 받침 있는 한글이면 「이」, 아니면 「가」(점포 이름은 대개 「…점」이다). */
+/** 끝 글자에 받침이 있는지 — 닫는 괄호 · 따옴표 · 공백은 건너뛴다. 숫자는 읽는 소리(영 · 일 · 삼 · 육 · 칠 · 팔 · 십은 받침), 영문 등 판단할 수 없으면 null. */
+const hasBatchim = (word: string): boolean | null => {
+  const t = word.replace(/[\s)\]}」』"'’”]+$/u, "");
+  const ch = t.charAt(t.length - 1);
+  const code = ch.charCodeAt(0) - 0xac00;
+  if (code >= 0 && code <= 11171) return code % 28 !== 0;
+  if (/[0-9]/.test(ch)) return "0136780".includes(ch);
+  return null;
+};
+
+/** 주격 조사 — 받침이 있으면 「이」, 없으면 「가」, 판단할 수 없으면(영문으로 끝남) 「이(가)」. */
 const subjectParticle = (word: string) => {
-  const code = word.charCodeAt(word.length - 1) - 0xac00;
-  return code >= 0 && code <= 11171 && code % 28 !== 0 ? "이" : "가";
+  const b = hasBatchim(word);
+  return b === null ? "이(가)" : b ? "이" : "가";
 };
 
 /**

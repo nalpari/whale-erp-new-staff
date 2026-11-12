@@ -56,7 +56,7 @@ export async function checkInviteCodeAction(_previous: InviteCodeState, formData
   const code = normalizeInviteCode(String(formData.get("code") ?? ""));
   const input = (field: "phone" | "code" | "form", error: string): InviteCodeState => ({ step: "input", field, error });
   // 모양이 틀린 값은 api 에 보내지 않는다 — 형식 오류로는 잠금 횟수가 쌓이지 않지만 요청 제한에는 든다.
-  if (!/^\d{10,11}$/.test(phone)) return input("phone", "휴대전화번호를 확인해 주세요. 010-1234-5678 처럼 입력해 주세요");
+  if (!/^\d{10,11}$/.test(phone)) return input("phone", "휴대전화번호를 확인해 주세요. 01012345678 처럼 숫자만 입력해 주세요");
   if (!isInviteCode(code)) return input("code", "초대 코드 8자리를 확인해 주세요. 0 · O · 1 · I 는 쓰지 않습니다");
 
   try {

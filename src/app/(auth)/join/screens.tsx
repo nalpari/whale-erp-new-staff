@@ -155,7 +155,7 @@ export function EndedInvitation({ onRetry }: { onRetry?: () => void }) {
       title="쓸 수 없는 초대입니다"
       description={
         <>
-          초대를 받은 지 30일이 지났거나 새 초대가 발송되었습니다.
+          초대 기한이 지났거나 더 이상 사용할 수 없는 초대입니다.
           <br />
           <strong>근무지 관리자에게 다시 초대를 요청해 주세요.</strong>
         </>
@@ -240,7 +240,7 @@ export function CodeLocked({ lock, onRetry }: { lock: AttemptLock; onRetry?: () 
       title="초대 코드 입력이 잠시 잠겼습니다"
       description={
         <>
-          30분 뒤 다시 시도하거나,
+          잠시 뒤 다시 시도하거나,
           <br />
           <strong>근무지 관리자에게 초대 코드 재발송을 요청해 주세요.</strong>
         </>

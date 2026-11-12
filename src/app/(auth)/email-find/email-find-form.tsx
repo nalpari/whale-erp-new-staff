@@ -191,7 +191,7 @@ function Locked({ lock, pending }: { lock: AttemptLock; pending: boolean }) {
       title="이메일 찾기가 잠시 잠겼습니다"
       description={
         <>
-          5분 뒤 다시 시도하거나,
+          잠시 뒤 다시 시도하거나,
           <br />
           <strong>근무지에 직접 방문해 문의해 주세요.</strong>
           <br />

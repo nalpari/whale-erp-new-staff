@@ -211,3 +211,11 @@ test("사업자 제공 동의를 남기지 못함은 정한 값 하나로만 싣
     assert.deepEqual(parseResult({ result: "accepted", contractIds: "1", hq }), { kind: "accepted", contractIds: [1], hqNotRecorded: false });
   assert.deepEqual(parseResult({ result: "accepted", contractIds: "1", hq: "not-recorded" }), { kind: "accepted", contractIds: [1], hqNotRecorded: true });
 });
+
+test("contentOf 의 주격 조사 — 닫는 괄호는 건너뛰고, 숫자는 읽는 소리로, 영문으로 끝나면 「이(가)」", () => {
+  const title = (name: string) => contentOf({ kind: "accepted", contractIds: [], hqNotRecorded: false }, name).title;
+  assert.equal(title("웨일카페(강남점)"), "웨일카페(강남점)이 추가되었습니다");
+  assert.equal(title("GS25"), "GS25가 추가되었습니다");
+  assert.equal(title("카페1"), "카페1이 추가되었습니다");
+  assert.equal(title("Whale Cafe"), "Whale Cafe이(가) 추가되었습니다");
+});
