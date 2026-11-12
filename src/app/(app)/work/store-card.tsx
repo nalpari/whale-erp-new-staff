@@ -17,7 +17,7 @@ export function StoreCard({ stores, currentId }: { stores: StoreChoice[]; curren
       <span className="flex min-w-0 flex-1 flex-col gap-[2px]">
         <span className="truncate text-[16px] font-bold">{current.storeName}</span>
         <span className="text-[12px] text-staff-text-sub">
-          {many ? `연결된 근무지 ${stores.length}곳 · 눌러서 바꾸기` : "연결된 근무지 1곳"}
+          {`연결된 근무지 ${stores.length}곳`}
         </span>
       </span>
       {many && <Image src="/icons/chevron-right-dark.svg" alt="" width={24} height={24} />}

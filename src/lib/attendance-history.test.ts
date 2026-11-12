@@ -1,7 +1,7 @@
 // node --test src/lib/attendance-history.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { barOf, dayLabel, durationLabel, editRows, flagDescription, flagsOf, flagTitle, rangeLabel, mondayOf, monthAttendanceLabel, parsePeriod, periodTotals, stampLabel, statusChipOf, summaryOf, weekDays, weekRows, type MyAttendanceDay } from "./attendance-history.ts";
+import { barOf, dayLabel, durationLabel, editRows, flagDescription, flagLine, flagsOf, flagTitle, rangeLabel, mondayOf, monthAttendanceLabel, parsePeriod, periodTotals, stampLabel, statusChipOf, summaryOf, weekDays, weekRows, type MyAttendanceDay } from "./attendance-history.ts";
 
 const TODAY = "2026-10-23";
 const punch = (date: string, time: string, extra: object = {}) => ({
@@ -57,8 +57,8 @@ test("상태 칩 — 정상 · 지각 N분 · 퇴근 기록 없음(HIST-4) · �
 
 test("요약 줄과 근무 막대", () => {
   assert.equal(summaryOf(day("2026-10-20"), TODAY), "출근 09:00 · 퇴근 18:00");
-  assert.equal(summaryOf(day("2026-10-24", { pairs: [], status: null }), TODAY), "아직 근무 전입니다 · 예정 09:00 – 18:00");
-  assert.equal(summaryOf(day(TODAY, { pairs: [{ checkIn: punch(TODAY, "09:02"), checkOut: null }] }), TODAY), "출근 09:02 · 퇴근 진행 중");
+  assert.equal(summaryOf(day("2026-10-24", { pairs: [], status: null }), TODAY), "예정 09:00 – 18:00");
+  assert.equal(summaryOf(day(TODAY, { pairs: [{ checkIn: punch(TODAY, "09:02"), checkOut: null }] }), TODAY), "출근 09:02 · 퇴근 전");
   const bar = barOf(day(TODAY, { pairs: [{ checkIn: punch(TODAY, "09:02"), checkOut: null }] }), new Date("2026-10-23T05:00:00Z"));
   assert.deepEqual(bar, { schedule: { start: "09:00", end: "18:00" }, worked: { start: "09:02", end: "14:00" }, ongoing: true });
 });
@@ -79,7 +79,7 @@ test("이번 주 7일 · 날 라벨 · 주별 줄 · 누계", () => {
   const weeks = ["2026-10-12", "2026-10-19", "2026-10-26"].map((monday, i) => ({ monday, workedMinutes: i ? 0 : 19 * 60, overtimeMinutes: i ? 0 : 60 }));
   const rows = weekRows({ items: days, weeks }, TODAY);
   assert.equal(rows[0].title, "10월 3주 · 10/12 – 10/18");
-  assert.equal(rows[0].sub, "근무 2일 · 19시간 · 지각 1 · 연장 1시간");
+  assert.equal(rows[0].sub, "근무 2일 · 19시간 · 지각 1회 · 연장 1시간");
   assert.equal(rows[1].current, true);
   assert.equal(rows[2].upcoming, true);
   assert.equal(durationLabel(63 * 60 + 16), "63시간 16분");
@@ -89,12 +89,13 @@ test("이번 주 7일 · 날 라벨 · 주별 줄 · 누계", () => {
 test("확인 필요 사유(HIST-3)와 누계 기간 이름", () => {
   const d = day("2026-10-20", { pairs: [{ checkIn: punch("2026-10-20", "09:58", { reviewReason: "ACCURACY_EXCEEDED" }), checkOut: punch("2026-10-20", "18:00", { reviewReason: "OUT_OF_RADIUS_CHECKOUT" }) }] });
   const flags = flagsOf(d);
-  assert.deepEqual(flags.map(flagTitle), ["출근 위치 확인 실패", "반경 밖 퇴근"]);
-  assert.equal(flagDescription(flags[0]), "오차가 매장 범위보다 넓어 매장 안인지 자동으로 확인하지 못했습니다. 출근 시각 09:58은 등록되었고 관리자가 검토하고 있습니다.");
+  assert.deepEqual(flags.map(flagTitle), ["출근 위치를 확인하지 못했습니다", "반경 밖 퇴근"]);
+  assert.deepEqual(flags.map(flagLine), ["출근 09:58 · 위치 확인 실패", "퇴근 18:00 · 반경 밖"]);
+  assert.equal(flagDescription(flags[0]), "위치 오차가 커서 매장 안에 있는지 확인하지 못했습니다. 출근 시각 09:58은 등록되었습니다.");
   const long = flagsOf(day("2026-10-21", { pairs: [{ checkIn: punch("2026-10-21", "06:00"), checkOut: punch("2026-10-21", "19:00", { reviewReason: "LONG_SHIFT" }) }] }))[0];
   assert.equal(flagTitle(long), "근무 12시간 초과");
   assert.equal(flagDescription(long), "출근부터 퇴근까지 12시간이 넘었습니다. 퇴근 시각 19:00은 등록되었고 관리자가 검토하고 있습니다.");
-  assert.equal(summaryOf(day("2026-10-22", { status: "MISSING_CHECK_OUT", pairs: [{ checkIn: punch("2026-10-22", "09:14"), checkOut: null }] }), TODAY), "출근 09:14 · 퇴근 기록 없음 · 근무지 관리자에게 문의");
+  assert.equal(summaryOf(day("2026-10-22", { status: "MISSING_CHECK_OUT", pairs: [{ checkIn: punch("2026-10-22", "09:14"), checkOut: null }] }), TODAY), "출근 09:14 · 퇴근 기록 없음");
   assert.equal(rangeLabel("2026-09-01", "2026-09-30"), "9월 1일 – 30일");
   assert.equal(rangeLabel("2026-09-15", "2026-10-14"), "9월 15일 – 10월 14일");
   assert.equal(rangeLabel("2025-10-23", "2026-10-23"), "2025년 10월 23일 – 2026년 10월 23일");
@@ -105,7 +106,7 @@ test("연필 시트 줄 — 보정은 바뀐 쪽만, 대신 등록은 시각만(
   assert.deepEqual(editRows({ ...base, kind: "CORRECTION", before: "출근 09:14 · 퇴근 17:48", after: "출근 09:14 · 퇴근 18:02", reason: "퇴근 시각 미태깅 정정" }), [
     ["수정 전 퇴근", "17:48"],
     ["수정 후 퇴근", "18:02"],
-    ["수정자", "박지수"],
+    ["수정한 사람", "박지수"],
     ["수정 시각", "9월 9일 22:10"],
     ["사유", "퇴근 시각 미태깅 정정"],
   ]);

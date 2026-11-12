@@ -63,10 +63,10 @@ export function initialDay(month: string, today: string, items: readonly MyWorkS
   return days[0] ?? `${month}-01`;
 }
 
-/** 9월 10일(목) */
+/** 9월 10일 (목) */
 export function dayTitle(ymd: string): string {
   const date = utcOf(ymd);
-  return `${date.getUTCMonth() + 1}월 ${date.getUTCDate()}일(${WEEKDAYS[date.getUTCDay()]})`;
+  return `${date.getUTCMonth() + 1}월 ${date.getUTCDate()}일 (${WEEKDAYS[date.getUTCDay()]})`;
 }
 
 const minutesOf = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5));

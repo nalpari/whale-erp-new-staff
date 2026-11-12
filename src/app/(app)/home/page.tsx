@@ -8,7 +8,7 @@ import { getContracts } from "@/lib/contracts";
 import { getCurrentMembership } from "@/lib/current-membership";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { getMyNotifications } from "@/lib/my-notifications";
-import { getMyAffiliationRequests, getMyProfile } from "@/lib/my-profile";
+import { getMyAffiliationRequests, getMyMemberships, getMyProfile } from "@/lib/my-profile";
 import { hqReconsentOf } from "@/lib/profile";
 import { requireSession } from "@/lib/session";
 import { signRequestOf } from "@/lib/sign-request";
@@ -25,27 +25,34 @@ export const metadata: Metadata = { title: "홈 · Whale ERP" };
 // 직원 근무 앱 홈(WHALEERP-311 · 313, 목업 home.html HOME-1 · 2 · 3 · 5). 머리줄(근무지 선택기 · 알림) → 오늘 근무(출퇴근 시작) ·
 // 이번 주 근무 → 서명 대기 카드(146) → TO-DO → 나의 근무 정보. 영역마다 따로 받아 하나가 늦거나 실패해도 나머지는 보인다. 로그아웃은 내 정보(/me) 맨 아래(WHALEERP-193).
 export default async function HomePage() {
-  const { account } = await requireSession();
+  await requireSession();
   // 머리줄의 근무지 · 새 알림 점(HOME-2). 소속 목록을 못 받으면 선택기만 감추고 종만 둔다 — 홈 나머지는 그대로 보인다.
   const [memberships, notifications] = await Promise.all([getCurrentMembership(), getMyNotifications("pageSize=1")]);
   const current = memberships?.current;
+  // 퇴직한 소속이 있을 때만 머리줄에 「근무 종료」 — 가입 직후 · 계약 전은 「연결된 근무지 없음」. 퇴직 포함 목록을 못 받으면 중립 표시
+  const retired = !!memberships && !current && ((await getMyMemberships(true))?.items.some((m) => m.retiredDate !== null) ?? false);
 
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex flex-col gap-[16px] px-[24px] pt-[52px] pb-[24px] leading-[1.5]">
-        {memberships ? (
-          <StoreTopBar
-            stores={memberships.items.map((m) => ({ staffMemberId: m.staffMemberId, storeName: m.store.storeName }))}
-            currentId={current?.staffMemberId ?? null}
-            hasNewAlarm={(notifications?.unreadCount ?? 0) > 0}
-          />
-        ) : (
-          <div className="flex justify-end">
-            {/* 알림함은 화면 위쪽 종으로 들어간다(NOTI-5) */}
-            <NotificationBell />
-          </div>
-        )}
-        <h1 className="text-[26px] font-bold">{account.realName}님</h1>
+        {/* 화면 제목은 보이지 않게만 둔다(인사말 줄을 뺐다) */}
+        <h1 className="sr-only">홈</h1>
+        {/* 머리줄 아래 인사말은 두지 않고 20px 만 띄운다(데모 home) — 사이 16 에 4 를 더한다 */}
+        <div className="flex flex-col gap-[16px] pb-[4px]">
+          {memberships ? (
+            <StoreTopBar
+              stores={memberships.items.map((m) => ({ staffMemberId: m.staffMemberId, storeName: m.store.storeName }))}
+              currentId={current?.staffMemberId ?? null}
+              hasNewAlarm={(notifications?.unreadCount ?? 0) > 0}
+              retired={retired}
+            />
+          ) : (
+            <div className="flex justify-end">
+              {/* 알림함은 화면 위쪽 종으로 들어간다(NOTI-5) */}
+              <NotificationBell />
+            </div>
+          )}
+        </div>
         {/* 오늘 · 이번 주 근무를 먼저(HOME-1). 카드마다 따로 받아 받는 동안 그 자리에 스켈레톤을 보인다. */}
         {current && (
           <Suspense fallback={<ScheduleCardsSkeleton />}>

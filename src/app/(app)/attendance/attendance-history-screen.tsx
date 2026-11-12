@@ -11,6 +11,7 @@ import {
   durationLabel,
   editRows,
   flagDescription,
+  flagLine,
   flagsOf,
   flagTitle,
   isEdited,
@@ -32,7 +33,9 @@ type Sheet = { kind: "edits" | "flag" | "missing-out"; day: MyAttendanceDay } | 
 const PANEL = "attendance-panel";
 const STORE_NOTICE = (
   <>
-    관리자가 확인 중입니다. 기록이 다르면 <strong>근무지 점포에 말씀해 주세요.</strong> 확인이 끝나면 이 표시와 사유는 사라집니다.
+    관리자가 확인하고 있습니다.
+    <br />
+    기록이 다르면 <strong>근무지 관리자에게 문의해 주세요.</strong>
   </>
 );
 
@@ -80,7 +83,9 @@ function WeekView({ records, today, weekStart, now, onOpen }: { records: MyAtten
           <p className="min-w-0 flex-1">
             <strong>확인이 필요한 기록이 {flagCount}건 있습니다.</strong>
             <br />
-            {STORE_NOTICE}
+            관리자가 확인하고 있습니다.
+            <br />
+            기록이 다르면 근무지 관리자에게 문의해 주세요.
           </p>
         </div>
       )}
@@ -110,7 +115,7 @@ function DayCard({ day, store, today, now, onOpen }: { day: MyAttendanceDay; sto
           <StatusChip tone="warning">확인 필요</StatusChip>
         </span>
         <WorkTimeBar {...bar} />
-        <span className="pt-[2px] text-[13px]">{flags.map((f) => `${flagTitle(f)} · ${f.time} 등록됨`).join(" / ")}</span>
+        <span className="pt-[2px] text-[13px]">{flags.map(flagLine).join(" / ")}</span>
       </button>
     );
 
@@ -155,7 +160,6 @@ function DaySheets({ sheet, onClose, onOpen }: { sheet: Sheet; onClose: () => vo
         open={sheet?.kind === "edits"}
         onClose={onClose}
         title={proxy ? "관리자가 대신 등록한 기록입니다" : "관리자가 수정한 기록입니다"}
-        description={proxy ? "위치정보 동의가 없어 앱으로 등록할 수 없는 경우입니다. 근무지 관리자가 출퇴근 시각을 대신 등록했습니다." : undefined}
       >
         {edits.map((e) => (
           <Sunken key={`${e.at}-${e.kind}`}>
@@ -163,9 +167,13 @@ function DaySheets({ sheet, onClose, onOpen }: { sheet: Sheet; onClose: () => vo
           </Sunken>
         ))}
         <p className="text-[12px] text-staff-text-muted">
-          {proxy
-            ? "기록이 다르면 근무지 점포에 말씀해 주세요. 앱에서 직접 등록하려면 위치정보 수집에 다시 동의해야 합니다."
-            : "수정은 관리자 웹에서만 할 수 있습니다. 이 화면은 이력 조회만 제공합니다."}
+          기록이 다르면 근무지 관리자에게 문의해 주세요.
+          {proxy && (
+            <>
+              <br />
+              앱으로 직접 등록하려면 위치정보 수집·이용에 다시 동의해야 합니다.
+            </>
+          )}
         </p>
       </BottomSheet>
       <BottomSheet
@@ -196,11 +204,13 @@ function DaySheets({ sheet, onClose, onOpen }: { sheet: Sheet; onClose: () => vo
       <BottomSheet
         open={sheet?.kind === "missing-out"}
         onClose={onClose}
-        title="퇴근 기록 없음"
-        description={`${openIn ?? "-"}에 출근한 기록만 있고 퇴근 기록이 없습니다. 퇴근을 찍지 못했다면 근무지 관리자에게 문의해 주세요. 관리자가 퇴근 시각을 보정하면 이 표시는 사라집니다.`}
+        title="퇴근 기록이 없습니다"
+        description={`${openIn ?? "-"} 출근 기록만 있고 퇴근 기록이 없습니다.`}
       >
         <Notice icon={<MaskIcon src="/icons/store-small.svg" size={16} />}>
-          <strong>근무지 관리자에게 문의</strong>해 주세요. 앱에서 직접 고칠 수는 없습니다.
+          퇴근을 등록하지 못했다면
+          <br />
+          <strong>근무지 관리자에게 문의해 주세요.</strong>
         </Notice>
       </BottomSheet>
     </>
@@ -212,7 +222,7 @@ function PeriodView({ records, today }: { records: MyAttendanceRecords; today: s
   return (
     <>
       <PeriodPicker from={records.from} to={records.to} />
-      <Sunken label={`고른 기간 누계 · ${rangeLabel(records.from, records.to)}`}>
+      <Sunken label={`총 근무 시간 · ${rangeLabel(records.from, records.to)}`}>
         <div className="flex flex-wrap items-baseline gap-x-[14px]">
           <p className="text-[28px] font-bold [&_span]:text-[17px]">
             {Math.floor(totals.workedMinutes / 60)}
@@ -236,7 +246,7 @@ function PeriodView({ records, today }: { records: MyAttendanceRecords; today: s
           ))}
         </ul>
       )}
-      <p className="text-[12px] text-staff-text-muted">기록은 3년 보존됩니다. 1년은 한 번에 조회하는 폭의 제한입니다.</p>
+      <p className="text-[12px] text-staff-text-muted">출퇴근 기록은 보존 기간(3년) 동안 조회할 수 있습니다.</p>
     </>
   );
 }
@@ -249,7 +259,7 @@ function PeriodPicker({ from, to }: { from: string; to: string }) {
     <Card>
       <form action="/attendance">
         <input type="hidden" name="tab" value="period" />
-        <p className="text-[13px] font-semibold text-staff-text-sub">기간 고르기</p>
+        <p className="text-[13px] font-semibold text-staff-text-sub">조회 기간</p>
         <div className="flex items-center gap-[8px] pt-[8px]">
           <input
             type="date"
@@ -281,7 +291,7 @@ function PeriodPicker({ from, to }: { from: string; to: string }) {
           <Button type="submit">조회</Button>
         </div>
         <p className="pt-[8px] text-[12px] text-staff-text-muted [&_b]:font-bold">
-          기본은 이번 달입니다. 한 번에 <b>최대 1년</b>까지 고를 수 있습니다.
+          한 번에 <b>최대 1년</b>까지 조회할 수 있습니다.
         </p>
       </form>
     </Card>
@@ -294,8 +304,8 @@ function EmptyRecords() {
       <span className="flex pb-[6px] text-staff-text-muted">
         <MaskIcon src="/icons/history.svg" size={40} flipY />
       </span>
-      <h2 className="text-[18px] font-bold">등록된 출퇴근 기록이 없습니다</h2>
-      <p className="max-w-[250px] text-[14px] text-staff-text-sub">근무를 시작하면 이곳에 기록이 쌓입니다.</p>
+      <h2 className="text-[18px] font-bold">출퇴근 기록이 없습니다</h2>
+      <p className="max-w-[250px] text-[14px] text-staff-text-sub">출근을 등록하면 여기에 표시됩니다.</p>
     </div>
   );
 }
