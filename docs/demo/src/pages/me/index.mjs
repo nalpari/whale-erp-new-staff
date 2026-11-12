@@ -167,7 +167,7 @@ const meView = (mode, ids) => {
     `${label("연락처")}<div class="flex flex-col gap-[10px] pt-[8px]">${readOnlyField({
       label: "휴대전화번호",
       value: "010-4821-7736",
-      help: "가입할 때 입력한 번호로, 앱에서 변경할 수 없습니다.",
+      help: "번호 변경이 필요하면 근무지 관리자에게 문의해 주세요.",
     })}${readOnlyField({
       label: "이메일 · 로그인 아이디",
       value: "haeun.lee@gmail.com",

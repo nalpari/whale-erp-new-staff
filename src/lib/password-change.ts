@@ -22,10 +22,10 @@ const problem = (field: PasswordField, message: string): PasswordChangeState => 
  * 지금 비밀번호는 api ChangeMyPasswordDto 의 128자 상한, 새 비밀번호는 api 규칙의 20자(사용자가 보는 글자 수)다.
  */
 export function validatePasswordChange(current: string, next: string, confirmation: string): PasswordChangeState | null {
-  if (!current) return problem("currentPassword", "지금 비밀번호를 넣어 주세요");
+  if (!current) return problem("currentPassword", "지금 비밀번호를 입력해 주세요");
   // 128자를 넘는 값은 지금 비밀번호일 수 없다(api 가 그보다 긴 값을 받지 않는다).
   if (current.length > 128) return problem("currentPassword", CURRENT_PASSWORD_MISMATCH);
-  if (!next) return problem("newPassword", "새 비밀번호를 넣어 주세요");
+  if (!next) return problem("newPassword", "새 비밀번호를 입력해 주세요");
   if ([...next].length > 20) return problem("newPassword", "비밀번호는 20자까지 쓸 수 있습니다");
   if (next !== confirmation) return problem("confirmation", "두 칸의 새 비밀번호가 다릅니다");
   return null;

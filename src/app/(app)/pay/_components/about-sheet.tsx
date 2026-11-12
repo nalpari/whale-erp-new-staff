@@ -20,15 +20,22 @@ export function AboutSheet() {
       {/* 첫 문단은 데모 문구다 — 기본급 · 주휴 · 연장은 api 가 근로계약 · 출퇴근 기록으로 계산한다(WHALEERP-227) */}
       <BottomSheet open={open} onClose={() => setOpen(false)} title="급여명세서는 이렇게 만들어집니다">
         <p className="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">
-          <strong>기본급·주휴수당·연장수당</strong>은 근로계약과 출퇴근 기록으로 시스템이 계산하고 관리자가 확인합니다.{" "}
-          <strong>나머지 지급 항목과 공제 항목은 관리자가 직접 넣습니다.</strong> 요율이 해마다 바뀌거나 사람이 판단할 값이기 때문입니다.
+          <strong>기본급·주휴수당·연장수당</strong>은 근로계약과 출퇴근 기록으로 자동 계산되고, 관리자가 확인합니다.
+          <br />
+          <strong>그 외 지급 항목과 공제 항목</strong>은 관리자가 직접 입력합니다.
         </p>
         {/* 맨 위 합계 카드(PAY-9)가 무엇을 더한 값인지 */}
         <p className="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">
-          맨 위 금액은 <strong>그 달에 받은 급여명세서의 실지급액을 모두 더한 값</strong>입니다. 받은 날(발송일) 기준이고, 근무지가 여럿이면 함께 더합니다.
+          맨 위 금액은 <strong>그 달에 받은 급여명세서의 실지급액 합계</strong>입니다.
+          <br />
+          근무지가 여러 곳이면 모두 더해서 보여 드립니다.
         </p>
-        {/* 데모 문구는 「급여 지급(입금)은」이지만, 같은 데모 머리말이 이 화면에 「입금」을 쓰지 않는다고 정해 괄호를 뺐다. */}
-        <Notice icon={<InfoIcon size={16} />}>급여 지급은 이 앱이 처리하지 않습니다. 명세서 데이터는 생성일로부터 3년간 보관됩니다.</Notice>
+        {/* 급여 지급은 이 시스템 밖이라 「입금」은 근무지에서 한다는 이 안내에만 쓴다(데모 머리말과 같다). */}
+        <Notice icon={<InfoIcon size={16} />}>
+          실제 급여 입금은 근무지에서 진행합니다.
+          <br />
+          명세서는 만든 날부터 3년 동안 보관됩니다.
+        </Notice>
       </BottomSheet>
     </>
   );

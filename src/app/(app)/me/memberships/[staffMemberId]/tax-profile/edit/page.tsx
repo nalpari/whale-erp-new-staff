@@ -9,7 +9,7 @@ import { parseStaffMemberId } from "@/lib/tax-profile";
 import { saveTaxProfileAction } from "./actions";
 import { TaxProfileForm } from "./tax-profile-form";
 
-export const metadata: Metadata = { title: "신고 정보 새로 넣기 · Whale ERP" };
+export const metadata: Metadata = { title: "신고 정보 다시 입력 · Whale ERP" };
 
 // 신고 정보 「새로 넣기」(WHALEERP-333, api 334). 이미 낸 신고 정보만 여기서 고친다 — 아직 없으면(첫 입력은 날인 뒤 흐름 150 몫)
 // 보기 화면으로 돌려보낸다. 내 소속이 아니면 404. 이름 · 생년월일은 가입 계정 값(내 정보)이고 고칠 수 없다.
@@ -32,7 +32,7 @@ export default async function TaxProfileEditPage({ params }: PageProps<"/me/memb
 
   return (
     <div className="flex flex-1 flex-col">
-      <PageHeader title="신고 정보 새로 넣기" backHref={viewHref} />
+      <PageHeader title="신고 정보 다시 입력" backHref={viewHref} />
       {tax === null ? (
         <>
           <div className="flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">

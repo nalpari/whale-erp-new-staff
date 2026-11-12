@@ -37,28 +37,28 @@ export function Basis({ children }: { children: ReactNode }) {
 /** 주민등록번호를 받는 근거(운영 정책 TAX-08). */
 export const RRN_BASIS = (
   <>
-    4대보험 취득 신고와 근로소득 원천징수를 위해 <b>법령에 따라</b> 받습니다. 동의 없이 받으며, 신고 서류를 만들 때만 씁니다.
+    4대보험 신고와 근로소득 원천징수를 위해 <b>법령에 따라</b> 수집하며, 신고 서류를 만들 때만 사용합니다.
   </>
 );
 
 /** 급여 계좌를 받는 근거(운영 정책 TAX-08). */
 export const ACCOUNT_BASIS = (
   <>
-    <b>근로계약에 따라</b> 급여를 보내기 위해 받습니다. 급여 지급 외에는 쓰지 않습니다.
+    <b>근로계약에 따라</b> 급여를 지급하기 위해 수집하며, 급여 지급 외에는 사용하지 않습니다.
   </>
 );
 
 /**
- * 사업주 · 위탁 보관 안내. storeName 은 그 소속의 점포다. noConsent 면 입력 화면(데모 form)처럼 「동의 항목이 없습니다」를 잇는다.
+ * 사업주 · 위탁 보관 안내. storeName 은 그 소속의 점포다. noConsent 면 입력 화면(데모 form)처럼 「별도 동의를 받지 않습니다」를 잇는다.
  */
 export function TaxOwnerNotice({ storeName, noConsent = false }: { storeName: string; noConsent?: boolean }) {
   return (
     <Notice>
-      이 정보는 <strong>{storeName}(사업주)</strong>이 받으며, WHALE ERP 는 {storeName}의 위탁을 받아 암호화해 보관합니다.
+      이 정보는 <strong>{storeName}(사업주)</strong>이 수집하며, WHALE ERP는 위탁을 받아 암호화해 보관합니다.
       {noConsent && (
         <>
-          {" "}
-          둘 다 동의로 받고 말고를 정하는 값이 아니라 <strong>동의 항목이 없습니다.</strong>
+          <br />
+          법령과 근로계약에 따라 수집하는 정보로, <strong>별도 동의를 받지 않습니다.</strong>
         </>
       )}
     </Notice>
@@ -79,7 +79,11 @@ export function TaxIdentity({ realName, birthDate }: { realName: string; birthDa
           ["생년월일", birthDate],
         ]}
       />
-      <p className="pt-[8px] text-[12px] text-staff-text-muted">가입 때 넣은 계정 값입니다. 앞자리가 다르면 넣을 수 없습니다.</p>
+      <p className="pt-[8px] text-[12px] text-staff-text-muted">
+        가입할 때 입력한 정보입니다.
+        <br />
+        주민등록번호 앞자리가 생년월일과 다르면 등록할 수 없습니다.
+      </p>
     </Sunken>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { Alert, Button, Card, Dock, MaskIcon, Notice, PageHeader } from "@/components/common";
 import { ApiError } from "@/lib/api";
@@ -14,7 +15,7 @@ import { ChangedToast } from "../../../changed-toast";
 export const metadata: Metadata = { title: "신고 정보 · Whale ERP" };
 
 /** 가린 값 카드 — 이름 · 값(18px bold) · 안내(12px). */
-function ValueCard({ label, value, help }: { label: string; value: string; help: string }) {
+function ValueCard({ label, value, help }: { label: string; value: string; help: ReactNode }) {
   return (
     <Card>
       <CardLabel>{label}</CardLabel>
@@ -56,25 +57,35 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
           </Alert>
         ) : !profile ? (
           <Notice>
-            <strong>{storeName}</strong>에는 아직 신고 정보를 내지 않았습니다. 근로계약서 서명을 마쳤다면 지금 넣어 주세요.
+            <strong>{storeName}</strong>에는 아직 신고 정보를 내지 않았습니다. 근로계약서 서명을 마쳤다면 지금 입력해 주세요.
           </Notice>
         ) : (
           <>
-            <ValueCard label="주민등록번호" value={profile.rrnMasked} help="뒷자리는 본인에게도 다시 보여주지 않습니다. 고치려면 새로 넣습니다." />
+            <ValueCard
+              label="주민등록번호"
+              value={profile.rrnMasked}
+              help={
+                <>
+                  보안을 위해 뒷자리는 다시 보여 드리지 않습니다.
+                  <br />
+                  수정하려면 다시 입력해 주세요.
+                </>
+              }
+            />
             <ValueCard
               label="급여 계좌"
               value={`${labelOf(banks, profile.bankCode)} ${profile.payrollAccountNumberMasked}`}
-              help="계좌를 바꾸면 다음 급여부터 새 계좌로 들어갑니다."
+              help="계좌를 변경하면 다음 급여부터 새 계좌로 지급됩니다."
             />
-            <Sunken label="기록">
+            <Sunken label="등록 정보">
               <Values
                 rows={[
-                  ["받은 때", kstDateTimeLabel(profile.collectedAt)],
-                  ["쓰는 곳", profile.purpose],
+                  ["등록 일시", kstDateTimeLabel(profile.collectedAt)],
+                  ["이용 목적", profile.purpose],
                 ]}
               />
             </Sunken>
-            <Sunken label="받은 근거">
+            <Sunken label="수집 근거">
               <Basis>
                 <b>주민등록번호</b> — {RRN_BASIS}
               </Basis>
@@ -84,7 +95,7 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
             </Sunken>
             <TaxOwnerNotice storeName={storeName} />
             <Notice icon={<MaskIcon src="/icons/shield.svg" size={14} flipY />}>
-              관리자에게 주민등록번호는 일부를 가린 형태로만 보이고, 급여 계좌는 급여를 이체하도록 그대로 보입니다. 신고 서류를 만들고 급여를 이체할 때만 씁니다.
+              관리자에게 주민등록번호는 일부를 가린 형태로만 보이고, 급여 계좌는 급여를 이체하도록 그대로 보입니다.
             </Notice>
           </>
         )}
@@ -92,14 +103,14 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
       {profile ? (
         <Dock>
           <Button variant="ghost" href={`/me/memberships/${staffMemberId}/tax-profile/edit`}>
-            새로 넣기
+            다시 입력하기
           </Button>
         </Dock>
       ) : (
         tax && (
           <Dock>
             <Button href={`/me/memberships/${staffMemberId}/tax-profile/new`} transitionTypes={["nav-forward"]}>
-              신고 정보 넣기
+              신고 정보 입력하기
             </Button>
           </Dock>
         )

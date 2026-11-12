@@ -22,12 +22,28 @@ import {
 
 const PURPOSES = [
   { icon: "/icons/shield.svg", flipY: true, title: "4대보험 자격취득 신고", sub: "국민연금 · 건강보험 · 고용보험 · 산재보험" },
-  { icon: "/icons/contract.svg", flipY: false, title: "근로소득 원천징수", sub: "급여에서 뗀 세금 신고" },
+  { icon: "/icons/contract.svg", flipY: false, title: "근로소득 원천징수", sub: "급여에서 공제한 세금 신고" },
   { icon: "/icons/nav-pay.svg", flipY: false, title: "급여 지급", sub: "매달 급여를 받을 계좌" },
 ];
 
+/** 끝 글자에 받침이 있는지 — 닫는 괄호 · 따옴표 · 공백은 건너뛴다. 숫자는 읽는 소리(영 · 일 · 삼 · 육 · 칠 · 팔 · 십은 받침), 영문 등 판단할 수 없으면 null. */
+const hasBatchim = (word: string): boolean | null => {
+  const t = word.replace(/[\s)\]}」』"'’”]+$/u, "");
+  const ch = t.charAt(t.length - 1);
+  const code = ch.charCodeAt(0) - 0xac00;
+  if (code >= 0 && code <= 11171) return code % 28 !== 0;
+  if (/[0-9]/.test(ch)) return "0136780".includes(ch);
+  return null;
+};
+
+/** 「웨일카페 강남역점과」 · 「웨일카페와」 — 받침에 따라 과 · 와, 판단할 수 없으면(영문으로 끝남) 「와(과)」. */
+const withGwa = (name: string) => {
+  const b = hasBatchim(name);
+  return `${name}${b === null ? "와(과)" : b ? "과" : "와"}`;
+};
+
 /** 안내(데모 intro). formHref 는 입력 단계(`?step=form`). */
-export function TaxProfileIntro({ storeName, formHref }: { storeName: string; formHref: string }) {
+export function TaxProfileIntro({ storeName, formHref, signed }: { storeName: string; formHref: string; signed: boolean }) {
   const [why, setWhy] = useState(false);
   return (
     <>
@@ -36,15 +52,16 @@ export function TaxProfileIntro({ storeName, formHref }: { storeName: string; fo
           <span className="text-staff-text-sub">
             <MaskIcon src="/icons/contract.svg" size={28} />
           </span>
-          <h2 className="text-[22px] font-bold">신고 정보를 넣어 주세요</h2>
+          <h2 className="text-[22px] font-bold">신고 정보를 입력해 주세요</h2>
           <p className="text-[14px] text-staff-text-sub">
-            <strong className="text-staff-text">{storeName}</strong>에 낼 정보입니다.
+            {/* 「근로계약이 완료되었습니다」는 서명 완료 화면에서 넘어왔을 때만 — 내 정보에서 서명 전에 들어오면 사실과 달라진다(PR #73 리뷰) */}
+            {signed ? <>{withGwa(storeName)} 근로계약이 완료되었습니다.</> : <><strong className="text-staff-text">{storeName}</strong>에 제출할 정보입니다.</>}
             <br />
-            4대보험 신고와 급여 지급에 필요합니다.
+            4대보험 신고와 급여 지급에 필요한 정보입니다.
           </p>
         </div>
         <Card>
-          <CardLabel>쓰는 곳</CardLabel>
+          <CardLabel>이용 목적</CardLabel>
           <ul className="flex flex-col divide-y divide-staff-border-light pt-[10px]">
             {PURPOSES.map((p) => (
               <li key={p.title} className="flex items-center gap-[12px] py-[10px] first:pt-0 last:pb-0">
@@ -60,7 +77,9 @@ export function TaxProfileIntro({ storeName, formHref }: { storeName: string; fo
           </ul>
         </Card>
         <Notice icon={<MaskIcon src="/icons/shield.svg" size={14} flipY />}>
-          넣은 정보는 <strong>암호화해 보관</strong>합니다. 관리자에게 주민등록번호는 일부를 가린 형태로만 보이고, 급여 계좌는 급여를 이체하도록 그대로 보입니다. 신고 서류를 만들고 급여를 이체할 때만 씁니다.
+          입력한 정보는 <strong>암호화해 보관</strong>합니다.
+          <br />
+          관리자에게 주민등록번호는 일부를 가린 형태로만 보이고, 급여 계좌는 급여를 이체하도록 그대로 보입니다. 신고 서류를 만들고 급여를 이체할 때만 사용합니다.
         </Notice>
         <Button variant="ghost" onClick={() => setWhy(true)}>
           주민등록번호를 따로 받는 이유
@@ -69,17 +88,23 @@ export function TaxProfileIntro({ storeName, formHref }: { storeName: string; fo
       <Dock>
         <Button href={formHref} transitionTypes={["nav-forward"]}>
           <MaskIcon src="/icons/pencil.svg" size={14} />
-          넣기
+          입력하기
         </Button>
-        <p className="py-[2px] text-center text-[12px] text-staff-text-muted">신고 정보를 넣어야 이 근무지에서 일을 시작할 수 있습니다</p>
+        <p className="py-[2px] text-center text-[12px] text-staff-text-muted">신고 정보를 입력해야 이 근무지에서 일을 시작할 수 있습니다</p>
       </Dock>
       <BottomSheet open={why} onClose={() => setWhy(false)} title="주민등록번호를 따로 받는 이유">
         <div className="flex flex-col gap-[12px] text-[14px] text-staff-text-sub">
-          <p>근로계약서에는 임금 · 근로시간 · 휴일 · 연차 같은 근로조건만 적습니다. 본인 확인은 이름과 생년월일로 충분합니다.</p>
           <p>
-            주민등록번호는 법령이 허용한 목적으로만 쓸 수 있습니다. 4대보험 신고와 원천징수 밖에 쓰이지 않도록 계약서와 따로 받습니다.
+            근로계약서에는 임금 · 근로시간 · 휴일 · 연차 같은 근로조건만 기재합니다.
+            <br />
+            본인 확인은 이름과 생년월일로 충분합니다.
           </p>
-          <Notice>관리자는 직원의 주민등록번호를 직접 넣지 않습니다.</Notice>
+          <p>
+            주민등록번호는 법령이 허용한 목적으로만 사용할 수 있습니다.
+            <br />
+            4대보험 신고와 원천징수 외에 쓰이지 않도록 계약서와 따로 수집합니다.
+          </p>
+          <Notice>관리자는 직원의 주민등록번호를 직접 입력하지 않습니다.</Notice>
         </div>
       </BottomSheet>
     </>
@@ -152,7 +177,7 @@ export function TaxProfileCreateForm({
       <div className="flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
         <div className="flex flex-col gap-[6px]">
           <h2 className="text-[22px] font-bold">주민등록번호와 급여 계좌</h2>
-          <p className="text-[14px] text-staff-text-sub">신고와 급여 이체에 그대로 쓰이니 정확히 넣어 주세요.</p>
+          <p className="text-[14px] text-staff-text-sub">신고와 급여 이체에 그대로 사용되니 정확히 입력해 주세요.</p>
         </div>
         <RrnField
           front={rrnFront}

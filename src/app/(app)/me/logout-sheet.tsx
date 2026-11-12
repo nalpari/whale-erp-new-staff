@@ -15,9 +15,9 @@ export function LogoutSheet() {
       <BottomSheet
         open={open}
         onClose={() => setOpen(false)}
-        title="로그아웃할까요"
-        description="다시 들어오려면 이메일과 비밀번호가 필요합니다. 출퇴근을 찍어야 할 때 번거로울 수 있습니다."
-        closeLabel="그대로 두기"
+        title="로그아웃하시겠습니까?"
+        description="다시 로그인하려면 이메일과 비밀번호가 필요합니다."
+        closeLabel="취소"
       >
         <form action={logoutAction}>
           <DangerButton type="submit">로그아웃</DangerButton>

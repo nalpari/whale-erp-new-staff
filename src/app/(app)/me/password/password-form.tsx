@@ -24,6 +24,7 @@ export function PasswordForm({ email }: { email: string }) {
           autoComplete="current-password"
           required
           maxLength={128}
+          placeholder="현재 비밀번호를 입력해 주세요"
           value={currentPassword}
           onChange={(event) => setCurrentPassword(event.target.value)}
           error={errorOf("currentPassword")}

@@ -37,7 +37,7 @@ export function RrnField({
   onFrontChange,
   onBackChange,
   required = false,
-  help = "본인의 번호만 넣을 수 있습니다.",
+  help = "본인 명의의 번호만 입력할 수 있습니다.",
   error,
   disabled,
 }: {
@@ -61,6 +61,7 @@ export function RrnField({
           <input
             name="rrnFront"
             aria-label="주민등록번호 앞 6자리"
+            placeholder="앞 6자리"
             inputMode="numeric"
             autoComplete="off"
             maxLength={6}
@@ -77,6 +78,7 @@ export function RrnField({
           <input
             name="rrnBack"
             aria-label="주민등록번호 뒤 7자리"
+            placeholder="뒤 7자리"
             type="text"
             inputMode="numeric"
             autoComplete="off"
@@ -114,7 +116,7 @@ export function PayrollAccountFields({
   onBankChange,
   onAccountChange,
   required = false,
-  help = "예금주가 본인이어야 합니다. 급여는 이 계좌로 들어갑니다.",
+  help = "본인 명의 계좌만 입력할 수 있습니다.",
   bankError,
   accountError,
   disabled,
@@ -133,7 +135,7 @@ export function PayrollAccountFields({
   const id = useId();
   const unavailable = banks.length === 0;
   const error = bankError || accountError;
-  const note = error || (unavailable ? "은행 목록을 불러오지 못해 지금은 계좌를 넣을 수 없습니다. 잠시 뒤 다시 열어 주세요." : help);
+  const note = error || (unavailable ? "은행 목록을 불러오지 못해 지금은 계좌를 입력할 수 없습니다. 잠시 뒤 다시 열어 주세요." : help);
   return (
     <div className="flex flex-col gap-[8px]">
       <Basis>{ACCOUNT_BASIS}</Basis>

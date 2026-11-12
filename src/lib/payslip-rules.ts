@@ -38,10 +38,10 @@ const parts = (iso: string, options: Intl.DateTimeFormatOptions) =>
       .map((p) => [p.type, p.value]),
   );
 
-/** 처리 이력의 시각 「09-10 09:12」(한국 시각). */
+/** 처리 내역의 시각 「9월 10일 09:12」(한국 시각). */
 export function formatHistoryTime(iso: string): string {
-  const p = parts(iso, { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
-  return `${p.month}-${p.day} ${p.hour}:${p.minute}`;
+  const p = parts(iso, { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  return `${p.month}월 ${p.day}일 ${p.hour}:${p.minute}`;
 }
 
 /** 「9월 10일」(한국 시각). */
@@ -51,16 +51,17 @@ export function sentDateLabel(iso: string): string {
 }
 
 /**
- * 처리 이력(PAY-1 · PAY-20): 발송 · 확정 취소만 보인다(api 가 이 둘만 준다). 발송이 여럿이면 가장 최근 발송 한 줄만
- * 「발송」으로 보이고 앞의 발송은 보이지 않는다 — 「재발송」 줄은 두지 않는다. 확정 취소는 모두 보인다. 관리자 이름은
- * 적지 않는다. 최근 것이 위.
+ * 처리 내역(PAY-1 · PAY-20): 발송 · 확정 취소만 보인다(api 가 이 둘만 준다). 발송이 여럿이면 가장 최근 발송 한 줄만
+ * 「다시 발송」으로 보이고 앞의 발송은 보이지 않는다 — 「재발송」 줄을 따로 두지 않는다. 확정 취소는 모두 「정정을 위해 확정 취소」로
+ * 보인다. 관리자 이름은 적지 않는다. 최근 것이 위.
  */
 export function historyEntries(logs: readonly PayslipLog[]): { at: string; label: string }[] {
   const latestSend = sends(logs).at(-1);
+  const sendLabel = isResent(logs) ? "다시 발송" : "발송";
   return [...logs]
     .sort(byTime)
     .filter((l) => l.logType === "CANCEL_CONFIRMATION" || l === latestSend)
-    .map((l) => ({ at: formatHistoryTime(l.changedAt), label: l.logType === "SEND" ? "발송" : "확정 취소" }))
+    .map((l) => ({ at: formatHistoryTime(l.changedAt), label: l.logType === "SEND" ? sendLabel : "정정을 위해 확정 취소" }))
     .reverse();
 }
 

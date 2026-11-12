@@ -261,7 +261,7 @@ test("taxProfileCreateFailure 는 동시 처음 작성의 400 CURRENT_PASSWORD_M
   assert.equal(of(400, "RRN_BIRTH_MISMATCH").alreadySaved, false);
   assert.deepEqual(of(400, "RRN_BIRTH_MISMATCH").state, { problem: { field: "rrn", message: RRN_BIRTH_MISMATCH } });
   assert.deepEqual(of(400, "TAX_PROFILE_INCOMPLETE"), {
-    state: { problem: { field: "form", message: "주민등록번호와 급여 계좌를 모두 넣어 주세요" } },
+    state: { problem: { field: "form", message: "주민등록번호와 급여 계좌를 모두 입력해 주세요" } },
     log: true,
     alreadySaved: false,
   });
