@@ -40,7 +40,13 @@ export function PinForm({
       <form action={resendAction} className="flex flex-1 flex-col">
         <AuthScreen
           title="인증번호가 만료되었습니다"
-          description="보낸 지 10분이 지났습니다. 다시 받아 주세요."
+          description={
+            <>
+              인증번호 유효 시간 10분이 지났습니다.
+              <br />
+              <strong>새 인증번호를 받아 다시 시도해 주세요.</strong>
+            </>
+          }
           dock={
             <>
               <Button type="submit" disabled={resending}>
@@ -52,13 +58,7 @@ export function PinForm({
             </>
           }
         >
-          {resend.error ? (
-            <Alert tone="danger">{resend.error}</Alert>
-          ) : (
-            <Alert tone="warning">
-              남은 시도가 있어도 <strong>10분이 지나면 만료</strong>됩니다.
-            </Alert>
-          )}
+          {resend.error && <Alert tone="danger">{resend.error}</Alert>}
         </AuthScreen>
       </form>
     );
@@ -67,10 +67,12 @@ export function PinForm({
   return (
     <form action={formAction} className="flex flex-1 flex-col">
       <AuthScreen
-        title="인증번호를 넣어 주세요"
+        title="인증번호 입력"
         description={
           <>
-            <span className="tabular-nums">{maskedEmail}</span> 으로 여섯 자리를 보냈습니다.
+            <span className="tabular-nums">{maskedEmail}</span> 으로 보낸
+            <br />
+            인증번호 6자리를 입력해 주세요.
           </>
         }
         dock={
@@ -86,7 +88,7 @@ export function PinForm({
               formNoValidate
               disabled={resending || resendLeft > 0}
             >
-              {resendLeft > 0 ? `다시 받기 · ${Math.ceil(resendLeft / 1000)}초 뒤` : "다시 받기"}
+              {resendLeft > 0 ? `인증번호 다시 받기 · ${Math.ceil(resendLeft / 1000)}초 뒤` : "인증번호 다시 받기"}
             </Button>
           </>
         }
@@ -100,6 +102,7 @@ export function PinForm({
             autoCapitalize="characters"
             required
             maxLength={20}
+            placeholder="인증번호 6자리"
             defaultValue={state.pin}
             error={pinError ?? resend.error}
             help={resend.notice}
@@ -109,8 +112,9 @@ export function PinForm({
           </div>
         </div>
         <Notice>
-          메일이 오지 않으면 스팸함을 확인해 주세요. 1분 뒤 다시 받을 수 있고, 하루 10번까지 받을 수 있습니다. 다시 받으면{" "}
-          <strong>앞서 보낸 인증번호는 바로 무효</strong>가 됩니다.
+          메일이 오지 않았다면 스팸함을 확인해 주세요.
+          <br />
+          다시 받으면 <strong>이전 인증번호는 사용할 수 없습니다.</strong>
         </Notice>
       </AuthScreen>
     </form>

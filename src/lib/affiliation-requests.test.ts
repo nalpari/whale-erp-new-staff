@@ -118,7 +118,8 @@ test("parseResult 는 정한 값만 받고 나머지는 null", () => {
 });
 
 test("contentOf 는 결과마다 제목 · 설명을 주고, 수락이면 쿠키의 점포 이름을 넣는다", () => {
-  assert.equal(contentOf({ kind: "accepted", contractIds: [1], hqNotRecorded: false }, "홍대점").title, "홍대점 소속이 추가되었습니다");
+  assert.equal(contentOf({ kind: "accepted", contractIds: [1], hqNotRecorded: false }, "홍대점").title, "홍대점이 추가되었습니다");
+  assert.equal(contentOf({ kind: "accepted", contractIds: [1], hqNotRecorded: false }, "웨일카페").title, "웨일카페가 추가되었습니다");
   assert.equal(contentOf({ kind: "accepted", contractIds: [1], hqNotRecorded: false }).title, "소속이 추가되었습니다");
   assert.equal(contentOf({ kind: "rejected" }, "홍대점").title, "소속 추가를 거절했습니다");
   assert.equal(contentOf({ kind: "closed", reason: "ended" }).title, "끝난 요청입니다");

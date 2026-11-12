@@ -106,17 +106,16 @@ function LinkPasswordForm() {
     <form action={formAction} className="flex flex-1 flex-col">
       <AuthScreen
         titleRef={titleRef}
-        title="새 비밀번호를 정해 주세요"
-        description="관리자가 보낸 재설정 링크로 들어왔습니다. 지금 쓰던 비밀번호는 묻지 않습니다."
+        title="새 비밀번호 설정"
+        description="새로 사용할 비밀번호를 입력해 주세요."
         dock={
           <Button type="submit" disabled={pending}>
-            비밀번호 정하기
+            비밀번호 변경
           </Button>
         }
       >
         <Alert tone="warning">
-          이 링크는 보낸 때로부터 <strong>24시간</strong> 동안, <strong>한 번만</strong> 쓸 수 있습니다. 이 링크나 인증번호로 비밀번호를
-          정하고 나면 바로 무효가 됩니다. 관리자는 새 비밀번호를 정하지 못합니다.
+          이 링크는 <strong>24시간</strong> 동안 <strong>한 번만</strong> 사용할 수 있습니다.
         </Alert>
         <NewPasswordFields
           email={null}
@@ -124,8 +123,9 @@ function LinkPasswordForm() {
           confirmationError={state.field === "newPassword" ? undefined : state.error}
         />
         <Notice>
-          새로 정하면 <strong>다른 기기의 로그인이 모두 끊기고</strong> 잠금도 함께 풀립니다. 로그인 화면에서 새 비밀번호로 로그인해
-          주세요.
+          변경하면 <strong>다른 기기에서는 모두 로그아웃</strong>됩니다.
+          <br />
+          계정 잠금도 함께 해제됩니다.
         </Notice>
       </AuthScreen>
     </form>
@@ -139,12 +139,22 @@ function InvalidLink() {
   return (
     <AuthScreen
       titleRef={titleRef}
-      title="이 링크는 쓸 수 없습니다"
-      description="메일에서 받은 링크를 다시 눌러 보세요. 그래도 안 되면 관리자에게 재설정 링크를 다시 청하거나, 비밀번호 찾기에서 인증번호를 받아 직접 정해 주세요. 기억나는 비밀번호가 있으면 그대로 로그인하셔도 됩니다."
+      title="사용할 수 없는 링크입니다"
+      description={
+        <>
+          메일에서 받은 링크를 다시 눌러 주세요.
+          <br />
+          <strong>
+            그래도 안 되면 관리자에게 링크를 다시 요청하거나,
+            <br />
+            비밀번호를 직접 재설정해 주세요.
+          </strong>
+        </>
+      }
       dock={
         <>
           <Button href="/password-reset" transitionTypes={["nav-forward"]}>
-            인증번호로 직접 정하기
+            비밀번호 재설정
           </Button>
           <Button variant="ghost" href="/login" transitionTypes={["nav-back"]}>
             로그인으로 돌아가기

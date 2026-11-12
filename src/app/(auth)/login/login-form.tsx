@@ -63,7 +63,7 @@ export function LoginForm({
         description={
           expired
             ? "접속이 끝나 다시 로그인해야 합니다. 오래 쓰지 않았거나 다른 곳에서 비밀번호를 바꾼 경우입니다."
-            : "근무 정보와 출퇴근을 확인하려면 로그인하세요."
+            : "근무 정보와 출퇴근을 확인하려면 로그인해 주세요."
         }
         dock={
           <>
@@ -89,9 +89,8 @@ export function LoginForm({
             autoComplete="username"
             required
             maxLength={254}
-            placeholder="이메일을 입력해 주세요"
+            placeholder="가입한 이메일을 입력해 주세요"
             defaultValue={state.email}
-            help={state.error ? undefined : "가입할 때 정한 아이디입니다"}
             error={state.field === "email" ? state.error : undefined}
           />
           <TextField
@@ -117,9 +116,7 @@ export function LoginForm({
         {state.field === "form" ? (
           <Alert tone="danger">{state.error}</Alert>
         ) : state.field === "password" ? (
-          <Notice>
-            연속 <strong>5</strong>회 틀리면 5분 동안 잠깁니다.
-          </Notice>
+          <Notice>5회 틀리면 5분 동안 로그인할 수 없습니다.</Notice>
         ) : state.error ? null : unavailable ? (
           <Alert tone="warning">
             지금 서버에 연결하지 못해 접속을 확인하지 못했습니다. <strong>잠시 뒤 다시 열어 주세요.</strong>
@@ -143,11 +140,13 @@ function Locked({ lock, onRetry }: { lock: AttemptLock; onRetry: () => void }) {
   return (
     <AuthScreen
       titleRef={titleRef}
-      title="잠시 잠겼습니다"
-      // 잠긴 뒤 다시 시도한 경우도 이 화면이라 「5분 뒤」라고 적지 않고 아래 남은 시간으로 말한다.
+      title="로그인이 잠시 잠겼습니다"
+      // 5분은 잠그는 규칙으로만 말한다. 잠긴 뒤 다시 시도한 경우도 이 화면이라 언제 풀리는지는 아래 남은 시간으로 말한다.
       description={
         <>
-          비밀번호를 연속 다섯 번 틀려 계정이 잠겼습니다. <strong>잠금이 풀린 뒤에 다시 시도하거나 비밀번호를 재설정하세요.</strong>
+          비밀번호를 5회 틀려 5분 동안 로그인할 수 없습니다.
+          <br />
+          <strong>비밀번호를 재설정하면 바로 로그인할 수 있습니다.</strong>
         </>
       }
       dock={
@@ -164,15 +163,10 @@ function Locked({ lock, onRetry }: { lock: AttemptLock; onRetry: () => void }) {
       {/* 남은 시간 판과 버튼 배치는 이메일 찾기의 막힘 화면(email-find-form.tsx Locked)과 맞춘다(2026-10-21 노영주). */}
       <Card>
         <div className="flex flex-col items-center text-center">
-          <p className="text-[13px] font-semibold text-staff-text-sub">다시 시도까지</p>
+          <p className="text-[13px] font-semibold text-staff-text-sub">남은 시간</p>
           <p className="pt-[4px] text-[32px] font-bold tabular-nums">{text}</p>
-          <p className="pt-[6px] text-[12px] text-staff-text-muted">잠그는 시간은 5분입니다.</p>
         </div>
       </Card>
-      <Notice>
-        기다리기 어려우면 <strong>비밀번호를 다시 정하면</strong> 바로 들어올 수 있습니다. 새로 정하면 잠금도 함께 풀립니다. 잠긴
-        동안에는 비밀번호가 맞아도 들어갈 수 없습니다.
-      </Notice>
     </AuthScreen>
   );
 }

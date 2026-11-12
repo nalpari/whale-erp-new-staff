@@ -26,7 +26,7 @@ import { hasLoginTrace, readDeviceId, saveDeviceId, saveLogin } from "@/lib/sess
 import { CONNECTION_FAILED_MESSAGE } from "../_components/auth-screen";
 
 /** 번호 · 코드에 맞는 초대가 없다. 어느 쪽이 틀렸는지, 그 번호로 초대가 있는지 알리지 않는다(JOIN-7). */
-const CODE_MISMATCH = "휴대전화번호나 초대 코드를 다시 확인해 주세요";
+const CODE_MISMATCH = "휴대전화번호 또는 초대 코드를 다시 확인해 주세요";
 
 /** 초대가 끝났거나(ended) · 이미 가입을 마쳤거나(joined) · 그 번호로 계정이 있다(has-account). 화면이 각 안내로 바뀐다. */
 export type InvitationEnd = "ended" | "joined" | "has-account";
@@ -56,7 +56,7 @@ export async function checkInviteCodeAction(_previous: InviteCodeState, formData
   const code = normalizeInviteCode(String(formData.get("code") ?? ""));
   const input = (field: "phone" | "code" | "form", error: string): InviteCodeState => ({ step: "input", field, error });
   // 모양이 틀린 값은 api 에 보내지 않는다 — 형식 오류로는 잠금 횟수가 쌓이지 않지만 요청 제한에는 든다.
-  if (!/^\d{10,11}$/.test(phone)) return input("phone", "휴대전화번호를 확인해 주세요. 010-1234-5678 처럼 넣어 주세요");
+  if (!/^\d{10,11}$/.test(phone)) return input("phone", "휴대전화번호를 확인해 주세요. 010-1234-5678 처럼 입력해 주세요");
   if (!isInviteCode(code)) return input("code", "초대 코드 8자리를 확인해 주세요. 0 · O · 1 · I 는 쓰지 않습니다");
 
   try {

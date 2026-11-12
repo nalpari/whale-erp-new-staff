@@ -14,7 +14,7 @@ export default function AuthError({ error, retry }: { error: Error & { digest?: 
   return (
     <AuthScreen
       title="화면을 열지 못했습니다"
-      description="잠시 뒤 다시 시도해 주세요. 계속되면 근무지 점포에 알려 주세요."
+      description="잠시 뒤 다시 시도해 주세요. 계속되면 근무지에 알려 주세요."
       dock={
         <>
           <Button onClick={() => retry()}>다시 시도</Button>

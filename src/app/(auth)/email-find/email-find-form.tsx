@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, type ReactNode } from "react";
-import { Alert, Button, Card, Notice, TextField } from "@/components/common";
+import { Alert, Button, Card, TextField } from "@/components/common";
 import { AuthScreen } from "../_components/auth-screen";
 import { useFocusedTitle } from "../_components/use-focused-title";
 import { useNow } from "@/app/_components/countdown";
@@ -9,9 +9,9 @@ import { type AttemptLock, lockCountdown } from "@/lib/attempt-lock";
 import { findEmailAction, type EmailFindState, type EmailFindValues } from "./actions";
 
 // 기준: 데모 docs/demo/src/pages/login 의 find · found · find-fail · find-lock (LOGIN-8 · 9 · 10).
-// 남은 시도 횟수(데모의 「남은 시도는 2번」)는 api 가 주지 않아 보이지 않는다.
+// 남은 시도 횟수(데모의 「남은 시도는 2회」)는 api 가 주지 않아 보이지 않고, 「5회 틀리면」으로 규칙만 말한다.
 // 생년월일은 데모처럼 글자 칸이다. 숫자 8자리도 받아 서버 액션이 YYYY-MM-DD 로 바꾼다.
-// 결과 화면의 「다시 넣기」도 같은 서버 액션으로 제출한다(넣은 값을 숨은 칸에 실어 보냄). 그래서 JS 없이 보낸 경우에도
+// 결과 화면의 「다시 입력하기」도 같은 서버 액션으로 제출한다(넣은 값을 숨은 칸에 실어 보냄). 그래서 JS 없이 보낸 경우에도
 // 동작하고, 넣은 값이 칸에 되돌아온다.
 
 const EMPTY: EmailFindValues = { name: "", phone: "", birthDate: "" };
@@ -39,10 +39,10 @@ export function EmailFindForm() {
     // 결과 화면에서 돌아오면 폼이 새로 붙어 defaultValue 로 넣은 값을 되돌린다.
     <form action={formAction} className="flex flex-1 flex-col">
       <AuthScreen
-        title="로그인 이메일을 찾습니다"
+        title="이메일 찾기"
         description={
           <>
-            가입할 때 <strong>본인인증으로 확인된 세 가지</strong>를 넣으면 그 이메일을 찾아 드립니다.
+            가입할 때 입력한 <strong>이름·휴대전화번호·생년월일</strong>을 입력해 주세요.
           </>
         }
         dock={
@@ -64,6 +64,7 @@ export function EmailFindForm() {
             autoComplete="name"
             required
             maxLength={50}
+            placeholder="이름을 입력해 주세요"
             defaultValue={values.name}
             error={error?.field === "name" ? error.error : undefined}
           />
@@ -75,7 +76,7 @@ export function EmailFindForm() {
             autoComplete="tel"
             required
             maxLength={13}
-            placeholder="010-1234-5678"
+            placeholder="숫자만 입력해 주세요"
             defaultValue={values.phone}
             error={error?.field === "phone" ? error.error : undefined}
           />
@@ -87,23 +88,18 @@ export function EmailFindForm() {
             autoComplete="bday"
             required
             maxLength={12}
-            placeholder="1999-04-12"
+            placeholder="YYYYMMDD"
             defaultValue={values.birthDate}
-            help="가입 때 본인인증으로 확정된 값과 같아야 합니다."
             error={error?.field === "birthDate" ? error.error : undefined}
           />
         </div>
-        {error?.field === "form" ? (
-          <Alert tone="danger">{error.error}</Alert>
-        ) : (
-          <Notice>세 값이 모두 맞아야 알려 드립니다. 하나라도 다르면 어느 값이 틀렸는지는 알려 주지 않습니다.</Notice>
-        )}
+        {error?.field === "form" && <Alert tone="danger">{error.error}</Alert>}
       </AuthScreen>
     </form>
   );
 }
 
-/** 결과 화면의 「다시 넣기」 폼. 넣은 값을 숨은 칸에 실어 같은 액션으로 보내면, 액션은 api 를 부르지 않고 입력 화면을 돌려준다. */
+/** 결과 화면의 「다시 입력하기」 폼. 넣은 값을 숨은 칸에 실어 같은 액션으로 보내면, 액션은 api 를 부르지 않고 입력 화면을 돌려준다. */
 function RetryForm({ action, values, children }: { action: (formData: FormData) => void; values: EmailFindValues; children: ReactNode }) {
   return (
     <form action={action} className="flex flex-1 flex-col">
@@ -128,7 +124,7 @@ function Found({ emails }: { emails: string[] }) {
             로그인하러 가기
           </Button>
           <Button variant="ghost" href="/password-reset" transitionTypes={["nav-forward"]}>
-            비밀번호도 다시 정하기
+            비밀번호 재설정
           </Button>
         </>
       }
@@ -143,14 +139,7 @@ function Found({ emails }: { emails: string[] }) {
             </li>
           ))}
         </ul>
-        <p className="pt-[6px] text-[12px] text-staff-text-muted">
-          @ 앞은 처음 두 글자와 마지막 한 글자만 보이고 나머지는 글자 수만큼 가립니다. 도메인으로 어느 메일함인지 알아볼 수 있습니다.
-        </p>
       </Card>
-      <Notice>
-        <strong>다음에 할 일</strong>
-        <br />이 이메일로 로그인하세요. 비밀번호가 기억나지 않으면 이 주소로 인증번호를 받아 다시 정할 수 있습니다.
-      </Notice>
     </AuthScreen>
   );
 }
@@ -160,12 +149,20 @@ function NotFound({ pending }: { pending: boolean }) {
   return (
     <AuthScreen
       titleRef={titleRef}
-      title="맞는 계정을 찾지 못했습니다"
-      description="세 값이 가입 때 확인된 값과 다릅니다."
+      title="일치하는 계정이 없습니다"
+      description={
+        <>
+          입력한 정보를 다시 확인해 주세요.
+          <br />
+          5회 틀리면 5분 동안 이용할 수 없습니다.
+          <br />
+          계속 찾을 수 없다면 근무지에 직접 방문해 문의해 주세요.
+        </>
+      }
       dock={
         <>
           <Button type="submit" disabled={pending}>
-            다시 넣기
+            다시 입력하기
           </Button>
           <Button variant="ghost" href="/login" transitionTypes={["nav-back"]}>
             로그인으로 돌아가기
@@ -174,14 +171,11 @@ function NotFound({ pending }: { pending: boolean }) {
       }
     >
       <Card>
-        <p className="text-[13px] font-semibold text-staff-text-sub">이럴 때가 많습니다</p>
+        <p className="text-[13px] font-semibold text-staff-text-sub">이런 경우가 많아요</p>
         <ul className="flex flex-col pt-[2px] text-[13px] font-medium">
-          <li className="border-b border-staff-border-light py-[8px]">휴대전화번호가 가입 뒤에 바뀐 경우</li>
-          <li className="py-[8px]">이름의 띄어쓰기나 생년월일이 다른 경우</li>
+          <li className="border-b border-staff-border-light py-[8px]">가입 후 휴대전화번호가 바뀐 경우</li>
+          <li className="py-[8px]">이름 띄어쓰기나 생년월일 형식이 다른 경우</li>
         </ul>
-        <p className="pt-[6px] text-[12px] text-staff-text-muted">
-          다섯 번 틀리면 5분 동안 막습니다. 그때는 근무지 점포에 직접 방문해 물어 주세요.
-        </p>
       </Card>
     </AuthScreen>
   );
@@ -194,12 +188,20 @@ function Locked({ lock, pending }: { lock: AttemptLock; pending: boolean }) {
   return (
     <AuthScreen
       titleRef={titleRef}
-      title="잠시 막았습니다"
-      description="다섯 번 틀렸습니다. 아래 시간이 지나면 다시 시도할 수 있습니다."
+      title="이메일 찾기가 잠시 잠겼습니다"
+      description={
+        <>
+          5분 뒤 다시 시도하거나,
+          <br />
+          <strong>근무지에 직접 방문해 문의해 주세요.</strong>
+          <br />
+          전화나 메시지로는 알려 드릴 수 없습니다.
+        </>
+      }
       dock={
         <>
           <Button type="submit" disabled={waiting || pending}>
-            {waiting ? `다시 넣기 · ${text} 뒤` : "다시 넣기"}
+            {waiting ? `다시 입력하기 · ${text} 뒤` : "다시 입력하기"}
           </Button>
           <Button variant="ghost" href="/login" transitionTypes={["nav-back"]}>
             로그인으로 돌아가기
@@ -209,15 +211,10 @@ function Locked({ lock, pending }: { lock: AttemptLock; pending: boolean }) {
     >
       <Card>
         <div className="flex flex-col items-center text-center">
-          <p className="text-[13px] font-semibold text-staff-text-sub">다시 시도까지</p>
+          <p className="text-[13px] font-semibold text-staff-text-sub">남은 시간</p>
           <p className="pt-[4px] text-[32px] font-bold tabular-nums">{text}</p>
-          <p className="pt-[6px] text-[12px] text-staff-text-muted">막는 시간은 5분입니다. 로그인 잠금과 같은 규칙입니다.</p>
         </div>
       </Card>
-      <Notice>
-        <strong>근무지 점포에 직접 방문해 물어 주세요.</strong> 본인이 맞는지 얼굴을 보고 확인한 뒤에만 알려 드립니다. 전화나 메시지로는
-        알려 드릴 수 없습니다. 이메일은 알지만 그 메일함을 쓸 수 없을 때도 같습니다.
-      </Notice>
     </AuthScreen>
   );
 }
