@@ -26,8 +26,8 @@ export type LoginState = { email: string } & (
 
 export async function loginAction(_previous: LoginState, formData: FormData): Promise<LoginState> {
   const { email, password, saveEmail, autoLogin } = readLoginForm(formData);
-  if (!email) return { email, error: "이메일을 넣어 주세요", field: "email" };
-  if (!password) return { email, error: "비밀번호를 넣어 주세요", field: "password" };
+  if (!email) return { email, error: "이메일을 입력해 주세요", field: "email" };
+  if (!password) return { email, error: "비밀번호를 입력해 주세요", field: "password" };
 
   let result;
   try {
@@ -44,8 +44,8 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
       }
       // 400 은 이메일 형식 검증(class-validator, 영어 원문)이다.
       if (error.status === 400) return { email, error: "이메일 형식을 확인해 주세요", field: "email" };
-      // 401 「이메일 또는 비밀번호가 올바르지 않습니다」 — 틀림 · 없는 계정 · 탈퇴 모두 같다.
-      if (error.status === 401) return { email, error: error.message, field: "password" };
+      // 401 — 틀림 · 없는 계정 · 탈퇴 모두 같다. api 원문(「이메일 또는 비밀번호가 올바르지 않습니다」) 대신 할 일로 안내한다.
+      if (error.status === 401) return { email, error: "이메일 또는 비밀번호를 다시 확인해 주세요", field: "password" };
       // 5xx 는 request() 가 남겼다. 그 밖(404 등 api 버전 어긋남)은 원문이 영어일 수 있어 일반 문구로 바꾸고 남긴다.
       if (error.status < 500) logUnexpected("login", error);
       return { email, error: "로그인하지 못했습니다. 잠시 뒤 다시 시도해 주세요", field: "form" };

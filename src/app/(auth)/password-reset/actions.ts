@@ -50,7 +50,7 @@ export interface RequestPinState {
 
 export async function requestPinAction(_previous: RequestPinState, formData: FormData): Promise<RequestPinState> {
   const email = String(formData.get("email") ?? "").trim();
-  if (!email) return { email, error: "이메일을 넣어 주세요" };
+  if (!email) return { email, error: "이메일을 입력해 주세요" };
   // 같은 이메일로 1분 안에 다시 요청하면(뒤로 가기 뒤 다시 제출 등) api 는 보내지 않고 204 를 준다.
   // 시계를 새로 세면 실제 핀보다 늦게 끝나므로 부르지 않고 앞서 받은 핀의 화면으로 돌려보낸다.
   const previous = await readPasswordReset();
@@ -97,14 +97,14 @@ export async function verifyPinAction(_previous: PinState, formData: FormData): 
   const pin = String(formData.get("pin") ?? "");
   const state = await readPasswordReset();
   if (!state) redirect("/password-reset");
-  if (!pin.trim()) return { pin, error: "인증번호를 넣어 주세요", issuedAt: state.issuedAt };
+  if (!pin.trim()) return { pin, error: "인증번호를 입력해 주세요", issuedAt: state.issuedAt };
   try {
     await verifyPasswordResetPin({ email: state.email, pin }, clientIpFrom(await headers()));
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
       return {
         pin,
-        error: "인증번호가 맞지 않거나 만료되었습니다. 다섯 번 틀리면 새로 받아야 합니다",
+        error: "인증번호가 맞지 않거나 만료되었습니다. 5회 틀리면 다시 받아야 합니다",
         issuedAt: state.issuedAt,
       };
     }

@@ -91,7 +91,7 @@ export function SignupForm({
       <input type="hidden" name="address" value={picked.address} />
       <AuthScreen
         eyebrow={<JoinSteps via={via} step="계정 등록" />}
-        title="계정을 등록해 주세요"
+        title="계정 등록"
         description={
           <>
             <strong>{storeName}</strong> 근무를 위한 계정입니다.
@@ -111,6 +111,7 @@ export function SignupForm({
             autoComplete="name"
             required
             maxLength={SIGNUP_NAME_MAX}
+            placeholder="이름을 입력해 주세요"
             value={name}
             onChange={(event) => setName(event.target.value)}
             error={errorOf("name")}
@@ -118,9 +119,7 @@ export function SignupForm({
           <ReadOnlyField
             label="휴대전화번호"
             value={formatPhone(phone)}
-            help={`${
-              via === "code" ? "초대 코드 확인으로 확정된 번호" : "이 초대(근로계약서)에 적힌 번호"
-            }라 고칠 수 없습니다. 번호가 틀렸으면 근무지 관리자에게 알려 주세요. 관리자가 근로계약서의 번호를 고쳐 다시 초대합니다.`}
+            help="번호 변경이 필요하면 근무지 관리자에게 문의해 주세요."
           />
           <TextField
             label="생년월일"
@@ -132,7 +131,7 @@ export function SignupForm({
             placeholder="YYYYMMDD"
             value={birthDate}
             onChange={(event) => setBirthDate(event.target.value)}
-            help="8자리로 넣어 주세요. 가입한 뒤에는 고칠 수 없습니다."
+            help="가입 후에는 변경할 수 없으니 정확히 입력해 주세요."
             error={errorOf("birthDate")}
           />
           <Choice label="성별" error={errorOf("gender")}>
@@ -151,9 +150,10 @@ export function SignupForm({
           autoComplete="email"
           required
           maxLength={254}
+          placeholder="이메일을 입력해 주세요"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          help="로그인할 때 쓰는 아이디입니다. 비밀번호를 잊으면 이 주소로 인증번호가 갑니다."
+          help="로그인 아이디로 사용됩니다."
           error={errorOf("email")}
         />
         <NewPasswordFields
@@ -185,9 +185,7 @@ export function SignupForm({
             onChange={(event) => setDetail(event.target.value)}
             className={FIELD}
           />
-          <p className={`pt-[2px] text-[12px] ${errorOf("address") ? "text-staff-error" : "text-staff-text-muted"}`}>
-            {errorOf("address") ?? "도로명 주소는 검색해서 고르고 상세 주소만 직접 적습니다."}
-          </p>
+          {errorOf("address") && <p className="pt-[2px] text-[12px] text-staff-error">{errorOf("address")}</p>}
         </div>
 
         {asksHqSharingConsent && <HqSharingConsent checked={hqSharing} onChange={setHqSharing} flow="signup" />}
@@ -202,7 +200,7 @@ export function SignupForm({
         open={birthCheck.open}
         onClose={() => setBirthCheck((check) => ({ ...check, open: false }))}
         title={`생년월일이 ${birthCheck.birthDate && dateLabel(birthCheck.birthDate)} 맞습니까?`}
-        description="만 19세 미만은 가입할 수 없고, 이 초대도 다시 쓸 수 없게 됩니다. 잘못 넣었다면 고친 뒤 다시 가입해 주세요."
+        description="만 19세 미만은 가입할 수 없고, 이 초대도 다시 쓸 수 없게 됩니다. 잘못 입력했다면 고친 뒤 다시 가입해 주세요."
         closeLabel="고치기"
       >
         <Button

@@ -34,11 +34,11 @@ const CLOSED = {
   },
   ended: {
     title: "끝난 요청입니다",
-    message: "확인 기한이 지났거나 새 요청으로 바뀌었습니다. 점포 관리자에게 다시 보내 달라고 요청해 주세요.",
+    message: "확인 기한이 지났거나 새 요청으로 바뀌었습니다. 근무지 관리자에게 다시 보내 달라고 요청해 주세요.",
   },
   notFound: {
     title: "요청을 찾을 수 없습니다",
-    message: "이미 끝났거나 이 계정의 요청이 아닙니다. 점포 관리자에게 다시 보내 달라고 요청해 주세요.",
+    message: "이미 끝났거나 이 계정의 요청이 아닙니다. 근무지 관리자에게 다시 보내 달라고 요청해 주세요.",
   },
 } as const;
 
@@ -47,6 +47,22 @@ export type ClosedReason = keyof typeof CLOSED;
 /** 더 답할 수 없는 요청의 제목 · 설명. */
 export const closedMessage = (reason: ClosedReason) => CLOSED[reason];
 
+/** 끝 글자에 받침이 있는지 — 닫는 괄호 · 따옴표 · 공백은 건너뛴다. 숫자는 읽는 소리(영 · 일 · 삼 · 육 · 칠 · 팔 · 십은 받침), 영문 등 판단할 수 없으면 null. */
+const hasBatchim = (word: string): boolean | null => {
+  const t = word.replace(/[\s)\]}」』"'’”]+$/u, "");
+  const ch = t.charAt(t.length - 1);
+  const code = ch.charCodeAt(0) - 0xac00;
+  if (code >= 0 && code <= 11171) return code % 28 !== 0;
+  if (/[0-9]/.test(ch)) return "0136780".includes(ch);
+  return null;
+};
+
+/** 주격 조사 — 받침이 있으면 「이」, 없으면 「가」, 판단할 수 없으면(영문으로 끝남) 「이(가)」. */
+const subjectParticle = (word: string) => {
+  const b = hasBatchim(word);
+  return b === null ? "이(가)" : b ? "이" : "가";
+};
+
 /**
  * 결과 화면의 제목 · 설명 — 문서 title 과 첫 제목에 같이 쓴다. 수락이면 쿠키로 넘어온 점포 이름(없으면 빼고)을 넣는다.
  * 문서 title 이 결과마다 바뀌어야 화면 낭독기가 결과를 알린다.
@@ -54,8 +70,8 @@ export const closedMessage = (reason: ClosedReason) => CLOSED[reason];
 export function contentOf(result: AnswerResult, storeName: string | null = null): { title: string; message: string } {
   if (result.kind === "accepted")
     return {
-      title: storeName ? `${storeName} 소속이 추가되었습니다` : "소속이 추가되었습니다",
-      message: "기존 계정은 그대로이고, 계정의 이름 · 휴대전화번호 · 생년월일 · 성별 · 외국인 여부만 이 근무지의 새 직원 레코드에 이어졌습니다.",
+      title: storeName ? `${storeName}${subjectParticle(storeName)} 추가되었습니다` : "소속이 추가되었습니다",
+      message: "지금 쓰는 계정을 그대로 사용합니다.",
     };
   if (result.kind === "rejected")
     return { title: "소속 추가를 거절했습니다", message: "기존 소속과 계정은 그대로입니다. 함께 온 근로계약서는 거절로 닫혔습니다." };
@@ -64,7 +80,7 @@ export function contentOf(result: AnswerResult, storeName: string | null = null)
 
 /** 이 점포에 이미 재직 중(code 없는 409)일 때의 문구. 수락은 막고 거절로 요청을 닫게 한다. */
 export const ALREADY_EMPLOYED =
-  "이 점포의 소속이 이미 계정에 이어져 있어 수락할 수 없습니다. 이 요청은 거절해 닫아 주세요. 거절해도 지금 소속과 계정은 그대로입니다.";
+  "이 근무지의 소속이 이미 계정에 이어져 있어 수락할 수 없습니다. 이 요청은 거절해 닫아 주세요. 거절해도 지금 소속과 계정은 그대로입니다.";
 
 const closed = (reason: ClosedReason): { result: AnswerResult; log: false } => ({ result: { kind: "closed", reason }, log: false });
 const retry = (error: string, log: boolean): { state: AnswerState; log: boolean } => ({ state: { error }, log });

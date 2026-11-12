@@ -50,7 +50,7 @@ export default async function AffiliationsPage({ searchParams }: PageProps<"/aff
 
   return (
     <Shell>
-      <Lead title={`확인할 요청 ${items.length}건`}>근무지를 골라 수락하거나 거절해 주세요. 거절해도 기존 소속과 계정에는 영향이 없습니다.</Lead>
+      <Lead title={`확인할 요청 ${items.length}건`}>근무지를 골라 수락하거나 거절해 주세요. 거절해도 기존 근무지와 계정은 유지됩니다.</Lead>
       <AffiliationRequestList items={items} />
     </Shell>
   );
