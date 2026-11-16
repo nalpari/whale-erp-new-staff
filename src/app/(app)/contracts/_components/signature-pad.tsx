@@ -150,7 +150,9 @@ export function SignaturePad({
 
   return (
     <div
-      className={`relative h-[190px] w-full overflow-hidden rounded-[12px] border-[1.5px] transition-[background-color,border-color] duration-150 ${EASE_OUT} ${
+      // 폭 상한 430px: 서명 PNG 는 계약서 PDF 의 142×52pt 칸에 비율대로 들어간다. 서명란이 화면 폭을 따라 넓어지면
+      // (Fold 펼침 · 태블릿 · PC) 가로로 긴 그림이 되어 서명이 가는 띠처럼 작게 찍히므로, 앱 폭과 달리 여기만 휴대전화 폭에 묶는다.
+      className={`relative mx-auto h-[190px] w-full max-w-[430px] overflow-hidden rounded-[12px] border-[1.5px] transition-[background-color,border-color] duration-150 ${EASE_OUT} ${
         drawn ? "border-solid border-staff-border-light bg-white" : "border-dashed border-staff-placeholder bg-staff-info-bg"
       }`}
     >

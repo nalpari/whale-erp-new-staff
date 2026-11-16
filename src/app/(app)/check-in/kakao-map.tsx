@@ -6,7 +6,7 @@ type LatLng = { latitude: number; longitude: number };
 
 // 카카오 지도 JS SDK 에서 쓰는 만큼만 적는다
 type KakaoLatLng = { getLat(): number; getLng(): number };
-type KakaoMap = { setBounds(bounds: KakaoBounds, ...padding: number[]): void; setZoomable(zoomable: boolean): void };
+type KakaoMap = { setBounds(bounds: KakaoBounds, ...padding: number[]): void; setZoomable(zoomable: boolean): void; relayout(): void };
 type KakaoBounds = { extend(point: KakaoLatLng): void };
 type KakaoMaps = {
   load(callback: () => void): void;
@@ -129,6 +129,7 @@ export function KakaoGeoMap({
   useEffect(() => {
     if (!appKey) return;
     let cancelled = false;
+    let resize: ResizeObserver | undefined;
     loadSdk(appKey)
       .then((maps) => {
         const el = container.current;
@@ -166,7 +167,19 @@ export function KakaoGeoMap({
           }).setMap(map);
           bounds.extend(meAt);
         }
-        map.setBounds(bounds, 56, 40, 48, 40); // 위는 핀, 아래 · 옆은 「내 위치」 이름표만큼 더 띄운다
+        const fit = () => map.setBounds(bounds, 56, 40, 48, 40); // 위는 핀, 아래 · 옆은 「내 위치」 이름표만큼 더 띄운다
+        fit();
+        // 화면을 연 채 폭이 바뀌면(폴더블을 펼치거나 접을 때, 창 크기) 지도는 스스로 크기를 다시 재지 않는다 —
+        // 그대로 두면 오른쪽이 비고 반경 원이 어긋나므로, 크기를 다시 재게 하고 같은 범위로 다시 맞춘다.
+        let size = `${el.clientWidth}x${el.clientHeight}`;
+        resize = new ResizeObserver(() => {
+          const next = `${el.clientWidth}x${el.clientHeight}`;
+          if (next === size) return;
+          size = next;
+          map.relayout();
+          fit();
+        });
+        resize.observe(el);
       })
       .catch((error: unknown) => {
         // SDK 로드 실패(키 · 등록 도메인 · 차단 · 시간 초과)와 그리기 실패를 함께 받는다 — 원인은 error 로 가린다
@@ -175,6 +188,7 @@ export function KakaoGeoMap({
       });
     return () => {
       cancelled = true;
+      resize?.disconnect();
     };
   }, [appKey, store.latitude, store.longitude, meLat, meLng, radiusMeters, out]);
 
