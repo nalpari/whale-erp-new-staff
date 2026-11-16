@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-11-16
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 폭 상한 해제 후속(PR #74 리뷰): 근로계약 서명란만 430px 로 묶고, 출퇴근 지도가 폭이 바뀌면 다시 맞추게 했다.
+
 ## 2026-11-13
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 화면 틀 폭: `(auth)` · `(app)` 레이아웃의 `max-w-[430px]` 를 걷어 폴더블(Fold · Duo)에서도 화면 폭을 채우게 했다.
 
