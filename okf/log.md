@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-11-17
+* **Update**: 유저플로우 원본을 명세 보관소 WHALE 의 유저플로우 항목(UF-)으로 옮겼다(2026-11-17 재영). `docs/flow/index.html` 맨 위에 안내 띠(명세 보관소 링크)를 넣고, `docs/flow` 의 각 장은 옮기기 전 기록으로 남겨 더 고치지 않는다. okf 에 `docs/flow` 를 원본으로 적은 곳은 없었다.
+
 ## 2026-11-16
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 폭 상한 해제 후속(PR #74 리뷰): 근로계약 서명란만 430px 로 묶고, 출퇴근 지도가 폭이 바뀌면 다시 맞추게 했다.
 
