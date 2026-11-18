@@ -12,6 +12,7 @@ import {
   bodyMissing,
   maskPhone,
   paperDocuments,
+  signBlockOf,
   signedCopyOf,
   parseId,
   periodText,
@@ -228,4 +229,17 @@ test("처리 완료본은 체결 완료 · 종료된 전자계약의 SIGNED_COPY
   assert.equal(signedCopyOf({ contractMethod: "PAPER", status: "SIGNED", documents: docs }), null);
   // 계약 방식이 비어 있는 옛 계약도 전자계약으로 본다
   assert.equal(signedCopyOf({ contractMethod: null, status: "SIGNED", documents: docs })?.contractDocumentId, 5);
+});
+
+test("signBlockOf — 서명 대기인데 서명할 수 없는 까닭: 대조가 다르면 대조, 대조가 맞고 사용자 칸이 비면 사업주(api #300)", () => {
+  const c = { awaitingSignature: true, signable: false, employerMissing: false, mismatches: [] as ("name" | "phone")[] };
+  assert.equal(signBlockOf({ ...c, employerMissing: true }), "EMPLOYER");
+  // 둘 다면 api 가 대조를 먼저 알린다(409 IDENTITY_MISMATCH) — 대조 안내
+  assert.equal(signBlockOf({ ...c, employerMissing: true, mismatches: ["name"] }), "IDENTITY");
+  assert.equal(signBlockOf({ ...c, mismatches: ["phone"] }), "IDENTITY");
+  // 대조 항목 없이 signable 만 거짓인 옛 응답
+  assert.equal(signBlockOf(c), "IDENTITY");
+  // 서명할 수 있거나 서명 대기가 아니면 안내 없음
+  assert.equal(signBlockOf({ ...c, signable: true }), null);
+  assert.equal(signBlockOf({ ...c, awaitingSignature: false, employerMissing: true }), null);
 });

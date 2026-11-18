@@ -12,6 +12,7 @@ import {
   periodText,
   phaseLabel,
   phaseOf,
+  signBlockOf,
   signedCopyOf,
   statusTone,
 } from "@/lib/contract-rules";
@@ -153,6 +154,8 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   // 조항(articles)이 비어 오면 본문 없이 서명하게 두지 않는다 — 위 안내만 보이고 서명 · 거절 · 수정 요청을 열지 않는다(bodyMissing)
   const noBody = bodyMissing(c);
   const canDecide = c.awaitingSignature && !noBody;
+  // 서명할 수 없는 까닭 — 사용자(사업주) 칸이 빔 · 본인 대조 불일치(signBlockOf)
+  const signBlock = signBlockOf(c);
   return (
     <>
       <ContractFrame header={header}>
@@ -184,7 +187,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
               잠시 뒤 다시 열어 주세요. 계속되면 근무지 관리자에게 문의해 주세요.
             </p>
           </Alert>
-        ) : c.awaitingSignature && c.employerMissing && c.mismatches.length === 0 ? (
+        ) : signBlock === "EMPLOYER" ? (
           // 사용자(사업주) 칸이 비었다 — 근무지 점포의 대표자 · 사업자등록번호가 없다(본사 사업자 인증 해제 등). 직원이 고칠 수 없어
           // 관리자에게 알린다. 본인 대조도 틀리면 api 가 그것을 먼저 알리므로(409 IDENTITY_MISMATCH) 아래 대조 안내를 보인다
           <Alert tone="warning">
@@ -194,7 +197,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
               근무지 관리자에게 문의해 주세요. 관리자가 사업자 정보를 등록하면 계약서를 다시 열어 서명할 수 있습니다.
             </p>
           </Alert>
-        ) : c.awaitingSignature && !c.signable ? (
+        ) : signBlock === "IDENTITY" ? (
           // 본인 대조(WHALEERP-125): 다른 항목만 알린다 — 계정 값은 보이지 않는다. 날인 대신 수정 요청을 낸다.
           <Alert tone="warning">
             <p>
