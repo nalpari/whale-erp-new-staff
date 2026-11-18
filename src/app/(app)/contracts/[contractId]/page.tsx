@@ -153,9 +153,11 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const signedCopy = signedCopyOf(c);
   // 조항(articles)이 비어 오면 본문 없이 서명하게 두지 않는다 — 위 안내만 보이고 서명 · 거절 · 수정 요청을 열지 않는다(bodyMissing)
   const noBody = bodyMissing(c);
-  const canDecide = c.awaitingSignature && !noBody;
-  // 서명할 수 없는 까닭 — 사용자(사업주) 칸이 빔 · 본인 대조 불일치(signBlockOf)
+  // 서명할 수 없는 까닭 — 본인 대조 불일치 · 사용자(사업주) 칸이 빔 · 모름(signBlockOf)
   const signBlock = signBlockOf(c);
+  // 사용자 칸이 비면 버튼 줄을 두지 않는다 — 수정 요청 · 거절을 누르면 관리자가 사업자 정보를 등록해도 다시 보내기 전까지 서명할 수
+  // 없다(사용자 결정 2026-11-18). 등록되면 다시 열어 서명한다
+  const canDecide = c.awaitingSignature && !noBody && signBlock !== "EMPLOYER";
   return (
     <>
       <ContractFrame header={header}>
@@ -192,7 +194,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           // 관리자에게 알린다. 본인 대조도 틀리면 api 가 그것을 먼저 알리므로(409 IDENTITY_MISMATCH) 아래 대조 안내를 보인다
           <Alert tone="warning">
             <p>
-              <strong>계약서의 사용자(사업주) 정보가 비어 있어 지금은 서명할 수 없습니다.</strong>
+              <strong>근로계약서의 사용자(사업주) 정보가 비어 있어 지금은 서명할 수 없습니다.</strong>
               <br />
               근무지 관리자에게 문의해 주세요. 관리자가 사업자 정보를 등록하면 계약서를 다시 열어 서명할 수 있습니다.
             </p>
@@ -206,6 +208,15 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
               {mismatched ? `다른 항목: ${mismatched}` : "다른 항목이 있습니다."}
               <br />
               계약서 내용을 확인하고 수정을 요청해 주세요. 근무지 관리자가 고쳐 다시 보내면 서명할 수 있습니다.
+            </p>
+          </Alert>
+        ) : signBlock === "OTHER" ? (
+          // api 가 서명할 수 없다고 하는데 까닭을 모른다 — 대조 안내로 잘못 보이지 않게 관리자 문의만 알린다
+          <Alert tone="warning">
+            <p>
+              <strong>지금은 서명할 수 없는 계약서입니다.</strong>
+              <br />
+              근무지 관리자에게 문의해 주세요.
             </p>
           </Alert>
         ) : phase === "CORRECTION_REQUESTED" ? (
