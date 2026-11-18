@@ -111,7 +111,7 @@ export function contractActionFailure(
     }
     // api 문구는 「날인 기한」이라 용어집(2026-10-28 재영 — 화면은 「서명」)에 맞춰 화면 문구로 바꾼다
     if (code === "SIGN_DEADLINE_PASSED") return { state: { stale: true, message: SIGN_DEADLINE_PASSED }, log: false };
-    // CONTRACT_STATUS_CONFLICT · STAFF_RETIRED · CONTRACT_RESENT · EMPLOYER_INFO_MISSING 은 api 가 한글 사유를 준다
+    // CONTRACT_STATUS_CONFLICT · STAFF_RETIRED · CONTRACT_RESENT · STORE_NOT_OPERATING 은 api 가 한글 사유를 준다
     const known = code !== undefined && isHangulReason(message);
     return { state: { stale: true, message: known ? message : "계약서 상태가 바뀌었습니다. 계약서를 다시 열어 확인해 주세요" }, log: !known };
   }

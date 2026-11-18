@@ -218,15 +218,28 @@ export function signedCopyOf(c: Pick<ContractDetail, "status" | "contractMethod"
 
 /**
  * 서명 대기인데 서명할 수 없는 까닭 — 상세 머리 안내 · 버튼 줄을 고른다. 본인 대조가 다르면 「IDENTITY」(api 가 대조를 먼저 보아
- * 409 IDENTITY_MISMATCH), 대조는 맞는데 사용자(사업주) 칸이 비면 「EMPLOYER」(api #300 `employerMissing` — 날인 409
- * EMPLOYER_INFO_MISSING), 둘 다 아닌데 서명할 수 없다고 하면 「OTHER」(모르는 까닭 — 대조 안내로 잘못 보이지 않게),
- * 서명할 수 있거나 서명 대기가 아니면 null. `employerMissing` 이 없는 옛 응답(api #300 배포 전)은 `=== true` 가 아니라 사업주 칸이
- * 있는 것으로 본다.
+ * 409 IDENTITY_MISMATCH), 대조는 맞는데 근무지가 운영 중이 아니면 「STORE」(api #301 `storeNotOperating` — 미운영 · 폐점 ·
+ * 사업주 정보(대표자 · 사업자등록번호) 없음, 날인 409 STORE_NOT_OPERATING), 둘 다 아닌데 서명할 수 없다고 하면 「OTHER」(모르는
+ * 까닭 — 대조 안내로 잘못 보이지 않게), 서명할 수 있거나 서명 대기가 아니면 null. `storeNotOperating` 이 없는 옛 응답(api 배포
+ * 전)은 `=== true` 가 아니라 운영 중인 것으로 본다.
  */
 export function signBlockOf(
-  c: Pick<ContractDetail, "awaitingSignature" | "signable" | "mismatches" | "employerMissing">,
-): "IDENTITY" | "EMPLOYER" | "OTHER" | null {
+  c: Pick<ContractDetail, "awaitingSignature" | "signable" | "mismatches" | "storeNotOperating">,
+): "IDENTITY" | "STORE" | "OTHER" | null {
   if (!c.awaitingSignature || c.signable) return null;
   if (c.mismatches.length > 0) return "IDENTITY";
-  return c.employerMissing === true ? "EMPLOYER" : "OTHER";
+  return c.storeNotOperating === true ? "STORE" : "OTHER";
+}
+
+/**
+ * 상세 아래 버튼 줄(서명 · 수정 요청 · 거절)을 둘까 — 서명 대기이고 본문이 있으며, 서명할 수 있거나 본인 대조만 다를 때(수정 요청이
+ * 고치는 길이다). 근무지가 운영 중이 아니거나(STORE) 까닭을 모르면(OTHER) 두지 않는다 — 수정 요청 · 거절을 누르면 관리자가 고쳐도
+ * 다시 보내기 전까지 서명할 수 없다(사용자 결정 2026-11-18). 고쳐지면 다시 열어 서명한다.
+ */
+export function canDecideOf(
+  awaitingSignature: boolean,
+  noBody: boolean,
+  signBlock: ReturnType<typeof signBlockOf>,
+): boolean {
+  return awaitingSignature && !noBody && (signBlock === null || signBlock === "IDENTITY");
 }
