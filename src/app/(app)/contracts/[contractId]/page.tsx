@@ -189,9 +189,9 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           // 관리자에게 알린다. 본인 대조도 틀리면 api 가 그것을 먼저 알리므로(409 IDENTITY_MISMATCH) 아래 대조 안내를 보인다
           <Alert tone="warning">
             <p>
-              <strong>계약서의 사업주 정보가 비어 있어 지금은 서명할 수 없습니다.</strong>
+              <strong>계약서의 사용자(사업주) 정보가 비어 있어 지금은 서명할 수 없습니다.</strong>
               <br />
-              근무지 관리자에게 문의해 주세요. 관리자가 사업자정보를 등록하면 서명할 수 있습니다.
+              근무지 관리자에게 문의해 주세요. 관리자가 사업자 정보를 등록하면 계약서를 다시 열어 서명할 수 있습니다.
             </p>
           </Alert>
         ) : c.awaitingSignature && !c.signable ? (

@@ -1,7 +1,7 @@
 # Bundle history
 
 ## 2026-11-18
-* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 근로계약서 상세: api `employerMissing`(근무지 점포의 대표자 · 사업자등록번호가 없어 날인 409 `EMPLOYER_INFO_MISSING`, api #300)이면 본인 대조 안내 대신 「계약서의 사업주 정보가 비어 있어 지금은 서명할 수 없습니다」 · 관리자 문의 안내. api 타입을 api main(d56c4191) 기준으로 다시 만들었다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 근로계약서 상세: api `employerMissing`(근무지 점포의 대표자 · 사업자등록번호가 없어 날인 409 `EMPLOYER_INFO_MISSING`, api #300)이면 본인 대조 안내 대신 「계약서의 사용자(사업주) 정보가 비어 있어 지금은 서명할 수 없습니다」 · 관리자 문의 안내. api 타입을 api main(d56c4191) 기준으로 다시 만들었다.
 
 ## 2026-11-17
 * **Update**: 유저플로우 원본을 명세 보관소 WHALE 의 유저플로우 항목(UF-)으로 옮겼다(2026-11-17 재영). `docs/flow/index.html` 맨 위에 안내 띠(명세 보관소 링크)를 넣고, `docs/flow` 의 각 장은 옮기기 전 기록으로 남겨 더 고치지 않는다. okf 에 `docs/flow` 를 원본으로 적은 곳은 없었다.
