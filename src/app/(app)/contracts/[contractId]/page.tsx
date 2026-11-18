@@ -197,7 +197,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
             <p>
               <strong>근무지가 운영 중이 아니거나 사업주 정보가 없어 지금은 서명할 수 없습니다.</strong>
               <br />
-              근무지 관리자에게 문의해 주세요. 근무지가 운영 중이 되고 사업자 정보가 등록되면 계약서를 다시 열어 서명할 수 있습니다.
+              근무지 관리자에게 문의해 주세요. 관리자가 근무지 정보를 바로잡으면 계약서를 다시 열어 서명할 수 있습니다.
             </p>
           </Alert>
         ) : signBlock === "IDENTITY" ? (
