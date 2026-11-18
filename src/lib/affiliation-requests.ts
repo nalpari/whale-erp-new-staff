@@ -184,7 +184,7 @@ export function popupSummary(items: AffiliationRequest[]): { rows: { label: stri
             { label: "점포", value: first.storeName },
             { label: "고용 형태", value: employmentLine(first) },
           ],
-    // 「다음에 하기」를 눌렀을 때 기억하는 값(id 묶음). 새 요청이 오면 다시 뜬다(isPopupDismissed).
+    // 「나중에」를 눌렀을 때 기억하는 값(id 묶음). 새 요청이 오면 다시 뜬다(isPopupDismissed).
     key: items
       .map((item) => item.invitationId)
       .sort((a, b) => a - b)
@@ -195,7 +195,7 @@ export function popupSummary(items: AffiliationRequest[]): { rows: { label: stri
 /** 팝업을 닫아 둘지 — 지금 요청이 모두 이미 본(닫은) 요청이면 닫아 둔다. 하나에 답해 줄었을 때는 다시 뜨지 않고, 새 요청이 있을 때만 뜬다. */
 export const isPopupDismissed = isSeenSubset;
 
-/** 「다음에 하기」로 닫을 때 기억할 값 — 이미 본 요청에 지금 요청을 더한다(id 숫자 순). */
+/** 「나중에」로 닫을 때 기억할 값 — 이미 본 요청에 지금 요청을 더한다(id 숫자 순). */
 export const mergeSeenKey = (currentKey: string, seenKey: string | null) => mergeSeen(currentKey, seenKey, (a, b) => Number(a) - Number(b));
 
 /**

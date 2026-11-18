@@ -18,7 +18,7 @@ test("닫은 계약의 부분집합이면 닫아 둔다 — 줄어들면 그대�
   assert.equal(isSignRequestDismissed("1@2026-10-25T01:00:00.000Z", seen), false);
 });
 
-test("「다음에 하기」는 이미 닫은 것에 더해 기억한다", () => {
+test("「나중에」는 이미 닫은 것에 더해 기억한다", () => {
   assert.equal(mergeSignRequestSeen(B, A), [A, B].sort().join(","));
   assert.equal(mergeSignRequestSeen(A, A), A);
 });

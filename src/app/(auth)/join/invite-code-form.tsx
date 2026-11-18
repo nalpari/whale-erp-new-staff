@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { Alert, Button, Notice, TextField } from "@/components/common";
+import { RequiredMark } from "@/app/_components/required-mark";
 import { INVITE_CODE_LENGTH, formatPhone, normalizeInviteCode } from "@/lib/join";
 import { AuthScreen } from "../_components/auth-screen";
 import { checkInviteCodeAction, type InviteCodeState } from "./actions";
@@ -45,7 +46,7 @@ export function InviteCodeForm() {
       >
         <div className="flex flex-col gap-[16px]">
           <TextField
-            label="휴대전화번호*"
+            label={<>휴대전화번호<RequiredMark announce={false} /></>}
             name="phone"
             type="tel"
             inputMode="numeric"
@@ -58,7 +59,7 @@ export function InviteCodeForm() {
             error={error?.field === "phone" ? error.error : undefined}
           />
           <TextField
-            label="초대 코드*"
+            label={<>초대 코드<RequiredMark announce={false} /></>}
             name="code"
             type="text"
             autoComplete="one-time-code"

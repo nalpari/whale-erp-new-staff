@@ -11,7 +11,7 @@ export function ReadOnlyField({
   action,
   wrap = false,
 }: {
-  label: string;
+  label: ReactNode;
   value: string;
   help?: string;
   /** 값이 비었을 때 옅게 보이는 안내(데모 「주소를 검색해 주세요」). */

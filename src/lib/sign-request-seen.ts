@@ -1,15 +1,15 @@
-// 서명 요청 팝업(WHALEERP-148)의 「다음에 하기」 판정 — 클라이언트(팝업 · 기억)가 쓰는 작은 순수 모듈. 띄울 계약 고르기(서버)는
+// 서명 요청 팝업(WHALEERP-148)의 「나중에」 판정 — 클라이언트(팝업 · 기억)가 쓰는 작은 순수 모듈. 띄울 계약 고르기(서버)는
 // sign-request.ts 다. 의존 없는 popup-memory.ts 만 가져온다 — 클라이언트 번들이 계약 규칙 · 날짜 모듈을 끌어오지 않게. node --test 가 직접 읽는다.
 import { isSeenSubset, mergeSeen } from "./popup-memory.ts";
 
 
 /**
- * 팝업을 닫아 둘지 — 지금 기다리는 계약(id@발송 일시)이 모두 「다음에 하기」로 닫은 것이면 닫아 둔다(소속 추가 요청 팝업과 같은 판정).
+ * 팝업을 닫아 둘지 — 지금 기다리는 계약(id@발송 일시)이 모두 「나중에」로 닫은 것이면 닫아 둔다(소속 추가 요청 팝업과 같은 판정).
  * 서명 · 수정 요청으로 기다리는 계약이 줄면 다시 뜨지 않고, 새 계약이 오거나 다시 발송(발송 일시가 바뀜)됐을 때만 뜬다.
  */
 export const isSignRequestDismissed = isSeenSubset;
 
-/** 「다음에 하기」로 닫을 때 기억할 값 — 이미 닫은 것에 지금 기다리는 계약을 더한다(글자 순). */
+/** 「나중에」로 닫을 때 기억할 값 — 이미 닫은 것에 지금 기다리는 계약을 더한다(글자 순). */
 export const mergeSignRequestSeen = (key: string, seen: string | null) => mergeSeen(key, seen);
 
 /**
@@ -20,7 +20,7 @@ export const mergeSignRequestSeen = (key: string, seen: string | null) => mergeS
 export const REOPEN_AFTER_MS = 10 * 60 * 1000;
 
 /**
- * 화면 보임이 바뀔 때 — 숨으면 그 시각을 기록하고, 다시 보이면 숨은 지 REOPEN_AFTER_MS 를 넘었는지(reopened — 「다음에 하기」 기억을
+ * 화면 보임이 바뀔 때 — 숨으면 그 시각을 기록하고, 다시 보이면 숨은 지 REOPEN_AFTER_MS 를 넘었는지(reopened — 「나중에」 기억을
  * 지우고 홈을 다시 받을지) 판정하고 기록을 비운다.
  */
 export function onVisibilityChange(

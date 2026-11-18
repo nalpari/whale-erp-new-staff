@@ -1,4 +1,4 @@
-// 소속 추가 요청 팝업(WHALEERP-144)의 「다음에 하기」 기억. 본 요청 id 를 이 탭(sessionStorage)에 둔다 — 앱을 새로 열면 잊는다.
+// 소속 추가 요청 팝업(WHALEERP-144)의 「나중에」 기억. 본 요청 id 를 이 탭(sessionStorage)에 둔다 — 앱을 새로 열면 잊는다.
 // 로그인 화면이 로그인할 때 잊게 하고(forgetAffiliationPopup) 홈 팝업이 읽고 쓴다. 저장소 다루기는 popup-memory.ts.
 import { mergeSeenKey } from "./affiliation-requests.ts";
 import { createPopupMemory } from "./popup-memory.ts";
@@ -8,7 +8,7 @@ const memory = createPopupMemory("staff:affiliation-popup-dismissed");
 /** 이미 본(닫은) 요청 id 묶음. */
 export const readSeen = memory.read;
 
-/** 「다음에 하기」 — 본 요청에 지금 요청을 더해 기억하고 팝업에 알린다. */
+/** 「나중에」 — 본 요청에 지금 요청을 더해 기억하고 팝업에 알린다. */
 export const rememberSeen = (key: string) => memory.remember(mergeSeenKey(key, memory.read()));
 
 /**
