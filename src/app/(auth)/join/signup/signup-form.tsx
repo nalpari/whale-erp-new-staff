@@ -117,7 +117,7 @@ export function SignupForm({
             error={errorOf("name")}
           />
           <ReadOnlyField
-            label={<>휴대전화번호<RequiredMark announce={false} /></>}
+            label={<>휴대전화번호<RequiredMark /></>}
             value={formatPhone(phone)}
             help="번호 변경이 필요하면 근무지 관리자에게 문의해 주세요."
           />
@@ -134,11 +134,11 @@ export function SignupForm({
             help="가입 후에는 변경할 수 없으니 정확히 입력해 주세요."
             error={errorOf("birthDate")}
           />
-          <Choice label={<>성별<RequiredMark /></>} error={errorOf("gender")}>
-            <SegmentedControl label="성별" items={genders} value={gender} onChange={setGender} />
+          <Choice label={<>성별<RequiredMark announce={false} /></>} error={errorOf("gender")}>
+            <SegmentedControl label="성별 필수" items={genders} value={gender} onChange={setGender} />
           </Choice>
-          <Choice label={<>외국인 여부<RequiredMark /></>}>
-            <SegmentedControl label="외국인 여부" items={FOREIGNER} value={foreigner} onChange={setForeigner} />
+          <Choice label={<>외국인 여부<RequiredMark announce={false} /></>}>
+            <SegmentedControl label="외국인 여부 필수" items={FOREIGNER} value={foreigner} onChange={setForeigner} />
           </Choice>
         </div>
 
