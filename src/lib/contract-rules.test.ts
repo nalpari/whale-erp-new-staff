@@ -242,19 +242,19 @@ test("처리 완료본은 체결 완료 · 종료된 전자계약의 SIGNED_COPY
   assert.equal(signedCopyOf({ contractMethod: null, status: "SIGNED", documents: docs })?.contractDocumentId, 5);
 });
 
-test("signBlockOf — 서명 대기인데 서명할 수 없는 까닭: 대조가 다르면 대조, 대조가 맞고 사용자 칸이 비면 사업주(api #300), 그 밖은 모름", () => {
-  const c = { awaitingSignature: true, signable: false, employerMissing: false, mismatches: [] as ("name" | "phone")[] };
-  assert.equal(signBlockOf({ ...c, employerMissing: true }), "EMPLOYER");
+test("signBlockOf — 서명 대기인데 서명할 수 없는 까닭: 대조가 다르면 대조, 대조가 맞고 근무지가 운영 중이 아니면 근무지(api #301), 그 밖은 모름", () => {
+  const c = { awaitingSignature: true, signable: false, storeNotOperating: false, mismatches: [] as ("name" | "phone")[] };
+  assert.equal(signBlockOf({ ...c, storeNotOperating: true }), "STORE");
   // 둘 다면 api 가 대조를 먼저 알린다(409 IDENTITY_MISMATCH) — 대조 안내
-  assert.equal(signBlockOf({ ...c, employerMissing: true, mismatches: ["name"] }), "IDENTITY");
+  assert.equal(signBlockOf({ ...c, storeNotOperating: true, mismatches: ["name"] }), "IDENTITY");
   assert.equal(signBlockOf({ ...c, mismatches: ["phone"] }), "IDENTITY");
-  // 대조도 맞고 사용자 칸도 있는데 서명할 수 없다고 하면 까닭을 모른다 — 대조 안내로 보이지 않게
+  // 대조도 맞고 근무지도 운영 중인데 서명할 수 없다고 하면 까닭을 모른다 — 대조 안내로 보이지 않게
   assert.equal(signBlockOf(c), "OTHER");
-  // employerMissing 이 없는 옛 응답(api #300 배포 전) — 사업주 안내로 가지 않는다
-  const old = { ...c, employerMissing: undefined as unknown as boolean };
+  // storeNotOperating 이 없는 옛 응답(api 배포 전) — 근무지 안내로 가지 않는다
+  const old = { ...c, storeNotOperating: undefined as unknown as boolean };
   assert.equal(signBlockOf({ ...old, mismatches: ["name"] }), "IDENTITY");
   assert.equal(signBlockOf(old), "OTHER");
   // 서명할 수 있거나 서명 대기가 아니면 안내 없음
   assert.equal(signBlockOf({ ...c, signable: true }), null);
-  assert.equal(signBlockOf({ ...c, awaitingSignature: false, employerMissing: true }), null);
+  assert.equal(signBlockOf({ ...c, awaitingSignature: false, storeNotOperating: true }), null);
 });

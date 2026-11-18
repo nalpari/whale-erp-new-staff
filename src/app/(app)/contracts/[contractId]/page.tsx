@@ -153,9 +153,9 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const signedCopy = signedCopyOf(c);
   // 조항(articles)이 비어 오면 본문 없이 서명하게 두지 않는다 — 위 안내만 보이고 서명 · 거절 · 수정 요청을 열지 않는다(bodyMissing)
   const noBody = bodyMissing(c);
-  // 서명할 수 없는 까닭 — 본인 대조 불일치 · 사용자(사업주) 칸이 빔 · 모름(signBlockOf)
+  // 서명할 수 없는 까닭 — 본인 대조 불일치 · 근무지가 운영 중이 아님 · 모름(signBlockOf)
   const signBlock = signBlockOf(c);
-  // 사용자 칸이 비었거나 까닭을 모르면 버튼 줄을 두지 않는다 — 수정 요청 · 거절을 누르면 관리자가 고쳐도 다시 보내기 전까지 서명할
+  // 근무지가 운영 중이 아니거나 까닭을 모르면 버튼 줄을 두지 않는다 — 수정 요청 · 거절을 누르면 관리자가 고쳐도 다시 보내기 전까지 서명할
   // 수 없다(사용자 결정 2026-11-18). 고쳐지면 다시 열어 서명한다. 본인 대조가 다르면 수정 요청이 고치는 길이라 버튼 줄을 둔다
   const canDecide = c.awaitingSignature && !noBody && (signBlock === null || signBlock === "IDENTITY");
   return (
@@ -189,14 +189,15 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
               잠시 뒤 다시 열어 주세요. 계속되면 근무지 관리자에게 문의해 주세요.
             </p>
           </Alert>
-        ) : signBlock === "EMPLOYER" ? (
-          // 사용자(사업주) 칸이 비었다 — 근무지 점포의 대표자 · 사업자등록번호가 없다(본사 사업자 인증 해제 등). 직원이 고칠 수 없어
-          // 관리자에게 알린다. 본인 대조도 틀리면 api 가 그것을 먼저 알리므로(409 IDENTITY_MISMATCH) 아래 대조 안내를 보인다
+        ) : signBlock === "STORE" ? (
+          // 근무지가 운영 중이 아니다 — 미운영 · 폐점이거나 사업주 정보(대표자 · 사업자등록번호)가 없다(본사 사업자 인증 해제 등).
+          // 직원이 고칠 수 없어 관리자에게 알린다. 본인 대조도 틀리면 api 가 그것을 먼저 알리므로(409 IDENTITY_MISMATCH) 아래 대조
+          // 안내를 보인다
           <Alert tone="warning">
             <p>
-              <strong>근로계약서의 사용자(사업주) 정보가 비어 있어 지금은 서명할 수 없습니다.</strong>
+              <strong>근무지가 운영 중이 아니거나 사업주 정보가 없어 지금은 서명할 수 없습니다.</strong>
               <br />
-              근무지 관리자에게 문의해 주세요. 관리자가 사업자 정보를 등록하면 계약서를 다시 열어 서명할 수 있습니다.
+              근무지 관리자에게 문의해 주세요. 근무지가 운영 중이 되고 사업자 정보가 등록되면 계약서를 다시 열어 서명할 수 있습니다.
             </p>
           </Alert>
         ) : signBlock === "IDENTITY" ? (
