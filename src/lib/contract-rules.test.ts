@@ -13,6 +13,7 @@ import {
   maskPhone,
   paperDocuments,
   signBlockOf,
+  canDecideOf,
   signedCopyOf,
   parseId,
   periodText,
@@ -257,4 +258,14 @@ test("signBlockOf — 서명 대기인데 서명할 수 없는 까닭: 대조가
   // 서명할 수 있거나 서명 대기가 아니면 안내 없음
   assert.equal(signBlockOf({ ...c, signable: true }), null);
   assert.equal(signBlockOf({ ...c, awaitingSignature: false, storeNotOperating: true }), null);
+});
+
+test("canDecideOf — 서명할 수 있거나 본인 대조만 다르면 버튼 줄, 근무지가 운영 중이 아니거나 까닭을 모르면 두지 않는다(사용자 결정)", () => {
+  assert.equal(canDecideOf(true, false, null), true);
+  assert.equal(canDecideOf(true, false, "IDENTITY"), true);
+  assert.equal(canDecideOf(true, false, "STORE"), false);
+  assert.equal(canDecideOf(true, false, "OTHER"), false);
+  // 본문이 없거나 서명 대기가 아니면 두지 않는다
+  assert.equal(canDecideOf(true, true, null), false);
+  assert.equal(canDecideOf(false, false, null), false);
 });

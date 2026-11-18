@@ -230,3 +230,16 @@ export function signBlockOf(
   if (c.mismatches.length > 0) return "IDENTITY";
   return c.storeNotOperating === true ? "STORE" : "OTHER";
 }
+
+/**
+ * 상세 아래 버튼 줄(서명 · 수정 요청 · 거절)을 둘까 — 서명 대기이고 본문이 있으며, 서명할 수 있거나 본인 대조만 다를 때(수정 요청이
+ * 고치는 길이다). 근무지가 운영 중이 아니거나(STORE) 까닭을 모르면(OTHER) 두지 않는다 — 수정 요청 · 거절을 누르면 관리자가 고쳐도
+ * 다시 보내기 전까지 서명할 수 없다(사용자 결정 2026-11-18). 고쳐지면 다시 열어 서명한다.
+ */
+export function canDecideOf(
+  awaitingSignature: boolean,
+  noBody: boolean,
+  signBlock: ReturnType<typeof signBlockOf>,
+): boolean {
+  return awaitingSignature && !noBody && (signBlock === null || signBlock === "IDENTITY");
+}
