@@ -240,8 +240,7 @@ test("signBlockOf — 서명 대기인데 서명할 수 없는 까닭: 대조가
   // 대조도 맞고 사용자 칸도 있는데 서명할 수 없다고 하면 까닭을 모른다 — 대조 안내로 보이지 않게
   assert.equal(signBlockOf(c), "OTHER");
   // employerMissing 이 없는 옛 응답(api #300 배포 전) — 사업주 안내로 가지 않는다
-  const { employerMissing: _omit, ...old } = c;
-  void _omit;
+  const old = { ...c, employerMissing: undefined as unknown as boolean };
   assert.equal(signBlockOf({ ...old, mismatches: ["name"] }), "IDENTITY");
   assert.equal(signBlockOf(old), "OTHER");
   // 서명할 수 있거나 서명 대기가 아니면 안내 없음

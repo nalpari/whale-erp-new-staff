@@ -155,9 +155,9 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const noBody = bodyMissing(c);
   // 서명할 수 없는 까닭 — 본인 대조 불일치 · 사용자(사업주) 칸이 빔 · 모름(signBlockOf)
   const signBlock = signBlockOf(c);
-  // 사용자 칸이 비면 버튼 줄을 두지 않는다 — 수정 요청 · 거절을 누르면 관리자가 사업자 정보를 등록해도 다시 보내기 전까지 서명할 수
-  // 없다(사용자 결정 2026-11-18). 등록되면 다시 열어 서명한다
-  const canDecide = c.awaitingSignature && !noBody && signBlock !== "EMPLOYER";
+  // 사용자 칸이 비었거나 까닭을 모르면 버튼 줄을 두지 않는다 — 수정 요청 · 거절을 누르면 관리자가 고쳐도 다시 보내기 전까지 서명할
+  // 수 없다(사용자 결정 2026-11-18). 고쳐지면 다시 열어 서명한다. 본인 대조가 다르면 수정 요청이 고치는 길이라 버튼 줄을 둔다
+  const canDecide = c.awaitingSignature && !noBody && (signBlock === null || signBlock === "IDENTITY");
   return (
     <>
       <ContractFrame header={header}>
@@ -211,14 +211,12 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
             </p>
           </Alert>
         ) : signBlock === "OTHER" ? (
-          // api 가 서명할 수 없다고 하는데 까닭을 모른다 — 대조 안내로 잘못 보이지 않게 관리자 문의만 알린다
-          <Alert tone="warning">
-            <p>
-              <strong>지금은 서명할 수 없는 계약서입니다.</strong>
-              <br />
-              근무지 관리자에게 문의해 주세요.
-            </p>
-          </Alert>
+          // api 가 서명할 수 없다고 하는데 까닭을 모른다 — 대조 안내로 잘못 보이지 않게 관리자 문의만 알린다(위 서명 불가와 같은 모양)
+          <Notice>
+            <strong>지금은 서명할 수 없는 계약서입니다.</strong>
+            <br />
+            근무지 관리자에게 문의해 주세요.
+          </Notice>
         ) : phase === "CORRECTION_REQUESTED" ? (
           <Notice>
             <strong>수정을 요청한 계약서입니다.</strong>

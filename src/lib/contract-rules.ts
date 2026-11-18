@@ -196,10 +196,11 @@ export function signedCopyOf(c: Pick<ContractDetail, "status" | "contractMethod"
  * 서명 대기인데 서명할 수 없는 까닭 — 상세 머리 안내 · 버튼 줄을 고른다. 본인 대조가 다르면 「IDENTITY」(api 가 대조를 먼저 보아
  * 409 IDENTITY_MISMATCH), 대조는 맞는데 사용자(사업주) 칸이 비면 「EMPLOYER」(api #300 `employerMissing` — 날인 409
  * EMPLOYER_INFO_MISSING), 둘 다 아닌데 서명할 수 없다고 하면 「OTHER」(모르는 까닭 — 대조 안내로 잘못 보이지 않게),
- * 서명할 수 있거나 서명 대기가 아니면 null. `employerMissing` 이 없는 옛 응답(api #300 배포 전)은 사업주 칸이 있는 것으로 본다.
+ * 서명할 수 있거나 서명 대기가 아니면 null. `employerMissing` 이 없는 옛 응답(api #300 배포 전)은 `=== true` 가 아니라 사업주 칸이
+ * 있는 것으로 본다.
  */
 export function signBlockOf(
-  c: Pick<ContractDetail, "awaitingSignature" | "signable" | "mismatches"> & { employerMissing?: boolean },
+  c: Pick<ContractDetail, "awaitingSignature" | "signable" | "mismatches" | "employerMissing">,
 ): "IDENTITY" | "EMPLOYER" | "OTHER" | null {
   if (!c.awaitingSignature || c.signable) return null;
   if (c.mismatches.length > 0) return "IDENTITY";
