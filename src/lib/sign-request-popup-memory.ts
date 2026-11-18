@@ -1,4 +1,4 @@
-// 서명 요청 팝업(WHALEERP-148)의 「다음에 하기」 기억. 닫은 계약(sign-request-seen.ts 의 key)을 이 탭(sessionStorage)에만 둔다 —
+// 서명 요청 팝업(WHALEERP-148)의 「나중에」 기억. 닫은 계약(sign-request-seen.ts 의 key)을 이 탭(sessionStorage)에만 둔다 —
 // 서명하기 전까지 앱을 열 때마다 다시 띄운다(HOME-4). 앱을 새로 띄우면 저장소가 비어 다시 뜨고, 백그라운드에서 10분 넘게 있다가 다시
 // 보이면(설치한 홈 화면 앱을 다시 띄움) 홈 팝업이 홈을 다시 받은 뒤 기억을 지운다(onVisibilityChange · takeSignRequestReopen) —
 // 지난 서버 데이터로 팝업을 띄우지 않게. 로그인할 때 잊는다(forgetSignRequestPopup).
@@ -30,7 +30,7 @@ function watchVisibility() {
 }
 
 export const readSignRequestSeen = memory.read;
-/** 「다음에 하기」 — 이미 닫은 것에 지금 기다리는 계약을 더해 기억한다. */
+/** 「나중에」 — 이미 닫은 것에 지금 기다리는 계약을 더해 기억한다. */
 export const rememberSignRequestSeen = (key: string) => memory.remember(mergeSignRequestSeen(key, memory.read()));
 export const forgetSignRequestPopup = memory.forget;
 export const subscribeSignRequestSeen = (listener: () => void) => {

@@ -22,7 +22,7 @@ export function NewPasswordFields({
   newPasswordError?: string;
   confirmationError?: string;
   /** 두 칸의 이름(첫 칸 · 확인 칸). */
-  labels?: readonly [string, string];
+  labels?: readonly [ReactNode, ReactNode];
   /** 두 칸의 자리표시(첫 칸 · 확인 칸). */
   placeholders?: readonly [string, string];
 }) {

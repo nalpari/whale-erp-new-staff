@@ -4,7 +4,7 @@ import { Button, MaskIcon, RequestSheet } from "@/components/common";
 import { rememberSeen } from "@/lib/affiliation-popup-memory";
 
 // 소속 추가 요청 팝업(WHALEERP-144, 2026-10-26 재영). 답하지 않은 요청이 있으면 홈 위에 띄운다 — 날인 요청 팝업(데모 home 의 sign-req)과
-// 같은 모양이다. 「다음에 하기」를 누르면 본 요청을 이 탭에 기억해 다시 띄우지 않는다(lib/affiliation-popup-memory) — 하나에 답해 줄어도
+// 같은 모양이다. 「나중에」를 누르면 본 요청을 이 탭에 기억해 다시 띄우지 않는다(lib/affiliation-popup-memory) — 하나에 답해 줄어도
 // 그대로 닫혀 있고, 새 요청이 오거나 앱을 새로 열거나 다시 로그인하면 다시 뜬다.
 // 닫아도 내 정보 - 소속 근무지에서 요청을 찾아 확인 화면(/affiliations)으로 갈 수 있다.
 // 열지 말지(기억 · 서명 요청 팝업과의 순서)는 home-popups.tsx 가 정한다.
@@ -32,7 +32,7 @@ export function AffiliationPopup({
           확인하러 가기
         </Button>
       }
-      closeLabel="다음에 하기"
+      closeLabel="나중에"
     />
   );
 }

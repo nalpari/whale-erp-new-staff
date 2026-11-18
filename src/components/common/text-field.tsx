@@ -1,11 +1,11 @@
 "use client";
 
-import { useId, useState, type ComponentProps } from "react";
+import { useId, useState, type ComponentProps, type ReactNode } from "react";
 import { MaskIcon } from "./icon";
 import { FIELD } from "./theme";
 
 type TextFieldProps = {
-  label: string;
+  label: ReactNode;
   // 입력칸 아래 안내 문구. error 가 있으면 error 가 대신 선다.
   help?: string;
   error?: string;

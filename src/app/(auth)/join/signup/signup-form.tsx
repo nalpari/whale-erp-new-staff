@@ -5,6 +5,7 @@ import { Alert, BottomSheet, Button, Notice, SectionTitle, SegmentedControl, Tex
 import { AddressSearchSheet } from "@/app/_components/address-search-sheet";
 import { NewPasswordFields } from "@/app/_components/new-password-fields";
 import { ReadOnlyField } from "@/app/_components/read-only-field";
+import { RequiredMark } from "@/app/_components/required-mark";
 import { normalizeBirthDate } from "@/lib/email-find";
 import { SIGNUP_NAME_MAX, formatPhone, kstToday, needsBirthDateCheck, type SignupField } from "@/lib/join";
 import { ADDRESS_DETAIL_MAX, dateLabel } from "@/lib/profile";
@@ -105,7 +106,7 @@ export function SignupForm({
         <SectionTitle title="인적사항" />
         <div className="flex flex-col gap-[16px]">
           <TextField
-            label="이름*"
+            label={<>이름<RequiredMark announce={false} /></>}
             name="name"
             autoComplete="name"
             required
@@ -116,12 +117,12 @@ export function SignupForm({
             error={errorOf("name")}
           />
           <ReadOnlyField
-            label="휴대전화번호*"
+            label={<>휴대전화번호<RequiredMark /></>}
             value={formatPhone(phone)}
             help="번호 변경이 필요하면 근무지 관리자에게 문의해 주세요."
           />
           <TextField
-            label="생년월일*"
+            label={<>생년월일<RequiredMark announce={false} /></>}
             name="birthDate"
             inputMode="numeric"
             autoComplete="bday"
@@ -133,17 +134,17 @@ export function SignupForm({
             help="가입 후에는 변경할 수 없으니 정확히 입력해 주세요."
             error={errorOf("birthDate")}
           />
-          <Choice label="성별*" error={errorOf("gender")}>
-            <SegmentedControl label="성별" items={genders} value={gender} onChange={setGender} />
+          <Choice label={<>성별<RequiredMark announce={false} /></>} error={errorOf("gender")}>
+            <SegmentedControl label="성별 필수" items={genders} value={gender} onChange={setGender} />
           </Choice>
-          <Choice label="외국인 여부*">
-            <SegmentedControl label="외국인 여부" items={FOREIGNER} value={foreigner} onChange={setForeigner} />
+          <Choice label={<>외국인 여부<RequiredMark announce={false} /></>}>
+            <SegmentedControl label="외국인 여부 필수" items={FOREIGNER} value={foreigner} onChange={setForeigner} />
           </Choice>
         </div>
 
         <SectionTitle title="로그인 정보" />
         <TextField
-          label="이메일*"
+          label={<>이메일<RequiredMark announce={false} /></>}
           name="email"
           type="email"
           autoComplete="email"
@@ -157,7 +158,7 @@ export function SignupForm({
         />
         <NewPasswordFields
           email={email}
-          labels={["비밀번호*", "비밀번호 확인*"]}
+          labels={[<>비밀번호<RequiredMark announce={false} /></>, <>비밀번호 확인<RequiredMark announce={false} /></>]}
           placeholders={["비밀번호를 입력해 주세요", "비밀번호를 한 번 더 입력해 주세요"]}
           newPasswordError={errorOf("newPassword")}
           confirmationError={errorOf("newPasswordConfirmation")}
@@ -166,7 +167,7 @@ export function SignupForm({
         <SectionTitle title="주소" />
         <div className="flex flex-col gap-[16px]">
           <ReadOnlyField
-            label="주소*"
+            label={<>주소<RequiredMark /></>}
             value={picked.address ? `(${picked.zipCode}) ${picked.address}` : ""}
             placeholder="주소를 검색해 주세요"
             wrap
@@ -226,7 +227,7 @@ export function SignupForm({
 }
 
 /** 고르는 칸(성별 · 외국인 여부)의 이름과 오류. 입력칸(TextField)과 같은 이름 글자 · 오류 글자다. */
-function Choice({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
+function Choice({ label, error, children }: { label: ReactNode; error?: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-[8px]">
       <p className="text-[13px] font-semibold text-staff-text-sub">{label}</p>
