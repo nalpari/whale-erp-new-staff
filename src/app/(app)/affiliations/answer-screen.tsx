@@ -113,7 +113,7 @@ export function AnswerScreen({
         open={rejectOpen}
         onClose={() => setRejectOpen(false)}
         title="소속 추가를 거절하시겠습니까?"
-        description="거절해도 기존 근무지와 계정은 유지됩니다."
+        description="거절해도 기존 근무지와 계정은 유지됩니다. 이 요청과 함께 온 근로계약서는 거절로 닫힙니다."
         closeLabel="취소"
       >
         <form action={rejectAction} className="flex flex-col gap-[13px]">
