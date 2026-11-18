@@ -9,7 +9,7 @@ import { getMyMemberships, getMyTaxProfile } from "@/lib/my-profile";
 import { kstDateTimeLabel } from "@/lib/profile";
 import { parseStaffMemberId, taxViewAfterChange } from "@/lib/tax-profile";
 import { CardLabel } from "@/app/_components/read-only-field";
-import { ACCOUNT_BASIS, Basis, RRN_BASIS, Sunken, TaxOwnerNotice, Values } from "@/app/_components/tax-profile-parts";
+import { Basis, Sunken, TaxOwnerNotice, Values, accountBasis, rrnBasis } from "@/app/_components/tax-profile-parts";
 import { ChangedToast } from "../../../changed-toast";
 
 export const metadata: Metadata = { title: "신고 정보 · Whale ERP" };
@@ -87,10 +87,10 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
             </Sunken>
             <Sunken label="수집 근거">
               <Basis>
-                <b>주민등록번호</b> — {RRN_BASIS}
+                <b>주민등록번호</b> — {rrnBasis()}
               </Basis>
               <Basis>
-                <b>급여 계좌</b> — {ACCOUNT_BASIS}
+                <b>급여 계좌</b> — {accountBasis()}
               </Basis>
             </Sunken>
             <TaxOwnerNotice storeName={storeName} />

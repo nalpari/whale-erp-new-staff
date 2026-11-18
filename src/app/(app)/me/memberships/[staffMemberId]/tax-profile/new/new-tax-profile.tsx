@@ -95,7 +95,7 @@ export function TaxProfileIntro({ storeName, formHref, signed }: { storeName: st
       <BottomSheet open={why} onClose={() => setWhy(false)} title="주민등록번호를 따로 받는 이유">
         <div className="flex flex-col gap-[12px] text-[14px] text-staff-text-sub">
           <p>
-            근로계약서에는 임금 · 근로시간 · 휴일 · 연차 같은 근로조건만 기재합니다.
+            근로계약서에는 임금·근로시간·휴일·연차 같은 근로조건만 기재합니다.
             <br />
             본인 확인은 이름과 생년월일로 충분합니다.
           </p>

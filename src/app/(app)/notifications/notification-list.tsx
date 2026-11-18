@@ -1,13 +1,14 @@
 "use client";
 
+import { unstable_rethrow } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Alert, BottomSheet, Button, Notice } from "@/components/common";
 import { timeLabel, type MyNotification } from "@/lib/notifications";
 import { markNotificationAction, openNotificationAction, readAllNotificationsAction } from "./actions";
 
-// 알림함 목록(목업 notify.html). 미확인은 왼쪽에 파란 점, 긴급 TO-DO 는 빨간 점, 읽은 줄은 옅게 가라앉힌다.
-// 줄을 누르면 읽음으로 바꾸며 관련 화면으로 간다(#267). 줄마다 읽음 · 안 읽음을 바꾸고 머리에 「모두 읽음」을 둔다(NOTI-7).
-// 열 곳이 없으면 「해당 내용을 열 수 없습니다」 시트. 점 색 #315DF5 · #C24242 는 이 줄에만 나와 토큰으로 두지 않는다.
+// 알림함 목록(목업 notify.html). 미확인은 왼쪽에 남보라 점, 긴급 TO-DO 는 빨간 점, 읽음은 빈 고리이고 읽은 줄은 옅게 가라앉힌다.
+// 줄을 누르면 읽음으로 바꾸며 관련 화면으로 간다(#267). 왼쪽 점(누르는 칸 44px)을 누르면 그 줄의 읽음 · 안 읽음을 바꾸고(데모 notify,
+// S-IMFWJT) 머리에 「모두 읽음」을 둔다(NOTI-7). 열 곳이 없으면 「해당 내용을 열 수 없습니다」 시트. 점 색 #C24242 는 TopBar 새 알림 점과 같다.
 export function NotificationList({
   items,
   unreadCount,
@@ -27,9 +28,16 @@ export function NotificationList({
   const run = (action: () => Promise<{ error?: string; unavailable?: boolean }>) =>
     startTransition(async () => {
       setError(undefined);
-      const result = await action();
-      setError(result.error);
-      if (result.unavailable) setUnavailable(true);
+      try {
+        const result = await action();
+        setError(result.error);
+        if (result.unavailable) setUnavailable(true);
+      } catch (thrown) {
+        // 액션 호출 자체가 던지면(연결 끊김 · 배포 뒤 옛 액션) 알림함을 오류 화면으로 보내지 않고 문구만 — TO-DO · 동의 카드와 같다
+        unstable_rethrow(thrown);
+        console.error("[notification] 액션 호출 실패", thrown);
+        setError("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요");
+      }
     });
 
   if (items.length === 0)
@@ -58,16 +66,23 @@ export function NotificationList({
       {error && <Alert tone="warning">{error}</Alert>}
       <ul className="divide-y divide-[#e8edf3] rounded-[16px] border border-staff-border-light bg-white">
         {items.map((n) => (
-          <li key={n.id} className={`flex items-start gap-[10px] px-[14px] py-[14px] ${n.isRead ? "opacity-60" : ""}`}>
-            <span
-              aria-hidden
-              className={`mt-[8px] size-[8px] shrink-0 rounded-full ${n.isRead ? "bg-transparent" : n.isUrgent ? "bg-[#c24242]" : "bg-[#315df5]"}`}
-            />
+          <li key={n.id} className="flex items-start">
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => run(() => markNotificationAction(n.id, !n.isRead))}
+              aria-label={n.isRead ? `${n.title} 안 읽음으로 표시` : `${n.title} 읽음으로 표시`}
+              className="flex size-[44px] shrink-0 items-center justify-center self-stretch pt-[2px]"
+            >
+              <span
+                className={`size-[8px] rounded-full ${n.isRead ? "border border-staff-border" : n.isUrgent ? "bg-[#c24242]" : "bg-staff-primary"}`}
+              />
+            </button>
             <button
               type="button"
               disabled={pending}
               onClick={() => run(() => openNotificationAction(n.id))}
-              className="flex min-w-0 flex-1 flex-col gap-[2px] text-left"
+              className={`flex min-w-0 flex-1 flex-col gap-[2px] py-[14px] pr-[14px] text-left ${n.isRead ? "opacity-60" : ""}`}
             >
               <span className="text-[15px] font-semibold text-staff-text">
                 {n.title}
@@ -78,15 +93,6 @@ export function NotificationList({
                 {timeLabel(n.createdAt, at)}
                 {n.isRead && " · 읽음"}
               </span>
-            </button>
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => run(() => markNotificationAction(n.id, !n.isRead))}
-              aria-label={n.isRead ? `${n.title} 안 읽음으로` : `${n.title} 읽음으로`}
-              className="-my-[10px] -mr-[6px] min-h-[44px] shrink-0 px-[6px] text-[12px] font-semibold text-staff-text-sub"
-            >
-              {n.isRead ? "안 읽음" : "읽음"}
             </button>
           </li>
         ))}

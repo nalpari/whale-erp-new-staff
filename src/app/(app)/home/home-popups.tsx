@@ -100,7 +100,7 @@ export function HomePopups({
 }
 
 // 서명 요청 팝업(데모 home 의 sign-req · HOME-1). 서명을 기다리는 근로계약서가 있으면 홈 위에 띄우고, 「서명하러 가기」는 데모처럼 그
-// 계약서 상세로 간다 — 상세에서 조항을 보고 서명한다. 「다음에 하기」는 이 탭에만 기억해 서명하기 전까지 앱을 열 때마다 다시 뜬다
+// 계약서 상세로 간다 — 상세에서 조항을 보고 서명한다. 「나중에」는 이 탭에만 기억해 서명하기 전까지 앱을 열 때마다 다시 뜬다
 // (HOME-4). 기한 임박 알림은 따로 보내지 않는다 — 이 팝업과 발송 알림으로 알린다.
 function SignRequestSheet({ open, requestKey, href, rows }: { open: boolean; requestKey: string; href: string; rows: Rows }) {
   return (
@@ -116,7 +116,7 @@ function SignRequestSheet({ open, requestKey, href, rows }: { open: boolean; req
           서명하러 가기
         </Button>
       }
-      closeLabel="다음에 하기"
+      closeLabel="나중에"
     />
   );
 }

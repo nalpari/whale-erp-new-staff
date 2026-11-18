@@ -2,12 +2,13 @@
 
 import { unstable_rethrow } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Alert, BottomSheet, SegmentedControl, SheetOption, StatusChip, TodoItem, TodoList } from "@/components/common";
+import { Alert, BottomSheet, Notice, SegmentedControl, SheetOption, StatusChip, TodoItem, TodoList } from "@/components/common";
 import {
   TODO_STATUS,
   TODO_STATUSES,
   countByStatus,
   dueLabel,
+  isDoneByOther,
   isOverdue,
   performerLine,
   storesOf,
@@ -46,7 +47,19 @@ type StatusChange = ReturnType<typeof useStatusChange>;
  * TO-DO 줄 목록(목업 07.근무 정보_list). api 순서(미완료 긴급 → 미완료 나머지 → 완료) 그대로 쌓는다.
  * 체크하면 완료, 풀면 대기. onOpen 을 주면 줄을 눌러 상세를 연다.
  */
-function TodoRows({ todos, now, status, onOpen }: { todos: MyTodo[]; now: string; status: StatusChange; onOpen?: (todoId: number) => void }) {
+function TodoRows({
+  todos,
+  now,
+  status,
+  staffMemberId,
+  onOpen,
+}: {
+  todos: MyTodo[];
+  now: string;
+  status: StatusChange;
+  staffMemberId?: number;
+  onOpen?: (todoId: number) => void;
+}) {
   const at = new Date(now);
   return (
     <TodoList>
@@ -59,7 +72,12 @@ function TodoRows({ todos, now, status, onOpen }: { todos: MyTodo[]; now: string
           overdue={isOverdue(t, at)}
           onToggle={status.pending ? undefined : (checked) => status.change(t.todoId, toggledStatus(checked))}
           onOpen={onOpen && (() => onOpen(t.todoId))}
-          badges={<TodoBadges todo={t} />}
+          badges={
+            <>
+              <KindChips todo={t} />
+              <StateChip todo={t} staffMemberId={staffMemberId} />
+            </>
+          }
         />
       ))}
     </TodoList>
@@ -88,7 +106,8 @@ export function TodoChecklist({ todos, now }: { todos: MyTodo[]; now: string }) 
   );
 }
 
-function TodoBadges({ todo }: { todo: MyTodo }) {
+/** 긴급(미완료일 때) · 공유 칩 */
+function KindChips({ todo }: { todo: MyTodo }) {
   return (
     <>
       {todo.isUrgent && todo.status !== "DONE" && (
@@ -98,13 +117,19 @@ function TodoBadges({ todo }: { todo: MyTodo }) {
       )}
       {todo.executionMode === "ANY_ONE" && (
         <StatusChip tone="neutral" weight="semibold">
-          한 명 수행
+          공유
         </StatusChip>
       )}
-      <StatusChip tone={TODO_STATUS[todo.status].tone} weight="semibold">
-        {TODO_STATUS[todo.status].label}
-      </StatusChip>
     </>
+  );
+}
+
+/** 상태 칩 — 다른 직원이 먼저 끝낸 공유 TO-DO 는 「완료됨」(데모 work) */
+function StateChip({ todo, staffMemberId }: { todo: MyTodo; staffMemberId?: number }) {
+  return (
+    <StatusChip tone={TODO_STATUS[todo.status].tone} weight="semibold">
+      {isDoneByOther(todo, staffMemberId) ? "완료됨" : TODO_STATUS[todo.status].label}
+    </StatusChip>
   );
 }
 
@@ -113,7 +138,16 @@ const ALL = "all";
 // TO-DO 탭(목업 node 17:602~). 위에 상태별 개수(12px, 숫자만 bold·상태 색), 아래 목록, 줄을 누르면 상세 시트.
 // 개수 색 #13785E(완료)·#315DF5(진행 중)는 이 줄에만 나와 토큰으로 두지 않는다(목업과 같다).
 // 근무지가 둘 이상이면 위에 근무지 칩을 둔다. 근무 탭은 앱 전역 근무지(WORK-4)로 걸러 넘기므로 칩이 나오지 않는다.
-export function TodoPanel({ todos, now }: { todos: MyTodo[]; now: string }) {
+export function TodoPanel({
+  todos,
+  now,
+  staffMemberId,
+}: {
+  todos: MyTodo[];
+  now: string;
+  /** 지금 근무지의 내 직원 id — 다른 직원이 먼저 끝낸 공유 TO-DO(「완료됨」)를 가른다 */
+  staffMemberId: number;
+}) {
   const [store, setStore] = useState(ALL);
   // 시트는 늘 마운트해 두고 open 만 바꾼다(닫힘 애니메이션 · 초점 되돌리기는 <dialog> 가 맡는다).
   // 고른 TO-DO 는 통째로 들고 있다가, 다시 받은 목록에 있으면 그 값을, 사라졌으면(404) 들고 있던 값을 그린 채 닫는다.
@@ -147,49 +181,66 @@ export function TodoPanel({ todos, now }: { todos: MyTodo[]; now: string }) {
       )}
       <p className="flex gap-[14px] text-[12px] leading-[1.5] text-staff-text-muted">
         <span>
-          완료 <b className="text-[#13785e]">{counts.DONE}</b>
+          대기 <b className="text-staff-text">{counts.PENDING}</b>
         </span>
         <span>
           진행 중 <b className="text-[#315df5]">{counts.IN_PROGRESS}</b>
         </span>
         <span>
-          대기 <b className="text-staff-text">{counts.PENDING}</b>
+          완료 <b className="text-[#13785e]">{counts.DONE}</b>
         </span>
       </p>
       {status.error && !open && <Alert tone="warning">{status.error}</Alert>}
       {shown.length === 0 ? (
         <p className="py-[40px] text-center text-[14px] leading-[1.5] text-staff-text-sub">배정된 TO-DO 가 없습니다</p>
       ) : (
-        <TodoRows todos={shown} now={now} status={status} onOpen={handleOpen} />
+        <TodoRows todos={shown} now={now} status={status} staffMemberId={staffMemberId} onOpen={handleOpen} />
       )}
       {picked && (
-        <TodoSheet open={open} todo={current ?? picked} status={status} showStore={stores.length > 1} onClose={() => setSheetOpen(false)} />
+        <TodoSheet
+          open={open}
+          todo={current ?? picked}
+          status={status}
+          staffMemberId={staffMemberId}
+          showStore={stores.length > 1}
+          onClose={() => setSheetOpen(false)}
+        />
       )}
     </div>
   );
 }
 
-// 상세(바텀시트): 제목 · 내용 · 수행 예정 일시 · 근무지, 상태 바꾸기(대기 · 진행 중 · 완료). 등록 · 삭제는 없다.
-// 한 명 수행 완료면 먼저 완료한 직원과 시각을 보인다(WORK-3).
+// 상세(바텀시트, 데모 work 의 긴급 TO-DO 상세 · 공유 TO-DO 안내): 제목 · 내용 · 수행 예정 · 근무지 · 상태, 상태 바꾸기(대기 · 진행 중 · 완료).
+// 등록 · 삭제는 없다.
+// 공유 TO-DO 는 먼저 완료한 직원과 시각(WORK-3)과 수행자 안내를 보이고, 닫기 버튼은 「확인」이다.
 function TodoSheet({
   open,
   todo,
   status,
+  staffMemberId,
   showStore,
   onClose,
 }: {
   open: boolean;
   todo: MyTodo;
   status: StatusChange;
+  staffMemberId: number;
   showStore: boolean;
   onClose: () => void;
 }) {
   const { pending, error, change } = status;
   const performer = performerLine(todo);
+  const shared = todo.executionMode === "ANY_ONE";
+  const kind = (todo.isUrgent && todo.status !== "DONE") || shared;
   return (
-    <BottomSheet open={open} onClose={onClose} title={todo.title} description={todo.body ?? undefined}>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-[16px] gap-y-[6px] text-[14px] leading-[1.5]">
-        <dt className="text-staff-text-sub">수행 예정 일시</dt>
+    <BottomSheet open={open} onClose={onClose} title={todo.title} description={todo.body ?? undefined} closeLabel={shared ? "확인" : undefined}>
+      {kind && (
+        <div className="flex gap-[4px]">
+          <KindChips todo={todo} />
+        </div>
+      )}
+      <dl className="grid grid-cols-[auto_1fr] items-center gap-x-[16px] gap-y-[6px] text-[14px] leading-[1.5]">
+        <dt className="text-staff-text-sub">수행 예정</dt>
         <dd>{dueLabel(todo)}</dd>
         {showStore && (
           <>
@@ -197,12 +248,15 @@ function TodoSheet({
             <dd>{todo.storeName ?? "이름 없는 근무지"}</dd>
           </>
         )}
+        <dt className="text-staff-text-sub">상태</dt>
+        <dd className="flex">
+          <StateChip todo={todo} staffMemberId={staffMemberId} />
+        </dd>
       </dl>
-      <div className="flex gap-[4px]">
-        <TodoBadges todo={todo} />
-      </div>
       {performer && <p className="text-[13px] leading-[1.5] text-staff-text-sub">{performer}</p>}
+      {shared && <Notice>먼저 완료 처리한 사람이 수행자로 기록됩니다.</Notice>}
       {error && <Alert tone="warning">{error}</Alert>}
+      {/* 상태 바꾸기는 데모의 「완료로 표시」 하나가 아니라 세 가지 그대로 둔다 — 직원이 진행 중을 고를 곳이 여기뿐이다 */}
       <div role="group" aria-label="상태 바꾸기" className="flex flex-col gap-[8px]">
         {TODO_STATUSES.map((s) => (
           <SheetOption key={s} selected={todo.status === s} disabled={pending} onClick={() => change(todo.todoId, s)}>

@@ -83,7 +83,7 @@ export function ContractDecision({
         open={sheet === "reject"}
         onClose={close}
         title="근로계약서를 거절하시겠습니까?"
-        description="거절한 뒤에는 되돌릴 수 없습니다. 다시 진행하려면 관리자가 계약서를 다시 보내야 합니다."
+        description={"거절한 뒤에는 되돌릴 수 없습니다.\n다시 진행하려면 관리자가 계약서를 다시 보내야 합니다."}
         closeLabel="취소"
       >
         <Failure state={reject.state} />

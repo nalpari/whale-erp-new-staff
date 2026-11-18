@@ -17,6 +17,7 @@ import {
   type RegisterProblem,
   type ReviewReason,
 } from "@/lib/attendance-rules";
+import { kstToday, stampLabel } from "@/lib/attendance-history";
 import type { AttendanceRecordResult, MyAttendance } from "@/lib/my-attendance";
 import { nocontractHref, type CheckInSignWaiting } from "@/lib/sign-request";
 import { changeConsentAction } from "../me/actions";
@@ -47,15 +48,24 @@ const blockSheet = { STORE_CLOSED: "closed", CONTRACT_PENDING_SIGNATURE: "nocont
 
 const GEO_OPTIONS: PositionOptions = { enableHighAccuracy: true, timeout: 15_000, maximumAge: 0 };
 
+/** 이미 출근 시트의 출근 시각 — 오늘이면 「오늘 09:02」(데모 check-in dup), 전날 연 출근이면 「10/24 09:02」 */
+const checkedInLabel = (at: Date, now: Date) => (kstToday(at) === kstToday(now) ? `오늘 ${kstTime(at)}` : kstMonthDayTime(at));
+
 // 출퇴근 등록 화면(목업 attendance.html · 데모 check-in). 출근은 확인 없이 바로 기록하고(ATT-9), 퇴근은 확인 시트를 한 번
 // 거친다(WHALEERP-215). 반경 밖은 출근 · 퇴근 모두 시트에서 확인 필요가 붙는다고 알리고 받는다(ATT-11).
 export function CheckInScreen({
+  header,
   data,
   mapKey,
   signWaiting,
+  pausedAt,
 }: {
+  /** 화면 머리줄 — 퇴근을 마친 화면에서는 그리지 않는다(데모 check-in done) */
+  header: ReactNode;
   data: MyAttendance;
   mapKey: string | null;
+  /** 위치 수집을 일시 중지한 시각(ISO, 내 정보 api). 일시 중지가 아니거나 못 받았으면 null */
+  pausedAt: string | null;
   /** 출근이 서명 대기 계약으로 막혔을 때 계약 미체결 시트가 잇는 계약서(146). 막히지 않았으면 null */
   signWaiting: CheckInSignWaiting | null;
 }) {
@@ -280,6 +290,12 @@ export function CheckInScreen({
         </Alert>
         <Sunken prose label="다시 켜면 바로 등록할 수 있습니다">
           <b>새로 동의하지 않아도 됩니다.</b>
+          {pausedAt && (
+            <>
+              <br />
+              {stampLabel(pausedAt)}부터 일시 중지 중입니다.
+            </>
+          )}
         </Sunken>
       </>
     );
@@ -301,17 +317,16 @@ export function CheckInScreen({
           <strong>위치정보 이용에 동의하지 않으면 앱으로 출퇴근을 등록할 수 없습니다.</strong>
           <br />
           출퇴근 기록은 근무지 관리자에게 문의해 주세요.
+          <br />
+          {consent.state === "NOT_AGREED" ? "내 정보의 「동의하기」에서 직접 동의할 수 있습니다." : "내 정보의 「다시 동의하기」에서 직접 다시 동의할 수 있습니다."}
         </Alert>
         <Sunken prose label="관리자가 대신 등록하면">
           관리자가 <b>대신 등록</b>한 기록은 출퇴근 현황에 연필 표시로 보입니다.
         </Sunken>
       </>
     );
-    dock = (
-      <Button variant="ghost" onClick={openConsent}>
-        다시 동의하기
-      </Button>
-    );
+    // 다시 동의하는 버튼은 두지 않는다 — 데모 check-in no-consent 처럼 내 정보로 안내만 한다. 처음 동의하는 사람의 내 정보 카드는
+    // 「동의하기」라 그 이름으로 가리킨다
   } else {
     // 지도 위 안내 — 다시 읽는 중 · 탭에서 읽은 거리 · 버튼 안내 순
     const waitText =
@@ -506,6 +521,7 @@ export function CheckInScreen({
 
   return (
     <>
+      {!done && header}
       <main className="flex flex-col gap-[20px] px-[22px] pt-[22px] pb-[14px] leading-[1.5]">
         {error && <Alert tone="danger">{error}</Alert>}
         {body}
@@ -576,8 +592,8 @@ export function CheckInScreen({
         title={checkOutReason === "MOCK_LOCATION" ? "모의 위치 상태로 퇴근하시겠습니까?" : checkOutReason ? "매장 범위 밖에서 퇴근하시겠습니까?" : "퇴근하시겠습니까?"}
         description={
           checkOutReason
-            ? "관리자 확인이 필요한 기록으로 남습니다. 퇴근하면 오늘 근무가 종료됩니다."
-            : "퇴근하면 오늘 근무가 종료됩니다. 다시 출근하려면 출근을 새로 등록해야 합니다."
+            ? "관리자 확인이 필요한 기록으로 남습니다.\n퇴근하면 오늘 근무가 종료됩니다."
+            : "퇴근하면 오늘 근무가 종료됩니다.\n다시 출근하려면 출근을 새로 등록해야 합니다."
         }
         closeLabel="취소"
       >
@@ -615,8 +631,8 @@ export function CheckInScreen({
           openCheckIn?.isCheckOutExpired
             ? `${kstMonthDayTime(new Date(openCheckIn.recordedAt))}에 ${openCheckIn.storeName}에 출근했고 퇴근 등록 기한이 지났습니다. 그 근무지 관리자에게 퇴근 보정을 요청해 주세요.`
             : openCheckIn
-            ? `${kstTime(new Date(openCheckIn.recordedAt))}에 ${openCheckIn.storeName}에 출근했습니다. 퇴근을 먼저 등록해 주세요.`
-            : "이미 출근한 기록이 있습니다. 퇴근을 먼저 등록해 주세요."
+            ? <>{`${checkedInLabel(new Date(openCheckIn.recordedAt), now)}에 ${openCheckIn.storeName}에 출근했습니다.\n`}<strong>퇴근을 먼저 등록해 주세요.</strong></>
+            : <>{"이미 출근한 기록이 있습니다.\n"}<strong>퇴근을 먼저 등록해 주세요.</strong></>
         }
       >
         {openCheckIn && !openCheckIn.isCheckOutExpired && openCheckIn.staffMemberId !== data.staffMemberId && (
@@ -630,7 +646,7 @@ export function CheckInScreen({
         open={sheet === "nopunch"}
         onClose={() => setSheet(null)}
         title="출근 기록이 없습니다"
-        description="출근을 등록해야 퇴근할 수 있습니다. 오늘 출근을 등록하지 못했다면 관리자에게 알려 주세요."
+        description={<>{"출근을 등록해야 퇴근할 수 있습니다.\n"}<strong>오늘 출근을 등록하지 못했다면 관리자에게 알려 주세요.</strong></>}
       >
         <Sunken prose>관리자는 최근 3개월 이내의 기록만 수정할 수 있습니다.</Sunken>
       </BottomSheet>
@@ -668,7 +684,7 @@ export function CheckInScreen({
         open={sheet === "noperiod"}
         onClose={() => setSheet(null)}
         title="오늘은 근로계약 기간이 아닙니다"
-        description="근로계약 기간에만 출퇴근을 등록할 수 있습니다. 근무지 관리자에게 문의해 주세요."
+        description={<>{"근로계약 기간에만 출퇴근을 등록할 수 있습니다.\n"}<strong>근무지 관리자에게 문의해 주세요.</strong></>}
       >
         {null}
       </BottomSheet>

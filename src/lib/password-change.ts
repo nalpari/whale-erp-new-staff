@@ -13,7 +13,9 @@ export interface PasswordChangeState {
 }
 
 /** api 의 지금 비밀번호 불일치 400 사유(MyPasswordService). 규칙 위반 사유와 같은 400 이라 글자로 가른다. */
-export const CURRENT_PASSWORD_MISMATCH = "지금 비밀번호가 맞지 않습니다";
+export const CURRENT_PASSWORD_MISMATCH_API = "지금 비밀번호가 맞지 않습니다";
+/** 화면에 보이는 불일치 문구 — 칸 이름 「현재 비밀번호」(데모 me)에 맞춘다. api 사유 글자는 위 상수로 가른다. */
+export const CURRENT_PASSWORD_MISMATCH = "현재 비밀번호가 맞지 않습니다";
 
 const problem = (field: PasswordField, message: string): PasswordChangeState => ({ problem: { field, message } });
 
@@ -22,7 +24,7 @@ const problem = (field: PasswordField, message: string): PasswordChangeState => 
  * 지금 비밀번호는 api ChangeMyPasswordDto 의 128자 상한, 새 비밀번호는 api 규칙의 20자(사용자가 보는 글자 수)다.
  */
 export function validatePasswordChange(current: string, next: string, confirmation: string): PasswordChangeState | null {
-  if (!current) return problem("currentPassword", "지금 비밀번호를 입력해 주세요");
+  if (!current) return problem("currentPassword", "현재 비밀번호를 입력해 주세요");
   // 128자를 넘는 값은 지금 비밀번호일 수 없다(api 가 그보다 긴 값을 받지 않는다).
   if (current.length > 128) return problem("currentPassword", CURRENT_PASSWORD_MISMATCH);
   if (!next) return problem("newPassword", "새 비밀번호를 입력해 주세요");
@@ -36,7 +38,7 @@ export function passwordChangeFailure(failure: ApiFailure): { state: PasswordCha
   if (failure === "network") return { state: problem("confirmation", CONNECTION_FAILED), log: false };
   const { status, message } = failure;
   if (status === 400) {
-    if (message === CURRENT_PASSWORD_MISMATCH) return { state: problem("currentPassword", message), log: false };
+    if (message === CURRENT_PASSWORD_MISMATCH_API) return { state: problem("currentPassword", CURRENT_PASSWORD_MISMATCH), log: false };
     if (isHangulReason(message)) return { state: problem("newPassword", message), log: false };
     // 영어 원문(형식 검증)은 화면과 api 의 계약이 어긋난 신호라 남기고 대체 문구를 보인다.
     return { state: problem("newPassword", "비밀번호 조건을 확인해 주세요"), log: true };

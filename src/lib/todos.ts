@@ -75,13 +75,26 @@ export function isOverdue(item: Pick<MyTodo, "status" | "dueDate" | "dueTime">, 
   return now.getTime() >= due;
 }
 
-/** 한 명 수행 완료 줄 — 먼저 완료한 직원과 시각(WORK-3). 한 명 수행 완료가 아니면 null. */
+/** 이름 뒤 주격 조사 — 받침이 있으면 「이」, 없으면 「가」. 한글이 아닌 끝 글자는 「이」. */
+function subjectOf(name: string): string {
+  const code = name.charCodeAt(name.length - 1) - 0xac00;
+  return `${name}${code >= 0 && code < 11172 && code % 28 === 0 ? "가" : "이"}`;
+}
+
+/**
+ * 공유 TO-DO 완료 줄 — 먼저 완료한 직원과 시각(WORK-3). 데모 work 의 「정민준이 9월 11일(금) 10:42에 완료했습니다」.
+ * 공유(한 명 수행) 완료가 아니면 null.
+ */
 export function performerLine(item: Pick<MyTodo, "status" | "performer" | "completedAt">): string | null {
   if (item.status !== "DONE" || !item.performer) return null;
-  const at = item.completedAt ? ` · ${kstLabel(item.completedAt)}` : "";
+  const at = item.completedAt ? ` ${kstLabel(item.completedAt)}에` : "";
   // 직원 근무 앱 응답은 가리지 않는다(isMasked 늘 false). 이름이 비면 「다른 직원」으로 둔다.
-  return `${item.performer.staffMemberName ? `${item.performer.staffMemberName}님이` : "다른 직원이"} 완료${at}`;
+  return `${item.performer.staffMemberName ? subjectOf(item.performer.staffMemberName) : "다른 직원이"}${at} 완료했습니다`;
 }
+
+/** 다른 직원이 먼저 끝낸 공유 TO-DO — 상태 칩을 「완료됨」으로 보인다(데모 work). staffMemberId 는 지금 근무지의 내 직원 id */
+export const isDoneByOther = (item: Pick<MyTodo, "status" | "performer">, staffMemberId: number | undefined) =>
+  staffMemberId !== undefined && item.status === "DONE" && item.performer !== null && item.performer.staffMemberId !== staffMemberId;
 
 /** 목록 한 줄의 아래 글자(목업 07.근무 정보_list). */
 export function todoMeta(item: MyTodo, now: Date): string {

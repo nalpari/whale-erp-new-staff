@@ -1,7 +1,7 @@
 // node --test src/lib/password-change.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CURRENT_PASSWORD_MISMATCH, passwordChangeFailure, validatePasswordChange } from "./password-change.ts";
+import { CURRENT_PASSWORD_MISMATCH, CURRENT_PASSWORD_MISMATCH_API, passwordChangeFailure, validatePasswordChange } from "./password-change.ts";
 
 const fieldOf = (state: { problem?: { field: string } } | null) => state?.problem?.field ?? null;
 
@@ -23,7 +23,7 @@ test("새 비밀번호 20자는 사용자가 보는 글자 수로 센다(이모�
 });
 
 test("passwordChangeFailure — 400 은 글자로 가르고, 영어 원문만 남긴다", () => {
-  assert.deepEqual(passwordChangeFailure({ status: 400, message: CURRENT_PASSWORD_MISMATCH }), {
+  assert.deepEqual(passwordChangeFailure({ status: 400, message: CURRENT_PASSWORD_MISMATCH_API }), {
     state: { problem: { field: "currentPassword", message: CURRENT_PASSWORD_MISMATCH } },
     log: false,
   });

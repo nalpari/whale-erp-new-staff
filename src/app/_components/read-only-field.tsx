@@ -7,12 +7,15 @@ export function ReadOnlyField({
   label,
   value,
   help,
+  placeholder,
   action,
   wrap = false,
 }: {
   label: string;
   value: string;
   help?: string;
+  /** 값이 비었을 때 옅게 보이는 안내(데모 「주소를 검색해 주세요」). */
+  placeholder?: string;
   action?: ReactNode;
   wrap?: boolean;
 }) {
@@ -33,10 +36,10 @@ export function ReadOnlyField({
             aria-describedby={help ? `${id}-help` : undefined}
             className={`${box} flex min-h-[52px] items-center py-[12px] leading-[1.5] break-keep`}
           >
-            {value}
+            {value || (placeholder && <span className="text-staff-text-muted">{placeholder}</span>)}
           </p>
         ) : (
-          <input id={id} readOnly value={value} aria-describedby={help ? `${id}-help` : undefined} className={`${box} h-[52px] outline-none!`} />
+          <input id={id} readOnly value={value} placeholder={placeholder} aria-describedby={help ? `${id}-help` : undefined} className={`${box} h-[52px] outline-none!`} />
         )}
         {action && <div className="w-[96px] shrink-0">{action}</div>}
       </div>

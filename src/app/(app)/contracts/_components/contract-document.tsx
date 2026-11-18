@@ -10,7 +10,7 @@ import { Values } from "./parts";
 export function ContractDocument({ articles, employmentTypeLabel }: { articles: ContractArticle[]; employmentTypeLabel: string | null }) {
   return (
     <section aria-label="계약서 본문" className="rounded-[16px] border border-staff-border-light bg-white p-[16px]">
-      <h2 className="text-[13px] font-semibold text-staff-text-sub">근로계약서{employmentTypeLabel && ` · ${employmentTypeLabel}`}</h2>
+      <h2 className="text-[13px] font-semibold text-staff-text-sub">근로계약서{employmentTypeLabel && ` · ${employmentTypeLabel}용`}</h2>
       {articles.length === 0 ? (
         // api 가 조항을 늘 열 개 보내므로 api 오류일 때만이다. 상세 · 서명 화면은 이때 서명을 열지 않는다(bodyMissing)
         <div className="pt-[8px]">

@@ -34,17 +34,17 @@ export function Basis({ children }: { children: ReactNode }) {
   return <p className="pt-[6px] text-[12px] text-staff-text-sub first:pt-0 [&_b]:font-bold [&_b]:text-staff-text">{children}</p>;
 }
 
-/** 주민등록번호를 받는 근거(운영 정책 TAX-08). */
-export const RRN_BASIS = (
+/** 주민등록번호를 받는 근거(운영 정책 TAX-08). 입력 화면만 「수집하며,」 뒤에서 줄을 바꾸고(lineBreak) 보기 화면은 한 줄이다(데모 tax). */
+export const rrnBasis = (lineBreak = false) => (
   <>
-    4대보험 신고와 근로소득 원천징수를 위해 <b>법령에 따라</b> 수집하며, 신고 서류를 만들 때만 사용합니다.
+    4대보험 신고와 근로소득 원천징수를 위해 <b>법령에 따라</b> 수집하며,{lineBreak ? <br /> : " "}신고 서류를 만들 때만 사용합니다.
   </>
 );
 
-/** 급여 계좌를 받는 근거(운영 정책 TAX-08). */
-export const ACCOUNT_BASIS = (
+/** 급여 계좌를 받는 근거(운영 정책 TAX-08). 줄바꿈은 rrnBasis 와 같다. */
+export const accountBasis = (lineBreak = false) => (
   <>
-    <b>근로계약에 따라</b> 급여를 지급하기 위해 수집하며, 급여 지급 외에는 사용하지 않습니다.
+    <b>근로계약에 따라</b> 급여를 지급하기 위해 수집하며,{lineBreak ? <br /> : " "}급여 지급 외에는 사용하지 않습니다.
   </>
 );
 

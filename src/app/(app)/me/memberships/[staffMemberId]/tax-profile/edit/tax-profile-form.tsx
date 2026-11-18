@@ -117,7 +117,7 @@ export function TaxProfileForm({
         <TaxIdentity realName={realName} birthDate={birthDateLabel} />
         <input hidden readOnly type="text" autoComplete="username" value={email} tabIndex={-1} aria-hidden />
         <TextField
-          label="지금 비밀번호"
+          label="현재 비밀번호"
           name="currentPassword"
           type="password"
           autoComplete="current-password"

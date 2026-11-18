@@ -16,8 +16,24 @@ async function orNull<T>(load: () => Promise<T>): Promise<T | null> {
   }
 }
 
-/** 다른 화면(홈)이 지금 이메일 같은 값을 곁들일 때. 5xx · 연결 실패면 null — 부른 쪽이 로그인 때 값으로 대신한다. */
+/** 다른 화면(홈)이 지금 이메일 같은 값을 곁들일 때. 5xx · 연결 실패면 null — 부른 쪽이 로그인 때 값으로 대신한다. 그 밖은 던진다. */
 export const getMyProfileOrNull = () => orNull(getMyProfile);
+
+/**
+ * 한 줄 곁들임(출퇴근의 일시 중지 시각, 가입 완료의 생년월일)이라 없어도 화면이 서는 곳. 401(만료 안내) 밖의 실패는 모두 null 이고
+ * 그 줄만 뺀다 — 예상 밖 4xx 는 남긴다(requestsLoadFailure, 소속 추가 확인 요청과 같은 규칙).
+ */
+export async function getMyProfileForExtra(scope: string): Promise<Schemas["MyProfileResponseDto"] | null> {
+  try {
+    return await getMyProfile();
+  } catch (error) {
+    const failure = failureOf(error);
+    const handling = requestsLoadFailure(failure);
+    if (handling === "throw") throw error;
+    if (handling === "log" && failure) logFailure(scope, failure);
+    return null;
+  }
+}
 
 /**
  * 소속 근무지(`GET /me/memberships`). 퇴직한 근무지는 빠진다 — 출퇴근 · 홈 · 근무지 선택기가 쓴다. includeRetired 면 퇴직한 근무지도

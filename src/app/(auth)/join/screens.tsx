@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { Button, Card, CheckBox, Notice } from "@/components/common";
+import { Alert, Button, Card, CheckBox, Notice } from "@/components/common";
 import { useNow } from "@/app/_components/countdown";
 import { type AttemptLock, lockCountdown } from "@/lib/attempt-lock";
 import { MEMBERSHIPS_PATH } from "@/lib/join";
@@ -263,13 +263,11 @@ export function CodeLocked({ lock, onRetry }: { lock: AttemptLock; onRetry?: () 
         </>
       }
     >
-      <Card>
-        <div className="flex flex-col items-center text-center">
-          <p className="text-[13px] font-semibold text-staff-text-sub">다시 시도까지</p>
-          <p className="pt-[4px] text-[32px] font-bold tabular-nums">{text}</p>
-          <p className="pt-[6px] text-[12px] text-staff-text-muted">같은 번호로 다섯 번 틀리면 30분 동안 잠급니다.</p>
-        </div>
-      </Card>
+      {/* 남은 시간은 데모 code-locked 처럼 경고 판에 보인다. */}
+      <Alert tone="warning">
+        <p className="text-[14px] font-semibold">남은 시간</p>
+        <p className="text-[28px] font-bold tabular-nums">{text}</p>
+      </Alert>
     </AuthScreen>
   );
 }

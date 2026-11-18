@@ -36,12 +36,12 @@ const item = (over: Partial<ContractListItem> = {}): ContractListItem => ({
   ...over,
 });
 
-test("남은 기한은 한국 달력으로 센다 — 7일 이내만 강조, 상세는 늘 시각까지", () => {
+test("남은 기한은 한국 달력으로 센다 — 7일 이내만 강조, 오늘 · 내일만 시각까지", () => {
   // 한국 9월 10일 오전 9시
   const d = deadlineOf(item(), new Date("2026-09-10T00:00:00Z"));
-  assert.deepEqual(d, { date: "2026년 9월 12일", dateTime: "2026년 9월 12일 10:23", daysLeft: 2, urgent: true });
-  assert.equal(deadlineText(d!, "list"), "서명 기한 2026년 9월 12일 · D-2");
-  assert.equal(deadlineText(d!, "detail"), "서명 기한 2026년 9월 12일 10:23까지 · 2일 남음");
+  assert.deepEqual(d, { at: "2026-09-12T01:23:00Z", date: "2026년 9월 12일", dateTime: "2026년 9월 12일 10:23", daysLeft: 2, urgent: true });
+  assert.equal(deadlineText(d!, "list"), "서명 기한 2026.09.12 · D-2");
+  assert.equal(deadlineText(d!, "detail"), "서명 기한 2026.09.12 · 2일 남음");
 
   // 한국 9월 5일 0시 30분(UTC 로는 9월 4일) — 7일 남아 강조, 한국 9월 4일 23시 30분이면 8일이라 강조하지 않는다
   assert.equal(deadlineOf(item(), new Date("2026-09-04T15:30:00Z"))!.daysLeft, 7);
@@ -49,7 +49,7 @@ test("남은 기한은 한국 달력으로 센다 — 7일 이내만 강조, 상
   assert.equal(deadlineOf(item(), new Date("2026-09-04T14:30:00Z"))!.urgent, false);
 
   // 한국 9월 11일 오전 9시 — 내일이 기한이면 목록도 시각까지(내일 이른 시각이면 남은 시간이 짧다)
-  assert.equal(deadlineText(deadlineOf(item(), new Date("2026-09-11T00:00:00Z"))!, "list"), "서명 기한 2026년 9월 12일 10:23까지 · D-1");
+  assert.equal(deadlineText(deadlineOf(item(), new Date("2026-09-11T00:00:00Z"))!, "list"), "서명 기한 2026.09.12 10:23 · D-1");
 });
 
 test("기한 당일 오전(기한 전)은 시각까지 · D-day · 오늘 마감", () => {
@@ -57,8 +57,8 @@ test("기한 당일 오전(기한 전)은 시각까지 · D-day · 오늘 마감
   const morning = deadlineOf(item(), new Date("2026-09-11T23:00:00Z"))!;
   assert.equal(morning.daysLeft, 0);
   assert.equal(morning.urgent, true);
-  assert.equal(deadlineText(morning, "list"), "서명 기한 2026년 9월 12일 10:23까지 · D-day");
-  assert.equal(deadlineText(morning, "detail"), "서명 기한 2026년 9월 12일 10:23까지 · 오늘 마감");
+  assert.equal(deadlineText(morning, "list"), "서명 기한 2026.09.12 10:23 · D-day");
+  assert.equal(deadlineText(morning, "detail"), "서명 기한 2026.09.12 10:23 · 오늘 마감");
 });
 
 test("기한 당일 오후(기한 뒤) — 날인 여부는 api 의 awaitingSignature 로: 아직 받는다고 하면 오늘 마감, 아니면 만료", () => {
@@ -66,11 +66,11 @@ test("기한 당일 오후(기한 뒤) — 날인 여부는 api 의 awaitingSign
   const afternoon = new Date("2026-09-12T06:00:00Z");
   const still = deadlineOf(item(), afternoon)!;
   assert.equal(still.daysLeft, 0);
-  assert.equal(deadlineText(still, "detail"), "서명 기한 2026년 9월 12일 10:23까지 · 오늘 마감");
+  assert.equal(deadlineText(still, "detail"), "서명 기한 2026.09.12 10:23 · 오늘 마감");
   const closed = item({ awaitingSignature: false });
   assert.equal(deadlineOf(closed, afternoon), null);
   assert.equal(phaseOf(closed, afternoon), "EXPIRED");
-  assert.equal(contractSubText(closed, afternoon, "계약 기간 만료"), "서명 기한 2026년 9월 12일 지남");
+  assert.equal(contractSubText(closed, afternoon, "계약 기간 만료"), "서명 기한 2026.09.12 지남");
 });
 
 test("기한 전인데 api 가 날인할 수 없다고 하면(퇴직 등) 서명 불가 — 기한 · 강조 없음", () => {
@@ -90,18 +90,29 @@ test("서명 대기가 아니거나 기한이 없으면 기한이 없다", () =>
 
 test("목록 둘째 줄은 상태마다 다르다", () => {
   const now = new Date("2026-10-28T00:00:00Z");
-  assert.equal(contractSubText(item({ status: "SIGNED", processedAt: "2026-08-22T16:00:00Z" }), now, "서명 완료"), "서명 2026년 8월 23일");
+  assert.equal(contractSubText(item({ status: "SIGNED", processedAt: "2026-08-22T16:00:00Z" }), now, "서명 완료"), "서명 2026.08.23");
   assert.equal(
     contractSubText(item({ status: "SIGNED", contractMethod: "PAPER", processedAt: "2026-04-02T01:00:00Z" }), now, "서명 완료"),
-    "종이 계약 · 2026년 4월 2일 등록",
+    "종이 계약 · 2026.04.02 등록",
   );
-  assert.equal(contractSubText(item({ status: "REJECTED", processedAt: "2026-06-25T01:00:00Z" }), now, phaseLabel("REJECTED", "서명 거절")), "거절 2026년 6월 25일");
-  assert.equal(contractSubText(item({ status: "EXPIRED", signDeadlineAt: "2026-07-31T14:59:59Z" }), now, "계약 기간 만료"), "서명 기한 2026년 7월 31일 지남");
-  assert.equal(contractSubText(item({ status: "ENDED", startDate: "2025-03-01", endDate: "2026-08-31" }), now, "계약 종료"), "2025년 3월 1일 – 2026년 8월 31일");
+  assert.equal(contractSubText(item({ status: "REJECTED", processedAt: "2026-06-25T01:00:00Z" }), now, phaseLabel("REJECTED", "서명 거절")), "거절 2026.06.25");
+  assert.equal(contractSubText(item({ status: "EXPIRED", signDeadlineAt: "2026-07-31T14:59:59Z" }), now, "계약 기간 만료"), "서명 기한 2026.07.31 지남");
+  assert.equal(contractSubText(item({ status: "ENDED", startDate: "2025-03-01", endDate: "2026-08-31" }), now, "계약 종료"), "2025.03.01 – 2026.08.31");
+});
+
+test("상세 머리 카드는 체결 완료 · 만료에 받은 날을 더한다(데모 contract readonly · expired)", () => {
+  const now = new Date("2026-10-28T00:00:00Z");
+  const sent = "2026-07-31T16:00:00Z"; // 한국 8월 1일
+  assert.equal(contractSubText(item({ status: "SIGNED", sentAt: sent, processedAt: "2026-08-22T16:00:00Z" }), now, "서명 완료", "detail"), "서명 2026.08.23 · 받은 날 2026.08.01");
+  assert.equal(
+    contractSubText(item({ status: "EXPIRED", sentAt: "2026-07-01T01:00:00Z", signDeadlineAt: "2026-07-31T01:00:00Z" }), now, "계약 기간 만료", "detail"),
+    "받은 날 2026.07.01 · 서명 기한 2026.07.31",
+  );
+  assert.equal(contractSubText(item({ status: "SIGNED", sentAt: null, processedAt: "2026-08-22T16:00:00Z" }), now, "서명 완료", "detail"), "서명 2026.08.23");
 });
 
 test("계약 기간 — 끝이 없으면 기간 정함 없음", () => {
-  assert.equal(periodText("2026-03-01", null), "2026년 3월 1일부터 · 기간 정함 없음");
+  assert.equal(periodText("2026-03-01", null), "2026.03.01부터 · 기간 정함 없음");
   assert.equal(periodText(null, null), "-");
 });
 
@@ -213,7 +224,7 @@ test("직원 본인 화면이라 enum 한글의 「직원」을 뗀다 — 서�
   assert.equal(phaseLabel("ENDED", "계약 종료"), "계약 종료");
   const now = new Date("2026-10-28T00:00:00Z");
   const asked = item({ status: "CORRECTION_REQUESTED", processedAt: "2026-06-25T01:00:00Z" });
-  assert.equal(contractSubText(asked, now, phaseLabel("CORRECTION_REQUESTED", "직원 수정 요청")), "수정 요청 2026년 6월 25일");
+  assert.equal(contractSubText(asked, now, phaseLabel("CORRECTION_REQUESTED", "직원 수정 요청")), "수정 요청 2026.06.25");
 });
 
 test("처리 완료본은 체결 완료 · 종료된 전자계약의 SIGNED_COPY 만, 여럿이면 나중 것", () => {

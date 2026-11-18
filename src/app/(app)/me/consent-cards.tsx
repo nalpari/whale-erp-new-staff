@@ -8,7 +8,16 @@ import type { Schemas } from "@/lib/api";
 import type { CurrentTerms } from "@/lib/my-profile";
 import { HQ_SHARING_TERMS_VERSION } from "@/lib/hq-sharing-terms";
 import { HqSharingTermsBody, HqSharingTermsReviewNote } from "@/app/_components/hq-sharing-terms";
-import { CONSENT_CHANGES, dateLabel, hqSharingView, kstDateTimeLabel, locationNeedsReconsent, type ConsentChange, type LocationConsentState } from "@/lib/profile";
+import {
+  CONSENT_CHANGES,
+  LOCATION_REAGREED,
+  dateLabel,
+  hqSharingView,
+  kstDateTimeLabel,
+  locationNeedsReconsent,
+  type ConsentChange,
+  type LocationConsentState,
+} from "@/lib/profile";
 import { changeConsentAction } from "./actions";
 import { CardLabel } from "@/app/_components/read-only-field";
 import { TermsContent } from "./terms-content";
@@ -24,7 +33,7 @@ function useConsentChange(onDone: () => void) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
   const [toast, setToast] = useState<{ key: number; text: string }>();
-  /** done 은 끝난 알림 문구를 바꿀 때(일시 중지 중 다시 동의) — 없으면 CONSENT_CHANGES 의 문구 */
+  /** done 은 끝난 알림 문구를 바꿀 때(일시 중지 중 새 약관 동의 · 철회 뒤나 약관 변경 뒤 다시 동의) — 없으면 CONSENT_CHANGES 의 문구 */
   const change = (kind: ConsentChange, termsVersion?: string, done?: string) =>
     startTransition(async () => {
       setError(undefined);
@@ -78,7 +87,7 @@ function ConsentCard({
           </Alert>
         </div>
       )}
-      <p className="pt-[8px] text-[12px] text-staff-placeholder">{note}</p>
+      <p className="pt-[8px] text-[12px] whitespace-pre-line text-staff-placeholder">{note}</p>
     </Card>
   );
 }
@@ -106,11 +115,11 @@ type LocationSheet = "terms" | "pause" | "withdraw";
 
 /**
  * 위치정보 동의 카드(ATT-23 · ATT-26, 데모 me 의 위치정보 카드). 동의 중이면 약관 보기 · 일시 중지 · 동의 철회, 일시 중지면
- * 약관 보기 · 다시 켜기(새 동의 없음) · 동의 철회, 미동의면 약관 보기 · (흐린 일시 중지) · 동의하기, 철회 뒤면 그 자리가 다시 동의(ME-5 — 내 정보에서도 동의한다,
- * 2026-10-20 노영주). 데모와 달리 다시 켜기 · 다시 동의도 같은 크기의 작은 버튼이다(2026-10-20 노영주). 일시 중지 · 철회는 확인 시트를,
+ * 약관 보기 · 다시 켜기(새 동의 없음) · 동의 철회, 미동의면 약관 보기 · (흐린 일시 중지) · 동의하기(ME-5 — 내 정보에서도 동의한다,
+ * 2026-10-20 노영주). 철회 뒤면 데모 me revoked 처럼 위에 「다시 동의하기」 한 줄, 아래에 약관 보기를 둔다(2026-11-18 데모 기준). 일시 중지 · 철회는 확인 시트를,
  * 동의하기 · 다시 동의는 약관 시트를 거친다 — 약관을 보이고 그 안의 「동의합니다」로만 기록한다(2026-10-20 노영주). 약관을 못 받으면 동의할 수 없다.
  * 동의한 약관 버전이 바뀌어 다시 동의해야 하면(needsReconsent — 동의 · 일시 중지일 때) 사업자 제공 동의 카드처럼 「다시 동의 필요」 배지와
- * 다시 동의(약관 시트의 「동의합니다」)를 두고, 가운데 칸은 동의 철회다 — 옛 동의로는 수집하지 않아 일시 중지가 뜻이 없고, 새 약관에 동의하지
+ * 위에 「다시 동의하기」 한 줄(약관 시트의 「동의합니다」), 아래에 약관 보기 · 동의 철회를 둔다 — 옛 동의로는 수집하지 않아 일시 중지가 뜻이 없고, 새 약관에 동의하지
  * 않으려는 직원도 거둘 수 있게(ATT-30 v252, 2026-10-29 재영). 출근 화면의 다시 동의 시트는 그대로다.
  */
 export function LocationConsentCard({ consent, terms: current }: { consent: Schemas["MyLocationConsentDto"]; terms: CurrentTerms }) {
@@ -150,31 +159,39 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
         line={line}
         error={error}
         actions={
-          // 버튼 세 칸은 상태와 상관없이 같은 크기 · 같은 자리이고, 가운데 「일시 중지 ↔ 다시 켜기」, 오른쪽 「동의 철회 ↔ 다시 동의」만
-          // 바뀐다(2026-10-20 노영주). 동의가 없으면 멈출 것도 없어 일시 중지를 흐리게 둔다.
-          // 다시 동의가 필요하면 가운데가 동의 철회, 오른쪽이 다시 동의다.
-          <SmallButtons>
-            {termsButton}
-            {reconsent ? (
-              withdrawButton
-            ) : state === "PAUSED" ? (
-              <Button variant="outline" disabled={pending} onClick={() => change("location-resume")}>
-                다시 켜기
-              </Button>
-            ) : (
-              <Button variant="outline" disabled={state !== "AGREED"} onClick={() => setSheet("pause")}>
-                일시 중지
-              </Button>
-            )}
-            {!reconsent && (state === "AGREED" || state === "PAUSED") ? (
-              withdrawButton
-            ) : (
-              <Button variant="outline" onClick={() => setSheet("terms")}>
-                {/* 세 칸(한 칸 약 100px)에 「다시 동의하기」는 넘쳐 줄였다. */}
-                {state === "NOT_AGREED" ? "동의하기" : "다시 동의"}
-              </Button>
-            )}
-          </SmallButtons>
+          // 동의 중 · 일시 중지 · 미동의는 버튼 세 칸이 같은 크기 · 같은 자리이고, 가운데 「일시 중지 ↔ 다시 켜기」, 오른쪽 「동의 철회 ↔
+          // 동의하기」만 바뀐다(2026-10-20 노영주). 동의가 없으면 멈출 것도 없어 일시 중지를 흐리게 둔다.
+          // 철회 뒤 · 다시 동의가 필요하면 데모 me 의 revoked 처럼 「다시 동의하기」를 위에 한 줄로 두고(작은 칸에는 넘친다), 아래 줄에
+          // 약관 보기(다시 동의가 필요하면 동의 철회도)를 둔다. 다시 동의하기도 약관 시트를 거친다.
+          reconsent || state === "WITHDRAWN" ? (
+            <>
+              <Button onClick={() => setSheet("terms")}>다시 동의하기</Button>
+              <SmallButtons>
+                {termsButton}
+                {reconsent && withdrawButton}
+              </SmallButtons>
+            </>
+          ) : (
+            <SmallButtons>
+              {termsButton}
+              {state === "PAUSED" ? (
+                <Button variant="outline" disabled={pending} onClick={() => change("location-resume")}>
+                  다시 켜기
+                </Button>
+              ) : (
+                <Button variant="outline" disabled={state !== "AGREED"} onClick={() => setSheet("pause")}>
+                  일시 중지
+                </Button>
+              )}
+              {state === "NOT_AGREED" ? (
+                <Button variant="outline" onClick={() => setSheet("terms")}>
+                  동의하기
+                </Button>
+              ) : (
+                withdrawButton
+              )}
+            </SmallButtons>
+          )
         }
         note={
           reconsent
@@ -184,8 +201,8 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
             : state === "AGREED"
             ? "동의를 철회하면 앱으로 출퇴근을 등록할 수 없습니다."
             : state === "PAUSED"
-              ? "일시 중지 중에는 출퇴근 기록을 근무지 관리자에게 문의해 주세요. 다시 켜면 새로 동의하지 않아도 됩니다."
-              : "동의 전까지 출퇴근 기록은 근무지 관리자에게 문의해 주세요. 다음 출퇴근 등록 때 다시 동의할 수 있습니다."
+              ? "일시 중지 중에는 출퇴근 기록을 근무지 관리자에게 문의해 주세요.\n다시 켜면 새로 동의하지 않아도 됩니다."
+              : "동의 전까지 출퇴근 기록은 근무지 관리자에게 문의해 주세요.\n다음 출퇴근 등록 때 다시 동의할 수 있습니다."
         }
       />
       {toast && <Toast key={toast.key}>{toast.text}</Toast>}
@@ -210,8 +227,15 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
             {(state === "NOT_AGREED" || state === "WITHDRAWN" || reconsent) && (
               <Button
                 disabled={pending}
-                // 일시 중지 중 다시 동의는 멈춘 채다 — 「수집에 동의했습니다」로 켜진 것처럼 읽히지 않게
-                onClick={() => change("location-agree", terms.version, reconsent && state === "PAUSED" ? "새 약관에 동의했습니다. 일시 중지는 그대로입니다" : undefined)}
+                // 처음 동의는 CONSENT_CHANGES 문구, 철회 뒤 · 약관 변경 뒤는 「다시 동의했습니다」(데모 me). 일시 중지 중 새 약관 동의는
+                // 멈춘 채다 — 「수집에 동의했습니다」로 켜진 것처럼 읽히지 않게
+                onClick={() =>
+                  change(
+                    "location-agree",
+                    terms.version,
+                    reconsent && state === "PAUSED" ? "새 약관에 동의했습니다. 일시 중지는 그대로입니다" : state === "NOT_AGREED" ? undefined : LOCATION_REAGREED,
+                  )
+                }
               >
                 동의합니다
               </Button>

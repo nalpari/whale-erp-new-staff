@@ -4,6 +4,7 @@ import { test } from "node:test";
 import {
   countByStatus,
   dayLabel,
+  isDoneByOther,
   isOverdue,
   isTodoStatus,
   kstLabel,
@@ -87,8 +88,14 @@ test("공유 완료는 먼저 완료한 직원과 시각", () => {
     completedAt: "2026-10-19T07:40:00.000Z",
     performer: { staffMemberId: 7, staffMemberName: "김하은", isMasked: false },
   });
-  assert.equal(performerLine(shared), "김하은님이 완료 · 10월 19일(월) 16:40");
+  assert.equal(performerLine(shared), "김하은이 10월 19일(월) 16:40에 완료했습니다");
+  assert.equal(performerLine({ ...shared, performer: { staffMemberId: 8, staffMemberName: "이지아", isMasked: false } }), "이지아가 10월 19일(월) 16:40에 완료했습니다");
+  assert.equal(performerLine({ ...shared, completedAt: null }), "김하은이 완료했습니다");
   assert.equal(performerLine(todo({ performer: shared.performer })), null);
+  assert.ok(isDoneByOther(shared, 3));
+  assert.ok(!isDoneByOther(shared, 7)); // 내가 먼저 완료
+  assert.ok(!isDoneByOther(shared, undefined));
+  assert.ok(!isDoneByOther(todo({ performer: shared.performer }), 3));
 });
 
 test("목록 아래 글자", () => {

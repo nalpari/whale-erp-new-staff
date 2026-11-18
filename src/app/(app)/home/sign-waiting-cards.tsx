@@ -3,7 +3,7 @@ import { MaskIcon, SectionTitle } from "@/components/common";
 import type { ContractListItem } from "@/lib/contracts";
 import { signWaitingCards, type SignWaitingCard } from "@/lib/sign-request";
 
-// 홈의 서명 대기 카드(WHALEERP-146, 데모 home 의 todo · empty). 처리할 일은 카드로 알린다(HOME-1) — 서명 요청 팝업을 「다음에 하기」로
+// 홈의 서명 대기 카드(WHALEERP-146, 데모 home 의 todo · empty). 처리할 일은 카드로 알린다(HOME-1) — 서명 요청 팝업을 「나중에」로
 // 닫은 뒤에도 이 카드로 그 계약서 상세에 간다. 경고 칩 색(#FFF6E5 · #956013)은 데모처럼 이 카드에만 빌려 토큰으로 두지 않는다.
 // 남은 기한이 7일 이내면 기한 글자만 굵게 강조한다(146 · CON-4 — 카드 바탕은 늘 같은 색).
 const CARD = "flex items-center gap-[12px] rounded-[18px] bg-[#fff6e5] px-[16px] py-[14px] text-[#956013] transition-opacity duration-150 ease-out active:opacity-80";

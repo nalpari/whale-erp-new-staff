@@ -2,7 +2,6 @@
 
 import { useActionState, useRef, useState, type ReactNode } from "react";
 import { Alert, BottomSheet, Button, Notice, SectionTitle, SegmentedControl, TextField } from "@/components/common";
-import { FIELD } from "@/components/common/theme";
 import { AddressSearchSheet } from "@/app/_components/address-search-sheet";
 import { NewPasswordFields } from "@/app/_components/new-password-fields";
 import { ReadOnlyField } from "@/app/_components/read-only-field";
@@ -106,7 +105,7 @@ export function SignupForm({
         <SectionTitle title="인적사항" />
         <div className="flex flex-col gap-[16px]">
           <TextField
-            label="이름"
+            label="이름*"
             name="name"
             autoComplete="name"
             required
@@ -117,12 +116,12 @@ export function SignupForm({
             error={errorOf("name")}
           />
           <ReadOnlyField
-            label="휴대전화번호"
+            label="휴대전화번호*"
             value={formatPhone(phone)}
             help="번호 변경이 필요하면 근무지 관리자에게 문의해 주세요."
           />
           <TextField
-            label="생년월일"
+            label="생년월일*"
             name="birthDate"
             inputMode="numeric"
             autoComplete="bday"
@@ -134,17 +133,17 @@ export function SignupForm({
             help="가입 후에는 변경할 수 없으니 정확히 입력해 주세요."
             error={errorOf("birthDate")}
           />
-          <Choice label="성별" error={errorOf("gender")}>
+          <Choice label="성별*" error={errorOf("gender")}>
             <SegmentedControl label="성별" items={genders} value={gender} onChange={setGender} />
           </Choice>
-          <Choice label="외국인 여부">
+          <Choice label="외국인 여부*">
             <SegmentedControl label="외국인 여부" items={FOREIGNER} value={foreigner} onChange={setForeigner} />
           </Choice>
         </div>
 
         <SectionTitle title="로그인 정보" />
         <TextField
-          label="이메일"
+          label="이메일*"
           name="email"
           type="email"
           autoComplete="email"
@@ -158,16 +157,18 @@ export function SignupForm({
         />
         <NewPasswordFields
           email={email}
-          labels={["비밀번호", "비밀번호 확인"]}
+          labels={["비밀번호*", "비밀번호 확인*"]}
+          placeholders={["비밀번호를 입력해 주세요", "비밀번호를 한 번 더 입력해 주세요"]}
           newPasswordError={errorOf("newPassword")}
           confirmationError={errorOf("newPasswordConfirmation")}
         />
 
         <SectionTitle title="주소" />
-        <div className="flex flex-col gap-[8px]">
+        <div className="flex flex-col gap-[16px]">
           <ReadOnlyField
-            label="주소"
+            label="주소*"
             value={picked.address ? `(${picked.zipCode}) ${picked.address}` : ""}
+            placeholder="주소를 검색해 주세요"
             wrap
             action={
               <Button variant="outline" onClick={() => setSearching(true)}>
@@ -175,17 +176,16 @@ export function SignupForm({
               </Button>
             }
           />
-          <input
+          <TextField
+            label="상세주소"
             name="addressDetail"
-            aria-label="상세 주소"
-            placeholder="상세 주소"
+            placeholder="상세주소"
             autoComplete="address-line2"
             maxLength={ADDRESS_DETAIL_MAX}
             value={detail}
             onChange={(event) => setDetail(event.target.value)}
-            className={FIELD}
           />
-          {errorOf("address") && <p className="pt-[2px] text-[12px] text-staff-error">{errorOf("address")}</p>}
+          {errorOf("address") && <p className="-mt-[8px] text-[12px] text-staff-error">{errorOf("address")}</p>}
         </div>
 
         {asksHqSharingConsent && <HqSharingConsent checked={hqSharing} onChange={setHqSharing} flow="signup" />}

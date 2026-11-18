@@ -19,7 +19,8 @@ async function latestPayslipMonth(): Promise<string | null | undefined> {
   }
 }
 
-// 데모 「나의 근무 정보」(Figma node 9:345) 바로가기. 급여명세서는 모든 근무지 것(PAY-8), 근무 스케줄은 고른 근무지의 이번 달 횟수.
+// 데모 「근무 정보」(Figma node 9:345 「나의 근무 정보」) 바로가기. 급여명세서는 모든 근무지 것(PAY-8), 근무 스케줄은 고른 근무지의
+// 이번 달 근무일 수(같은 날 여러 건은 하루로 센다, 데모 「이번 달 근무 12일」).
 // 출퇴근 현황은 고른 근무지의 이번 달 출근 · 지각 수로 /attendance 에 간다. 근무지가 없으면 급여명세서 줄만 둔다(HOME-5).
 export async function MyWorkInfo({ staffMemberId }: { staffMemberId?: number }) {
   const today = kstDate(new Date());
@@ -31,7 +32,7 @@ export async function MyWorkInfo({ staffMemberId }: { staffMemberId?: number }) 
   ]);
   return (
     <section className="flex flex-col gap-[12px]">
-      <SectionTitle title="나의 근무 정보" />
+      <SectionTitle title="근무 정보" />
       <InfoRow
         href="/pay"
         icon="/icons/menu-payslip.svg"
@@ -43,7 +44,7 @@ export async function MyWorkInfo({ staffMemberId }: { staffMemberId?: number }) 
           href="/work"
           icon="/icons/menu-schedule.svg"
           title="근무스케줄"
-          description={schedules ? `이번 달 근무 ${schedules.items.length}회` : undefined}
+          description={schedules ? `이번 달 근무 ${new Set(schedules.items.map((i) => i.workDate)).size}일` : undefined}
         />
       )}
       {staffMemberId && (

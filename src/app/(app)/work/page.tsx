@@ -11,7 +11,7 @@ import { StoreCard } from "./store-card";
 import { TodoPanel } from "./todo-panel";
 import { WorkTabs, type WorkTab } from "./work-tabs";
 
-export const metadata: Metadata = { title: "근무정보 · Whale ERP" };
+export const metadata: Metadata = { title: "근무 정보 · Whale ERP" };
 
 // ponytail: 한 번에 api 최대치(200)만 받는다. 근무지 칩 · 개수는 받은 것으로 센다 — 넘는 직원이 생기면 상태별로 나눠 받는다.
 const TODO_QUERY = "pageSize=200";
@@ -33,7 +33,7 @@ export default async function WorkPage({ searchParams }: PageProps<"/work">) {
   return (
     <div className="flex flex-1 flex-col">
       {/* 종은 홈 머리줄에만 둔다(데모 · 목업 근무정보에 없음, 2026-10-23 재영). */}
-      <PageHeader title="근무정보" backHref="/home" />
+      <PageHeader title="근무 정보" backHref="/home" />
       <div className="flex flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px] leading-[1.5]">
         {!memberships ? (
           <Alert tone="warning">근무지를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>
@@ -67,7 +67,7 @@ export default async function WorkPage({ searchParams }: PageProps<"/work">) {
               {tab === "schedule" ? (
                 <ScheduleTab staffMemberId={current.staffMemberId} storeName={current.store.storeName} month={month} today={today} day={day} />
               ) : (
-                <TodoTab storeId={current.store.storeId} />
+                <TodoTab storeId={current.store.storeId} staffMemberId={current.staffMemberId} />
               )}
             </WorkTabs>
           </>
@@ -101,7 +101,7 @@ async function ScheduleTab({
 }
 
 // 고른 근무지의 TO-DO 만 — 근무지가 하나로 걸러지므로 TO-DO 패널의 근무지 칩은 나오지 않는다.
-async function TodoTab({ storeId }: { storeId: number }) {
+async function TodoTab({ storeId, staffMemberId }: { storeId: number; staffMemberId: number }) {
   const todos = await getMyTodos(TODO_QUERY);
   if (!todos) return <Alert tone="warning">TO-DO 를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>;
   const items = todos.items.filter((t) => t.storeId === storeId);
@@ -111,7 +111,7 @@ async function TodoTab({ storeId }: { storeId: number }) {
       {todos.total > todos.items.length && (
         <Notice>TO-DO 가 많아 앞의 {todos.items.length}건만 보입니다. 개수도 보이는 것만 셉니다.</Notice>
       )}
-      <TodoPanel todos={items} now={new Date().toISOString()} />
+      <TodoPanel todos={items} now={new Date().toISOString()} staffMemberId={staffMemberId} />
     </>
   );
 }

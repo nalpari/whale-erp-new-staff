@@ -21,7 +21,8 @@ export function BottomSheet({
   open: boolean;
   onClose: () => void;
   title: string;
-  description?: string;
+  /** 글자면 \n 에서 줄을 바꾼다. 굵게 할 곳은 <strong> 으로 넘긴다(데모 <b>). */
+  description?: ReactNode;
   closeLabel?: string;
   children: ReactNode;
 }) {
@@ -52,7 +53,9 @@ export function BottomSheet({
       <div className="flex max-h-[90dvh] flex-col overflow-y-auto rounded-t-[26px] bg-white px-[24px] pt-[12px] pb-[max(22px,env(safe-area-inset-bottom))] leading-[1.5] text-staff-text shadow-[0_-8px_28px_rgba(22,25,28,0.16)]">
         <span aria-hidden className="mx-auto h-[4px] w-[40px] shrink-0 rounded-[2px] bg-[#dce1e9]" />
         <h2 className="pt-[25px] text-[20px] font-bold">{title}</h2>
-        {description && <p className="pt-[19px] text-[14px] text-staff-text-sub">{description}</p>}
+        {description && (
+          <p className="pt-[19px] text-[14px] whitespace-pre-line text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">{description}</p>
+        )}
         <div className="flex flex-col gap-[13px] pt-[20px]">
           {children}
           <button

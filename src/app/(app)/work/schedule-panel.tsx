@@ -125,14 +125,24 @@ export function SchedulePanel({
                 })}
               </div>
             ))}
-            {/* 근무가 없는 달도 달력은 그대로 그리고 안내 줄만 둔다(2026-10-23 재영). */}
-            {items.length === 0 && (
+            {/* 근무가 없는 달은 눌러도 볼 것이 없어 안내를 빼고 아래 빈 상태만 둔다 */}
+            {items.length > 0 && (
               <p className="border-t border-staff-border-light px-[4px] pt-[10px] text-[12px] text-staff-text-muted">
-                이 달 근무가 없습니다. 근무지에서 근무스케줄을 등록하면 여기에 표시됩니다.
+                날짜를 누르면 그날 근무를 볼 수 있습니다.
               </p>
             )}
       </div>
 
+      {/* 근무가 없는 달은 고른 날 상세 대신 데모 work 의 빈 상태를 둔다. 달 이동은 남겨야 해서 달력은 그대로 그린다. */}
+      {items.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-[8px] py-[52px] text-center leading-[1.5]">
+          <span className="flex items-center justify-center pb-[6px]">
+            <Image src="/icons/menu-schedule.svg" alt="" width={44} height={44} />
+          </span>
+          <p className="text-[18px] font-bold">{today.startsWith(month) ? "이번 달" : monthLabel(month)} 근무가 없습니다</p>
+          <p className="max-w-[260px] text-[13px] text-staff-text-sub">근무지에서 근무스케줄을 등록하면 여기에 표시됩니다.</p>
+        </div>
+      ) : (
       <section className="flex flex-col gap-[6px]">
             <h2 className="text-[13px] font-semibold text-staff-text-sub">{dayTitle(picked)}</h2>
             <div className="flex flex-col gap-[14px] rounded-[18px] border border-staff-border-light bg-white p-[20px]">
@@ -159,8 +169,9 @@ export function SchedulePanel({
                 })
               )}
             </div>
+            <p className="text-[12px] leading-[1.5] text-staff-text-muted">근무스케줄 변경은 근무지 관리자에게 문의해 주세요.</p>
           </section>
-
+      )}
     </div>
   );
 }
