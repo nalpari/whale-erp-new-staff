@@ -102,6 +102,7 @@ export function addressSaveFailure(failure: ApiFailure): { error: string; log: b
  * 위치정보 동의만 시트에 보인 약관 버전 `{ termsVersion }` 을 늘 싣는다(보인 약관이 없으면 null, 다르면 409, api #185). 사업자 제공
  * 동의도 본 문구 버전 `{ consentVersion }` 을 늘 싣는다(앱 문구의 HQ_SHARING_TERMS_VERSION, 다르면 409, ATT-30 v252)
  * (2026-10-20 api 확정). 알림 문구는 데모 me 의 토스트를 따르되, 처음 동의하는 경우도 있어 「다시」는 뺐다(다시 켜기는 데모에 없어 지었다).
+ * 철회 뒤 · 약관이 바뀐 뒤 다시 동의하면 데모 me 의 「위치정보 수집에 다시 동의했습니다」(LOCATION_REAGREED)를 쓴다.
  */
 export const CONSENT_CHANGES = {
   "location-agree": { path: "/me/location-consent", done: "위치정보 수집에 동의했습니다" },
@@ -111,6 +112,9 @@ export const CONSENT_CHANGES = {
   "hq-sharing-agree": { path: "/me/hq-sharing-consent", done: "사업자 제공에 동의했습니다" },
   "hq-sharing-withdraw": { path: "/me/hq-sharing-consent/withdraw", done: "사업자 제공 동의를 철회했습니다" },
 } as const;
+
+/** 위치정보 동의를 철회한 뒤 · 약관이 바뀐 뒤 다시 동의했을 때의 끝난 알림(데모 me). */
+export const LOCATION_REAGREED = "위치정보 수집에 다시 동의했습니다";
 
 export type ConsentChange = keyof typeof CONSENT_CHANGES;
 

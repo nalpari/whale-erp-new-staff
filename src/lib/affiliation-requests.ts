@@ -163,7 +163,7 @@ export function contractHrefOf(contractIds: readonly number[], storeId: number |
 
 /** 소속 추가 확인 · 복귀 확인을 가르는 배지 글자. 화면 용어는 둘 다 「소속 추가 확인 요청」이다. */
 export const invitationTypeLabel = ({ invitationType }: Pick<AffiliationRequest, "invitationType">) =>
-  invitationType === "RETURN_CONFIRM" ? "복귀 확인" : "소속 추가 요청";
+  invitationType === "RETURN_CONFIRM" ? "복귀 확인" : "소속 추가 확인";
 
 /**
  * 로그인 뒤 팝업에 보일 줄과 기억할 값. 요청이 하나면 점포와 고용 형태 · 직무(확인 화면 · 목록과 같은 줄), 여럿이면 첫 점포 「외 N곳」과

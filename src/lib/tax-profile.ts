@@ -54,13 +54,13 @@ export interface TaxProfileEditInput {
 }
 
 /** 지금 비밀번호를 비웠을 때 — 비밀번호 변경 화면(validatePasswordChange)과 같은 문구. */
-export const CURRENT_PASSWORD_EMPTY = "지금 비밀번호를 입력해 주세요";
+export const CURRENT_PASSWORD_EMPTY = "현재 비밀번호를 입력해 주세요";
 export { CURRENT_PASSWORD_MISMATCH };
 
 /** 은행 · 계좌번호 한쪽만 넣었을 때. api TAX_PROFILE_ACCOUNT_INCOMPLETE 의 화면 쪽 문구. */
 export const ACCOUNT_INCOMPLETE = "급여 계좌는 은행과 계좌번호를 함께 입력해 주세요";
-/** 주민등록번호 앞자리 · 가입 생년월일이 다를 때 — 데모 tax 의 mismatch 문구(생년월일 값은 넣지 않는다, 운영 정책 TAX-09). */
-export const RRN_BIRTH_MISMATCH = "주민등록번호 앞자리가 생년월일과 다릅니다. 생년월일이 잘못되었다면 근무지 관리자에게 수정을 요청해 주세요.";
+/** 주민등록번호 앞자리 · 가입 생년월일이 다를 때 — 데모 tax 의 mismatch 문구(생년월일 값은 넣지 않는다, 운영 정책 TAX-09). 줄바꿈은 칸 안내가 whitespace-pre-line 으로 보인다. */
+export const RRN_BIRTH_MISMATCH = "주민등록번호 앞자리가 생년월일과 다릅니다.\n생년월일이 잘못되었다면 근무지 관리자에게 수정을 요청해 주세요.";
 export const RRN_SHAPE = "주민등록번호 앞 6자리와 뒤 7자리를 숫자로 입력해 주세요";
 export const ACCOUNT_SHAPE = "계좌번호는 숫자 10~16자리입니다";
 export const NOTHING_TO_CHANGE = "바꿀 주민등록번호나 급여 계좌를 입력해 주세요";

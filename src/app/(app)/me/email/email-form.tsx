@@ -64,7 +64,7 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
           error={state.problem?.field === "newEmail" ? state.problem.message : undefined}
         />
         <TextField
-          label="지금 비밀번호"
+          label="현재 비밀번호"
           name="currentPassword"
           type="password"
           autoComplete="current-password"

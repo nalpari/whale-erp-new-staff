@@ -59,15 +59,15 @@ export function flagsOf(d: MyAttendanceDay): Flag[] {
     ...(p.checkOut?.reviewReason ? [{ kind: "퇴근" as const, time: p.checkOut.time, reason: p.checkOut.reviewReason }] : []),
   ]);
 }
-/** 「출근 위치를 확인하지 못했습니다」 · 「반경 밖 퇴근」 — 반경 밖은 관리자 웹 꼬리표와 같은 말(2026-10-23 사용자 결정) */
+/** 「출근 위치를 확인하지 못했습니다」 · 「매장 범위 밖에서 퇴근했습니다」 — 반경 밖은 데모 attendance 의 시트 제목과 같은 말 */
 export function flagTitle(f: Flag): string {
   if (f.reason === "ACCURACY_EXCEEDED") return `${f.kind} 위치를 확인하지 못했습니다`;
   if (f.reason === "MOCK_LOCATION") return `${f.kind} 위치 조작 감지`;
   // 출근부터 12시간이 넘은 퇴근에 api 가 붙인다(2026-10-27 재영) — 관리자 웹과 같은 말
   if (f.reason === "LONG_SHIFT") return "근무 12시간 초과";
-  return `반경 밖 ${f.kind}`;
+  return `매장 범위 밖에서 ${f.kind}했습니다`;
 }
-/** 확인 필요 카드의 한 줄 — 「출근 09:58 · 위치 확인 실패」 · 「퇴근 18:40 · 반경 밖」 */
+/** 확인 필요 카드의 한 줄 — 「출근 09:58 · 위치 확인 실패」 · 「퇴근 18:40 · 반경 밖 퇴근」(데모 attendance) */
 export function flagLine(f: Flag): string {
   const what =
     f.reason === "ACCURACY_EXCEEDED"
@@ -76,18 +76,23 @@ export function flagLine(f: Flag): string {
         ? "위치 조작 감지"
         : f.reason === "LONG_SHIFT"
           ? "근무 12시간 초과"
-          : "반경 밖";
+          : `반경 밖 ${f.kind}`;
   return `${f.kind} ${f.time} · ${what}`;
 }
+/**
+ * 시트 설명 — 데모 attendance 의 「출근 시각 09:58은 등록되었습니다.\n기록에 확인 필요가 붙었고, 관리자가 검토하고 있습니다.」.
+ * 반경 밖은 제목이 사유를 말하므로 이 두 줄만, 그 밖의 사유는 사유 한 줄을 앞에 둔다. 줄은 \n 으로 나눈다.
+ */
 export function flagDescription(f: Flag): string {
-  if (f.reason === "ACCURACY_EXCEEDED") return `위치 오차가 커서 매장 안에 있는지 확인하지 못했습니다. ${f.kind} 시각 ${f.time}은 등록되었습니다.`;
   const why =
-    f.reason === "MOCK_LOCATION"
-      ? "휴대전화 위치가 조작된 것으로 감지되었습니다."
-      : f.reason === "LONG_SHIFT"
-        ? "출근부터 퇴근까지 12시간이 넘었습니다."
-        : "근무지 반경 밖에서 등록되었습니다.";
-  return `${why} ${f.kind} 시각 ${f.time}은 등록되었고 관리자가 검토하고 있습니다.`;
+    f.reason === "ACCURACY_EXCEEDED"
+      ? "위치 오차가 커서 매장 안에 있는지 확인하지 못했습니다.\n"
+      : f.reason === "MOCK_LOCATION"
+        ? "휴대전화 위치가 조작된 것으로 감지되었습니다.\n"
+        : f.reason === "LONG_SHIFT"
+          ? "출근부터 퇴근까지 12시간이 넘었습니다.\n"
+          : "";
+  return `${why}${f.kind} 시각 ${f.time}은 등록되었습니다.\n기록에 확인 필요가 붙었고, 관리자가 검토하고 있습니다.`;
 }
 
 /** 관리자가 보정 · 대신 등록한 날(연필, HIST-1). 「이상 없음」만 받은 날은 아니다(ATT-19) */

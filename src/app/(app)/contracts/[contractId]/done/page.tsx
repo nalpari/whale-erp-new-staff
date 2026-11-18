@@ -66,7 +66,7 @@ export default async function ContractDonePage({ params, searchParams }: PagePro
           <Tiny>
             근무지 관리자에게 거절 사실을 알렸습니다.
             <br />
-            관리자가 계약서를 다시 보내면 근로계약서 목록에 표시됩니다.
+            관리자가 계약서를 다시 보내면 홈에 표시됩니다.
           </Tiny>
         </ContractFrame>
         <Dock inset={30}>

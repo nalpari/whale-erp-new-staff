@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useActionState, useState } from "react";
-import { Alert, BrandLogo, Button, Card, CheckBox, Notice, TextField } from "@/components/common";
+import { Alert, BrandLogo, Button, CheckBox, Notice, TextField } from "@/components/common";
 import { useNow } from "@/app/_components/countdown";
 import { forgetAffiliationPopup } from "@/lib/affiliation-popup-memory";
 import { forgetSignRequestPopup } from "@/lib/sign-request-popup-memory";
@@ -14,8 +14,8 @@ import { loginAction, type LoginState } from "./actions";
 
 // 기준: 데모 docs/demo/src/pages/login 의 login · fail · locked · expired.
 // 잠긴 화면은 api 429 의 해제 시각(lockExpiresAt)까지 남은 시간을 보인다. 남은 횟수는 api 가 주지 않아 보이지 않는다.
-// 잠긴 화면은 데모 locked 와 달리 이메일 찾기 막힘 화면의 배치를 따른다 — 남은 시간 판 · 주 버튼 「다시 로그인」 · 보조 버튼
-// 「비밀번호 재설정」(2026-10-21 노영주).
+// 잠긴 화면은 데모 locked 를 따른다 — 경고 판의 남은 시간 · 주 버튼 「비밀번호 재설정」 · 보조 버튼(2026-11-18 데모 기준).
+// 보조 버튼은 데모의 「5분 뒤 다시 시도」 대신 남은 시간을 그대로 보인다 — 다시 잠기면 5분보다 적게 남아 고정 문구가 틀린다.
 // 이메일 찾기(`/email-find`)는 이 화면에 버튼이 없고 비밀번호 재설정 화면의 이메일 칸 아래에서 들어간다(데모, 2026-10-20 재영).
 // unavailable 은 proxy 의 갱신이 401 · 400 아닌 이유(연결 실패 · 시간 초과 · 429 · 5xx)로 실패한 경우다(접속이 끝났는지 모른다).
 // next 는 로그인한 뒤 돌아갈 화면이다(WHALEERP-166, 없으면 홈). 숨은 칸으로 액션에 넘긴다.
@@ -105,10 +105,10 @@ export function LoginForm({
           />
           <div className="-my-[8px] flex flex-wrap gap-x-[20px]">
             <CheckBox name="saveEmail" checked={saveEmail} onChange={setSaveEmail}>
-              아이디 저장
+              아이디 저장하기
             </CheckBox>
             <CheckBox name="autoLogin" checked={autoLogin} onChange={setAutoLogin}>
-              자동 로그인
+              자동로그인
             </CheckBox>
           </div>
         </div>
@@ -151,22 +151,20 @@ function Locked({ lock, onRetry }: { lock: AttemptLock; onRetry: () => void }) {
       }
       dock={
         <>
-          <Button disabled={waiting} onClick={onRetry}>
-            {waiting ? `다시 로그인 · ${text} 뒤` : "다시 로그인"}
-          </Button>
-          <Button variant="ghost" href="/password-reset" transitionTypes={["nav-forward"]}>
+          <Button href="/password-reset" transitionTypes={["nav-forward"]}>
             비밀번호 재설정
+          </Button>
+          <Button variant="ghost" disabled={waiting} onClick={onRetry}>
+            {waiting ? `다시 로그인 · ${text} 뒤` : "다시 로그인"}
           </Button>
         </>
       }
     >
-      {/* 남은 시간 판과 버튼 배치는 이메일 찾기의 막힘 화면(email-find-form.tsx Locked)과 맞춘다(2026-10-21 노영주). */}
-      <Card>
-        <div className="flex flex-col items-center text-center">
-          <p className="text-[13px] font-semibold text-staff-text-sub">남은 시간</p>
-          <p className="pt-[4px] text-[32px] font-bold tabular-nums">{text}</p>
-        </div>
-      </Card>
+      {/* 남은 시간은 데모 locked 처럼 경고 판에 보인다. */}
+      <Alert tone="warning">
+        <p className="text-[14px] font-semibold">남은 시간</p>
+        <p className="text-[28px] font-bold tabular-nums">{text}</p>
+      </Alert>
     </AuthScreen>
   );
 }

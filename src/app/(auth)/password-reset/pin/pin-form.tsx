@@ -107,8 +107,9 @@ export function PinForm({
             error={pinError ?? resend.error}
             help={resend.notice}
           />
-          <div className="text-[12px] text-staff-text-muted">
+          <div className="flex items-center justify-between text-[12px] text-staff-text-muted">
             <Countdown deadline={issuedAt + validMs} serverNow={serverNow} />
+            <span>5회 틀리면 다시 받아야 합니다</span>
           </div>
         </div>
         <Notice>

@@ -1,6 +1,6 @@
 // 근로계약서 화면 규칙과 문구(WHALEERP-146). 상태 없는 순수 함수만 둔다 — 가져오기는 contracts.ts 다.
 // node --test 가 직접 읽으므로 값 import 는 같은 폴더의 순수 모듈(.ts 확장자)만 둔다.
-import { KST_OFFSET_MS, dateLabel, kstDateLabel, kstDateTimeLabel } from "./profile.ts";
+import { KST_OFFSET_MS, kstDateLabel, kstDateTimeLabel } from "./profile.ts";
 import type { ContractArticle, ContractBlock, ContractDetail, ContractDocument, ContractListItem, ContractStatus } from "./contracts";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -11,6 +11,20 @@ export const URGENT_DAYS = 7;
 
 /** ISO 시각의 한국 달력 날짜(UTC 자정 ms). 한국은 서머타임이 없어 9시간만 민다. */
 const kstDay = (ms: number) => Math.floor((ms + KST_OFFSET_MS) / DAY_MS);
+
+const pad = (n: number) => String(n).padStart(2, "0");
+/** ISO 시각 → 한국 날짜 「2026.09.12」(데모 contract 의 점 표기). */
+const kstDot = (iso: string) => {
+  const k = new Date(Date.parse(iso) + KST_OFFSET_MS);
+  return `${k.getUTCFullYear()}.${pad(k.getUTCMonth() + 1)}.${pad(k.getUTCDate())}`;
+};
+/** ISO 시각 → 한국 시각 「2026.09.12 10:23」. */
+const kstDotTime = (iso: string) => {
+  const k = new Date(Date.parse(iso) + KST_OFFSET_MS);
+  return `${kstDot(iso)} ${pad(k.getUTCHours())}:${pad(k.getUTCMinutes())}`;
+};
+/** YYYY-MM-DD → 「2026.09.15」. 달력 날짜라 시간대를 따지지 않는다. */
+const dotDate = (date: string) => date.replaceAll("-", ".");
 
 /**
  * 화면이 보이는 계약 단계. api 상태 그대로이되, 서명 대기인데 api 가 지금 날인할 수 없다고 하면(awaitingSignature=false — 서명 대기 ·
@@ -40,6 +54,8 @@ export function phaseLabel(phase: ContractPhase, enumLabel: string): string {
 }
 
 export type Deadline = {
+  /** api 의 기한(ISO 8601) */
+  at: string;
   /** 「2026년 9월 12일」(한국 날짜) */
   date: string;
   /** 「2026년 9월 12일 10:23」(한국 시각) — api 의 기한은 발송 시각 + 30일 그 시각이라 하루 끝이 아니다 */
@@ -57,53 +73,61 @@ export type Deadline = {
 export function deadlineOf(c: PhaseFields, now: Date): Deadline | null {
   if (c.status !== "PENDING_SIGNATURE" || !c.awaitingSignature || !c.signDeadlineAt) return null;
   const daysLeft = Math.max(0, kstDay(Date.parse(c.signDeadlineAt)) - kstDay(now.getTime()));
-  return { date: kstDateLabel(c.signDeadlineAt), dateTime: kstDateTimeLabel(c.signDeadlineAt), daysLeft, urgent: daysLeft <= URGENT_DAYS };
+  return { at: c.signDeadlineAt, date: kstDateLabel(c.signDeadlineAt), dateTime: kstDateTimeLabel(c.signDeadlineAt), daysLeft, urgent: daysLeft <= URGENT_DAYS };
 }
 
 /**
- * 목록 줄 「서명 기한 2026년 9월 12일 · D-2」, 기한이 오늘 · 내일이면 시각까지 「서명 기한 2026년 9월 12일 10:23까지 · D-1」.
- * 상세 머리 카드는 늘 시각까지 「서명 기한 2026년 9월 12일 10:23까지 · 2일 남음」(당일은 「오늘 마감」). 기한은 하루 끝이 아니라
- * 발송 시각 + 30일 그 시각이라(api) 날짜만 보이면 그날 저녁까지 남은 줄 안다 — 내일 이른 시각이면 남은 시간이 한 시간일 수도 있다.
+ * 목록 줄 「서명 기한 2026.09.12 · D-2」, 상세 머리 카드 「서명 기한 2026.09.12 · 2일 남음」(당일은 「오늘 마감」, 데모 contract).
+ * 기한이 오늘 · 내일이면 둘 다 시각까지 「서명 기한 2026.09.12 10:23 · D-1」 — 기한은 하루 끝이 아니라 발송 시각 + 30일 그
+ * 시각이라(api) 날짜만 보이면 그날 저녁까지 남은 줄 안다 — 내일 이른 시각이면 남은 시간이 한 시간일 수도 있다.
  */
 export function deadlineText(d: Deadline, style: "list" | "detail"): string {
-  return `서명 기한 ${deadlineValue(d, style)}`;
+  return `서명 기한 ${isDeadlineNear(d) ? kstDotTime(d.at) : kstDot(d.at)} · ${leftText(d, style)}`;
 }
+
+const leftText = (d: Deadline, style: "list" | "detail") =>
+  style === "list" ? (d.daysLeft === 0 ? "D-day" : `D-${d.daysLeft}`) : d.daysLeft === 0 ? "오늘 마감" : `${d.daysLeft}일 남음`;
 
 /** 기한을 시각까지 보일 만큼 가까운지 — 오늘 · 내일(위 deadlineText 의 까닭). 목록 · 홈 서명 대기 카드가 같이 쓴다. */
 export const isDeadlineNear = (d: Deadline): boolean => d.daysLeft <= 1;
 
-/** deadlineText 의 「서명 기한」 뒤 — 이름 칸이 따로 있는 줄(홈 서명 요청 팝업)에 쓴다. */
+/**
+ * 홈 서명 요청 팝업의 「서명 기한」 뒤 — 「2026년 9월 12일 10:23까지 · 2일 남음」. 홈 화면 문구라 계약 화면(deadlineText)과 따로 둔다.
+ */
 export function deadlineValue(d: Deadline, style: "list" | "detail"): string {
   const withTime = style === "detail" || isDeadlineNear(d);
-  const left = style === "list" ? (d.daysLeft === 0 ? "D-day" : `D-${d.daysLeft}`) : d.daysLeft === 0 ? "오늘 마감" : `${d.daysLeft}일 남음`;
-  return `${withTime ? `${d.dateTime}까지` : d.date} · ${left}`;
+  return `${withTime ? `${d.dateTime}까지` : d.date} · ${leftText(d, style)}`;
 }
 
-/** 「2026년 9월 15일 – 2027년 3월 14일」, 끝이 없으면 「2026년 3월 1일부터 · 기간 정함 없음」. */
+/** 「2026.09.15 – 2027.03.14」, 끝이 없으면 「2026.03.01부터 · 기간 정함 없음」(데모 contract 의 점 표기). */
 export function periodText(startDate: string | null, endDate: string | null): string {
   if (!startDate) return "-";
-  return endDate ? `${dateLabel(startDate)} – ${dateLabel(endDate)}` : `${dateLabel(startDate)}부터 · 기간 정함 없음`;
+  return endDate ? `${dotDate(startDate)} – ${dotDate(endDate)}` : `${dotDate(startDate)}부터 · 기간 정함 없음`;
 }
 
 /**
- * 목록 줄 · 상세 머리 카드의 둘째 줄. 날인할 수 있는 서명 대기는 기한, 체결 완료는 서명한 날(종이 계약은 관리자가 올린 날),
- * 거부 · 수정 요청은 그날(processedAt), 만료(기한이 지난 서명 대기 포함)는 지난 기한, 서명 불가는 그 까닭, 종료는 계약 기간.
- * statusLabel 은 화면 단계의 한글(phaseLabel).
+ * 목록 줄 · 상세 머리 카드의 둘째 줄(날짜는 점 표기, 데모 contract). 날인할 수 있는 서명 대기는 기한, 체결 완료는 서명한 날(종이 계약은
+ * 관리자가 올린 날), 거부 · 수정 요청은 그날(processedAt), 만료(기한이 지난 서명 대기 포함)는 지난 기한, 서명 불가는 그 까닭, 종료는 계약 기간.
+ * 상세는 전자계약 체결 완료 · 만료에 받은 날(sentAt — 마지막 발송)을 더한다 「서명 2026.08.23 · 받은 날 2026.08.01」 ·
+ * 「받은 날 2026.07.01 · 서명 기한 2026.07.31」. statusLabel 은 화면 단계의 한글(phaseLabel).
  */
 export function contractSubText(
-  c: PhaseFields & Pick<ContractListItem, "contractMethod" | "processedAt" | "startDate" | "endDate">,
+  c: PhaseFields & Pick<ContractListItem, "contractMethod" | "processedAt" | "startDate" | "endDate" | "sentAt">,
   now: Date,
   statusLabel: string,
   style: "list" | "detail" = "list",
 ): string {
   const deadline = deadlineOf(c, now);
   if (deadline) return deadlineText(deadline, style);
-  const on = (iso: string | null) => (iso ? ` ${kstDateLabel(iso)}` : "");
+  const on = (iso: string | null) => (iso ? ` ${kstDot(iso)}` : "");
+  const received = style === "detail" && c.sentAt ? `받은 날 ${kstDot(c.sentAt)}` : null;
   switch (phaseOf(c, now)) {
     case "SIGNED":
-      return c.contractMethod === "PAPER" ? `종이 계약 ·${on(c.processedAt)} 등록` : `서명${on(c.processedAt)}`;
+      if (c.contractMethod === "PAPER") return `종이 계약 ·${on(c.processedAt)} 등록`;
+      return [`서명${on(c.processedAt)}`, received].filter(Boolean).join(" · ");
     case "EXPIRED":
-      return c.signDeadlineAt ? `서명 기한 ${kstDateLabel(c.signDeadlineAt)} 지남` : statusLabel;
+      if (!c.signDeadlineAt) return received ?? statusLabel;
+      return received ? `${received} · 서명 기한 ${kstDot(c.signDeadlineAt)}` : `서명 기한 ${kstDot(c.signDeadlineAt)} 지남`;
     case "UNSIGNABLE":
       return "지금은 서명할 수 없습니다";
     case "ENDED":

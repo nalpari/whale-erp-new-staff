@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
-import { BottomSheet } from "@/components/common";
+import { BottomSheet, Notice } from "@/components/common";
 
 // 카카오(Daum) 우편번호 서비스(ME-2, 2026-10-20 결정). 키 없이 쓰는 공개 스크립트이고, 화면 안 시트에 embed 로 띄운다
 // (휴대전화에서 popup 은 새 창이 떠 돌아오기 어렵다). https://postcode.map.daum.net/guide
@@ -62,7 +62,7 @@ export function AddressSearchSheet({ open, onClose, onPick }: { open: boolean; o
       {scriptWanted && (
         <Script src={POSTCODE_SCRIPT} strategy="afterInteractive" onLoad={checkScript} onReady={checkScript} onError={() => setScriptFailed(true)} />
       )}
-      <BottomSheet open={open} onClose={onClose} title="주소 검색" description="도로명이나 건물 이름으로 찾아 고릅니다.">
+      <BottomSheet open={open} onClose={onClose} title="도로명 주소 검색" description="도로명이나 건물 이름으로 찾아 고릅니다.">
         <div ref={frame} className="h-[min(470px,55dvh)] w-full overflow-hidden rounded-[12px] border border-staff-border-light">
           {!scriptReady && (
             <p className="p-[14px] text-[13px] text-staff-text-muted">
@@ -70,6 +70,10 @@ export function AddressSearchSheet({ open, onClose, onPick }: { open: boolean; o
             </p>
           )}
         </div>
+        {/* 데모 me 의 addr 안내 */}
+        <Notice>
+          선택한 주소는 <strong>그대로 저장</strong>되며, 상세주소만 직접 입력합니다.
+        </Notice>
       </BottomSheet>
     </>
   );

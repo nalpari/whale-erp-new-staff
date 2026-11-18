@@ -93,7 +93,7 @@ export default async function MembershipsPage() {
           </ul>
         )}
         <p className="text-[12px] text-staff-text-muted">
-          급여명세서는 준비 중입니다. 소속 근무지와 고용 형태는 근로계약에 따라 정해집니다.
+          소속 근무지와 고용 형태는 근로계약에 따라 정해집니다.
           <br />
           변경이 필요하면 근무지 관리자에게 문의해 주세요.
         </p>

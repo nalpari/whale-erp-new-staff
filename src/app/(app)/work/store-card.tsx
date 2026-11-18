@@ -31,6 +31,7 @@ export function StoreCard({ stores, currentId }: { stores: StoreChoice[]; curren
       {many ? (
         <button
           type="button"
+          aria-label={`근무지 바꾸기, 지금 ${current.storeName}`}
           disabled={pending}
           onClick={openSheet}
           className={`${cardClass} transition-colors duration-150 ease-out active:bg-staff-primary-inactive disabled:opacity-60`}

@@ -45,7 +45,7 @@ export function InviteCodeForm() {
       >
         <div className="flex flex-col gap-[16px]">
           <TextField
-            label="휴대전화번호"
+            label="휴대전화번호*"
             name="phone"
             type="tel"
             inputMode="numeric"
@@ -58,7 +58,7 @@ export function InviteCodeForm() {
             error={error?.field === "phone" ? error.error : undefined}
           />
           <TextField
-            label="초대 코드"
+            label="초대 코드*"
             name="code"
             type="text"
             autoComplete="one-time-code"

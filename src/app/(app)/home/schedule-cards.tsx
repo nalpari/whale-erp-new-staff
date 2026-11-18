@@ -7,9 +7,10 @@ import { getMyWorkSchedules } from "@/lib/my-work-schedules";
 import { dayTitle, durationLabel, kstDate, weekDates, workMinutes, type MyWorkSchedule } from "@/lib/work-schedules";
 import { ThisWeek } from "./this-week";
 
-const md = (ymd: string) => `${Number(ymd.slice(5, 7))}.${Number(ymd.slice(8, 10))}`;
+// 이번 주 근무 머리의 「9/7」. weekDates 는 월~일이라 요일은 (월) · (일)로 붙인다(데모 home).
+const md = (ymd: string) => `${Number(ymd.slice(5, 7))}/${Number(ymd.slice(8, 10))}`;
 
-// 홈 오늘의 근무 · 이번 주 근무(#313, HOME-1). 앱 전역 근무지의 근무스케줄을 근무 탭과 같은 api 로 받는다 —
+// 홈 오늘 근무 · 이번 주 근무(#313, HOME-1). 앱 전역 근무지의 근무스케줄을 근무 탭과 같은 api 로 받는다 —
 // 이번 주가 두 달에 걸치면 두 달을 받아 합친다. 근무일은 시작한 날이다.
 // 출퇴근은 오늘 근무 카드 안에서 시작한다(HOME-3) — 출근 전이면 출근하기, 근무 중이면 「근무 중」과 퇴근하기, 누르면 출퇴근 화면.
 // 등록은 출퇴근 화면에서 한다(홈에서는 위치를 읽지 않는다, ATT-22). 등록할 수 없는 상태면 버튼을 두지 않는다(homeAttendanceAction).
@@ -35,7 +36,7 @@ export async function ScheduleCards({ staffMemberId }: { staffMemberId: number }
       <section className="flex flex-col gap-[13px]">
         <SectionTitle title="이번 주 근무">
           <span className="text-[14px] text-staff-text-sub">
-            {md(week[0])} – {md(week[6])}
+            {md(week[0])} (월) – {md(week[6])} (일)
           </span>
         </SectionTitle>
         <ThisWeek week={week} today={today} items={items}>
@@ -76,11 +77,11 @@ function AttendanceButton({ action }: { action: Exclude<HomeAttendanceAction, nu
   );
 }
 
-// 데모(/design/home) 「오늘의 근무」 카드 모양. #DBE5FF · #BCCFFF 는 남보라 위의 흐린 글자다.
+// 데모(/design/home) 「오늘 근무」 카드 모양. #DBE5FF · #BCCFFF 는 남보라 위의 흐린 글자다.
 function TodayCard({ items, next, action }: { items: MyWorkSchedule[]; next?: MyWorkSchedule; action: HomeAttendanceAction }) {
   if (items.length === 0)
     return (
-      <section aria-label="오늘의 근무" className="flex flex-col gap-[2px] rounded-[18px] border border-staff-border-light bg-white px-[20px] py-[18px] leading-[1.5]">
+      <section aria-label="오늘 근무" className="flex flex-col gap-[2px] rounded-[18px] border border-staff-border-light bg-white px-[20px] py-[18px] leading-[1.5]">
         <p className="text-[15px] font-bold">오늘은 휴무입니다</p>
         {next && (
           <p className="text-[12px] text-staff-text-sub">
@@ -102,11 +103,11 @@ function TodayCard({ items, next, action }: { items: MyWorkSchedule[]; next?: My
   const total = items.reduce((sum, i) => sum + workMinutes(i), 0);
   return (
     <section
-      aria-label="오늘의 근무"
+      aria-label="오늘 근무"
       className="flex flex-col gap-[4px] rounded-[18px] bg-staff-primary px-[23px] pt-[24px] pb-[23px] leading-[1.5] text-white shadow-[0_9px_23px_rgba(49,93,245,0.15)]"
     >
       <div className="flex items-center justify-between">
-        <p className="text-[12px] text-[#dbe5ff]">오늘의 근무</p>
+        <p className="text-[12px] text-[#dbe5ff]">오늘 근무</p>
         {action === "check-out" && WORKING}
       </div>
       {items.map((i) => (

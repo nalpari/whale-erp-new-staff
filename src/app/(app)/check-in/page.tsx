@@ -8,7 +8,7 @@ import { failureOf, logFailure } from "@/lib/api";
 import { getContracts } from "@/lib/contracts";
 import { CURRENT_STAFF_MEMBER_COOKIE, pickCurrentMembership } from "@/lib/current-store";
 import { getMyAttendance } from "@/lib/my-attendance";
-import { getMyMemberships } from "@/lib/my-profile";
+import { getMyMemberships, getMyProfileForExtra } from "@/lib/my-profile";
 import { requireSession } from "@/lib/session";
 import { checkInSignWaitingOf } from "@/lib/sign-request";
 import { CheckInScreen } from "./check-in-screen";
@@ -31,19 +31,28 @@ export default async function CheckInPage() {
     attendance && block?.reason === "CONTRACT_PENDING_SIGNATURE"
       ? checkInSignWaitingOf(await contractsOrNull(), new Date(), attendance.store.storeId, block.contractId)
       : null;
+  // 「다시 켜면」 안내의 일시 중지 시각(데모 check-in paused) — 출퇴근 api 에 없어 일시 중지일 때만 내 정보에서 받는다. 못 받으면 그 줄만 뺀다
+  const pausedAt =
+    attendance && attendance.store.isLocationApplied && attendance.locationConsent.state === "PAUSED"
+      ? ((await getMyProfileForExtra("profile-check-in"))?.locationConsent.pausedAt ?? null)
+      : null;
+  const header = (
+    <PageHeader
+      title="출퇴근"
+      backHref="/home"
+      action={
+        // 데모 check-in — 머리줄 오른쪽은 출퇴근 현황으로 가는 버튼이다
+        <Link href="/attendance" aria-label="출퇴근 현황" className="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">
+          <Image src="/icons/history.svg" alt="" width={21} height={21} className="-scale-y-100" />
+        </Link>
+      }
+    />
+  );
 
   return (
     <div className="flex flex-1 flex-col">
-      <PageHeader
-        title="출퇴근"
-        backHref="/home"
-        action={
-          // 데모 check-in — 머리줄 오른쪽은 출퇴근 현황으로 가는 버튼이다
-          <Link href="/attendance" aria-label="출퇴근 현황" className="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">
-            <Image src="/icons/history.svg" alt="" width={21} height={21} className="-scale-y-100" />
-          </Link>
-        }
-      />
+      {/* 머리줄은 퇴근을 마친 화면에서 빠지므로(데모 check-in done) 출퇴근 화면에서는 CheckInScreen 이 그린다 */}
+      {!(current && attendance) && header}
       {!memberships || (current && !attendance) ? (
         <div className="px-[22px] pt-[22px]">
           <Alert tone="warning">출퇴근 정보를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>
@@ -73,7 +82,14 @@ export default async function CheckInPage() {
         </div>
       ) : (
         // 근무지를 바꾸면 화면 상태(위치 · 시트)를 새로 시작한다
-        <CheckInScreen key={current.staffMemberId} data={attendance} mapKey={process.env.KAKAO_MAP_APP_KEY || null} signWaiting={signWaiting} />
+        <CheckInScreen
+          key={current.staffMemberId}
+          header={header}
+          data={attendance}
+          mapKey={process.env.KAKAO_MAP_APP_KEY || null}
+          signWaiting={signWaiting}
+          pausedAt={pausedAt}
+        />
       )}
       <div className="sticky bottom-0 mt-auto">
         <BottomNav current="/check-in" />

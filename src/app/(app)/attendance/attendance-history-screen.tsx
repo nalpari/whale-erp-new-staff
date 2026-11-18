@@ -185,7 +185,7 @@ function DaySheets({ sheet, onClose, onOpen }: { sheet: Sheet; onClose: () => vo
         {flags.length > 1 &&
           flags.map((f) => (
             <Sunken key={`${f.kind}-${f.time}`} label={flagTitle(f)} prose>
-              {flagDescription(f)}
+              <p className="whitespace-pre-line">{flagDescription(f)}</p>
             </Sunken>
           ))}
         <Notice icon={<MaskIcon src="/icons/store-small.svg" size={16} />}>{STORE_NOTICE}</Notice>

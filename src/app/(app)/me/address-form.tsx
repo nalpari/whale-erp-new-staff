@@ -41,8 +41,8 @@ export function AddressForm({ zipCode, address, addressDetail }: { zipCode: stri
       />
       <input
         name="addressDetail"
-        aria-label="상세 주소"
-        placeholder="상세 주소"
+        aria-label="상세주소"
+        placeholder="상세주소"
         autoComplete="address-line2"
         maxLength={ADDRESS_DETAIL_MAX}
         value={detail}

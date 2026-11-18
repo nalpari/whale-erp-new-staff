@@ -126,9 +126,9 @@ test("contentOf 는 결과마다 제목 · 설명을 주고, 수락이면 쿠키
   assert.equal(contentOf({ kind: "closed", reason: "answered" }).title, "이미 답한 요청입니다");
 });
 
-test("invitationTypeLabel 은 복귀 확인과 소속 추가 요청을 가른다", () => {
+test("invitationTypeLabel 은 복귀 확인과 소속 추가 확인을 가른다", () => {
   assert.equal(invitationTypeLabel({ invitationType: "RETURN_CONFIRM" }), "복귀 확인");
-  assert.equal(invitationTypeLabel({ invitationType: "AFFILIATION_CONFIRM" }), "소속 추가 요청");
+  assert.equal(invitationTypeLabel({ invitationType: "AFFILIATION_CONFIRM" }), "소속 추가 확인");
 });
 
 const request = (invitationId: number, storeName: string): AffiliationRequest => ({

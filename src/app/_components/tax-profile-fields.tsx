@@ -4,7 +4,7 @@ import { useId } from "react";
 import { MaskIcon } from "@/components/common";
 import { FIELD } from "@/components/common/theme";
 import type { CodeValue } from "@/lib/codes";
-import { ACCOUNT_BASIS, Basis, RRN_BASIS } from "./tax-profile-parts";
+import { Basis, accountBasis, rrnBasis } from "./tax-profile-parts";
 
 // 신고 정보 입력 칸(데모 docs/demo/tax 의 form). 고치기(WHALEERP-333)와 날인 뒤 처음 넣기(150)가 같이 쓴다.
 // 값은 쓰는 쪽이 상태로 들고, <form action> 대신 onSubmit 으로 보낸다 — React 19 폼 액션의 reset 은 제어 칸이어도 select 를 비워
@@ -25,7 +25,7 @@ import { ACCOUNT_BASIS, Basis, RRN_BASIS } from "./tax-profile-parts";
 const LEGEND = "pb-[8px] text-[13px] font-semibold text-staff-text-sub";
 /** 뒷자리 칸의 복사 · 잘라내기 · 끌어 옮기기를 막는다(위 주석). */
 const blockCopy = (event: { preventDefault(): void }) => event.preventDefault();
-const noteClass = (error?: string) => `text-[12px] ${error ? "text-staff-error" : "text-staff-text-muted"}`;
+const noteClass = (error?: string) => `text-[12px] whitespace-pre-line ${error ? "text-staff-error" : "text-staff-text-muted"}`;
 
 /**
  * 주민등록번호 — 받은 근거 · 앞 6자리(보임) · 뒤 7자리(가림) · 안내. error 는 모양 오류(RRN_SHAPE) · 가입 생년월일 불일치(화면 계산
@@ -54,7 +54,7 @@ export function RrnField({
   const note = error || help;
   return (
     <div className="flex flex-col gap-[8px]">
-      <Basis>{RRN_BASIS}</Basis>
+      <Basis>{rrnBasis(true)}</Basis>
       <fieldset className="flex flex-col gap-[8px]" disabled={disabled}>
         <legend className={LEGEND}>주민등록번호{required && "*"}</legend>
         <div className="flex items-center gap-[8px]">
@@ -138,7 +138,7 @@ export function PayrollAccountFields({
   const note = error || (unavailable ? "은행 목록을 불러오지 못해 지금은 계좌를 입력할 수 없습니다. 잠시 뒤 다시 열어 주세요." : help);
   return (
     <div className="flex flex-col gap-[8px]">
-      <Basis>{ACCOUNT_BASIS}</Basis>
+      <Basis>{accountBasis(true)}</Basis>
       <fieldset className="flex flex-col gap-[8px]" disabled={disabled || unavailable}>
         <legend className={LEGEND}>급여 계좌{required && "*"}</legend>
         <div className="relative">

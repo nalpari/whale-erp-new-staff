@@ -89,12 +89,13 @@ test("이번 주 7일 · 날 라벨 · 주별 줄 · 누계", () => {
 test("확인 필요 사유(HIST-3)와 누계 기간 이름", () => {
   const d = day("2026-10-20", { pairs: [{ checkIn: punch("2026-10-20", "09:58", { reviewReason: "ACCURACY_EXCEEDED" }), checkOut: punch("2026-10-20", "18:00", { reviewReason: "OUT_OF_RADIUS_CHECKOUT" }) }] });
   const flags = flagsOf(d);
-  assert.deepEqual(flags.map(flagTitle), ["출근 위치를 확인하지 못했습니다", "반경 밖 퇴근"]);
-  assert.deepEqual(flags.map(flagLine), ["출근 09:58 · 위치 확인 실패", "퇴근 18:00 · 반경 밖"]);
-  assert.equal(flagDescription(flags[0]), "위치 오차가 커서 매장 안에 있는지 확인하지 못했습니다. 출근 시각 09:58은 등록되었습니다.");
+  assert.deepEqual(flags.map(flagTitle), ["출근 위치를 확인하지 못했습니다", "매장 범위 밖에서 퇴근했습니다"]);
+  assert.deepEqual(flags.map(flagLine), ["출근 09:58 · 위치 확인 실패", "퇴근 18:00 · 반경 밖 퇴근"]);
+  assert.equal(flagDescription(flags[1]), "퇴근 시각 18:00은 등록되었습니다.\n기록에 확인 필요가 붙었고, 관리자가 검토하고 있습니다.");
+  assert.equal(flagDescription(flags[0]), "위치 오차가 커서 매장 안에 있는지 확인하지 못했습니다.\n출근 시각 09:58은 등록되었습니다.\n기록에 확인 필요가 붙었고, 관리자가 검토하고 있습니다.");
   const long = flagsOf(day("2026-10-21", { pairs: [{ checkIn: punch("2026-10-21", "06:00"), checkOut: punch("2026-10-21", "19:00", { reviewReason: "LONG_SHIFT" }) }] }))[0];
   assert.equal(flagTitle(long), "근무 12시간 초과");
-  assert.equal(flagDescription(long), "출근부터 퇴근까지 12시간이 넘었습니다. 퇴근 시각 19:00은 등록되었고 관리자가 검토하고 있습니다.");
+  assert.equal(flagDescription(long), "출근부터 퇴근까지 12시간이 넘었습니다.\n퇴근 시각 19:00은 등록되었습니다.\n기록에 확인 필요가 붙었고, 관리자가 검토하고 있습니다.");
   assert.equal(summaryOf(day("2026-10-22", { status: "MISSING_CHECK_OUT", pairs: [{ checkIn: punch("2026-10-22", "09:14"), checkOut: null }] }), TODAY), "출근 09:14 · 퇴근 기록 없음");
   assert.equal(rangeLabel("2026-09-01", "2026-09-30"), "9월 1일 – 30일");
   assert.equal(rangeLabel("2026-09-15", "2026-10-14"), "9월 15일 – 10월 14일");

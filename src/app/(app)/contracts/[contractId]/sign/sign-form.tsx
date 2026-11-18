@@ -82,6 +82,14 @@ export function SignForm({
           <Button href={detailHref} replace>
             계약서 다시 보기
           </Button>
+        ) : pending ? (
+          // 데모 signing — 처리 중에는 서명하기 · 거절하기를 둘 다 꺼 둔다
+          <>
+            <Button disabled>서명하기</Button>
+            <Button variant="ghost" disabled>
+              거절하기
+            </Button>
+          </>
         ) : (
           <>
             <Button disabled={!drawn || pending} onClick={handleConfirm}>
