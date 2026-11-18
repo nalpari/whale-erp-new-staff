@@ -57,7 +57,8 @@ export default async function JoinDonePage({ searchParams }: PageProps<"/join/do
           ))}
         </dl>
       </Card>
-      <p className="text-[12px] text-staff-text-muted">생년월일은 가입한 뒤 앱에서 변경할 수 없습니다.</p>
+      {/* 생년월일 줄을 못 읽어 뺐으면 안내도 뺀다 */}
+      {profile && <p className="text-[12px] text-staff-text-muted">생년월일은 가입한 뒤 앱에서 변경할 수 없습니다.</p>}
       {hqNotRecorded && <Alert tone="warning">{HQ_NOT_RECORDED_NOTICE}</Alert>}
       <Notice>근무지에서 보낸 근로계약서는 홈에서 내용을 확인하고 서명해 주세요.</Notice>
     </AuthScreen>
