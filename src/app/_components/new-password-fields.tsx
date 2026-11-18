@@ -33,10 +33,12 @@ export function NewPasswordFields({
   // 종류 수와 글자 수는 lib/password-rules 의 checkPasswordRules 와 같은 방법으로 센다.
   const kinds = [/[A-Z]/, /[a-z]/, /[0-9]/, /[^A-Za-z0-9]/].filter((kind) => kind.test(password)).length;
   const length = [...password].length;
+  // 2가지만 섞어 10자 이상이면 「3가지 이상」 줄 대신 아래 「2가지만 …」 줄이 맞음이다 — 「3가지」 줄에 맞음을 띄우면 사실과 다르다.
+  const twoKindsLong = kinds === 2 && length >= 10;
   // ok 가 null 이면 맞음 · 아직을 보이지 않는 줄이다.
   const rules: { ok: boolean | null; text: ReactNode }[] = [
     {
-      ok: kinds >= 3 || (kinds === 2 && length >= 10),
+      ok: kinds >= 3 ? true : twoKindsLong ? null : false,
       text: (
         <>
           영문 대소문자·숫자·특수문자 중 <b>3가지</b> 이상
@@ -45,6 +47,7 @@ export function NewPasswordFields({
     },
     { ok: length >= 8 && length <= 20, text: "8자 이상 20자 이하" },
     { ok: email === null ? null : check.notEmail, text: "이메일 아이디와 중복 불가" },
+    { ok: twoKindsLong ? true : null, text: "2가지만 사용하면 10자 이상 입력해 주세요." },
   ];
 
   return (
@@ -100,7 +103,6 @@ export function NewPasswordFields({
             </li>
           ))}
         </ul>
-        <p className="pt-[6px] text-[12px] text-staff-text-muted">2가지만 사용하면 10자 이상 입력해 주세요.</p>
       </Card>
     </>
   );

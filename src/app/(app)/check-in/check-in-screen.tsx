@@ -475,7 +475,7 @@ export function CheckInScreen({
                     ? "출퇴근할 수 있는 위치입니다"
                     : geo.status === "loading"
                       ? "위치를 확인하고 있습니다"
-                      : "출근하기를 누를 때 매장 안인지 확인합니다"
+                      : "출근하기를 누르면 위치를 확인합니다"
               } />
           )}
           {schedule && (
