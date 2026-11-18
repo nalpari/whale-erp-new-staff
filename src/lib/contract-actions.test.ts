@@ -101,6 +101,8 @@ test("contractActionFailure — 409 사유별", () => {
   for (const [code, message] of [
     ["CONTRACT_RESENT", "근로계약서가 다시 발송됐습니다. 새로 고쳐 바뀐 계약서를 확인해 주세요"],
     ["STAFF_RETIRED", "퇴직한 직원은 근로계약을 처리할 수 없습니다"],
+    // 보낸 뒤 근무지 점포의 대표자 · 사업자등록번호가 지워졌다(api #300) — api 의 한글 사유 그대로
+    ["EMPLOYER_INFO_MISSING", "근로계약서의 사용자(사업주) 정보가 비어 있어 지금은 서명할 수 없습니다. 근무지 관리자에게 문의해 주세요."],
   ])
     assert.deepEqual(contractActionFailure("sign", conflict(code, message), {}), { state: { stale: true, message }, log: false });
   // 서명 기한 지남은 api 문구(「날인 기한」) 대신 화면 문구
