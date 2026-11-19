@@ -1,7 +1,7 @@
 # Bundle history
 
 ## 2026-11-19
-* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 근로계약서 상세: 사업주 정보 묶음 제목 「사용자(근무지)」 → 「관리자(근무지)」(화면 안내는 「관리자」, 계약서 본문 · PDF 는 「사업주」, 2026-11-19 사용자 결정).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 근로계약서 상세: 사업주 정보 묶음 제목 「사용자(근무지)」 → 「관리자(근무지)」(계약서 본문 · PDF 는 「사업주」, 2026-11-19 사용자 결정).
 
 ## 2026-11-18
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 근로계약서 상세: api #301 에 맞춰 `employerMissing` → `storeNotOperating`(근무지 미운영 · 폐점 · 사업주 정보 없음 — 날인 409 `STORE_NOT_OPERATING`). 안내는 「근무지가 운영 중이 아니거나 사업주 정보가 없어 지금은 서명할 수 없습니다」, 버튼 줄은 그대로 두지 않는다. api 타입을 api main(05f18623) 기준으로 다시 만들었다.
