@@ -50,13 +50,13 @@ export function GeoBlank({ tone, text }: { tone: "muted" | "warning" | "error"; 
 }
 
 /** 근무지 카드(Figma node 12:957): 연한 남보라 — 「지금 근무 중」 카드도 같은 판이다 */
-export function SiteCard({ title, sub }: { title: string; sub: string }) {
+export function SiteCard({ title, sub }: { title: string; sub?: string }) {
   return (
     <section className="flex items-center gap-[8px] rounded-[18px] border border-[#dce4ff] bg-[#eef2ff] p-[20px]">
       <Image src="/icons/pin.svg" alt="" width={14} height={16} className="-scale-y-100" />
       <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
         <p className="truncate text-[16px] font-bold">{title}</p>
-        <p className="text-[12px] text-staff-primary">{sub}</p>
+        {sub && <p className="text-[12px] text-staff-primary">{sub}</p>}
       </div>
     </section>
   );

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { ReactNode } from "react";
 import { Badge, MaskIcon, PageHeader } from "@/components/common";
 import { contractSubText, deadlineOf, groupContracts, parseId, phaseLabel, phaseOf, statusTone } from "@/lib/contract-rules";
 import { getContracts, type ContractListItem } from "@/lib/contracts";
@@ -13,7 +12,7 @@ export const metadata: Metadata = { title: "근로계약 · Whale ERP" };
 // 근로계약서 목록(WHALEERP-146). 기준: 데모 docs/demo/src/pages/contract 의 목록 · 빈 상태(Figma 없음, DESIGN.md 기준 초안).
 // 앱 전역에서 고른 근무지와 관계없이 받은 계약서 모두를 보인다. 내 정보 > 소속 근무지의 「근로계약서」로 오면 주소의 ?store= 로
 // 그 근무지 계약서만 보인다(ME-7 · TAX-8). api 에 점포로 거르는 칸이 없어 여기서 storeId 로 거른다.
-// 진행 중(서명 대기 · 수정 요청)을 위에, 처리가 끝난 계약서를 아래에 둔다. 남은 날인 기한이 7일 이내면 기한 줄을 강조색으로(CON-4).
+// 데모처럼 묶음 제목 없이 한 목록이고, 진행 중(서명 대기 · 수정 요청)을 위에, 처리가 끝난 계약서를 아래에 둔다. 남은 날인 기한이 7일 이내면 기한 줄을 강조색으로(CON-4).
 // 데모 빈 상태의 「관리자에게 문의하기」 버튼은 문의 api 가 없어 두지 않고 문의 방법만 적는다.
 export default async function ContractsPage({ searchParams }: PageProps<"/contracts">) {
   await requireSession();
@@ -48,21 +47,14 @@ export default async function ContractsPage({ searchParams }: PageProps<"/contra
               <strong className="font-bold text-staff-text">{items[0].storeName}</strong>의 근로계약서만 보입니다.
             </p>
           )}
-          {open.length > 0 && <Group title="진행 중인 계약서">{open.map(row)}</Group>}
-          {finished.length > 0 && <Group title="처리가 끝난 계약서">{finished.map(row)}</Group>}
+          <ul className="flex flex-col divide-y divide-staff-border-light overflow-hidden rounded-[16px] border border-staff-border-light bg-white">
+            {open.map(row)}
+            {finished.map(row)}
+          </ul>
           <Tiny>서명 기한은 계약서를 받은 날부터 30일입니다.</Tiny>
         </>
       )}
     </ContractFrame>
-  );
-}
-
-function Group({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="flex flex-col gap-[8px]">
-      <h2 className="px-[4px] text-[13px] font-semibold text-staff-text-sub">{title}</h2>
-      <ul className="flex flex-col divide-y divide-staff-border-light overflow-hidden rounded-[16px] border border-staff-border-light bg-white">{children}</ul>
-    </section>
   );
 }
 

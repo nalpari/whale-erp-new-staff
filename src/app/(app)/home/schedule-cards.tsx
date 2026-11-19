@@ -27,8 +27,6 @@ export async function ScheduleCards({ staffMemberId }: { staffMemberId: number }
   const next = items
     .filter((i) => i.workDate > today)
     .sort((a, b) => a.workDate.localeCompare(b.workDate) || a.startTime.localeCompare(b.startTime))[0];
-  const workDays = new Set(items.map((i) => i.workDate)).size;
-  const weekMinutes = items.reduce((sum, i) => sum + workMinutes(i), 0);
 
   return (
     <>
@@ -39,18 +37,9 @@ export async function ScheduleCards({ staffMemberId }: { staffMemberId: number }
             {md(week[0])} (월) – {md(week[6])} (일)
           </span>
         </SectionTitle>
+        {/* 근무가 있는 주의 요약 줄(N일 · H시간)은 데모 home 처럼 두지 않는다 — 빈 주의 안내만 둔다 */}
         <ThisWeek week={week} today={today} items={items}>
-          {workDays === 0 ? (
-            "이번 주 등록된 근무가 없습니다"
-          ) : (
-            <>
-              이번 주{" "}
-              <b className="font-semibold">
-                {workDays}일 · {durationLabel(weekMinutes)}
-              </b>{" "}
-              근무 예정
-            </>
-          )}
+          {items.length === 0 ? "이번 주 등록된 근무가 없습니다" : null}
         </ThisWeek>
       </section>
     </>

@@ -101,7 +101,6 @@ export function TaxProfileForm({
           back={rrnBack}
           onFrontChange={edit(setRrnFront)}
           onBackChange={edit(setRrnBack)}
-          help="보안을 위해 뒷자리는 다시 보여 드리지 않습니다. 수정하려면 다시 입력해 주세요."
           error={mismatch ? RRN_BIRTH_MISMATCH : errorOf("rrn")}
         />
         <PayrollAccountFields
