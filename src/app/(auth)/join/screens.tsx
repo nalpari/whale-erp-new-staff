@@ -17,16 +17,17 @@ import { HqSharingTermsButton } from "@/app/_components/hq-sharing-terms";
 // 기준: 목업 docs/mockup/app/join.html 의 code · code-locked · invite · has-account · minor · expired.
 // 갈래 화면은 같은 주소에서 바뀌기도 해(초대 코드 입력의 결과) 붙을 때 제목으로 초점을 옮긴다.
 
-/** 어떻게 들어왔는지 — 초대 코드(앱을 직접 열기, 4단계)나 초대 링크(코드 입력이 없어 3단계). */
+/** 어떻게 들어왔는지 — 초대 코드(앱을 직접 열기, 3단계)나 초대 링크(코드 입력이 없어 2단계). */
 export type JoinVia = "code" | "link";
 
+// 단계는 막대가 보이는 화면만 센다 — 초대 확인 화면은 데모 join invite 처럼 막대가 없어, 세면 번호가 건너뛴다(재영 리뷰 #81).
 const STEPS = {
-  code: ["초대 코드", "초대 확인", "계정 등록", "가입 완료"],
-  link: ["초대 확인", "계정 등록", "가입 완료"],
+  code: ["초대 코드", "계정 등록", "가입 완료"],
+  link: ["계정 등록", "가입 완료"],
 } as const;
 
-/** 단계 막대(목업 lab + steps). 「3 / 4 · 계정 등록」과 그 아래 칸. */
-export function JoinSteps({ via, step }: { via: JoinVia; step: "초대 코드" | "초대 확인" | "계정 등록" }) {
+/** 단계 막대(목업 lab + steps). 「2 / 3 · 계정 등록」과 그 아래 칸. */
+export function JoinSteps({ via, step }: { via: JoinVia; step: "초대 코드" | "계정 등록" }) {
   const names: readonly string[] = STEPS[via];
   const current = names.indexOf(step) + 1;
   return (
