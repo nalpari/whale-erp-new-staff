@@ -37,7 +37,7 @@ const CODE_HELP = "초대 코드는 근무지에서 보낸 알림톡·문자에�
 const codeView = (fail) =>
   pageHeader("초대 코드로 가입", { backHref: LOGIN }) +
   body(
-    steps("1 / 4 · 초대 코드", 1) +
+    steps("1 / 3 · 초대 코드", 1, 3) +
       lead("초대 코드 입력", "초대받은 휴대전화번호와 초대 코드 8자리를 입력해 주세요.", { align: "left", heading: "h2" }) +
       textField({
         label: "휴대전화번호*",
@@ -74,8 +74,8 @@ const ghost = (label, a = {}) => button(label, { variant: "ghost", ...a });
 const lead = (title, children, { large = false, align = "center", heading = "h1" } = {}) =>
   `<div class="flex flex-col gap-[6px] ${align === "center" ? "items-center text-center" : ""}"><${heading} class="font-bold ${large ? "text-[28px]" : "text-[22px]"}">${title}</${heading}><p class="text-[14px] text-staff-text-sub">${children}</p></div>`;
 
-// 단계 막대(코드로 오면 4단계, 링크로 오면 3단계). 지난 단계·지금 단계는 남보라(지금 진행 중), 남은 단계는 탭 판 회색(#EDF0F6).
-const steps = (label, step, total = 4) =>
+// 단계 막대(코드로 오면 3단계, 링크로 오면 2단계 — 막대가 없는 초대 확인은 세지 않는다, 2026-11-19 재영 리뷰 #81). 지난 단계·지금 단계는 남보라(지금 진행 중), 남은 단계는 탭 판 회색(#EDF0F6).
+const steps = (label, step, total = 3) =>
   `<div class="flex flex-col gap-[8px]"><p class="text-[13px] font-semibold text-staff-text-sub">${label}</p><div class="flex gap-[6px]" aria-hidden="true">${Array.from({ length: total }, (_, i) => i + 1)
     .map((n) => `<span class="h-[4px] flex-1 rounded-full ${n <= step ? "bg-staff-primary" : "bg-[#edf0f6]"}"></span>`)
     .join("")}</div></div>`;
@@ -172,10 +172,10 @@ const VIEWS = {
       lead("이미 가입된 계정이 있습니다", "이 휴대전화번호로 가입한 계정이 있습니다.<br>로그인하면 소속 근무지에서 초대를 수락할 수 있습니다."),
     ) + dock(button("로그인하러 가기", { href: LOGIN }) + ghost("로그인한 뒤 · 소속 근무지", { href: page("me", "sites") })),
 
-  // link: 초대 링크로 온 경로 — 코드 입력이 없어 3단계이고 번호는 그 초대(근로계약서)의 번호다.
+  // link: 초대 링크로 온 경로 — 코드 입력이 없어 2단계이고 번호는 그 초대(근로계약서)의 번호다.
   signup: (link = false) =>
     body(
-      (link ? steps("2 / 3 · 계정 등록", 2, 3) : steps("3 / 4 · 계정 등록", 3)) +
+      (link ? steps("1 / 2 · 계정 등록", 1, 2) : steps("2 / 3 · 계정 등록", 2, 3)) +
         lead("계정 등록", "웨일카페 강남역점 근무를 위한 계정입니다.", { align: "left" }) +
         // 인적사항 다섯 가지(운영 정책 ACC-23). 이름·생년월일·성별·외국인 여부가 계약서와 다르면 날인 전 본인 대조에서 수정 요청으로 이어지고(운영 정책 JOI-10), 가입을 막지는 않는다.
         // 휴대전화번호는 계정의 매칭 키라 읽기 전용이다 — 고칠 수 있으면 남의 번호로 가입해 그 사람의 다음 초대를 막을 수 있다(JOIN-7).
