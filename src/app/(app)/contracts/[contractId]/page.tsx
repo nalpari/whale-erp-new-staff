@@ -265,7 +265,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           />
         </Sunken>
 
-        {/* 이 묶음 제목은 「사용자」 대신 「관리자(근무지)」 — 계약서 본문 · PDF 는 법적 당사자 표기 「사업주」(2026-11-19 사용자 결정) */}
+        {/* 화면 묶음 제목은 「관리자(근무지)」, 계약서 본문 · PDF 는 법적 당사자 표기 「사업주」(2026-11-19 사용자 결정) */}
         <Sunken label="관리자(근무지)">
           <Values
             rows={[
