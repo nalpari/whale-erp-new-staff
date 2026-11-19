@@ -59,11 +59,11 @@ export function LoginForm({
       {next ? <input type="hidden" name="next" value={next} /> : null}
       <AuthScreen
         top={expired ? undefined : <BrandLogo />}
-        title={expired ? "로그인이 만료되었습니다" : "다시 오셨네요"}
+        // 기본 화면은 데모 login 처럼 로고 아래 제목 · 설명이 없다(제목은 화면 낭독기에만). 만료 안내는 실제 상황이라 둔다
+        title={expired ? "로그인이 만료되었습니다" : "로그인"}
+        titleHidden={!expired}
         description={
-          expired
-            ? "접속이 끝나 다시 로그인해야 합니다. 오래 쓰지 않았거나 다른 곳에서 비밀번호를 바꾼 경우입니다."
-            : "근무 정보와 출퇴근을 확인하려면 로그인해 주세요."
+          expired ? "접속이 끝나 다시 로그인해야 합니다. 오래 쓰지 않았거나 다른 곳에서 비밀번호를 바꾼 경우입니다." : undefined
         }
         dock={
           <>

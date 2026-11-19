@@ -62,7 +62,7 @@ export function AddressSearchSheet({ open, onClose, onPick }: { open: boolean; o
       {scriptWanted && (
         <Script src={POSTCODE_SCRIPT} strategy="afterInteractive" onLoad={checkScript} onReady={checkScript} onError={() => setScriptFailed(true)} />
       )}
-      <BottomSheet open={open} onClose={onClose} title="도로명 주소 검색" description="도로명이나 건물 이름으로 찾아 고릅니다.">
+      <BottomSheet open={open} onClose={onClose} title="도로명 주소 검색">
         <div ref={frame} className="h-[min(470px,55dvh)] w-full overflow-hidden rounded-[12px] border border-staff-border-light">
           {!scriptReady && (
             <p className="p-[14px] text-[13px] text-staff-text-muted">

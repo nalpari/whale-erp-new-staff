@@ -13,10 +13,9 @@ export default async function InvitationPage() {
   const [loaded, employmentTypes] = await Promise.all([loadInvitation(), getEnumOrEmpty("EmploymentType")]);
   if (loaded.kind === "none") redirect("/join");
   if (loaded.kind !== "ready") return <InvitationProblem loaded={loaded} />;
-  const { invitation, via } = loaded;
+  const { invitation } = loaded;
   return (
     <InvitationScreen
-      via={via}
       storeName={invitation.storeName}
       employmentType={labelOf(employmentTypes, invitation.employmentType)}
       expiresOn={kstDateTimeLabel(invitation.expiresAt)}

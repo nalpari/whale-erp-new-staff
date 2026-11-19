@@ -93,7 +93,7 @@ export function AnswerScreen({
             </div>
           )}
           <p className="text-[12px] text-staff-text-muted">
-            이 요청은 {kstDateTimeLabel(request.expiresAt)}까지 답할 수 있습니다. 거절해도 기존 근무지와 계정은 유지됩니다.
+            이 요청은 {kstDateTimeLabel(request.expiresAt)}까지 답할 수 있습니다.
           </p>
           {accepted.error && <Alert tone={acceptBlocked ? "warning" : "danger"}>{accepted.error}</Alert>}
         </div>

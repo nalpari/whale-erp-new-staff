@@ -43,14 +43,12 @@ export function JoinSteps({ via, step }: { via: JoinVia; step: "초대 코드" |
   );
 }
 
-/** 초대 확인(가이드 ②). 근무지 · 고용 형태 · 기한만 보인다 — 직원 레코드 값과 기존 계정 정보는 api 가 주지 않는다. */
+/** 초대 확인(가이드 ②). 데모 join invite 처럼 단계 막대는 두지 않는다. 근무지 · 고용 형태 · 기한만 보인다 — 직원 레코드 값과 기존 계정 정보는 api 가 주지 않는다. */
 export function InvitationScreen({
-  via,
   storeName,
   employmentType,
   expiresOn,
 }: {
-  via: JoinVia;
   storeName: string;
   employmentType: string;
   /** 초대가 끝나는 시각(「2026년 11월 18일 18:00」) — 보낸 때부터 30일이라 날짜만 보이면 그날 저녁에 끝나는 초대가 하루 종일 되는 줄 안다. */
@@ -58,7 +56,6 @@ export function InvitationScreen({
 }) {
   return (
     <AuthScreen
-      eyebrow={<JoinSteps via={via} step="초대 확인" />}
       title="초대가 도착했습니다"
       description={
         <>
