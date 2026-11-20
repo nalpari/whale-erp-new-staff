@@ -279,5 +279,7 @@ test("taxProfileCreateFailure 는 처음 넣기 화면에 없는 지금 비밀�
 test("purposeItems — 쉼표 · 가운뎃점으로 나누고 빈 항목은 뺀다", () => {
   assert.deepEqual(purposeItems("4대보험 신고, 근로소득 원천징수 · 급여 지급"), ["4대보험 신고", "근로소득 원천징수", "급여 지급"]);
   assert.deepEqual(purposeItems("급여 지급"), ["급여 지급"]);
+  // api TAX_PROFILE_PURPOSE 값 그대로
+  assert.deepEqual(purposeItems("취득 신고 · 원천징수 · 급여 이체"), ["취득 신고", "원천징수", "급여 이체"]);
   assert.deepEqual(purposeItems(" , "), []);
 });

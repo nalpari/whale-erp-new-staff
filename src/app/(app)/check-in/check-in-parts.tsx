@@ -85,19 +85,30 @@ export function Clock({
     <section
       className={
         center
-          ? "mx-auto my-auto flex size-[220px] shrink-0 flex-col items-center justify-center gap-[6px] rounded-full border border-staff-border bg-white text-center shadow-[inset_0_0_0_10px_#f5f7fb]"
+          ? "mx-auto my-auto flex size-[220px] shrink-0 flex-col items-center justify-center gap-[8px] rounded-full border border-staff-border bg-white text-center shadow-[inset_0_0_0_10px_#f5f7fb]"
           : "flex flex-col items-center py-[14px] text-center"
       }
     >
       {/* 시계 아이콘(하단 메뉴 출퇴근과 같은 그림)을 이름 앞에 둔다(2026-11-20 사용자 지정) */}
-      <h2 className="flex items-center gap-[6px] text-[13px] font-semibold text-staff-text-sub">
-        <span className={`flex size-[24px] items-center justify-center rounded-full ${dim ? "bg-staff-bg text-staff-placeholder" : "bg-staff-primary-inactive text-staff-primary"}`}>
-          <MaskIcon src="/icons/nav-attendance.svg" size={14} />
-        </span>
+      {/* 둥근 시계 안은 글자 크기를 세 가지로 줄였다 — 이름 14 · 숫자 40(단위 16) · 아래 14(2026-11-20 사용자 지정: 크기가 섞여 들쑥날쑥해 보였다) */}
+      <h2 className={`flex items-center gap-[4px] font-semibold text-staff-text-sub ${center ? "text-[14px] leading-[1.3]" : "text-[13px]"}`}>
+        {center ? (
+          <span className={`flex ${dim ? "text-staff-placeholder" : "text-staff-primary"}`}>
+            <MaskIcon src="/icons/nav-attendance.svg" size={15} />
+          </span>
+        ) : (
+          <span className={`flex size-[24px] items-center justify-center rounded-full ${dim ? "bg-staff-bg text-staff-placeholder" : "bg-staff-primary-inactive text-staff-primary"}`}>
+            <MaskIcon src="/icons/nav-attendance.svg" size={14} />
+          </span>
+        )}
         {label}
       </h2>
-      <p className={`${center ? "" : "pt-[4px]"} text-[44px] leading-[1.1] font-bold tracking-[-0.02em] tabular-nums ${dim ? "text-staff-placeholder" : ""}`}>{children}</p>
-      {note && <p className={`${center ? "" : "pt-[4px]"} text-[12px] text-staff-text-sub`}>{note}</p>}
+      <p
+        className={`flex items-baseline justify-center font-bold tracking-[-0.02em] tabular-nums ${center ? "text-[40px] leading-[1.2]" : "pt-[4px] text-[44px] leading-[1.1]"} ${dim ? "text-staff-placeholder" : ""}`}
+      >
+        {children}
+      </p>
+      {note && <p className={`${center ? "text-[14px] leading-[1.3] text-staff-text-muted" : "pt-[4px] text-[12px] text-staff-text-sub"}`}>{note}</p>}
     </section>
   );
 }

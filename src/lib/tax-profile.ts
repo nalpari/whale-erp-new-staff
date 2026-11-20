@@ -135,7 +135,7 @@ export function validateTaxProfileEdit(input: TaxProfileEditInput): { body: Save
     if (!input.bankCode) return problem("bank", ACCOUNT_INCOMPLETE);
     if (!account) return problem("account", ACCOUNT_INCOMPLETE);
     // api 의 상한(MaxLength 20). 목록에 없는 코드는 api 가 BANK_CODE_UNKNOWN 으로 막는다.
-    if (input.bankCode.length > 20) return problem("bank", "은행을 다시 골라 주세요");
+    if (input.bankCode.length > 20) return problem("bank", "은행을 다시 선택해 주세요");
     if (!/^\d{10,16}$/.test(account)) return problem("account", ACCOUNT_SHAPE);
     body.bankCode = input.bankCode;
     body.payrollAccountNumber = account;
@@ -158,7 +158,7 @@ export function taxProfileSaveFailure(failure: ApiFailure): { state: TaxProfileE
   if (status === 400) {
     if (code === "CURRENT_PASSWORD_MISMATCH") return { state: problem("currentPassword", CURRENT_PASSWORD_MISMATCH), log: false };
     if (code === "RRN_BIRTH_MISMATCH") return { state: problem("rrn", RRN_BIRTH_MISMATCH), log: false };
-    if (code === "BANK_CODE_UNKNOWN") return { state: problem("bank", "은행을 다시 골라 주세요"), log: false };
+    if (code === "BANK_CODE_UNKNOWN") return { state: problem("bank", "은행을 다시 선택해 주세요"), log: false };
     if (code === "TAX_PROFILE_ACCOUNT_INCOMPLETE") return { state: problem("account", ACCOUNT_INCOMPLETE), log: true };
     if (code === "TAX_PROFILE_EMPTY") return { state: problem("form", NOTHING_TO_CHANGE), log: true };
     // 이 화면은 이미 낸 신고 정보만 고친다. 그사이 신고 정보가 없어졌다(처음 넣기는 날인 뒤 흐름 몫).
@@ -183,7 +183,7 @@ export function taxProfileSaveFailure(failure: ApiFailure): { state: TaxProfileE
 /** 처음 넣기를 보냈는데 이 소속에 이미 낸 신고 정보가 있을 때 — 처음 넣기는 덮어쓰지 않는다. */
 export const TAX_PROFILE_ALREADY_SUBMITTED = "이 근무지에는 이미 낸 신고 정보가 있습니다. 바꾸려면 신고 정보의 「다시 입력하기」에서 바꿔 주세요";
 /** 처음 넣기에서 은행을 고르지 않았을 때. */
-export const BANK_REQUIRED = "급여를 받을 은행을 골라 주세요";
+export const BANK_REQUIRED = "급여를 받을 은행을 선택해 주세요";
 /** 처음 넣기의 api 404 — 내 소속이 아니다(퇴직 · 남의 id). */
 export const TAX_PROFILE_CREATE_NOT_FOUND = "이 근무지에는 신고 정보를 입력할 수 없습니다. 내 근무지에서 다시 열어 주세요";
 
@@ -197,7 +197,7 @@ export function validateTaxProfileCreate(input: TaxProfileEditInput): { body: Sa
   const account = digitsOnly(input.payrollAccountNumber);
   if (!/^\d{6}$/.test(front) || !/^\d{7}$/.test(back)) return problem("rrn", RRN_SHAPE);
   if (!input.bankCode) return problem("bank", BANK_REQUIRED);
-  if (input.bankCode.length > 20) return problem("bank", "은행을 다시 골라 주세요");
+  if (input.bankCode.length > 20) return problem("bank", "은행을 다시 선택해 주세요");
   if (!/^\d{10,16}$/.test(account)) return problem("account", ACCOUNT_SHAPE);
   return { body: { rrn: front + back, bankCode: input.bankCode, payrollAccountNumber: account } };
 }

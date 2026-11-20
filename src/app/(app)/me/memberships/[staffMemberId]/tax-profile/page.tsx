@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
-import { Alert, Button, Dock, MaskIcon, Notice, PageHeader } from "@/components/common";
+import { Alert, Button, Dock, Notice, PageHeader } from "@/components/common";
 import { ApiError } from "@/lib/api";
 import { getCodesOrEmpty } from "@/lib/codes";
 import { labelOf } from "@/lib/enums";
@@ -9,6 +9,7 @@ import { getMyMemberships, getMyTaxProfile } from "@/lib/my-profile";
 import { kstDateTimeLabel } from "@/lib/profile";
 import { parseStaffMemberId, purposeItems, taxViewAfterChange } from "@/lib/tax-profile";
 import { TAX_KEEP_TEXT } from "@/app/_components/tax-profile-parts";
+import { WorkplaceBox } from "@/app/_components/workplace-box";
 import { ChangedToast } from "../../../changed-toast";
 
 export const metadata: Metadata = { title: "신고 정보 · Whale ERP" };
@@ -133,15 +134,7 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
           </Notice>
         ) : (
           <>
-            <div className="flex items-center gap-[12px] rounded-[16px] border border-staff-border bg-white py-[12px] pr-[16px] pl-[12px]">
-              <span aria-hidden className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-staff-primary-inactive text-staff-primary">
-                <MaskIcon src="/icons/store-small.svg" size={18} />
-              </span>
-              <p className="flex min-w-0 flex-col">
-                <span className="text-[12px] text-staff-text-muted">근무지</span>
-                <span className="text-[16px] font-bold">{storeName}</span>
-              </p>
-            </div>
+            <WorkplaceBox name={storeName} />
             <ValueBox
               label="주민등록번호"
               value={profile.rrnMasked}
@@ -171,7 +164,7 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
               </InfoRow>
             </dl>
             <section className="mt-[8px] flex flex-col gap-[8px]">
-              <h3 className="px-[4px] text-[14px] font-semibold text-staff-text-sub">개인정보 보호</h3>
+              <h2 className="px-[4px] text-[14px] font-semibold text-staff-text-sub">개인정보 보호</h2>
               <div className={`${BOX} flex flex-col gap-[14px] px-[18px] py-[16px]`}>
                 <GuardItem icon={LOCK} title="정보 암호화 및 보관">
                   {TAX_KEEP_TEXT}

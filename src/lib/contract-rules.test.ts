@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   contractSubText,
+  daysLeftText,
   deadlineOf,
   deadlineText,
   groupContracts,
@@ -268,4 +269,11 @@ test("canDecideOf — 서명할 수 있거나 본인 대조만 다르면 버튼 
   // 본문이 없거나 서명 대기가 아니면 두지 않는다
   assert.equal(canDecideOf(true, true, null), false);
   assert.equal(canDecideOf(false, false, null), false);
+});
+
+test("daysLeftText — 한국 달력으로 남은 날, 당일 · 지난 기한은 「오늘 마감」", () => {
+  const now = new Date("2026-11-20T01:00:00Z"); // 한국 11월 20일 10:00
+  assert.equal(daysLeftText("2026-11-25T01:23:00Z", now), "5일 남음");
+  assert.equal(daysLeftText("2026-11-20T14:00:00Z", now), "오늘 마감"); // 한국 11월 20일 23:00
+  assert.equal(daysLeftText("2026-11-18T01:00:00Z", now), "오늘 마감");
 });

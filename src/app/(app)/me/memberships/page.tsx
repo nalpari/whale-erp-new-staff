@@ -43,7 +43,6 @@ function ActionRow({ icon, label, href }: { icon: string; label: string; href?: 
         <MaskIcon src={icon} size={18} />
         <span className="flex-1">
           {label}
-          <span className="sr-only"> · 준비 중</span>
         </span>
         <Badge tone="waiting">준비 중</Badge>
       </div>
