@@ -12,8 +12,7 @@ import { HQ_SHARING_TERMS } from "@/lib/hq-sharing-terms";
 export function HqSharingTermsBody() {
   return (
     <>
-      {/* 정돈 시안 ⑱(2026-11-20 사용자 지정) — 설명 한 줄, 연회색 둥근 상자에 이름 위 · 값 아래, 안내는 문장마다 점 목록 */}
-      <p className="-mt-[8px] text-[14px] break-keep text-staff-text-sub">가맹본사가 내 근무 정보를 개인 단위로 확인하는 것에 대한 동의입니다.</p>
+      {/* 정돈 시안 ⑱(2026-11-20 사용자 지정) — 연회색 둥근 상자에 이름 위 · 값 아래, 아래 안내 한 줄 */}
       <dl className="overflow-hidden rounded-[16px] border border-staff-border bg-staff-bg">
         {HQ_SHARING_TERMS.map(([name, value]) => (
           // 줄 사이 #e4e8ef — staff-bg 바탕 위에서 옅은 테두리는 보이지 않아 한 단계 진하게(퇴근 완료 기록 상자와 같다)
@@ -23,18 +22,7 @@ export function HqSharingTermsBody() {
           </div>
         ))}
       </dl>
-      <ul className="flex flex-col gap-[4px] px-[4px] text-[13px] leading-[1.55] break-keep text-staff-text-sub">
-        {["동의는 선택사항이며, 동의하지 않아도 근무에는 영향이 없습니다.", "동의하지 않으면 가맹본사에는 점포별 합계만 보입니다.", "항목이나 목적이 넓어지면 다시 동의를 받습니다."].map(
-          (line) => (
-            <li key={line} className="flex gap-[6px]">
-              <span aria-hidden className="text-staff-placeholder">
-                ·
-              </span>
-              <span className="min-w-0">{line}</span>
-            </li>
-          ),
-        )}
-      </ul>
+      <p className="px-[4px] text-[13px] leading-[1.55] break-keep text-staff-text-sub">동의는 선택사항이며, 동의하지 않아도 근무에는 영향이 없습니다.</p>
     </>
   );
 }
