@@ -66,6 +66,18 @@ function isBridge(value: unknown): value is Bridge {
 }
 
 /**
+ * 기다리지 않고 바로 불러도 되는 브리지인지.
+ * Android 는 웹뷰가 문서 시작 스크립트(DOCUMENT_START_SCRIPT)를 지원하지 않으면 `callHandler` 가 보여도
+ * 준비 이벤트 전에는 부를 수 없다. 플러그인(flutter_inappwebview_android)은 준비 이벤트를 보낼 때
+ * `_platformReady = true` 를 남기므로 그것까지 본다. iOS 는 이 표시를 남기지 않지만 `callHandler` 가 보이면 부를 수 있다.
+ */
+function isReadyBridge(value: unknown, userAgent: string): value is Bridge {
+  if (!isBridge(value)) return false;
+  if (!/\bAndroid\b/.test(userAgent)) return true;
+  return "_platformReady" in value && value._platformReady === true;
+}
+
+/**
  * 브리지를 기다린다. 앱 밖이면 바로 null, 앱 안이면 준비 이벤트를 [timeoutMs] 까지 기다리고 못 받으면 null.
  * 앱은 페이지 스크립트보다 먼저 준비되는 게 보통이지만, 첫 화면에서 바로 부르면 이벤트를 기다려야 할 수 있다.
  */
@@ -73,16 +85,18 @@ export function waitForBridge(
   win: BridgeWindow | undefined = typeof window === "undefined" ? undefined : (window as unknown as BridgeWindow),
   { userAgent, timeoutMs = 3000 }: { userAgent?: string; timeoutMs?: number } = {},
 ): Promise<Bridge | null> {
-  if (win === undefined || !isInApp(userAgent)) return Promise.resolve(null);
-  if (isBridge(win.flutter_inappwebview)) return Promise.resolve(win.flutter_inappwebview);
+  const ua = userAgent ?? (typeof navigator === "undefined" ? "" : navigator.userAgent);
+  if (win === undefined || !isInApp(ua)) return Promise.resolve(null);
+  if (isReadyBridge(win.flutter_inappwebview, ua)) return Promise.resolve(win.flutter_inappwebview);
   return new Promise((resolve) => {
     const finish = (reason: string) => {
       clearTimeout(timer);
       win.removeEventListener(BRIDGE_READY_EVENT, onReady);
       const bridge = win.flutter_inappwebview;
+      // 이벤트가 왔거나 시간이 다 됐으면 callHandler 가 있는 것만으로 부른다(준비 표시를 못 받아도 시도는 해 본다).
       if (isBridge(bridge)) return resolve(bridge);
       // 앱 안인데 브리지가 없다 = 앱 쪽 고장. 앱 밖(조용한 null)과 구분되게 남긴다.
-      const version = appVersionOf(userAgent ?? (typeof navigator === "undefined" ? "" : navigator.userAgent));
+      const version = appVersionOf(ua);
       console.error(`[native-bridge] 앱(${version}) 안인데 브리지가 없다: ${reason}`);
       resolve(null);
     };

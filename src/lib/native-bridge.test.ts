@@ -129,10 +129,41 @@ test("앱 밖이면 기다리지 않고 null", async () => {
   assert.equal(await waitForBridge(win, { userAgent: SAFARI }), null);
 });
 
-test("앱 안이고 이미 준비됐으면 바로 그 브리지", async () => {
-  const bridge = bridgeAnswering(null);
+const IOS_APP = `${SAFARI} WhaleStaffApp/1.0.0`;
+
+test("Android 앱 안이고 준비 표시(_platformReady)까지 있으면 바로 그 브리지", async () => {
+  const bridge = { ...bridgeAnswering(null), _platformReady: true };
   const { win } = fakeWindow(bridge);
   assert.equal(await waitForBridge(win, { userAgent: ANDROID_APP }), bridge);
+});
+
+test("Android 에서 callHandler 만 보이고 준비 표시가 없으면 준비 이벤트를 기다린다", async () => {
+  const early = bridgeAnswering(null);
+  const { win, ready, listeners } = fakeWindow(early);
+  let settled = false;
+  const waiting = waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 1000 }).then((value) => {
+    settled = true;
+    return value;
+  });
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(settled, false);
+  assert.equal(listeners.size, 1);
+  ready(early);
+  assert.equal(await waiting, early);
+});
+
+test("Android 에서 준비 이벤트가 끝내 안 와도 callHandler 가 있으면 시간이 다 된 뒤 그것으로 부른다", async (t) => {
+  const error = t.mock.method(console, "error", () => {});
+  const early = bridgeAnswering(null);
+  const { win } = fakeWindow(early);
+  assert.equal(await waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 10 }), early);
+  assert.equal(error.mock.callCount(), 0);
+});
+
+test("iOS 앱 안이면 준비 표시 없이도 callHandler 가 보이면 바로 그 브리지", async () => {
+  const bridge = bridgeAnswering(null);
+  const { win } = fakeWindow(bridge);
+  assert.equal(await waitForBridge(win, { userAgent: IOS_APP }), bridge);
 });
 
 test("앱 안인데 아직이면 준비 이벤트를 기다리고, 받은 뒤 듣기를 그친다", async () => {
