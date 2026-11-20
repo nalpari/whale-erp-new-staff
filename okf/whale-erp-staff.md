@@ -10,7 +10,7 @@ sources:
   - { id: common, resource: ../src/components/common, title: Common UI components }
   - { id: design-md, resource: ../DESIGN.md, title: Design system }
   - { id: affiliation-done, resource: ../src/app/(app)/affiliations/done/page.tsx, title: 근무지 추가 확인 결과 화면 — 수락 완료의 「근로계약서 서명하기」 }
-generated: { by: claude-code/opus-5.5, at: 2026-11-20T09:00:00Z }
+generated: { by: claude-code/opus-5.5, at: 2026-11-20T15:00:00Z }
 ---
 
 # Stack
@@ -59,6 +59,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-11-20T09:00:00Z }
 밝은 테마·글꼴·포커스색은 `StaffRoot` 안에서 걸리고, 루트 `globals.css` 는 토큰과 바탕색·화면 이동 슬라이드·토스트 애니메이션(`staff-toast`)만 둔다.
 
 정돈 시안(2026-11-20)으로 근무지 추가 확인 · 완료 · 요청 시트 · 홈 서명 요청 시트 · 내 근무지 · 급여명세서(카드형 · 둥근 꺾은선 `SubLine`) · 급여 빈 화면 · 주소 검색 · 신고 정보 다시 입력 · 등록된 신고 정보 · 근로계약서 목록(진행 중 · 지난 두 묶음, 서명은 상세에서) · 출퇴근 현황 버튼 · 둥근 시계 · 근무 중 카드 · 퇴근 완료를 다듬었다. 규칙은 `DESIGN.md` 「정돈 시안」 절. 신고 정보 화면들의 수집 · 위탁 보관 문구는 `tax-profile-parts.tsx` 의 `TAX_KEEP_TEXT` · `TAX_NO_CONSENT_TEXT` 한 곳에 두고 같이 쓴다. 등록된 신고 정보의 이용 목적은 api 한 줄(`purpose`)을 `purposeItems` 로 「,」 · 「·」 에서 나눠 점 목록으로 보이고, 수집 근거는 개인정보 보호법 조문(제24조의2 제1항 제1호 · 제15조 제1항 제4호, 법무 확인 필요)이다.
+
+후속 정돈(2026-11-20): 화면 위 여백은 모두 20px, 근로계약서 화면만 위 여백 · 묶음 사이 12px(`ContractFrame`). `WorkplaceBox` 는 상자 없는 머리 줄(32px 아이콘 · 「근무지」 · 점포명)이다. 근로계약서 상세 맨 위는 요약 카드 `ContractSummary`(근무지명 · 상태 배지, 받은 날과 서명 기한(남은 날) · 서명일 · 수정 요청일 중 하나)와 그 아래 상태 안내 한 줄(서명 완료 · 거절 · 종료 · 수정 요청)이고, 아래 정보는 `InfoGroup`(「사업주」 → 「근로자」, 이름 칸 104 · 줄 사이 선 없음)이며 사업주 전화 · 사업자등록번호는 `formatTelephone` · `formatBizNumber`(`src/lib/contract-rules.ts`)로 하이픈을 넣는다. 목록 상자의 이름 칸은 76px, 수정 요청 · 거절은 「수정 요청일」 · 「거절일」 줄이다. 근무 화면 근무지 카드(`StoreCard`)는 흰 상자에 「근무지」 · 근무지명 · 「변경 ›」. 「사업자 제공 동의」는 화면 이름을 「근무정보 제공 동의」로 바꾸고 내용 시트 항목을 표준 이름(제공받는 자 · 제공 항목 · 제공 목적 · 보유 및 이용 기간, `HQ_SHARING_TERMS`)으로 썼다 — 문구 버전은 v1.0 그대로다. 자리표시는 명사형(새 이메일 입력 · 현재 비밀번호 입력 · 새 비밀번호 입력 · 새 비밀번호 다시 입력), 출퇴근 기록 [조회]는 외곽선, 출퇴근 현황 머리줄은 「출퇴근하기 ›」 알약이다. 비밀번호 · 이메일 변경의 현재 비밀번호 불일치는 `isCurrentPasswordMismatch`(`src/lib/password-change.ts`)가 api 사유 끝 마침표를 떼고 가른다.
 
 # Commands
 
