@@ -6,9 +6,8 @@ import { MaskIcon } from "@/components/common";
  */
 export function WorkplaceBox({ name }: { name: string }) {
   return (
-    // 화면 맨 위에 오므로 머리줄과 붙인다 — 본문 위 간격 20 에서 12 를 당겨 8(흰 바탕이라 20 은 너무 떠 보였다, 2026-11-20 사용자 지정)
     // 테두리 · 바탕 없이 머리 글처럼 둔다 — 테두리 상자는 누르는 버튼처럼 보였다(2026-11-20 사용자 지정)
-    <div className="-mt-[12px] flex items-center gap-[10px] px-[2px]">
+    <div className="flex items-center gap-[10px] px-[2px]">
       <span aria-hidden className="flex size-[32px] shrink-0 items-center justify-center rounded-full bg-staff-primary-inactive text-staff-primary">
         <MaskIcon src="/icons/store-small.svg" size={16} />
       </span>

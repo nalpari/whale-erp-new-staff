@@ -8,7 +8,8 @@ export function ContractFrame({ header, children }: { header: ReactNode; childre
   return (
     <div className="flex flex-1 flex-col leading-[1.5]">
       {header}
-      <div className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[20px] pb-[24px]">{children}</div>
+      {/* 근로계약서 화면은 머리줄 아래 · 묶음 사이를 모두 12 로 좁혀 같게 둔다(2026-11-20 사용자 지정 — 20 은 흰 바탕에서 띄엄띄엄 보였다) */}
+      <div className="flex flex-1 flex-col gap-[12px] px-[22px] pt-[12px] pb-[24px]">{children}</div>
     </div>
   );
 }
