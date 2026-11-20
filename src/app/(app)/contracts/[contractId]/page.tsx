@@ -5,6 +5,8 @@ import {
   bodyMissing,
   contractSubText,
   deadlineOf,
+  formatBizNumber,
+  formatTelephone,
   isFinished,
   maskPhone,
   paperDocuments,
@@ -274,9 +276,9 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           rows={[
               ["상호", c.employer.tradeName ?? c.employer.storeName],
               ["대표자", c.employer.ceoName],
-              ["사업자등록번호", c.employer.registrationNumber],
+              ["사업자등록번호", formatBizNumber(c.employer.registrationNumber)],
               ["사업장 주소", address(c.employer.bizAddress, c.employer.bizAddressDetail)],
-              ["전화", c.employer.storePhone],
+              ["전화", formatTelephone(c.employer.storePhone)],
           ]}
         />
 

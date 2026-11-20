@@ -249,3 +249,23 @@ export function canDecideOf(
 ): boolean {
   return awaitingSignature && !noBody && (signBlock === null || signBlock === "IDENTITY");
 }
+
+/**
+ * 사업주 전화번호를 화면에 보일 모양 — api 는 숫자만 준다. 계약서 PDF 처럼 하이픈을 넣는다(2026-11-20 사용자 지정).
+ * 02(서울)는 2-3/4-4, 15XX · 16XX · 18XX 대표번호(8자리)는 4-4, 그 밖(010 · 031 · 070 등)은 3-3/4-4. 모양이 맞지 않으면 받은 그대로.
+ */
+export function formatTelephone(raw: string | null): string | null {
+  if (!raw) return null;
+  const d = raw.replace(/\D/g, "");
+  if (/^02\d{7,8}$/.test(d)) return `02-${d.slice(2, d.length - 4)}-${d.slice(-4)}`;
+  if (/^1[5-9]\d{6}$/.test(d)) return `${d.slice(0, 4)}-${d.slice(4)}`;
+  if (/^0\d{9,10}$/.test(d)) return `${d.slice(0, 3)}-${d.slice(3, d.length - 4)}-${d.slice(-4)}`;
+  return raw;
+}
+
+/** 사업자등록번호 「105-87-63602」 — 10자리 숫자일 때만 3-2-5 로 나눈다. 아니면 받은 그대로. */
+export function formatBizNumber(raw: string | null): string | null {
+  if (!raw) return null;
+  const d = raw.replace(/\D/g, "");
+  return d.length === 10 ? `${d.slice(0, 3)}-${d.slice(3, 5)}-${d.slice(5)}` : raw;
+}

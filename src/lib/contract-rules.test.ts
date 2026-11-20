@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   contractSubText,
+  formatBizNumber,
+  formatTelephone,
   daysLeftText,
   deadlineOf,
   deadlineText,
@@ -279,4 +281,17 @@ test("daysLeftText — 한국 달력으로 남은 날, 당일 · 지난 기한�
   // 한국 날짜 경계 — UTC 로 세면 하루 어긋난다
   assert.equal(daysLeftText("2026-11-20T15:30:00Z", new Date("2026-11-20T14:30:00Z")), "1일 남음");
   assert.equal(daysLeftText("2026-11-21T14:00:00Z", new Date("2026-11-20T15:30:00Z")), "오늘 마감");
+});
+
+test("formatTelephone · formatBizNumber — 계약서 PDF 와 같은 하이픈", () => {
+  assert.equal(formatTelephone("0310001726"), "031-000-1726");
+  assert.equal(formatTelephone("0212345678"), "02-1234-5678");
+  assert.equal(formatTelephone("021234567"), "02-123-4567");
+  assert.equal(formatTelephone("01012345678"), "010-1234-5678");
+  assert.equal(formatTelephone("15881234"), "1588-1234");
+  assert.equal(formatTelephone("12"), "12");
+  assert.equal(formatTelephone(null), null);
+  assert.equal(formatBizNumber("1058763602"), "105-87-63602");
+  assert.equal(formatBizNumber("105-87-63602"), "105-87-63602");
+  assert.equal(formatBizNumber("123"), "123");
 });
