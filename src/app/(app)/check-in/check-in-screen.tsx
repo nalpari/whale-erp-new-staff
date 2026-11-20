@@ -256,8 +256,11 @@ export function CheckInScreen({
   // ── 화면 ──
   let body: ReactNode;
   let dock: ReactNode = null;
+  // 근무 중 · 퇴근 완료 화면만 흰 바탕이다(정돈 시안 ⑯ · ⑰, 2026-11-20 사용자 지정) — 그 본문을 그리는 분기에서만 켠다
+  let whitePage = false;
 
   if (done) {
+    whitePage = true;
     // 퇴근 완료(정돈 시안 ⑰, 2026-11-20 사용자 지정): 남보라 체크 · 「HH:MM에 퇴근했습니다」 큰 제목 · 기록 상자 · 남보라 [홈으로].
     const checkedIn = done.checkInRecordedAt ? new Date(done.checkInRecordedAt) : null;
     const outAt = new Date(done.recordedAt);
@@ -437,6 +440,7 @@ export function CheckInScreen({
         </>
       );
     } else if (working && elapsed) {
+      whitePage = true;
       body = (
         <>
           {geoBlock}
@@ -574,9 +578,6 @@ export function CheckInScreen({
 
   const byeReason = reasonFor("CHECK_OUT");
   const checkOutReason = byeReason === "blocked" ? null : byeReason;
-
-  // 근무 중 · 퇴근 완료 화면은 흰 바탕이다(정돈 시안 ⑯ · ⑰, 2026-11-20 사용자 지정)
-  const whitePage = Boolean(done) || Boolean(working && elapsed && !working.isCheckOutExpired);
 
   return (
     <>

@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "근로계약 · Whale ERP" };
 // 근로계약서 목록(WHALEERP-146). 기준: 데모 docs/demo/src/pages/contract 의 목록 · 빈 상태(Figma 없음, DESIGN.md 기준 초안).
 // 앱 전역에서 고른 근무지와 관계없이 받은 계약서 모두를 보인다. 내 정보 > 소속 근무지의 「근로계약서」로 오면 주소의 ?store= 로
 // 그 근무지 계약서만 보인다(ME-7 · TAX-8). api 에 점포로 거르는 칸이 없어 여기서 storeId 로 거른다.
-// 정돈 시안 ⑮(2026-11-20 사용자 지정): 흰 바탕, 근무지에서 왔으면 맨 위 근무지 상자, 「서명할 근로계약서 N건」(연회색 상자) ·
+// 정돈 시안 ⑮(2026-11-20 사용자 지정): 흰 바탕, 근무지에서 왔으면 맨 위 근무지 상자, 「진행 중인 근로계약서 N건」(연회색 상자) ·
 // 「지난 근로계약서 N건」(흰 상자) 두 묶음. 상자마다 제목 · 상태 배지 · 꺾쇠, 아래 이름 · 값 줄(계약 기간 · 서명 기한 · 서명일),
 // 남은 날은 둥근 꺾은선(7일 이내면 강조색, CON-4). 서명은 상세에서 내용을 보고 한다 — 목록에 서명 버튼을 두지 않는다.
 // 데모 빈 상태의 「관리자에게 문의하기」 버튼은 문의 api 가 없어 두지 않고 문의 방법만 적는다.
@@ -51,7 +51,7 @@ export default async function ContractsPage({ searchParams }: PageProps<"/contra
       ) : (
         <>
           {storeId !== null && <WorkplaceBox name={items[0].storeName} />}
-          {open.length > 0 && <Group title="서명할 근로계약서" count={open.length}>{open.map(row)}</Group>}
+          {open.length > 0 && <Group title="진행 중인 근로계약서" count={open.length}>{open.map(row)}</Group>}
           {finished.length > 0 && <Group title="지난 근로계약서" count={finished.length}>{finished.map(row)}</Group>}
         </>
       )}

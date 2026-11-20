@@ -62,7 +62,6 @@ export function SiteCard({ title, sub }: { title: string; sub?: string }) {
   );
 }
 
-/** 시각 블록: 라벨 13px · 42px bold. dim 은 출근할 수 없는 상태의 흐린 글자 */
 /**
  * 큰 시계. center 면 본문의 남는 세로 공간 가운데에 선다(my-auto — 본문이 화면 높이를 채우는 flex 세로 열일 때) — 출퇴근 화면의
  * 현재 시각 · 근무 시간이 카드 바로 아래 붙고 버튼 줄까지 빈 곳이 크게 남아 가운데로 내렸다(2026-11-20 사용자 지정).

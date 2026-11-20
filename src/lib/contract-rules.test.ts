@@ -276,4 +276,7 @@ test("daysLeftText — 한국 달력으로 남은 날, 당일 · 지난 기한�
   assert.equal(daysLeftText("2026-11-25T01:23:00Z", now), "5일 남음");
   assert.equal(daysLeftText("2026-11-20T14:00:00Z", now), "오늘 마감"); // 한국 11월 20일 23:00
   assert.equal(daysLeftText("2026-11-18T01:00:00Z", now), "오늘 마감");
+  // 한국 날짜 경계 — UTC 로 세면 하루 어긋난다
+  assert.equal(daysLeftText("2026-11-20T15:30:00Z", new Date("2026-11-20T14:30:00Z")), "1일 남음");
+  assert.equal(daysLeftText("2026-11-21T14:00:00Z", new Date("2026-11-20T15:30:00Z")), "오늘 마감");
 });
