@@ -108,8 +108,8 @@ export function TaxProfileForm({
           <br />
           입력하지 않은 항목은 기존 정보가 유지됩니다.
         </p>
-        <div className="mt-[24px] flex items-center gap-[12px] rounded-[16px] border border-staff-border bg-staff-bg py-[12px] pr-[18px] pl-[12px] text-[15px]">
-          <span aria-hidden className="flex size-[32px] shrink-0 items-center justify-center rounded-full bg-white text-staff-text-sub">
+        <div className="mt-[24px] flex items-center gap-[12px] rounded-[16px] border border-staff-border bg-white py-[12px] pr-[18px] pl-[12px] text-[15px]">
+          <span aria-hidden className="flex size-[32px] shrink-0 items-center justify-center rounded-full bg-staff-bg text-staff-text-sub">
             {/* nav-me.svg 는 Figma 가 뒤집어 내보내 flipY(하단 메뉴와 같다) */}
             <MaskIcon src="/icons/nav-me.svg" size={18} flipY />
           </span>
