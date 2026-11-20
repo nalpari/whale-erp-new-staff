@@ -95,7 +95,7 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
           autoComplete="current-password"
           required
           maxLength={128}
-          placeholder="본인 확인을 위해 입력해 주세요"
+          placeholder="현재 비밀번호를 입력해 주세요"
           value={currentPassword}
           onChange={(event) => setCurrentPassword(event.target.value)}
           error={state.problem?.field === "currentPassword" ? state.problem.message : undefined}
