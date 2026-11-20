@@ -56,7 +56,7 @@ export default async function ContractDonePage({ params, searchParams }: PagePro
   const done = query.done;
   const toast = done === "signed" || done === "rejected" ? TOAST[done] : undefined;
   const toastNode = done !== undefined && <ChangedToast path={`/contracts/${c.contractId}/done${storeQuery}`}>{toast}</ChangedToast>;
-  const header = <PageHeader title="근로계약" backHref={detailHref} />;
+  const header = <PageHeader title="근로계약서" backHref={detailHref} />;
 
   if (c.status === "REJECTED")
     return (

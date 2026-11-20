@@ -86,7 +86,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const title = [c.employer.storeName, employmentType].filter(Boolean).join(" · ");
   const deadline = deadlineOf(c, now);
   const paper = c.contractMethod === "PAPER";
-  const header = <PageHeader title="근로계약" backHref={backHref} />;
+  const header = <PageHeader title="근로계약서" backHref={backHref} />;
 
   if (paper) {
     const files = paperDocuments(c.documents);
