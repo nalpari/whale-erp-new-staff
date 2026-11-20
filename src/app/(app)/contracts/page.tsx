@@ -81,7 +81,7 @@ function Group({ title, count, children }: { title: string; count: number; child
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
     <span className="flex gap-[12px] text-[14px]">
-      <span className="w-[64px] shrink-0 text-staff-text-muted">{label}</span>
+      <span className="w-[76px] shrink-0 whitespace-nowrap text-staff-text-muted">{label}</span>
       <span className="min-w-0 flex-1 break-keep">{children}</span>
     </span>
   );
@@ -112,7 +112,9 @@ function ContractRow({
   const title = inStore ? `${employment ? `${employment} ` : ""}근로계약서` : [c.storeName, employment].filter(Boolean).join(" · ");
   const open = !isFinishedPhase(phase);
   // 서명 기한 · 서명일로 말할 수 없는 단계(거절 · 만료 · 서명 불가 · 수정 요청)는 목록 한 줄 안내를 그대로 둔다
-  const note = !deadline && phase !== "SIGNED" && phase !== "ENDED" ? contractSubText(c, now, status) : null;
+  // 수정 요청 · 거절은 그날을 이름 · 값 줄로(다른 줄과 시작선이 맞게, 2026-11-20 사용자 지정)
+  const dayRow = phase === "CORRECTION_REQUESTED" ? "수정 요청일" : phase === "REJECTED" ? "거절일" : null;
+  const note = !deadline && !dayRow && phase !== "SIGNED" && phase !== "ENDED" ? contractSubText(c, now, status) : null;
   return (
     <li>
       <Link
@@ -135,7 +137,7 @@ function ContractRow({
           {deadline && (
             <span className="flex flex-col gap-[2px]">
               <Row label="서명 기한">{deadline.dateTime}</Row>
-              <span className="pl-[72px]">
+              <span className="pl-[88px]">
                 <SubLine>
                   {/* 기한 7일 이내: 상태 칩 지각 · 긴급 글자색(#956013, CON-4) */}
                   <span className={deadline.urgent ? "font-semibold text-[#956013]" : undefined}>
@@ -146,6 +148,7 @@ function ContractRow({
             </span>
           )}
           {phase === "SIGNED" && c.processedAt && <Row label={c.contractMethod === "PAPER" ? "등록일" : "서명일"}>{kstDateLabel(c.processedAt)}</Row>}
+          {dayRow && c.processedAt && <Row label={dayRow}>{kstDateLabel(c.processedAt)}</Row>}
           {note && <span className="text-[13px] text-staff-text-muted">{note}</span>}
         </span>
       </Link>

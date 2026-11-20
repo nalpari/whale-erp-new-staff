@@ -99,11 +99,11 @@ export function ContractSummary({
           {shown.map(([label, value], i) => (
             <div key={label} className="flex flex-col gap-[2px]">
               <div className="flex gap-[12px]">
-                <dt className="w-[64px] shrink-0 text-staff-text-muted">{label}</dt>
+                <dt className="w-[76px] shrink-0 whitespace-nowrap text-staff-text-muted">{label}</dt>
                 <dd className="min-w-0 flex-1 break-keep">{value}</dd>
               </div>
               {left && i === shown.length - 1 && (
-                <div className="pl-[72px]">
+                <div className="pl-[88px]">
                   <SubLine>
                     <span className={left.urgent ? "font-semibold text-[#956013]" : undefined}>{left.text}</span>
                   </SubLine>
