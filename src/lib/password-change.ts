@@ -15,7 +15,16 @@ export interface PasswordChangeState {
 /** api 의 지금 비밀번호 불일치 400 사유(MyPasswordService). 규칙 위반 사유와 같은 400 이라 글자로 가른다. */
 export const CURRENT_PASSWORD_MISMATCH_API = "지금 비밀번호가 맞지 않습니다";
 /** 화면에 보이는 불일치 문구 — 칸 이름 「현재 비밀번호」(데모 me)에 맞춘다. api 사유 글자는 위 상수로 가른다. */
-export const CURRENT_PASSWORD_MISMATCH = "현재 비밀번호가 맞지 않습니다";
+export const CURRENT_PASSWORD_MISMATCH = "현재 비밀번호가 일치하지 않습니다.";
+
+/**
+ * api 400 사유가 「지금 비밀번호 틀림」인지. api 문구 끝에 마침표가 붙어(「…맞지 않습니다.」) 글자를 그대로 견주면 놓쳐서
+ * 새 비밀번호 칸 오류로 떨어졌다(2026-11-20 사용자 확인) — 끝 마침표 · 공백을 떼고, 화면 문구와 같은 표현도 받는다.
+ */
+export function isCurrentPasswordMismatch(message: string): boolean {
+  const text = message.trim().replace(/\.+$/, "");
+  return text === CURRENT_PASSWORD_MISMATCH_API || text === CURRENT_PASSWORD_MISMATCH.replace(/\.+$/, "");
+}
 
 const problem = (field: PasswordField, message: string): PasswordChangeState => ({ problem: { field, message } });
 
@@ -29,7 +38,7 @@ export function validatePasswordChange(current: string, next: string, confirmati
   if (current.length > 128) return problem("currentPassword", CURRENT_PASSWORD_MISMATCH);
   if (!next) return problem("newPassword", "새 비밀번호를 입력해 주세요");
   if ([...next].length > 20) return problem("newPassword", "비밀번호는 20자까지 쓸 수 있습니다");
-  if (next !== confirmation) return problem("confirmation", "두 칸의 새 비밀번호가 다릅니다");
+  if (next !== confirmation) return problem("confirmation", "새 비밀번호가 일치하지 않습니다.");
   return null;
 }
 
@@ -38,7 +47,7 @@ export function passwordChangeFailure(failure: ApiFailure): { state: PasswordCha
   if (failure === "network") return { state: problem("confirmation", CONNECTION_FAILED), log: false };
   const { status, message } = failure;
   if (status === 400) {
-    if (message === CURRENT_PASSWORD_MISMATCH_API) return { state: problem("currentPassword", CURRENT_PASSWORD_MISMATCH), log: false };
+    if (isCurrentPasswordMismatch(message)) return { state: problem("currentPassword", CURRENT_PASSWORD_MISMATCH), log: false };
     if (isHangulReason(message)) return { state: problem("newPassword", message), log: false };
     // 영어 원문(형식 검증)은 화면과 api 의 계약이 어긋난 신호라 남기고 대체 문구를 보인다.
     return { state: problem("newPassword", "비밀번호 조건을 확인해 주세요"), log: true };

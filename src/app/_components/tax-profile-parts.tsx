@@ -34,31 +34,37 @@ export function Basis({ children }: { children: ReactNode }) {
   return <p className="pt-[6px] text-[12px] text-staff-text-sub first:pt-0 [&_b]:font-bold [&_b]:text-staff-text">{children}</p>;
 }
 
-/** 주민등록번호를 받는 근거(운영 정책 TAX-08). 입력 화면만 「수집하며,」 뒤에서 줄을 바꾸고(lineBreak) 보기 화면은 한 줄이다(데모 tax). */
+/**
+ * 주민등록번호를 받는 근거(운영 정책 TAX-08). 지금은 처음 넣기 입력만 lineBreak 로 불러 「수집하며,」 뒤에서 줄을 바꾼다(데모 tax).
+ * 등록된 신고 정보 보기 화면은 2026-11-20 부터 이 문장 대신 개인정보 보호법 조문(BasisItem)을 보인다.
+ */
 export const rrnBasis = (lineBreak = false) => (
   <>
     4대보험 신고와 근로소득 원천징수를 위해 <b>법령에 따라</b> 수집하며,{lineBreak ? <br /> : " "}신고 서류를 만들 때만 사용합니다.
   </>
 );
 
-/** 급여 계좌를 받는 근거(운영 정책 TAX-08). 줄바꿈은 rrnBasis 와 같다. */
+/** 급여 계좌를 받는 근거(운영 정책 TAX-08). 쓰는 곳 · 줄바꿈은 rrnBasis 와 같다(처음 넣기 입력만). */
 export const accountBasis = (lineBreak = false) => (
   <>
     <b>근로계약에 따라</b> 급여를 지급하기 위해 수집하며,{lineBreak ? <br /> : " "}급여 지급 외에는 사용하지 않습니다.
   </>
 );
 
-/**
- * 사업주 · 위탁 보관 안내. storeName 은 그 소속의 점포다. noConsent 면 입력 화면(데모 form)처럼 「별도 동의를 받지 않습니다」를 잇는다.
- */
-export function TaxOwnerNotice({ storeName, noConsent = false }: { storeName: string; noConsent?: boolean }) {
+/** 수집 · 위탁 보관 공통 문구(2026-11-20 사용자 지정) — 점포 이름 없이 「사업주」로 써 신고 정보 화면들이 같은 문장을 쓴다. */
+export const TAX_KEEP_TEXT = "입력한 정보는 사업주가 수집하며, WHALE ERP가 위탁받아 암호화하여 보관합니다.";
+/** 동의 없이 받는 근거 — 입력 화면(처음 넣기 · 다시 입력)이 공통 문구 뒤에 잇는다. */
+export const TAX_NO_CONSENT_TEXT = "해당 정보는 법령 및 근로계약에 따라 수집하며, 별도의 동의는 받지 않습니다.";
+
+/** 수집 · 위탁 보관 안내(처음 넣기). noConsent 면 「별도의 동의는 받지 않습니다」를 잇는다. */
+export function TaxOwnerNotice({ noConsent = false }: { noConsent?: boolean }) {
   return (
     <Notice>
-      이 정보는 <strong>{storeName}(사업주)</strong>이 수집하며, WHALE ERP는 위탁을 받아 암호화해 보관합니다.
+      {TAX_KEEP_TEXT}
       {noConsent && (
         <>
           <br />
-          법령과 근로계약에 따라 수집하는 정보로, <strong>별도 동의를 받지 않습니다.</strong>
+          {TAX_NO_CONSENT_TEXT}
         </>
       )}
     </Notice>

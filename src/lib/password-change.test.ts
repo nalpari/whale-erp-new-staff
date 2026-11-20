@@ -39,3 +39,11 @@ test("passwordChangeFailure — 429 · 5xx · 연결 실패는 확인 칸, 예�
   assert.equal(passwordChangeFailure({ status: 404, message: "Cannot POST" }).log, true);
   assert.equal(fieldOf(passwordChangeFailure("network").state), "confirmation");
 });
+
+test("지금 비밀번호 틀림 — api 문구 끝 마침표가 있어도 현재 비밀번호 칸으로", () => {
+  for (const message of ["지금 비밀번호가 맞지 않습니다.", "지금 비밀번호가 맞지 않습니다", "현재 비밀번호가 일치하지 않습니다."]) {
+    assert.deepEqual(passwordChangeFailure({ status: 400, message }).state.problem, { field: "currentPassword", message: CURRENT_PASSWORD_MISMATCH });
+  }
+  // 규칙 위반 사유는 그대로 새 비밀번호 칸
+  assert.equal(passwordChangeFailure({ status: 400, message: "비밀번호는 8자 이상이어야 합니다." }).state.problem?.field, "newPassword");
+});

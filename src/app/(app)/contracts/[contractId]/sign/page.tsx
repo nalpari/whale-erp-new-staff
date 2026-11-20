@@ -28,7 +28,7 @@ export default async function SignContractPage({ params, searchParams }: PagePro
   // 본문(조항)을 받지 못한 계약은 상세가 서명 버튼을 열지 않는다 — 앞서 받은 서명 링크로 와도 같다(bodyMissing)
   if (!c.signable || c.contractMethod === "PAPER" || bodyMissing(c) || !isSentAt(seen)) redirect(detailHref, RedirectType.replace);
 
-  const header = <PageHeader title="근로계약" backHref={detailHref} />;
+  const header = <PageHeader title="근로계약서" backHref={detailHref} />;
   if (seen !== c.sentAt)
     return (
       <>

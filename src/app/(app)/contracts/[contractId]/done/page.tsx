@@ -56,7 +56,7 @@ export default async function ContractDonePage({ params, searchParams }: PagePro
   const done = query.done;
   const toast = done === "signed" || done === "rejected" ? TOAST[done] : undefined;
   const toastNode = done !== undefined && <ChangedToast path={`/contracts/${c.contractId}/done${storeQuery}`}>{toast}</ChangedToast>;
-  const header = <PageHeader title="근로계약" backHref={detailHref} />;
+  const header = <PageHeader title="근로계약서" backHref={detailHref} />;
 
   if (c.status === "REJECTED")
     return (
@@ -107,7 +107,7 @@ export default async function ContractDonePage({ params, searchParams }: PagePro
             <Notice icon={<MaskIcon src="/icons/contract.svg" size={14} />}>
               이제 <strong>신고 정보</strong>를 입력해 주세요.
               <br />
-              4대보험 신고와 급여 지급에 필요한 정보입니다.
+              급여 지급과 원천징수, 4대보험 신고(가입 대상인 경우)에 필요한 정보입니다.
             </Notice>
           )
         )}

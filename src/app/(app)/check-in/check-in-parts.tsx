@@ -62,13 +62,52 @@ export function SiteCard({ title, sub }: { title: string; sub?: string }) {
   );
 }
 
-/** 시각 블록: 라벨 13px · 42px bold. dim 은 출근할 수 없는 상태의 흐린 글자 */
-export function Clock({ label, children, note, dim = false }: { label: string; children: ReactNode; note?: string; dim?: boolean }) {
+/**
+ * 큰 시계. center 면 본문의 남는 세로 공간 가운데에 선다(my-auto — 본문이 화면 높이를 채우는 flex 세로 열일 때) — 출퇴근 화면의
+ * 현재 시각 · 근무 시간이 카드 바로 아래 붙고 버튼 줄까지 빈 곳이 크게 남아 가운데로 내렸다(2026-11-20 사용자 지정).
+ */
+export function Clock({
+  label,
+  children,
+  note,
+  dim = false,
+  center = false,
+}: {
+  label: string;
+  children: ReactNode;
+  note?: string;
+  dim?: boolean;
+  center?: boolean;
+}) {
+  // center(출퇴근 화면의 현재 시각 · 근무 시간)는 큰 둥근 시계 판에 담는다 — 흰 원(220px) · 회색 테두리 · 안쪽 옅은 띠(2026-11-20 사용자 지정).
   return (
-    <section className="flex flex-col items-center py-[14px] text-center">
-      <h2 className="text-[13px] font-semibold text-staff-text-sub">{label}</h2>
-      <p className={`text-[42px] leading-[1.1] font-bold ${dim ? "text-staff-placeholder" : ""}`}>{children}</p>
-      {note && <p className="pt-[4px] text-[12px] text-staff-text-sub">{note}</p>}
+    <section
+      className={
+        center
+          ? "mx-auto my-auto flex size-[220px] shrink-0 flex-col items-center justify-center gap-[8px] rounded-full border border-staff-border bg-white text-center shadow-[inset_0_0_0_10px_var(--color-staff-info-bg)]"
+          : "flex flex-col items-center py-[14px] text-center"
+      }
+    >
+      {/* 시계 아이콘(하단 메뉴 출퇴근과 같은 그림)을 이름 앞에 둔다(2026-11-20 사용자 지정) */}
+      {/* 둥근 시계 안은 글자 크기를 세 가지로 줄였다 — 이름 14 · 숫자 40(단위 16) · 아래 14(2026-11-20 사용자 지정: 크기가 섞여 들쑥날쑥해 보였다) */}
+      <h2 className={`flex items-center gap-[4px] font-semibold text-staff-text-sub ${center ? "text-[14px] leading-[1.3]" : "text-[13px]"}`}>
+        {center ? (
+          <span className={`flex ${dim ? "text-staff-placeholder" : "text-staff-primary"}`}>
+            <MaskIcon src="/icons/nav-attendance.svg" size={15} />
+          </span>
+        ) : (
+          <span className={`flex size-[24px] items-center justify-center rounded-full ${dim ? "bg-staff-bg text-staff-placeholder" : "bg-staff-primary-inactive text-staff-primary"}`}>
+            <MaskIcon src="/icons/nav-attendance.svg" size={14} />
+          </span>
+        )}
+        {label}
+      </h2>
+      <p
+        className={`flex items-baseline justify-center font-bold tracking-[-0.02em] tabular-nums ${center ? "text-[40px] leading-[1.2]" : "pt-[4px] text-[44px] leading-[1.1]"} ${dim ? "text-staff-placeholder" : ""}`}
+      >
+        {children}
+      </p>
+      {note && <p className={`${center ? "text-[14px] leading-[1.3] text-staff-text-muted" : "pt-[4px] text-[12px] text-staff-text-sub"}`}>{note}</p>}
     </section>
   );
 }

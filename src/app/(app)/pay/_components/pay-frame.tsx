@@ -6,7 +6,7 @@ export function PayFrame({ header, children }: { header: ReactNode; children: Re
   return (
     <div className="flex flex-1 flex-col leading-[1.5]">
       {header}
-      <div className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[22px] pb-[14px]">{children}</div>
+      <div className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[20px] pb-[14px]">{children}</div>
       <div className="sticky bottom-0 mt-auto">
         <BottomNav current="/pay" />
       </div>

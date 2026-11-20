@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   contractSubText,
+  formatBizNumber,
+  formatTelephone,
+  daysLeftText,
   deadlineOf,
   deadlineText,
   groupContracts,
@@ -268,4 +271,27 @@ test("canDecideOf — 서명할 수 있거나 본인 대조만 다르면 버튼 
   // 본문이 없거나 서명 대기가 아니면 두지 않는다
   assert.equal(canDecideOf(true, true, null), false);
   assert.equal(canDecideOf(false, false, null), false);
+});
+
+test("daysLeftText — 한국 달력으로 남은 날, 당일 · 지난 기한은 「오늘 마감」", () => {
+  const now = new Date("2026-11-20T01:00:00Z"); // 한국 11월 20일 10:00
+  assert.equal(daysLeftText("2026-11-25T01:23:00Z", now), "5일 남음");
+  assert.equal(daysLeftText("2026-11-20T14:00:00Z", now), "오늘 마감"); // 한국 11월 20일 23:00
+  assert.equal(daysLeftText("2026-11-18T01:00:00Z", now), "오늘 마감");
+  // 한국 날짜 경계 — UTC 로 세면 하루 어긋난다
+  assert.equal(daysLeftText("2026-11-20T15:30:00Z", new Date("2026-11-20T14:30:00Z")), "1일 남음");
+  assert.equal(daysLeftText("2026-11-21T14:00:00Z", new Date("2026-11-20T15:30:00Z")), "오늘 마감");
+});
+
+test("formatTelephone · formatBizNumber — 계약서 PDF 와 같은 하이픈", () => {
+  assert.equal(formatTelephone("0310001726"), "031-000-1726");
+  assert.equal(formatTelephone("0212345678"), "02-1234-5678");
+  assert.equal(formatTelephone("021234567"), "02-123-4567");
+  assert.equal(formatTelephone("01012345678"), "010-1234-5678");
+  assert.equal(formatTelephone("15881234"), "1588-1234");
+  assert.equal(formatTelephone("12"), "12");
+  assert.equal(formatTelephone(null), null);
+  assert.equal(formatBizNumber("1058763602"), "105-87-63602");
+  assert.equal(formatBizNumber("105-87-63602"), "105-87-63602");
+  assert.equal(formatBizNumber("123"), "123");
 });

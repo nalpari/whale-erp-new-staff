@@ -21,7 +21,7 @@ import {
 // 안내에도 입력에도 「나중에」 버튼이 없다. 앱 전체를 막지는 않는다(2026-10-28 김민식: 흐름 안에서만 막기).
 
 const PURPOSES = [
-  { icon: "/icons/shield.svg", flipY: true, title: "4대보험 자격취득 신고", sub: "국민연금 · 건강보험 · 고용보험 · 산재보험" },
+  { icon: "/icons/shield.svg", flipY: true, title: "4대보험 신고(가입 대상인 경우)", sub: "국민연금 · 건강보험 · 고용보험 · 산재보험" },
   { icon: "/icons/contract.svg", flipY: false, title: "근로소득 원천징수", sub: "급여에서 공제한 세금 신고" },
   { icon: "/icons/nav-pay.svg", flipY: false, title: "급여 지급", sub: "매달 급여를 받을 계좌" },
 ];
@@ -47,7 +47,7 @@ export function TaxProfileIntro({ storeName, formHref, signed }: { storeName: st
   const [why, setWhy] = useState(false);
   return (
     <>
-      <div className="flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
+      <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
         <div className="flex flex-col items-center gap-[8px] text-center">
           <span className="text-staff-text-sub">
             <MaskIcon src="/icons/contract.svg" size={28} />
@@ -57,7 +57,7 @@ export function TaxProfileIntro({ storeName, formHref, signed }: { storeName: st
             {/* 「근로계약이 완료되었습니다」는 서명 완료 화면에서 넘어왔을 때만 — 내 정보에서 서명 전에 들어오면 사실과 달라진다(PR #73 리뷰) */}
             {signed ? <>{withGwa(storeName)} 근로계약이 완료되었습니다.</> : <><strong className="text-staff-text">{storeName}</strong>에 제출할 정보입니다.</>}
             <br />
-            4대보험 신고와 급여 지급에 필요한 정보입니다.
+            급여 지급과 원천징수, 4대보험 신고(가입 대상인 경우)에 필요한 정보입니다.
           </p>
         </div>
         <Card>
@@ -121,7 +121,6 @@ export function TaxProfileIntro({ storeName, formHref, signed }: { storeName: st
 export function TaxProfileCreateForm({
   action,
   viewHref,
-  storeName,
   realName,
   birthDate,
   birthDateLabel,
@@ -131,7 +130,6 @@ export function TaxProfileCreateForm({
   action: (previous: TaxProfileEditState, formData: FormData) => Promise<TaxProfileEditState>;
   /** 이 소속의 신고 정보 보기 화면 */
   viewHref: string;
-  storeName: string;
   realName: string;
   birthDate: string;
   birthDateLabel: string;
@@ -174,7 +172,7 @@ export function TaxProfileCreateForm({
 
   return (
     <form action={formAction} onSubmit={onSubmit} className="flex flex-1 flex-col" autoComplete="off">
-      <div className="flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
+      <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
         <div className="flex flex-col gap-[6px]">
           <h2 className="text-[22px] font-bold">주민등록번호와 급여 계좌</h2>
           <p className="text-[14px] text-staff-text-sub">신고와 급여 이체에 그대로 사용되니 정확히 입력해 주세요.</p>
@@ -209,7 +207,7 @@ export function TaxProfileCreateForm({
             )}
           </Alert>
         )}
-        <TaxOwnerNotice storeName={storeName} noConsent />
+        <TaxOwnerNotice noConsent />
       </div>
       <Dock>
         {/* 은행 목록을 받지 못하면 계좌 칸이 막혀 셋 다 필수인 처음 넣기는 보낼 수 없다 — 칸의 안내가 사정을 말한다. */}

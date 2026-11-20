@@ -51,10 +51,10 @@ const sheet = (a = {}) =>
 const intro = () =>
   pageHeader("신고 정보", { backHref: page("contract", "signed") }) +
   body(
-    `<div class="flex flex-col items-center gap-[8px] text-center"><span class="text-staff-text-sub">${maskIcon("contract.svg", 28)}</span><h2 class="text-[22px] font-bold">신고 정보를 입력해 주세요</h2><p class="text-[14px] text-staff-text-sub">웨일카페 강남역점과 근로계약이 완료되었습니다.<br>4대보험 신고와 급여 지급에 필요한 정보입니다.</p></div>` +
+    `<div class="flex flex-col items-center gap-[8px] text-center"><span class="text-staff-text-sub">${maskIcon("contract.svg", 28)}</span><h2 class="text-[22px] font-bold">신고 정보를 입력해 주세요</h2><p class="text-[14px] text-staff-text-sub">웨일카페 강남역점과 근로계약이 완료되었습니다.<br>급여 지급과 원천징수, 4대보험 신고(가입 대상인 경우)에 필요한 정보입니다.</p></div>` +
       card(
         label("이용 목적") +
-          `<div class="flex flex-col divide-y divide-staff-border-light pt-[10px]">${iconRow({ icon: "shield.svg", flipY: true, title: "4대보험 자격취득 신고", sub: "국민연금 · 건강보험 · 고용보험 · 산재보험" })}${iconRow({
+          `<div class="flex flex-col divide-y divide-staff-border-light pt-[10px]">${iconRow({ icon: "shield.svg", flipY: true, title: "4대보험 신고(가입 대상인 경우)", sub: "국민연금 · 건강보험 · 고용보험 · 산재보험" })}${iconRow({
             icon: "contract.svg",
             title: "근로소득 원천징수",
             sub: "급여에서 공제한 세금 신고",

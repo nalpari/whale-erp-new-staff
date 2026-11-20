@@ -16,7 +16,7 @@ export function PasswordForm({ email }: { email: string }) {
 
   return (
     <form action={formAction} className="flex flex-1 flex-col">
-      <div className="flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
+      <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
         <TextField
           label="현재 비밀번호"
           name="currentPassword"
@@ -24,7 +24,7 @@ export function PasswordForm({ email }: { email: string }) {
           autoComplete="current-password"
           required
           maxLength={128}
-          placeholder="현재 비밀번호를 입력해 주세요"
+          placeholder="현재 비밀번호 입력"
           value={currentPassword}
           onChange={(event) => setCurrentPassword(event.target.value)}
           error={errorOf("currentPassword")}
@@ -35,7 +35,7 @@ export function PasswordForm({ email }: { email: string }) {
           confirmationError={errorOf("confirmation")}
         />
         <Notice>
-          바꾸면 <strong>이 휴대전화의 로그인은 이어지고</strong>, 다른 기기에서는 다시 로그인해야 합니다.
+          비밀번호 변경 후에도 <strong>현재 기기에서는 로그인이 유지</strong>되며, 다른 기기에서는 다시 로그인해야 합니다.
         </Notice>
       </div>
       <Dock>

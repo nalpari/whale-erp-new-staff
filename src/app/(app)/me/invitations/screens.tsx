@@ -6,11 +6,11 @@ import { useFocusedTitle } from "@/app/(auth)/_components/use-focused-title";
 import { MEMBERSHIPS_PATH } from "@/lib/join";
 import { HOME_PATH } from "@/lib/login-return";
 
-// 받은 초대(WHALEERP-604)의 갈래 화면. 안내 문구는 가입 첫 단계와 같고(Plane 604), 버튼만 로그인한 직원에 맞게 소속 근무지 · 홈이다.
+// 받은 초대(WHALEERP-604)의 갈래 화면. 안내 문구는 가입 첫 단계와 같고(Plane 604), 버튼만 로그인한 직원에 맞게 내 근무지 · 홈이다.
 
 export const BackToMemberships = () => (
   <Button variant="ghost" href={MEMBERSHIPS_PATH} transitionTypes={["nav-back"]}>
-    소속 근무지로 돌아가기
+    내 근무지로 돌아가기
   </Button>
 );
 
@@ -24,7 +24,7 @@ export function InvitationNotListed() {
     <AuthScreen
       titleRef={titleRef}
       title="이 초대를 찾을 수 없습니다"
-      description="이미 더한 근무지이거나 만료 · 새 초대로 바뀐 초대입니다. 소속 근무지에서 다시 확인해 주세요."
+      description="이미 더한 근무지이거나 만료 · 새 초대로 바뀐 초대입니다. 내 근무지에서 다시 확인해 주세요."
       dock={<BackToMemberships />}
     />
   );
@@ -50,7 +50,7 @@ export function InvitationJoined() {
     <AuthScreen
       titleRef={titleRef}
       title="이미 가입을 마친 초대입니다"
-      description="이 초대의 근무지는 이미 계정에 이어졌습니다. 근로계약을 체결하면 소속 근무지에 보입니다."
+      description="이 초대의 근무지는 이미 계정에 이어졌습니다. 근로계약을 체결하면 내 근무지에 보입니다."
       dock={
         <>
           <Button href={HOME_PATH} transitionTypes={["nav-forward"]}>

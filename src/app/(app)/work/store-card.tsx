@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
-import { Alert } from "@/components/common";
+import { Alert, MaskIcon } from "@/components/common";
 import { useStoreSheet, type StoreChoice } from "../store-sheet";
 
 // 근무지 카드(WORK-4) — 근무스케줄 · TO-DO 두 탭 위. 누르면 「근무지 고르기」 시트를 열고, 고르면 앱 전역 근무지가 바뀐다.
-// 근무지가 하나면 누를 수 없고 꺾쇠를 뺀다. 모양은 데모(/design/work)와 같다. 카드 바탕 #eef2ff 는 홈 · 출퇴근 카드와 같은 짝이다.
+// 근무지가 하나면 누를 수 없고 「변경」을 뺀다. 정돈(2026-11-20 사용자 지정): 점포 아이콘 · 「연결된 근무지 N곳」을 빼고 흰 상자에
+// 「근무지」 · 근무지명, 오른쪽에 「변경 ›」 — 연보라 바탕 카드는 무엇을 누르는지 알기 어려웠다.
 export function StoreCard({ stores, currentId }: { stores: StoreChoice[]; currentId: number }) {
   const current = stores.find((s) => s.staffMemberId === currentId) ?? stores[0];
   const many = stores.length > 1;
@@ -13,18 +13,20 @@ export function StoreCard({ stores, currentId }: { stores: StoreChoice[]; curren
 
   const body = (
     <>
-      <Image src="/icons/store-small.svg" alt="" width={14.625} height={13.5} />
-      <span className="flex min-w-0 flex-1 flex-col gap-[2px]">
-        <span className="truncate text-[16px] font-bold">{current.storeName}</span>
-        <span className="text-[12px] text-staff-text-sub">
-          {`연결된 근무지 ${stores.length}곳`}
-        </span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-[12px] text-staff-text-muted">근무지</span>
+        <span className="text-[16px] leading-[1.45] font-bold break-keep">{current.storeName}</span>
       </span>
-      {many && <Image src="/icons/chevron-right-dark.svg" alt="" width={24} height={24} />}
+      {many && (
+        <span className="flex shrink-0 items-center gap-[2px] text-[13px] font-semibold text-staff-primary">
+          변경
+          <MaskIcon src="/icons/chevron-right-small.svg" size={12} />
+        </span>
+      )}
     </>
   );
   const cardClass =
-    "flex items-center gap-[14px] rounded-[18px] border border-staff-border-light bg-[#eef2ff] px-[20px] pt-[20px] pb-[24px] text-left";
+    "flex w-full items-center gap-[12px] rounded-[16px] border border-staff-border bg-white px-[18px] py-[14px] text-left";
 
   return (
     <>

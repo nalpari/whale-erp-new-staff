@@ -142,29 +142,30 @@ test("hqSharingView — 옛 문구 버전에 동의했으면 「다시 동의 �
   const agreed = hqSharingView(base);
   assert.deepEqual(agreed.badge, { tone: "success", text: "동의함" });
   assert.deepEqual(agreed.action, { kind: "withdraw" });
-  // 동의 일시가 없는 옛 행도 동의로 보인다
-  assert.equal(hqSharingView({ ...base, agreedAt: null }).line, "동의했습니다");
+  // 일시 줄은 시 · 분과 내용 버전. 동의 일시가 없는 옛 행도 동의로 보인다(일시 줄만 없다)
+  assert.equal(agreed.line, "2026년 10월 1일 10:00 동의 · 내용 v1.0");
+  assert.equal(agreed.note, "");
+  assert.equal(hqSharingView({ ...base, agreedAt: null }).line, "");
   const stale = hqSharingView({ ...base, needsReconsent: true });
   assert.deepEqual(stale.badge, { tone: "warning", text: "다시 동의 필요" });
   // 새 문구에 동의하지 않으려면 카드에서 옛 동의를 거둘 수 있다
   assert.deepEqual(stale.action, { kind: "agree", label: "다시 동의하기", alsoWithdraw: true });
-  assert.equal(hqSharingView({ ...base, agreedAt: null, needsReconsent: true }).line, "동의 내용이 바뀌어 다시 동의해야 합니다");
-  assert.match(stale.line, /v1\.0 — 동의 내용이 바뀌어 다시 동의해야 합니다$/);
-  assert.match(stale.note, /점포별 숫자로만/);
+  // 바뀐 날을 알 수 없어(앱 번들 문구) 새 문구 버전을 보인다
+  assert.match(stale.line, /^내용 변경 · 새 내용 v/);
+  assert.match(stale.note, /다시 동의해 주세요\.$/);
 });
 
 test("hqSharingView — 미동의 · 철회 뒤는 동의하기 · 다시 동의하기", () => {
   const base = { isConsented: false, agreedAt: null, withdrawnAt: null, consentVersion: null, needsReconsent: false };
   const none = hqSharingView(base);
   assert.deepEqual(none.badge, { tone: "plain", text: "동의하지 않음" });
-  assert.equal(none.line, "아직 동의하지 않았습니다");
+  assert.equal(none.line, "");
   assert.deepEqual(none.action, { kind: "agree", label: "동의하기", alsoWithdraw: false });
-  // 처음이면 「다시」 없이
-  assert.match(none.note, / 동의하면 개인 단위로/);
-  assert.doesNotMatch(none.note, /다시 동의하면/);
+  assert.equal(none.note, "동의하면 가맹본사가 내 근무정보를 확인할 수 있습니다.");
   const withdrawn = hqSharingView({ ...base, withdrawnAt: "2026-10-02T01:00:00Z", consentVersion: "v1.0" });
   assert.deepEqual(withdrawn.action, { kind: "agree", label: "다시 동의하기", alsoWithdraw: false });
-  assert.match(withdrawn.line, /철회 · 사업자 제공 동의 v1\.0$/);
+  assert.equal(withdrawn.line, "2026년 10월 2일 10:00 동의 철회");
+  assert.equal(withdrawn.note, "");
 });
 
 test("hasHqSharingRecord — 동의 중 · 철회함이면 참, 한 번도 동의하지 않았으면 거짓(소속을 못 받았을 때 카드)", () => {

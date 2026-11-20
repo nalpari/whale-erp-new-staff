@@ -121,11 +121,11 @@ async function HomeRequests() {
           rows: [
             { label: "근무지", value: sign.contract.storeName },
             ...(sign.contract.employmentType ? [{ label: "고용 형태", value: labelOf(types, sign.contract.employmentType) }] : []),
-            ...(sign.deadline ? [{ label: "서명 기한", value: sign.deadline }] : []),
+            ...(sign.deadline ? [{ label: "서명 기한", value: sign.deadline.until, sub: sign.deadline.left }] : []),
           ],
         }
       }
-      affiliation={popupSummary(affiliationRequests ?? [])}
+      affiliation={popupSummary(affiliationRequests ?? [], now)}
       reconsent={hqSharing && hqReconsentOf(hqSharing, membership?.items ?? null)}
     />
   );

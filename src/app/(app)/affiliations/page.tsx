@@ -7,11 +7,11 @@ import { acceptAffiliationAction, rejectAffiliationAction } from "./actions";
 import { AnswerScreen } from "./answer-screen";
 import { BODY, Lead } from "./screen-parts";
 
-export const metadata: Metadata = { title: "소속 추가 확인 · Whale ERP" };
+export const metadata: Metadata = { title: "근무지 추가 확인 · Whale ERP" };
 
-// 소속 추가 확인 요청(WHALEERP-144). 로그인 뒤 홈 팝업 · 내 정보 - 소속 근무지 · 알림톡 · 메일 링크(STAFF_APP_URL/affiliations,
+// 근무지 추가 확인 요청(WHALEERP-144). 로그인 뒤 홈 팝업 · 내 정보 - 내 근무지 · 알림톡 · 메일 링크(STAFF_APP_URL/affiliations,
 // 토큰 없음)가 모두 여기로 온다. 로그인하지 않았으면 proxy 가 로그인으로 보냈다가 돌려보낸다.
-// 요청이 하나면 바로 확인 화면, 여럿이면 목록에서 고른다(`?id=`). 데모는 하나만 보여 목록은 소속 근무지 목록 모양으로 지었다(AffiliationRequestList).
+// 요청이 하나면 바로 확인 화면, 여럿이면 목록에서 고른다(`?id=`). 데모는 하나만 보여 목록은 내 근무지 목록 모양으로 지었다(AffiliationRequestList).
 export default async function AffiliationsPage({ searchParams }: PageProps<"/affiliations">) {
   const { id } = await searchParams;
   const items = await getMyAffiliationRequests();
@@ -20,7 +20,7 @@ export default async function AffiliationsPage({ searchParams }: PageProps<"/aff
     return (
       <Shell>
         <Alert tone="warning">
-          <p>소속 추가 요청을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>
+          <p>근무지 추가 요청을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>
         </Alert>
       </Shell>
     );
@@ -42,7 +42,7 @@ export default async function AffiliationsPage({ searchParams }: PageProps<"/aff
     return (
       <Shell>
         <Lead title={items.length === 0 ? "확인할 요청이 없습니다" : "끝난 요청입니다"}>
-          이미 답했거나 확인 기한이 지난 요청은 여기에 보이지 않습니다. 수락한 근무지는 내 정보 - 소속 근무지에서 볼 수 있습니다.
+          이미 답했거나 확인 기한이 지난 요청은 여기에 보이지 않습니다. 수락한 근무지는 내 정보 - 내 근무지에서 확인할 수 있습니다.
         </Lead>
         {items.length > 0 && <Button href="/affiliations">남은 요청 보기</Button>}
       </Shell>
@@ -59,7 +59,7 @@ export default async function AffiliationsPage({ searchParams }: PageProps<"/aff
 function Shell({ children }: { children: ReactNode }) {
   return (
     <>
-      <PageHeader title="소속 추가 확인" backHref="/home" />
+      <PageHeader title="근무지 추가 확인" backHref="/home" />
       <div className={BODY}>{children}</div>
       <Dock>
         <Button variant="ghost" href="/home">
