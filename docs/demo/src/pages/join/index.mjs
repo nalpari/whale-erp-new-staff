@@ -252,14 +252,14 @@ const VIEWS = {
       { center: true },
     ) + dock(button("홈으로", { href: page("home", "sign-req") }) + ghost("종이 계약이면 · 신고 정보 입력", { href: page("tax", "intro") })),
 
-  // 수락 전에는 초대한 사업자·점포와 고용 형태만 보이고 기존 계정 정보는 보이지 않는다.
+  // 수락 전에는 근무지(점포명)와 고용 형태만 보이고 기존 계정 정보는 보이지 않는다.
   addsite: () =>
     pageHeader("소속 추가 확인", { backHref: HOME }) +
     body(
       lead("새 근무지 초대가 도착했습니다", "웨일카페 홍대점에서 함께 일하자고 초대했습니다.", { heading: "h2" }) +
         card(
           rows(
-            iconRow({ icon: "store-small.svg", title: "웨일카페 · 홍대점", sub: "서울 마포구 양화로" }) +
+            iconRow({ icon: "store-small.svg", title: "근무지", sub: "웨일카페 홍대점" }) +
               iconRow({ icon: "contract.svg", title: "고용 형태", sub: "파트타이머 · 주 20시간" }),
           ),
         ) +

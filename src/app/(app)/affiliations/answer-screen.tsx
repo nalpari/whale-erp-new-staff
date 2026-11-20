@@ -8,8 +8,8 @@ import { Accent, BODY, BigTitle, InfoPill, ShareLine } from "./screen-parts";
 import { ConsentCard } from "./consent-card";
 
 // 근무지 추가 확인(WHALEERP-144). 기준: 데모 docs/demo/join 의 addsite · addsite-done · reject(시트 — 사유 없이 확인만, WHALEERP-635).
-// 수락하기 전에는 초대한 사업자 · 점포와 고용 형태만 보인다 — 기존 계정 정보와 직원 레코드 값은 api 가 주지 않는다.
-// 데모와 다른 점: 점포 주소는 api 가 주지 않아 사업자 이름을 대신 둔다. 거절 확정은 근로계약서 거부와 같이 오류색 버튼이다.
+// 수락하기 전에는 근무지(점포명)와 고용 형태만 보인다 — 상호는 보이지 않는다(WHALEERP-747). 기존 계정 정보와 직원 레코드 값은 api 가 주지 않는다.
+// 데모와 다른 점: 거절 확정은 근로계약서 거부와 같이 오류색 버튼이다.
 // 정돈 시안 C안(2026-11-20 사용자 지정): 큰 제목 → 둥근 정보 행(근무지 · 고용 형태 · 답변 기한) → 공유되는 · 공유되지 않는 정보 →
 // 회색 덧붙임. 전엔 카드 · 아이콘 안내 상자 둘이었다. 하단 [거절 | 수락]은 그대로다.
 // 답한 뒤의 화면(근무지 추가 완료 · 거절 · 더 답할 수 없음)은 액션이 결과 경로(done/page.tsx)로 보낸다.
@@ -53,7 +53,7 @@ export function AnswerScreen({
             {returning ? "다시 함께 일하자고 요청했습니다" : "근무지 초대를 보냈습니다"}
           </BigTitle>
           <div className="flex flex-col gap-[10px]">
-            <InfoPill icon="store" label="근무지" sub={`사업자 · ${request.bpName}`}>
+            <InfoPill icon="store" label="근무지">
               {request.storeName}
             </InfoPill>
             <InfoPill icon="contract" label="고용 형태">

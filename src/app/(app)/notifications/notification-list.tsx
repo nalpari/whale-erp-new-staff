@@ -113,7 +113,8 @@ export function NotificationList({
         title="해당 내용을 열 수 없습니다"
         description="삭제되었거나 더 이상 볼 수 없는 내용입니다."
       >
-        <Button onClick={() => setUnavailable(false)}>알림함으로 돌아가기</Button>
+        {/* 안내만 하는 시트라 공통 [닫기] 하나만 둔다 — 닫으면 곧 알림함이다(WHALEERP-742) */}
+        {null}
       </BottomSheet>
     </div>
   );
