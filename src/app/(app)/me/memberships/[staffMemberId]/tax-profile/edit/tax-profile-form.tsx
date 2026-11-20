@@ -114,6 +114,7 @@ export function TaxProfileForm({
           </span>
           <span className="sr-only">이름</span>
           <span className="font-semibold">{realName}</span>
+          {/* #c3cad6 — 꺾은선(SubLine)과 같은 회색 세로 구분선 */}
           <span aria-hidden className="h-[14px] w-px bg-[#c3cad6]" />
           <span className="text-staff-text-sub">생년월일</span>
           <span className="font-semibold">{birthDateLabel}</span>

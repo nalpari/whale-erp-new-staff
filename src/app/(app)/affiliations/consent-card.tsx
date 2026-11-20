@@ -40,7 +40,7 @@ export function ConsentCard({ checked, onChange }: { checked: boolean; onChange:
           <span
             aria-hidden
             className={`flex size-[24px] shrink-0 items-center justify-center rounded-full transition-colors duration-150 ${EASE_OUT} peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-staff-primary ${
-              checked ? "bg-staff-primary text-white" : "border-[1.5px] border-[#c3cad6] text-transparent"
+              checked ? "bg-staff-primary text-white" : "border-[1.5px] border-[#c3cad6] text-transparent" // #c3cad6 — 꺾은선(SubLine)과 같은 회색
             }`}
           >
             <MaskIcon src="/icons/check.svg" size={12} />
@@ -53,6 +53,7 @@ export function ConsentCard({ checked, onChange }: { checked: boolean; onChange:
       </div>
       {/* 이 화면이 보인 문구의 버전(ATT-30 v252) — 계정 등록의 동의 칸과 같다 */}
       <input type="hidden" name="hqSharingConsentVersion" value={HQ_SHARING_TERMS_VERSION} />
+      {/* #f9fbfd — 상태 칩 neutral · 출퇴근 현황 예정 날과 같은 아주 옅은 바탕(토큰 없음) */}
       <p className="border-t border-staff-border-light bg-[#f9fbfd] px-[16px] pt-[12px] pb-[14px] text-[13px] leading-[1.55] break-keep text-staff-text-sub">
         {hqSharingSummary("affiliation")}
       </p>

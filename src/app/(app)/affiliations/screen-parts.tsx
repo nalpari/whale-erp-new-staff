@@ -92,6 +92,7 @@ export function ActionPill({ href, icon, label, sub }: { href: string; icon: Pil
         <span className="text-[16px] font-semibold">{label}</span>
         {sub && <span className="text-[13px] text-staff-text-muted">{sub}</span>}
       </span>
+      {/* #e6e9ef — 공유되지 않는 정보의 흐린 동그라미, 이 자리에만 쓴다 */}
       <span aria-hidden className="flex size-[24px] shrink-0 items-center justify-center rounded-full bg-[#e6e9ef] text-white">
         <MaskIcon src="/icons/chevron-right-small.svg" size={12} />
       </span>

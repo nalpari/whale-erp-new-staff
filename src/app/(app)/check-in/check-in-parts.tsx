@@ -84,7 +84,7 @@ export function Clock({
     <section
       className={
         center
-          ? "mx-auto my-auto flex size-[220px] shrink-0 flex-col items-center justify-center gap-[8px] rounded-full border border-staff-border bg-white text-center shadow-[inset_0_0_0_10px_#f5f7fb]"
+          ? "mx-auto my-auto flex size-[220px] shrink-0 flex-col items-center justify-center gap-[8px] rounded-full border border-staff-border bg-white text-center shadow-[inset_0_0_0_10px_var(--color-staff-info-bg)]"
           : "flex flex-col items-center py-[14px] text-center"
       }
     >

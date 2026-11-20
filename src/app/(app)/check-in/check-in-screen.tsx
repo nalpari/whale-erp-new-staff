@@ -286,6 +286,7 @@ export function CheckInScreen({
           </h2>
           <p className="text-[15px] text-staff-text-sub">오늘도 수고하셨습니다.</p>
         </div>
+        {/* 줄 사이 #e4e8ef — staff-bg 바탕 위에서 옅은 테두리(staff-border-light)는 보이지 않아 한 단계 진하게 */}
         <dl className="overflow-hidden rounded-[16px] border border-staff-border bg-staff-bg">
           {rows.map(([label, value, strong]) => (
             <div key={label} className="flex gap-[12px] border-t border-[#e4e8ef] px-[18px] py-[13px] text-[14px] first:border-t-0">
@@ -445,6 +446,7 @@ export function CheckInScreen({
         <>
           {geoBlock}
           {/* 정돈 시안 ⑯(2026-11-20 사용자 지정): 근무지명 위 · 출근 시각(24px)을 크게, 「근무 중」은 점 + 글자로 출근 줄에 */}
+          {/* #dcdcf7 — 연보라 바탕(staff-primary-inactive) 위 한 단계 진한 테두리, 출근 화면 근무지 카드와 같은 값 */}
           <section className="flex items-center gap-[12px] rounded-[18px] border border-[#dcdcf7] bg-staff-primary-inactive px-[20px] py-[16px]">
             <span aria-hidden className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-white text-staff-primary">
               <MaskIcon src="/icons/pin.svg" size={16} flipY />
@@ -471,7 +473,7 @@ export function CheckInScreen({
           <section className="flex flex-col gap-[12px] rounded-[18px] border border-staff-border bg-white px-[18px] pt-[16px] pb-[12px]">
             <div className="flex items-center justify-between gap-[8px]">
               <h2 className="text-[15px] font-bold">오늘 근무</h2>
-              {/* 범례 — 점선 칸은 예정, 보라 칸은 실제 근무(전에는 막대 아래 문장으로 알렸다) */}
+              {/* 범례 — 점선 칸은 예정, 보라 칸은 실제 근무(전에는 막대 아래 문장으로 알렸다). 색은 WorkTimeBar 의 점선 #b6c1d5 · 바탕 #edf0f6 · 실제 근무 #7676e4 그대로 */}
               <p className="flex items-center gap-[10px] text-[12px] text-staff-text-sub">
                 {schedule && (
                   <span className="flex items-center gap-[4px]">
