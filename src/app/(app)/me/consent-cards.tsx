@@ -8,7 +8,7 @@ import type { Schemas } from "@/lib/api";
 // 지금 시행 중인 위치정보 약관 — 받음 · 없음(설정 문제) · 잠시 못 받음. 타입만 가져온다(서버 모듈).
 import type { CurrentTerms } from "@/lib/my-profile";
 import { HQ_SHARING_TERMS_VERSION } from "@/lib/hq-sharing-terms";
-import { HqSharingTermsBody, HqSharingTermsReviewNote } from "@/app/_components/hq-sharing-terms";
+import { HqSharingTermsBody } from "@/app/_components/hq-sharing-terms";
 import {
   CONSENT_CHANGES,
   LOCATION_REAGREED,
@@ -341,7 +341,6 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
             <p>동의한 뒤 내용이 바뀌었습니다. 위 내용으로 다시 동의해야 가맹본부에 개인 단위로 보입니다 — 원하지 않으면 동의를 철회할 수 있습니다.</p>
           </Alert>
         )}
-        <HqSharingTermsReviewNote />
         {/* 위치정보와 같이 내용을 보인 이 시트 안에서만 동의를 받는다. */}
         {view.action.kind === "agree" && (
           // 내 정보의 끝난 알림은 「동의를 완료했습니다」 — 홈 다시 동의 팝업이 같이 쓰는 CONSENT_CHANGES 문구는 그대로 둔다
