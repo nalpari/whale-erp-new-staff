@@ -89,11 +89,9 @@ export function ContractSummary({
   const shown = rows.filter(([, v]) => v);
   return (
     <section className="flex flex-col gap-[10px] rounded-[16px] border border-staff-border bg-white py-[16px] pr-[16px] pl-[18px]">
-      <div className="flex items-center gap-[8px]">
-        <span aria-hidden className="flex text-staff-text-sub">
-          <MaskIcon src="/icons/store-small.svg" size={18} />
-        </span>
-        <h2 className="min-w-0 flex-1 truncate text-[15px] font-bold">{storeName}</h2>
+      {/* 점포 아이콘 없이 근무지명만. 길면 말줄임 없이 두 줄로 넘기고 배지는 첫 줄 높이에 둔다(2026-11-20 사용자 지정) */}
+      <div className="flex items-start gap-[8px]">
+        <h2 className="min-w-0 flex-1 text-[15px] leading-[1.45] font-bold break-keep">{storeName}</h2>
         {badge}
       </div>
       {(shown.length > 0 || note) && (
@@ -116,6 +114,28 @@ export function ContractSummary({
           {note && <p className="text-[13px] text-staff-text-muted">{note}</p>}
         </dl>
       )}
+    </section>
+  );
+}
+
+/**
+ * 상세 아래 정보 묶음(정돈 시안, 2026-11-20 사용자 지정) — 묶음 이름(14 semibold 보조)은 상자 밖, 연회색 둥근 상자에 이름(80 흐림) · 값(왼쪽 정렬)
+ * 줄. 전엔 오른쪽 정렬 값이라 긴 주소가 들쑥날쑥했다. 값이 없는 줄은 뺀다.
+ */
+export function InfoGroup({ title, rows }: { title: string; rows: [string, ReactNode | null | undefined][] }) {
+  const shown = rows.filter(([, v]) => v !== null && v !== undefined && v !== "");
+  return (
+    <section className="flex flex-col gap-[8px]">
+      <h2 className="px-[4px] text-[14px] font-semibold text-staff-text-sub">{title}</h2>
+      <dl className="overflow-hidden rounded-[16px] border border-staff-border bg-staff-bg">
+        {shown.map(([label, value]) => (
+          // 줄 사이 #e4e8ef — staff-bg 바탕 위에서 옅은 테두리는 보이지 않아 한 단계 진하게(신고 정보 · 퇴근 완료 상자와 같다)
+          <div key={label} className="flex gap-[12px] border-t border-[#e4e8ef] px-[18px] py-[12px] text-[14px] first:border-t-0">
+            <dt className="w-[80px] shrink-0 text-staff-text-muted">{label}</dt>
+            <dd className="min-w-0 flex-1 break-keep">{value}</dd>
+          </div>
+        ))}
+      </dl>
     </section>
   );
 }
