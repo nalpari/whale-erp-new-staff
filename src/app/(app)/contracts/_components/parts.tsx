@@ -127,10 +127,10 @@ export function InfoGroup({ title, rows }: { title: string; rows: [string, React
   return (
     <section className="flex flex-col gap-[8px]">
       <h2 className="px-[4px] text-[14px] font-semibold text-staff-text-sub">{title}</h2>
-      <dl className="overflow-hidden rounded-[16px] border border-staff-border bg-staff-bg">
+      <dl className="flex flex-col gap-[10px] rounded-[16px] border border-staff-border bg-staff-bg px-[18px] py-[16px]">
         {shown.map(([label, value]) => (
-          // 줄 사이 #e4e8ef — staff-bg 바탕 위에서 옅은 테두리는 보이지 않아 한 단계 진하게(신고 정보 · 퇴근 완료 상자와 같다)
-          <div key={label} className="flex gap-[12px] border-t border-[#e4e8ef] px-[18px] py-[12px] text-[14px] first:border-t-0">
+          // 줄 사이 선 없이 간격만(2026-11-20 사용자 지정)
+          <div key={label} className="flex gap-[12px] text-[14px]">
             {/* 이름 칸은 가장 긴 「사업자등록번호」(7자)가 한 줄에 들어가는 104 · 줄바꿈 없음(2026-11-20 사용자 지정) */}
             <dt className="w-[104px] shrink-0 whitespace-nowrap text-staff-text-muted">{label}</dt>
             <dd className="min-w-0 flex-1 break-keep">{value}</dd>
