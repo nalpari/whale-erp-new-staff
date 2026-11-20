@@ -1,5 +1,5 @@
 // 서명 요청 팝업(WHALEERP-148, 데모 home 의 sign-req) · 홈 서명 대기 카드(146)의 순수 판정 — 띄울 계약 고르기(서버 화면이 부른다).
-// 「나중에」 판정은 클라이언트가 쓰는 sign-request-seen.ts, 기억은 sign-request-popup-memory.ts, 화면은 src/app/(app)/home/.
+// 「나중에 하기」 판정은 클라이언트가 쓰는 sign-request-seen.ts, 기억은 sign-request-popup-memory.ts, 화면은 src/app/(app)/home/.
 // node --test 가 직접 읽는다.
 import { deadlineOf, isDeadlineNear, popupDeadline } from "./contract-rules.ts";
 import type { ContractListItem } from "./contracts";
@@ -14,7 +14,7 @@ export interface SignRequest {
   href: string;
   /** 「2026년 10월 11일 10:23까지」와 남은 날 「26일 남음」(당일은 「오늘 마감」, 상세 머리 카드와 같은 규칙 popupDeadline). 기한이 없으면 null. */
   deadline: { until: string; left: string } | null;
-  /** 「나중에」로 기억할 값 — 지금 서명을 기다리는 계약 모두의 id@발송 일시(isSignRequestDismissed 가 부분집합으로 본다). */
+  /** 「나중에 하기」로 기억할 값 — 지금 서명을 기다리는 계약 모두의 id@발송 일시(isSignRequestDismissed 가 부분집합으로 본다). */
   key: string;
 }
 

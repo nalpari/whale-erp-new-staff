@@ -8,8 +8,9 @@ import type { PopupSummary } from "@/lib/affiliation-requests";
 // 같은 판이다. 「나중에 하기」를 누르면 본 요청을 이 탭에 기억해 다시 띄우지 않는다(lib/affiliation-popup-memory) — 하나에 답해 줄어도
 // 그대로 닫혀 있고, 새 요청이 오거나 앱을 새로 열거나 다시 로그인하면 다시 뜬다.
 // 닫아도 내 정보 - 내 근무지에서 요청을 찾아 확인 화면(/affiliations)으로 갈 수 있다.
-// 정돈 시안 B안(2026-11-20 사용자 지정): 머리말 「새 근무지 초대」, 제목 「○○에서 / 근무지 초대를 보냈습니다」(근무지 이름만 남보라),
-// 판에 고용 형태 · 답변 기한(아래 꺾은선 줄에 남은 날).
+// 정돈 시안 B안(2026-11-20 사용자 지정): 요청이 하나일 때 머리말 「새 근무지 초대」, 제목 「○○에서 / 근무지 초대를 보냈습니다」(근무지
+// 이름만 남보라), 판에 고용 형태 · 답변 기한(아래 꺾은선 줄에 남은 날). 요청이 여럿이거나 복귀 확인일 때의 머리말 · 제목 · 줄은
+// lib/affiliation-requests.ts 의 popupSummary 를 본다.
 // 열지 말지(기억 · 서명 요청 팝업과의 순서)는 home-popups.tsx 가 정한다.
 export function AffiliationPopup({ summary, open }: { summary: PopupSummary; open: boolean }) {
   const [first, ...rest] = summary.headingRest.split("\n");
