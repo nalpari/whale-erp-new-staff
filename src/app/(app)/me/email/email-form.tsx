@@ -11,20 +11,21 @@ import { emailChangeAction } from "./actions";
 // 지금 비밀번호(WHALEERP-607, 운영 정책 ACC-13)는 데모에 없어 새 이메일 아래에 더했다.
 
 /** 단계가 바뀔 때 제목에 초점을 옮긴다. 같은 화면에서 바뀌어 경로 알림이 없고, 누른 버튼이 사라져 초점이 body 로 떨어진다. */
-function Lead({ title, children }: { title: string; children: ReactNode }) {
+// 정돈 시안 ⑲(2026-11-20 사용자 지정): 흰 바탕 · 큰 제목(24, 두 줄) · 설명 15, 현재 아이디는 근무지 상자 모양, 주의 안내는 새 이메일 칸 바로 아래 한 줄.
+function Lead({ title, children }: { title: ReactNode; children: ReactNode }) {
   const ref = useRef<HTMLHeadingElement>(null);
   useEffect(() => ref.current?.focus(), []);
   return (
-    <div className="flex flex-col gap-[6px]">
-      <h2 ref={ref} tabIndex={-1} className="text-[22px] font-bold outline-none">
+    <div className="flex flex-col gap-[8px] break-keep">
+      <h2 ref={ref} tabIndex={-1} className="text-[24px] leading-[1.42] font-bold outline-none">
         {title}
       </h2>
-      <p className="text-[14px] text-staff-text-sub">{children}</p>
+      <p className="text-[15px] text-staff-text-sub">{children}</p>
     </div>
   );
 }
 
-const BODY = "flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]";
+const BODY = "flex flex-col gap-[20px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]";
 
 export function EmailForm({ currentEmail }: { currentEmail: string }) {
   const [state, formAction, pending] = useActionState<EmailChangeState, FormData>(emailChangeAction, INITIAL_EMAIL_STATE);
@@ -40,16 +41,32 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
   if (state.step === "pin") return <PinStep key={state.deadline} state={state} action={send} pending={pending} />;
 
   return (
-    <form action={send} className="flex flex-1 flex-col">
+    <form action={send} className="flex flex-1 flex-col bg-white">
       <div className={BODY}>
-        <Lead title="이메일을 변경하면 로그인 아이디도 바뀝니다">
+        <Lead
+          title={
+            <>
+              이메일을 변경하면
+              <br />
+              로그인 아이디도 바뀝니다
+            </>
+          }
+        >
           새 이메일로 인증번호를 보내 드립니다.
           <br />
           인증이 끝나면 다음 로그인부터 새 이메일을 사용합니다.
         </Lead>
-        <div className="flex items-center gap-[12px] rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px]">
-          <span className="text-[13px] font-semibold text-staff-text-sub">현재 아이디</span>
-          <span className="min-w-0 flex-1 truncate text-right text-[13px]">{currentEmail}</span>
+        <div className="flex items-center gap-[12px] rounded-[16px] border border-staff-border bg-staff-bg py-[12px] pr-[16px] pl-[12px]">
+          <span aria-hidden className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-white text-staff-text-sub">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3.5" y="5.5" width="17" height="13" rx="2" />
+              <path d="M4 7l8 6 8-6" />
+            </svg>
+          </span>
+          <p className="flex min-w-0 flex-col">
+            <span className="text-[12px] text-staff-text-muted">현재 아이디</span>
+            <span className="truncate text-[16px] font-bold">{currentEmail}</span>
+          </p>
         </div>
         {/* 인증번호 단계에서 돌아오면 폼이 새로 붙어 defaultValue 로 넣은 값을 되돌린다. */}
         <TextField
@@ -63,6 +80,14 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
           defaultValue={state.newEmail}
           error={state.problem?.field === "newEmail" ? state.problem.message : undefined}
         />
+        {/* 새 이메일 칸에 대한 주의라 그 칸 바로 아래(위 칸과 8 — 칸 안내 간격)에 둔다. 글자색은 경고 판과 같은 #956013 */}
+        <p className="-mt-[12px] flex gap-[6px] text-[13px] leading-[1.5] break-keep text-[#956013]">
+          <svg aria-hidden width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="mt-[2px] shrink-0">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7.5v5.5M12 16.5v.5" />
+          </svg>
+          <span>비밀번호 재설정 인증번호도 이 이메일로 보내 드립니다. 메일을 받을 수 있는 주소인지 확인해 주세요.</span>
+        </p>
         <TextField
           label="현재 비밀번호"
           name="currentPassword"
@@ -75,17 +100,9 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
           onChange={(event) => setCurrentPassword(event.target.value)}
           error={state.problem?.field === "currentPassword" ? state.problem.message : undefined}
         />
-        {state.problem?.field === "form" ? (
+        {state.problem?.field === "form" && (
           <Alert tone="danger">
             <p>{state.problem.message}</p>
-          </Alert>
-        ) : (
-          <Alert tone="warning">
-            <p>
-              비밀번호 재설정 인증번호도 이 이메일로 보내 드립니다.
-              <br />
-              <strong>메일을 받을 수 있는 주소</strong>인지 확인해 주세요.
-            </p>
           </Alert>
         )}
       </div>
@@ -118,7 +135,7 @@ function PinStep({
   const canResend = resendLeft !== null && resendLeft <= 0;
 
   return (
-    <form action={action} className="flex flex-1 flex-col">
+    <form action={action} className="flex flex-1 flex-col bg-white">
       <div className={BODY}>
         {/* 방금 직접 넣은 주소라 가리지 않는다 — 오타를 여기서 알아챌 수 있게(데모는 가렸다). */}
         <Lead title="인증번호 입력">
