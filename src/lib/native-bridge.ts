@@ -1,0 +1,165 @@
+/**
+ * 설치형 직원 근무 앱(웹뷰 껍데기, `whale-erp-staff-mobile-app`)의 기능을 부르는 단 한 곳.
+ * 약속 전문은 앱 저장소 `docs/native-bridge.md` 다. 앱 기능을 더하면 그 문서와 여기를 같이 고친다.
+ *
+ * - 앱 안인지는 User-Agent 끝의 `WhaleStaffApp/<앱 버전>` 으로만 알아본다. 감지용일 뿐 권한 확인에 쓰지 않는다
+ *   (누구나 흉내 낼 수 있다). 실제 허락은 앱이 출처(https · 호스트 · 포트)와 맨 위 화면인지로 정한다.
+ * - 앱은 언제나 `{ ok: true, data }` 또는 `{ ok: false, error }` 하나로 답한다. 없는 기능 이름이면 앱까지 가지 않고 `null` 이 온다.
+ * - `window.flutter_inappwebview.callHandler` 는 이 파일 밖에서 부르지 않는다.
+ * - 브라우저 전용이다. 서버 컴포넌트에서 부르지 않는다.
+ */
+
+/** User-Agent 에서 앱을 알아보는 표식. 앱이 기본 User-Agent 끝에 `WhaleStaffApp/1.0.0` 처럼 붙인다. */
+export const APP_USER_AGENT_MARK = "WhaleStaffApp/";
+
+/** 앱이 준비됐다고 알리는 이벤트(flutter_inappwebview). 이미 준비됐으면 `window.flutter_inappwebview.callHandler` 가 있다. */
+export const BRIDGE_READY_EVENT = "flutterInAppWebViewPlatformReady";
+
+/**
+ * 앱 기능 호출의 결과.
+ * - forbidden: 앱이 받지 않은 호출(다른 출처 · iframe). 웹 코드 버그라 다시 시도하지 않는다.
+ * - failed: 앱 기능이 실패했거나, 호출이 예외로 끝났거나, 앱이 제때 답하지 않았다. 앱 기능 실패는 앱 로그에,
+ *   예외 · 시간 초과는 웹 콘솔에 남는다.
+ * - unavailable: 앱 안이 아니거나, 브리지가 제때 준비되지 않았거나, 앱에 없는 기능이다(앱 버전이 낮을 때 등).
+ * - malformed: 앱이 약속과 다른 모양으로 답했다.
+ */
+export type BridgeError = "forbidden" | "failed" | "unavailable" | "malformed";
+export type BridgeResult<T> = { ok: true; data: T } | { ok: false; error: BridgeError };
+
+/** `window.flutter_inappwebview` 가운데 여기서 쓰는 부분. */
+export type Bridge = { callHandler: (name: string, ...args: unknown[]) => Promise<unknown> };
+
+/** 표식은 User-Agent 맨 앞이나 공백 바로 뒤에 온 것만 센다(`NotWhaleStaffApp/1.0` 같은 다른 제품명은 앱이 아니다). */
+const APP_USER_AGENT_TOKEN = new RegExp(`(?:^|\\s)${APP_USER_AGENT_MARK}(\\S+)`, "g");
+
+/** User-Agent 에서 앱 버전을 읽는다. 앱 밖이면 null. 표식이 여럿이면 마지막(앱이 붙인 것)을 쓴다. */
+export function appVersionOf(userAgent: string): string | null {
+  const matches = [...userAgent.matchAll(APP_USER_AGENT_TOKEN)];
+  return matches.at(-1)?.[1] ?? null;
+}
+
+/** 설치형 앱 안에서 열렸는지. 화면 분기(감지)에만 쓴다. 인자를 빼면 지금 브라우저의 User-Agent 를 본다. */
+export function isInApp(userAgent: string = typeof navigator === "undefined" ? "" : navigator.userAgent): boolean {
+  return appVersionOf(userAgent) !== null;
+}
+
+/** 앱이 돌려준 값을 약속에 맞는지 보고 결과로 바꾼다. `null`(없는 기능)은 unavailable. */
+export function readBridgeResult<T>(raw: unknown, isData: (data: unknown) => data is T): BridgeResult<T> {
+  if (raw === null || raw === undefined) return { ok: false, error: "unavailable" };
+  if (typeof raw !== "object" || !("ok" in raw)) return { ok: false, error: "malformed" };
+  if (raw.ok === true) {
+    // data 는 약속상 꼭 있어야 한다. 빠진 { ok: true } 를 isData 가 undefined 를 허락해 성공으로 넘기지 않게 먼저 본다.
+    if (!("data" in raw)) return { ok: false, error: "malformed" };
+    return isData(raw.data) ? { ok: true, data: raw.data } : { ok: false, error: "malformed" };
+  }
+  if (raw.ok === false && "error" in raw && (raw.error === "forbidden" || raw.error === "failed")) {
+    return { ok: false, error: raw.error };
+  }
+  return { ok: false, error: "malformed" };
+}
+
+type BridgeWindow = Pick<Window, "addEventListener" | "removeEventListener"> & { flutter_inappwebview?: unknown };
+
+/** 부를 수 있는 브리지인지. Android 는 `callHandler` 를 심기 전에도 객체가 먼저 있을 수 있어 함수까지 본다. */
+function isBridge(value: unknown): value is Bridge {
+  return typeof value === "object" && value !== null && "callHandler" in value && typeof value.callHandler === "function";
+}
+
+/**
+ * 기다리지 않고 바로 불러도 되는 브리지인지.
+ * Android 는 웹뷰가 문서 시작 스크립트(DOCUMENT_START_SCRIPT)를 지원하지 않으면 `callHandler` 가 보여도
+ * 준비 이벤트 전에는 부를 수 없다. 플러그인(flutter_inappwebview_android)은 준비 이벤트를 보낼 때
+ * `_platformReady = true` 를 남기므로 그것까지 본다. iOS 는 이 표시를 남기지 않지만 `callHandler` 가 보이면 부를 수 있다.
+ */
+function isReadyBridge(value: unknown, userAgent: string): value is Bridge {
+  if (!isBridge(value)) return false;
+  if (!/\bAndroid\b/.test(userAgent)) return true;
+  return "_platformReady" in value && value._platformReady === true;
+}
+
+/**
+ * 브리지를 기다린다. 앱 밖이면 바로 null, 앱 안이면 준비 이벤트를 [timeoutMs] 까지 기다리고 못 받으면 null.
+ * 앱은 페이지 스크립트보다 먼저 준비되는 게 보통이지만, 첫 화면에서 바로 부르면 이벤트를 기다려야 할 수 있다.
+ */
+export function waitForBridge(
+  win: BridgeWindow | undefined = typeof window === "undefined" ? undefined : (window as unknown as BridgeWindow),
+  { userAgent, timeoutMs = 3000 }: { userAgent?: string; timeoutMs?: number } = {},
+): Promise<Bridge | null> {
+  const ua = userAgent ?? (typeof navigator === "undefined" ? "" : navigator.userAgent);
+  if (win === undefined || !isInApp(ua)) return Promise.resolve(null);
+  if (isReadyBridge(win.flutter_inappwebview, ua)) return Promise.resolve(win.flutter_inappwebview);
+  return new Promise((resolve) => {
+    const finish = (reason: string) => {
+      clearTimeout(timer);
+      win.removeEventListener(BRIDGE_READY_EVENT, onReady);
+      const bridge = win.flutter_inappwebview;
+      // 이벤트가 왔거나 시간이 다 됐으면 callHandler 가 있는 것만으로 부른다(준비 표시를 못 받아도 시도는 해 본다).
+      if (isBridge(bridge)) return resolve(bridge);
+      // 앱 안인데 브리지가 없다 = 앱 쪽 고장. 앱 밖(조용한 null)과 구분되게 남긴다.
+      const version = appVersionOf(ua);
+      console.error(`[native-bridge] 앱(${version}) 안인데 브리지가 없다: ${reason}`);
+      resolve(null);
+    };
+    const onReady = () => finish("준비 이벤트는 왔지만 callHandler 가 없음");
+    const timer = setTimeout(() => finish(`${timeoutMs}ms 안에 준비 이벤트가 오지 않음`), timeoutMs);
+    win.addEventListener(BRIDGE_READY_EVENT, onReady);
+  });
+}
+
+/**
+ * 앱 기능 하나를 부른다. 앱 밖이거나 브리지가 없으면 unavailable, 호출이 예외로 끝나거나
+ * [timeoutMs] 안에 답이 없으면 failed(답이 버려지거나 앱 기능이 끝나지 않으면 영원히 기다리게 되므로).
+ * [bridge] 를 넘기면 기다리지 않고 그것으로 부른다(테스트 · 이미 받아 둔 브리지).
+ */
+export async function callNative<T>(
+  name: string,
+  args: unknown[],
+  isData: (data: unknown) => data is T,
+  bridge?: Bridge | null,
+  { timeoutMs = 10_000 }: { timeoutMs?: number } = {},
+): Promise<BridgeResult<T>> {
+  const target = bridge === undefined ? await waitForBridge() : bridge;
+  if (target === null) return { ok: false, error: "unavailable" };
+  const TIMED_OUT = Symbol("timed out");
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let raw: unknown;
+  try {
+    raw = await Promise.race([
+      target.callHandler(name, ...args),
+      new Promise<typeof TIMED_OUT>((resolve) => {
+        timer = setTimeout(() => resolve(TIMED_OUT), timeoutMs);
+      }),
+    ]);
+  } catch (thrown) {
+    console.error(`[native-bridge] ${name} 호출 실패`, thrown);
+    return { ok: false, error: "failed" };
+  } finally {
+    clearTimeout(timer);
+  }
+  if (raw === TIMED_OUT) {
+    console.error(`[native-bridge] ${name} 이(가) ${timeoutMs}ms 안에 답하지 않음`);
+    return { ok: false, error: "failed" };
+  }
+  const result = readBridgeResult(raw, isData);
+  if (!result.ok && result.error === "malformed") console.error(`[native-bridge] ${name} 의 답이 약속과 다르다`, raw);
+  return result;
+}
+
+/** `appInfo` 의 data. */
+export type AppInfo = { version: string; platform: "android" | "ios" | "other" };
+
+export function isAppInfo(data: unknown): data is AppInfo {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "version" in data &&
+    typeof data.version === "string" &&
+    "platform" in data &&
+    (data.platform === "android" || data.platform === "ios" || data.platform === "other")
+  );
+}
+
+/** 앱 버전과 운영체제. 브리지가 살아 있는지 확인하거나 앱 버전별로 기능을 켜고 끌 때 쓴다. */
+export function getAppInfo(bridge?: Bridge | null): Promise<BridgeResult<AppInfo>> {
+  return callNative("appInfo", [], isAppInfo, bridge);
+}
