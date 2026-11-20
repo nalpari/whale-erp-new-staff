@@ -52,7 +52,7 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
             </>
           }
         >
-          새 이메일로 인증번호를 보내드립니다.
+          변경할 이메일 주소로 인증번호가 발송됩니다.
           <br />
           인증이 완료되면 변경된 이메일로 로그인할 수 있습니다.
         </Lead>
