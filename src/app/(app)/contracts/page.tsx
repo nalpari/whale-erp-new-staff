@@ -50,7 +50,12 @@ export default async function ContractsPage({ searchParams }: PageProps<"/contra
         </div>
       ) : (
         <>
-          {storeId !== null && <WorkplaceBox name={items[0].storeName} />}
+          {/* 근무지 줄 아래는 묶음 사이(12)보다 8 더 띄운다 — 머리줄 아래 빈 공간과 눈으로 같아 보이게(2026-11-20 사용자 지정) */}
+          {storeId !== null && (
+            <div className="pb-[8px]">
+              <WorkplaceBox name={items[0].storeName} />
+            </div>
+          )}
           {open.length > 0 && <Group title="진행 중인 근로계약서" count={open.length}>{open.map(row)}</Group>}
           {finished.length > 0 && <Group title="지난 근로계약서" count={finished.length}>{finished.map(row)}</Group>}
         </>
