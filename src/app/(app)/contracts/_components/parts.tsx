@@ -119,7 +119,7 @@ export function ContractSummary({
 }
 
 /**
- * 상세 아래 정보 묶음(정돈 시안, 2026-11-20 사용자 지정) — 묶음 이름(14 semibold 보조)은 상자 밖, 연회색 둥근 상자에 이름(80 흐림) · 값(왼쪽 정렬)
+ * 상세 아래 정보 묶음(정돈 시안, 2026-11-20 사용자 지정) — 묶음 이름(14 semibold 보조)은 상자 밖, 연회색 둥근 상자에 이름(104 흐림) · 값(왼쪽 정렬)
  * 줄. 전엔 오른쪽 정렬 값이라 긴 주소가 들쑥날쑥했다. 값이 없는 줄은 뺀다.
  */
 export function InfoGroup({ title, rows }: { title: string; rows: [string, ReactNode | null | undefined][] }) {
@@ -131,7 +131,8 @@ export function InfoGroup({ title, rows }: { title: string; rows: [string, React
         {shown.map(([label, value]) => (
           // 줄 사이 #e4e8ef — staff-bg 바탕 위에서 옅은 테두리는 보이지 않아 한 단계 진하게(신고 정보 · 퇴근 완료 상자와 같다)
           <div key={label} className="flex gap-[12px] border-t border-[#e4e8ef] px-[18px] py-[12px] text-[14px] first:border-t-0">
-            <dt className="w-[80px] shrink-0 text-staff-text-muted">{label}</dt>
+            {/* 이름 칸은 가장 긴 「사업자등록번호」(7자)가 한 줄에 들어가는 104 · 줄바꿈 없음(2026-11-20 사용자 지정) */}
+            <dt className="w-[104px] shrink-0 whitespace-nowrap text-staff-text-muted">{label}</dt>
             <dd className="min-w-0 flex-1 break-keep">{value}</dd>
           </div>
         ))}
