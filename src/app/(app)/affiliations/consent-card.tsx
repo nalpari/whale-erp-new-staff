@@ -7,7 +7,7 @@ import { HQ_SHARING_TERMS_VERSION, hqSharingSummary } from "@/lib/hq-sharing-ter
 import { HqSharingTermsButton } from "@/app/_components/hq-sharing-terms";
 
 // 근무지 추가 확인의 사업자 제공 동의(가맹 점포, ATT-30) — 정돈 시안 제안 1(2026-11-20 사용자 지정). 테두리 둥근 카드 위 줄에
-// 동그라미 체크 · 「가맹본부에 내 근무 정보 제공 동의 (선택)」 · 「내용 보기 ›」, 선 아래 옅은 바탕에 요약.
+// 동그라미 체크 · 「근무정보 제공 동의 (선택)」 · 「내용 보기 ›」, 선 아래 옅은 바탕에 요약.
 // 요약 글자는 동의 문구 버전(HQ_SHARING_TERMS_VERSION)과 묶여 그대로 둔다 — 시안의 꺾은선 네 줄로 나눈 문구는 버전을 올리고 api 와
 // 함께 배포해야 해서 3팀 확인 뒤에 바꾼다. 폼 값은 공통 CheckBox 와 같이 숨은 칸으로 싣고 폼 초기화 때 실제 체크를 상태로 되돌린다.
 export function ConsentCard({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) {
@@ -46,7 +46,7 @@ export function ConsentCard({ checked, onChange }: { checked: boolean; onChange:
             <MaskIcon src="/icons/check.svg" size={12} />
           </span>
           <span className="text-[15px] font-semibold break-keep">
-            가맹본부에 내 근무 정보 제공 동의 <span className="font-normal text-staff-text-muted">(선택)</span>
+            근무정보 제공 동의 <span className="font-normal text-staff-text-muted">(선택)</span>
           </span>
         </label>
         <HqSharingTermsButton chevron />

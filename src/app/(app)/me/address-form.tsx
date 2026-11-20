@@ -11,7 +11,7 @@ import { ReadOnlyField } from "@/app/_components/read-only-field";
 const INITIAL: AddressSaveState = {};
 
 /**
- * 연락처 카드의 주소 칸(데모 me 의 주소 · 주소 검색). 도로명 주소는 검색해서 고르고 상세 주소만 직접 적는다.
+ * 주소 줄을 누르면 펼쳐지는 주소 편집(데모 me 의 주소 · 주소 검색, 내 정보 정돈 시안 ⑬ — address-row). 줄 이름이 「주소」라 칸 이름은 「도로명 주소」다. 도로명 주소는 검색해서 고르고 상세 주소만 직접 적는다.
  * 저장이 실패해도 고른 주소 · 적은 상세 주소는 이 컴포넌트가 들고 있어 그대로 남는다.
  */
 export function AddressForm({ zipCode, address, addressDetail }: { zipCode: string | null; address: string | null; addressDetail: string | null }) {
@@ -30,15 +30,14 @@ export function AddressForm({ zipCode, address, addressDetail }: { zipCode: stri
       <input type="hidden" name="zipCode" value={picked.zipCode} />
       <input type="hidden" name="address" value={picked.address} />
       <ReadOnlyField
-        label="주소"
+        label="도로명 주소"
         value={shown}
         wrap
-        action={
-          <Button variant="outline" onClick={() => setSearching(true)}>
-            검색
-          </Button>
-        }
       />
+      {/* 도로명 주소 칸과 검색 버튼은 행을 나눈다 — 위 행 값 칸, 아래 행 [주소 검색](둘 다 폭 전체, 2026-11-20 사용자 확정) */}
+      <Button variant="outline" onClick={() => setSearching(true)}>
+        주소 검색
+      </Button>
       <input
         name="addressDetail"
         aria-label="상세주소"

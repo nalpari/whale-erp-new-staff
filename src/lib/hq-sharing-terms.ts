@@ -60,4 +60,4 @@ export const isHqNotRecorded = (value: string | string[] | undefined) => value =
 
 /** 완료 화면의 안내 — 앱 문구가 번들이라 새로 고쳐야 바뀐 내용이 보인다 */
 export const HQ_NOT_RECORDED_NOTICE =
-  "사업자 제공 동의 내용이 바뀌어 이번 동의는 남지 않았습니다. 화면을 새로 고친 뒤 내 정보에서 바뀐 내용을 확인하고 다시 동의해 주세요.";
+  "근무정보 제공 동의 내용이 바뀌어 이번 동의는 남지 않았습니다. 화면을 새로 고친 뒤 내 정보에서 바뀐 내용을 확인하고 다시 동의해 주세요.";

@@ -46,7 +46,7 @@ export function HqSharingTermsButton({ chevron = false }: { chevron?: boolean })
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label="사업자 제공 동의 내용 보기"
+        aria-label="근무정보 제공 동의 내용 보기"
         // 빈칸을 음수 여백으로 당기면 44px 누르는 칸이 위 요약 글자를 덮어 요약을 눌러도 시트가 열린다 — 당기지 않는다
         className={
           chevron
@@ -58,7 +58,7 @@ export function HqSharingTermsButton({ chevron = false }: { chevron?: boolean })
         내용 보기
         {chevron && <MaskIcon src="/icons/chevron-right-small.svg" size={12} />}
       </button>
-      <BottomSheet open={open} onClose={() => setOpen(false)} title="사업자 제공 동의">
+      <BottomSheet open={open} onClose={() => setOpen(false)} title="근무정보 제공 동의">
         <HqSharingTermsBody />
         <HqSharingTermsReviewNote />
       </BottomSheet>

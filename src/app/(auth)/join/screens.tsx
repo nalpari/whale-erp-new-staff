@@ -123,7 +123,7 @@ export function HqSharingConsent({
   return (
     <div className="flex flex-col gap-[4px]">
       <CheckBox name="hqSharingConsented" checked={checked} onChange={onChange}>
-        사업자 제공 동의 (선택)
+        근무정보 제공 동의 (선택)
       </CheckBox>
       {/* 이 화면이 보인 문구의 버전(ATT-30 v252) — 액션이 그대로 api 에 실어 보내고, 다르면 api 가 동의만 남기지 않는다 */}
       <input type="hidden" name="hqSharingConsentVersion" value={HQ_SHARING_TERMS_VERSION} />

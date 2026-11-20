@@ -49,7 +49,7 @@ export function HqReconsentPopup({ open, reconsentKey }: { open: boolean; recons
       <RequestSheet
         open={open}
         onClose={() => rememberHqReconsentSeen(reconsentKey)}
-        title="사업자 제공 동의 내용이 바뀌었습니다"
+        title="근무정보 제공 동의 내용이 바뀌었습니다"
         rows={ROWS}
         description="다시 동의하기 전에는 본사에 점포별 숫자로만 보입니다. 원하지 않으면 내 정보에서 동의를 철회할 수 있습니다."
         action={
