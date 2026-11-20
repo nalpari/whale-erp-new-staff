@@ -24,7 +24,7 @@ import { dateLabel, kstDateLabel } from "@/lib/profile";
 import { requireSession } from "@/lib/session";
 import { ChangedToast } from "../../me/changed-toast";
 import { ContractDocument } from "../_components/contract-document";
-import { ContractFrame, ContractHead, Sunken, Tiny, Values } from "../_components/parts";
+import { ContractFrame, ContractSummary, Sunken, Tiny, Values } from "../_components/parts";
 import { rejectContractAction, requestContractCorrectionAction } from "./actions";
 import { ContractDecision } from "./contract-decision";
 
@@ -83,7 +83,6 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const phase = phaseOf(c, now);
   const status = phaseLabel(phase, labelOf(statuses, phase));
   const employmentType = c.employmentType && labelOf(employmentTypes, c.employmentType);
-  const title = [c.employer.storeName, employmentType].filter(Boolean).join(" · ");
   const deadline = deadlineOf(c, now);
   const paper = c.contractMethod === "PAPER";
   // 화면 제목은 목록에서 누른 상자 제목과 같다 — 「파트타이머 근로계약서」(고용 형태가 없으면 「근로계약서」, 2026-11-20 사용자 지정)
@@ -245,11 +244,18 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           )
         )}
 
-        <ContractHead
-          title={title}
-          sub={contractSubText(c, now, status, "detail")}
-          urgent={deadline?.urgent ?? false}
+        {/* 머리 요약 — 근무지명 · 상태, 받은 날 · 서명(기한이면 남은 날 꺾은선), 그 밖 단계는 한 줄 안내(2026-11-20 사용자 지정) */}
+        <ContractSummary
+          storeName={c.employer.storeName}
           badge={<Badge tone={statusTone(phase)}>{status}</Badge>}
+          rows={[
+            ["받은 날", c.sentAt && kstDateLabel(c.sentAt)],
+            deadline
+              ? ["서명 기한", deadline.dateTime]
+              : ["서명일", phase === "SIGNED" && c.processedAt ? kstDateLabel(c.processedAt) : null],
+          ]}
+          left={deadline ? { text: deadline.daysLeft === 0 ? "오늘 마감" : `${deadline.daysLeft}일 남음`, urgent: deadline.urgent } : undefined}
+          note={!deadline && phase !== "SIGNED" ? contractSubText(c, now, status, "detail") : null}
         />
 
         <ContractDocument articles={c.articles} employmentTypeLabel={employmentType} />
