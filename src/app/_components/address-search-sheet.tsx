@@ -8,7 +8,7 @@ import { BottomSheet } from "@/components/common";
 // (휴대전화에서 popup 은 새 창이 떠 돌아오기 어렵다). https://postcode.map.daum.net/guide
 // integrity 를 걸 수 없는 바깥 스크립트라 시트를 처음 연 뒤에만 넣는다 — 화면을 열기만 해서는 받지 않는다.
 // 내 정보의 주소(me/address-form.tsx)와 가입의 계정 등록(join/signup)이 같이 쓴다.
-const POSTCODE_SCRIPT = "https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
+const POSTCODE_SCRIPT = "https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
 
 /** 우편번호 서비스가 oncomplete 에 넘기는 값 중 쓰는 것. roadAddress 가 비면(지번을 고름 등) autoRoadAddress 가 대신한다. */
 interface PostcodeResult {
