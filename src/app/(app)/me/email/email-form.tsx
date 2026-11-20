@@ -12,7 +12,7 @@ import { emailChangeAction } from "./actions";
 
 /** 단계가 바뀔 때 제목에 초점을 옮긴다. 같은 화면에서 바뀌어 경로 알림이 없고, 누른 버튼이 사라져 초점이 body 로 떨어진다. */
 // 정돈 시안 ⑲(2026-11-20 사용자 지정): 흰 바탕 · 큰 제목(24, 두 줄) · 설명 15, 현재 아이디는 근무지 상자 모양, 주의 안내는 새 이메일 칸 바로 아래 한 줄.
-function Lead({ title, children }: { title: ReactNode; children: ReactNode }) {
+function Lead({ title, children }: { title: ReactNode; children?: ReactNode }) {
   const ref = useRef<HTMLHeadingElement>(null);
   useEffect(() => ref.current?.focus(), []);
   return (
@@ -20,7 +20,7 @@ function Lead({ title, children }: { title: ReactNode; children: ReactNode }) {
       <h2 ref={ref} tabIndex={-1} className="text-[24px] leading-[1.42] font-bold outline-none">
         {title}
       </h2>
-      <p className="text-[15px] text-staff-text-sub">{children}</p>
+      {children && <p className="text-[15px] text-staff-text-sub">{children}</p>}
     </div>
   );
 }
@@ -51,9 +51,7 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
               로그인 아이디도 변경됩니다
             </>
           }
-        >
-          인증이 완료되면 변경된 이메일로 로그인할 수 있습니다.
-        </Lead>
+        />
         <div className="flex items-center gap-[12px] rounded-[16px] border border-staff-border bg-staff-bg py-[12px] pr-[16px] pl-[12px]">
           <span aria-hidden className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-white text-staff-text-sub">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -78,9 +76,9 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
           defaultValue={state.newEmail}
           error={state.problem?.field === "newEmail" ? state.problem.message : undefined}
         />
-        {/* 새 이메일 칸 안내 두 줄 — 그 칸 바로 아래(위 칸과 8 — 칸 안내 간격). 둘째 줄은 놓치면 안 되는 주의라 경고 판과 같은 #956013 */}
+        {/* 새 이메일 칸 안내 두 줄 — 그 칸 바로 아래(위 칸과 8 — 칸 안내 간격), 회색 안내(2026-11-20 사용자 지정) */}
         <div className="-mt-[12px] flex flex-col gap-[2px] text-[13px] leading-[1.5] break-keep">
-          {/* 두 줄 모두 아이콘 칸(15)을 두어 글자 시작선을 맞춘다 — 첫 줄은 회색 안내(i), 둘째 줄은 황토색 주의(!) */}
+          {/* 두 줄 모두 아이콘 칸(15)을 두어 글자 시작선을 맞춘다 */}
           <p className="flex gap-[6px] text-staff-text-muted">
             <svg aria-hidden width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="mt-[2px] shrink-0">
               <circle cx="12" cy="12" r="9" />
@@ -88,12 +86,12 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
             </svg>
             <span>변경할 이메일 주소로 인증번호가 발송됩니다.</span>
           </p>
-          <p className="flex gap-[6px] text-[#956013]">
+          <p className="flex gap-[6px] text-staff-text-muted">
             <svg aria-hidden width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="mt-[2px] shrink-0">
               <circle cx="12" cy="12" r="9" />
-              <path d="M12 7.5v5.5M12 16.5v.5" />
+              <path d="M12 11v5.5M12 7.5v.5" />
             </svg>
-            <span>비밀번호 재설정 메일도 이 주소로 발송됩니다.</span>
+            <span>인증이 완료되면 변경된 이메일로 로그인할 수 있습니다.</span>
           </p>
         </div>
         <TextField
