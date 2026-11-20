@@ -15,7 +15,7 @@ export function NewPasswordFields({
   newPasswordError,
   confirmationError,
   labels = ["새 비밀번호", "새 비밀번호 확인"],
-  placeholders = ["새 비밀번호를 입력해 주세요", "새 비밀번호를 한 번 더 입력해 주세요"],
+  placeholders = ["새 비밀번호 입력", "새 비밀번호 다시 입력"],
 }: {
   /** 빠뜨리지 못하게 필수로 둔다 — 핀 흐름에서 빠지면 이메일 조건 줄이 소리 없이 사라진다. */
   email: string | null;

@@ -76,7 +76,7 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
           autoComplete="email"
           required
           maxLength={254}
-          placeholder="새 이메일을 입력해 주세요"
+          placeholder="새 이메일 입력"
           defaultValue={state.newEmail}
           error={state.problem?.field === "newEmail" ? state.problem.message : undefined}
         />
@@ -95,7 +95,7 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
           autoComplete="current-password"
           required
           maxLength={128}
-          placeholder="현재 비밀번호를 입력해 주세요"
+          placeholder="현재 비밀번호 입력"
           value={currentPassword}
           onChange={(event) => setCurrentPassword(event.target.value)}
           error={state.problem?.field === "currentPassword" ? state.problem.message : undefined}
