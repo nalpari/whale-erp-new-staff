@@ -112,7 +112,7 @@ const MAIN = {
     `<main class="flex flex-1 flex-col">${empty(
       linkBreakIcon(),
       "해당 내용을 열 수 없습니다",
-      `삭제되었거나 더 이상 볼 수 없는 내용입니다.<div class="pt-[8px]">${button("알림함으로 돌아가기", {
+      `삭제되었거나 더 이상 볼 수 없는 내용입니다.<div class="pt-[8px]">${button("닫기", {
         variant: "ghost",
         "data-go": "inbox",
         "data-dir": "nav-back",
