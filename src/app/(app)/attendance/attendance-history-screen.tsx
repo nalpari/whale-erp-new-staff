@@ -291,7 +291,10 @@ function PeriodPicker({ from, to }: { from: string; to: string }) {
           />
         </div>
         <div className="pt-[8px]">
-          <Button type="submit">조회</Button>
+          {/* 남보라 큰 버튼은 화면에서 너무 강해 외곽선 버튼으로(2026-11-20 사용자 지정) */}
+          <Button type="submit" variant="outline">
+            조회
+          </Button>
         </div>
         <p className="pt-[8px] text-[12px] text-staff-text-muted [&_b]:font-bold">
           한 번에 <b>최대 1년</b>까지 조회할 수 있습니다.
