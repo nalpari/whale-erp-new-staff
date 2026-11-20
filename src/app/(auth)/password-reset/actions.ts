@@ -136,7 +136,7 @@ export async function resetPasswordAction(_previous: NewPasswordState, formData:
   const confirmation = String(formData.get("newPasswordConfirmation") ?? "");
   const state = await readPasswordReset();
   if (!state?.pin) redirect("/password-reset");
-  if (newPassword !== confirmation) return { error: "두 칸의 비밀번호가 다릅니다", field: "confirmation" };
+  if (newPassword !== confirmation) return { error: "새 비밀번호가 일치하지 않습니다.", field: "confirmation" };
   let timedOut = false;
   try {
     await resetPassword({ email: state.email, pin: state.pin, newPassword }, clientIpFrom(await headers()));
@@ -205,7 +205,7 @@ export async function resetPasswordWithLinkAction(_previous: LinkPasswordState, 
     console.warn("[password-reset-link] 저장할 때 링크 쿠키가 없습니다");
     return { invalid: true };
   }
-  if (newPassword !== confirmation) return { error: "두 칸의 비밀번호가 다릅니다", field: "confirmation" };
+  if (newPassword !== confirmation) return { error: "새 비밀번호가 일치하지 않습니다.", field: "confirmation" };
   try {
     await resetPasswordWithLink({ token, newPassword }, clientIpFrom(await headers()));
   } catch (error) {

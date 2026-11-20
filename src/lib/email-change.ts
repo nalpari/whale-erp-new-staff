@@ -9,7 +9,7 @@ import {
   type ApiFailure,
   type Problem,
 } from "./action-errors.ts";
-import { CURRENT_PASSWORD_MISMATCH, CURRENT_PASSWORD_MISMATCH_API } from "./password-change.ts";
+import { CURRENT_PASSWORD_MISMATCH, isCurrentPasswordMismatch } from "./password-change.ts";
 
 /** api 의 이메일 변경 핀 유효 시간(MyEmailChangeService PIN_LIFETIME_MS)과 다시 받기 간격(REISSUE_INTERVAL_MS). 안내용이고 판정은 api 가 한다. */
 export const PIN_VALID_MS = 15 * 60 * 1000;
@@ -81,7 +81,7 @@ export function requestPinFailure(failure: ApiFailure, previous: EmailChangeStat
   });
   if (failure === "network") return form(CONNECTION_FAILED, false);
   const { status } = failure;
-  if (status === 400 && failure.message === CURRENT_PASSWORD_MISMATCH_API) {
+  if (status === 400 && isCurrentPasswordMismatch(failure.message)) {
     return { state: { step: "email", newEmail, problem: { field: "currentPassword", message: CURRENT_PASSWORD_MISMATCH } }, log: false };
   }
   if (status === 400 || status === 409) {

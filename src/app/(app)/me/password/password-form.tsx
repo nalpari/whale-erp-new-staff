@@ -35,7 +35,7 @@ export function PasswordForm({ email }: { email: string }) {
           confirmationError={errorOf("confirmation")}
         />
         <Notice>
-          바꾸면 <strong>이 휴대전화의 로그인은 이어지고</strong>, 다른 기기에서는 다시 로그인해야 합니다.
+          비밀번호 변경 후에도 <strong>현재 기기에서는 로그인이 유지</strong>되며, 다른 기기에서는 다시 로그인해야 합니다.
         </Notice>
       </div>
       <Dock>
