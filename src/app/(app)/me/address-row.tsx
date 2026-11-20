@@ -28,7 +28,7 @@ export function AddressRow({ zipCode, address, addressDetail }: { zipCode: strin
         <RowChevron open={open} />
       </button>
       <div id={panelId} hidden={!open} className="px-[16px] pb-[16px]">
-        <AddressForm zipCode={zipCode} address={address} addressDetail={addressDetail} />
+        <AddressForm zipCode={zipCode} address={address} addressDetail={addressDetail} onCancel={() => setOpen(false)} />
       </div>
     </div>
   );
