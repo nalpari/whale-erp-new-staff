@@ -34,10 +34,6 @@ export function AddressForm({ zipCode, address, addressDetail }: { zipCode: stri
         value={shown}
         wrap
       />
-      {/* 도로명 주소 칸과 검색 버튼은 행을 나눈다 — 위 행 값 칸, 아래 행 [주소 검색](둘 다 폭 전체, 2026-11-20 사용자 확정) */}
-      <Button variant="outline" onClick={() => setSearching(true)}>
-        주소 검색
-      </Button>
       <input
         name="addressDetail"
         aria-label="상세주소"
@@ -48,6 +44,10 @@ export function AddressForm({ zipCode, address, addressDetail }: { zipCode: stri
         onChange={(e) => setDetail(e.target.value)}
         className={FIELD}
       />
+      {/* 주소 두 칸(도로명 · 상세) 아래 행에 [주소 검색](폭 전체, 2026-11-20 사용자 확정) */}
+      <Button variant="outline" onClick={() => setSearching(true)}>
+        주소 검색
+      </Button>
       <p className="pt-[2px] text-[12px] text-staff-text-muted">
         주소를 변경해도 이미 서명한 계약서에는 반영되지 않습니다.
       </p>
