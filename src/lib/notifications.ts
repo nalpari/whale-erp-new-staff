@@ -17,7 +17,7 @@ export function targetHref(target: NotificationTarget | null | undefined): strin
     return target.workDate ? `/work?tab=schedule&month=${target.workDate.slice(0, 7)}&day=${target.workDate}` : null;
   if (target.type === "TODO") return "/work?tab=todo";
   if (target.type === "PAYSLIP") return target.payslipId ? `/pay/${target.payslipId}` : null;
-  // 근로계약서는 계약 상세로 — 서명을 마친 계약도 연다(api 는 내 계약이면 상태와 상관없이 갈 곳을 준다, WHALEERP-741)
+  // 근로계약서는 계약 상세로 — 서명을 마친 계약도 연다(api 는 직원 앱이 여는 내 계약(서명 대기 이후)이면 갈 곳을 준다, WHALEERP-741)
   if (target.type === "CONTRACT") return target.contractId ? `/contracts/${target.contractId}` : null;
   return null;
 }

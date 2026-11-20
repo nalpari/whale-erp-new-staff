@@ -33,7 +33,7 @@ function failure(where: string, error: unknown, notFound: string): NotificationA
 
 /**
  * 알림을 눌렀을 때(#267) — 읽음으로 바꾸고 관련 화면으로 간다. 그 업무가 속한 소속을 앱 전역 근무지로 맞춘 뒤 연다(WORK-4).
- * 급여명세서는 근무지와 상관없어(PAY-8) 소속이 없다 — 근무지를 바꾸지 않고 연다.
+ * 급여명세서는 근무지와 상관없어(PAY-8) 소속이 없고, 근로계약서는 상세가 근무지를 쓰지 않아 — 둘 다 근무지를 바꾸지 않고 연다.
  * 열 곳이 없으면 읽음만 바꾸고 「열 수 없습니다」를 알린다. 읽음 바꾸기에 실패하면 이동하지 않는다.
  */
 export async function openNotificationAction(id: number): Promise<NotificationActionResult> {
@@ -50,7 +50,9 @@ export async function openNotificationAction(id: number): Promise<NotificationAc
     refresh();
     return { unavailable: true };
   }
-  if (item.target.staffMemberId)
+  // 근로계약서는 근무지를 바꾸지 않는다 — 계약 상세는 지금 근무지를 쓰지 않고, 계약의 직원 레코드는 서명 전 · 퇴직이면 내 소속 목록에 없어
+  // 쿠키에 쓰면 지금 근무지가 첫 소속으로 조용히 돌아간다(WHALEERP-741 리뷰)
+  if (item.target.staffMemberId && item.target.type !== "CONTRACT")
     (await cookies()).set(CURRENT_STAFF_MEMBER_COOKIE, String(item.target.staffMemberId), currentStaffMemberCookie());
   redirect(href);
 }
