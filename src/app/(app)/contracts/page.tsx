@@ -103,8 +103,8 @@ function ContractRow({
   const status = phaseLabel(phase, labelOf(statuses, phase));
   const deadline = deadlineOf(c, now);
   const employment = c.employmentType ? labelOf(employmentTypes, c.employmentType) : null;
-  // 화면 제목이 「근로계약서」라 상자 제목에서 되풀이하지 않는다 — 고용 형태만(없으면 「근로계약서」), 2026-11-20 사용자 지정
-  const title = inStore ? (employment ?? "근로계약서") : [c.storeName, employment].filter(Boolean).join(" · ");
+  // 상자 제목은 누르면 열리는 상세의 화면 제목과 같다 — 「파트타이머 근로계약서」(2026-11-20 사용자 지정)
+  const title = inStore ? `${employment ? `${employment} ` : ""}근로계약서` : [c.storeName, employment].filter(Boolean).join(" · ");
   const open = !isFinishedPhase(phase);
   // 서명 기한 · 서명일로 말할 수 없는 단계(거절 · 만료 · 서명 불가 · 수정 요청)는 목록 한 줄 안내를 그대로 둔다
   const note = !deadline && phase !== "SIGNED" && phase !== "ENDED" ? contractSubText(c, now, status) : null;

@@ -86,7 +86,8 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const title = [c.employer.storeName, employmentType].filter(Boolean).join(" · ");
   const deadline = deadlineOf(c, now);
   const paper = c.contractMethod === "PAPER";
-  const header = <PageHeader title="근로계약서" backHref={backHref} />;
+  // 화면 제목은 목록에서 누른 상자 제목과 같다 — 「파트타이머 근로계약서」(고용 형태가 없으면 「근로계약서」, 2026-11-20 사용자 지정)
+  const header = <PageHeader title={employmentType ? `${employmentType} 근로계약서` : "근로계약서"} backHref={backHref} />;
 
   if (paper) {
     const files = paperDocuments(c.documents);
