@@ -32,11 +32,12 @@ import { ContractDecision } from "./contract-decision";
 
 export const metadata: Metadata = { title: "근로계약서 · Whale ERP" };
 
-/** 처리가 끝난 계약서의 상태별 안내(2026-11-20 사용자 지정 — 전엔 「이미 처리가 끝난 계약서입니다」 상자 하나). 만료 · 서명 불가는 위 안내 상자가 맡는다. */
+/** 처리가 끝났거나 수정 요청한 계약서의 상태별 안내 — 요약 카드 아래 회색 한 줄(2026-11-20 사용자 지정, 전엔 맨 위 안내 상자). 만료 · 서명 불가는 위 안내 상자가 맡는다. */
 const FINISHED_NOTE: Partial<Record<string, string>> = {
   SIGNED: "서명이 완료된 근로계약서입니다. 내용 변경은 근무지 관리자에게 문의해 주세요.",
   REJECTED: "서명을 거절한 근로계약서입니다. 다시 진행하려면 근무지 관리자에게 문의해 주세요.",
   ENDED: "계약 기간이 종료된 근로계약서입니다.",
+  CORRECTION_REQUESTED: "수정된 근로계약서를 받으면 다시 서명할 수 있습니다.",
 };
 
 const address = (...parts: (string | null)[]) => parts.filter(Boolean).join(" ") || null;
@@ -217,7 +218,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
               <br />
               {mismatched ? `다른 항목: ${mismatched}` : "다른 항목이 있습니다."}
               <br />
-              계약서 내용을 확인하고 수정을 요청해 주세요. 근무지 관리자가 고쳐 다시 보내면 서명할 수 있습니다.
+              계약서 내용을 확인하고 수정을 요청해 주세요. 수정된 근로계약서를 받으면 서명할 수 있습니다.
               {c.storeNotOperating === true && (
                 // 근무지도 운영 중이 아니면 고쳐도 다시 보낼 수 없다(api 가 막는다) — 관리자가 근무지도 바로잡아야 한다는 것을 함께 알린다
                 <>
@@ -234,12 +235,6 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
             <br />
             근무지 관리자에게 문의해 주세요.
           </Notice>
-        ) : phase === "CORRECTION_REQUESTED" ? (
-          <Notice>
-            <strong>수정을 요청한 계약서입니다.</strong>
-            <br />
-            근무지 관리자가 고쳐 다시 보내면 서명할 수 있습니다.
-          </Notice>
         ) : (
           // 처리가 끝난 계약서(서명 완료 · 거절 · 종료)는 위 안내 상자 대신 요약 카드 아래 회색 한 줄로 알린다(아래 finishedNote)
           null
@@ -253,12 +248,14 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
             ["받은 날", c.sentAt && kstDateLabel(c.sentAt)],
             deadline
               ? ["서명 기한", deadline.dateTime]
-              : ["서명일", phase === "SIGNED" && c.processedAt ? kstDateLabel(c.processedAt) : null],
+              : phase === "CORRECTION_REQUESTED"
+                ? ["수정 요청일", c.processedAt && kstDateLabel(c.processedAt)]
+                : ["서명일", phase === "SIGNED" && c.processedAt ? kstDateLabel(c.processedAt) : null],
           ]}
           left={deadline ? { text: deadline.daysLeft === 0 ? "오늘 마감" : `${deadline.daysLeft}일 남음`, urgent: deadline.urgent } : undefined}
-          note={!deadline && phase !== "SIGNED" ? contractSubText(c, now, status, "detail") : null}
+          note={!deadline && phase !== "SIGNED" && phase !== "CORRECTION_REQUESTED" ? contractSubText(c, now, status, "detail") : null}
         />
-        {isFinished(phase) && FINISHED_NOTE[phase] && (
+        {(isFinished(phase) || phase === "CORRECTION_REQUESTED") && FINISHED_NOTE[phase] && (
           <p className="-mt-[4px] flex gap-[6px] px-[4px] text-[13px] leading-[1.5] break-keep text-staff-text-muted">
             <svg aria-hidden width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="mt-[2px] shrink-0">
               <circle cx="12" cy="12" r="9" />
