@@ -151,7 +151,7 @@ export function TaxProfileForm({
               autoComplete="current-password"
               required
               maxLength={128}
-              placeholder="비밀번호 입력"
+              placeholder="현재 비밀번호를 입력해 주세요"
               help="변경사항을 저장하려면 현재 비밀번호를 입력해 주세요."
               value={currentPassword}
               onChange={(event) => edit(setCurrentPassword)(event.target.value)}
