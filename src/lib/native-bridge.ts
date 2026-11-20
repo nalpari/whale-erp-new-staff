@@ -89,20 +89,19 @@ export function waitForBridge(
   if (win === undefined || !isInApp(ua)) return Promise.resolve(null);
   if (isReadyBridge(win.flutter_inappwebview, ua)) return Promise.resolve(win.flutter_inappwebview);
   return new Promise((resolve) => {
-    // 준비 이벤트가 왔으면 callHandler 만 있으면 부른다. 시간이 다 됐으면 바로 불러도 되는 상태(준비 표시)여야 한다.
-    const finish = (eventArrived: boolean, reason: string) => {
+    const finish = (reason: string) => {
       clearTimeout(timer);
       win.removeEventListener(BRIDGE_READY_EVENT, onReady);
       const bridge = win.flutter_inappwebview;
-      const usable = eventArrived ? isBridge(bridge) : isReadyBridge(bridge, ua);
-      if (usable) return resolve(bridge as Bridge);
-      // 앱 안인데 쓸 수 있는 브리지가 없다 = 앱 쪽 고장. 앱 밖(조용한 null)과 구분되게 남긴다.
+      // 이벤트가 왔거나 시간이 다 됐으면 callHandler 가 있는 것만으로 부른다(준비 표시를 못 받아도 시도는 해 본다).
+      if (isBridge(bridge)) return resolve(bridge);
+      // 앱 안인데 브리지가 없다 = 앱 쪽 고장. 앱 밖(조용한 null)과 구분되게 남긴다.
       const version = appVersionOf(ua);
       console.error(`[native-bridge] 앱(${version}) 안인데 브리지가 없다: ${reason}`);
       resolve(null);
     };
-    const onReady = () => finish(true, "준비 이벤트는 왔지만 callHandler 가 없음");
-    const timer = setTimeout(() => finish(false, `${timeoutMs}ms 안에 준비 이벤트가 오지 않음`), timeoutMs);
+    const onReady = () => finish("준비 이벤트는 왔지만 callHandler 가 없음");
+    const timer = setTimeout(() => finish(`${timeoutMs}ms 안에 준비 이벤트가 오지 않음`), timeoutMs);
     win.addEventListener(BRIDGE_READY_EVENT, onReady);
   });
 }
