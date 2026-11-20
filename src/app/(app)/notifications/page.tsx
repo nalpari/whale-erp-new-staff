@@ -45,7 +45,7 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
           </Link>
         }
       />
-      <div className="flex flex-col gap-[16px] px-[22px] pt-[16px] pb-[24px] leading-[1.5]">
+      <div className="flex flex-col gap-[16px] px-[22px] pt-[20px] pb-[24px] leading-[1.5]">
         {!list ? (
           <>
             <Alert tone="warning">알림을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>

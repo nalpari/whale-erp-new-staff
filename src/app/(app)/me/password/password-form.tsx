@@ -16,7 +16,7 @@ export function PasswordForm({ email }: { email: string }) {
 
   return (
     <form action={formAction} className="flex flex-1 flex-col">
-      <div className="flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
+      <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
         <TextField
           label="현재 비밀번호"
           name="currentPassword"

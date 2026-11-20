@@ -42,7 +42,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
         }
       />
       {!memberships || (current && !records) ? (
-        <div className="px-[22px] pt-[22px]">
+        <div className="px-[22px] pt-[20px]">
           <Alert tone="warning">출퇴근 기록을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>
         </div>
       ) : !current || !records ? (

@@ -36,7 +36,7 @@ export default async function TaxProfileEditPage({ params }: PageProps<"/me/memb
       <PageHeader title="신고 정보 다시 입력" backHref={viewHref} />
       {tax === null ? (
         <>
-          <div className="flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
+          <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
             <Alert tone="warning">
               <p>신고 정보를 지금 고칠 수 없습니다. 잠시 뒤 다시 열어 주세요.</p>
             </Alert>

@@ -8,7 +8,7 @@ import { PRESS } from "@/components/common/theme";
 // 테두리 둥근 상자(모서리 16) 모양의 누르는 행. 하단 버튼(Dock)은 기존 네모 버튼 그대로다.
 
 /** 본문 틀: 좌우 24 · 위 30 · 사이 16. */
-export const BODY = "flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]";
+export const BODY = "flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]";
 
 /** 화면 첫 제목 + 설명(데모 lead). */
 export function Lead({ title, children }: { title: string; children: ReactNode }) {

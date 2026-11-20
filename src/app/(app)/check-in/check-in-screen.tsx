@@ -585,7 +585,7 @@ export function CheckInScreen({
     <>
       <div className={`flex flex-1 flex-col ${whitePage ? "bg-white" : ""}`}>
         {!done && header}
-        <main className="flex flex-1 flex-col gap-[20px] px-[24px] pt-[24px] pb-[8px] leading-[1.5]">
+        <main className="flex flex-1 flex-col gap-[20px] px-[24px] pt-[20px] pb-[8px] leading-[1.5]">
           {error && <Alert tone="danger">{error}</Alert>}
           {body}
         </main>

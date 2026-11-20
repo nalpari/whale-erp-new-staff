@@ -65,7 +65,7 @@ export default async function MembershipsPage() {
   return (
     <div className="flex flex-1 flex-col">
       <PageHeader title="내 근무지" backHref="/me" />
-      <div className="flex flex-col gap-[12px] px-[16px] pt-[16px] pb-[24px] leading-[1.5]">
+      <div className="flex flex-col gap-[12px] px-[16px] pt-[20px] pb-[24px] leading-[1.5]">
         {/* 요청 목록은 근무지와 따로 받아 api 가 느려도 근무지를 먼저 보인다(받으면 위에 붙는다). */}
         <Suspense>
           <PendingRequests />

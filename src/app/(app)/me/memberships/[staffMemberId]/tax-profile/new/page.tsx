@@ -44,7 +44,7 @@ export default async function NewTaxProfilePage({ params, searchParams }: PagePr
       <PageHeader title="신고 정보" backHref={step === "form" ? newHref : viewHref} />
       {tax === null ? (
         <>
-          <div className="flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
+          <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
             <Alert tone="warning">
               <p>{TAX_VIEW_UNAVAILABLE}</p>
             </Alert>

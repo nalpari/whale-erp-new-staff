@@ -8,7 +8,7 @@ export function ContractFrame({ header, children }: { header: ReactNode; childre
   return (
     <div className="flex flex-1 flex-col leading-[1.5]">
       {header}
-      <div className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px]">{children}</div>
+      <div className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[20px] pb-[24px]">{children}</div>
     </div>
   );
 }

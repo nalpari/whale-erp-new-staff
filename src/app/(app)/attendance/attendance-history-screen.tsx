@@ -47,7 +47,7 @@ export function AttendanceHistoryScreen({ tab, records, today, weekStart, now }:
   const close = () => setSheet(null);
 
   return (
-    <main className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px] leading-[1.5]">
+    <main className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[20px] pb-[24px] leading-[1.5]">
       <SegmentedControl
         label="기간"
         panelId={PANEL}

@@ -31,7 +31,7 @@ export default async function NewTaxProfileDonePage({ params }: PageProps<"/me/m
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex flex-1 flex-col justify-center gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
+      <div className="flex flex-1 flex-col justify-center gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
         <div className="flex flex-col gap-[6px]">
           <h1 className="text-[22px] font-bold">{profile ? "신고 정보 등록이 완료되었습니다" : "신고 정보를 확인하지 못했습니다"}</h1>
           {profile && <p className="text-[14px] text-staff-text-sub">이제 근무를 시작할 수 있습니다.</p>}

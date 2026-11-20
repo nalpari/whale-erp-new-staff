@@ -62,7 +62,7 @@ export default async function CheckInPage() {
       {/* 머리줄은 퇴근을 마친 화면에서 빠지므로(데모 check-in done) 출퇴근 화면에서는 CheckInScreen 이 그린다 */}
       {!(current && attendance) && header}
       {!memberships || (current && !attendance) ? (
-        <div className="px-[22px] pt-[22px]">
+        <div className="px-[22px] pt-[20px]">
           <Alert tone="warning">출퇴근 정보를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>
         </div>
       ) : !current || !attendance ? (

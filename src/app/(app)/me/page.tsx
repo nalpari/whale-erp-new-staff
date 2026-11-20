@@ -36,7 +36,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
       <header className="flex min-h-[72px] w-full items-center bg-white px-[22px] py-[14px]">
         <h1 className="min-w-0 flex-1 text-[18px] leading-[1.5] font-bold">내 정보</h1>
       </header>
-      <div className="flex flex-col gap-[22px] px-[16px] pt-[16px] pb-[24px] leading-[1.5]">
+      <div className="flex flex-col gap-[22px] px-[16px] pt-[20px] pb-[24px] leading-[1.5]">
         <div className="flex flex-col gap-[10px]">
           {/* 프로필 카드 — 이름 · 생년월일 · 휴대전화. 직원이 고칠 수 없는 값이라 보이기만 하고 아래 한 줄로 알린다. */}
           <div className="flex flex-col items-center gap-[14px] rounded-[20px] border border-staff-border bg-white px-[20px] pt-[24px] pb-[18px]">
