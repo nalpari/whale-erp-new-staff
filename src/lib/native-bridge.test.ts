@@ -50,11 +50,35 @@ test("약속과 다른 답은 malformed — data 모양이 틀려도, 모르는 
   assert.deepEqual(readBridgeResult({ data: "x" }, isString), { ok: false, error: "malformed" });
 });
 
-test("브리지가 없으면 unavailable, 호출이 예외로 끝나면 failed", async (t) => {
-  t.mock.method(console, "error", () => {});
+test("브리지가 없으면 unavailable, 호출이 예외로 끝나면 failed 이고 콘솔에 남긴다", async (t) => {
+  const error = t.mock.method(console, "error", () => {});
   assert.deepEqual(await callNative("x", [], isString, null), { ok: false, error: "unavailable" });
+  assert.equal(error.mock.callCount(), 0);
   const throwing: Bridge = { callHandler: async () => { throw new Error("x"); } };
   assert.deepEqual(await callNative("x", [], isString, throwing), { ok: false, error: "failed" });
+  assert.equal(error.mock.callCount(), 1);
+  assert.match(String(error.mock.calls[0].arguments[0]), /x 호출 실패/);
+});
+
+test("앱이 제때 답하지 않으면 failed 이고 콘솔에 남긴다", async (t) => {
+  const error = t.mock.method(console, "error", () => {});
+  const silent: Bridge = { callHandler: () => new Promise(() => {}) };
+  assert.deepEqual(await callNative("slow", [], isString, silent, { timeoutMs: 10 }), { ok: false, error: "failed" });
+  assert.equal(error.mock.callCount(), 1);
+  assert.match(String(error.mock.calls[0].arguments[0]), /slow .*10ms 안에 답하지 않음/);
+});
+
+test("약속과 다른 답이면 콘솔에 남긴다", async (t) => {
+  const error = t.mock.method(console, "error", () => {});
+  assert.deepEqual(await callNative("odd", [], isString, bridgeAnswering({ ok: "yes" })), { ok: false, error: "malformed" });
+  assert.equal(error.mock.callCount(), 1);
+  assert.match(String(error.mock.calls[0].arguments[0]), /odd 의 답이 약속과 다르다/);
+});
+
+test("브리지를 넘기지 않으면 스스로 기다린다 — 서버(window 없음)에서는 unavailable", async () => {
+  assert.equal(typeof window, "undefined");
+  assert.deepEqual(await callNative("x", [], isString), { ok: false, error: "unavailable" });
+  assert.deepEqual(await getAppInfo(), { ok: false, error: "unavailable" });
 });
 
 test("부를 때 이름과 인자를 그대로 넘긴다", async () => {
@@ -79,14 +103,14 @@ test("appInfo 는 버전과 운영체제를 받는다 — 모르는 운영체제
 });
 
 /** 이벤트를 흉내 내는 가짜 window. */
-function fakeWindow(bridge?: Bridge) {
+function fakeWindow(bridge?: unknown) {
   const listeners = new Set<() => void>();
   const win = {
     flutter_inappwebview: bridge,
     addEventListener: (type: string, listener: () => void) => { if (type === BRIDGE_READY_EVENT) listeners.add(listener); },
     removeEventListener: (_type: string, listener: () => void) => { listeners.delete(listener); },
   };
-  const ready = (next: Bridge) => { win.flutter_inappwebview = next; for (const listener of [...listeners]) listener(); };
+  const ready = (next?: unknown) => { win.flutter_inappwebview = next; for (const listener of [...listeners]) listener(); };
   return { win: win as never, ready, listeners };
 }
 
@@ -110,8 +134,37 @@ test("앱 안인데 아직이면 준비 이벤트를 기다리고, 받은 뒤 �
   assert.equal(listeners.size, 0);
 });
 
-test("준비 이벤트가 제때 오지 않으면 null 이고 듣기를 그친다", async () => {
+test("준비 이벤트가 제때 오지 않으면 null 이고 듣기를 그치며, 앱 안의 고장이라 콘솔에 남긴다", async (t) => {
+  const error = t.mock.method(console, "error", () => {});
   const { win, listeners } = fakeWindow();
   assert.equal(await waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 10 }), null);
   assert.equal(listeners.size, 0);
+  assert.equal(error.mock.callCount(), 1);
+  assert.match(String(error.mock.calls[0].arguments[0]), /1\.0\.0.*10ms 안에 준비 이벤트가 오지 않음/);
+});
+
+test("준비 이벤트가 왔는데 callHandler 가 없으면 null 이고 콘솔에 남긴다", async (t) => {
+  const error = t.mock.method(console, "error", () => {});
+  const { win, ready, listeners } = fakeWindow();
+  const waiting = waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 1000 });
+  ready();
+  assert.equal(await waiting, null);
+  assert.equal(listeners.size, 0);
+  assert.equal(error.mock.callCount(), 1);
+  assert.match(String(error.mock.calls[0].arguments[0]), /callHandler 가 없음/);
+});
+
+test("객체만 있고 callHandler 가 아직 없으면 준비로 보지 않고 이벤트를 기다린다", async () => {
+  const bridge = bridgeAnswering(null);
+  const { win, ready } = fakeWindow({});
+  const waiting = waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 1000 });
+  ready(bridge);
+  assert.equal(await waiting, bridge);
+});
+
+test("앱 밖에서 브리지가 없는 것은 고장이 아니라 콘솔에 남기지 않는다", async (t) => {
+  const error = t.mock.method(console, "error", () => {});
+  const { win } = fakeWindow();
+  assert.equal(await waitForBridge(win, { userAgent: SAFARI, timeoutMs: 10 }), null);
+  assert.equal(error.mock.callCount(), 0);
 });

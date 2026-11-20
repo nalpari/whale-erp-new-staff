@@ -12,13 +12,14 @@
 /** User-Agent 에서 앱을 알아보는 표식. 앱이 기본 User-Agent 끝에 `WhaleStaffApp/1.0.0` 처럼 붙인다. */
 export const APP_USER_AGENT_MARK = "WhaleStaffApp/";
 
-/** 앱이 준비됐다고 알리는 이벤트(flutter_inappwebview). 이미 준비됐으면 `window.flutter_inappwebview` 가 있다. */
+/** 앱이 준비됐다고 알리는 이벤트(flutter_inappwebview). 이미 준비됐으면 `window.flutter_inappwebview.callHandler` 가 있다. */
 export const BRIDGE_READY_EVENT = "flutterInAppWebViewPlatformReady";
 
 /**
  * 앱 기능 호출의 결과.
  * - forbidden: 앱이 받지 않은 호출(다른 출처 · iframe). 웹 코드 버그라 다시 시도하지 않는다.
- * - failed: 앱 기능이 실패했다. 자세한 내용은 앱 로그에만 남는다.
+ * - failed: 앱 기능이 실패했거나, 호출이 예외로 끝났거나, 앱이 제때 답하지 않았다. 앱 기능 실패는 앱 로그에,
+ *   예외 · 시간 초과는 웹 콘솔에 남는다.
  * - unavailable: 앱 안이 아니거나, 브리지가 제때 준비되지 않았거나, 앱에 없는 기능이다(앱 버전이 낮을 때 등).
  * - malformed: 앱이 약속과 다른 모양으로 답했다.
  */
@@ -55,7 +56,12 @@ export function readBridgeResult<T>(raw: unknown, isData: (data: unknown) => dat
   return { ok: false, error: "malformed" };
 }
 
-type BridgeWindow = Pick<Window, "addEventListener" | "removeEventListener"> & { flutter_inappwebview?: Bridge };
+type BridgeWindow = Pick<Window, "addEventListener" | "removeEventListener"> & { flutter_inappwebview?: unknown };
+
+/** 부를 수 있는 브리지인지. Android 는 `callHandler` 를 심기 전에도 객체가 먼저 있을 수 있어 함수까지 본다. */
+function isBridge(value: unknown): value is Bridge {
+  return typeof value === "object" && value !== null && "callHandler" in value && typeof value.callHandler === "function";
+}
 
 /**
  * 브리지를 기다린다. 앱 밖이면 바로 null, 앱 안이면 준비 이벤트를 [timeoutMs] 까지 기다리고 못 받으면 null.
@@ -66,20 +72,27 @@ export function waitForBridge(
   { userAgent, timeoutMs = 3000 }: { userAgent?: string; timeoutMs?: number } = {},
 ): Promise<Bridge | null> {
   if (win === undefined || !isInApp(userAgent)) return Promise.resolve(null);
-  if (win.flutter_inappwebview) return Promise.resolve(win.flutter_inappwebview);
+  if (isBridge(win.flutter_inappwebview)) return Promise.resolve(win.flutter_inappwebview);
   return new Promise((resolve) => {
-    const done = () => {
+    const finish = (reason: string) => {
       clearTimeout(timer);
-      win.removeEventListener(BRIDGE_READY_EVENT, done);
-      resolve(win.flutter_inappwebview ?? null);
+      win.removeEventListener(BRIDGE_READY_EVENT, onReady);
+      const bridge = win.flutter_inappwebview;
+      if (isBridge(bridge)) return resolve(bridge);
+      // 앱 안인데 브리지가 없다 = 앱 쪽 고장. 앱 밖(조용한 null)과 구분되게 남긴다.
+      const version = appVersionOf(userAgent ?? (typeof navigator === "undefined" ? "" : navigator.userAgent));
+      console.error(`[native-bridge] 앱(${version}) 안인데 브리지가 없다: ${reason}`);
+      resolve(null);
     };
-    const timer = setTimeout(done, timeoutMs);
-    win.addEventListener(BRIDGE_READY_EVENT, done);
+    const onReady = () => finish("준비 이벤트는 왔지만 callHandler 가 없음");
+    const timer = setTimeout(() => finish(`${timeoutMs}ms 안에 준비 이벤트가 오지 않음`), timeoutMs);
+    win.addEventListener(BRIDGE_READY_EVENT, onReady);
   });
 }
 
 /**
- * 앱 기능 하나를 부른다. 앱 밖이거나 브리지가 없으면 unavailable, 호출이 예외로 끝나면 failed.
+ * 앱 기능 하나를 부른다. 앱 밖이거나 브리지가 없으면 unavailable, 호출이 예외로 끝나거나
+ * [timeoutMs] 안에 답이 없으면 failed(답이 버려지거나 앱 기능이 끝나지 않으면 영원히 기다리게 되므로).
  * [bridge] 를 넘기면 기다리지 않고 그것으로 부른다(테스트 · 이미 받아 둔 브리지).
  */
 export async function callNative<T>(
@@ -87,14 +100,28 @@ export async function callNative<T>(
   args: unknown[],
   isData: (data: unknown) => data is T,
   bridge?: Bridge | null,
+  { timeoutMs = 10_000 }: { timeoutMs?: number } = {},
 ): Promise<BridgeResult<T>> {
   const target = bridge === undefined ? await waitForBridge() : bridge;
   if (target === null) return { ok: false, error: "unavailable" };
+  const TIMED_OUT = Symbol("timed out");
+  let timer: ReturnType<typeof setTimeout> | undefined;
   let raw: unknown;
   try {
-    raw = await target.callHandler(name, ...args);
+    raw = await Promise.race([
+      target.callHandler(name, ...args),
+      new Promise<typeof TIMED_OUT>((resolve) => {
+        timer = setTimeout(() => resolve(TIMED_OUT), timeoutMs);
+      }),
+    ]);
   } catch (thrown) {
     console.error(`[native-bridge] ${name} 호출 실패`, thrown);
+    return { ok: false, error: "failed" };
+  } finally {
+    clearTimeout(timer);
+  }
+  if (raw === TIMED_OUT) {
+    console.error(`[native-bridge] ${name} 이(가) ${timeoutMs}ms 안에 답하지 않음`);
     return { ok: false, error: "failed" };
   }
   const result = readBridgeResult(raw, isData);
