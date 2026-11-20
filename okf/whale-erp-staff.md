@@ -10,7 +10,7 @@ sources:
   - { id: common, resource: ../src/components/common, title: Common UI components }
   - { id: design-md, resource: ../DESIGN.md, title: Design system }
   - { id: affiliation-done, resource: ../src/app/(app)/affiliations/done/page.tsx, title: 소속 추가 확인 결과 화면 — 수락 완료의 「계약서 서명하기」 }
-generated: { by: claude-code/opus-5.5, at: 2026-11-19T07:36:58Z }
+generated: { by: claude-code/opus-5.5, at: 2026-11-20T04:40:00Z }
 ---
 
 # Stack
@@ -57,6 +57,8 @@ generated: { by: claude-code/opus-5.5, at: 2026-11-19T07:36:58Z }
 직원앱 Figma 「디자인 스타일 가이드」(node 2001:68)를 옮긴 시스템이 `DESIGN.md` 에 있다.
 토큰은 `globals.css` 의 `--color-staff-*`·`--font-staff`(Pretendard 400·500·600·700, `src/app/fonts.ts`)이고,
 밝은 테마·글꼴·포커스색은 `StaffRoot` 안에서 걸리고, 루트 `globals.css` 는 토큰과 바탕색·화면 이동 슬라이드·토스트 애니메이션(`staff-toast`)만 둔다.
+
+정돈 시안(2026-11-20)으로 근무지 추가 확인 · 완료 · 요청 시트 · 홈 서명 요청 시트 · 내 근무지 · 급여명세서(카드형 · 둥근 꺾은선 `SubLine`) · 급여 빈 화면 · 주소 검색 · 신고 정보 다시 입력 · 등록된 신고 정보 · 출퇴근 현황 버튼 · 둥근 시계를 다듬었다. 규칙은 `DESIGN.md` 「정돈 시안」 절. 신고 정보 화면들의 수집 · 위탁 보관 문구는 `tax-profile-parts.tsx` 의 `TAX_KEEP_TEXT` · `TAX_NO_CONSENT_TEXT` 한 곳에 두고 같이 쓴다. 등록된 신고 정보의 이용 목적은 api 한 줄(`purpose`)을 `purposeItems` 로 「,」 · 「·」 에서 나눠 점 목록으로 보이고, 수집 근거는 개인정보 보호법 조문(제24조의2 제1항 제1호 · 제15조 제1항 제4호, 법무 확인 필요)이다.
 
 # Commands
 

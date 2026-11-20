@@ -3,6 +3,7 @@ import { RedirectType, notFound, redirect } from "next/navigation";
 import { Alert, Button, Dock, PageHeader } from "@/components/common";
 import { ApiError } from "@/lib/api";
 import { getCodesOrEmpty } from "@/lib/codes";
+import { labelOf } from "@/lib/enums";
 import { getMyMemberships, getMyProfile, getMyTaxProfile } from "@/lib/my-profile";
 import { dateLabel } from "@/lib/profile";
 import { parseStaffMemberId } from "@/lib/tax-profile";
@@ -56,6 +57,8 @@ export default async function TaxProfileEditPage({ params }: PageProps<"/me/memb
           banks={banks}
           backHref={viewHref}
           email={profile.email}
+          currentRrn={tax.taxProfile?.rrnMasked}
+          currentAccount={tax.taxProfile ? `${labelOf(banks, tax.taxProfile.bankCode)} ${tax.taxProfile.payrollAccountNumberMasked}` : undefined}
         />
       )}
     </div>

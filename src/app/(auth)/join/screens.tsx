@@ -195,7 +195,7 @@ export function JoinedInvitation() {
 
 /**
  * 그 번호로 가입한 계정이 있다(운영 정책 JOI-02) — 새로 가입하지 않고 로그인한다. 기존 계정의 이메일은 보이지 않는다.
- * 가입한 사람은 초대 코드로 가입하지 않는다 — 로그인하면 소속 근무지 맨 위의 받은 초대에서 수락한다(WHALEERP-604, 2026-10-28 김민식).
+ * 가입한 사람은 초대 코드로 가입하지 않는다 — 로그인하면 내 근무지 맨 위의 받은 초대에서 수락한다(WHALEERP-604, 2026-10-28 김민식).
  */
 export function AccountExists() {
   const titleRef = useFocusedTitle();
@@ -207,7 +207,7 @@ export function AccountExists() {
         <>
           이 휴대전화번호로 가입한 계정이 있습니다.
           <br />
-          로그인하면 소속 근무지에서 초대를 수락할 수 있습니다.
+          로그인하면 내 근무지에서 초대를 수락할 수 있습니다.
         </>
       }
       dock={

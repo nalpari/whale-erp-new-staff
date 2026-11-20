@@ -12,7 +12,7 @@ const ROWS = HQ_SHARING_TERMS.map(([label, value]) => ({ label, value }));
 
 // 사업자 제공 다시 동의 팝업(ATT-30 v252, 2026-10-29 재영 — 137 완료 조건 「앱에 들어오면 다시 묻는다」). 옛 문구 버전에 동의해 다시 동의해야
 // 하면(needsReconsent) 홈 위에 바뀐 내용을 보이고 「동의합니다」로 새 버전에 동의를 받는다 — 내 정보 카드의 내용 시트와 같은 기록이다.
-// 「나중에」는 이 탭에 기억해, 앱을 새로 열거나 오래 있다 돌아오면 다시 뜬다(lib/hq-reconsent-popup-memory). 동의하지 않으려면 내 정보
+// 「나중에 하기」는 이 탭에 기억해, 앱을 새로 열거나 오래 있다 돌아오면 다시 뜬다(lib/hq-reconsent-popup-memory). 동의하지 않으려면 내 정보
 // 카드에서 철회한다. 동의하면 내 정보 카드와 같은 토스트를 띄우고, 액션이 화면을 다시 받아 needsReconsent 가 풀리면 팝업이 내려간다(home-popups.tsx
 // 가 마지막 값을 붙잡아 둬 내려가는 동안 그대로 그린다). 열지 말지 · 순서는 home-popups.tsx 가 정한다.
 export function HqReconsentPopup({ open, reconsentKey }: { open: boolean; reconsentKey: string }) {
@@ -64,7 +64,7 @@ export function HqReconsentPopup({ open, reconsentKey }: { open: boolean; recons
             </Button>
           </>
         }
-        closeLabel="나중에"
+        closeLabel="나중에 하기"
       />
       {toast && <Toast key={toast.key}>{toast.text}</Toast>}
     </>

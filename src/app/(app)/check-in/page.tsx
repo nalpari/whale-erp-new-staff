@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { Alert, BottomNav, MaskIcon, PageHeader } from "@/components/common";
+import { PRESS } from "@/components/common/theme";
 import { requestsLoadFailure } from "@/lib/affiliation-requests";
 import { failureOf, logFailure } from "@/lib/api";
 import { getContracts } from "@/lib/contracts";
@@ -41,9 +42,16 @@ export default async function CheckInPage() {
       title="출퇴근"
       backHref="/home"
       action={
-        // 데모 check-in — 머리줄 오른쪽은 출퇴근 현황으로 가는 버튼이다
-        <Link href="/attendance" aria-label="출퇴근 현황" className="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">
-          <Image src="/icons/history.svg" alt="" width={21} height={21} className="-scale-y-100" />
+        // 데모 check-in — 머리줄 오른쪽은 출퇴근 현황으로 가는 버튼이다. 시계 아이콘만으로는 버튼인지 · 어디로 가는지 몰라 글자 알약
+        // 「출퇴근 현황 ›」으로 바꿨다(2026-11-20 사용자 지정). 보이는 알약은 36px, 누르는 칸은 위아래를 넓혀 44px.
+        <Link href="/attendance" transitionTypes={["nav-forward"]} className="group -my-[4px] flex min-h-[44px] shrink-0 items-center">
+          <span
+            className={`flex h-[36px] items-center gap-[4px] rounded-full border border-staff-border bg-white pr-[10px] pl-[12px] text-[13px] font-semibold text-staff-text-sub group-active:bg-staff-primary-inactive ${PRESS}`}
+          >
+            <Image src="/icons/history.svg" alt="" width={16} height={16} className="-scale-y-100" />
+            출퇴근 현황
+            <MaskIcon src="/icons/chevron-right-small.svg" size={12} />
+          </span>
         </Link>
       }
     />

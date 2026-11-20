@@ -58,19 +58,23 @@ export default async function PayslipPage({ params }: PageProps<"/pay/[payslipId
         </Notice>
       ) : (
         <>
-          <PayTable head="지급 항목" items={earnings} totalLabel="지급 합계" total={grossPayAmount} />
-          <PayTable head="공제 항목" items={deductions} totalLabel="공제 합계" total={totalDeductionAmount} />
-
-          {/* 실지급액: 목록의 이번 달 카드와 같은 짙은 남색(급여 화면에서 가장 먼저 볼 숫자). */}
+          {/* 실지급액: 목록의 이번 달 카드와 같은 짙은 남색(급여 화면에서 가장 먼저 볼 숫자). 정돈 시안 카드형(2026-11-20 사용자 지정)으로
+              지급 · 공제 카드 위로 올리고 아래에 지급 · 공제 합계를 한 줄로 둔다. */}
           <HeroCard tone="navy">
-            <div className="flex items-center justify-between gap-[12px]">
-              <p className="text-[18px] font-bold">실지급액</p>
+            <div className="flex flex-col gap-[4px]">
+              <p className="text-[13px] opacity-70">실지급액</p>
               <p className="font-bold tabular-nums">
                 <span className="text-[28px]">{formatWon(netPayAmount)}</span>
                 <span className="text-[17px]"> 원</span>
               </p>
+              <p className="mt-[10px] flex gap-[18px] border-t border-white/15 pt-[12px] text-[13px] tabular-nums opacity-80">
+                <span>지급 {formatWon(grossPayAmount)}원</span>
+                <span>공제 {formatWon(totalDeductionAmount)}원</span>
+              </p>
             </div>
           </HeroCard>
+          <PayTable head="지급" items={earnings} total={grossPayAmount} />
+          <PayTable head="공제" items={deductions} total={totalDeductionAmount} />
         </>
       )}
 

@@ -28,6 +28,25 @@ const blockCopy = (event: { preventDefault(): void }) => event.preventDefault();
 const noteClass = (error?: string) => `text-[12px] whitespace-pre-line ${error ? "text-staff-error" : "text-staff-text-muted"}`;
 
 /**
+ * 묶음 상자(boxed) — 신고 정보 다시 입력(정돈 시안 B안, 2026-11-20 사용자 지정). 안내 바탕 · 테두리 · 모서리 16 · 안쪽 18 상자에 담고,
+ * 칸 이름은 15px bold · 오른쪽에 「현재 등록된 정보: …」, 받은 근거는 따로 두지 않고 안내 문단(help)에 잇는다. 안내는 13px · 칸과 사이 6.
+ * 처음 넣기(150)는 상자 없이 그대로다.
+ */
+const BOX = "flex flex-col gap-[10px] rounded-[16px] border border-staff-border bg-staff-info-bg p-[18px]";
+const BOX_LEGEND = "flex w-full items-baseline justify-between gap-[8px] pb-[10px] text-[15px] font-bold text-staff-text";
+const boxNoteClass = (error?: string) => `-mt-[2px] text-[13px] leading-[1.4] break-keep ${error ? "text-staff-error" : "text-staff-text-muted"}`;
+
+/** 묶음 상자의 칸 이름 줄 — 이름과 오른쪽 「현재 등록된 정보: …」(13px 흐린 글자). */
+function BoxLegend({ name, current }: { name: string; current?: string }) {
+  return (
+    <legend className={BOX_LEGEND}>
+      {name}
+      {current && <span className="min-w-0 truncate text-[13px] font-normal text-staff-text-muted">현재 등록된 정보: {current}</span>}
+    </legend>
+  );
+}
+
+/**
  * 주민등록번호 — 받은 근거 · 앞 6자리(보임) · 뒤 7자리(가림) · 안내. error 는 모양 오류(RRN_SHAPE) · 가입 생년월일 불일치(화면 계산
  * rrnBirthMismatch 또는 api RRN_BIRTH_MISMATCH) · 그 밖의 api 사유이고, 안내 자리에 서며 앞칸을 빨갛게 한다.
  */
@@ -40,6 +59,8 @@ export function RrnField({
   help = "본인 명의의 번호만 입력할 수 있습니다.",
   error,
   disabled,
+  boxed = false,
+  current,
 }: {
   front: string;
   back: string;
@@ -49,14 +70,18 @@ export function RrnField({
   help?: string;
   error?: string;
   disabled?: boolean;
+  /** 묶음 상자로 그린다(위 BOX). 받은 근거는 help 에 잇는다. */
+  boxed?: boolean;
+  /** 상자 이름 줄 오른쪽 「현재 등록된 정보」 — 가린 값(rrnMasked). */
+  current?: string;
 }) {
   const id = useId();
   const note = error || help;
   return (
-    <div className="flex flex-col gap-[8px]">
-      <Basis>{rrnBasis(true)}</Basis>
+    <div className={boxed ? BOX : "flex flex-col gap-[8px]"}>
+      {!boxed && <Basis>{rrnBasis(true)}</Basis>}
       <fieldset className="flex flex-col gap-[8px]" disabled={disabled}>
-        <legend className={LEGEND}>주민등록번호{required && "*"}</legend>
+        {boxed ? <BoxLegend name="주민등록번호" current={current} /> : <legend className={LEGEND}>주민등록번호{required && "*"}</legend>}
         <div className="flex items-center gap-[8px]">
           <input
             name="rrnFront"
@@ -97,7 +122,7 @@ export function RrnField({
             className={`${FIELD} [-webkit-text-security:disc]`}
           />
         </div>
-        <p id={`${id}-note`} role={error ? "alert" : undefined} className={noteClass(error)}>
+        <p id={`${id}-note`} role={error ? "alert" : undefined} className={boxed ? boxNoteClass(error) : noteClass(error)}>
           {note}
         </p>
       </fieldset>
@@ -120,6 +145,8 @@ export function PayrollAccountFields({
   bankError,
   accountError,
   disabled,
+  boxed = false,
+  current,
 }: {
   banks: readonly CodeValue[];
   bankCode: string;
@@ -131,16 +158,20 @@ export function PayrollAccountFields({
   bankError?: string;
   accountError?: string;
   disabled?: boolean;
+  /** 묶음 상자로 그린다(RrnField 와 같다). */
+  boxed?: boolean;
+  /** 상자 이름 줄 오른쪽 「현재 등록된 정보」 — 「신한 110-******890」. */
+  current?: string;
 }) {
   const id = useId();
   const unavailable = banks.length === 0;
   const error = bankError || accountError;
   const note = error || (unavailable ? "은행 목록을 불러오지 못해 지금은 계좌를 입력할 수 없습니다. 잠시 뒤 다시 열어 주세요." : help);
   return (
-    <div className="flex flex-col gap-[8px]">
-      <Basis>{accountBasis(true)}</Basis>
+    <div className={boxed ? BOX : "flex flex-col gap-[8px]"}>
+      {!boxed && <Basis>{accountBasis(true)}</Basis>}
       <fieldset className="flex flex-col gap-[8px]" disabled={disabled || unavailable}>
-        <legend className={LEGEND}>급여 계좌{required && "*"}</legend>
+        {boxed ? <BoxLegend name="급여 계좌" current={current} /> : <legend className={LEGEND}>급여 계좌{required && "*"}</legend>}
         <div className="relative">
           <select
             name="bankCode"
@@ -153,7 +184,7 @@ export function PayrollAccountFields({
             aria-describedby={`${id}-note`}
             className={`${FIELD} appearance-none pr-[44px] ${bankCode ? "" : "text-staff-placeholder!"}`}
           >
-            <option value="">은행 고르기</option>
+            <option value="">은행 선택</option>
             {banks.map((bank) => (
               <option key={bank.value} value={bank.value} className="text-staff-text">
                 {bank.label}
@@ -178,7 +209,7 @@ export function PayrollAccountFields({
           aria-describedby={`${id}-note`}
           className={FIELD}
         />
-        <p id={`${id}-note`} role={error ? "alert" : undefined} className={noteClass(error)}>
+        <p id={`${id}-note`} role={error ? "alert" : undefined} className={boxed ? boxNoteClass(error) : noteClass(error)}>
           {note}
         </p>
       </fieldset>

@@ -48,17 +48,20 @@ export const accountBasis = (lineBreak = false) => (
   </>
 );
 
-/**
- * 사업주 · 위탁 보관 안내. storeName 은 그 소속의 점포다. noConsent 면 입력 화면(데모 form)처럼 「별도 동의를 받지 않습니다」를 잇는다.
- */
-export function TaxOwnerNotice({ storeName, noConsent = false }: { storeName: string; noConsent?: boolean }) {
+/** 수집 · 위탁 보관 공통 문구(2026-11-20 사용자 지정) — 점포 이름 없이 「사업주」로 써 신고 정보 화면들이 같은 문장을 쓴다. */
+export const TAX_KEEP_TEXT = "입력한 정보는 사업주가 수집하며, WHALE ERP가 위탁받아 암호화하여 보관합니다.";
+/** 동의 없이 받는 근거 — 입력 화면(처음 넣기 · 다시 입력)이 공통 문구 뒤에 잇는다. */
+export const TAX_NO_CONSENT_TEXT = "해당 정보는 법령 및 근로계약에 따라 수집하며, 별도의 동의는 받지 않습니다.";
+
+/** 수집 · 위탁 보관 안내(처음 넣기). noConsent 면 「별도의 동의는 받지 않습니다」를 잇는다. */
+export function TaxOwnerNotice({ noConsent = false }: { noConsent?: boolean }) {
   return (
     <Notice>
-      이 정보는 <strong>{storeName}(사업주)</strong>이 수집하며, WHALE ERP는 위탁을 받아 암호화해 보관합니다.
+      {TAX_KEEP_TEXT}
       {noConsent && (
         <>
           <br />
-          법령과 근로계약에 따라 수집하는 정보로, <strong>별도 동의를 받지 않습니다.</strong>
+          {TAX_NO_CONSENT_TEXT}
         </>
       )}
     </Notice>

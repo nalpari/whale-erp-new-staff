@@ -171,7 +171,7 @@ export function taxProfileSaveFailure(failure: ApiFailure): { state: TaxProfileE
     return { state: problem("form", "입력한 값을 다시 확인해 주세요"), log: true };
   }
   if (status === 404)
-    return { state: problem("form", "이 근무지의 신고 정보를 고칠 수 없습니다. 소속 근무지에서 다시 열어 주세요"), log: false };
+    return { state: problem("form", "이 근무지의 신고 정보를 고칠 수 없습니다. 내 근무지에서 다시 열어 주세요"), log: false };
   if (status === 429) return { state: problem("form", RATE_LIMITED), log: false };
   // 503 — 서버에 암호화 키가 없음. 저장 전 조회(GET)의 503 사유는 「볼 수 없습니다」라 api 사유를 쓰지 않고 고정 문구다.
   if (status === 503) return { state: problem("form", `신고 정보를 저장하지 못했습니다. ${RETRY_LATER}`), log: false };
@@ -185,7 +185,7 @@ export const TAX_PROFILE_ALREADY_SUBMITTED = "이 근무지에는 이미 낸 신
 /** 처음 넣기에서 은행을 고르지 않았을 때. */
 export const BANK_REQUIRED = "급여를 받을 은행을 골라 주세요";
 /** 처음 넣기의 api 404 — 내 소속이 아니다(퇴직 · 남의 id). */
-export const TAX_PROFILE_CREATE_NOT_FOUND = "이 근무지에는 신고 정보를 입력할 수 없습니다. 소속 근무지에서 다시 열어 주세요";
+export const TAX_PROFILE_CREATE_NOT_FOUND = "이 근무지에는 신고 정보를 입력할 수 없습니다. 내 근무지에서 다시 열어 주세요";
 
 /**
  * 날인 뒤 처음 넣기(WHALEERP-150)의 값 거르기. 주민등록번호 · 은행 · 계좌번호 셋 다 필수이고, 지금 비밀번호는 보내지 않는다 —
@@ -219,4 +219,12 @@ export function taxProfileCreateFailure(failure: ApiFailure): { state: TaxProfil
   if (state.problem?.field === "currentPassword")
     return { state: problem("form", `신고 정보를 저장하지 못했습니다. ${RETRY_LATER}`), log: true, alreadySaved: false };
   return { state, log, alreadySaved: false };
+}
+
+/** 이용 목적(api 한 줄 `purpose`)을 항목 단위로 나눈다 — 보기 화면이 점 목록으로 한 줄씩 보인다(2026-11-20 사용자 지정). 「,」 · 「·」 로 나눈다. */
+export function purposeItems(purpose: string): string[] {
+  return purpose
+    .split(/[,·]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
 }

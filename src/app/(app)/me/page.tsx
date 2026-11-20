@@ -50,11 +50,11 @@ const CHANGED_TOAST: Record<string, string> = {
   email: "로그인 아이디를 새 이메일로 변경했습니다",
 };
 
-// 하단 메뉴 「내 정보」(WHALEERP-193). 기준: 데모 docs/demo/me 의 view(Figma 없음) — 기본 정보 · 소속 근무지 · 위치정보 동의 ·
+// 하단 메뉴 「내 정보」(WHALEERP-193). 기준: 데모 docs/demo/me 의 view(Figma 없음) — 기본 정보 · 내 근무지 · 위치정보 동의 ·
 // 본사 제공 동의 · 연락처(휴대전화번호 · 이메일 · 주소) · 비밀번호 · 로그아웃 순서다.
 // 데모와 다른 점: 휴대전화번호 변경은 1차에서 뺐고(2026-10-19), 머리줄의 「변경 이력」은 계정 api 가 없어 두지 않았다.
 // 이메일 「변경」은 195 화면 /me/email, 비밀번호 「변경」은 194 화면 /me/password 로 간다(경로는 2026-10-20 노영주 결정).
-// 신고 정보는 소속마다 따로라(2026-10-20, api #79) 소속 근무지 화면에만 둔다 — 데모의 비밀번호 아래 신고 정보 줄은 뺐다(2026-10-20 노영주).
+// 신고 정보는 소속마다 따로라(2026-10-20, api #79) 내 근무지 화면에만 둔다 — 데모의 비밀번호 아래 신고 정보 줄은 뺐다(2026-10-20 노영주).
 export default async function MePage({ searchParams }: PageProps<"/me">) {
   const { changed } = await searchParams;
   // 주소에서 오는 값이라 정한 키만 받는다(`?changed=toString` 같은 프로토타입 이름이 함수를 꺼내지 않게).
@@ -80,7 +80,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
             <ReadOnlyField label="이름" value={profile.realName} />
             {/* 내 정보 · 신고 정보의 날짜는 「2025년 11월 3일」로 쓴다(2026-10-20 노영주). */}
             <ReadOnlyField label="생년월일" value={dateLabel(profile.birthDate)} />
-            {/* 소속이 여럿이면 입사일도 여럿이다 — 가장 먼저 입사한 곳(api 가 입사일 순으로 준다). 소속마다는 소속 근무지 화면에. */}
+            {/* 소속이 여럿이면 입사일도 여럿이다 — 가장 먼저 입사한 곳(api 가 입사일 순으로 준다). 소속마다는 내 근무지 화면에. */}
             {first?.hiredDate && <ReadOnlyField label="입사일" value={dateLabel(first.hiredDate)} />}
           </div>
           <p className="pt-[8px] text-[12px] text-staff-text-muted">생년월일을 변경하려면 근무지 관리자에게 문의해 주세요.</p>
@@ -89,7 +89,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
         <div className="flex flex-col gap-[6px]">
           {memberships === null ? (
             <Alert tone="warning">
-              <p>소속 근무지를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>
+              <p>근무지를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</p>
             </Alert>
           ) : (
             <Link
@@ -98,7 +98,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
               className={`flex w-full items-center gap-[12px] rounded-[16px] border border-staff-border-light bg-staff-info-bg p-[16px] text-left active:bg-staff-primary-inactive ${PRESS}`}
             >
               <span className="min-w-0 flex-1">
-                <span className="block text-[13px] font-semibold text-staff-text-sub">소속 근무지</span>
+                <span className="block text-[13px] font-semibold text-staff-text-sub">내 근무지</span>
                 <span className="block pt-[4px] text-[15px] font-bold">
                   {first ? `${first.store.storeName}${items.length > 1 ? ` 외 ${items.length - 1}곳` : ""}` : "아직 없습니다"}
                 </span>
@@ -111,7 +111,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
               <Image src="/icons/chevron-right-muted.svg" alt="" width={12} height={12} className="-scale-y-100" />
             </Link>
           )}
-          <p className="px-[4px] text-[12px] text-staff-text-muted">소속 근무지와 고용 형태는 근로계약에 따라 정해집니다.</p>
+          <p className="px-[4px] text-[12px] text-staff-text-muted">근무지와 고용 형태는 근로계약에 따라 정해집니다.</p>
         </div>
 
         <LocationConsentCard consent={profile.locationConsent} terms={locationTerms} />
@@ -172,7 +172,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
   );
 }
 
-/** 소속 근무지 줄의 「요청 N건」 배지 — 소속 근무지 맨 위 「확인을 기다리는 요청」과 같은 셈(가입 초대 + 소속 추가 · 복귀 확인). 없거나 못 받았으면 두지 않는다. */
+/** 내 근무지 줄의 「요청 N건」 배지 — 내 근무지 맨 위 「확인을 기다리는 요청」과 같은 셈(가입 초대 + 소속 추가 · 복귀 확인). 없거나 못 받았으면 두지 않는다. */
 async function RequestCountBadge() {
   const [invitations, affiliations] = await Promise.all([getMyInvitations(), getMyAffiliationRequests()]);
   const count = (invitations?.length ?? 0) + (affiliations?.length ?? 0);

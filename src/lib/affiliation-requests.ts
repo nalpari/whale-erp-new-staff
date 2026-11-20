@@ -2,9 +2,10 @@
 // node --test 가 직접 읽으므로 값 import 는 같은 폴더의 순수 모듈(.ts 확장자)만 둔다.
 import { CONNECTION_FAILED, RATE_LIMITED, RETRY_LATER, type ApiFailure } from "./action-errors.ts";
 import type { Schemas } from "./api";
-import { parseId } from "./contract-rules.ts";
+import { daysLeftText, parseId } from "./contract-rules.ts";
 import { HQ_NOT_RECORDED, isHqNotRecorded } from "./hq-sharing-terms.ts";
 import { isSeenSubset, mergeSeen } from "./popup-memory.ts";
+import { kstDateTimeLabel } from "./profile.ts";
 
 export type AffiliationRequest = Schemas["AffiliationRequestDto"];
 
@@ -30,7 +31,7 @@ export type AnswerResult =
 const CLOSED = {
   answered: {
     title: "이미 답한 요청입니다",
-    message: "다른 기기나 화면에서 이미 수락하거나 거절했습니다. 수락했다면 내 정보 - 소속 근무지에서 볼 수 있습니다.",
+    message: "다른 기기나 화면에서 이미 수락하거나 거절했습니다. 수락했다면 내 정보 - 내 근무지에서 확인할 수 있습니다.",
   },
   ended: {
     title: "끝난 요청입니다",
@@ -70,17 +71,17 @@ const subjectParticle = (word: string) => {
 export function contentOf(result: AnswerResult, storeName: string | null = null): { title: string; message: string } {
   if (result.kind === "accepted")
     return {
-      title: storeName ? `${storeName}${subjectParticle(storeName)} 추가되었습니다` : "소속이 추가되었습니다",
-      message: "지금 쓰는 계정을 그대로 사용합니다.",
+      title: storeName ? `${storeName}${subjectParticle(storeName)} 근무지에 추가되었습니다` : "근무지가 추가되었습니다",
+      message: "기존 계정으로 새 근무지에서도 서비스를 이용할 수 있습니다.",
     };
   if (result.kind === "rejected")
-    return { title: "소속 추가를 거절했습니다", message: "기존 소속과 계정은 그대로입니다. 함께 온 근로계약서는 거절로 닫혔습니다." };
+    return { title: "근무지 추가를 거절했습니다", message: "기존 근무지와 계정은 그대로입니다. 함께 온 근로계약서는 거절로 닫혔습니다." };
   return closedMessage(result.reason);
 }
 
 /** 이 점포에 이미 재직 중(code 없는 409)일 때의 문구. 수락은 막고 거절로 요청을 닫게 한다. */
 export const ALREADY_EMPLOYED =
-  "이 근무지의 소속이 이미 계정에 이어져 있어 수락할 수 없습니다. 이 요청은 거절해 닫아 주세요. 거절해도 지금 소속과 계정은 그대로입니다.";
+  "이 근무지는 이미 계정에 이어져 있어 수락할 수 없습니다. 이 요청은 거절해 닫아 주세요. 거절해도 지금 근무지와 계정은 그대로입니다.";
 
 const closed = (reason: ClosedReason): { result: AnswerResult; log: false } => ({ result: { kind: "closed", reason }, log: false });
 const retry = (error: string, log: boolean): { state: AnswerState; log: boolean } => ({ state: { error }, log });
@@ -112,7 +113,7 @@ const CLOSED_REASONS = Object.keys(CLOSED) as ClosedReason[];
 /**
  * 답한 결과의 경로(`/affiliations/done?…`). 점포 이름은 싣지 않는다 — 주소 · 기록에 남고, 남이 만든 링크로 가짜 「○○ 소속이
  * 추가되었습니다」를 보일 수 있어서다. 결과 갈래 · 사유 · 수락으로 서명 대기가 된 계약 ID(쉼표로, 20개까지)와 동의를 남기지 못함(정한 값
- * 하나)만 싣는다 — 완료 화면이 「계약서 서명하러 가기」를 그 계약으로 보낸다. 남이 만든 링크의 ID 는 계약 화면에서 api 가 본인 계약인지 다시 본다.
+ * 하나)만 싣는다 — 완료 화면이 「근로계약서 서명하기」를 그 계약으로 보낸다. 남이 만든 링크의 ID 는 계약 화면에서 api 가 본인 계약인지 다시 본다.
  */
 export function resultHref(result: AnswerResult): string {
   const params = new URLSearchParams({ result: result.kind });
@@ -152,7 +153,7 @@ export function parseResult(params: SearchParams): AnswerResult | null {
 }
 
 /**
- * 수락 완료의 「계약서 서명하러 가기」 주소 — 함께 온 계약이 하나면 그 계약서, 여럿이면 근로계약서 목록, 없으면 null(버튼 없음). 근무지(storeId)를
+ * 수락 완료의 「근로계약서 서명하기」 주소 — 함께 온 계약이 하나면 그 계약서, 여럿이면 근로계약서 목록, 없으면 null(버튼 없음). 근무지(storeId)를
  * 알면 ?store= 를 붙여 목록을 그 근무지로 거르고 상세의 뒤로 가기도 그 목록으로 간다(서명 요청 팝업과 같다). 모르면 거르지 않는다.
  */
 export function contractHrefOf(contractIds: readonly number[], storeId: number | null = null): string | null {
@@ -161,28 +162,48 @@ export function contractHrefOf(contractIds: readonly number[], storeId: number |
   return contractIds.length === 1 ? `/contracts/${contractIds[0]}${store}` : `/contracts${store}`;
 }
 
-/** 소속 추가 확인 · 복귀 확인을 가르는 배지 글자. 화면 용어는 둘 다 「소속 추가 확인 요청」이다. */
+/** 근무지 추가 확인 · 복귀 확인을 가르는 배지 글자. 화면 용어는 둘 다 「근무지 추가 확인 요청」이다(2026-11-20 사용자 지정 — 전엔 「소속」). */
 export const invitationTypeLabel = ({ invitationType }: Pick<AffiliationRequest, "invitationType">) =>
-  invitationType === "RETURN_CONFIRM" ? "복귀 확인" : "소속 추가 확인";
+  invitationType === "RETURN_CONFIRM" ? "복귀 확인" : "근무지 추가 확인";
+
+export type PopupSummary = {
+  /** 제목 위 머리말 — 「새 근무지 초대」 · 「복귀 요청」 */
+  eyebrow: string;
+  /** 제목에서 남보라로 칠할 근무지 이름(요청이 여럿이면 null)과 그 뒤 글자(줄바꿈 문자에서 줄을 바꾼다). title 은 둘을 이은 낭독용 글자 */
+  storeName: string | null;
+  headingRest: string;
+  title: string;
+  rows: { label: string; value: string; sub?: string }[];
+  key: string;
+};
 
 /**
- * 로그인 뒤 팝업에 보일 줄과 기억할 값. 요청이 하나면 점포와 고용 형태 · 직무(확인 화면 · 목록과 같은 줄), 여럿이면 첫 점포 「외 N곳」과
- * 요청 수 — 첫 요청의 고용 형태만 보이면 나머지도 같은 줄 안다.
+ * 로그인 뒤 팝업에 보일 제목 · 줄과 기억할 값(정돈 시안 B안, 2026-11-20 사용자 지정). 요청이 하나면 「○○에서 근무지 초대를 보냈습니다」와
+ * 고용 형태 · 직무, 답변 기한(아래 꺾은선 줄에 남은 날). 여럿이면 「근무지 초대가 N건 도착했습니다」와 첫 근무지 「외 N곳」 — 첫 요청의
+ * 고용 형태만 보이면 나머지도 같은 줄 안다.
  */
-export function popupSummary(items: AffiliationRequest[]): { rows: { label: string; value: string }[]; key: string } | null {
+export function popupSummary(items: AffiliationRequest[], now: Date): PopupSummary | null {
   const first = items.at(0);
   if (!first) return null;
   const others = items.length - 1;
+  const returning = others === 0 && first.invitationType === "RETURN_CONFIRM";
+  const storeName = others > 0 ? null : first.storeName;
+  const headingRest =
+    others > 0 ? `근무지 초대가 ${items.length}건 도착했습니다` : returning ? "에서\n다시 함께 일하자고 요청했습니다" : "에서\n근무지 초대를 보냈습니다";
   return {
+    eyebrow: returning ? "복귀 요청" : "새 근무지 초대",
+    storeName,
+    headingRest,
+    title: `${storeName ?? ""}${headingRest}`.replace("\n", " "),
     rows:
       others > 0
         ? [
-            { label: "점포", value: `${first.storeName} 외 ${others}곳` },
+            { label: "근무지", value: `${first.storeName} 외 ${others}곳` },
             { label: "요청", value: `${items.length}건` },
           ]
         : [
-            { label: "점포", value: first.storeName },
             { label: "고용 형태", value: employmentLine(first) },
+            { label: "답변 기한", value: `${kstDateTimeLabel(first.expiresAt)}까지`, sub: daysLeftText(first.expiresAt, now) },
           ],
     // 「나중에」를 눌렀을 때 기억하는 값(id 묶음). 새 요청이 오면 다시 뜬다(isPopupDismissed).
     key: items

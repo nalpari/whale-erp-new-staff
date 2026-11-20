@@ -88,15 +88,21 @@ export function deadlineText(d: Deadline, style: "list" | "detail"): string {
 const leftText = (d: Deadline, style: "list" | "detail") =>
   style === "list" ? (d.daysLeft === 0 ? "D-day" : `D-${d.daysLeft}`) : d.daysLeft === 0 ? "오늘 마감" : `${d.daysLeft}일 남음`;
 
+/** 기한까지 남은 날(한국 달력) — 「5일 남음」, 당일은 「오늘 마감」. 근무지 추가 요청 시트의 답변 기한 꺾은선 줄이 쓴다. */
+export function daysLeftText(atIso: string, now: Date): string {
+  const days = Math.max(0, kstDay(Date.parse(atIso)) - kstDay(now.getTime()));
+  return days === 0 ? "오늘 마감" : `${days}일 남음`;
+}
+
 /** 기한을 시각까지 보일 만큼 가까운지 — 오늘 · 내일(위 deadlineText 의 까닭). 목록 · 홈 서명 대기 카드가 같이 쓴다. */
 export const isDeadlineNear = (d: Deadline): boolean => d.daysLeft <= 1;
 
 /**
- * 홈 서명 요청 팝업의 「서명 기한」 뒤 — 「2026년 9월 12일 10:23까지 · 2일 남음」. 홈 화면 문구라 계약 화면(deadlineText)과 따로 둔다.
+ * 홈 서명 요청 팝업의 「서명 기한」 — 값 「2026년 9월 12일 10:23까지」와 그 아래 꺾은선 줄 「2일 남음」(당일은 「오늘 마감」).
+ * 홈 화면 문구라 계약 화면(deadlineText)과 따로 둔다.
  */
-export function deadlineValue(d: Deadline, style: "list" | "detail"): string {
-  const withTime = style === "detail" || isDeadlineNear(d);
-  return `${withTime ? `${d.dateTime}까지` : d.date} · ${leftText(d, style)}`;
+export function popupDeadline(d: Deadline): { until: string; left: string } {
+  return { until: `${d.dateTime}까지`, left: leftText(d, "detail") };
 }
 
 /** 「2026.09.15 – 2027.03.14」, 끝이 없으면 「2026.03.01부터 · 기간 정함 없음」(데모 contract 의 점 표기). */

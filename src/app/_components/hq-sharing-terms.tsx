@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BottomSheet } from "@/components/common";
+import { BottomSheet, MaskIcon } from "@/components/common";
 import { HQ_SHARING_TERMS } from "@/lib/hq-sharing-terms";
 
 /**
@@ -37,7 +37,7 @@ export function HqSharingTermsReviewNote() {
  * 동의 칸 요약 아래 「내용 보기」 — 누르면 전문 시트를 연다(가입 · 근무지 추가 · 소속 추가 수락, ATT-30 · ATT-8 v257). 동의는 체크 칸으로만
  * 받는다 — 시트는 보이기만 한다.
  */
-export function HqSharingTermsButton() {
+export function HqSharingTermsButton({ chevron = false }: { chevron?: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -48,9 +48,15 @@ export function HqSharingTermsButton() {
         aria-expanded={open}
         aria-label="사업자 제공 동의 내용 보기"
         // 빈칸을 음수 여백으로 당기면 44px 누르는 칸이 위 요약 글자를 덮어 요약을 눌러도 시트가 열린다 — 당기지 않는다
-        className="flex min-h-[44px] items-center self-start text-[12px] font-semibold text-staff-text-sub underline underline-offset-2"
+        className={
+          chevron
+            ? // 근무지 추가 확인의 동의 카드(제안 1) — 밑줄 대신 꺾쇠, 카드 머리 줄 오른쪽 끝
+              "flex min-h-[44px] shrink-0 items-center gap-[2px] px-[4px] text-[13px] font-semibold text-staff-text-sub"
+            : "flex min-h-[44px] items-center self-start text-[12px] font-semibold text-staff-text-sub underline underline-offset-2"
+        }
       >
         내용 보기
+        {chevron && <MaskIcon src="/icons/chevron-right-small.svg" size={12} />}
       </button>
       <BottomSheet open={open} onClose={() => setOpen(false)} title="사업자 제공 동의">
         <HqSharingTermsBody />

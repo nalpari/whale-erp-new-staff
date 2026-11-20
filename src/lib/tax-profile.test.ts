@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CONNECTION_FAILED, RATE_LIMITED, RETRY_LATER } from "./action-errors.ts";
 import {
+  purposeItems,
   ACCOUNT_INCOMPLETE,
   BANK_REQUIRED,
   TAX_PROFILE_CREATE_NOT_FOUND,
@@ -176,7 +177,7 @@ test("validateTaxProfileEdit — 계좌 16자리 · 은행 코드 20자 경계",
 
 test("taxProfileSaveFailure — 문구 · 남기기까지 확인", () => {
   assert.deepEqual(taxProfileSaveFailure({ status: 404, message: "소속을 찾을 수 없습니다" }), {
-    state: { problem: { field: "form", message: "이 근무지의 신고 정보를 고칠 수 없습니다. 소속 근무지에서 다시 열어 주세요" } },
+    state: { problem: { field: "form", message: "이 근무지의 신고 정보를 고칠 수 없습니다. 내 근무지에서 다시 열어 주세요" } },
     log: false,
   });
   assert.deepEqual(taxProfileSaveFailure({ status: 429, message: "ThrottlerException" }), { state: { problem: { field: "form", message: RATE_LIMITED } }, log: false });
@@ -273,4 +274,10 @@ test("taxProfileCreateFailure 는 처음 넣기 화면에 없는 지금 비밀�
   const r = taxProfileCreateFailure({ status: 400, message: "currentPassword must be shorter" });
   assert.equal(r.state.problem?.field, "form");
   assert.equal(r.log, true);
+});
+
+test("purposeItems — 쉼표 · 가운뎃점으로 나누고 빈 항목은 뺀다", () => {
+  assert.deepEqual(purposeItems("4대보험 신고, 근로소득 원천징수 · 급여 지급"), ["4대보험 신고", "근로소득 원천징수", "급여 지급"]);
+  assert.deepEqual(purposeItems("급여 지급"), ["급여 지급"]);
+  assert.deepEqual(purposeItems(" , "), []);
 });

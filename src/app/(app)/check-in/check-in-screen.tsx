@@ -438,11 +438,11 @@ export function CheckInScreen({
             />
             <p className="text-[12px] text-staff-text-muted">점선은 예정, 채운 막대는 실제 근무입니다</p>
           </section>
-          <Clock label="근무 시간" note={`현재 시각 ${kstTime(now)}`}>
+          <Clock center label="근무 시간" note={`현재 시각 ${kstTime(now)}`}>
             {elapsed.hours}
-            <span className="text-[17px]">시간 </span>
+            <span className="mr-[6px] ml-[2px] text-[17px]">시간</span>
             {elapsed.minutes}
-            <span className="text-[17px]">분</span>
+            <span className="ml-[2px] text-[17px]">분</span>
           </Clock>
         </>
       );
@@ -500,7 +500,7 @@ export function CheckInScreen({
               ))}
             </section>
           )}
-          <Clock label="현재 시각" dim={!usable || out}>
+          <Clock center label="현재 시각" dim={!usable || out}>
             {kstTime(now)}
           </Clock>
         </>
@@ -529,11 +529,15 @@ export function CheckInScreen({
   return (
     <>
       {!done && header}
-      <main className="flex flex-col gap-[20px] px-[22px] pt-[22px] pb-[14px] leading-[1.5]">
+      <main className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[22px] pb-[14px] leading-[1.5]">
         {error && <Alert tone="danger">{error}</Alert>}
         {body}
       </main>
-      {dock && <Dock inset={30}>{dock}</Dock>}
+      {dock && (
+        <Dock inset={30} onPage>
+          {dock}
+        </Dock>
+      )}
 
       {/* 위치정보 동의(운영 정책 ATT-06 · ATT-23): 서비스 약관과 따로, 첫 출근 등록 때 · 약관 버전이 바뀌면 다시. 문구는 법무 검토 중(ATT-8) — 반경 밖 확인 필요 표시 문장은 2026-10-26 재영 안,
           탭 진입 때 읽기 · 카카오 전달은 2026-10-28 재영 안(ATT-05 · ATT-22 v229). 카카오 전달을 「제공」 · 「위탁」 중 무엇으로 쓸지는 법무 결과에 따라 고친다.
