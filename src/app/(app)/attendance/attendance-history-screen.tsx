@@ -300,7 +300,7 @@ function PeriodPicker({ from, to }: { from: string; to: string }) {
 
 function EmptyRecords() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-[8px] py-[52px] text-center">
+    <div className="flex flex-1 flex-col items-center justify-center gap-[8px] py-[52px] text-center break-keep">
       <span className="flex pb-[6px] text-staff-text-muted">
         <MaskIcon src="/icons/history.svg" size={40} flipY />
       </span>
