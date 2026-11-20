@@ -100,7 +100,6 @@ export function ContractDecision({
         open={sheet === "correction"}
         onClose={close}
         title="근로계약서 수정을 요청하시겠습니까?"
-        description={"근무지 관리자가 내용을 수정해 다시 보내면\n서명할 수 있습니다."}
         closeLabel="취소"
       >
         {/* 시트는 하이드레이션 뒤 JS 로만 열려 이 폼은 늘 onSubmit 이 막고 서버 액션을 직접 부른다(연결 실패까지 문구로 받으려고).
