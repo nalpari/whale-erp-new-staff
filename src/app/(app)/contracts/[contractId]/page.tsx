@@ -270,7 +270,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
 
         {/* 표준근로계약서처럼 사업주가 먼저, 근로자(내 정보)가 다음이다(2026-11-20 사용자 확인). 계약서 본문 · PDF · 서명 불가 안내와 같은 「사업주」 — 「관리자」는 이 화면에서 문의할 근무지 관리자다(2026-11-19 사용자 결정) */}
         <InfoGroup
-          title="사업주(근무지)"
+          title="사업주"
           rows={[
               ["상호", c.employer.tradeName ?? c.employer.storeName],
               ["대표자", c.employer.ceoName],
@@ -281,7 +281,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
         />
 
         <InfoGroup
-          title="계약서에 들어가는 내 정보"
+          title="근로자"
           rows={[
               ["이름", worker.name],
               ["생년월일", worker.birthDate && dateLabel(worker.birthDate)],
