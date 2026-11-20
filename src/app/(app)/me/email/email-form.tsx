@@ -52,8 +52,6 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
             </>
           }
         >
-          변경할 이메일 주소로 인증번호가 발송됩니다.
-          <br />
           인증이 완료되면 변경된 이메일로 로그인할 수 있습니다.
         </Lead>
         <div className="flex items-center gap-[12px] rounded-[16px] border border-staff-border bg-staff-bg py-[12px] pr-[16px] pl-[12px]">
@@ -80,14 +78,17 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
           defaultValue={state.newEmail}
           error={state.problem?.field === "newEmail" ? state.problem.message : undefined}
         />
-        {/* 새 이메일 칸에 대한 주의라 그 칸 바로 아래(위 칸과 8 — 칸 안내 간격)에 둔다. 글자색은 경고 판과 같은 #956013 */}
-        <p className="-mt-[12px] flex gap-[6px] text-[13px] leading-[1.5] break-keep text-[#956013]">
-          <svg aria-hidden width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="mt-[2px] shrink-0">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 7.5v5.5M12 16.5v.5" />
-          </svg>
-          <span>비밀번호 재설정 인증번호도 이 이메일로 보내 드립니다. 메일을 받을 수 있는 주소인지 확인해 주세요.</span>
-        </p>
+        {/* 새 이메일 칸 안내 두 줄 — 그 칸 바로 아래(위 칸과 8 — 칸 안내 간격). 둘째 줄은 놓치면 안 되는 주의라 경고 판과 같은 #956013 */}
+        <div className="-mt-[12px] flex flex-col gap-[2px] text-[13px] leading-[1.5] break-keep">
+          <p className="text-staff-text-muted">변경할 이메일 주소로 인증번호가 발송됩니다.</p>
+          <p className="flex gap-[6px] text-[#956013]">
+            <svg aria-hidden width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="mt-[2px] shrink-0">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7.5v5.5M12 16.5v.5" />
+            </svg>
+            <span>비밀번호 재설정 메일도 이 주소로 발송됩니다.</span>
+          </p>
+        </div>
         <TextField
           label="현재 비밀번호"
           name="currentPassword"
