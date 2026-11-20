@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "급여명세서 · Whale ERP" };
 // 급여명세서 상세. 기준: 데모 docs/demo/src/pages/pay 의 상세 · 다시 보낸 명세서(Figma 없음, DESIGN.md 기준 초안).
 // 다시 보낸 명세서(PAY-1)는 따로 화면이 없다 — 발송이 두 번 이상인 명세서다. 최신 값으로 덮어 이전 금액은 보이지 않는다.
 // 위쪽 「다시 발송되었습니다」 안내도, 바뀐 줄 표시(「· 정정됨」)도 두지 않는다(2026-10-20 재영, 알림 NOTI-6 과 같다).
-// 데모 resent 와 같이 다시 보낸 명세서는 머리 메타에 가장 최근에 받은 날을 적고, 아래 「실제 급여 입금은 …」 안내를 뺀다.
+// 데모 resent 와 같이 다시 보낸 명세서는 머리 메타에 가장 최근에 받은 날을 적고, 아래 「실제 급여 지급은 …」 안내를 뺀다.
 // 보낸 뒤 확정을 취소해 고치는 중이면(api correcting) 「검토 중」과 안내만 — 금액 · 항목 · 내보내기는 다시 받을 때까지 없다
 // (2026-10-21 사용자 결정, 고치는 중인 값을 보이지 않게).
 export default async function PayslipPage({ params }: PageProps<"/pay/[payslipId]">) {
@@ -91,7 +91,7 @@ export default async function PayslipPage({ params }: PageProps<"/pay/[payslipId
       </Card>
 
       {!correcting && <ExportButton payslipId={payslip.payslipId} />}
-      {!correcting && !resent && <Tiny>실제 급여 입금은 근무지에서 진행합니다.</Tiny>}
+      {!correcting && !resent && <Tiny>실제 급여 지급은 근무지에서 진행합니다.</Tiny>}
     </PayFrame>
   );
 }
