@@ -80,7 +80,14 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
         />
         {/* 새 이메일 칸 안내 두 줄 — 그 칸 바로 아래(위 칸과 8 — 칸 안내 간격). 둘째 줄은 놓치면 안 되는 주의라 경고 판과 같은 #956013 */}
         <div className="-mt-[12px] flex flex-col gap-[2px] text-[13px] leading-[1.5] break-keep">
-          <p className="text-staff-text-muted">변경할 이메일 주소로 인증번호가 발송됩니다.</p>
+          {/* 두 줄 모두 아이콘 칸(15)을 두어 글자 시작선을 맞춘다 — 첫 줄은 회색 안내(i), 둘째 줄은 황토색 주의(!) */}
+          <p className="flex gap-[6px] text-staff-text-muted">
+            <svg aria-hidden width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="mt-[2px] shrink-0">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 11v5.5M12 7.5v.5" />
+            </svg>
+            <span>변경할 이메일 주소로 인증번호가 발송됩니다.</span>
+          </p>
           <p className="flex gap-[6px] text-[#956013]">
             <svg aria-hidden width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="mt-[2px] shrink-0">
               <circle cx="12" cy="12" r="9" />
