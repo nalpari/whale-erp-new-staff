@@ -197,7 +197,7 @@ export function hqSharingView(consent: Pick<Schemas["MyHqSharingConsentDto"], "i
     badge: { tone: "plain", text: "동의하지 않음" },
     line: withdrawnAt ? `${kstDateTimeLabel(withdrawnAt)} 동의 철회` : "",
     action: { kind: "agree", label: withdrawnAt ? "다시 동의하기" : "동의하기", alsoWithdraw: false },
-    note: withdrawnAt ? "" : "동의하면 가맹본부가 내 근무정보를 확인할 수 있습니다.",
+    note: withdrawnAt ? "" : "동의하면 가맹본사가 내 근무정보를 확인할 수 있습니다.",
   };
 }
 

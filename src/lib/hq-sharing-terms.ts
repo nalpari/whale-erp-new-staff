@@ -24,7 +24,7 @@ export const HQ_SHARING_FLOWS = { signup: "가입과", addStore: "근무지 추�
 
 /** 가입 · 근무지 추가 · 소속 추가의 체크 칸 아래 요약 */
 export const hqSharingSummary = (flow: keyof typeof HQ_SHARING_FLOWS) =>
-  `가맹본부가 내 근무 정보(근로계약 · 근무스케줄 · 출퇴근 기록 · 급여명세서)를 개인 단위로 보는 것에 동의합니다. 동의하지 않아도 ${HQ_SHARING_FLOWS[flow]} 근무는 그대로이고, 본사에는 점포별 숫자로만 보입니다. 내 정보에서 언제든 철회할 수 있습니다.`;
+  `가맹본사가 내 근무 정보(근로계약 · 근무스케줄 · 출퇴근 기록 · 급여명세서)를 개인 단위로 보는 것에 동의합니다. 동의하지 않아도 ${HQ_SHARING_FLOWS[flow]} 근무는 그대로이고, 본사에는 점포별 숫자로만 보입니다. 내 정보에서 언제든 철회할 수 있습니다.`;
 
 /** 화면이 실어 보낸 문구 버전 — 비지 않은 64자 이하 문자열만(api 와 같은 형식). 아니면 undefined 라 싣지 않는다(api 는 동의를 남기지 않는다) */
 export const parseHqSharingVersion = (raw: unknown): string | undefined =>

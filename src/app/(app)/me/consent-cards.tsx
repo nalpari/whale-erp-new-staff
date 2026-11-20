@@ -338,7 +338,7 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
         <HqSharingTermsBody />
         {view.action.kind === "agree" && view.action.alsoWithdraw && (
           <Alert tone="warning">
-            <p>동의한 뒤 내용이 바뀌었습니다. 위 내용으로 다시 동의해야 가맹본부에 개인 단위로 보입니다 — 원하지 않으면 동의를 철회할 수 있습니다.</p>
+            <p>동의한 뒤 내용이 바뀌었습니다. 위 내용으로 다시 동의해야 가맹본사에 개인 단위로 보입니다 — 원하지 않으면 동의를 철회할 수 있습니다.</p>
           </Alert>
         )}
         {/* 위치정보와 같이 내용을 보인 이 시트 안에서만 동의를 받는다. */}
@@ -352,7 +352,7 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
 
       <BottomSheet open={sheet === "withdraw"} onClose={() => setSheet(undefined)} title="근무정보 제공 동의를 철회하시겠습니까?" closeLabel="취소">
         <p className="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">
-          철회하면 가맹본부에는 내 근무 정보가
+          철회하면 가맹본사에는 내 근무 정보가
           <br />
           <strong>점포별 숫자로만 보입니다.</strong>
         </p>

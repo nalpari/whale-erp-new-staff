@@ -161,7 +161,7 @@ test("hqSharingView — 미동의 · 철회 뒤는 동의하기 · 다시 동의
   assert.deepEqual(none.badge, { tone: "plain", text: "동의하지 않음" });
   assert.equal(none.line, "");
   assert.deepEqual(none.action, { kind: "agree", label: "동의하기", alsoWithdraw: false });
-  assert.equal(none.note, "동의하면 가맹본부가 내 근무정보를 확인할 수 있습니다.");
+  assert.equal(none.note, "동의하면 가맹본사가 내 근무정보를 확인할 수 있습니다.");
   const withdrawn = hqSharingView({ ...base, withdrawnAt: "2026-10-02T01:00:00Z", consentVersion: "v1.0" });
   assert.deepEqual(withdrawn.action, { kind: "agree", label: "다시 동의하기", alsoWithdraw: false });
   assert.equal(withdrawn.line, "2026년 10월 2일 10:00 동의 철회");
