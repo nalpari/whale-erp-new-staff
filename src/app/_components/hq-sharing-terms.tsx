@@ -12,18 +12,29 @@ import { HQ_SHARING_TERMS } from "@/lib/hq-sharing-terms";
 export function HqSharingTermsBody() {
   return (
     <>
-      <dl className="rounded-[12px] border border-staff-border-light bg-staff-info-bg px-[14px] py-[5px] text-[13px]">
+      {/* 모양만 정돈 시안 ⑱(2026-11-20 사용자 지정) — 연회색 둥근 상자에 이름 위 · 값 아래, 안내는 문장마다 점 목록. 글자는 버전(v1.0)에
+          묶인 그대로다 — 항목 이름 · 값 · 안내 문장을 바꾸려면 api 와 함께 HQ_SHARING_TERMS_VERSION 을 올린다. */}
+      <dl className="overflow-hidden rounded-[16px] border border-staff-border bg-staff-bg">
         {HQ_SHARING_TERMS.map(([name, value]) => (
-          <div key={name} className="flex gap-[12px] border-b border-staff-border-light py-[9px] last:border-b-0">
-            <dt className="shrink-0 text-staff-text-sub">{name}</dt>
-            <dd className="min-w-0 flex-1 text-right">{value}</dd>
+          // 줄 사이 #e4e8ef — staff-bg 바탕 위에서 옅은 테두리는 보이지 않아 한 단계 진하게(퇴근 완료 기록 상자와 같다)
+          <div key={name} className="flex flex-col gap-[4px] border-t border-[#e4e8ef] px-[18px] py-[13px] first:border-t-0">
+            <dt className="text-[13px] text-staff-text-muted">{name}</dt>
+            <dd className="text-[14px] break-keep">{value}</dd>
           </div>
         ))}
       </dl>
-      <p className="text-[12px] text-staff-text-muted [&_strong]:font-bold [&_strong]:text-staff-text">
-        선택 동의입니다. 철회해도 가입과 근무는 그대로이고, 본사에는 점포별 숫자로만 보입니다. <strong>항목이나 목적이 넓어지면</strong> 새
-        버전으로 다시 동의를 받습니다.
-      </p>
+      <ul className="flex flex-col gap-[4px] px-[4px] text-[13px] leading-[1.55] break-keep text-staff-text-sub">
+        {["선택 동의입니다.", "철회해도 가입과 근무는 그대로이고, 본사에는 점포별 숫자로만 보입니다.", "항목이나 목적이 넓어지면 새 버전으로 다시 동의를 받습니다."].map(
+          (line) => (
+            <li key={line} className="flex gap-[6px]">
+              <span aria-hidden className="text-staff-placeholder">
+                ·
+              </span>
+              <span className="min-w-0">{line}</span>
+            </li>
+          ),
+        )}
+      </ul>
     </>
   );
 }
