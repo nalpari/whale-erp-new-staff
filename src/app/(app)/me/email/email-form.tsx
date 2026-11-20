@@ -48,7 +48,7 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
             <>
               이메일을 변경하면
               <br />
-              로그인 아이디도 바뀝니다
+              로그인 아이디도 변경됩니다
             </>
           }
         >
