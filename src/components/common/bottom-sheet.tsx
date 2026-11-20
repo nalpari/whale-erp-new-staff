@@ -14,13 +14,20 @@ export function BottomSheet({
   open,
   onClose,
   title,
+  eyebrow,
+  heading,
   description,
   closeLabel = "닫기",
   children,
 }: {
   open: boolean;
   onClose: () => void;
+  /** 화면 낭독기가 읽는 시트 이름. heading 이 없으면 제목으로도 보인다. */
   title: string;
+  /** 제목 위 작은 머리말(14px semibold 보조 글자) — 근무지 추가 요청 시트의 「새 근무지 초대」. */
+  eyebrow?: string;
+  /** 제목을 글자 대신 그릴 때(일부만 남보라로 칠하기 · 줄바꿈). 없으면 title 을 그대로 보인다. */
+  heading?: ReactNode;
   /** 글자면 \n 에서 줄을 바꾼다. 굵게 할 곳은 <strong> 으로 넘긴다(데모 <b>). */
   description?: ReactNode;
   closeLabel?: string;
@@ -52,7 +59,8 @@ export function BottomSheet({
     >
       <div className="flex max-h-[90dvh] flex-col overflow-y-auto rounded-t-[26px] bg-white px-[24px] pt-[12px] pb-[max(22px,env(safe-area-inset-bottom))] leading-[1.5] text-staff-text shadow-[0_-8px_28px_rgba(22,25,28,0.16)]">
         <span aria-hidden className="mx-auto h-[4px] w-[40px] shrink-0 rounded-[2px] bg-[#dce1e9]" />
-        <h2 className="pt-[25px] text-[20px] font-bold">{title}</h2>
+        {eyebrow && <p className="pt-[25px] text-[14px] font-semibold text-staff-text-sub">{eyebrow}</p>}
+        <h2 className={`${eyebrow ? "pt-[6px]" : "pt-[25px]"} text-[20px] font-bold break-keep`}>{heading ?? title}</h2>
         {description && (
           <p className="pt-[19px] text-[14px] whitespace-pre-line text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">{description}</p>
         )}

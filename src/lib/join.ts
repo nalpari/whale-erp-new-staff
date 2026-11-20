@@ -152,7 +152,7 @@ export function signupFieldProblem(fields: SignupFields): { field: SignupField; 
   if (!email) return { field: "email", error: "이메일을 입력해 주세요" };
   const rules = checkPasswordRules(newPassword, email);
   if (!rules.kinds || !rules.length || !rules.notEmail) return { field: "newPassword", error: "아래 비밀번호 조건을 확인해 주세요" };
-  if (newPassword !== fields.newPasswordConfirmation) return { field: "newPasswordConfirmation", error: "두 칸의 비밀번호가 다릅니다" };
+  if (newPassword !== fields.newPasswordConfirmation) return { field: "newPasswordConfirmation", error: "비밀번호가 일치하지 않습니다." };
   if (!fields.zipCode || !fields.address) return { field: "address", error: "주소를 검색해 골라 주세요" };
   return null;
 }

@@ -3,6 +3,7 @@ import { RedirectType, notFound, redirect } from "next/navigation";
 import { Alert, Button, Dock, PageHeader } from "@/components/common";
 import { ApiError } from "@/lib/api";
 import { getCodesOrEmpty } from "@/lib/codes";
+import { labelOf } from "@/lib/enums";
 import { getMyMemberships, getMyProfile, getMyTaxProfile } from "@/lib/my-profile";
 import { dateLabel } from "@/lib/profile";
 import { parseStaffMemberId } from "@/lib/tax-profile";
@@ -35,7 +36,7 @@ export default async function TaxProfileEditPage({ params }: PageProps<"/me/memb
       <PageHeader title="신고 정보 다시 입력" backHref={viewHref} />
       {tax === null ? (
         <>
-          <div className="flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
+          <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
             <Alert tone="warning">
               <p>신고 정보를 지금 고칠 수 없습니다. 잠시 뒤 다시 열어 주세요.</p>
             </Alert>
@@ -56,6 +57,8 @@ export default async function TaxProfileEditPage({ params }: PageProps<"/me/memb
           banks={banks}
           backHref={viewHref}
           email={profile.email}
+          currentRrn={tax.taxProfile?.rrnMasked}
+          currentAccount={tax.taxProfile ? `${labelOf(banks, tax.taxProfile.bankCode)} ${tax.taxProfile.payrollAccountNumberMasked}` : undefined}
         />
       )}
     </div>

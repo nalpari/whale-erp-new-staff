@@ -5,6 +5,8 @@ import {
   bodyMissing,
   contractSubText,
   deadlineOf,
+  formatBizNumber,
+  formatTelephone,
   isFinished,
   maskPhone,
   paperDocuments,
@@ -24,11 +26,19 @@ import { dateLabel, kstDateLabel } from "@/lib/profile";
 import { requireSession } from "@/lib/session";
 import { ChangedToast } from "../../me/changed-toast";
 import { ContractDocument } from "../_components/contract-document";
-import { ContractFrame, ContractHead, Sunken, Tiny, Values } from "../_components/parts";
+import { ContractFrame, ContractSummary, InfoGroup, Sunken, Tiny, Values } from "../_components/parts";
 import { rejectContractAction, requestContractCorrectionAction } from "./actions";
 import { ContractDecision } from "./contract-decision";
 
 export const metadata: Metadata = { title: "근로계약서 · Whale ERP" };
+
+/** 처리가 끝났거나 수정 요청한 계약서의 상태별 안내 — 요약 카드 아래 회색 한 줄(2026-11-20 사용자 지정, 전엔 맨 위 안내 상자). 만료 · 서명 불가는 위 안내 상자가 맡는다. */
+const FINISHED_NOTE: Partial<Record<string, string>> = {
+  SIGNED: "서명이 완료된 근로계약서입니다. 내용 변경은 근무지 관리자에게 문의해 주세요.",
+  REJECTED: "서명을 거절한 근로계약서입니다. 다시 진행하려면 근무지 관리자에게 문의해 주세요.",
+  ENDED: "계약 기간이 종료된 근로계약서입니다.",
+  CORRECTION_REQUESTED: "수정된 근로계약서를 받으면 다시 서명할 수 있습니다.",
+};
 
 const address = (...parts: (string | null)[]) => parts.filter(Boolean).join(" ") || null;
 
@@ -83,10 +93,10 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const phase = phaseOf(c, now);
   const status = phaseLabel(phase, labelOf(statuses, phase));
   const employmentType = c.employmentType && labelOf(employmentTypes, c.employmentType);
-  const title = [c.employer.storeName, employmentType].filter(Boolean).join(" · ");
   const deadline = deadlineOf(c, now);
   const paper = c.contractMethod === "PAPER";
-  const header = <PageHeader title="근로계약" backHref={backHref} />;
+  // 화면 제목은 목록에서 누른 상자 제목과 같다 — 「파트타이머 근로계약서」(고용 형태가 없으면 「근로계약서」, 2026-11-20 사용자 지정)
+  const header = <PageHeader title={employmentType ? `${employmentType} 근로계약서` : "근로계약서"} backHref={backHref} />;
 
   if (paper) {
     const files = paperDocuments(c.documents);
@@ -208,7 +218,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
               <br />
               {mismatched ? `다른 항목: ${mismatched}` : "다른 항목이 있습니다."}
               <br />
-              계약서 내용을 확인하고 수정을 요청해 주세요. 근무지 관리자가 고쳐 다시 보내면 서명할 수 있습니다.
+              계약서 내용을 확인하고 수정을 요청해 주세요. 수정된 근로계약서를 받으면 서명할 수 있습니다.
               {c.storeNotOperating === true && (
                 // 근무지도 운영 중이 아니면 고쳐도 다시 보낼 수 없다(api 가 막는다) — 관리자가 근무지도 바로잡아야 한다는 것을 함께 알린다
                 <>
@@ -225,58 +235,60 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
             <br />
             근무지 관리자에게 문의해 주세요.
           </Notice>
-        ) : phase === "CORRECTION_REQUESTED" ? (
-          <Notice>
-            <strong>수정을 요청한 계약서입니다.</strong>
-            <br />
-            근무지 관리자가 고쳐 다시 보내면 서명할 수 있습니다.
-          </Notice>
         ) : (
-          isFinished(phase) && (
-            // 데모 readonly
-            <Notice>
-              <strong>이미 처리가 끝난 계약서입니다.</strong>
-              <br />
-              다시 서명하거나 거절할 수 없습니다.
-              <br />
-              계약 내용을 바꾸려면 근무지 관리자에게 문의해 주세요.
-            </Notice>
-          )
+          // 처리가 끝난 계약서(서명 완료 · 거절 · 종료)는 위 안내 상자 대신 요약 카드 아래 회색 한 줄로 알린다(아래 finishedNote)
+          null
         )}
 
-        <ContractHead
-          title={title}
-          sub={contractSubText(c, now, status, "detail")}
-          urgent={deadline?.urgent ?? false}
+        {/* 머리 요약 — 근무지명 · 상태, 받은 날 · 서명(기한이면 남은 날 꺾은선), 그 밖 단계는 한 줄 안내(2026-11-20 사용자 지정) */}
+        <ContractSummary
+          storeName={c.employer.storeName}
           badge={<Badge tone={statusTone(phase)}>{status}</Badge>}
+          rows={[
+            ["받은 날", c.sentAt && kstDateLabel(c.sentAt)],
+            deadline
+              ? ["서명 기한", deadline.dateTime]
+              : phase === "CORRECTION_REQUESTED"
+                ? ["수정 요청일", c.processedAt && kstDateLabel(c.processedAt)]
+                : ["서명일", phase === "SIGNED" && c.processedAt ? kstDateLabel(c.processedAt) : null],
+          ]}
+          left={deadline ? { text: deadline.daysLeft === 0 ? "오늘 마감" : `${deadline.daysLeft}일 남음`, urgent: deadline.urgent } : undefined}
+          note={!deadline && phase !== "SIGNED" && !(phase === "CORRECTION_REQUESTED" && c.processedAt) ? contractSubText(c, now, status, "detail") : null}
         />
+        {(isFinished(phase) || phase === "CORRECTION_REQUESTED") && FINISHED_NOTE[phase] && (
+          <p className="-mt-[4px] flex gap-[6px] px-[4px] text-[13px] leading-[1.5] break-keep text-staff-text-muted">
+            <svg aria-hidden width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="mt-[2px] shrink-0">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 11v5.5M12 7.5v.5" />
+            </svg>
+            <span>{FINISHED_NOTE[phase]}</span>
+          </p>
+        )}
 
         <ContractDocument articles={c.articles} employmentTypeLabel={employmentType} />
 
-        <Sunken label="계약서에 들어가는 내 정보">
-          <Values
-            rows={[
+        {/* 표준근로계약서처럼 사업주가 먼저, 근로자(내 정보)가 다음이다(2026-11-20 사용자 확인). 계약서 본문 · PDF · 서명 불가 안내와 같은 「사업주」 — 「관리자」는 이 화면에서 문의할 근무지 관리자다(2026-11-19 사용자 결정) */}
+        <InfoGroup
+          title="사업주"
+          rows={[
+              ["상호", c.employer.tradeName ?? c.employer.storeName],
+              ["대표자", c.employer.ceoName],
+              ["사업자등록번호", formatBizNumber(c.employer.registrationNumber)],
+              ["사업장 주소", address(c.employer.bizAddress, c.employer.bizAddressDetail)],
+              ["전화", formatTelephone(c.employer.storePhone)],
+          ]}
+        />
+
+        <InfoGroup
+          title="근로자"
+          rows={[
               ["이름", worker.name],
               ["생년월일", worker.birthDate && dateLabel(worker.birthDate)],
               ["휴대전화번호", maskPhone(worker.phone)],
               // 주소는 날인할 때 계정 주소로 고정된다 — 날인 전이면 비어 있어 계정 주소를 보인다(api)
               ["주소", address(worker.address, worker.addressDetail) ?? address(c.account.address, c.account.addressDetail)],
-            ]}
-          />
-        </Sunken>
-
-        {/* 계약서 본문 · PDF · 서명 불가 안내와 같은 「사업주」 — 「관리자」는 이 화면에서 문의할 근무지 관리자다(2026-11-19 사용자 결정) */}
-        <Sunken label="사업주(근무지)">
-          <Values
-            rows={[
-              ["상호", c.employer.tradeName ?? c.employer.storeName],
-              ["대표자", c.employer.ceoName],
-              ["사업자등록번호", c.employer.registrationNumber],
-              ["사업장 주소", address(c.employer.bizAddress, c.employer.bizAddressDetail)],
-              ["전화", c.employer.storePhone],
-            ]}
-          />
-        </Sunken>
+          ]}
+        />
 
         {/* api 가 지금 날인할 수 있다고 할 때만(서명 대기 · 기한 안 · 재직 중) — 아래 버튼 줄과 같은 판정 */}
         {canDecide && <Tiny>서명하거나 거절하면 근무지 관리자에게 알림이 전달됩니다.</Tiny>}

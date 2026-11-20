@@ -109,8 +109,8 @@ export const CONSENT_CHANGES = {
   "location-pause": { path: "/me/location-consent/pause", done: "위치 수집을 일시 중지했습니다" },
   "location-resume": { path: "/me/location-consent/resume", done: "위치 수집을 다시 켰습니다" },
   "location-withdraw": { path: "/me/location-consent/withdraw", done: "위치정보 동의를 철회했습니다" },
-  "hq-sharing-agree": { path: "/me/hq-sharing-consent", done: "사업자 제공에 동의했습니다" },
-  "hq-sharing-withdraw": { path: "/me/hq-sharing-consent/withdraw", done: "사업자 제공 동의를 철회했습니다" },
+  "hq-sharing-agree": { path: "/me/hq-sharing-consent", done: "근무정보 제공에 동의했습니다" },
+  "hq-sharing-withdraw": { path: "/me/hq-sharing-consent/withdraw", done: "근무정보 제공 동의를 철회했습니다" },
 } as const;
 
 /** 위치정보 동의를 철회한 뒤 · 약관이 바뀐 뒤 다시 동의했을 때의 끝난 알림(데모 me). */
@@ -175,27 +175,29 @@ export function hqSharingView(consent: Pick<Schemas["MyHqSharingConsentDto"], "i
   action: { kind: "withdraw" } | { kind: "agree"; label: string; alsoWithdraw: boolean };
   note: string;
 } {
+  // 문구는 내 정보 정돈 시안 ⑬의 근무정보 제공 동의 상태별(2026-11-20 사용자 지정). line · note 가 비면 화면이 그 줄을 두지 않는다.
   const { isConsented, agreedAt, withdrawnAt, consentVersion, needsReconsent } = consent;
-  const version = consentVersion ? ` · 사업자 제공 동의 ${consentVersion}` : "";
+  const version = consentVersion ? ` · 내용 ${consentVersion}` : "";
   if (isConsented && needsReconsent)
     return {
       badge: { tone: "warning", text: "다시 동의 필요" },
-      line: `${agreedAt ? `${kstDateTimeLabel(agreedAt)} 동의${version} — ` : ""}동의 내용이 바뀌어 다시 동의해야 합니다`,
+      // 시안은 「내용 변경 · 날짜」지만 문구가 앱 번들이라 바뀐 날을 알 수 없어 새 문구 버전을 보인다
+      line: `내용 변경 · 새 내용 ${HQ_SHARING_TERMS_VERSION}`,
       action: { kind: "agree", label: "다시 동의하기", alsoWithdraw: true },
-      note: "다시 동의하기 전에는 가맹본부에 점포별 숫자로만 보입니다. 다시 동의하면 개인 단위로 보입니다.",
+      note: "근무정보 제공 내용이 변경되었습니다.\n변경된 내용을 확인하고 다시 동의해 주세요.",
     };
   if (isConsented)
     return {
       badge: { tone: "success", text: "동의함" },
-      line: agreedAt ? `${kstDateTimeLabel(agreedAt)} 동의${version}` : "동의했습니다",
+      line: agreedAt ? `${kstDateTimeLabel(agreedAt)} 동의${version}` : "",
       action: { kind: "withdraw" },
-      note: "철회해도 근무에는 영향이 없으며, 가맹본부에는 점포별 숫자로만 보입니다.",
+      note: "",
     };
   return {
     badge: { tone: "plain", text: "동의하지 않음" },
-    line: withdrawnAt ? `${kstDateTimeLabel(withdrawnAt)} 철회${version}` : "아직 동의하지 않았습니다",
+    line: withdrawnAt ? `${kstDateTimeLabel(withdrawnAt)} 동의 철회` : "",
     action: { kind: "agree", label: withdrawnAt ? "다시 동의하기" : "동의하기", alsoWithdraw: false },
-    note: `지금은 가맹본부에 점포별 숫자로만 보입니다. ${withdrawnAt ? "다시 동의하면" : "동의하면"} 개인 단위로 보입니다.`,
+    note: withdrawnAt ? "" : "동의하면 가맹본사가 내 근무정보를 확인할 수 있습니다.",
   };
 }
 

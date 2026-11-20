@@ -256,26 +256,49 @@ export function CheckInScreen({
   // ── 화면 ──
   let body: ReactNode;
   let dock: ReactNode = null;
+  // 근무 중 · 퇴근 완료 화면만 흰 바탕이다(정돈 시안 ⑯ · ⑰, 2026-11-20 사용자 지정) — 그 본문을 그리는 분기에서만 켠다
+  let whitePage = false;
 
   if (done) {
+    whitePage = true;
+    // 퇴근 완료(정돈 시안 ⑰, 2026-11-20 사용자 지정): 남보라 체크 · 「HH:MM에 퇴근했습니다」 큰 제목 · 기록 상자 · 남보라 [홈으로].
     const checkedIn = done.checkInRecordedAt ? new Date(done.checkInRecordedAt) : null;
+    const outAt = new Date(done.recordedAt);
+    const rows: [string, string, boolean?][] = [
+      ["근무지", done.storeName],
+      ...(checkedIn ? ([["출근", kstTime(checkedIn)]] as [string, string][]) : []),
+      ["퇴근", kstTime(outAt)],
+      ...(checkedIn ? ([["근무 시간", elapsedLabel(elapsedOf(checkedIn, outAt)), true]] as [string, string, boolean][]) : []),
+      ...(done.reviewReason ? ([["확인 필요", recordedReasonLabel(done.reviewReason) ?? "관리자 확인"]] as [string, string][]) : []),
+    ];
     body = (
       <>
-        <Clock label="퇴근 시각">{kstTime(new Date(done.recordedAt))}</Clock>
-        <Sunken>
-          <Values
-            rows={[
-              ["근무지", done.storeName],
-              ...(checkedIn ? ([["출근", kstTime(checkedIn)], ["근무 시간", elapsedLabel(elapsedOf(checkedIn, new Date(done.recordedAt)))]] as [string, string][]) : []),
-              ...(done.reviewReason ? ([["확인 필요", recordedReasonLabel(done.reviewReason) ?? "관리자 확인"]] as [string, string][]) : []),
-            ]}
-          />
-        </Sunken>
-        <p className="text-[12px] text-staff-text-muted">오늘도 수고하셨습니다.</p>
+        <div className="flex flex-col items-center gap-[14px] pt-[16px] text-center break-keep">
+          <span aria-hidden className="flex size-[56px] items-center justify-center rounded-full bg-staff-primary text-white">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12.5l4.5 4.5L19 7.5" />
+            </svg>
+          </span>
+          <h2 className="text-[24px] leading-[1.42] font-bold">
+            <span className="text-staff-primary tabular-nums">{kstTime(outAt)}</span>에
+            <br />
+            퇴근했습니다
+          </h2>
+          <p className="text-[15px] text-staff-text-sub">오늘도 수고하셨습니다.</p>
+        </div>
+        {/* 줄 사이 #e4e8ef — staff-bg 바탕 위에서 옅은 테두리(staff-border-light)는 보이지 않아 한 단계 진하게 */}
+        <dl className="overflow-hidden rounded-[16px] border border-staff-border bg-staff-bg">
+          {rows.map(([label, value, strong]) => (
+            <div key={label} className="flex gap-[12px] border-t border-[#e4e8ef] px-[18px] py-[13px] text-[14px] first:border-t-0">
+              <dt className="w-[64px] shrink-0 text-staff-text-muted">{label}</dt>
+              <dd className={`min-w-0 flex-1 ${strong ? "font-bold" : ""}`}>{value}</dd>
+            </div>
+          ))}
+        </dl>
       </>
     );
     dock = (
-      <Button variant="ghost" href="/home">
+      <Button href="/home">
         홈으로
       </Button>
     );
@@ -418,10 +441,28 @@ export function CheckInScreen({
         </>
       );
     } else if (working && elapsed) {
+      whitePage = true;
       body = (
         <>
           {geoBlock}
-          <SiteCard title="근무 중" sub={`${kstTime(new Date(working.recordedAt))}에 출근했습니다`} />
+          {/* 정돈 시안 ⑯(2026-11-20 사용자 지정): 근무지명 위 · 출근 시각(24px)을 크게, 「근무 중」은 점 + 글자로 출근 줄에 */}
+          {/* #dcdcf7 — 연보라 바탕(staff-primary-inactive) 위 한 단계 진한 테두리, 출근 화면 근무지 카드와 같은 값 */}
+          <section className="flex items-center gap-[12px] rounded-[18px] border border-[#dcdcf7] bg-staff-primary-inactive px-[20px] py-[16px]">
+            <span aria-hidden className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-white text-staff-primary">
+              <MaskIcon src="/icons/pin.svg" size={16} flipY />
+            </span>
+            <div className="flex min-w-0 flex-1 flex-col gap-[6px]">
+              <p className="truncate text-[14px] leading-[1.4] font-semibold text-staff-text-sub">{store.name}</p>
+              <p className="flex items-baseline gap-[4px] text-staff-primary">
+                <span className="text-[24px] leading-[1.25] font-bold tabular-nums">{kstTime(new Date(working.recordedAt))}</span>
+                <span className="text-[14px] font-semibold">출근</span>
+                <span className="ml-[12px] text-[13px] font-semibold">
+                  <span aria-hidden className="mr-[6px] inline-block size-[7px] rounded-full bg-staff-primary align-[1px] shadow-[0_0_0_3px_rgba(76,77,220,0.18)]" />
+                  근무 중
+                </span>
+              </p>
+            </div>
+          </section>
           {out && (
             <Alert tone="warning">
               <strong>매장 범위 밖입니다.</strong>
@@ -429,20 +470,34 @@ export function CheckInScreen({
               여기서 퇴근하면 <strong>관리자 확인이 필요한 기록</strong>으로 남습니다.
             </Alert>
           )}
-          <section className="flex flex-col gap-[9px] rounded-[18px] border border-staff-border-light bg-white p-[20px]">
-            <h2 className="text-[13px] font-semibold text-staff-text-sub">오늘</h2>
+          <section className="flex flex-col gap-[12px] rounded-[18px] border border-staff-border bg-white px-[18px] pt-[16px] pb-[12px]">
+            <div className="flex items-center justify-between gap-[8px]">
+              <h2 className="text-[15px] font-bold">오늘 근무</h2>
+              {/* 범례 — 점선 칸은 예정, 보라 칸은 실제 근무(전에는 막대 아래 문장으로 알렸다). 색은 WorkTimeBar 의 점선 #b6c1d5 · 바탕 #edf0f6 · 실제 근무 #7676e4 그대로 */}
+              <p className="flex items-center gap-[10px] text-[12px] text-staff-text-sub">
+                {schedule && (
+                  <span className="flex items-center gap-[4px]">
+                    <span aria-hidden className="h-[10px] w-[16px] rounded-[3px] border border-dashed border-[#b6c1d5] bg-[#edf0f6]" />
+                    예정 {schedule.startTime} ~ {schedule.endTime}
+                  </span>
+                )}
+                <span className="flex items-center gap-[4px]">
+                  <span aria-hidden className="h-[10px] w-[16px] rounded-[3px] bg-[#7676e4]" />
+                  실제 근무
+                </span>
+              </p>
+            </div>
             <WorkTimeBar
               schedule={schedule && { start: schedule.startTime, end: schedule.endTime }}
               worked={{ start: kstTime(new Date(working.recordedAt)), end: kstTime(now) }}
               ongoing
             />
-            <p className="text-[12px] text-staff-text-muted">점선은 예정, 채운 막대는 실제 근무입니다</p>
           </section>
-          <Clock label="근무 시간" note={`현재 시각 ${kstTime(now)}`}>
+          <Clock center label="근무 시간" note={`현재 시각 ${kstTime(now)}`}>
             {elapsed.hours}
-            <span className="text-[17px]">시간 </span>
+            <span className="mr-[8px] ml-[2px] text-[16px]">시간</span>
             {elapsed.minutes}
-            <span className="text-[17px]">분</span>
+            <span className="ml-[2px] text-[16px]">분</span>
           </Clock>
         </>
       );
@@ -500,7 +555,7 @@ export function CheckInScreen({
               ))}
             </section>
           )}
-          <Clock label="현재 시각" dim={!usable || out}>
+          <Clock center label="현재 시각" dim={!usable || out}>
             {kstTime(now)}
           </Clock>
         </>
@@ -528,12 +583,14 @@ export function CheckInScreen({
 
   return (
     <>
-      {!done && header}
-      <main className="flex flex-col gap-[20px] px-[22px] pt-[22px] pb-[14px] leading-[1.5]">
-        {error && <Alert tone="danger">{error}</Alert>}
-        {body}
-      </main>
-      {dock && <Dock inset={30}>{dock}</Dock>}
+      <div className={`flex flex-1 flex-col ${whitePage ? "bg-white" : ""}`}>
+        {!done && header}
+        <main className="flex flex-1 flex-col gap-[20px] px-[24px] pt-[20px] pb-[8px] leading-[1.5]">
+          {error && <Alert tone="danger">{error}</Alert>}
+          {body}
+        </main>
+        {dock && <Dock onPage>{dock}</Dock>}
+      </div>
 
       {/* 위치정보 동의(운영 정책 ATT-06 · ATT-23): 서비스 약관과 따로, 첫 출근 등록 때 · 약관 버전이 바뀌면 다시. 문구는 법무 검토 중(ATT-8) — 반경 밖 확인 필요 표시 문장은 2026-10-26 재영 안,
           탭 진입 때 읽기 · 카카오 전달은 2026-10-28 재영 안(ATT-05 · ATT-22 v229). 카카오 전달을 「제공」 · 「위탁」 중 무엇으로 쓸지는 법무 결과에 따라 고친다.

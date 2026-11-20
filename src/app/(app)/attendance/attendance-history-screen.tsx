@@ -47,7 +47,7 @@ export function AttendanceHistoryScreen({ tab, records, today, weekStart, now }:
   const close = () => setSheet(null);
 
   return (
-    <main className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px] leading-[1.5]">
+    <main className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[20px] pb-[24px] leading-[1.5]">
       <SegmentedControl
         label="기간"
         panelId={PANEL}
@@ -252,6 +252,9 @@ function PeriodView({ records, today }: { records: MyAttendanceRecords; today: s
 }
 
 /** 시작일 · 종료일 — 서로의 min · max 를 1년으로 묶는다(HIST-2). 조회는 주소로 간다(form GET) */
+// 날짜 칸 두 개가 카드 폭 안에 들어가게 — 칸이 글자 폭만큼 버티지 않도록 min-w-0 · 좌우 여백 10(2026-11-20 사용자 지정: 오른쪽 칸이 카드 밖으로 밀렸다)
+const DATE_FIELD = `${FIELD.replace("px-[14px]", "px-[10px]")} min-w-0`;
+
 function PeriodPicker({ from, to }: { from: string; to: string }) {
   const [start, setStart] = useState(from);
   const [end, setEnd] = useState(to);
@@ -260,13 +263,13 @@ function PeriodPicker({ from, to }: { from: string; to: string }) {
       <form action="/attendance">
         <input type="hidden" name="tab" value="period" />
         <p className="text-[13px] font-semibold text-staff-text-sub">조회 기간</p>
-        <div className="flex items-center gap-[8px] pt-[8px]">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-[8px] pt-[8px]">
           <input
             type="date"
             name="from"
             aria-label="시작일"
             required
-            className={FIELD}
+            className={DATE_FIELD}
             value={start}
             min={end ? addDays(end, -(MAX_PERIOD_DAYS - 1)) : undefined}
             max={end || undefined}
@@ -280,7 +283,7 @@ function PeriodPicker({ from, to }: { from: string; to: string }) {
             name="to"
             aria-label="종료일"
             required
-            className={FIELD}
+            className={DATE_FIELD}
             value={end}
             min={start || undefined}
             max={start ? addDays(start, MAX_PERIOD_DAYS - 1) : undefined}
@@ -288,7 +291,10 @@ function PeriodPicker({ from, to }: { from: string; to: string }) {
           />
         </div>
         <div className="pt-[8px]">
-          <Button type="submit">조회</Button>
+          {/* 남보라 큰 버튼은 화면에서 너무 강해 외곽선 버튼으로(2026-11-20 사용자 지정) */}
+          <Button type="submit" variant="outline">
+            조회
+          </Button>
         </div>
         <p className="pt-[8px] text-[12px] text-staff-text-muted [&_b]:font-bold">
           한 번에 <b>최대 1년</b>까지 조회할 수 있습니다.
@@ -300,7 +306,7 @@ function PeriodPicker({ from, to }: { from: string; to: string }) {
 
 function EmptyRecords() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-[8px] py-[52px] text-center">
+    <div className="flex flex-1 flex-col items-center justify-center gap-[8px] py-[52px] text-center break-keep">
       <span className="flex pb-[6px] text-staff-text-muted">
         <MaskIcon src="/icons/history.svg" size={40} flipY />
       </span>

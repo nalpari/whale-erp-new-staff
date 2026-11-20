@@ -1,13 +1,14 @@
 "use client";
 
 import { unstable_rethrow } from "next/navigation";
-import { useState, useTransition, type ReactNode } from "react";
-import { Alert, Badge, BottomSheet, Button, Card, Toast, type BadgeTone } from "@/components/common";
+import { useState, useTransition, type ComponentProps, type ReactNode } from "react";
+import { Alert, Badge, BottomSheet, Button, Toast, type BadgeTone } from "@/components/common";
+import { PRESS } from "@/components/common/theme";
 import type { Schemas } from "@/lib/api";
 // 지금 시행 중인 위치정보 약관 — 받음 · 없음(설정 문제) · 잠시 못 받음. 타입만 가져온다(서버 모듈).
 import type { CurrentTerms } from "@/lib/my-profile";
 import { HQ_SHARING_TERMS_VERSION } from "@/lib/hq-sharing-terms";
-import { HqSharingTermsBody, HqSharingTermsReviewNote } from "@/app/_components/hq-sharing-terms";
+import { HqSharingTermsBody } from "@/app/_components/hq-sharing-terms";
 import {
   CONSENT_CHANGES,
   LOCATION_REAGREED,
@@ -19,7 +20,7 @@ import {
   type LocationConsentState,
 } from "@/lib/profile";
 import { changeConsentAction } from "./actions";
-import { CardLabel } from "@/app/_components/read-only-field";
+import { RowBox, RowGroup, RowIcon, type LineIconName } from "./me-rows";
 import { TermsContent } from "./terms-content";
 
 
@@ -56,9 +57,13 @@ function useConsentChange(onDone: () => void) {
   return { pending, error, toast, change };
 }
 
-/** 카드 머리(이름 · 상태 배지) · 일시 줄 · 버튼 · 끝의 안내. 데모 me 의 위치정보 · 본사 제공 카드와 같은 틀이다. */
+/**
+ * 동의 묶음(정돈 시안 ⑬) — 제목(14 semibold 보조) 아래 흰 상자: 윗줄은 32px 원 아이콘 · 상태 배지 · 13px 일시 줄, 아랫줄은 구분선
+ * 위 가로 글자 버튼들(높이 44, 사이 1×14 세로선). 실패 문구는 상자 아래, 안내는 묶음 밖 12px 흐린 글자다.
+ */
 function ConsentCard({
   title,
+  icon,
   badge,
   line,
   actions,
@@ -66,35 +71,48 @@ function ConsentCard({
   error,
 }: {
   title: string;
+  icon: LineIconName;
   badge: { tone: BadgeTone; text: string };
+  /** 비면 두지 않는다(처음 · 동의하지 않음) */
   line: string;
   actions: ReactNode;
+  /** 비면 두지 않는다 */
   note: string;
   error?: string;
 }) {
   return (
-    <Card>
-      <div className="flex items-center justify-between gap-[12px]">
-        <CardLabel>{title}</CardLabel>
-        <Badge tone={badge.tone}>{badge.text}</Badge>
-      </div>
-      <p className="pt-[8px] text-[12px] text-staff-text-muted">{line}</p>
-      <div className="flex flex-col gap-[8px] pt-[10px]">{actions}</div>
-      {error && (
-        <div className="pt-[10px]">
-          <Alert tone="warning">
-            <p>{error}</p>
-          </Alert>
+    <RowGroup title={title} note={note || undefined}>
+      <RowBox>
+        <div className="flex min-h-[56px] items-center gap-[12px] py-[10px] pr-[16px] pl-[14px]">
+          <RowIcon name={icon} />
+          <span className="flex min-w-0 flex-1 flex-col items-start gap-[2px] break-keep">
+            <Badge tone={badge.tone}>{badge.text}</Badge>
+            {line && <span className="text-[13px] text-staff-text-muted">{line}</span>}
+          </span>
         </div>
+        {/* 글자 버튼 사이 세로선(1×14, staff-border)은 둘째 버튼부터 앞에 긋는다 */}
+        <div className="flex items-center [&>*+*]:before:absolute [&>*+*]:before:top-[15px] [&>*+*]:before:left-0 [&>*+*]:before:h-[14px] [&>*+*]:before:w-px [&>*+*]:before:bg-staff-border">
+          {actions}
+        </div>
+      </RowBox>
+      {error && (
+        <Alert tone="warning">
+          <p>{error}</p>
+        </Alert>
       )}
-      <p className="pt-[8px] text-[12px] whitespace-pre-line text-staff-placeholder">{note}</p>
-    </Card>
+    </RowGroup>
   );
 }
 
-/** 카드 안 작은 버튼 줄 — 44px 외곽선 버튼이 칸을 나눠 갖는다(데모 smallButton). */
-function SmallButtons({ children }: { children: ReactNode }) {
-  return <div className="flex gap-[8px] [&>*]:min-w-0 [&>*]:flex-1">{children}</div>;
+/** 상자 아래 가로 글자 버튼 — 칸을 나눠 갖는다. primary 면 남보라 글자(그 상태의 주 동작). */
+function TextAction({ primary = false, ...props }: { primary?: boolean } & Omit<ComponentProps<"button">, "className" | "type">) {
+  return (
+    <button
+      {...props}
+      type="button"
+      className={`relative h-[44px] min-w-0 flex-1 text-[14px] font-semibold ${primary ? "text-staff-primary" : "text-staff-text-sub"} active:bg-staff-info-bg ${PRESS}`}
+    />
+  );
 }
 
 /** 시트 안 안내 판(데모 sunken) — 안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14 · 14px 보조 글자. */
@@ -114,13 +132,13 @@ const LOCATION_BADGE: Record<LocationConsentState, { tone: BadgeTone; text: stri
 type LocationSheet = "terms" | "pause" | "withdraw";
 
 /**
- * 위치정보 동의 카드(ATT-23 · ATT-26, 데모 me 의 위치정보 카드). 동의 중이면 약관 보기 · 일시 중지 · 동의 철회, 일시 중지면
- * 약관 보기 · 다시 켜기(새 동의 없음) · 동의 철회, 미동의면 약관 보기 · (흐린 일시 중지) · 동의하기(ME-5 — 내 정보에서도 동의한다,
- * 2026-10-20 노영주). 철회 뒤면 데모 me revoked 처럼 위에 「다시 동의하기」 한 줄, 아래에 약관 보기를 둔다(2026-11-18 데모 기준). 일시 중지 · 철회는 확인 시트를,
+ * 출퇴근 위치정보 이용 동의 묶음(ATT-23 · ATT-26, 정돈 시안 ⑬ 상태별). 동의 중이면 내용 보기 · 일시 중지 · 동의 철회, 일시 중지면
+ * 내용 보기 · 다시 켜기(새 동의 없음) · 동의 철회, 미동의면 내용 보기 · 동의하기(ME-5 — 내 정보에서도 동의한다, 2026-10-20 노영주),
+ * 철회 뒤면 내용 보기 · 다시 동의하기다. 그 상태의 주 동작(동의하기 · 다시 켜기 · 다시 동의하기)만 남보라 글자다. 일시 중지 · 철회는 확인 시트를,
  * 동의하기 · 다시 동의는 약관 시트를 거친다 — 약관을 보이고 그 안의 「동의합니다」로만 기록한다(2026-10-20 노영주). 약관을 못 받으면 동의할 수 없다.
- * 동의한 약관 버전이 바뀌어 다시 동의해야 하면(needsReconsent — 동의 · 일시 중지일 때) 사업자 제공 동의 카드처럼 「다시 동의 필요」 배지와
- * 위에 「다시 동의하기」 한 줄(약관 시트의 「동의합니다」), 아래에 약관 보기 · 동의 철회를 둔다 — 옛 동의로는 수집하지 않아 일시 중지가 뜻이 없고, 새 약관에 동의하지
- * 않으려는 직원도 거둘 수 있게(ATT-30 v252, 2026-10-29 재영). 출근 화면의 다시 동의 시트는 그대로다.
+ * 동의한 약관 버전이 바뀌어 다시 동의해야 하면(needsReconsent — 동의 · 일시 중지일 때) 「다시 동의 필요」 배지와 내용 보기 · 다시 동의하기
+ * (약관 시트의 「동의합니다」) · 동의 철회를 둔다 — 옛 동의로는 수집하지 않아 일시 중지가 뜻이 없고, 새 약관에 동의하지 않으려는 직원도
+ * 거둘 수 있게(ATT-30 v252, 2026-10-29 재영 — 시안의 ⑤에는 동의 철회가 없지만 이 결정이라 남겼다). 출근 화면의 다시 동의 시트는 그대로다.
  */
 export function LocationConsentCard({ consent, terms: current }: { consent: Schemas["MyLocationConsentDto"]; terms: CurrentTerms }) {
   const terms = current.status === "ok" ? current.terms : null;
@@ -128,81 +146,73 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
   const { pending, error, toast, change } = useConsentChange(() => setSheet(undefined));
   const { state, agreedAt, pausedAt, withdrawnAt, consentVersion } = consent;
   const reconsent = locationNeedsReconsent(consent);
-  const version = consentVersion ? ` · 위치정보 수집·이용 동의 ${consentVersion}` : "";
+  const version = consentVersion ? ` · 약관 ${consentVersion}` : "";
 
-  // 일시 중지 중이면 그 사실을 남긴다 — 다시 동의해도 멈춘 채다(api 가 새 동의 행에 일시 중지를 옮긴다, ATT-26)
+  // 일시 줄 — 시 · 분과 동의한 약관 버전. 다시 동의가 필요하면 지금 약관의 시행일(받지 못했으면 날짜 없이)이다.
   const line = reconsent
-    ? `${state === "PAUSED" && pausedAt ? `${kstDateTimeLabel(pausedAt)}부터 일시 중지 — ` : agreedAt ? `${kstDateTimeLabel(agreedAt)} 동의${version} — ` : ""}약관이 바뀌어 다시 동의해야 합니다`
+    ? `약관 변경${terms ? ` · ${dateLabel(terms.effectiveDate)}` : ""}`
     : state === "AGREED" && agreedAt
       ? `${kstDateTimeLabel(agreedAt)} 동의${version}`
       : state === "PAUSED" && pausedAt
-        ? `${kstDateTimeLabel(pausedAt)}부터 일시 중지${agreedAt ? " · 동의는 유지 중" : ""}`
+        ? `${kstDateTimeLabel(pausedAt)} 일시 중지`
         : state === "WITHDRAWN" && withdrawnAt
-          ? `${kstDateTimeLabel(withdrawnAt)} 철회${version}`
-          : "아직 동의하지 않았습니다";
-  const termsButton = (
-    <Button variant="outline" onClick={() => setSheet("terms")}>
-      약관 보기
-    </Button>
-  );
-  const withdrawButton = (
-    <Button variant="outline" onClick={() => setSheet("withdraw")}>
-      동의 철회
-    </Button>
-  );
+          ? `${kstDateTimeLabel(withdrawnAt)} 동의 철회`
+          : "";
+  const termsButton = <TextAction onClick={() => setSheet("terms")}>내용 보기</TextAction>;
+  const withdrawButton = <TextAction onClick={() => setSheet("withdraw")}>동의 철회</TextAction>;
 
   return (
     <>
       <ConsentCard
-        title="위치정보 동의"
+        title="출퇴근 위치정보 이용 동의"
+        icon="pin"
         badge={reconsent ? { tone: "warning", text: "다시 동의 필요" } : LOCATION_BADGE[state]}
         line={line}
         error={error}
         actions={
-          // 동의 중 · 일시 중지 · 미동의는 버튼 세 칸이 같은 크기 · 같은 자리이고, 가운데 「일시 중지 ↔ 다시 켜기」, 오른쪽 「동의 철회 ↔
-          // 동의하기」만 바뀐다(2026-10-20 노영주). 동의가 없으면 멈출 것도 없어 일시 중지를 흐리게 둔다.
-          // 철회 뒤 · 다시 동의가 필요하면 데모 me 의 revoked 처럼 「다시 동의하기」를 위에 한 줄로 두고(작은 칸에는 넘친다), 아래 줄에
-          // 약관 보기(다시 동의가 필요하면 동의 철회도)를 둔다. 다시 동의하기도 약관 시트를 거친다.
-          reconsent || state === "WITHDRAWN" ? (
+          // 다시 동의하기 · 동의하기도 약관 시트를 거친다.
+          reconsent ? (
             <>
-              <Button onClick={() => setSheet("terms")}>다시 동의하기</Button>
-              <SmallButtons>
-                {termsButton}
-                {reconsent && withdrawButton}
-              </SmallButtons>
+              {termsButton}
+              <TextAction primary onClick={() => setSheet("terms")}>
+                다시 동의하기
+              </TextAction>
+              {withdrawButton}
+            </>
+          ) : state === "AGREED" ? (
+            <>
+              {termsButton}
+              <TextAction onClick={() => setSheet("pause")}>일시 중지</TextAction>
+              {withdrawButton}
+            </>
+          ) : state === "PAUSED" ? (
+            <>
+              {termsButton}
+              <TextAction primary disabled={pending} onClick={() => change("location-resume")}>
+                다시 켜기
+              </TextAction>
+              {withdrawButton}
             </>
           ) : (
-            <SmallButtons>
+            <>
               {termsButton}
-              {state === "PAUSED" ? (
-                <Button variant="outline" disabled={pending} onClick={() => change("location-resume")}>
-                  다시 켜기
-                </Button>
-              ) : (
-                <Button variant="outline" disabled={state !== "AGREED"} onClick={() => setSheet("pause")}>
-                  일시 중지
-                </Button>
-              )}
-              {state === "NOT_AGREED" ? (
-                <Button variant="outline" onClick={() => setSheet("terms")}>
-                  동의하기
-                </Button>
-              ) : (
-                withdrawButton
-              )}
-            </SmallButtons>
+              <TextAction primary onClick={() => setSheet("terms")}>
+                {state === "WITHDRAWN" ? "다시 동의하기" : "동의하기"}
+              </TextAction>
+            </>
           )
         }
         note={
           reconsent
-            ? state === "PAUSED"
-              ? "새 약관에 다시 동의해도 일시 중지는 그대로입니다. 다시 동의한 뒤 「다시 켜기」로 수집을 켜면 앱으로 출퇴근을 등록할 수 있습니다."
-              : "새 약관에 다시 동의하기 전에는 앱으로 출퇴근을 등록할 수 없습니다. 이 화면이나 다음 출퇴근 등록 때 다시 동의할 수 있습니다."
+            ? // 일시 중지 중에 다시 동의해도 멈춘 채다(api 가 새 동의 행에 일시 중지를 옮긴다, ATT-26) — 시안 문구 뒤에 한 줄 더한다
+              `위치정보 이용약관이 변경되었습니다.\n변경된 약관에 다시 동의해야 앱에서 출퇴근을 기록할 수 있습니다.${state === "PAUSED" ? "\n다시 동의해도 일시 중지는 그대로이며, 「다시 켜기」로 수집을 켤 수 있습니다." : ""}`
             : state === "AGREED"
-            ? "동의를 철회하면 앱으로 출퇴근을 등록할 수 없습니다."
-            : state === "PAUSED"
-              ? "일시 중지 중에는 출퇴근 기록을 근무지 관리자에게 문의해 주세요.\n다시 켜면 새로 동의하지 않아도 됩니다."
-              : "동의 전까지 출퇴근 기록은 근무지 관리자에게 문의해 주세요.\n다음 출퇴근 등록 때 다시 동의할 수 있습니다."
+              ? ""
+              : state === "PAUSED"
+                ? "일시 중지 중 출퇴근 기록은 근무지 관리자에게 문의해 주세요."
+                : state === "WITHDRAWN"
+                  ? "다시 동의하기 전 출퇴근 기록은 근무지 관리자에게 문의해 주세요."
+                  : "출퇴근을 기록하려면 위치정보 이용 동의가 필요합니다. 동의 전 출퇴근 기록은 근무지 관리자에게 문의해 주세요."
         }
       />
       {toast && <Toast key={toast.key}>{toast.text}</Toast>}
@@ -217,11 +227,10 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
             <div className="max-h-[45dvh] overflow-y-auto rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px]">
               <TermsContent markdown={terms.content} />
             </div>
-            <p className="text-[12px] text-staff-text-muted">
-              {reconsent
-                ? "약관이 바뀌었습니다. 이 버전에 다시 동의해야 앱으로 출퇴근을 등록할 수 있습니다."
-                : "약관 버전이 바뀌면 다음 출퇴근 등록 때 새 버전으로 다시 동의를 받습니다."}
-            </p>
+            {/* 평소의 「약관 버전이 바뀌면 …」 안내는 뺐다 — 바뀌었을 때만 알린다(2026-11-20 사용자 지정) */}
+            {reconsent && (
+              <p className="text-[12px] text-staff-text-muted">약관이 바뀌었습니다. 이 버전에 다시 동의해야 앱으로 출퇴근을 등록할 수 있습니다.</p>
+            )}
             {/* 동의는 약관을 보인 이 시트 안에서만 받는다(고지 후 동의, 2026-10-20 노영주). 읽었다는 값은 따로 두지 않는다 —
                 api 가 동의한 약관 버전과 일시를 남긴다. */}
             {(state === "NOT_AGREED" || state === "WITHDRAWN" || reconsent) && (
@@ -289,7 +298,7 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
 type HqSheet = "content" | "withdraw";
 
 /**
- * 본사 제공 동의 카드(ATT-30, 데모 me 의 본사 제공 카드). 가맹 점포 소속이 있을 때만 보인다. 계정에 하나라 소속 가맹 점포 모두에
+ * 근무정보(사업자 · 본사) 제공 동의 묶음(ATT-30, 정돈 시안 ⑬ 상태별). 가맹 점포 소속이 있을 때만 보인다. 계정에 하나라 소속 가맹 점포 모두에
  * 같이 적용된다. 동의 중이면 내용 보기 · 동의 철회(확인 시트), 아니면 내용 보기 · 다시 동의하기(내용 시트 안의 「동의합니다」로 기록).
  * 옛 문구 버전에 동의해 다시 동의해야 하면(needsReconsent, api #183) 「다시 동의 필요」 · 다시 동의하기다 — 표시는 hqSharingView.
  */
@@ -297,63 +306,53 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
   const [sheet, setSheet] = useState<HqSheet>();
   const { pending, error, toast, change } = useConsentChange(() => setSheet(undefined));
   const view = hqSharingView(consent);
-  const contentButton = (
-    <Button variant="outline" onClick={() => setSheet("content")}>
-      내용 보기
-    </Button>
-  );
+  const withdrawButton = <TextAction onClick={() => setSheet("withdraw")}>동의 철회</TextAction>;
 
   return (
     <>
       <ConsentCard
-        title="사업자 제공 동의"
+        // 화면 이름은 「근무정보 제공 동의」(정돈 시안 ⑬, 2026-11-20 사용자 확정 — 전엔 「사업자 제공 동의」). 버전에 묶인 동의 본문(HqSharingTermsBody)은 그대로다.
+        title="근무정보 제공 동의"
+        icon="store"
         badge={view.badge}
         line={view.line}
         error={error}
         actions={
-          // 위치정보 카드와 같이 크기는 그대로 두고 오른쪽 칸만 「동의 철회 ↔ 다시 동의하기」로 바뀐다.
-          <SmallButtons>
-            {contentButton}
+          <>
+            <TextAction onClick={() => setSheet("content")}>내용 보기</TextAction>
             {view.action.kind === "withdraw" ? (
-              <Button variant="outline" onClick={() => setSheet("withdraw")}>
-                동의 철회
-              </Button>
+              withdrawButton
             ) : (
-              <Button variant="outline" onClick={() => setSheet("content")}>
+              <TextAction primary onClick={() => setSheet("content")}>
                 {view.action.label}
-              </Button>
+              </TextAction>
             )}
-            {view.action.kind === "agree" && view.action.alsoWithdraw && (
-              <Button variant="outline" onClick={() => setSheet("withdraw")}>
-                동의 철회
-              </Button>
-            )}
-          </SmallButtons>
+            {view.action.kind === "agree" && view.action.alsoWithdraw && withdrawButton}
+          </>
         }
         note={view.note}
       />
       {toast && <Toast key={toast.key}>{toast.text}</Toast>}
 
-      <BottomSheet open={sheet === "content"} onClose={() => setSheet(undefined)} title="사업자 제공 동의">
+      <BottomSheet open={sheet === "content"} onClose={() => setSheet(undefined)} title="근무정보 제공 동의">
         <HqSharingTermsBody />
         {view.action.kind === "agree" && view.action.alsoWithdraw && (
           <Alert tone="warning">
-            <p>동의한 뒤 내용이 바뀌었습니다. 위 내용으로 다시 동의해야 가맹본부에 개인 단위로 보입니다 — 원하지 않으면 동의를 철회할 수 있습니다.</p>
+            <p>동의한 뒤 내용이 바뀌었습니다. 위 내용으로 다시 동의해야 가맹본사에 개인 단위로 보입니다 — 원하지 않으면 동의를 철회할 수 있습니다.</p>
           </Alert>
         )}
-        <HqSharingTermsReviewNote />
         {/* 위치정보와 같이 내용을 보인 이 시트 안에서만 동의를 받는다. */}
         {view.action.kind === "agree" && (
           // 내 정보의 끝난 알림은 「동의를 완료했습니다」 — 홈 다시 동의 팝업이 같이 쓰는 CONSENT_CHANGES 문구는 그대로 둔다
-          <Button disabled={pending} onClick={() => change("hq-sharing-agree", HQ_SHARING_TERMS_VERSION, "사업자 제공 동의를 완료했습니다")}>
+          <Button disabled={pending} onClick={() => change("hq-sharing-agree", HQ_SHARING_TERMS_VERSION, "근무정보 제공 동의를 완료했습니다")}>
             동의합니다
           </Button>
         )}
       </BottomSheet>
 
-      <BottomSheet open={sheet === "withdraw"} onClose={() => setSheet(undefined)} title="사업자 제공 동의를 철회하시겠습니까?" closeLabel="취소">
+      <BottomSheet open={sheet === "withdraw"} onClose={() => setSheet(undefined)} title="근무정보 제공 동의를 철회하시겠습니까?" closeLabel="취소">
         <p className="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">
-          철회하면 가맹본부에는 내 근무 정보가
+          철회하면 가맹본사에는 내 근무 정보가
           <br />
           <strong>점포별 숫자로만 보입니다.</strong>
         </p>

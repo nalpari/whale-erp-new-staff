@@ -14,7 +14,7 @@ export default async function NotificationSettingsPage() {
   return (
     <div className="flex flex-1 flex-col">
       <PageHeader title="알림 설정" backHref="/notifications" />
-      <div className="flex flex-col gap-[16px] px-[22px] pt-[16px] pb-[24px] leading-[1.5]">
+      <div className="flex flex-col gap-[16px] px-[22px] pt-[20px] pb-[24px] leading-[1.5]">
         <p className="text-[14px] text-staff-text-sub">
           받을 푸시 알림을 선택해 주세요.
           <br />

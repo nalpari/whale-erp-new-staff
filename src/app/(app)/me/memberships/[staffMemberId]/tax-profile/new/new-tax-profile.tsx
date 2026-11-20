@@ -47,7 +47,7 @@ export function TaxProfileIntro({ storeName, formHref, signed }: { storeName: st
   const [why, setWhy] = useState(false);
   return (
     <>
-      <div className="flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
+      <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
         <div className="flex flex-col items-center gap-[8px] text-center">
           <span className="text-staff-text-sub">
             <MaskIcon src="/icons/contract.svg" size={28} />
@@ -121,7 +121,6 @@ export function TaxProfileIntro({ storeName, formHref, signed }: { storeName: st
 export function TaxProfileCreateForm({
   action,
   viewHref,
-  storeName,
   realName,
   birthDate,
   birthDateLabel,
@@ -131,7 +130,6 @@ export function TaxProfileCreateForm({
   action: (previous: TaxProfileEditState, formData: FormData) => Promise<TaxProfileEditState>;
   /** 이 소속의 신고 정보 보기 화면 */
   viewHref: string;
-  storeName: string;
   realName: string;
   birthDate: string;
   birthDateLabel: string;
@@ -174,7 +172,7 @@ export function TaxProfileCreateForm({
 
   return (
     <form action={formAction} onSubmit={onSubmit} className="flex flex-1 flex-col" autoComplete="off">
-      <div className="flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
+      <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
         <div className="flex flex-col gap-[6px]">
           <h2 className="text-[22px] font-bold">주민등록번호와 급여 계좌</h2>
           <p className="text-[14px] text-staff-text-sub">신고와 급여 이체에 그대로 사용되니 정확히 입력해 주세요.</p>
@@ -209,7 +207,7 @@ export function TaxProfileCreateForm({
             )}
           </Alert>
         )}
-        <TaxOwnerNotice storeName={storeName} noConsent />
+        <TaxOwnerNotice noConsent />
       </div>
       <Dock>
         {/* 은행 목록을 받지 못하면 계좌 칸이 막혀 셋 다 필수인 처음 넣기는 보낼 수 없다 — 칸의 안내가 사정을 말한다. */}

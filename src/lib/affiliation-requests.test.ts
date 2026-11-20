@@ -118,17 +118,17 @@ test("parseResult 는 정한 값만 받고 나머지는 null", () => {
 });
 
 test("contentOf 는 결과마다 제목 · 설명을 주고, 수락이면 쿠키의 점포 이름을 넣는다", () => {
-  assert.equal(contentOf({ kind: "accepted", contractIds: [1], hqNotRecorded: false }, "홍대점").title, "홍대점이 추가되었습니다");
-  assert.equal(contentOf({ kind: "accepted", contractIds: [1], hqNotRecorded: false }, "웨일카페").title, "웨일카페가 추가되었습니다");
-  assert.equal(contentOf({ kind: "accepted", contractIds: [1], hqNotRecorded: false }).title, "소속이 추가되었습니다");
-  assert.equal(contentOf({ kind: "rejected" }, "홍대점").title, "소속 추가를 거절했습니다");
+  assert.equal(contentOf({ kind: "accepted", contractIds: [1], hqNotRecorded: false }, "홍대점").title, "홍대점이 근무지에 추가되었습니다");
+  assert.equal(contentOf({ kind: "accepted", contractIds: [1], hqNotRecorded: false }, "웨일카페").title, "웨일카페가 근무지에 추가되었습니다");
+  assert.equal(contentOf({ kind: "accepted", contractIds: [1], hqNotRecorded: false }).title, "근무지가 추가되었습니다");
+  assert.equal(contentOf({ kind: "rejected" }, "홍대점").title, "근무지 추가를 거절했습니다");
   assert.equal(contentOf({ kind: "closed", reason: "ended" }).title, "끝난 요청입니다");
   assert.equal(contentOf({ kind: "closed", reason: "answered" }).title, "이미 답한 요청입니다");
 });
 
-test("invitationTypeLabel 은 복귀 확인과 소속 추가 확인을 가른다", () => {
+test("invitationTypeLabel 은 복귀 확인과 근무지 추가 확인을 가른다", () => {
   assert.equal(invitationTypeLabel({ invitationType: "RETURN_CONFIRM" }), "복귀 확인");
-  assert.equal(invitationTypeLabel({ invitationType: "AFFILIATION_CONFIRM" }), "소속 추가 확인");
+  assert.equal(invitationTypeLabel({ invitationType: "AFFILIATION_CONFIRM" }), "근무지 추가 확인");
 });
 
 const request = (invitationId: number, storeName: string): AffiliationRequest => ({
@@ -144,25 +144,43 @@ const request = (invitationId: number, storeName: string): AffiliationRequest =>
   asksHqSharingConsent: false,
 });
 
+// 2026-11-20 09:00 KST — 만료 2026-11-25 09:00 KST 까지 5일
+const POPUP_NOW = new Date("2026-11-20T00:00:00Z");
+
 test("popupSummary 는 요청이 없으면 null", () => {
-  assert.equal(popupSummary([]), null);
+  assert.equal(popupSummary([], POPUP_NOW), null);
 });
 
-test("popupSummary 는 요청이 하나면 점포와 고용 형태 · 직무 줄을 준다", () => {
-  assert.deepEqual(popupSummary([{ ...request(9, "홍대점"), jobTitle: "바리스타" }]), {
+test("popupSummary 는 요청이 하나면 근무지 제목과 고용 형태 · 답변 기한(남은 날) 줄을 준다", () => {
+  assert.deepEqual(popupSummary([{ ...request(9, "홍대점"), jobTitle: "바리스타" }], POPUP_NOW), {
+    eyebrow: "새 근무지 초대",
+    storeName: "홍대점",
+    headingRest: "에서\n근무지 초대를 보냈습니다",
+    title: "홍대점에서 근무지 초대를 보냈습니다",
     rows: [
-      { label: "점포", value: "홍대점" },
       { label: "고용 형태", value: "파트타이머 · 바리스타" },
+      { label: "답변 기한", value: "2026년 11월 25일 09:00까지", sub: "5일 남음" },
     ],
     key: "9",
   });
-  assert.equal(popupSummary([{ ...request(9, "홍대점"), employmentTypeLabel: null }])?.rows[1].value, "고용 형태 미정");
+  assert.equal(popupSummary([{ ...request(9, "홍대점"), employmentTypeLabel: null }], POPUP_NOW)?.rows[0].value, "고용 형태 미정");
+  assert.equal(popupSummary([request(9, "홍대점")], new Date("2026-11-25T00:00:00Z"))?.rows[1].sub, "오늘 마감");
 });
 
-test("popupSummary 는 요청이 여럿이면 첫 점포 「외 N곳」과 요청 수를 준다", () => {
-  assert.deepEqual(popupSummary([request(9, "홍대점"), request(3, "강남역점")]), {
+test("popupSummary 는 복귀 확인이면 「다시 함께 일하자고」 제목이다", () => {
+  const summary = popupSummary([{ ...request(9, "홍대점"), invitationType: "RETURN_CONFIRM" }], POPUP_NOW);
+  assert.equal(summary?.eyebrow, "복귀 요청");
+  assert.equal(summary?.title, "홍대점에서 다시 함께 일하자고 요청했습니다");
+});
+
+test("popupSummary 는 요청이 여럿이면 건수 제목과 첫 근무지 「외 N곳」 · 요청 수를 준다", () => {
+  assert.deepEqual(popupSummary([request(9, "홍대점"), request(3, "강남역점")], POPUP_NOW), {
+    eyebrow: "새 근무지 초대",
+    storeName: null,
+    headingRest: "근무지 초대가 2건 도착했습니다",
+    title: "근무지 초대가 2건 도착했습니다",
     rows: [
-      { label: "점포", value: "홍대점 외 1곳" },
+      { label: "근무지", value: "홍대점 외 1곳" },
       { label: "요청", value: "2건" },
     ],
     key: "3,9",
@@ -214,8 +232,8 @@ test("사업자 제공 동의를 남기지 못함은 정한 값 하나로만 싣
 
 test("contentOf 의 주격 조사 — 닫는 괄호는 건너뛰고, 숫자는 읽는 소리로, 영문으로 끝나면 「이(가)」", () => {
   const title = (name: string) => contentOf({ kind: "accepted", contractIds: [], hqNotRecorded: false }, name).title;
-  assert.equal(title("웨일카페(강남점)"), "웨일카페(강남점)이 추가되었습니다");
-  assert.equal(title("GS25"), "GS25가 추가되었습니다");
-  assert.equal(title("카페1"), "카페1이 추가되었습니다");
-  assert.equal(title("Whale Cafe"), "Whale Cafe이(가) 추가되었습니다");
+  assert.equal(title("웨일카페(강남점)"), "웨일카페(강남점)이 근무지에 추가되었습니다");
+  assert.equal(title("GS25"), "GS25가 근무지에 추가되었습니다");
+  assert.equal(title("카페1"), "카페1이 근무지에 추가되었습니다");
+  assert.equal(title("Whale Cafe"), "Whale Cafe이(가) 근무지에 추가되었습니다");
 });

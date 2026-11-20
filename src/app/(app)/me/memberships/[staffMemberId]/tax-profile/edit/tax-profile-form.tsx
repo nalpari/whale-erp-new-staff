@@ -1,9 +1,9 @@
 "use client";
 
 import { startTransition, useActionState, useState, type FormEvent } from "react";
-import { Alert, Button, Dock, TextField } from "@/components/common";
+import { Alert, Button, Dock, MaskIcon, TextField } from "@/components/common";
 import { PayrollAccountFields, RrnField } from "@/app/_components/tax-profile-fields";
-import { TaxIdentity, TaxOwnerNotice } from "@/app/_components/tax-profile-parts";
+import { TAX_KEEP_TEXT, TAX_NO_CONSENT_TEXT } from "@/app/_components/tax-profile-parts";
 import type { CodeValue } from "@/lib/codes";
 import {
   RRN_BIRTH_MISMATCH,
@@ -15,7 +15,7 @@ import {
 } from "@/lib/tax-profile";
 
 // 기준: 데모 docs/demo/tax 의 form(· mismatch). 이 화면은 이미 낸 신고 정보를 고친다(WHALEERP-333) — 칸은 모두 비어 있고,
-// 넣은 쪽만 보낸다(주민등록번호만 · 급여 계좌만 · 둘 다). 데모와 다른 점: 급여 계좌는 은행 고르기와 계좌번호 두 칸이고,
+// 넣은 쪽만 보낸다(주민등록번호만 · 급여 계좌만 · 둘 다). 데모와 다른 점: 급여 계좌는 은행 선택과 계좌번호 두 칸이고,
 // 제목 · 버튼이 고치기 문맥이다. 주민등록번호 앞 6자리 · 뒷자리 첫 자리가 가리키는 생년월일이 가입 생년월일과 다르면 데모처럼 칸 아래 오류와 함께 저장을 막는다.
 // 값은 이 화면이 상태로 든다 — 서버 액션은 실패해도 넣은 값을 되돌려 주지 않는다(주민등록번호 원문을 화면으로 다시 내리지 않게).
 // 지금 비밀번호(본인 확인, 2026-10-23 노영주 — 토큰만 손에 넣은 사람이 급여 계좌를 바꾸지 못하게)는 이메일 변경 화면의 칸 관례
@@ -31,6 +31,8 @@ export function TaxProfileForm({
   banks,
   backHref,
   email,
+  currentRrn,
+  currentAccount,
 }: {
   /**
    * 소속 id 를 붙인 서버 액션(saveTaxProfileAction.bind). 서버 화면(page.tsx)에서 붙여 넘긴다 — 이 컴포넌트에서 렌더마다 bind 하면
@@ -46,6 +48,9 @@ export function TaxProfileForm({
   backHref: string;
   /** 로그인 아이디(내 정보의 지금 이메일) — 숨은 username 칸. */
   email: string;
+  /** 칸 이름 옆 「현재 등록된 정보」 — 가린 주민등록번호(rrnMasked) · 「은행 가린 계좌번호」. 없으면 두지 않는다. */
+  currentRrn?: string;
+  currentAccount?: string;
 }) {
   const [state, formAction, pending] = useActionState<TaxProfileEditState, FormData>(
     action,
@@ -88,51 +93,81 @@ export function TaxProfileForm({
   };
 
   return (
-    <form action={formAction} onSubmit={onSubmit} className="flex flex-1 flex-col" autoComplete="off">
-      <div className="flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] leading-[1.5]">
-        <div className="flex flex-col gap-[6px]">
-          <h2 className="text-[22px] font-bold">바꿀 값만 새로 입력해 주세요</h2>
-          <p className="text-[14px] text-staff-text-sub">
-            비워 둔 쪽은 지금 값 그대로 둡니다. 신고와 급여 이체에 그대로 사용되니 정확히 입력해 주세요.
-          </p>
+    <form action={formAction} onSubmit={onSubmit} className="flex flex-1 flex-col bg-white" autoComplete="off">
+      {/* 정돈 시안 B안(2026-11-20 사용자 지정): 근무지명(남보라) · 큰 제목 · 설명, 가입 정보 한 줄 상자(사람 아이콘 · 이름 | 생년월일),
+          주민등록번호 · 급여 계좌 · 현재 비밀번호를 각각 상자로 묶고(사이 16), 사업주 안내는 상자 없는 회색 글. */}
+      <div className="flex flex-col px-[24px] pt-[20px] pb-[8px] leading-[1.5] break-keep">
+        <p className="mb-[8px] text-[14px] font-semibold text-staff-primary">{storeName}</p>
+        <h2 className="text-[24px] leading-[1.42] font-bold">
+          변경할 정보만
+          <br />
+          입력해 주세요
+        </h2>
+        <p className="mt-[8px] text-[15px] text-staff-text-sub">
+          입력한 항목만 변경되며,
+          <br />
+          입력하지 않은 항목은 기존 정보가 유지됩니다.
+        </p>
+        <div className="mt-[24px] flex items-center gap-[12px] rounded-[16px] border border-staff-border bg-white py-[12px] pr-[18px] pl-[12px] text-[15px]">
+          <span aria-hidden className="flex size-[32px] shrink-0 items-center justify-center rounded-full bg-staff-bg text-staff-text-sub">
+            {/* nav-me.svg 는 Figma 가 뒤집어 내보내 flipY(하단 메뉴와 같다) */}
+            <MaskIcon src="/icons/nav-me.svg" size={18} flipY />
+          </span>
+          <span className="sr-only">이름</span>
+          <span className="font-semibold">{realName}</span>
+          {/* #c3cad6 — 꺾은선(SubLine)과 같은 회색 세로 구분선 */}
+          <span aria-hidden className="h-[14px] w-px bg-[#c3cad6]" />
+          <span className="text-staff-text-sub">생년월일</span>
+          <span className="font-semibold">{birthDateLabel}</span>
         </div>
-        <RrnField
-          front={rrnFront}
-          back={rrnBack}
-          onFrontChange={edit(setRrnFront)}
-          onBackChange={edit(setRrnBack)}
-          error={mismatch ? RRN_BIRTH_MISMATCH : errorOf("rrn")}
-        />
-        <PayrollAccountFields
-          banks={banks}
-          bankCode={bankCode}
-          accountNumber={accountNumber}
-          onBankChange={edit(setBankCode)}
-          onAccountChange={edit(setAccountNumber)}
-          help="본인 명의 계좌만 입력할 수 있습니다. 계좌를 변경하면 다음 급여부터 새 계좌로 지급됩니다."
-          bankError={errorOf("bank")}
-          accountError={errorOf("account")}
-        />
-        <TaxIdentity realName={realName} birthDate={birthDateLabel} />
-        <input hidden readOnly type="text" autoComplete="username" value={email} tabIndex={-1} aria-hidden />
-        <TextField
-          label="현재 비밀번호"
-          name="currentPassword"
-          type="password"
-          autoComplete="current-password"
-          required
-          maxLength={128}
-          placeholder="본인 확인을 위해 입력해 주세요"
-          value={currentPassword}
-          onChange={(event) => edit(setCurrentPassword)(event.target.value)}
-          error={errorOf("currentPassword")}
-        />
-        {problem?.field === "form" && (
-          <Alert tone="danger">
-            <p>{problem.message}</p>
-          </Alert>
-        )}
-        <TaxOwnerNotice storeName={storeName} noConsent />
+        <div className="mt-[16px] flex flex-col gap-[16px]">
+          <RrnField
+            boxed
+            current={currentRrn}
+            front={rrnFront}
+            back={rrnBack}
+            onFrontChange={edit(setRrnFront)}
+            onBackChange={edit(setRrnBack)}
+            help="본인 주민등록번호를 입력해 주세요. 앞 6자리는 등록된 생년월일과 일치해야 합니다. 4대보험 신고 및 근로소득 원천징수를 위해 수집하며, 관련 신고 서류 작성에만 사용합니다."
+            error={mismatch ? RRN_BIRTH_MISMATCH : errorOf("rrn")}
+          />
+          <PayrollAccountFields
+            boxed
+            current={currentAccount}
+            banks={banks}
+            bankCode={bankCode}
+            accountNumber={accountNumber}
+            onBankChange={edit(setBankCode)}
+            onAccountChange={edit(setAccountNumber)}
+            help="본인 명의 계좌만 등록할 수 있습니다. 변경된 계좌는 다음 급여부터 적용됩니다."
+            bankError={errorOf("bank")}
+            accountError={errorOf("account")}
+          />
+          <input hidden readOnly type="text" autoComplete="username" value={email} tabIndex={-1} aria-hidden />
+          <div className="rounded-[16px] border border-staff-border bg-staff-bg p-[18px]">
+            <TextField
+              label={<span className="text-[15px] font-bold text-staff-text">현재 비밀번호</span>}
+              name="currentPassword"
+              type="password"
+              autoComplete="current-password"
+              required
+              maxLength={128}
+              placeholder="현재 비밀번호 입력"
+              help="변경사항을 저장하려면 현재 비밀번호를 입력해 주세요."
+              value={currentPassword}
+              onChange={(event) => edit(setCurrentPassword)(event.target.value)}
+              error={errorOf("currentPassword")}
+            />
+          </div>
+          {problem?.field === "form" && (
+            <Alert tone="danger">
+              <p>{problem.message}</p>
+            </Alert>
+          )}
+        </div>
+        <p className="mt-[20px] px-[4px] text-[13px] leading-[1.6] text-staff-text-muted">
+          {TAX_KEEP_TEXT} {TAX_NO_CONSENT_TEXT}
+        </p>
       </div>
       <Dock>
         <Button type="submit" disabled={pending || mismatch}>

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { Alert, BottomNav, MaskIcon, PageHeader } from "@/components/common";
+import { PRESS } from "@/components/common/theme";
 import { addDays, kstToday, mondayOf, parsePeriod } from "@/lib/attendance-history";
 import { CURRENT_STAFF_MEMBER_COOKIE, pickCurrentMembership } from "@/lib/current-store";
 import { getMyAttendanceRecords } from "@/lib/my-attendance";
@@ -36,13 +36,20 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
         title="출퇴근 현황"
         backHref="/home"
         action={
-          <Link href="/check-in" aria-label="출퇴근 등록" className="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">
-            <Image src="/icons/history.svg" alt="" width={21} height={21} className="-scale-y-100" />
+          // 출퇴근 화면의 「출퇴근 현황 ›」과 짝 — 시계 아이콘만으로는 버튼인지 · 어디로 가는지 몰라 글자 알약으로(2026-11-20 사용자 지정).
+          // 보이는 알약은 36px, 누르는 칸은 위아래를 넓혀 44px.
+          <Link href="/check-in" transitionTypes={["nav-forward"]} className="group -my-[4px] flex min-h-[44px] shrink-0 items-center">
+            <span
+              className={`flex h-[36px] items-center gap-[4px] rounded-full border border-staff-border bg-white pr-[10px] pl-[12px] text-[13px] font-semibold text-staff-text-sub group-active:bg-staff-primary-inactive ${PRESS}`}
+            >
+              출퇴근하기
+              <MaskIcon src="/icons/chevron-right-small.svg" size={12} />
+            </span>
           </Link>
         }
       />
       {!memberships || (current && !records) ? (
-        <div className="px-[22px] pt-[22px]">
+        <div className="px-[22px] pt-[20px]">
           <Alert tone="warning">출퇴근 기록을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>
         </div>
       ) : !current || !records ? (

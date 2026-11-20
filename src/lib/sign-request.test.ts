@@ -34,13 +34,16 @@ test("서명을 기다리는 전자계약 가운데 기한이 가장 급한 것�
   assert.equal(request?.contract.contractId, 2);
   // 데모처럼 상세로 — 거기서 조항을 보고 서명한다
   assert.equal(request?.href, "/contracts/2?store=10");
-  assert.equal(request?.deadline, "2026년 11월 2일 10:00까지 · 5일 남음");
+  assert.deepEqual(request?.deadline, { until: "2026년 11월 2일 10:00까지", left: "5일 남음" });
   // 기억 값은 기다리는 계약 모두 — 고른 것만이 아니다
   assert.equal(request?.key, "1@2026-10-20T01:00:00.000Z,2@2026-10-03T01:00:00.000Z");
 });
 
 test("기한 당일은 「오늘 마감」", () => {
-  assert.equal(signRequestOf([item(1, { signDeadlineAt: "2026-10-28T09:00:00.000Z" })], NOW)?.deadline, "2026년 10월 28일 18:00까지 · 오늘 마감");
+  assert.deepEqual(signRequestOf([item(1, { signDeadlineAt: "2026-10-28T09:00:00.000Z" })], NOW)?.deadline, {
+    until: "2026년 10월 28일 18:00까지",
+    left: "오늘 마감",
+  });
 });
 
 test("서명할 수 없는 계약(기한 지남 · 퇴직 — awaitingSignature 거짓) · 종이 계약 · 발송 일시 없음은 띄우지 않는다", () => {

@@ -135,12 +135,13 @@ export function SchedulePanel({
 
       {/* 근무가 없는 달은 고른 날 상세 대신 데모 work 의 빈 상태를 둔다. 달 이동은 남겨야 해서 달력은 그대로 그린다. */}
       {items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-[8px] py-[52px] text-center leading-[1.5]">
+        <div className="flex flex-col items-center justify-center gap-[8px] py-[52px] text-center leading-[1.5] break-keep">
           <span className="flex items-center justify-center pb-[6px]">
             <Image src="/icons/menu-schedule.svg" alt="" width={44} height={44} />
           </span>
-          <p className="text-[18px] font-bold">{today.startsWith(month) ? "이번 달" : monthLabel(month)} 근무가 없습니다</p>
-          <p className="max-w-[260px] text-[13px] text-staff-text-sub">근무지에서 근무스케줄을 등록하면 여기에 표시됩니다.</p>
+          <p className="text-[18px] font-bold">{today.startsWith(month) ? "이번 달" : monthLabel(month)} 근무스케줄이 없습니다</p>
+          {/* 낱말 중간에서 꺾이지 않게 break-keep · 문장을 짧게(2026-11-20 사용자 지정 — 「표시됩/니다」로 꺾였다) */}
+          <p className="text-[14px] text-staff-text-sub">근무스케줄이 등록되면 여기에 표시됩니다.</p>
         </div>
       ) : (
       <section className="flex flex-col gap-[6px]">
