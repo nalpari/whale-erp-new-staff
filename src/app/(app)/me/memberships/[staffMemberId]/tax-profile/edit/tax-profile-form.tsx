@@ -93,7 +93,7 @@ export function TaxProfileForm({
   };
 
   return (
-    <form action={formAction} onSubmit={onSubmit} className="flex flex-1 flex-col" autoComplete="off">
+    <form action={formAction} onSubmit={onSubmit} className="flex flex-1 flex-col bg-white" autoComplete="off">
       {/* 정돈 시안 B안(2026-11-20 사용자 지정): 근무지명(남보라) · 큰 제목 · 설명, 가입 정보 한 줄 상자(사람 아이콘 · 이름 | 생년월일),
           주민등록번호 · 급여 계좌 · 현재 비밀번호를 각각 상자로 묶고(사이 16), 사업주 안내는 상자 없는 회색 글. */}
       <div className="flex flex-col px-[24px] pt-[20px] pb-[8px] leading-[1.5] break-keep">
@@ -108,9 +108,10 @@ export function TaxProfileForm({
           <br />
           입력하지 않은 항목은 기존 정보가 유지됩니다.
         </p>
-        <div className="mt-[24px] flex items-center gap-[12px] rounded-[16px] border border-staff-border bg-staff-info-bg py-[12px] pr-[18px] pl-[12px] text-[15px]">
+        <div className="mt-[24px] flex items-center gap-[12px] rounded-[16px] border border-staff-border bg-staff-bg py-[12px] pr-[18px] pl-[12px] text-[15px]">
           <span aria-hidden className="flex size-[32px] shrink-0 items-center justify-center rounded-full bg-white text-staff-text-sub">
-            <MaskIcon src="/icons/nav-me.svg" size={18} />
+            {/* nav-me.svg 는 Figma 가 뒤집어 내보내 flipY(하단 메뉴와 같다) */}
+            <MaskIcon src="/icons/nav-me.svg" size={18} flipY />
           </span>
           <span className="sr-only">이름</span>
           <span className="font-semibold">{realName}</span>
@@ -143,7 +144,7 @@ export function TaxProfileForm({
             accountError={errorOf("account")}
           />
           <input hidden readOnly type="text" autoComplete="username" value={email} tabIndex={-1} aria-hidden />
-          <div className="rounded-[16px] border border-staff-border bg-staff-info-bg p-[18px]">
+          <div className="rounded-[16px] border border-staff-border bg-staff-bg p-[18px]">
             <TextField
               label={<span className="text-[15px] font-bold text-staff-text">현재 비밀번호</span>}
               name="currentPassword"

@@ -37,10 +37,12 @@ const ACTION_ROW = "flex min-h-[52px] items-center gap-[12px] border-t border-st
 
 /** 카드 아래 누르는 줄(아이콘 · 이름 · 꺾쇠). href 가 없으면 막힌 줄 — 오른쪽에 「준비 중」. */
 function ActionRow({ icon, label, href }: { icon: string; label: string; href?: string }) {
+  // nav-me.svg 는 Figma 가 뒤집어 내보내 flipY(하단 메뉴와 같다)
+  const flipY = icon === "/icons/nav-me.svg";
   if (!href)
     return (
       <div className={`${ACTION_ROW} text-staff-placeholder`}>
-        <MaskIcon src={icon} size={18} />
+        <MaskIcon src={icon} size={18} flipY={flipY} />
         <span className="flex-1">
           {label}
         </span>
@@ -50,7 +52,7 @@ function ActionRow({ icon, label, href }: { icon: string; label: string; href?: 
   return (
     <Link href={href} transitionTypes={["nav-forward"]} className={`${ACTION_ROW} active:bg-staff-info-bg ${PRESS}`}>
       <span className="flex text-staff-text-sub">
-        <MaskIcon src={icon} size={18} />
+        <MaskIcon src={icon} size={18} flipY={flipY} />
       </span>
       <span className="flex-1">{label}</span>
       <Image src="/icons/chevron-right-muted.svg" alt="" width={12} height={12} className="-scale-y-100" />
