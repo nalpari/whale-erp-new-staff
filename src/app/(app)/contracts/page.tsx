@@ -50,9 +50,9 @@ export default async function ContractsPage({ searchParams }: PageProps<"/contra
         </div>
       ) : (
         <>
-          {/* 근무지 줄 아래는 묶음 사이(12)보다 8 더 띄운다 — 머리줄 아래 빈 공간과 눈으로 같아 보이게(2026-11-20 사용자 지정) */}
+          {/* 근무지 줄 아래 구분선 — 선 위아래 16 으로 근무지와 목록을 가른다(2026-11-20 사용자 지정) */}
           {storeId !== null && (
-            <div className="pb-[8px]">
+            <div className="mb-[4px] border-b border-staff-border-light pb-[16px]">
               <WorkplaceBox name={items[0].storeName} />
             </div>
           )}
