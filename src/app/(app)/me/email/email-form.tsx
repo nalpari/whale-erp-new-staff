@@ -52,9 +52,9 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
             </>
           }
         >
-          새 이메일로 인증번호를 보내 드립니다.
+          새 이메일로 인증번호를 보내드립니다.
           <br />
-          인증이 끝나면 다음 로그인부터 새 이메일을 사용합니다.
+          인증이 완료되면 변경된 이메일로 로그인할 수 있습니다.
         </Lead>
         <div className="flex items-center gap-[12px] rounded-[16px] border border-staff-border bg-staff-bg py-[12px] pr-[16px] pl-[12px]">
           <span aria-hidden className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-white text-staff-text-sub">
