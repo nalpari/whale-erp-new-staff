@@ -9,8 +9,8 @@ import { HQ_SHARING_TERMS_VERSION, hqSharingSummary } from "@/lib/hq-sharing-ter
 import { HqSharingTermsButton } from "@/app/_components/hq-sharing-terms";
 
 // 소속 추가 확인(WHALEERP-144). 기준: 데모 docs/demo/join 의 addsite · addsite-done · reject(시트 — 사유 없이 확인만, WHALEERP-635).
-// 수락하기 전에는 초대한 사업자 · 점포와 고용 형태만 보인다 — 기존 계정 정보와 직원 레코드 값은 api 가 주지 않는다.
-// 데모와 다른 점: 점포 주소는 api 가 주지 않아 사업자 이름을 대신 둔다. 거절 확정은 근로계약서 거부와 같이 오류색 버튼이다.
+// 수락하기 전에는 근무지(점포명)와 고용 형태만 보인다 — 상호는 보이지 않는다(WHALEERP-747). 기존 계정 정보와 직원 레코드 값은 api 가 주지 않는다.
+// 데모와 다른 점: 거절 확정은 근로계약서 거부와 같이 오류색 버튼이다.
 // 답한 뒤의 화면(소속 추가 완료 · 거절 · 더 답할 수 없음)은 액션이 결과 경로(done/page.tsx)로 보낸다.
 
 const subscribeNothing = () => () => {};
@@ -67,7 +67,7 @@ export function AnswerScreen({
           </Lead>
           <Card>
             <div className="flex flex-col divide-y divide-staff-border-light">
-              <IconRow icon="/icons/store-small.svg" title={request.storeName} sub={`사업자 · ${request.bpName}`} />
+              <IconRow icon="/icons/store-small.svg" title="근무지" sub={request.storeName} />
               <IconRow icon="/icons/contract.svg" title="고용 형태" sub={employmentLine(request)} />
             </div>
           </Card>
