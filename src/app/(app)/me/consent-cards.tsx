@@ -132,11 +132,11 @@ const LOCATION_BADGE: Record<LocationConsentState, { tone: BadgeTone; text: stri
 type LocationSheet = "terms" | "pause" | "withdraw";
 
 /**
- * 출퇴근 위치정보 이용 동의 묶음(ATT-23 · ATT-26, 정돈 시안 ⑬ 상태별). 동의 중이면 약관 보기 · 일시 중지 · 동의 철회, 일시 중지면
- * 약관 보기 · 다시 켜기(새 동의 없음) · 동의 철회, 미동의면 약관 보기 · 동의하기(ME-5 — 내 정보에서도 동의한다, 2026-10-20 노영주),
- * 철회 뒤면 약관 보기 · 다시 동의하기다. 그 상태의 주 동작(동의하기 · 다시 켜기 · 다시 동의하기)만 남보라 글자다. 일시 중지 · 철회는 확인 시트를,
+ * 출퇴근 위치정보 이용 동의 묶음(ATT-23 · ATT-26, 정돈 시안 ⑬ 상태별). 동의 중이면 내용 보기 · 일시 중지 · 동의 철회, 일시 중지면
+ * 내용 보기 · 다시 켜기(새 동의 없음) · 동의 철회, 미동의면 내용 보기 · 동의하기(ME-5 — 내 정보에서도 동의한다, 2026-10-20 노영주),
+ * 철회 뒤면 내용 보기 · 다시 동의하기다. 그 상태의 주 동작(동의하기 · 다시 켜기 · 다시 동의하기)만 남보라 글자다. 일시 중지 · 철회는 확인 시트를,
  * 동의하기 · 다시 동의는 약관 시트를 거친다 — 약관을 보이고 그 안의 「동의합니다」로만 기록한다(2026-10-20 노영주). 약관을 못 받으면 동의할 수 없다.
- * 동의한 약관 버전이 바뀌어 다시 동의해야 하면(needsReconsent — 동의 · 일시 중지일 때) 「다시 동의 필요」 배지와 약관 보기 · 다시 동의하기
+ * 동의한 약관 버전이 바뀌어 다시 동의해야 하면(needsReconsent — 동의 · 일시 중지일 때) 「다시 동의 필요」 배지와 내용 보기 · 다시 동의하기
  * (약관 시트의 「동의합니다」) · 동의 철회를 둔다 — 옛 동의로는 수집하지 않아 일시 중지가 뜻이 없고, 새 약관에 동의하지 않으려는 직원도
  * 거둘 수 있게(ATT-30 v252, 2026-10-29 재영 — 시안의 ⑤에는 동의 철회가 없지만 이 결정이라 남겼다). 출근 화면의 다시 동의 시트는 그대로다.
  */
@@ -158,7 +158,7 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
         : state === "WITHDRAWN" && withdrawnAt
           ? `${kstDateTimeLabel(withdrawnAt)} 동의 철회`
           : "";
-  const termsButton = <TextAction onClick={() => setSheet("terms")}>약관 보기</TextAction>;
+  const termsButton = <TextAction onClick={() => setSheet("terms")}>내용 보기</TextAction>;
   const withdrawButton = <TextAction onClick={() => setSheet("withdraw")}>동의 철회</TextAction>;
 
   return (
