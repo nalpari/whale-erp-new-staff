@@ -25,6 +25,13 @@ test("User-Agent 끝의 WhaleStaffApp/<버전> 으로 앱 버전을 읽는다", 
   assert.equal(appVersionOf("... WhaleStaffApp/2.3.4 Extra/1"), "2.3.4");
   assert.equal(appVersionOf(SAFARI), null);
   assert.equal(appVersionOf("... WhaleStaffApp/"), null);
+  assert.equal(appVersionOf("WhaleStaffApp/3.0.0"), "3.0.0");
+});
+
+test("표식이 다른 제품명 안에 들어 있으면 앱이 아니다", () => {
+  assert.equal(appVersionOf("Mozilla/5.0 NotWhaleStaffApp/1.0.0"), null);
+  assert.equal(isInApp("Mozilla/5.0 NotWhaleStaffApp/1.0.0"), false);
+  assert.equal(appVersionOf("Mozilla/5.0 NotWhaleStaffApp/1.0.0 WhaleStaffApp/2.0.0"), "2.0.0");
 });
 
 test("앱 안인지는 표식이 있는지로만 본다 — 예전 표식 WhaleERPStaffApp 은 앱이 아니다", () => {
@@ -36,6 +43,9 @@ test("앱 안인지는 표식이 있는지로만 본다 — 예전 표식 WhaleE
 
 test("약속대로 온 답은 그대로, 없는 기능(null)은 unavailable", () => {
   assert.deepEqual(readBridgeResult({ ok: true, data: "x" }, isString), { ok: true, data: "x" });
+  const anyData = (value: unknown): value is unknown => value === value;
+  assert.deepEqual(readBridgeResult({ ok: true }, anyData), { ok: false, error: "malformed" });
+  assert.deepEqual(readBridgeResult({ ok: true, data: undefined }, anyData), { ok: true, data: undefined });
   assert.deepEqual(readBridgeResult({ ok: false, error: "forbidden" }, isString), { ok: false, error: "forbidden" });
   assert.deepEqual(readBridgeResult({ ok: false, error: "failed" }, isString), { ok: false, error: "failed" });
   assert.deepEqual(readBridgeResult(null, isString), { ok: false, error: "unavailable" });

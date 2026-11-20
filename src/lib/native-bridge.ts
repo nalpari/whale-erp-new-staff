@@ -29,12 +29,13 @@ export type BridgeResult<T> = { ok: true; data: T } | { ok: false; error: Bridge
 /** `window.flutter_inappwebview` 가운데 여기서 쓰는 부분. */
 export type Bridge = { callHandler: (name: string, ...args: unknown[]) => Promise<unknown> };
 
-/** User-Agent 에서 앱 버전을 읽는다. 앱 밖이면 null. */
+/** 표식은 User-Agent 맨 앞이나 공백 바로 뒤에 온 것만 센다(`NotWhaleStaffApp/1.0` 같은 다른 제품명은 앱이 아니다). */
+const APP_USER_AGENT_TOKEN = new RegExp(`(?:^|\\s)${APP_USER_AGENT_MARK}(\\S+)`, "g");
+
+/** User-Agent 에서 앱 버전을 읽는다. 앱 밖이면 null. 표식이 여럿이면 마지막(앱이 붙인 것)을 쓴다. */
 export function appVersionOf(userAgent: string): string | null {
-  const at = userAgent.lastIndexOf(APP_USER_AGENT_MARK);
-  if (at < 0) return null;
-  const version = userAgent.slice(at + APP_USER_AGENT_MARK.length).split(/\s/, 1)[0];
-  return version === "" ? null : version;
+  const matches = [...userAgent.matchAll(APP_USER_AGENT_TOKEN)];
+  return matches.at(-1)?.[1] ?? null;
 }
 
 /** 설치형 앱 안에서 열렸는지. 화면 분기(감지)에만 쓴다. 인자를 빼면 지금 브라우저의 User-Agent 를 본다. */
@@ -47,8 +48,9 @@ export function readBridgeResult<T>(raw: unknown, isData: (data: unknown) => dat
   if (raw === null || raw === undefined) return { ok: false, error: "unavailable" };
   if (typeof raw !== "object" || !("ok" in raw)) return { ok: false, error: "malformed" };
   if (raw.ok === true) {
-    const data = "data" in raw ? raw.data : undefined;
-    return isData(data) ? { ok: true, data } : { ok: false, error: "malformed" };
+    // data 는 약속상 꼭 있어야 한다. 빠진 { ok: true } 를 isData 가 undefined 를 허락해 성공으로 넘기지 않게 먼저 본다.
+    if (!("data" in raw)) return { ok: false, error: "malformed" };
+    return isData(raw.data) ? { ok: true, data: raw.data } : { ok: false, error: "malformed" };
   }
   if (raw.ok === false && "error" in raw && (raw.error === "forbidden" || raw.error === "failed")) {
     return { ok: false, error: raw.error };
