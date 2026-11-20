@@ -113,7 +113,8 @@ function ContractRow({
   const open = !isFinishedPhase(phase);
   // 서명 기한 · 서명일로 말할 수 없는 단계(거절 · 만료 · 서명 불가 · 수정 요청)는 목록 한 줄 안내를 그대로 둔다
   // 수정 요청 · 거절은 그날을 이름 · 값 줄로(다른 줄과 시작선이 맞게, 2026-11-20 사용자 지정)
-  const dayRow = phase === "CORRECTION_REQUESTED" ? "수정 요청일" : phase === "REJECTED" ? "거절일" : null;
+  // 그날(processedAt)이 없으면 날짜 줄 대신 예전 한 줄 안내를 둔다 — 상자에 아무 안내도 남지 않는 일이 없게
+  const dayRow = c.processedAt ? (phase === "CORRECTION_REQUESTED" ? "수정 요청일" : phase === "REJECTED" ? "거절일" : null) : null;
   const note = !deadline && !dayRow && phase !== "SIGNED" && phase !== "ENDED" ? contractSubText(c, now, status) : null;
   return (
     <li>

@@ -253,7 +253,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
                 : ["서명일", phase === "SIGNED" && c.processedAt ? kstDateLabel(c.processedAt) : null],
           ]}
           left={deadline ? { text: deadline.daysLeft === 0 ? "오늘 마감" : `${deadline.daysLeft}일 남음`, urgent: deadline.urgent } : undefined}
-          note={!deadline && phase !== "SIGNED" && phase !== "CORRECTION_REQUESTED" ? contractSubText(c, now, status, "detail") : null}
+          note={!deadline && phase !== "SIGNED" && !(phase === "CORRECTION_REQUESTED" && c.processedAt) ? contractSubText(c, now, status, "detail") : null}
         />
         {(isFinished(phase) || phase === "CORRECTION_REQUESTED") && FINISHED_NOTE[phase] && (
           <p className="-mt-[4px] flex gap-[6px] px-[4px] text-[13px] leading-[1.5] break-keep text-staff-text-muted">
