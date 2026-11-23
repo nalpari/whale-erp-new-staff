@@ -297,7 +297,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
         // 체결이 끝난 계약의 처리 완료본 내보내기(WHALEERP-149). 서명 대기에서는 내보내지 않는다 — 처리 완료본은 체결 뒤 파일 생성
         // (WHALEERP-131)이 만들어 documents 에 SIGNED_COPY 로 실린다. 아직 없으면 버튼도 없다.
         <Dock inset={30}>
-          {/* 종이 계약 「받기」와 같은 <a>(근거는 그 주석). 모양만 공통 Button 의 outline(급여명세서 「명세서 PDF 받기」와 같음).
+          {/* 종이 계약 「받기」와 같은 <a>(근거는 그 주석). 모양만 공통 Button 의 outline(급여명세서 「급여명세서 PDF 다운로드」와 같음).
               Plane 의 「공유 시트」는 휴대전화 브라우저가 받은 PDF 에 띄우는 저장 · 공유로 갈음한다 — Web Share API 는 서명 주소가
               다른 출처라 파일을 읽어 올 수 없어 쓰지 않는다. */}
           <a href={`/contracts/${c.contractId}/documents/${signedCopy.contractDocumentId}${storeQuery}`} className={buttonClass("outline")}>

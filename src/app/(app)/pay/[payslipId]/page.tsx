@@ -3,12 +3,12 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Badge, Card, HeroCard, Notice, PageHeader } from "@/components/common";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
-import { formatWon, historyEntries, isEarning, isItemShown, isResent, parsePayslipId, periodLabel, sentDateLabel } from "@/lib/payslip-rules";
+import { formatWon, historyEntries, isEarning, isItemShown, parsePayslipId, periodLabel, sentDateLabel } from "@/lib/payslip-rules";
 import { getPayslip } from "@/lib/payslips";
 import { requireSession } from "@/lib/session";
 import { CorrectingBadge } from "../_components/correcting-badge";
 import { ExportButton } from "../_components/export-button";
-import { PayFrame, Tiny } from "../_components/pay-frame";
+import { PayFrame } from "../_components/pay-frame";
 import { PayTable } from "../_components/pay-table";
 
 export const metadata: Metadata = { title: "급여명세서 · Whale ERP" };
@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "급여명세서 · Whale ERP" };
 // 급여명세서 상세. 기준: 데모 docs/demo/src/pages/pay 의 상세 · 다시 보낸 명세서(Figma 없음, DESIGN.md 기준 초안).
 // 다시 보낸 명세서(PAY-1)는 따로 화면이 없다 — 발송이 두 번 이상인 명세서다. 최신 값으로 덮어 이전 금액은 보이지 않는다.
 // 위쪽 「다시 발송되었습니다」 안내도, 바뀐 줄 표시(「· 정정됨」)도 두지 않는다(2026-10-20 재영, 알림 NOTI-6 과 같다).
-// 데모 resent 와 같이 다시 보낸 명세서는 머리 메타에 가장 최근에 받은 날을 적고, 아래 「실제 급여 지급은 …」 안내를 뺀다.
+// 데모 resent 와 같이 다시 보낸 명세서는 머리 메타에 가장 최근에 받은 날을 적는다. 아래 「실제 급여 지급은 …」 안내는 없앴다(2026-11-23 사용자 지정).
 // 보낸 뒤 확정을 취소해 고치는 중이면(api correcting) 「검토 중」과 안내만 — 금액 · 항목 · 내보내기는 다시 받을 때까지 없다
 // (2026-10-21 사용자 결정, 고치는 중인 값을 보이지 않게).
 export default async function PayslipPage({ params }: PageProps<"/pay/[payslipId]">) {
@@ -27,7 +27,6 @@ export default async function PayslipPage({ params }: PageProps<"/pay/[payslipId
 
   // 한글 이름 하나 때문에 화면 전체를 오류로 만들지 않는다. 못 받으면 labelOf 가 값 그대로 보인다.
   const employmentTypes = await getEnumOrEmpty("EmploymentType");
-  const resent = isResent(payslip.logs);
   const sentAt = payslip.sentAt;
   const { grossPayAmount, totalDeductionAmount, netPayAmount } = payslip;
   const correcting = payslip.correcting || grossPayAmount === null || totalDeductionAmount === null || netPayAmount === null;
@@ -91,7 +90,6 @@ export default async function PayslipPage({ params }: PageProps<"/pay/[payslipId
       </Card>
 
       {!correcting && <ExportButton payslipId={payslip.payslipId} />}
-      {!correcting && !resent && <Tiny>실제 급여 지급은 근무지에서 진행합니다.</Tiny>}
     </PayFrame>
   );
 }

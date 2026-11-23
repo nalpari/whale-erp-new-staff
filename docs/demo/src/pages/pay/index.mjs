@@ -123,7 +123,7 @@ const payslipView = (p) => {
         .map(([at, kind]) => `<li><span class="tabular-nums">${at}</span> · ${kind}</li>`)
         .join("")}</ul>`,
     ) +
-    button("명세서 PDF 받기", { variant: "outline", "data-toast": "명세서 PDF를 내려받습니다" })
+    button("급여명세서 PDF 다운로드", { variant: "outline", "data-toast": "급여명세서 PDF를 내려받습니다" })
   );
 };
 
@@ -139,7 +139,7 @@ const sheet = (a = {}) =>
     "about",
     { title: "급여명세서는 이렇게 만들어집니다", ...a },
     `<p class="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text"><strong>기본급·주휴수당·연장수당</strong>은 근로계약과 출퇴근 기록으로 자동 계산되고, 관리자가 확인합니다.<br><strong>그 외 지급 항목과 공제 항목</strong>은 관리자가 직접 입력합니다.</p><p class="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">맨 위 금액은 <strong>그 달에 받은 급여명세서의 실지급액 합계</strong>입니다.<br>근무지가 여러 곳이면 모두 더해서 보여 드립니다.</p>${notice(
-      "실제 급여 입금은 근무지에서 진행합니다.<br>명세서는 만든 날부터 3년 동안 보관됩니다.",
+      "명세서는 만든 날부터 3년 동안 보관됩니다.",
       infoIcon(16),
     )}`,
   );
@@ -196,7 +196,7 @@ const VIEWS = {
   "filter-empty": () => list(true) + sheet() + filterSheets(),
   detail: () =>
     backToList() +
-    body(payslipView(PAYSLIPS.detail) + tiny("실제 급여 입금은 근무지에서 진행합니다."), { variant: "detail" }),
+    body(payslipView(PAYSLIPS.detail), { variant: "detail" }),
   resent: () =>
     backToList() +
     body(
