@@ -114,9 +114,10 @@ const todoRow = (t) => {
 const todoPanel = (s) => {
   const todos = todosOf(s).sort((a, b) => rank(a) - rank(b) || a.due.localeCompare(b.due));
   const count = (st) => todos.filter((t) => t.status === st).length;
-  return `<div class="flex flex-col gap-[20px]"><p class="flex gap-[14px] text-[12px] text-staff-text-muted"><span>대기 <b class="text-staff-text">${count("waiting")}</b></span><span>진행 중 <b class="text-[#315df5]">${count(
-    "progress",
-  )}</b></span><span>완료 <b class="text-[#13785e]">${count("done")}</b></span></p><section class="rounded-[20px] border border-staff-border-light bg-white px-[20px]">${todoList(todos.map(todoRow).join(""))}</section></div>`;
+  // 상태 칩 [전체] [대기] [진행 중] [완료] — 내 근무지 상태 칩과 같은 모양, 0건도 보인다(개발 화면 todo-panel, 2026-11-23). 목록 상자는 남는 높이를 채운다.
+  const chip = (label, n, on) =>
+    `<button type="button" aria-pressed="${on}" class="flex h-[36px] items-center gap-[4px] rounded-full border px-[14px] text-[13px] font-semibold ${on ? "border-staff-primary bg-staff-primary-inactive text-staff-primary" : "border-staff-border bg-white text-staff-text-sub"}">${label} <span class="tabular-nums">${n}</span></button>`;
+  return `<div class="flex flex-1 flex-col gap-[20px]"><div role="group" aria-label="TO-DO 상태" class="flex flex-wrap gap-[8px]">${chip("전체", todos.length, true)}${chip("대기", count("waiting"), false)}${chip("진행 중", count("progress"), false)}${chip("완료", count("done"), false)}</div><section class="flex flex-1 flex-col rounded-[20px] border border-staff-border-light bg-white px-[20px]">${todoList(todos.map(todoRow).join(""))}</section></div>`;
 };
 
 // 근무지 카드: 두 탭 위에 두고 누르면 홈과 같은 근무지 고르기 시트를 연다(WORK-4, 2026-10-20 재영). 고른 근무지는 앱 전체가 따른다.
@@ -208,11 +209,11 @@ const view = (s) => {
           "근무가 종료되었습니다",
           "급여명세서는 보존 기간(3년) 동안<br>급여 탭에서 확인할 수 있습니다.",
         )
-      : `<div id="${PANEL}" role="tabpanel" aria-labelledby="${segmentTabId(PANEL, tab)}" class="flex flex-col gap-[20px]">${isTodo(v) ? todoPanel(v) : ""}${
+      : `<div id="${PANEL}" role="tabpanel" aria-labelledby="${segmentTabId(PANEL, tab)}" class="flex ${isTodo(v) ? "flex-1 " : ""}flex-col gap-[20px]">${isTodo(v) ? todoPanel(v) : ""}${
           v === "empty" ? emptyView(img("menu-schedule.svg", 44, 44), "이번 달 근무가 없습니다", "근무지에서 근무스케줄을 등록하면 여기에 표시됩니다.") : ""
         }${v === "week" ? schedule() : ""}</div>`;
   return `<div class="flex flex-1 flex-col">${pageHeader("근무 정보", {
-  })}<main class="flex flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px] leading-[1.5] ${v === "nosite" ? "flex-1" : ""}">${v === "nosite" ? "" : storeCard()}${tabs}${content}</main><div class="sticky bottom-0 mt-auto">${bottomNav(
+  })}<main class="flex flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px] leading-[1.5] ${v === "nosite" || isTodo(v) ? "flex-1" : ""}">${v === "nosite" ? "" : storeCard()}${tabs}${content}</main><div class="sticky bottom-0 mt-auto">${bottomNav(
     "work",
   )}</div></div>${v === "nosite" || v === "empty" || v === "week" ? "" : sheets(s)}${v === "nosite" ? "" : storeSheet()}`;
 };
