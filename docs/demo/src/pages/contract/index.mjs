@@ -225,7 +225,7 @@ const VIEWS = {
     )}${dock(
       // 목업 tax.html 첫 상태 「안내 · 날인 직후」
       button("신고 정보 입력하기", { href: page("tax", "intro") }) +
-        button("계약서 PDF 받기", { variant: "outline", "data-toast": "계약서 PDF를 내려받습니다" }) +
+        button("근로계약서 PDF 다운로드", { variant: "outline", "data-toast": "근로계약서 PDF를 내려받습니다" }) +
         `<p class="py-[2px] text-center text-[12px] text-staff-text-muted">신고 정보를 입력해야 앱을 이용할 수 있습니다</p>`,
       30,
     )}`,
@@ -240,7 +240,7 @@ const VIEWS = {
       )}</section>${contractDocument(FULL_TIME)}`,
       { variant: "detail" },
     )}${dock(
-      button("계약서 PDF 받기", { variant: "outline", "data-toast": "계약서 PDF를 내려받습니다" }) + button("목록으로", { variant: "ghost", ...back("list") }),
+      button("근로계약서 PDF 다운로드", { variant: "outline", "data-toast": "근로계약서 PDF를 내려받습니다" }) + button("목록으로", { variant: "ghost", ...back("list") }),
       30,
     )}`,
 

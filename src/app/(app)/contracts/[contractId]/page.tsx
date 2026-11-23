@@ -136,7 +136,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
                     <span className="text-[14px] font-semibold">{labelOf(documentKinds, d.kind)}</span>
                     <span className="text-[12px] break-all text-staff-text-muted">{d.fileName}</span>
                   </span>
-                  {/* 받기 · 내보내기 링크의 근거(아래 「계약서 PDF 받기」도 이것을 따른다). 이 앱의 라우트가 로그인 토큰으로 api 의 서명
+                  {/* 받기 · 내보내기 링크의 근거(아래 「근로계약서 PDF 다운로드」도 이것을 따른다). 이 앱의 라우트가 로그인 토큰으로 api 의 서명
                       주소를 받아 보낸다(documents/[contractDocumentId]/route.ts). 라우트
                       핸들러라 Link 의 미리 받기를 쓰지 않는다. 같은 탭에서 연다 — 성공하면 저장소가 attachment 로 내려줘 화면은 그대로
                       남고, 실패하면 라우트가 이 상세로 돌려보내 안내한다. target="_blank" 는 홈 화면에 둔 앱(PWA 단독 모드)에서 앱 밖
@@ -301,7 +301,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
               Plane 의 「공유 시트」는 휴대전화 브라우저가 받은 PDF 에 띄우는 저장 · 공유로 갈음한다 — Web Share API 는 서명 주소가
               다른 출처라 파일을 읽어 올 수 없어 쓰지 않는다. */}
           <a href={`/contracts/${c.contractId}/documents/${signedCopy.contractDocumentId}${storeQuery}`} className={buttonClass("outline")}>
-            계약서 PDF 받기
+            근로계약서 PDF 다운로드
           </a>
         </Dock>
       )}
