@@ -49,7 +49,7 @@ function IconDot({ children, muted = false }: { children: ReactNode; muted?: boo
 /** 정보 행 아이콘 — 공용 아이콘 파일이 없는 체크 · 엑스 · 시계는 여기서 그린다. 나머지는 public/icons 마스크. */
 export type PillIcon = "store" | "contract" | "clock" | "check" | "close";
 function Glyph({ icon }: { icon: PillIcon }) {
-  if (icon === "store") return <MaskIcon src="/icons/store-small.svg" size={18} />;
+  if (icon === "store") return <MaskIcon src="/icons/store-line.svg" size={18} />;
   if (icon === "contract") return <MaskIcon src="/icons/contract.svg" size={18} />;
   const path = icon === "check" ? "M5 12.5l4.5 4.5L19 7.5" : icon === "close" ? "M6 6l12 12M18 6L6 18" : "M12 7.5V12l3 2";
   return (

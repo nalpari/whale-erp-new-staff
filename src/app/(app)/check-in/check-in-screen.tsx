@@ -449,7 +449,7 @@ export function CheckInScreen({
           {/* #dcdcf7 — 연보라 바탕(staff-primary-inactive) 위 한 단계 진한 테두리, 출근 화면 근무지 카드와 같은 값 */}
           <section className="flex items-center gap-[12px] rounded-[18px] border border-[#dcdcf7] bg-staff-primary-inactive px-[20px] py-[16px]">
             <span aria-hidden className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-white text-staff-primary">
-              <MaskIcon src="/icons/pin.svg" size={16} flipY />
+              <MaskIcon src="/icons/store-line.svg" size={18} />
             </span>
             <div className="flex min-w-0 flex-1 flex-col gap-[6px]">
               <p className="truncate text-[14px] leading-[1.4] font-semibold text-staff-text-sub">{store.name}</p>

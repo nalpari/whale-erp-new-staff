@@ -188,7 +188,7 @@ function DaySheets({ sheet, onClose, onOpen }: { sheet: Sheet; onClose: () => vo
               <p className="whitespace-pre-line">{flagDescription(f)}</p>
             </Sunken>
           ))}
-        <Notice icon={<MaskIcon src="/icons/store-small.svg" size={16} />}>{STORE_NOTICE}</Notice>
+        <Notice icon={<MaskIcon src="/icons/store-line.svg" size={16} />}>{STORE_NOTICE}</Notice>
         {/* 확인 필요 카드가 그날을 통째로 덮으므로, 같은 날의 수정 이력(HIST-1) · 퇴근 기록 없음(HIST-4)은 여기서 이어 연다 */}
         {day && isEdited(day) && (
           <Button variant="ghost" onClick={() => onOpen({ kind: "edits", day })}>
@@ -207,7 +207,7 @@ function DaySheets({ sheet, onClose, onOpen }: { sheet: Sheet; onClose: () => vo
         title="퇴근 기록이 없습니다"
         description={`${openIn ?? "-"} 출근 기록만 있고 퇴근 기록이 없습니다.`}
       >
-        <Notice icon={<MaskIcon src="/icons/store-small.svg" size={16} />}>
+        <Notice icon={<MaskIcon src="/icons/store-line.svg" size={16} />}>
           퇴근을 등록하지 못했다면
           <br />
           <strong>근무지 관리자에게 문의해 주세요.</strong>

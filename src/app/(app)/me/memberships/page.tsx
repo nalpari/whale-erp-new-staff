@@ -87,9 +87,7 @@ export default async function MembershipsPage() {
                 <li key={m.staffMemberId} className="overflow-hidden rounded-[16px] border border-staff-border bg-white">
                   <div className="flex flex-col gap-[10px] px-[20px] pt-[18px] pb-[14px]">
                     <div className="flex items-start gap-[10px]">
-                      <span className={`flex pt-[4px] ${retired ? "text-staff-text-muted" : "text-staff-text-sub"}`}>
-                        <MaskIcon src="/icons/store-small.svg" size={18} />
-                      </span>
+                      {/* 이 화면은 카드마다 근무지라 점포명 앞 아이콘을 두지 않는다 — 아래 메뉴 줄 아이콘과 겹쳐 헷갈렸다(2026-11-23 사용자 지정) */}
                       {/* 퇴직한 근무지는 흐리게 보이되 글자 대비가 떨어지지 않게 투명도 대신 보조 글자 토큰을 쓴다. */}
                       <h2 className={`min-w-0 flex-1 text-[17px] font-bold break-keep ${retired ? "text-staff-text-sub" : ""}`}>{m.store.storeName}</h2>
                       {/* 퇴직 예정도 소속이다(퇴직일까지). 배지 글자로 갈라 보인다. */}
@@ -175,9 +173,6 @@ async function PendingRequests() {
                   transitionTypes={["nav-forward"]}
                   className={`flex w-full items-start gap-[12px] rounded-[16px] border border-staff-border-light bg-white p-[16px] text-left active:bg-staff-info-bg ${PRESS}`}
                 >
-                  <span className="flex pt-[3px] text-staff-text-sub">
-                    <MaskIcon src="/icons/store-small.svg" size={18} />
-                  </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-[15px] font-semibold break-keep">{r.storeName}</span>
                     <span className="block text-[12px] text-staff-text-sub">

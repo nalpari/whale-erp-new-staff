@@ -89,7 +89,7 @@ function storePin() {
   const head = document.createElement("div");
   head.className = "flex size-[40px] items-center justify-center rounded-full border-[3px] border-white bg-staff-primary";
   const icon = document.createElement("span");
-  icon.className = "size-[20px] -scale-y-100 bg-white [mask-image:url(/icons/store.svg)] [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]";
+  icon.className = "size-[20px] bg-white [mask-image:url(/icons/store-line.svg)] [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]";
   head.appendChild(icon);
   const tail = document.createElement("div");
   tail.className = "-mt-[2px] size-0 border-x-[7px] border-t-[10px] border-x-transparent border-t-staff-primary";

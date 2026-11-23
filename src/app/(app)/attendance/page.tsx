@@ -55,7 +55,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
       ) : !current || !records ? (
         <div className="flex flex-col items-center gap-[8px] px-[22px] py-[52px] text-center leading-[1.5]">
           <span className="flex pb-[6px] text-staff-text-muted">
-            <MaskIcon src="/icons/store.svg" size={40} flipY />
+            <MaskIcon src="/icons/store-line.svg" size={40} />
           </span>
           {retired ? (
             <>
