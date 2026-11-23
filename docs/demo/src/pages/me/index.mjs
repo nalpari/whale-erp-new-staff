@@ -387,7 +387,8 @@ const block = (id) => {
     const ids = { locOn: uid("loc"), locOff: uid("loc"), bpOn: uid("bp"), bpOff: uid("bp") };
     return `<div class="flex flex-1 flex-col leading-[1.5]">${meView(id, ids)}</div>${sheets(id, ids)}`;
   }
-  return `<div class="flex flex-1 flex-col leading-[1.5]">${backHeader(TITLE[id], BACK[id] ?? "view")}${VIEWS[id]()}</div>`;
+  // 내 근무지는 보기 화면이라 하단 메뉴를 둔다(개발 화면과 같다, 2026-11-23 사용자 지정). 입력 화면(이메일 · 비밀번호 등)은 두지 않는다.
+  return `<div class="flex flex-1 flex-col leading-[1.5]">${backHeader(TITLE[id], BACK[id] ?? "view")}${VIEWS[id]()}${id === "sites" ? `<div class="sticky bottom-0 mt-auto">${bottomNav("me")}</div>` : ""}</div>`;
 };
 
 export default () => ({

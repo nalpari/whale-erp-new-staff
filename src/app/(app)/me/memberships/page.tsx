@@ -3,7 +3,7 @@ import { unstable_rethrow } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
-import { Alert, Badge, MaskIcon, Notice, PageHeader } from "@/components/common";
+import { Alert, Badge, BottomNav, MaskIcon, Notice, PageHeader } from "@/components/common";
 import { PRESS } from "@/components/common/theme";
 import { invitationTypeLabel } from "@/lib/affiliation-requests";
 import { formatTelephone } from "@/lib/contract-rules";
@@ -291,6 +291,10 @@ export default async function MembershipsPage({ searchParams }: PageProps<"/me/m
           <br />
           변경이 필요하면 근무지 관리자에게 문의해 주세요.
         </p>
+      </div>
+      {/* 목록 · 보기 화면은 하단 메뉴를 둔다(입력 화면은 두지 않는다 — 탭을 눌러 쓰던 내용을 잃지 않게, 2026-11-23 사용자 지정) */}
+      <div className="sticky bottom-0 mt-auto">
+        <BottomNav current="/me" />
       </div>
     </div>
   );

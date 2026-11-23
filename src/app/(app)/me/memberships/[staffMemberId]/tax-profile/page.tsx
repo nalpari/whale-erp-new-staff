@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
-import { Alert, Button, Dock, IconTile, Notice, PageHeader } from "@/components/common";
+import { Alert, BottomNav, Button, Dock, IconTile, Notice, PageHeader } from "@/components/common";
 import { ApiError } from "@/lib/api";
 import { getCodesOrEmpty } from "@/lib/codes";
 import { labelOf } from "@/lib/enums";
@@ -225,6 +225,10 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
           <Button href={`/me/memberships/${staffMemberId}/tax-profile/edit`}>다시 입력하기</Button>
         </Dock>
       ) : null}
+      {/* 목록 · 보기 화면은 하단 메뉴를 둔다(입력 화면은 두지 않는다 — 탭을 눌러 쓰던 내용을 잃지 않게, 2026-11-23 사용자 지정) */}
+      <div className="sticky bottom-0 mt-auto">
+        <BottomNav current="/me" />
+      </div>
       {changed && (
         <ChangedToast path={`/me/memberships/${staffMemberId}/tax-profile`}>{after.toast ? "신고 정보를 바꿨습니다" : undefined}</ChangedToast>
       )}
