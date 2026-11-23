@@ -160,7 +160,7 @@ export function TaxProfileCreateForm({
       <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
         <div className="flex flex-col gap-[6px]">
           <h2 className="text-[22px] font-bold">주민등록번호와 급여 계좌</h2>
-          <p className="text-[14px] text-staff-text-sub">신고와 급여 이체에 그대로 사용되니 정확히 입력해 주세요.</p>
+          <p className="text-[14px] text-staff-text-sub">본인 명의의 주민등록번호와 계좌만 입력할 수 있습니다.</p>
         </div>
         <TaxIdentity realName={realName} birthDate={birthDateLabel} />
         <RrnField
@@ -173,6 +173,7 @@ export function TaxProfileCreateForm({
           error={mismatch ? RRN_BIRTH_MISMATCH : errorOf("rrn")}
         />
         <PayrollAccountFields
+          help=""
           banks={banks}
           bankCode={bankCode}
           accountNumber={accountNumber}

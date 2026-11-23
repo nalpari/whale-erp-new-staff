@@ -24,7 +24,7 @@ import { Basis, accountBasis, rrnBasis } from "./tax-profile-parts";
 // 없다(가리면 칸 이름조차 읽지 않는다). 이 칸은 본인의 기기에서 본인이 넣는 값이라 낭독기의 소리는 비밀번호 칸과 같은 정도로 본다.
 // required 는 처음 넣기(셋 다 필수)용이다. 고치기는 비워 둔 쪽을 그대로 두어 끈다.
 
-const LEGEND = "pb-[8px] text-[13px] font-semibold text-staff-text-sub";
+const LEGEND = "pb-[4px] text-[15px] font-bold text-staff-text";
 
 /**
  * 화면이 거른 오류 칸으로 초점을 옮긴다. 이 칸들을 담는 폼은 noValidate 라 브라우저 말풍선 대신 칸 아래 문구로 알린다
@@ -43,7 +43,7 @@ export function focusTaxProfileField(form: HTMLFormElement, field: TaxProfileFie
 }
 /** 뒷자리 칸의 복사 · 잘라내기 · 끌어 옮기기를 막는다(위 주석). */
 const blockCopy = (event: { preventDefault(): void }) => event.preventDefault();
-const noteClass = (error?: string) => `text-[12px] whitespace-pre-line ${error ? "text-staff-error" : "text-staff-text-muted"}`;
+const noteClass = (error?: string) => `text-[12px] whitespace-pre-line empty:hidden ${error ? "text-staff-error" : "text-staff-text-muted"}`;
 
 /**
  * 묶음 상자(boxed) — 신고 정보 다시 입력(정돈 시안 B안, 2026-11-20 사용자 지정). 안내 바탕 · 테두리 · 모서리 16 · 안쪽 18 상자에 담고,
@@ -98,9 +98,10 @@ export function RrnField({
   const note = error || help;
   return (
     <div className={boxed ? BOX : "flex flex-col gap-[8px]"}>
-      {!boxed && <Basis>{rrnBasis(true)}</Basis>}
       <fieldset className="flex flex-col gap-[8px]" disabled={disabled}>
         {boxed ? <BoxLegend name="주민등록번호" current={current} /> : <legend className={LEGEND}>주민등록번호{required && "*"}</legend>}
+        {/* 근거(TAX-08)는 칸 이름 아래 · 입력칸 위 — 이름 위에 있으면 어느 칸의 말인지 흐렸다(2026-11-23 사용자 지정) */}
+        {!boxed && <Basis>{rrnBasis(true)}</Basis>}
         <div className="flex items-center gap-[8px]">
           <input
             name="rrnFront"
@@ -190,9 +191,9 @@ export function PayrollAccountFields({
   const note = error || (unavailable ? "은행 목록을 불러오지 못해 지금은 계좌를 입력할 수 없습니다. 잠시 뒤 다시 열어 주세요." : help);
   return (
     <div className={boxed ? BOX : "flex flex-col gap-[8px]"}>
-      {!boxed && <Basis>{accountBasis(true)}</Basis>}
       <fieldset className="flex flex-col gap-[8px]" disabled={disabled || unavailable}>
         {boxed ? <BoxLegend name="급여 계좌" current={current} /> : <legend className={LEGEND}>급여 계좌{required && "*"}</legend>}
+        {!boxed && <Basis>{accountBasis(true)}</Basis>}
         {/* 은행은 네이티브 select 대신 바텀시트에서 3개씩 고른다(2026-11-23 사용자 지정) — 값은 숨은 칸으로 보낸다.
             오류면 첫 오류 칸 찾기가 이 묶음(data-field-anchor)으로 옮긴다 */}
         <div className="relative" data-field-anchor="bankCode">
