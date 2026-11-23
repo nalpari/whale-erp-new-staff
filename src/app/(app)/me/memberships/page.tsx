@@ -28,16 +28,22 @@ export const metadata: Metadata = { title: "내 근무지 · Whale ERP" };
 
 /** 카드 안 이름 · 값 한 줄 — 이름 칸 폭 고정 · 값 왼쪽 정렬(값이 길어도 같은 칸 안에서 줄바꿈). */
 const ACTION_CELL =
-  "flex h-[72px] min-w-0 flex-1 flex-col items-center justify-center gap-[6px] text-[13px] font-medium [&+&]:border-l [&+&]:border-staff-border-light";
+  "flex h-[76px] min-w-0 flex-1 flex-col items-center justify-center gap-[6px] pb-[12px] text-[13px] font-medium [&+&]:border-l [&+&]:border-staff-border-light";
 
-/** 카드 맨 아래 세 칸 중 하나(선 아이콘 위 · 이름 아래, 2026-11-23 사용자 지정) */
-function ActionCell({ icon, label, href }: { icon: string; label: string; href: string }) {
+/**
+ * 카드 맨 아래 세 칸 중 하나(선 아이콘 위 · 이름 아래, 2026-11-23 사용자 지정). note 는 이름 아래 작은 회색 한 줄 — 신고 정보에 급여 계좌가
+ * 들어 있다는 것을 살짝 알린다(2026-11-23 사용자 지정). 이름 아래에 띄워 붙여 세 칸의 아이콘 · 이름 줄이 어긋나지 않게 한다.
+ */
+function ActionCell({ icon, label, href, note }: { icon: string; label: string; href: string; note?: string }) {
   return (
     <Link href={href} transitionTypes={["nav-forward"]} className={`${ACTION_CELL} text-staff-text active:bg-staff-info-bg ${PRESS}`}>
       <span className="flex text-staff-text-sub">
         <MaskIcon src={icon} size={20} />
       </span>
-      {label}
+      <span className="relative">
+        {label}
+        {note && <span className="absolute top-full left-1/2 -translate-x-1/2 text-[11px] font-normal whitespace-nowrap text-staff-text-muted">{note}</span>}
+      </span>
     </Link>
   );
 }
@@ -238,15 +244,18 @@ export default async function MembershipsPage({ searchParams }: PageProps<"/me/m
                         ) : (
                           m.hiredDate && <p>{dateLabel(m.hiredDate)}부터 근무</p>
                         )}
-                        <Suspense>
-                          <StoreContactButtons storeId={m.store.storeId} storeName={m.store.storeName} contacts={storeContacts} />
-                        </Suspense>
+                        {/* 퇴직한 근무지에는 [지도 보기] · [전화하기]를 두지 않는다 — 더 다니지 않는 곳이다(2026-11-23 사용자 지정) */}
+                        {!retired && (
+                          <Suspense>
+                            <StoreContactButtons storeId={m.store.storeId} storeName={m.store.storeName} contacts={storeContacts} />
+                          </Suspense>
+                        )}
                       </div>
                     </div>
                     {/* 신고 정보 · 근로계약서 · 급여명세서 한 줄 세 칸 — 많이 쓰는 것을 오른쪽에(2026-11-23 사용자 지정, 처음 기획 2026-10-20). */}
                     {!retired && (
                       <div className="flex border-t border-staff-border-light">
-                        <ActionCell icon="/icons/id-card-line.svg" label="신고 정보" href={`/me/memberships/${m.staffMemberId}/tax-profile`} />
+                        <ActionCell icon="/icons/id-card-line.svg" label="신고 정보" note="급여 계좌 포함" href={`/me/memberships/${m.staffMemberId}/tax-profile`} />
                         {/* 그 근무지 계약서만(ME-7 · TAX-8) — 앱 전역에서 고른 근무지와 관계없다 */}
                         <ActionCell icon="/icons/doc-line.svg" label="근로계약서" href={`/contracts?store=${m.store.storeId}`} />
                         {/* 그 근무지 급여명세서만 — 급여 화면의 점포 칩(?store=)으로 거른다(2026-11-23 사용자 지정, 전엔 api 가 없어 막힌 「준비 중」 칸) */}
