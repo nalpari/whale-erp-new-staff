@@ -54,7 +54,7 @@ const plainTopBar = (bell) =>
 // 오늘의 근무(Figma node 9:152). 출근 전이라 버튼은 출근하기(HOME-3).
 // #DBE5FF·#BCCFFF 는 남보라 위의 흐린 글자, 그림자는 남보라를 옅게 깐 것이다.
 const todayCard = ([start, end]) =>
-  `<section aria-label="오늘 근무" class="flex flex-col gap-[4px] rounded-[18px] bg-staff-primary px-[23px] pt-[24px] pb-[23px] text-white shadow-[0_9px_23px_rgba(49,93,245,0.15)]"><p class="text-[12px] text-[#dbe5ff]">오늘 근무</p><p class="flex h-[46px] items-center gap-[4px] text-[30px] font-bold tracking-[-0.025em]">${start}<span class="w-[23px] text-center text-[14px] font-normal text-[#bccfff]">—</span>${end}</p><p class="flex items-center gap-[6px] pb-[15px] text-[12px] text-[#dbe5ff]">휴게 60분 <span class="text-[11px]">·</span> 총 8시간 근무</p><a href="${CHECK_IN}" class="flex min-h-[48px] items-center justify-center gap-[8px] rounded-[12px] bg-white px-[18px] text-[15px] font-bold text-staff-primary transition-colors duration-150 ease-out active:bg-staff-primary-inactive">출근하기${img(
+  `<section aria-label="오늘 근무" class="flex flex-col gap-[12px] rounded-[18px] bg-staff-primary p-[24px] text-white shadow-[0_9px_23px_rgba(49,93,245,0.15)]"><p class="text-[12px] text-[#dbe5ff]">오늘 근무</p><p class="flex items-center gap-[4px] text-[30px] leading-[1.15] font-bold tracking-[-0.025em]">${start}<span class="w-[23px] text-center text-[14px] font-normal text-[#bccfff]">—</span>${end}</p><p class="flex items-center gap-[6px] text-[12px] text-[#dbe5ff]">휴게 60분 <span class="text-[11px]">·</span> 총 8시간 근무</p><a href="${CHECK_IN}" class="flex min-h-[48px] items-center justify-center gap-[8px] rounded-[12px] bg-white px-[18px] text-[15px] font-bold text-staff-primary transition-colors duration-150 ease-out active:bg-staff-primary-inactive">출근하기${img(
     "arrow-right-brand.svg",
     14,
     12,
