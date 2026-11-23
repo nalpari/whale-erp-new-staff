@@ -122,7 +122,7 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
 
   return (
     <div className="flex flex-1 flex-col bg-white">
-      <PageHeader title="등록된 신고 정보" backHref="/me/memberships" />
+      <PageHeader title="신고 정보" backHref="/me/memberships" />
       <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5] break-keep">
         {tax === null ? (
           <Alert tone="warning">
@@ -130,7 +130,9 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
           </Alert>
         ) : !profile ? (
           <Notice>
-            <strong>{storeName}</strong>에는 아직 신고 정보를 내지 않았습니다. 근로계약서 서명을 마쳤다면 지금 입력해 주세요.
+            <strong>{storeName}</strong>에 입력한 신고 정보가 없습니다.
+            <br />
+            근로계약서에 서명했다면 지금 입력해 주세요.
           </Notice>
         ) : (
           <>

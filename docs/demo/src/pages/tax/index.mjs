@@ -111,7 +111,7 @@ const VIEWS = {
     ) + dock(button("근무 시작하기", { href: page("home") })),
 
   view: () =>
-    pageHeader("등록된 신고 정보", { backHref: page("me", "sites") }) +
+    pageHeader("신고 정보", { backHref: page("me", "sites") }) +
     body(
       // 신고 정보는 근무지(직원 레코드)마다 따로다(TAX-8, 2026-10-20). 어느 근무지에 낸 값인지 맨 위에 적는다.
       `<p class="flex items-center gap-[8px] text-[16px] font-bold">${maskIcon("store-line.svg", 17)}웨일카페 강남역점</p>` +
