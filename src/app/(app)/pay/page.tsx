@@ -44,7 +44,7 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
         "");
   if (site !== null)
     return (
-      <PayFrame header={<PageHeader title="급여명세서" backHref="/me/memberships" />}>
+      <PayFrame current="/me" header={<PageHeader title="급여명세서" backHref="/me/memberships" />}>
         {siteName && <WorkplaceBox name={siteName} />}
         {/* 상자는 화면 남는 높이를 채운다 — 비었을 때 아래가 휑했다(2026-11-23 사용자 지정) */}
         <section className="flex flex-1 flex-col rounded-[20px] border border-staff-border-light bg-white p-[20px]">
