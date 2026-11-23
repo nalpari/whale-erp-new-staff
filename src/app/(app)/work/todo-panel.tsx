@@ -53,12 +53,15 @@ function TodoRows({
   status,
   staffMemberId,
   onOpen,
+  checkOpens = false,
 }: {
   todos: MyTodo[];
   now: string;
   status: StatusChange;
   staffMemberId?: number;
   onOpen?: (todoId: number) => void;
+  /** 체크칸을 눌러도 바로 바꾸지 않고 상세 시트를 연다(홈 카드) */
+  checkOpens?: boolean;
 }) {
   const at = new Date(now);
   return (
@@ -70,7 +73,9 @@ function TodoRows({
           meta={todoMeta(t, at)}
           done={t.status === "DONE"}
           overdue={isOverdue(t, at)}
-          onToggle={status.pending ? undefined : (checked) => status.change(t.todoId, toggledStatus(checked))}
+          onToggle={
+            status.pending ? undefined : checkOpens && onOpen ? () => onOpen(t.todoId) : (checked) => status.change(t.todoId, toggledStatus(checked))
+          }
           onOpen={onOpen && (() => onOpen(t.todoId))}
           badges={
             <>
@@ -85,11 +90,22 @@ function TodoRows({
 }
 
 /**
- * 홈 TO-DO 카드(#316)의 목록 — 체크로 완료만 하고 상세는 열지 않는다. 빈 목록 안내도 여기서 그린다 — 마지막 건이 404 로
- * 사라져도 이 컴포넌트가 그대로 남아 실패 문구가 보인다.
+ * 홈 TO-DO 카드(#316)의 목록. 줄이나 체크칸을 누르면 근무 탭과 같은 상세 시트를 열고 거기서 상태를 바꾼다 — 체크 한 번에 바로 완료돼
+ * 목록에서 사라지면 잘못 눌렀을 때 당황스러웠다(2026-11-23 사용자 지정, 전엔 체크로 완료만 하고 상세는 열지 않았다).
+ * 빈 목록 안내도 여기서 그린다 — 마지막 건이 404 로 사라져도 이 컴포넌트가 그대로 남아 실패 문구가 보인다.
  */
-export function TodoChecklist({ todos, now }: { todos: MyTodo[]; now: string }) {
+export function TodoChecklist({ todos, now, staffMemberId }: { todos: MyTodo[]; now: string; staffMemberId?: number }) {
   const status = useStatusChange();
+  // 시트 상태는 근무 탭(TodoPanel)과 같다 — 완료로 바꿔 목록에서 사라지면 들고 있던 값을 그린 채 닫는다.
+  const [picked, setPicked] = useState<MyTodo | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const current = picked && todos.find((t) => t.todoId === picked.todoId);
+  const open = sheetOpen && Boolean(current);
+  const handleOpen = (todoId: number) => {
+    status.clearError();
+    setPicked(todos.find((t) => t.todoId === todoId) ?? null);
+    setSheetOpen(true);
+  };
   return (
     <>
       {status.error && (
@@ -100,7 +116,17 @@ export function TodoChecklist({ todos, now }: { todos: MyTodo[]; now: string }) 
       {todos.length === 0 ? (
         <p className="py-[14px] text-[13px] text-staff-text-sub">남은 TO-DO 가 없습니다</p>
       ) : (
-        <TodoRows todos={todos} now={now} status={status} />
+        <TodoRows todos={todos} now={now} status={status} staffMemberId={staffMemberId} onOpen={handleOpen} checkOpens />
+      )}
+      {picked && (
+        <TodoSheet
+          open={open}
+          todo={current ?? picked}
+          status={status}
+          staffMemberId={staffMemberId ?? 0}
+          showStore={false}
+          onClose={() => setSheetOpen(false)}
+        />
       )}
     </>
   );
@@ -191,11 +217,14 @@ export function TodoPanel({
         </span>
       </p>
       {status.error && !open && <Alert tone="warning">{status.error}</Alert>}
-      {shown.length === 0 ? (
-        <p className="py-[40px] text-center text-[14px] leading-[1.5] text-staff-text-sub">배정된 TO-DO 가 없습니다</p>
-      ) : (
-        <TodoRows todos={shown} now={now} status={status} staffMemberId={staffMemberId} onOpen={handleOpen} />
-      )}
+      {/* 목록은 흰 상자 안에 — 회색 바탕에 줄만 있으면 비어 보였다(2026-11-23 사용자 지정). 근무스케줄 목록 · 급여명세서 목록 상자와 같은 모양 */}
+      <section className="rounded-[20px] border border-staff-border-light bg-white px-[20px]">
+        {shown.length === 0 ? (
+          <p className="py-[40px] text-center text-[14px] leading-[1.5] text-staff-text-sub">배정된 TO-DO 가 없습니다</p>
+        ) : (
+          <TodoRows todos={shown} now={now} status={status} staffMemberId={staffMemberId} onOpen={handleOpen} checkOpens />
+        )}
+      </section>
       {picked && (
         <TodoSheet
           open={open}
@@ -210,6 +239,7 @@ export function TodoPanel({
   );
 }
 
+// 근무 탭 · 홈 모두 줄 · 체크칸 어디를 눌러도 이 시트를 열고 거기서 상태를 바꾼다 — 체크 한 번에 바로 완료되지 않는다(2026-11-23 사용자 지정).
 // 상세(바텀시트, 데모 work 의 긴급 TO-DO 상세 · 공유 TO-DO 안내): 제목 · 내용 · 수행 예정 · 근무지 · 상태, 상태 바꾸기(대기 · 진행 중 · 완료).
 // 등록 · 삭제는 없다.
 // 공유 TO-DO 는 먼저 완료한 직원과 시각(WORK-3)과 수행자 안내를 보이고, 닫기 버튼은 「확인」이다.

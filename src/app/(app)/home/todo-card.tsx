@@ -10,7 +10,7 @@ const homeTodoQuery = (storeId?: number) => `status=PENDING&status=IN_PROGRESS&p
 
 // 홈 TO-DO 카드(#316, 목업 02.Main 「오늘 할 일」 자리). 미완료 위 몇 건을 체크로 완료하고, 「전체 보기」는 근무 화면 TO-DO 탭(HOME-1).
 // 홈 파일은 다른 작업(#311 · #313)이 채울 자리라 카드만 따로 두고 홈에는 한 줄로 끼운다. storeId 는 앱 전역 근무지(#314).
-export async function TodoCard({ storeId }: { storeId?: number }) {
+export async function TodoCard({ storeId, staffMemberId }: { storeId?: number; staffMemberId?: number }) {
   const todos = await getMyTodos(homeTodoQuery(storeId));
   // 미완료 TO-DO 가 없으면 섹션째 숨긴다(2026-10-26 재영). 불러오지 못한 때는 안내를 보인다.
   if (todos?.total === 0) return null;
@@ -26,7 +26,7 @@ export async function TodoCard({ storeId }: { storeId?: number }) {
         {!todos ? (
           <p className="py-[14px] text-[13px] text-staff-text-sub">TO-DO 를 불러오지 못했습니다</p>
         ) : (
-          <TodoChecklist todos={todos.items} now={new Date().toISOString()} />
+          <TodoChecklist todos={todos.items} now={new Date().toISOString()} staffMemberId={staffMemberId} />
         )}
       </div>
     </section>

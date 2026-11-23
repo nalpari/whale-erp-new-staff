@@ -68,7 +68,7 @@ export default async function HomePage() {
         {/* 고른 근무지의 TO-DO 만. 소속 목록을 못 받았으면 모든 근무지, 근무지가 없으면 카드를 두지 않는다. */}
         {current !== null && (
           <Suspense fallback={<TodoCardSkeleton />}>
-            <TodoCard storeId={current?.store.storeId} />
+            <TodoCard storeId={current?.store.storeId} staffMemberId={current?.staffMemberId} />
           </Suspense>
         )}
         {/* 나의 근무 정보 바로가기(데모). 급여명세서는 근무지가 없어도 보인다(HOME-5). 받는 동안은 비워 둔다. */}
