@@ -259,7 +259,14 @@ function PeriodView({ records, today, fromHome }: { records: MyAttendanceRecords
  */
 // 날짜 칸 두 개가 카드 폭 안에 들어가게 — 칸이 글자 폭만큼 버티지 않도록 min-w-0 · 좌우 여백 10(2026-11-20 사용자 지정: 오른쪽 칸이 카드 밖으로 밀렸다)
 // 아이폰 Safari 는 날짜 칸이 기본 모양(appearance)일 때 min-w-0 · 칸 폭을 무시하고 글자 폭만큼 늘어나 카드 밖으로 밀렸다 — 기본 모양을 끄고 폭을 칸에 맞춘다(2026-11-23 사용자 지정)
-const DATE_FIELD = `${FIELD.replace("px-[14px]", "px-[10px]")} w-full min-w-0 max-w-full appearance-none text-left [&::-webkit-date-and-time-value]:text-left`;
+// 아이폰 Safari 는 날짜 칸에 달력 그림을 그리지 않아(데스크톱 크롬만 그린다) 같은 달력 선 아이콘을 직접 얹는다. 크롬의 기본 그림은 투명하게 두어
+// 그 자리를 눌러도 날짜판이 열리게 한다(2026-11-23 사용자 지정).
+const DATE_FIELD = `${FIELD.replace("px-[14px]", "pl-[10px] pr-[32px]")} w-full min-w-0 max-w-full appearance-none text-left [&::-webkit-date-and-time-value]:text-left [&::-webkit-calendar-picker-indicator]:opacity-0`;
+const DateIcon = () => (
+  <span aria-hidden className="pointer-events-none absolute top-1/2 right-[10px] flex -translate-y-1/2 text-staff-text-sub">
+    <MaskIcon src="/icons/calendar-line.svg" size={16} />
+  </span>
+);
 
 function PeriodPicker({ from, to, fromHome }: { from: string; to: string; fromHome: boolean }) {
   const [start, setStart] = useState(from);
@@ -291,6 +298,7 @@ function PeriodPicker({ from, to, fromHome }: { from: string; to: string; fromHo
         {fromHome && <input type="hidden" name="back" value="home" />}
         <p className="text-[13px] font-semibold text-staff-text-sub">조회 기간</p>
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-[8px] pt-[8px]">
+          <span className="relative block min-w-0">
           <input
             type="date"
             name="from"
@@ -304,9 +312,12 @@ function PeriodPicker({ from, to, fromHome }: { from: string; to: string; fromHo
             max={end || undefined}
             onChange={(e) => setStart(e.target.value)}
           />
+          <DateIcon />
+          </span>
           <span aria-hidden className="text-[12px] text-staff-text-muted">
             –
           </span>
+          <span className="relative block min-w-0">
           <input
             type="date"
             name="to"
@@ -320,6 +331,8 @@ function PeriodPicker({ from, to, fromHome }: { from: string; to: string; fromHo
             max={start ? addDays(start, MAX_PERIOD_DAYS - 1) : undefined}
             onChange={(e) => setEnd(e.target.value)}
           />
+          <DateIcon />
+          </span>
         </div>
         {/* 두 칸이 한 줄이라 칸 오류는 줄 아래 한 줄로 둔다(입력칸 안내 · 오류와 같은 12px 오류색, 칸과 사이 8). */}
         {error && (
