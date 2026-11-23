@@ -226,6 +226,9 @@
   .inset-y-\[5px\] {
     inset-block: 5px;
   }
+  .-top-\[6px\] {
+    top: calc(6px * -1);
+  }
   .top-0 {
     top: 0px;
   }
@@ -300,6 +303,9 @@
   }
   .left-\[13px\] {
     left: 13px;
+  }
+  .left-\[14px\] {
+    left: 14px;
   }
   .left-\[calc\(50\%\+16px\)\] {
     left: calc(50% + 16px);
@@ -1027,6 +1033,9 @@
   .px-\[4px\] {
     padding-inline: 4px;
   }
+  .px-\[5px\] {
+    padding-inline: 5px;
+  }
   .px-\[8px\] {
     padding-inline: 8px;
   }
@@ -1311,6 +1320,10 @@
   .leading-\[1\.85\] {
     --tw-leading: 1.85;
     line-height: 1.85;
+  }
+  .leading-\[16px\] {
+    --tw-leading: 16px;
+    line-height: 16px;
   }
   .leading-normal {
     --tw-leading: var(--leading-normal);
