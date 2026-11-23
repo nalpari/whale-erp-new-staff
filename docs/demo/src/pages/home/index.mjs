@@ -6,7 +6,7 @@
 //   HOME-5 퇴직 후에는 「근무가 종료되었습니다」, 하단 메뉴와 알림 버튼은 그대로 두고 급여 탭으로 간다.
 // 평상시(today)는 Figma 02.Main(node 8:3)을 따른다(오늘의 근무 node 9:152 · 이번 주 근무 node 9:242 · 근무지 시트 03.Sheet node 12:670).
 // 그 밖 상태(처리할 일 카드 · 휴무 · 가입 직후 · 퇴직 후 · 날인 요청 팝업)는 Figma 없음 — DESIGN.md 기준 초안.
-import { bottomNav, bottomSheet, button, empty, img, infoRow, maskIcon, page, sectionTitle, state, statusChip, storeSheet, STORES, todoItem, todoList, topBar, weekSelector } from "../../ui.mjs";
+import { bottomNav, bottomSheet, button, empty, iconTile, img, infoRow, maskIcon, page, sectionTitle, state, statusChip, storeSheet, STORES, todoItem, todoList, topBar, weekSelector } from "../../ui.mjs";
 
 // 목업 오른쪽 상태 목록 순서 그대로. store 는 목업의 「시트 열기」라 뒤에 평상시를, sign-req 는 가입 직후 빈 홈을 깐다(체결 완료 계약이 없어 점포 정보를 보이지 않음, 운영 정책 CTR-29).
 // 빈 홈에는 날인을 기다리는 근로계약서 카드만 있어 「나중에」로 닫은 뒤에도 그 카드로 서명 대기 계약서에 간다.
@@ -83,12 +83,12 @@ const workInfo = () =>
     icon: "menu-attendance.svg",
     title: "출퇴근 현황",
     description: "이번 달 출근 9회 · 지각 0회",
-  })}${infoRow({ href: page("pay"), icon: "menu-payslip.svg", title: "급여명세서", description: "2026년 8월분 받음" })}</section>`;
+  })}${infoRow({ href: page("pay"), icon: iconTile("payslip-line.svg", 33), title: "급여명세서", description: "2026년 8월분 받음" })}</section>`;
 
 // 날인 대기 계약서 카드. 누르면 그 계약서로 간다.
 const contractCard = (title, sub) =>
   `<a href="${CONTRACT}" class="flex items-center gap-[12px] rounded-[18px] bg-[#fff6e5] px-[16px] py-[14px] text-[#956013] transition-opacity duration-150 ease-out active:opacity-80">${maskIcon(
-    "contract.svg",
+    "doc-line.svg",
     18,
   )}<span class="flex min-w-0 flex-1 flex-col gap-[2px]"><span class="text-[14px] font-semibold">${title}</span><span class="text-[12px]">${sub}</span></span>${maskIcon(
     "chevron-right-muted.svg",
@@ -142,10 +142,10 @@ const CONTENT = {
   // 첫 근로계약서를 거부·만료·종료로 잃어 날인 대기도 체결 완료도 없는 때. 퇴직 후와 달리 근무한 적이 없다(운영 정책 CTR-29).
   "no-site": () =>
     empty(
-      maskIcon("contract.svg", 24, true),
+      maskIcon("doc-line.svg", 24),
       "연결된 근무지가 없습니다",
       `<p>근무지에서 근로계약서를 보내면 여기에 표시됩니다.<br>거절했거나 기한이 지난 계약서는 아래에서 확인해 주세요.</p><div class="flex flex-col gap-[8px] pt-[8px]">${button(
-        `${maskIcon("contract.svg", 16, true)}근로계약서 보기`,
+        `${maskIcon("doc-line.svg", 16)}근로계약서 보기`,
         { variant: "outline", href: page("contract", "list") },
       )}</div>`,
     ),
@@ -155,7 +155,7 @@ const CONTENT = {
       maskIcon("store-line.svg", 24),
       "근무가 종료되었습니다",
       `<p class="[&_strong]:font-bold [&_strong]:text-staff-text">급여명세서는 <strong>보존 기간(3년)</strong> 동안 확인할 수 있습니다.</p><div class="flex flex-col gap-[8px] pt-[8px]">${button(
-        `${maskIcon("nav-pay.svg", 16, true)}급여명세서 보기`,
+        `${maskIcon("payslip-line.svg", 16)}급여명세서 보기`,
         { variant: "outline", href: page("pay") },
       )}</div>`,
     ),
@@ -192,7 +192,7 @@ const signReqSheet = (a = {}) =>
       .join(
         "",
       )}</dl><p class="text-[14px] text-staff-text-sub">서명해야 근무가 시작됩니다. 지금 확인하지 않아도 계약서 화면에서 다시 볼 수 있습니다.</p>${button(
-      `${maskIcon("contract.svg", 14)}서명하러 가기`,
+      `${maskIcon("doc-line.svg", 14)}서명하러 가기`,
       { href: CONTRACT },
     )}`,
   );

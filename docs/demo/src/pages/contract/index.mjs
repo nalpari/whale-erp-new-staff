@@ -114,7 +114,7 @@ const contractDocument = ({ kind, term, place, hours, wage }) =>
 
 // 종이 계약의 올라온 파일 한 줄. 「받기」는 누르는 칸 44px.
 const fileRow = ({ name, tag, meta, toast }) =>
-  `<div class="flex items-center gap-[12px]"><span class="flex text-staff-error">${maskIcon("contract.svg", 22)}</span><div class="flex min-w-0 flex-1 flex-col gap-[2px]"><p class="flex items-center gap-[6px] text-[14px] font-semibold">${name}${badge(
+  `<div class="flex items-center gap-[12px]"><span class="flex text-staff-error">${maskIcon("doc-line.svg", 22)}</span><div class="flex min-w-0 flex-1 flex-col gap-[2px]"><p class="flex items-center gap-[6px] text-[14px] font-semibold">${name}${badge(
     "plain",
     tag,
   )}</p><p class="text-[12px] break-all text-staff-text-muted">${meta}</p></div><button type="button" data-toast="${toast}" class="h-[44px] shrink-0 rounded-[12px] px-[12px] text-[14px] font-semibold text-staff-text-sub transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-staff-primary-inactive">받기</button></div>`;
@@ -138,7 +138,7 @@ const detailBody = () =>
   `${body(
     // 남은 기한 7일 이내라 머리 카드가 강조색이다(CON-4). 상태 칩 지각·긴급 색(#FFF6E5 · #956013).
     `<section class="flex items-center gap-[12px] rounded-[16px] bg-[#fff6e5] p-[16px]"><span class="flex text-[#956013]">${maskIcon(
-      "contract.svg",
+      "doc-line.svg",
       18,
     )}</span><div class="flex min-w-0 flex-1 flex-col gap-[2px]"><p class="text-[15px] font-bold">웨일카페 강남역점 · 파트타이머</p><p class="text-[12px] font-semibold text-[#956013]">서명 기한 2026.09.12 · 2일 남음</p></div>${badge(
       "warning",
@@ -219,7 +219,7 @@ const VIEWS = {
         ]),
       )}${notice(
         "이제 <strong>신고 정보</strong>를 입력해 주세요.<br>급여 지급과 원천징수, 4대보험 신고(가입 대상인 경우)에 필요한 정보입니다.",
-        maskIcon("contract.svg", 14),
+        maskIcon("id-card-line.svg", 14),
       )}${tiny("계약 내용을 바꾸려면 근무지 관리자에게 문의해 주세요.")}`,
       { variant: "detail", center: true },
     )}${dock(
@@ -283,7 +283,7 @@ const VIEWS = {
   empty: () =>
     `${body(
       `<div class="flex flex-col items-center gap-[8px] pt-[52px]"><span class="flex text-staff-placeholder">${maskIcon(
-        "contract.svg",
+        "doc-line.svg",
         30,
       )}</span><h2 class="pt-[6px] text-[18px] font-bold">받은 근로계약서가 없습니다</h2><p class="text-[14px] text-staff-text-muted">근무지에서 근로계약서를 보내면 여기에 표시됩니다.<br>받지 못했다면 근무지 관리자에게 문의해 주세요.</p></div>`,
       { variant: "detail", center: true },
@@ -293,7 +293,7 @@ const VIEWS = {
     `${body(
       // 목업 note--amber. 상태 칩 지각·긴급 색(#FFF6E5 · #956013).
       `<p class="rounded-[12px] bg-[#fff6e5] p-[14px] text-[13px] text-[#956013] [&_strong]:font-bold"><strong>서명 기한이 지나 계약서가 만료되었습니다.</strong><br>근로계약서는 받은 날부터 30일 안에 서명해야 합니다.</p><section class="flex items-center gap-[12px] rounded-[16px] border border-staff-border-light bg-white p-[16px]"><span class="flex text-staff-placeholder">${maskIcon(
-        "contract.svg",
+        "doc-line.svg",
         18,
       )}</span><div class="flex min-w-0 flex-1 flex-col gap-[2px]"><p class="text-[15px] font-bold">웨일카페 홍대점 · 파트타이머</p><p class="text-[12px] text-staff-text-muted">받은 날 2026.07.01 · 서명 기한 2026.07.31</p></div>${badge(
         "danger",

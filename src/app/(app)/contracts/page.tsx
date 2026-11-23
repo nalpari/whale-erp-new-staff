@@ -39,7 +39,7 @@ export default async function ContractsPage({ searchParams }: PageProps<"/contra
       {items.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-[8px] pb-[52px] text-center">
           <span className="flex text-staff-placeholder">
-            <MaskIcon src="/icons/contract.svg" size={30} />
+            <MaskIcon src="/icons/doc-line.svg" size={30} />
           </span>
           <h2 className="pt-[6px] text-[18px] font-bold">{storeId === null ? "받은 근로계약서가 없습니다" : "이 근무지에서 받은 근로계약서가 없습니다"}</h2>
           <p className="text-[14px] text-staff-text-muted">
@@ -125,7 +125,7 @@ function ContractRow({
       >
         <span className="flex items-center gap-[8px]">
           <span aria-hidden className="flex text-staff-text-sub">
-            <MaskIcon src="/icons/contract.svg" size={18} />
+            <MaskIcon src="/icons/doc-line.svg" size={18} />
           </span>
           <span className="min-w-0 flex-1 truncate text-[15px] font-bold">{title}</span>
           <Badge tone={statusTone(phase)}>{status}</Badge>

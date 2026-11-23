@@ -152,7 +152,7 @@ const VIEWS = {
         card(
           rows(
             iconRow({ icon: "store-line.svg", title: "웨일카페 · 강남역점", sub: "서울 강남구 테헤란로 1길" }) +
-              iconRow({ icon: "contract.svg", title: "고용 형태", sub: "파트타이머 · 시급제" }),
+              iconRow({ icon: "doc-line.svg", title: "고용 형태", sub: "파트타이머 · 시급제" }),
           ),
         ) +
         notice("이 초대는 <strong>11월 18일까지</strong> 사용할 수 있습니다."),
@@ -247,7 +247,7 @@ const VIEWS = {
           ]),
         ) +
         `<p class="text-[12px] text-staff-text-muted">인적사항은 가입한 뒤 앱에서 변경할 수 없습니다.</p>` +
-        card(iconRow({ icon: "contract.svg", title: "근로계약서가 도착했습니다", sub: "홈에서 내용을 확인하고 서명해 주세요." })) +
+        card(iconRow({ icon: "doc-line.svg", title: "근로계약서가 도착했습니다", sub: "홈에서 내용을 확인하고 서명해 주세요." })) +
         `<div class="text-left">${notice("<strong>종이로 계약했다면</strong> 서명 없이 신고 정보만 입력하면 됩니다.")}</div>`,
       { center: true },
     ) + dock(button("홈으로", { href: page("home", "sign-req") }) + ghost("종이 계약이면 · 신고 정보 입력", { href: page("tax", "intro") })),
@@ -260,7 +260,7 @@ const VIEWS = {
         card(
           rows(
             iconRow({ icon: "store-line.svg", title: "근무지", sub: "웨일카페 홍대점" }) +
-              iconRow({ icon: "contract.svg", title: "고용 형태", sub: "파트타이머 · 주 20시간" }),
+              iconRow({ icon: "doc-line.svg", title: "고용 형태", sub: "파트타이머 · 주 20시간" }),
           ),
         ) +
         notice(
@@ -269,7 +269,7 @@ const VIEWS = {
         ) +
         notice(
           "시급·근무 시간 등 근무 조건은 수락한 뒤 받는 근로계약서에서 확인할 수 있습니다.",
-          maskIcon("contract.svg", 14),
+          maskIcon("doc-line.svg", 14),
         ) +
         bpShareConsent(),
     ) +
@@ -285,9 +285,9 @@ const VIEWS = {
             ["공유되지 않은 정보", "계약 · 급여 · 출퇴근 기록"],
           ]),
         ) +
-        `<div class="text-left">${notice("<strong>홍대점 근로계약서가 도착했습니다.</strong><br>계약서에 서명해야 근무를 시작할 수 있습니다.", maskIcon("contract.svg", 14))}</div>`,
+        `<div class="text-left">${notice("<strong>홍대점 근로계약서가 도착했습니다.</strong><br>계약서에 서명해야 근무를 시작할 수 있습니다.", maskIcon("doc-line.svg", 14))}</div>`,
       { center: true },
-    ) + dock(button(`${maskIcon("contract.svg", 14)}계약서 서명하기`, { href: CONTRACT }) + ghost("홈으로", { href: HOME })),
+    ) + dock(button(`${maskIcon("doc-line.svg", 14)}계약서 서명하기`, { href: CONTRACT }) + ghost("홈으로", { href: HOME })),
 
   expired: () =>
     body(

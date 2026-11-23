@@ -1,7 +1,7 @@
 // 직원앱 공통 컴포넌트. 화면에서는 이 파일에서 가져다 쓴다.
 // 직원앱 화면은 StaffRoot 로 감싸야 밝은 테마와 font-staff 가 적용된다(글꼴 변수는 루트 layout 의 <html> 에 있어야 한다).
 export { StaffRoot } from "./staff-root";
-export { MaskIcon } from "./icon";
+export { IconTile, MaskIcon } from "./icon";
 export { BrandLogo } from "./brand-logo";
 export { TopBar } from "./top-bar";
 export { SectionTitle } from "./section-title";

@@ -50,7 +50,7 @@ export function TaxProfileIntro({ storeName, formHref, signed }: { storeName: st
       <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
         <div className="flex flex-col items-center gap-[8px] text-center">
           <span className="text-staff-text-sub">
-            <MaskIcon src="/icons/contract.svg" size={28} />
+            <MaskIcon src="/icons/id-card-line.svg" size={28} />
           </span>
           <h2 className="text-[22px] font-bold">신고 정보를 입력해 주세요</h2>
           <p className="text-[14px] text-staff-text-sub">

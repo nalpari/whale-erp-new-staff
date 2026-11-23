@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import { Button, PageHeader } from "@/components/common";
+import { Button, IconTile, PageHeader } from "@/components/common";
 import { filterYears, formatWon, receivedYears, monthLabel, parsePayFilter, receivedMonthLabel, sentDateLabel } from "@/lib/payslip-rules";
 import { getMyMemberships } from "@/lib/my-profile";
 import { getPayslips } from "@/lib/payslips";
@@ -57,7 +56,9 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
             <PayslipRows items={items} />
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-[8px] py-[40px] text-center">
-              <Image src="/icons/menu-payslip.svg" alt="" width={44} height={44} className="mb-[6px]" />
+              <span className="mb-[6px] flex">
+                <IconTile src="/icons/payslip-line.svg" size={44} />
+              </span>
               <p className="text-[17px] font-bold">이 근무지에서 받은 급여명세서가 없습니다</p>
               <p className="text-[14px] break-keep text-staff-text-sub">
                 근무지에서 급여명세서를 보내면
@@ -131,7 +132,9 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
         </>
       ) : (
         <div className="flex flex-1 flex-col items-center justify-center gap-[8px] py-[52px] text-center">
-          <Image src="/icons/menu-payslip.svg" alt="" width={44} height={44} className="mb-[6px]" />
+          <span className="mb-[6px] flex">
+            <IconTile src="/icons/payslip-line.svg" size={44} />
+          </span>
           <p className="text-[18px] font-bold">받은 급여명세서가 없습니다</p>
           <p className="text-[14px] break-keep text-staff-text-sub">
             근무지에서 급여명세서를 보내면

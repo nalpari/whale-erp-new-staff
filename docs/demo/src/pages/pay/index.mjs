@@ -10,7 +10,7 @@
 // 「퇴직 전까지 조회」는 PAY-4 로 바뀐 목업 문구로 바꿨다. 7월 줄은 목업처럼 상태 칩 없이 둔다(Figma 는 「다시 보냄」 칩).
 // 상세 · 다시 보낸 명세서 · 빈 상태 · 안내 시트는 Figma 없음 — DESIGN.md 기준 초안. 상세의 실지급액은 목록과 같은 짙은 남색 카드다.
 // 하단 메뉴는 목업처럼 다섯 칸이다(2026-10-08 재영 결정, Figma 는 네 칸).
-import { backHeader, badge, body, bottomNav, bottomSheet, button, card, heroCard, img, notice, page, pageHeader, sheetOption, state, tiny } from "../../ui.mjs";
+import { backHeader, badge, body, bottomNav, bottomSheet, button, card, heroCard, iconTile, img, notice, page, pageHeader, sheetOption, state, tiny } from "../../ui.mjs";
 
 // 목업 오른쪽 목록 순서 그대로. 마지막은 목업의 「시트 열기」라 목록 위에 시트를 띄운다.
 const STATES = [
@@ -206,7 +206,7 @@ const VIEWS = {
   empty: () =>
     listHeader() +
     body(
-      `<div class="flex flex-1 flex-col items-center justify-center gap-[8px] py-[52px] text-center">${img("menu-payslip.svg", 44, 44, "mb-[6px]")}<p class="text-[18px] font-bold">받은 급여명세서가 없습니다</p><p class="max-w-[230px] text-[13px] text-staff-text-sub">근무지에서 급여명세서를 보내면 여기에 표시됩니다.</p></div>`,
+      `<div class="flex flex-1 flex-col items-center justify-center gap-[8px] py-[52px] text-center"><span class="mb-[6px] flex">${iconTile("payslip-line.svg", 44)}</span><p class="text-[18px] font-bold">받은 급여명세서가 없습니다</p><p class="max-w-[230px] text-[13px] text-staff-text-sub">근무지에서 급여명세서를 보내면 여기에 표시됩니다.</p></div>`,
       { variant: "detail" },
     ) +
     sheet(),

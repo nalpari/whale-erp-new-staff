@@ -10,3 +10,18 @@ export function MaskIcon({ src, size, flipY = false }: { src: string; size: numb
     />
   );
 }
+
+// 바탕까지 그려진 menu-*.svg(연한 보라 둥근 바탕 · 브랜드색 그림)와 같은 모양에 선 아이콘(public/icons/*-line.svg)을 얹는다.
+// 근로계약서 · 급여명세서 · 신고 정보는 앱 어디서나 「내 정보 › 내 근무지」의 선 아이콘으로 보인다(2026-11-23 사용자 지정).
+// #eef2ff 는 menu-*.svg 의 둥근 바탕과 같은 값이라 토큰으로 두지 않는다. 모서리는 그 그림처럼 한 변의 1/3.
+export function IconTile({ src, size }: { src: string; size: number }) {
+  return (
+    <span
+      aria-hidden
+      className="flex shrink-0 items-center justify-center bg-[#eef2ff] text-staff-primary"
+      style={{ width: size, height: size, borderRadius: size / 3 }}
+    >
+      <MaskIcon src={src} size={Math.round(size * 0.6)} />
+    </span>
+  );
+}

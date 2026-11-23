@@ -11,7 +11,7 @@ const CARD = "flex items-center gap-[12px] rounded-[18px] bg-[#fff6e5] px-[16px]
 function Card({ card, title, sub }: { card: SignWaitingCard; title: string; sub: string }) {
   return (
     <Link href={card.href} transitionTypes={["nav-forward"]} className={CARD}>
-      <MaskIcon src="/icons/contract.svg" size={18} />
+      <MaskIcon src="/icons/doc-line.svg" size={18} />
       <span className="flex min-w-0 flex-1 flex-col gap-[2px]">
         <span className="text-[14px] font-semibold break-keep">{title}</span>
         {/* 링크 이름에서 제목과 기한이 붙어 읽히지 않게 */}

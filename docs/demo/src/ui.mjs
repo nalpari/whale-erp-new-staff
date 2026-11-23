@@ -45,6 +45,10 @@ export const img = (name, w, h, cls = "", alt = "") => `<img alt="${alt}" width=
 export const maskIcon = (name, size, flipY = false) =>
   `<span aria-hidden="true" class="shrink-0 bg-current [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain] ${flipY ? "-scale-y-100" : ""}" style="width:${size}px;height:${size}px;mask-image:url(${A}icons/${name})"></span>`;
 
+// icon.tsx IconTile — menu-*.svg 와 같은 둥근 바탕(#eef2ff · 한 변의 1/3)에 선 아이콘(브랜드색). 근로계약서 · 급여명세서 · 신고 정보는 내 근무지 선 아이콘으로 맞춘다(2026-11-23).
+export const iconTile = (name, size) =>
+  `<span aria-hidden="true" class="flex shrink-0 items-center justify-center bg-[#eef2ff] text-staff-primary" style="width:${size}px;height:${size}px;border-radius:${size / 3}px">${maskIcon(name, Math.round(size * 0.6))}</span>`;
+
 // staff-root.tsx
 export const staffRoot = (html) => `<div class="${STAFF_THEME} min-h-[100dvh]">${html}</div>`;
 
@@ -203,7 +207,7 @@ export const heroCard = (tone, children) => `<div class="w-full rounded-[20px] p
 
 // info-row.tsx
 export const infoRow = ({ href, icon, title, description }) =>
-  `<a href="${href}" class="flex w-full items-center gap-[9px] rounded-[18px] border border-staff-border-light bg-white p-[16px] leading-[1.5] transition-colors duration-150 ease-out active:bg-staff-info-bg">${img(icon, 33, 33)}<span class="flex min-w-0 flex-1 flex-col gap-[2px]"><span class="truncate text-[14px] font-semibold text-staff-text">${title}</span>${
+  `<a href="${href}" class="flex w-full items-center gap-[9px] rounded-[18px] border border-staff-border-light bg-white p-[16px] leading-[1.5] transition-colors duration-150 ease-out active:bg-staff-info-bg">${icon.endsWith(".svg") ? img(icon, 33, 33) : icon}<span class="flex min-w-0 flex-1 flex-col gap-[2px]"><span class="truncate text-[14px] font-semibold text-staff-text">${title}</span>${
     description ? `<span class="truncate text-[12px] text-staff-text-sub">${description}</span>` : ""
   }</span>${img("chevron-right-muted.svg", 12, 12, "-scale-y-100")}</a>`;
 

@@ -130,7 +130,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
               {files.map((d) => (
                 <li key={d.contractDocumentId} className="flex min-h-[44px] items-center gap-[12px]">
                   <span className="flex text-staff-error">
-                    <MaskIcon src="/icons/contract.svg" size={22} />
+                    <MaskIcon src="/icons/doc-line.svg" size={22} />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-[2px]">
                     <span className="text-[14px] font-semibold">{labelOf(documentKinds, d.kind)}</span>

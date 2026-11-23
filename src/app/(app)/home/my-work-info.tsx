@@ -1,4 +1,4 @@
-import { InfoRow, SectionTitle } from "@/components/common";
+import { IconTile, InfoRow, SectionTitle } from "@/components/common";
 import { ApiError, NetworkError, logUnexpected } from "@/lib/api";
 import { monthAttendanceLabel } from "@/lib/attendance-history";
 import { getMyAttendanceRecords } from "@/lib/my-attendance";
@@ -35,7 +35,7 @@ export async function MyWorkInfo({ staffMemberId }: { staffMemberId?: number }) 
       <SectionTitle title="근무 정보" />
       <InfoRow
         href="/pay"
-        icon="/icons/menu-payslip.svg"
+        icon={<IconTile src="/icons/payslip-line.svg" size={33} />}
         title="급여명세서"
         description={payMonth === undefined ? undefined : payMonth === null ? "받은 급여명세서가 없습니다" : `${payMonth} 받음`}
       />

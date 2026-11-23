@@ -113,7 +113,7 @@ function SignRequestSheet({ open, requestKey, href, rows }: { open: boolean; req
       description="지금 서명하지 않아도 근로계약서 화면에서 다시 확인할 수 있습니다."
       action={
         <Button href={href} transitionTypes={["nav-forward"]}>
-          <MaskIcon src="/icons/contract.svg" size={14} />
+          <MaskIcon src="/icons/doc-line.svg" size={14} />
           근로계약서 서명하기
         </Button>
       }
