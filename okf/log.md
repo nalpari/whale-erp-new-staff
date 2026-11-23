@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-23
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 출퇴근 버튼에서 위치 읽음을 남기는 요청이 예외로 끝나면 「위치를 확인할 수 없음」이 아니라 요청 실패로 안내한다(PR #90 pr-agent 리뷰).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 앱 안인데 브리지가 없으면 출퇴근 위치를 브라우저로 넘기지 않고 앱 고장(broken)으로 본다. 브리지는 있는데 `measureLocation` 을 모르는 옛 앱만 브라우저 위치로 넘긴다(PR #90 pr-agent 리뷰).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 앱 위치가 10분보다 오래됐으면 출퇴근 판정에 쓰지 않고 「읽지 못함」으로 본다(`MAX_LOCATION_AGE_SECONDS`). 앱 답의 좌표 범위 · 위치 나이도 검사한다(PR #90 pr-agent 리뷰).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 출퇴근 위치를 설치형 앱 안에서는 브리지 `measureLocation` 으로 받아 모의 위치를 실제로 판정한다(계획 결정 8, `src/lib/device-location.ts`). 앱이 실패 · 거부로 답하면 브라우저로 넘어가지 않고, 약속 어긋남 · 거절은 업데이트 · 관리자 문의 안내를 따로 보인다.

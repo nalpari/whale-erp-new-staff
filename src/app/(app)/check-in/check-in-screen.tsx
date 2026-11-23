@@ -42,6 +42,9 @@ type Geo =
   | { status: "broken" }
   | { status: "ok"; distance: number; inRange: boolean; mocked: boolean; position: { latitude: number; longitude: number } };
 
+/** 위치 읽음(확인자료)을 남기는 서버 요청이 예외로 끝났을 때(네트워크 끊김 등). 위치는 아직 읽지 않았다. */
+const LOCATION_READ_REQUEST_FAILED = "요청을 처리하지 못했습니다. 잠시 뒤 다시 시도해 주세요";
+
 type Sheet = "consent" | "bye" | "hifar" | "dup" | "nopunch" | "nocontract" | "noperiod" | "closed" | null;
 
 /** 화면이 미리 아는 출근 막힘(checkInBlock)마다 여는 시트 */
@@ -188,17 +191,25 @@ export function CheckInScreen({
   const readLocation = async (kind: AttendanceKind): Promise<{ reason: ReturnType<typeof reviewReasonOf>; locationReadId: number } | null> => {
     setError(null);
     setGeo({ status: "loading" });
-    // 예외가 나도 「위치를 확인하는 중」에 멈추지 않게 읽지 못함으로 끝낸다.
+    // 예외가 나도 「위치를 확인하는 중」에 멈추지 않게 끝낸다. 서버 요청(확인자료 남기기)의 예외는 위치를 읽기 전이라 「위치를
+    // 확인할 수 없음」이 아니라 요청 실패로 안내하고, 위치 읽기의 예외만 읽지 못함으로 둔다.
     let read: Awaited<ReturnType<typeof recordLocationReadAction>>;
-    let next: Geo;
     try {
       read = await recordLocationReadAction(data.staffMemberId);
-      if (!read.ok) {
-        setGeo({ status: "idle" });
-        fail(read.problem);
-        return null;
-      }
-      setReadId(read.locationReadId);
+    } catch (thrown) {
+      console.error("[check-in] 위치 읽음을 남기지 못함", thrown);
+      setGeo({ status: "idle" });
+      setError(LOCATION_READ_REQUEST_FAILED);
+      return null;
+    }
+    if (!read.ok) {
+      setGeo({ status: "idle" });
+      fail(read.problem);
+      return null;
+    }
+    setReadId(read.locationReadId);
+    let next: Geo;
+    try {
       next = await locate();
     } catch (thrown) {
       console.error("[check-in] 위치를 읽지 못함", thrown);
