@@ -121,12 +121,11 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
 
           {/* 목업 grow 뒤 tiny · Figma mt-auto: 본문이 짧으면 맨 아래에 붙는다. */}
           <div className="mt-auto">
+            {/* 하단 안내(2026-11-23 사용자 지정, 보관 기준은 작성일 — S-DOVWAR 「생성일로부터 3년」) */}
             <Tiny>
-              명세서는 이메일로도 함께 보내 드립니다.
+              급여명세서는 이메일로도 발송됩니다.
               <br />
-              퇴직한 뒤에도 <b>명세서를 만든 날부터 3년 동안</b> 볼 수 있습니다.
-              <br />
-              단, 계정을 탈퇴하면 볼 수 없습니다.
+              퇴직 후에도 <b>작성일로부터 3년간</b> 확인할 수 있으며, 계정 탈퇴 시에는 확인할 수 없습니다.
             </Tiny>
           </div>
         </>

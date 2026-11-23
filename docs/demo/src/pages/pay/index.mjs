@@ -187,7 +187,7 @@ const list = (filtered = false) =>
           `<li><button type="button" data-go="${p.to}" class="flex min-h-[44px] w-full items-center gap-[12px] py-[17px] text-left transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-staff-primary-inactive"><span class="flex min-w-0 flex-1 flex-col"><span class="truncate text-[15px] font-semibold">${p.month}</span><span class="truncate pt-[2px] text-[12px] text-staff-text-sub">${p.sent}</span></span><span class="flex shrink-0 flex-col items-end gap-[3px]"><span class="text-[13.5px] tabular-nums">${p.amount}</span></span></button></li>`,
       ).join("")}</ul></section>` +
       // 목업 grow 뒤 tiny · Figma mt-auto: 본문이 짧으면 맨 아래에 붙는다.
-      `<div class="mt-auto">${tiny("명세서는 이메일로도 함께 보내 드립니다.<br>퇴직한 뒤에도 <b>명세서를 만든 날부터 3년 동안</b> 볼 수 있습니다.<br>단, 계정을 탈퇴하면 볼 수 없습니다.")}</div>`,
+      `<div class="mt-auto">${tiny("급여명세서는 이메일로도 발송됩니다.<br>퇴직 후에도 <b>작성일로부터 3년간</b> 확인할 수 있으며, 계정 탈퇴 시에는 확인할 수 없습니다.")}</div>`,
     { variant: "detail" },
   );
 
