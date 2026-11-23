@@ -20,7 +20,8 @@ export const BRIDGE_READY_EVENT = "flutterInAppWebViewPlatformReady";
  * - forbidden: 앱이 받지 않은 호출(다른 출처 · iframe). 웹 코드 버그라 다시 시도하지 않는다.
  * - failed: 앱 기능이 실패했거나, 호출이 예외로 끝났거나, 앱이 제때 답하지 않았다. 앱 기능 실패는 앱 로그에,
  *   예외 · 시간 초과는 웹 콘솔에 남는다.
- * - unavailable: 앱 안이 아니거나, 브리지가 제때 준비되지 않았거나, 앱에 없는 기능이다(앱 버전이 낮을 때 등).
+ * - unavailable: 앱 안이 아니거나, 기다려도 `callHandler` 가 없거나, 앱에 없는 기능이다(앱 버전이 낮을 때 등).
+ *   Android 에서 준비 이벤트가 제때 안 와도 `callHandler` 가 보이면 그것으로 불러 본다(waitForBridge).
  * - malformed: 앱이 약속과 다른 모양으로 답했다.
  */
 export type BridgeError = "forbidden" | "failed" | "unavailable" | "malformed";
@@ -109,6 +110,8 @@ export function waitForBridge(
 /**
  * 앱 기능 하나를 부른다. 앱 밖이거나 브리지가 없으면 unavailable, 호출이 예외로 끝나거나
  * [timeoutMs] 안에 답이 없으면 failed(답이 버려지거나 앱 기능이 끝나지 않으면 영원히 기다리게 되므로).
+ * 시간 초과는 웹이 기다리기를 그만둔 것일 뿐 앱 쪽 기능은 계속 돌 수 있다. 부작용이 있는 기능(파일 받기 등)을
+ * 시간 초과 뒤 다시 부르면 두 번 실행될 수 있으니, 그런 기능을 더할 때는 다시 부르기 전에 결과를 따로 확인한다.
  * [bridge] 를 넘기면 기다리지 않고 그것으로 부른다(테스트 · 이미 받아 둔 브리지).
  */
 export async function callNative<T>(
