@@ -68,7 +68,7 @@ export default async function CheckInPage() {
       ) : !current || !attendance ? (
         <div className="flex flex-col items-center gap-[8px] px-[22px] pt-[76px] text-center">
           <span className="flex text-staff-placeholder">
-            <MaskIcon src="/icons/store.svg" size={30} flipY />
+            <MaskIcon src="/icons/store-line.svg" size={30} />
           </span>
           {retired ? (
             <>

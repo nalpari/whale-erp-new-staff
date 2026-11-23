@@ -45,7 +45,7 @@ export function AnswerScreen({
   return (
     <>
       <PageHeader title="근무지 추가 확인" backHref={backHref} />
-      <form action={acceptAction} className="flex flex-1 flex-col">
+      <form action={acceptAction} noValidate className="flex flex-1 flex-col">
         <div className={BODY}>
           <BigTitle eyebrow={returning ? "복귀 요청" : "새 근무지 초대"}>
             <Accent>{request.storeName}</Accent>에서
@@ -97,7 +97,7 @@ export function AnswerScreen({
         description="거절해도 기존 근무지와 계정은 유지됩니다. 이 요청과 함께 온 근로계약서는 거절로 닫힙니다."
         closeLabel="취소"
       >
-        <form action={rejectAction} className="flex flex-col gap-[13px]">
+        <form action={rejectAction} noValidate className="flex flex-col gap-[13px]">
           {rejected.error && <Alert tone="danger">{rejected.error}</Alert>}
           <DangerButton type="submit" disabled={pending}>
             거절하기

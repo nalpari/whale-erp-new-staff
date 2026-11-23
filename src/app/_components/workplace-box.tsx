@@ -9,7 +9,7 @@ export function WorkplaceBox({ name }: { name: string }) {
     // 테두리 · 바탕 없이 머리 글처럼 둔다 — 테두리 상자는 누르는 버튼처럼 보였다(2026-11-20 사용자 지정)
     <div className="flex items-center gap-[10px] px-[2px]">
       <span aria-hidden className="flex size-[32px] shrink-0 items-center justify-center rounded-full bg-staff-primary-inactive text-staff-primary">
-        <MaskIcon src="/icons/store-small.svg" size={16} />
+        <MaskIcon src="/icons/store-line.svg" size={16} />
       </span>
       <p className="flex min-w-0 flex-col">
         <span className="text-[12px] text-staff-text-muted">근무지</span>

@@ -102,7 +102,7 @@
               >
                 <i class="ph ph-caret-left"></i>
               </button>
-              <span class="abar__title">소속 근무지</span>
+              <span class="abar__title">내 근무지</span>
             </div>
 
             <!-- ── 내 정보 (기본) ───────────────────────────────── -->
@@ -133,7 +133,7 @@
                   <div class="card card--sunken" data-go="sites" style="cursor: pointer">
                     <div class="line">
                       <div class="grow">
-                        <p class="lab">소속 근무지</p>
+                        <p class="lab">내 근무지</p>
                         <p class="h-md" style="margin-top: 4px">웨일카페 강남역점 외 1곳</p>
                       </div>
                       <span class="badge">파트타이머</span>
@@ -141,7 +141,7 @@
                     </div>
                   </div>
                   <p class="tiny" style="margin-top: -8px">
-                    소속 근무지와 고용 형태는 근로계약으로만 바뀝니다.
+                    근무지와 고용 형태는 근로계약으로만 바뀝니다.
                   </p>
 
                   <div class="card">
@@ -445,16 +445,23 @@
               <button class="btn btn--quiet" data-go="email">이메일 다시 입력</button>
             </div>
 
-            <!-- ── 소속 근무지 ──────────────────────────────────── -->
-            <!-- 소속 근무지(ME-7): 근무지를 누르면 아래로 펼쳐 근로계약서 · 급여명세서 · 신고 정보로 간다.
-                 세 화면은 고른 근무지의 것만 걸러 연다(앱 상단에서 고른 근무지와 관계없다). 목업 링크는 거르지 못해 화면만 연다 -->
+            <!-- ── 내 근무지 ──────────────────────────────────── -->
+            <!-- 내 근무지(ME-7 · 개발 화면 src/app/(app)/me/memberships/page.tsx 에 맞춤, 2026-11-23 사용자 지정): 맨 위 상태 칩 [전체] [근무 중] [퇴직 예정] [퇴직](0건도 보임, 고른 칩 남보라 —
+                 개발 화면은 누르면 그 상태만 보인다. 목업은 전체만 그린다). 카드는 점포명(아이콘 없음) · 상태 배지, 라벨 없는 회색 두 줄(고용 형태 · 직무 / 근무 시작),
+                 반반 두 버튼 [지도 보기](카카오맵) · [전화하기](근로계약서의 근무지 주소 · 전화), 맨 아래 한 줄 세 칸 신고 정보 · 근로계약서 · 급여명세서.
+                 세 화면은 그 근무지의 것만 걸러 연다(앱 상단에서 고른 근무지와 관계없다). 목업 링크는 거르지 못해 화면만 연다. 퇴직한 근무지는 세 칸을 두지 않는다 -->
             <div class="view" data-when="sites">
-              <!-- 확인을 기다리는 요청(ME-8): 가입한 사람이 받은 초대 세 종류(가입 초대 · 소속 추가 확인 · 복귀 확인)를 받은 때 최신순으로 맨 위에 고정하고
-                   누르면 확인 화면(join.html#addsite)에서 수락한다. 수락 전이라 소속이 아니어서 펼치지 않는다 -->
+              <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px" aria-label="근무지 상태">
+                <span style="display: inline-flex; align-items: center; gap: 4px; height: 36px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--pen); background: var(--pen-tint); color: var(--pen)" aria-current="true">전체 <span style="font-variant-numeric: tabular-nums">3</span></span>
+                <span style="display: inline-flex; align-items: center; gap: 4px; height: 36px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--rule); background: var(--card); color: var(--ink-3)">근무 중 <span style="font-variant-numeric: tabular-nums">2</span></span>
+                <span style="display: inline-flex; align-items: center; gap: 4px; height: 36px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--rule); background: var(--card); color: var(--ink-3)">퇴직 예정 <span style="font-variant-numeric: tabular-nums">0</span></span>
+                <span style="display: inline-flex; align-items: center; gap: 4px; height: 36px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--rule); background: var(--card); color: var(--ink-3)">퇴직 <span style="font-variant-numeric: tabular-nums">1</span></span>
+              </div>
+              <!-- 확인을 기다리는 요청(ME-8): 가입한 사람이 받은 초대 세 종류(가입 초대 · 소속 추가 확인 · 복귀 확인)를 받은 때 최신순으로 칩 아래에 고정하고
+                   누르면 확인 화면(join.html#addsite)에서 수락한다. 수락 전이라 소속이 아니어서 세 칸을 두지 않는다 -->
               <p class="tiny" style="margin: 0 0 6px">확인을 기다리는 요청</p>
               <div class="stack stack-10" style="margin-bottom: 14px">
-              <a class="card row row--top" href="join.html#addsite" style="padding: 12px 14px">
-                <i class="ph-fill ph-storefront" style="color: var(--pen); font-size: 18px; margin-top: 2px"></i>
+              <a class="card row row--top" href="join.html#addsite" style="padding: 16px; border-radius: var(--radius-lg); text-decoration: none; color: inherit">
                 <div class="row__main">
                   <p class="row__title">웨일카페 신촌점</p>
                   <p class="row__sub">파트타이머 · 9월 9일 (수) 받음<br>10월 9일 (금) 만료</p>
@@ -462,8 +469,7 @@
                 <span class="badge badge--amber">소속 추가 확인</span>
                 <i class="ph ph-caret-right" style="color: var(--ink-3); margin-top: 3px"></i>
               </a>
-              <a class="card row row--top" href="join.html#addsite" style="padding: 12px 14px">
-                <i class="ph-fill ph-storefront" style="color: var(--pen); font-size: 18px; margin-top: 2px"></i>
+              <a class="card row row--top" href="join.html#addsite" style="padding: 16px; border-radius: var(--radius-lg); text-decoration: none; color: inherit">
                 <div class="row__main">
                   <p class="row__title">웨일베이커리 합정점</p>
                   <p class="row__sub">파트타이머 · 9월 7일 (월) 받음<br>10월 7일 (수) 만료</p>
@@ -471,8 +477,7 @@
                 <span class="badge badge--amber">복귀 확인</span>
                 <i class="ph ph-caret-right" style="color: var(--ink-3); margin-top: 3px"></i>
               </a>
-              <a class="card row row--top" href="join.html#addsite" style="padding: 12px 14px">
-                <i class="ph-fill ph-storefront" style="color: var(--pen); font-size: 18px; margin-top: 2px"></i>
+              <a class="card row row--top" href="join.html#addsite" style="padding: 16px; border-radius: var(--radius-lg); text-decoration: none; color: inherit">
                 <div class="row__main">
                   <p class="row__title">웨일카페 연남점</p>
                   <p class="row__sub">정직원 · 9월 2일 (수) 받음<br>10월 2일 (금) 만료</p>
@@ -481,59 +486,69 @@
                 <i class="ph ph-caret-right" style="color: var(--ink-3); margin-top: 3px"></i>
               </a>
               </div>
-              <p class="tiny" style="margin: 0 0 6px">소속 근무지</p>
-              <div class="stack stack-10">
-                <details class="card" open style="padding: 0">
-                  <summary class="row row--top" style="cursor: pointer; list-style: none; padding: 12px 14px">
-                    <i class="ph-fill ph-storefront" style="color: var(--pen); font-size: 18px; margin-top: 2px"></i>
-                    <div class="row__main">
-                      <p class="row__title">웨일카페 강남역점</p>
-                      <p class="row__sub">파트타이머 · 2025년 11월 3일부터</p>
+              <p class="tiny" style="margin: 0 0 6px">내 근무지</p>
+              <div class="stack stack-10" style="gap: 12px">
+                <div class="card" style="padding: 0; overflow: hidden; border-radius: var(--radius-lg)">
+                  <div style="display: flex; flex-direction: column; gap: 10px; padding: 18px 20px 14px">
+                    <div style="display: flex; align-items: flex-start; gap: 10px">
+                      <p class="row__title" style="margin: 0; flex: 1; min-width: 0; font-size: 17px; font-weight: 700">웨일카페 강남역점</p>
+                      <span class="badge badge--pen">근무 중</span>
                     </div>
-                    <span class="badge badge--pen">근무 중</span>
-                    <i class="ph ph-caret-down" style="color: var(--ink-3); margin-top: 3px"></i>
-                  </summary>
-                  <div class="stack stack-6" style="padding: 0 14px 14px">
-                    <a class="btn btn--sm btn--ghost" href="contract.html#list" style="width: 100%; justify-content: flex-start"><i class="ph ph-file-text"></i>근로계약서</a>
-                    <a class="btn btn--sm btn--ghost" href="pay.html#list" style="width: 100%; justify-content: flex-start"><i class="ph ph-receipt"></i>급여명세서</a>
-                    <a class="btn btn--sm btn--ghost" href="tax.html#view" style="width: 100%; justify-content: flex-start"><i class="ph ph-identification-card"></i>신고 정보</a>
-                  </div>
-                </details>
-                <details class="card" style="padding: 0">
-                  <summary class="row row--top" style="cursor: pointer; list-style: none; padding: 12px 14px">
-                    <i class="ph-fill ph-storefront" style="color: var(--pen); font-size: 18px; margin-top: 2px"></i>
-                    <div class="row__main">
-                      <p class="row__title">웨일카페 홍대점</p>
-                      <p class="row__sub">파트타이머 · 2026년 3월 16일부터</p>
+                    <div style="display: flex; flex-direction: column; gap: 2px; font-size: 14px; color: var(--ink-3)">
+                      <p style="margin: 0">파트타이머 · 바리스타</p>
+                      <p style="margin: 0">2025년 11월 3일부터 근무</p>
+                      <div style="display: flex; gap: 8px; padding-top: 4px">
+                        <a href="https://map.kakao.com/link/search/%EC%84%9C%EC%9A%B8%20%EA%B0%95%EB%82%A8%EA%B5%AC%20%ED%85%8C%ED%97%A4%EB%9E%80%EB%A1%9C%201%EA%B8%B8%2010" target="_blank" rel="noopener noreferrer" style="flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; height: 36px; border: 1px solid var(--rule); border-radius: 8px; background: var(--card); color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: none"><i class="ph ph-map-pin" style="color: var(--ink-3); font-size: 15px"></i>지도 보기</a>
+                        <a href="tel:025550101" style="flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; height: 36px; border: 1px solid var(--rule); border-radius: 8px; background: var(--card); color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: none"><i class="ph ph-phone-call" style="color: var(--ink-3); font-size: 15px"></i>전화하기</a>
+                      </div>
                     </div>
-                    <span class="badge badge--pen">근무 중</span>
-                    <i class="ph ph-caret-down" style="color: var(--ink-3); margin-top: 3px"></i>
-                  </summary>
-                  <div class="stack stack-6" style="padding: 0 14px 14px">
-                    <a class="btn btn--sm btn--ghost" href="contract.html#list" style="width: 100%; justify-content: flex-start"><i class="ph ph-file-text"></i>근로계약서</a>
-                    <a class="btn btn--sm btn--ghost" href="pay.html#list" style="width: 100%; justify-content: flex-start"><i class="ph ph-receipt"></i>급여명세서</a>
-                    <a class="btn btn--sm btn--ghost" href="tax.html#view" style="width: 100%; justify-content: flex-start"><i class="ph ph-identification-card"></i>신고 정보</a>
                   </div>
-                </details>
-                <details class="card" style="padding: 0">
-                  <summary class="row row--top" style="cursor: pointer; list-style: none; padding: 12px 14px">
-                    <i class="ph-fill ph-storefront" style="color: var(--ink-4); font-size: 18px; margin-top: 2px"></i>
-                    <div class="row__main">
-                      <p class="row__title" style="color: var(--ink-3)">웨일베이커리 합정점</p>
-                      <p class="row__sub">파트타이머 · 2025년 3월 2일 ~ 2025년 12월 31일</p>
+                  <div style="display: flex; border-top: 1px solid var(--rule-soft)">
+                    <a href="tax.html#view" style="flex: 1; min-width: 0; height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: none"><i class="ph ph-identification-card" style="color: var(--ink-3); font-size: 20px"></i>신고 정보</a>
+                    <a href="contract.html#list" style="flex: 1; min-width: 0; height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: none; border-left: 1px solid var(--rule-soft)"><i class="ph ph-file-text" style="color: var(--ink-3); font-size: 20px"></i>근로계약서</a>
+                    <a href="pay.html#list" style="flex: 1; min-width: 0; height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: none; border-left: 1px solid var(--rule-soft)"><i class="ph ph-receipt" style="color: var(--ink-3); font-size: 20px"></i>급여명세서</a>
+                  </div>
+                </div>
+                <div class="card" style="padding: 0; overflow: hidden; border-radius: var(--radius-lg)">
+                  <div style="display: flex; flex-direction: column; gap: 10px; padding: 18px 20px 14px">
+                    <div style="display: flex; align-items: flex-start; gap: 10px">
+                      <p class="row__title" style="margin: 0; flex: 1; min-width: 0; font-size: 17px; font-weight: 700">웨일카페 홍대점</p>
+                      <span class="badge badge--pen">근무 중</span>
                     </div>
-                    <span class="badge">퇴직</span>
-                    <i class="ph ph-caret-down" style="color: var(--ink-3); margin-top: 3px"></i>
-                  </summary>
-                  <div class="stack stack-6" style="padding: 0 14px 14px">
-                    <a class="btn btn--sm btn--ghost" href="contract.html#list" style="width: 100%; justify-content: flex-start"><i class="ph ph-file-text"></i>근로계약서</a>
-                    <a class="btn btn--sm btn--ghost" href="pay.html#filter-empty" style="width: 100%; justify-content: flex-start"><i class="ph ph-receipt"></i>급여명세서</a>
-                    <a class="btn btn--sm btn--ghost" href="tax.html#view" style="width: 100%; justify-content: flex-start"><i class="ph ph-identification-card"></i>신고 정보</a>
+                    <div style="display: flex; flex-direction: column; gap: 2px; font-size: 14px; color: var(--ink-3)">
+                      <p style="margin: 0">파트타이머 · 홀 서빙</p>
+                      <p style="margin: 0">2026년 11월 18일부터 근무</p>
+                      <div style="display: flex; gap: 8px; padding-top: 4px">
+                        <a href="https://map.kakao.com/link/search/%EC%84%9C%EC%9A%B8%20%EB%A7%88%ED%8F%AC%EA%B5%AC%20%EC%96%91%ED%99%94%EB%A1%9C%2012" target="_blank" rel="noopener noreferrer" style="flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; height: 36px; border: 1px solid var(--rule); border-radius: 8px; background: var(--card); color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: none"><i class="ph ph-map-pin" style="color: var(--ink-3); font-size: 15px"></i>지도 보기</a>
+                        <a href="tel:023330202" style="flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; height: 36px; border: 1px solid var(--rule); border-radius: 8px; background: var(--card); color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: none"><i class="ph ph-phone-call" style="color: var(--ink-3); font-size: 15px"></i>전화하기</a>
+                      </div>
+                    </div>
                   </div>
-                </details>
+                  <div style="display: flex; border-top: 1px solid var(--rule-soft)">
+                    <a href="tax.html#view" style="flex: 1; min-width: 0; height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: none"><i class="ph ph-identification-card" style="color: var(--ink-3); font-size: 20px"></i>신고 정보</a>
+                    <a href="contract.html#list" style="flex: 1; min-width: 0; height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: none; border-left: 1px solid var(--rule-soft)"><i class="ph ph-file-text" style="color: var(--ink-3); font-size: 20px"></i>근로계약서</a>
+                    <a href="pay.html#list" style="flex: 1; min-width: 0; height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: none; border-left: 1px solid var(--rule-soft)"><i class="ph ph-receipt" style="color: var(--ink-3); font-size: 20px"></i>급여명세서</a>
+                  </div>
+                </div>
+                <div class="card" style="padding: 0; overflow: hidden; border-radius: var(--radius-lg)">
+                  <div style="display: flex; flex-direction: column; gap: 10px; padding: 18px 20px 14px">
+                    <div style="display: flex; align-items: flex-start; gap: 10px">
+                      <p class="row__title" style="margin: 0; flex: 1; min-width: 0; font-size: 17px; font-weight: 700; color: var(--ink-3)">웨일베이커리 합정점</p>
+                      <span class="badge">퇴직</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 2px; font-size: 14px; color: var(--ink-3)">
+                      <p style="margin: 0">파트타이머 · 제빵 보조</p>
+                      <p style="margin: 0">2025년 3월 2일 – 2025년 12월 31일 근무</p>
+                      <div style="display: flex; gap: 8px; padding-top: 4px">
+                        <a href="https://map.kakao.com/link/search/%EC%84%9C%EC%9A%B8%20%EB%A7%88%ED%8F%AC%EA%B5%AC%20%EB%8F%85%EB%A7%89%EB%A1%9C%205" target="_blank" rel="noopener noreferrer" style="flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; height: 36px; border: 1px solid var(--rule); border-radius: 8px; background: var(--card); color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: none"><i class="ph ph-map-pin" style="color: var(--ink-3); font-size: 15px"></i>지도 보기</a>
+                        <a href="tel:023220303" style="flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; height: 36px; border: 1px solid var(--rule); border-radius: 8px; background: var(--card); color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: none"><i class="ph ph-phone-call" style="color: var(--ink-3); font-size: 15px"></i>전화하기</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <p class="tiny">
-                소속과 고용 형태는 근로계약이 새로 체결되어야 바뀝니다. 여기서는 고칠 수 없습니다.
+              <p class="tiny" style="margin-top: 6px">
+                근무지와 고용 형태는 근로계약에 따라 정해집니다.<br>변경이 필요하면 근무지 관리자에게 문의해 주세요.
               </p>
             </div>
 
@@ -786,7 +801,7 @@
               </button>
               <button class="sw-b" data-state="sites">
                 <span class="sw-b__k">6</span>
-                <span><span class="sw-b__t">소속 근무지</span> <span class="sw-b__d">· 조회만</span></span>
+                <span><span class="sw-b__t">내 근무지</span> <span class="sw-b__d">· 조회만</span></span>
               </button>
             </div>
             <div class="switcher__head" style="border-top: 1px solid var(--rule); border-bottom: none">
@@ -1001,19 +1016,20 @@
             <div class="gap__head">
               <span class="gap__no">ME-7</span>
               <span class="gap__t">근무지별 근로계약서 · 급여명세서 · 신고 정보를 어디서 보는가</span>
-              <span class="gap__st gap__st--fixed">확정 · 소속 근무지 아코디언</span>
+              <span class="gap__st gap__st--fixed">확정 · 내 근무지 카드 세 칸</span>
               <span class="gap__ref">TAX-8 · PAY-8</span>
             </div>
             <div class="gap__one">
               <p>
-                소속 근무지에서 근무지를 누르면 <b>아래로 펼쳐 근로계약서 · 급여명세서 · 신고 정보</b> 버튼이 나온다. 누르면 각 화면을
-                <b>그 근무지의 것만 걸러</b> 연다 (2026-10-20 재영).
+                내 근무지의 근무지 카드마다 맨 아래 <b>한 줄 세 칸 신고 정보 · 근로계약서 · 급여명세서</b>를 둔다. 누르면 각 화면을
+                <b>그 근무지의 것만 걸러</b> 연다 (2026-10-20 재영, 펼침 대신 카드 세 칸 2026-11-23 사용자 지정).
               </p>
               <ul>
                 <li>앱 상단에서 고른 근무지(HOME-2·WORK-4)와 관계없이, 여기서 누른 근무지로 거른다</li>
                 <li>급여명세서는 급여 탭의 점포 필터(PAY-10)를 그 근무지로 맞춰 연다</li>
                 <li>신고 정보는 근무지마다 따로라(TAX-8) 내 정보 첫 화면의 「신고 정보」 줄은 뺐다</li>
-                <li><b>퇴직한 근무지도 목록에 둔다</b> — 근무 중인 곳 아래에 「퇴직」 표시와 근무 기간을 붙여 흐리게 보이고, 같은 세 버튼으로 그곳의 계약서·명세서·신고 정보를 본다 (2026-10-20 재영). 볼 수 있는 기간은 각 자료의 보존 기간을 따른다(급여명세서 3년, PAY-4)</li>
+                <li><b>퇴직한 근무지도 목록에 둔다</b> — 「퇴직」 배지와 근무 기간을 붙여 이름을 흐리게 보인다 (2026-10-20 재영). 퇴직한 근무지는 신고 정보를 볼 수 없어(api 404) 세 칸을 두지 않는다</li>
+                <li>맨 위 상태 칩 [전체] [근무 중] [퇴직 예정] [퇴직](0건도 보임)으로 거르고, 카드에는 라벨 없는 회색 두 줄(고용 형태 · 직무 / 근무 시작)과 [지도 보기] · [전화하기](근로계약서의 근무지 주소 · 전화)를 둔다 (2026-11-23 사용자 지정)</li>
               </ul>
             </div>
           </div>
@@ -1022,20 +1038,20 @@
             <div class="gap__head">
               <span class="gap__no">ME-8</span>
               <span class="gap__t">가입한 사람이 받은 초대를 어디서 보고 수락하는가</span>
-              <span class="gap__st gap__st--fixed">확정 · 소속 근무지 맨 위 「확인을 기다리는 요청」</span>
+              <span class="gap__st gap__st--fixed">확정 · 내 근무지 상태 칩 아래 「확인을 기다리는 요청」</span>
               <span class="gap__ref">JOI-09 · ME-7 · WHALEERP-603 · 604</span>
             </div>
             <div class="gap__one">
               <p>
-                소속 근무지 목록 맨 위에 <b>「확인을 기다리는 요청」</b>을 고정한다. 가입한 사람이 받은 초대 세 종류 — <b>가입 전에 받은 가입 초대 · 소속 추가 확인 · 복귀 확인</b> — 를
+                내 근무지 상태 칩 아래에 <b>「확인을 기다리는 요청」</b>을 고정한다. 가입한 사람이 받은 초대 세 종류 — <b>가입 전에 받은 가입 초대 · 소속 추가 확인 · 복귀 확인</b> — 를
                 받은 때 최신순으로 보이고 거기서 수락한다 (2026-10-28 김민식 · 재영).
               </p>
               <ul>
                 <li>줄마다 점포명 · 초대 종류(배지) · 고용 형태 · 받은 날 · 만료일. 누르면 확인 화면(수락 · 거절)으로 간다. 답하지 않으면 30일 뒤 요청만 만료되어 빠진다(운영 정책 JOI-09)</li>
                 <li>수락 전이라 소속이 아니다 — 펼쳐서 근로계약서 · 급여명세서 · 신고 정보로 가는 동작은 두지 않는다(ME-7 과 다르다)</li>
-                <li>그 아래에 지금 소속 근무지와 퇴직한 근무지(「퇴직」 표시)를 보인다</li>
+                <li>그 아래에 지금 근무지와 퇴직한 근무지(「퇴직」 표시)를 보인다</li>
                 <li><b>초대 코드는 가입 첫 단계에서만 쓴다</b> — 가입한 사람이 코드를 넣어 근무지를 더하는 화면은 두지 않는다(2026-10-28 재영)</li>
-                <li>로그인하지 않은 채 「이미 계정이 있습니다」가 나오거나 로그인한 채 초대 링크를 열면 소속 근무지로 간다(join.html has-account)</li>
+                <li>로그인하지 않은 채 「이미 계정이 있습니다」가 나오거나 로그인한 채 초대 링크를 열면 내 근무지로 간다(join.html has-account)</li>
                 <li>예시 점포: 홍대점은 이 목업에서 이미 재직 중이라 신촌점 · 연남점, 복귀 확인은 퇴직한 합정점이다</li>
               </ul>
             </div>

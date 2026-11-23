@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { Alert, Button, Card, TextField } from "@/components/common";
+import { useFieldCheck } from "@/app/_components/use-field-check";
+import { isEmailShape } from "@/lib/email-change";
 import { AuthScreen } from "../_components/auth-screen";
 import { requestPinAction, type RequestPinState } from "./actions";
 
@@ -11,6 +13,11 @@ import { requestPinAction, type RequestPinState } from "./actions";
 // 응답만 끊겨 다시 저장한 경우에도 여기로 오므로 단정하지 않게 고쳤다.
 export function RequestPinForm({ timedOut }: { timedOut: boolean }) {
   const [state, formAction, pending] = useActionState<RequestPinState, FormData>(requestPinAction, { email: "" });
+  // 브라우저 말풍선 대신 칸 아래 문구(use-field-check). 문구는 서버 액션과 같다.
+  const fields = useFieldCheck((data) => {
+    const email = String(data.get("email") ?? "").trim();
+    return { email: !email ? "이메일을 입력해 주세요" : isEmailShape(email) ? undefined : "이메일 형식을 확인해 주세요" };
+  });
 
   if (timedOut) {
     return (
@@ -40,7 +47,7 @@ export function RequestPinForm({ timedOut }: { timedOut: boolean }) {
   }
 
   return (
-    <form action={formAction} className="flex flex-1 flex-col">
+    <form action={formAction} noValidate onSubmit={fields.check} onChange={fields.clear} className="flex flex-1 flex-col">
       <AuthScreen
         title="비밀번호 재설정"
         description={
@@ -68,7 +75,7 @@ export function RequestPinForm({ timedOut }: { timedOut: boolean }) {
           maxLength={254}
           placeholder="가입한 이메일을 입력해 주세요"
           defaultValue={state.email}
-          error={state.error}
+          error={fields.messageOf("email", state.error)}
         />
         {/* 이메일 찾기(LOGIN-8)는 로그인 화면이 아니라 여기 이메일 칸 아래에서 들어간다(데모 forgot, 2026-10-20 재영). */}
         <Link

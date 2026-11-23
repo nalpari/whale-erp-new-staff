@@ -1,5 +1,5 @@
 // 직원 근무 앱 데모 · 내 정보. src/app/demo/me/page.tsx 를 옮겼다. 기준 목업: docs/mockup/app/me.html — 상태 6개(내 정보 ·
-// 비밀번호 변경 · 이메일 변경 · 새 이메일 인증 · 주소 검색 · 소속 근무지 — 확인을 기다리는 요청 포함)와 시트 8개(약관 보기 · 잠시 멈춤 ·
+// 비밀번호 변경 · 이메일 변경 · 새 이메일 인증 · 주소 검색 · 내 근무지 — 확인을 기다리는 요청 포함)와 시트 8개(약관 보기 · 잠시 멈춤 ·
 // 일시 중지 동안의 카드 · 철회한 뒤의 카드 · 본사 제공 동의 내용 · 본사 제공 동의 철회 · 위치정보 동의 철회 · 로그아웃), 화면 문구·가짜 값·이동(data-go)·알림(data-toast)을 옮겼다.
 // 생년월일은 가입한 뒤 고치지 않고(운영 정책 ACC-13), 휴대전화번호는 계정의 신원 기준이라 1차에 바꾸지 않으며(2026-10-19),
 // 소속 근무지·고용 형태는 근로계약으로만 바뀌어 읽기 전용이다. 직원이 고치는 건 이메일·주소·비밀번호다. 번호 변경 상태 셋은 없앴다.
@@ -16,7 +16,7 @@
 //
 // HTML 판에서 다른 점: 화면 안에서 철회하거나 다시 동의하면 두 모양(동의함·철회 등)을 미리 그려 두고 data-pick·data-show 로 바꾼다.
 // 그래서 숨긴 카드가 DOM 에 함께 있고, 그 버튼은 <div data-pick> 하나로 감싸여 있다. 주소 검색에서 고른 도로명은 내 정보로 옮겨지지 않는다(토스트만).
-import { alert, backHeader, badge, body, bottomNav, bottomSheet, button, card, dangerButton, dock, FIELD, img, label, maskIcon, notice, page, state, sunken, textField, uid, values } from "../../ui.mjs";
+import { PRESS, alert, backHeader, badge, body, bottomNav, bottomSheet, button, card, dangerButton, dock, FIELD, img, label, maskIcon, notice, page, state, sunken, textField, uid, values } from "../../ui.mjs";
 
 // 확인을 기다리는 요청(ME-8) — 받은 때 최신순. [점포, 초대 종류, 고용 형태 · 받은 날 · 만료일]
 const REQUESTS = [
@@ -32,7 +32,7 @@ const STATES = [
   { id: "email", label: "이메일 변경", note: "아이디가 바뀐다" },
   { id: "email-pin", label: "새 이메일 인증", note: "10분 · 5회" },
   { id: "addr", label: "주소 검색", note: "도로명 고르기" },
-  { id: "sites", label: "소속 근무지", note: "조회만" },
+  { id: "sites", label: "내 근무지", note: "조회만" },
   { id: "revoked", label: "동의 철회 뒤", note: "다시 동의하기" },
   { id: "paused", label: "위치 수집 일시 중지", note: "다시 켜기" },
 ];
@@ -42,7 +42,7 @@ const TITLE = {
   email: "이메일 변경",
   "email-pin": "새 이메일 인증",
   addr: "주소 검색",
-  sites: "소속 근무지",
+  sites: "내 근무지",
 };
 // 머리줄 뒤로 가기가 돌아가는 곳. 새 이메일 인증만 이메일 입력으로, 나머지는 내 정보로.
 const BACK = { "email-pin": "email" };
@@ -149,13 +149,13 @@ const meView = (mode, ids) => {
       value: "2025.11.03",
     })}</div>${tinyLine("생년월일을 변경하려면 근무지 관리자에게 문의해 주세요.")}`,
   )}<div class="flex flex-col gap-[6px]"><button type="button" data-go="sites" class="flex w-full items-center gap-[12px] rounded-[16px] border border-staff-border-light bg-staff-info-bg p-[16px] text-left transition-colors duration-150 ease-out active:bg-staff-primary-inactive"><span class="min-w-0 flex-1">${label(
-    "소속 근무지",
+    "내 근무지",
   )}<span class="block pt-[4px] text-[15px] font-bold">웨일카페 강남역점 외 1곳</span></span>${badge("plain", "파트타이머")}${img(
     "chevron-right-muted.svg",
     12,
     12,
     "-scale-y-100",
-  )}</button><p class="px-[4px] text-[12px] text-staff-text-muted">소속 근무지와 고용 형태는 근로계약에 따라 정해집니다.</p></div><!-- 위치정보 동의(운영 정책 ATT-23·26). 일시 중지 중이면 같은 자리에서 「다시 켜기」로 돌아온다 — 다시 켤 때 동의 절차가 없다. -->${panel(
+  )}</button><p class="px-[4px] text-[12px] text-staff-text-muted">근무지와 고용 형태는 근로계약에 따라 정해집니다.</p></div><!-- 위치정보 동의(운영 정책 ATT-23·26). 일시 중지 중이면 같은 자리에서 「다시 켜기」로 돌아온다 — 다시 켤 때 동의 절차가 없다. -->${panel(
     locRevokedCard,
     ids.locOff,
     revoked,
@@ -306,43 +306,77 @@ const VIEWS = {
       ).join("")}</ul>${notice("선택한 주소는 <strong>그대로 저장</strong>되며, 상세주소만 직접 입력합니다.")}`,
     ),
 
-  // 소속 근무지(ME-7, 2026-10-20 재영): 근무지를 누르면 아래로 펼쳐 근로계약서 · 급여명세서 · 신고 정보로 간다.
-  // 세 화면은 누른 근무지의 것만 걸러 연다(앱 상단에서 고른 근무지와 관계없다). 데모 링크는 거르지 못해 화면만 연다.
+  // 고른 칩 남보라). 카드는 점포명(아이콘 없음) · 상태 배지, 라벨 없는 회색 두 줄(고용 형태 · 직무 / 근무 시작), 반반 두 버튼 [지도 보기] · [전화하기](근로계약서의 근무지 주소 · 전화),
+  // 맨 아래 한 줄 세 칸 신고 정보 · 근로계약서 · 급여명세서(퇴직한 근무지는 두지 않는다). 세 화면은 누른 근무지의 것만 걸러 연다 — 데모 링크는 거르지 못해 화면만 연다.
   // 확인을 기다리는 요청(ME-8, 2026-10-28 김민식 · 재영, 운영 정책 JOI-09): 가입한 사람이 받은 초대 세 종류(가입 전에 받은 가입 초대 · 소속 추가 확인 · 복귀 확인)를
-  // 소속 근무지 목록 맨 위에 받은 때 최신순으로 고정하고 거기서 수락한다 — 초대 코드는 가입 첫 단계에서만 쓴다. 수락 전이라 소속이 아니어서 펼치지 않는다.
-  // 답하지 않으면 30일 뒤 요청만 만료되어 빠진다. 예시: 홍대점은 이 데모에서 이미 재직 중이라 신촌점 · 연남점, 복귀 확인은 퇴직한 합정점.
-  // 데모는 세 줄 모두 가입 데모의 소속 추가 확인 화면(홍대점 문구)을 연다.
-  sites: () =>
-    body(
-      `<section aria-label="확인을 기다리는 요청" class="flex flex-col gap-[8px]"><h2 class="px-[4px] text-[13px] font-semibold text-staff-text-sub">확인을 기다리는 요청</h2>${REQUESTS.map(
-        ([name, kind, sub]) =>
-          `<a href="${page(
-            "join",
-            "addsite",
-          )}" class="flex items-start gap-[12px] rounded-[16px] border border-staff-border-light bg-white p-[16px] transition-colors duration-150 ease-out active:bg-staff-info-bg"><span class="flex pt-[3px] text-staff-text-sub">${maskIcon("store-small.svg", 18)}</span><span class="min-w-0 flex-1"><span class="block text-[15px] font-semibold">${name}</span><span class="block text-[12px] text-staff-text-sub">${sub}</span></span>${badge(
-            "warning",
-            kind,
-          )}${img("chevron-right-muted.svg", 12, 12, "mt-[6px] -scale-y-100")}</a>`,
-      ).join("")}</section><h2 class="px-[4px] text-[13px] font-semibold text-staff-text-sub">소속 근무지</h2><div class="flex flex-col gap-[10px]">${[
-        ["웨일카페 강남역점", "파트타이머 · 2025년 11월 3일부터", true],
-        ["웨일카페 홍대점", "파트타이머 · 2026년 3월 16일부터", false],
-        // 퇴직한 근무지도 둔다(ME-7, 2026-10-20 재영). 흐리게 · 「퇴직」 표시 · 근무 기간.
-        ["웨일베이커리 합정점", "파트타이머 · 2025년 3월 2일 – 2025년 12월 31일", false, true],
-      ]
-        .map(
-          ([name, sub, open, retired]) =>
-            `<details${open ? " open" : ""} class="group rounded-[16px] border border-staff-border-light bg-white"><summary class="flex cursor-pointer list-none items-start gap-[12px] p-[16px] [&::-webkit-details-marker]:hidden"><span class="flex pt-[3px] text-staff-text-sub">${maskIcon("store-small.svg", 18)}</span><span class="min-w-0 flex-1"><span class="block text-[15px] font-semibold ${retired ? "text-staff-text-muted" : ""}">${name}</span><span class="block text-[12px] text-staff-text-sub">${sub}</span></span>${
-              retired ? badge("waiting", "퇴직") : badge("working", "근무 중")
-            }${img("chevron-down.svg", 15, 15, "mt-[4px] -scale-y-100 transition-transform group-open:rotate-180")}</summary><div class="flex flex-col gap-[8px] px-[16px] pb-[16px]">${[
-              ["근로계약서", page("contract", "list")],
-              ["급여명세서", page("pay", "list")],
-              ["신고 정보", page("tax", "view")],
-            ]
-              .map(([label, href]) => outline(label, { href }))
-              .join("")}</div></details>`,
-        )
-        .join("")}</div><p class="text-[12px] text-staff-text-muted">소속 근무지와 고용 형태는 근로계약에 따라 정해집니다.<br>변경이 필요하면 근무지 관리자에게 문의해 주세요.</p>`,
-    ),
+  // 칩 아래 받은 때 최신순으로 고정하고 거기서 수락한다 — 초대 코드는 가입 첫 단계에서만 쓴다. 답하지 않으면 30일 뒤 요청만 만료되어 빠진다.
+  // 예시: 홍대점은 이 데모에서 이미 재직 중이라 신촌점 · 연남점, 복귀 확인은 퇴직한 합정점. 데모는 세 줄 모두 가입 데모의 소속 추가 확인 화면(홍대점 문구)을 연다.
+  // HTML 판에서 다른 점: 칩마다 목록을 미리 그려 두고 data-pick · data-show 로 바꾼다(개발 화면은 ?status= 로 거른다).
+  sites: () => {
+    const sites = [
+      { name: "웨일카페 강남역점", job: "파트타이머 · 바리스타", period: "2025년 11월 3일부터 근무", status: "working", address: "서울 강남구 테헤란로 1길 10", phone: "02-555-0101" },
+      { name: "웨일카페 홍대점", job: "파트타이머 · 홀 서빙", period: "2026년 11월 18일부터 근무", status: "working", address: "서울 마포구 양화로 12", phone: "02-333-0202" },
+      // 퇴직한 근무지도 둔다(ME-7, 2026-10-20 재영). 이름은 보조 글자색 · 「퇴직」 배지 · 근무 기간, 아래 세 칸은 없다(신고 정보도 볼 수 없다).
+      { name: "웨일베이커리 합정점", job: "파트타이머 · 제빵 보조", period: "2025년 3월 2일 – 2025년 12월 31일 근무", status: "retired", address: "서울 마포구 독막로 5", phone: "02-322-0303" },
+    ];
+    const CHIPS = [
+      ["all", "전체"],
+      ["working", "근무 중"],
+      ["retiring", "퇴직 예정"],
+      ["retired", "퇴직"],
+    ];
+    const EMPTY = { working: "근무 중인 근무지가 없습니다.", retiring: "퇴직 예정인 근무지가 없습니다.", retired: "퇴직한 근무지가 없습니다." };
+    const ON = "border-staff-primary bg-staff-primary-inactive text-staff-primary";
+    const OFF = "border-staff-border bg-white text-staff-text-sub";
+    const ids = Object.fromEntries(CHIPS.map(([k]) => [k, uid("sites")]));
+    const contactButton = (href, icon, text, aria, blank) =>
+      `<a href="${href}"${blank ? ' target="_blank" rel="noopener noreferrer"' : ""} aria-label="${aria}" class="flex h-[36px] min-w-0 flex-1 items-center justify-center gap-[6px] rounded-[8px] border border-staff-border bg-white text-[13px] font-medium text-staff-text ${PRESS}"><span class="flex text-staff-text-sub">${maskIcon(icon, 15)}</span>${text}</a>`;
+    const actionCell = (icon, text, href) =>
+      `<a href="${href}" class="flex h-[72px] min-w-0 flex-1 flex-col items-center justify-center gap-[6px] text-[13px] font-medium text-staff-text active:bg-staff-info-bg [&+&]:border-l [&+&]:border-staff-border-light ${PRESS}"><span class="flex text-staff-text-sub">${maskIcon(icon, 20)}</span>${text}</a>`;
+    const siteCard = (s) => {
+      const retired = s.status === "retired";
+      return `<li class="overflow-hidden rounded-[16px] border border-staff-border bg-white"><div class="flex flex-col gap-[10px] px-[20px] pt-[18px] pb-[14px]"><div class="flex items-start gap-[10px]"><h2 class="min-w-0 flex-1 text-[17px] font-bold break-keep ${retired ? "text-staff-text-sub" : ""}">${s.name}</h2>${
+        retired ? badge("waiting", "퇴직") : badge("working", "근무 중")
+      }</div><div class="flex flex-col gap-[2px] text-[14px] text-staff-text-sub"><p>${s.job}</p><p>${s.period}</p><div class="flex gap-[8px] pt-[4px]">${contactButton(
+        `https://map.kakao.com/link/search/${encodeURIComponent(s.address)}`,
+        "map-pin-line.svg",
+        "지도 보기",
+        `${s.name} 위치 지도에서 보기 — ${s.address}`,
+        true,
+      )}${contactButton(`tel:${s.phone.replace(/-/g, "")}`, "phone-call.svg", "전화하기", `${s.name} 전화하기 ${s.phone}`)}</div></div></div>${
+        retired
+          ? ""
+          : `<div class="flex border-t border-staff-border-light">${actionCell("id-card-line.svg", "신고 정보", page("tax", "view"))}${actionCell(
+              "doc-line.svg",
+              "근로계약서",
+              page("contract", "list"),
+            )}${actionCell("payslip-line.svg", "급여명세서", page("pay", "list"))}</div>`
+      }</li>`;
+    };
+    const listOf = (key) => {
+      const items = sites.filter((s) => key === "all" || s.status === key);
+      return items.length ? `<ul class="flex flex-col gap-[12px]">${items.map(siteCard).join("")}</ul>` : notice(EMPTY[key]);
+    };
+    return `<div class="flex flex-col gap-[12px] px-[16px] pt-[20px] pb-[24px] leading-[1.5]"><nav aria-label="근무지 상태" data-pick class="flex flex-wrap gap-[8px]">${CHIPS.map(
+      ([key, text]) =>
+        `<button type="button" aria-pressed="${key === "all"}" data-show="${ids[key]}" data-on="${ON}" data-off="${OFF}" class="flex h-[36px] items-center gap-[4px] rounded-full border px-[14px] text-[13px] font-semibold ${
+          key === "all" ? ON : OFF
+        }">${text} <span class="tabular-nums">${key === "all" ? sites.length : sites.filter((s) => s.status === key).length}</span></button>`,
+    ).join("")}</nav><section aria-labelledby="pending-requests" class="flex flex-col gap-[8px]"><h2 id="pending-requests" class="px-[4px] text-[13px] font-semibold text-staff-text-sub">확인을 기다리는 요청</h2><ul class="flex flex-col gap-[8px]">${REQUESTS.map(
+      ([name, kind, sub]) =>
+        `<li><a href="${page(
+          "join",
+          "addsite",
+        )}" class="flex w-full items-start gap-[12px] rounded-[16px] border border-staff-border-light bg-white p-[16px] text-left active:bg-staff-info-bg ${PRESS}"><span class="min-w-0 flex-1"><span class="block text-[15px] font-semibold break-keep">${name}</span><span class="block text-[12px] text-staff-text-sub">${sub}</span></span>${badge(
+          "warning",
+          kind,
+        )}${img("chevron-right-muted.svg", 12, 12, "mt-[6px] -scale-y-100")}</a></li>`,
+    ).join("")}</ul></section><h2 class="px-[4px] text-[13px] font-semibold text-staff-text-sub">내 근무지</h2>${CHIPS.map(
+      ([key]) => `<div id="${ids[key]}"${key === "all" ? "" : " hidden"}>${listOf(key)}</div>`,
+    ).join(
+      "",
+    )}<p class="px-[4px] pt-[6px] text-[13px] break-keep text-staff-text-muted">근무지와 고용 형태는 근로계약에 따라 정해집니다.<br>변경이 필요하면 근무지 관리자에게 문의해 주세요.</p></div>`;
+  },
 };
 
 const ME_MODES = ["view", "revoked", "paused"];

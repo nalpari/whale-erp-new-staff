@@ -127,7 +127,8 @@ export function InfoGroup({ title, rows }: { title: string; rows: [string, React
   return (
     <section className="flex flex-col gap-[8px]">
       <h2 className="px-[4px] text-[14px] font-semibold text-staff-text-sub">{title}</h2>
-      <dl className="flex flex-col gap-[10px] rounded-[16px] border border-staff-border bg-staff-bg px-[18px] py-[16px]">
+      {/* 상자는 흰 바탕(2026-11-23 사용자 지정 — 전엔 연회색 staff-bg) */}
+      <dl className="flex flex-col gap-[10px] rounded-[16px] border border-staff-border bg-white px-[18px] py-[16px]">
         {shown.map(([label, value]) => (
           // 줄 사이 선 없이 간격만(2026-11-20 사용자 지정)
           <div key={label} className="flex gap-[12px] text-[14px]">

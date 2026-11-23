@@ -152,7 +152,7 @@ const CONTENT = {
 
   retired: () =>
     empty(
-      maskIcon("store.svg", 24, true),
+      maskIcon("store-line.svg", 24),
       "근무가 종료되었습니다",
       `<p class="[&_strong]:font-bold [&_strong]:text-staff-text">급여명세서는 <strong>보존 기간(3년)</strong> 동안 확인할 수 있습니다.</p><div class="flex flex-col gap-[8px] pt-[8px]">${button(
         `${maskIcon("nav-pay.svg", 16, true)}급여명세서 보기`,

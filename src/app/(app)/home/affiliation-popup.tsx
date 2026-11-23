@@ -44,7 +44,7 @@ export function AffiliationPopup({ summary, open }: { summary: PopupSummary; ope
       }
       action={
         <Button href="/affiliations" transitionTypes={["nav-forward"]}>
-          <MaskIcon src="/icons/store-small.svg" size={14} />
+          <MaskIcon src="/icons/store-line.svg" size={14} />
           확인하러 가기
         </Button>
       }

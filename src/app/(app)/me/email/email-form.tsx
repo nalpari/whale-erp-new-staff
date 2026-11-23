@@ -3,7 +3,8 @@
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import { Alert, Button, Dock, Notice, TextField } from "@/components/common";
 import { Countdown, formatLeft, useNow } from "@/app/_components/countdown";
-import { INITIAL_EMAIL_STATE, type EmailChangeState, type PinState } from "@/lib/email-change";
+import { useFieldCheck } from "@/app/_components/use-field-check";
+import { INITIAL_EMAIL_STATE, isEmailShape, normalizeNewEmail, type EmailChangeState, type PinState } from "@/lib/email-change";
 import { emailChangeAction } from "./actions";
 
 // 기준: 데모 docs/demo/me 의 email · email-pin(ME-3). 이메일이 로그인 아이디라 새 이메일로 받은 인증번호를 확인한 뒤에만 바뀐다.
@@ -36,12 +37,20 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
     formData.set("currentPassword", currentPassword);
     formAction(formData);
   };
+  // 브라우저 말풍선 대신 칸 아래 문구(use-field-check). 문구는 서버 액션과 같다.
+  const fields = useFieldCheck((data) => {
+    const newEmail = normalizeNewEmail(String(data.get("newEmail") ?? ""));
+    return {
+      newEmail: !newEmail ? "새 이메일을 입력해 주세요" : isEmailShape(newEmail) ? undefined : "이메일 형식을 확인해 주세요",
+      currentPassword: data.get("currentPassword") ? undefined : "현재 비밀번호를 입력해 주세요",
+    };
+  });
 
   // 다시 받으면(deadline 이 바뀜) 새로 붙여 앞서 넣은 옛 번호를 비운다 — 새 번호를 보내면 옛 번호는 더 쓸 수 없다.
   if (state.step === "pin") return <PinStep key={state.deadline} state={state} action={send} pending={pending} />;
 
   return (
-    <form action={send} className="flex flex-1 flex-col bg-white">
+    <form action={send} noValidate onSubmit={fields.check} onChange={fields.clear} className="flex flex-1 flex-col bg-white">
       <div className={BODY}>
         <Lead
           title={
@@ -74,7 +83,7 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
           maxLength={254}
           placeholder="새 이메일 입력"
           defaultValue={state.newEmail}
-          error={state.problem?.field === "newEmail" ? state.problem.message : undefined}
+          error={fields.messageOf("newEmail", state.problem?.field === "newEmail" ? state.problem.message : undefined)}
         />
         {/* 새 이메일 칸 안내 두 줄 — 그 칸 바로 아래(위 칸과 8 — 칸 안내 간격), 회색 안내(2026-11-20 사용자 지정) */}
         <div className="-mt-[12px] flex flex-col gap-[2px] text-[13px] leading-[1.5] break-keep">
@@ -104,7 +113,7 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
           placeholder="현재 비밀번호 입력"
           value={currentPassword}
           onChange={(event) => setCurrentPassword(event.target.value)}
-          error={state.problem?.field === "currentPassword" ? state.problem.message : undefined}
+          error={fields.messageOf("currentPassword", state.problem?.field === "currentPassword" ? state.problem.message : undefined)}
         />
         {state.problem?.field === "form" && (
           <Alert tone="danger">
@@ -139,9 +148,11 @@ function PinStep({
   const now = useNow(state.serverNow);
   const resendLeft = now === null ? null : state.resendAt - now;
   const canResend = resendLeft !== null && resendLeft <= 0;
+  // 브라우저 말풍선 대신 칸 아래 문구(use-field-check). 다시 받기 · 이메일 다시 입력하기는 formNoValidate 라 거르지 않는다.
+  const fields = useFieldCheck((data) => (String(data.get("pin") ?? "").trim() ? {} : { pin: "받은 인증번호를 입력해 주세요" }));
 
   return (
-    <form action={action} className="flex flex-1 flex-col bg-white">
+    <form action={action} noValidate onSubmit={fields.check} onChange={fields.clear} className="flex flex-1 flex-col bg-white">
       <div className={BODY}>
         {/* 방금 직접 넣은 주소라 가리지 않는다 — 오타를 여기서 알아챌 수 있게(데모는 가렸다). */}
         <Lead title="인증번호 입력">
@@ -159,7 +170,7 @@ function PinStep({
           placeholder="인증번호 6자리"
           value={pin}
           onChange={(event) => setPin(event.target.value)}
-          error={feedback?.kind === "error" && feedback.field === "pin" ? feedback.message : undefined}
+          error={fields.messageOf("pin", feedback?.kind === "error" && feedback.field === "pin" ? feedback.message : undefined)}
         />
         <div className="text-[12px] text-staff-text-sub">
           <Countdown deadline={state.deadline} serverNow={state.serverNow} />

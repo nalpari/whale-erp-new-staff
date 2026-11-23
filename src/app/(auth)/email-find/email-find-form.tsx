@@ -5,6 +5,7 @@ import { Alert, Button, Card, TextField } from "@/components/common";
 import { AuthScreen } from "../_components/auth-screen";
 import { useFocusedTitle } from "../_components/use-focused-title";
 import { useNow } from "@/app/_components/countdown";
+import { useFieldCheck } from "@/app/_components/use-field-check";
 import { type AttemptLock, lockCountdown } from "@/lib/attempt-lock";
 import { findEmailAction, type EmailFindState, type EmailFindValues } from "./actions";
 
@@ -18,6 +19,12 @@ const EMPTY: EmailFindValues = { name: "", phone: "", birthDate: "" };
 
 export function EmailFindForm() {
   const [state, formAction, pending] = useActionState<EmailFindState, FormData>(findEmailAction, { step: "input", values: EMPTY });
+  // 브라우저 말풍선 대신 칸 아래 문구(use-field-check). 빈 칸만 거르고 모양은 서버 액션이 거른다.
+  const fields = useFieldCheck((data) => ({
+    name: String(data.get("name") ?? "").trim() ? undefined : "이름을 입력해 주세요",
+    phone: String(data.get("phone") ?? "").trim() ? undefined : "휴대전화번호를 입력해 주세요",
+    birthDate: String(data.get("birthDate") ?? "").trim() ? undefined : "생년월일을 입력해 주세요",
+  }));
 
   if (state.step === "found") return <Found emails={state.emails} />;
   if (state.step === "not-found")
@@ -37,7 +44,7 @@ export function EmailFindForm() {
   const error = state.error ? state : null;
   return (
     // 결과 화면에서 돌아오면 폼이 새로 붙어 defaultValue 로 넣은 값을 되돌린다.
-    <form action={formAction} className="flex flex-1 flex-col">
+    <form action={formAction} noValidate onSubmit={fields.check} onChange={fields.clear} className="flex flex-1 flex-col">
       <AuthScreen
         title="이메일 찾기"
         description={
@@ -66,7 +73,7 @@ export function EmailFindForm() {
             maxLength={50}
             placeholder="이름을 입력해 주세요"
             defaultValue={values.name}
-            error={error?.field === "name" ? error.error : undefined}
+            error={fields.messageOf("name", error?.field === "name" ? error.error : undefined)}
           />
           <TextField
             label="휴대전화번호"
@@ -78,7 +85,7 @@ export function EmailFindForm() {
             maxLength={13}
             placeholder="숫자만 입력해 주세요"
             defaultValue={values.phone}
-            error={error?.field === "phone" ? error.error : undefined}
+            error={fields.messageOf("phone", error?.field === "phone" ? error.error : undefined)}
           />
           <TextField
             label="생년월일"
@@ -90,7 +97,7 @@ export function EmailFindForm() {
             maxLength={12}
             placeholder="YYYYMMDD"
             defaultValue={values.birthDate}
-            error={error?.field === "birthDate" ? error.error : undefined}
+            error={fields.messageOf("birthDate", error?.field === "birthDate" ? error.error : undefined)}
           />
         </div>
         {error?.field === "form" && <Alert tone="danger">{error.error}</Alert>}
@@ -102,7 +109,7 @@ export function EmailFindForm() {
 /** 결과 화면의 「다시 입력하기」 폼. 넣은 값을 숨은 칸에 실어 같은 액션으로 보내면, 액션은 api 를 부르지 않고 입력 화면을 돌려준다. */
 function RetryForm({ action, values, children }: { action: (formData: FormData) => void; values: EmailFindValues; children: ReactNode }) {
   return (
-    <form action={action} className="flex flex-1 flex-col">
+    <form action={action} noValidate className="flex flex-1 flex-col">
       <input type="hidden" name="intent" value="retry" />
       <input type="hidden" name="name" value={values.name} />
       <input type="hidden" name="phone" value={values.phone} />

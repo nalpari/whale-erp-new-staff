@@ -4,6 +4,7 @@ import { useActionState, useCallback, useEffect, useRef, useState, useTransition
 import { Alert, Button, Notice } from "@/components/common";
 import { AuthScreen, CONNECTION_FAILED_MESSAGE } from "../../_components/auth-screen";
 import { NewPasswordFields } from "@/app/_components/new-password-fields";
+import { useFieldCheck } from "@/app/_components/use-field-check";
 import { openLinkAction, resetPasswordWithLinkAction, type LinkPasswordState, type OpenLinkState } from "../actions";
 
 // 기준: 데모 docs/demo/src/pages/login 의 temp(새 비밀번호) · link-used(쓸 수 없는 링크).
@@ -99,11 +100,16 @@ function LinkError({ message, onRetry }: { message: string; onRetry: () => void 
 function LinkPasswordForm() {
   const titleRef = useTitleFocus();
   const [state, formAction, pending] = useActionState<LinkPasswordState, FormData>(resetPasswordWithLinkAction, {});
+  // 브라우저 말풍선 대신 칸 아래 문구(use-field-check). 빈 칸만 거르고 규칙 · 일치는 서버 액션이 거른다.
+  const fields = useFieldCheck((data) => ({
+    newPassword: data.get("newPassword") ? undefined : "새 비밀번호를 입력해 주세요",
+    newPasswordConfirmation: data.get("newPasswordConfirmation") ? undefined : "새 비밀번호 확인을 입력해 주세요",
+  }));
   // 정하는 사이 링크가 무효가 됐다(기한 · 새 링크로 대체 · 다른 링크나 인증번호로 이미 정함 · 쿠키 30분 지남).
   if ("invalid" in state) return <InvalidLink />;
 
   return (
-    <form action={formAction} className="flex flex-1 flex-col">
+    <form action={formAction} noValidate onSubmit={fields.check} onChange={fields.clear} className="flex flex-1 flex-col">
       <AuthScreen
         titleRef={titleRef}
         title="새 비밀번호 설정"
@@ -119,8 +125,8 @@ function LinkPasswordForm() {
         </Alert>
         <NewPasswordFields
           email={null}
-          newPasswordError={state.field === "newPassword" ? state.error : undefined}
-          confirmationError={state.field === "newPassword" ? undefined : state.error}
+          newPasswordError={fields.messageOf("newPassword", state.field === "newPassword" ? state.error : undefined)}
+          confirmationError={fields.messageOf("newPasswordConfirmation", state.field === "newPassword" ? undefined : state.error)}
         />
         <Notice>
           변경하면 <strong>다른 기기에서는 모두 로그아웃</strong>됩니다.

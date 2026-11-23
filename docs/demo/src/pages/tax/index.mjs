@@ -114,7 +114,7 @@ const VIEWS = {
     pageHeader("등록된 신고 정보", { backHref: page("me", "sites") }) +
     body(
       // 신고 정보는 근무지(직원 레코드)마다 따로다(TAX-8, 2026-10-20). 어느 근무지에 낸 값인지 맨 위에 적는다.
-      `<p class="flex items-center gap-[8px] text-[16px] font-bold">${maskIcon("store-small.svg", 17)}웨일카페 강남역점</p>` +
+      `<p class="flex items-center gap-[8px] text-[16px] font-bold">${maskIcon("store-line.svg", 17)}웨일카페 강남역점</p>` +
       card(
         `${label("주민등록번호")}<p class="pt-[4px] text-[18px] font-bold">900101-1******</p><p class="pt-[6px] text-[12px] text-staff-text-muted">보안을 위해 뒷자리는 다시 보여 드리지 않습니다.<br>수정하려면 다시 입력해 주세요.</p>`,
       ) +

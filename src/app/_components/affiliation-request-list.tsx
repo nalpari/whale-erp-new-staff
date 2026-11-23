@@ -21,7 +21,7 @@ export function AffiliationRequestList({ items }: { items: AffiliationRequest[] 
             className={`-mx-[16px] flex items-center gap-[12px] px-[16px] py-[14px] active:bg-staff-primary-inactive ${PRESS}`}
           >
             <span className="flex text-staff-text-sub">
-              <MaskIcon src="/icons/store-small.svg" size={18} />
+              <MaskIcon src="/icons/store-line.svg" size={18} />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-[15px] font-semibold break-keep">{item.storeName}</span>

@@ -28,7 +28,8 @@ export function InviteCodeForm() {
   const digits = phone.replace(/\D/g, "").length;
   const filled = digits >= 10 && code.length === INVITE_CODE_LENGTH;
   return (
-    <form action={formAction} className="flex flex-1 flex-col">
+    // 브라우저 말풍선은 끈다 — 두 칸이 다 차야 「다음」이 켜지고, 모양은 서버 액션이 칸 아래에 알린다.
+    <form action={formAction} noValidate className="flex flex-1 flex-col">
       <AuthScreen
         eyebrow={<JoinSteps via="code" step="초대 코드" />}
         title="초대 코드 입력"

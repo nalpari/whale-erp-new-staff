@@ -6,6 +6,8 @@ import { AddressSearchSheet } from "@/app/_components/address-search-sheet";
 import { NewPasswordFields } from "@/app/_components/new-password-fields";
 import { ReadOnlyField } from "@/app/_components/read-only-field";
 import { RequiredMark } from "@/app/_components/required-mark";
+import { useFieldCheck } from "@/app/_components/use-field-check";
+import { isEmailShape } from "@/lib/email-change";
 import { normalizeBirthDate } from "@/lib/email-find";
 import { SIGNUP_NAME_MAX, formatPhone, kstToday, needsBirthDateCheck, type SignupField } from "@/lib/join";
 import { ADDRESS_DETAIL_MAX, dateLabel } from "@/lib/profile";
@@ -61,6 +63,20 @@ export function SignupForm({
   const formRef = useRef<HTMLFormElement>(null);
   const confirmedBirthDate = useRef<string | null>(null);
   const [birthCheck, setBirthCheck] = useState({ open: false, birthDate: "" });
+  // 브라우저 말풍선 대신 칸 아래 문구(use-field-check). 빈 칸 · 이메일 모양만 거르고(문구는 서버 액션과 같다) 나머지는 서버 액션이 거른다.
+  const fields = useFieldCheck((data) => {
+    const text = (name: string) => String(data.get(name) ?? "").trim();
+    const mail = text("email");
+    return {
+      name: text("name") ? undefined : "이름을 입력해 주세요",
+      birthDate: text("birthDate") ? undefined : "생년월일을 입력해 주세요",
+      gender: text("gender") ? undefined : "성별을 선택해 주세요",
+      email: !mail ? "이메일을 입력해 주세요" : isEmailShape(mail) ? undefined : "이메일 형식을 확인해 주세요",
+      newPassword: data.get("newPassword") ? undefined : "비밀번호를 입력해 주세요",
+      newPasswordConfirmation: data.get("newPasswordConfirmation") ? undefined : "비밀번호 확인을 입력해 주세요",
+      address: text("address") ? undefined : "주소를 검색해 선택해 주세요",
+    };
+  });
 
   if (state.step === "ended") return <EndedInvitation />;
   if (state.step === "joined") return <JoinedInvitation />;
@@ -70,12 +86,15 @@ export function SignupForm({
   if (state.step === "locked") return <CodeLocked lock={state} />;
 
   const failed = state.step === "input" ? state : null;
-  const errorOf = (field: SignupField) => (failed?.field === field ? failed.error : undefined);
+  const errorOf = (field: SignupField) => fields.messageOf(field, failed?.field === field ? failed.error : undefined);
   return (
     <form
       ref={formRef}
       action={formAction}
+      noValidate
+      onChange={fields.clear}
       onSubmit={(event) => {
+        if (!fields.check(event)) return;
         const value = normalizeBirthDate(birthDate);
         if (value === confirmedBirthDate.current || !needsBirthDateCheck(value, kstToday())) return;
         event.preventDefault();
@@ -134,8 +153,16 @@ export function SignupForm({
             help="가입 후에는 변경할 수 없으니 정확히 입력해 주세요."
             error={errorOf("birthDate")}
           />
-          <Choice label={<>성별<RequiredMark announce={false} /></>} error={errorOf("gender")}>
-            <SegmentedControl label="성별 필수" items={genders} value={gender} onChange={setGender} />
+          <Choice anchor="gender" label={<>성별<RequiredMark announce={false} /></>} error={errorOf("gender")}>
+            <SegmentedControl
+              label="성별 필수"
+              items={genders}
+              value={gender}
+              onChange={(value) => {
+                setGender(value);
+                fields.dismiss("gender");
+              }}
+            />
           </Choice>
           <Choice label={<>외국인 여부<RequiredMark announce={false} /></>}>
             <SegmentedControl label="외국인 여부 필수" items={FOREIGNER} value={foreigner} onChange={setForeigner} />
@@ -165,7 +192,7 @@ export function SignupForm({
         />
 
         <SectionTitle title="주소" />
-        <div className="flex flex-col gap-[16px]">
+        <div className="flex flex-col gap-[16px]" data-field-anchor="address">
           <ReadOnlyField
             label={<>주소<RequiredMark /></>}
             value={picked.address ? `(${picked.zipCode}) ${picked.address}` : ""}
@@ -219,6 +246,7 @@ export function SignupForm({
         onClose={() => setSearching(false)}
         onPick={(found) => {
           setPicked(found);
+          fields.dismiss("address");
           setSearching(false);
         }}
       />
@@ -227,9 +255,9 @@ export function SignupForm({
 }
 
 /** 고르는 칸(성별 · 외국인 여부)의 이름과 오류. 입력칸(TextField)과 같은 이름 글자 · 오류 글자다. */
-function Choice({ label, error, children }: { label: ReactNode; error?: string; children: ReactNode }) {
+function Choice({ anchor, label, error, children }: { anchor?: string; label: ReactNode; error?: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-[8px]">
+    <div className="flex flex-col gap-[8px]" data-field-anchor={anchor}>
       <p className="text-[13px] font-semibold text-staff-text-sub">{label}</p>
       {children}
       {error && <p className="text-[12px] text-staff-error">{error}</p>}

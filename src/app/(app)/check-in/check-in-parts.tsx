@@ -22,7 +22,7 @@ export function GeoMap({ tone, caption }: { tone: "in" | "out"; caption: string 
         }`}
       />
       <div className={`absolute top-[79.5px] left-[calc(50%+16px)] rounded-[14px] bg-white p-[12px] drop-shadow-[0_4px_8px_rgba(25,48,101,0.08)] ${out ? "opacity-60" : ""}`}>
-        <Image src="/icons/store.svg" alt="" width={20} height={20} className="-scale-y-100" />
+        <span className="flex text-staff-primary"><MaskIcon src="/icons/store-line.svg" size={20} /></span>
       </div>
       {out ? (
         <div className="absolute top-[24px] left-[calc(50%+120px)] size-[15px] rounded-full border-2 border-white bg-[#f59e0b] shadow-[0_0_0_5px_rgba(245,158,11,0.22)]" />
@@ -53,7 +53,8 @@ export function GeoBlank({ tone, text }: { tone: "muted" | "warning" | "error"; 
 export function SiteCard({ title, sub }: { title: string; sub?: string }) {
   return (
     <section className="flex items-center gap-[8px] rounded-[18px] border border-[#dce4ff] bg-[#eef2ff] p-[20px]">
-      <Image src="/icons/pin.svg" alt="" width={14} height={16} className="-scale-y-100" />
+      {/* 근무지 이름 앞 아이콘은 앱 전체 점포 아이콘(store-line)으로 하나(2026-11-23 사용자 지정 — 전엔 화면마다 위치 핀 · 채운 점포 등 달랐다) */}
+      <span className="flex text-staff-primary"><MaskIcon src="/icons/store-line.svg" size={18} /></span>
       <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
         <p className="truncate text-[16px] font-bold">{title}</p>
         {sub && <p className="text-[12px] text-staff-primary">{sub}</p>}

@@ -62,12 +62,7 @@ const geoMap = (tone, caption) => {
     "absolute top-[-0.5px] left-[calc(50%-116px)]",
   )}${img("map-road-2.svg", 364, 136.5, "absolute top-[62.5px] left-[-1px] h-[136.5px] w-[calc(100%+6px)] max-w-none")}<div class="absolute top-[36.5px] left-[calc(50%-27px)] size-[130px] rounded-full border border-dashed ${
     tone === "out" ? "border-[#b6c1d5] bg-[rgba(182,193,213,0.12)]" : "border-[rgba(49,93,245,0.44)] bg-[rgba(49,93,245,0.07)]"
-  }"></div><div class="absolute top-[79.5px] left-[calc(50%+16px)] rounded-[14px] bg-white p-[12px] drop-shadow-[0_4px_8px_rgba(25,48,101,0.08)] ${tone === "out" ? "opacity-60" : ""}">${img(
-    "store.svg",
-    20,
-    20,
-    "-scale-y-100",
-  )}</div>${
+  }"></div><div class="absolute top-[79.5px] left-[calc(50%+16px)] rounded-[14px] bg-white p-[12px] drop-shadow-[0_4px_8px_rgba(25,48,101,0.08)] ${tone === "out" ? "opacity-60" : ""}"><span class="flex text-staff-primary">${maskIcon("store-line.svg", 20)}</span></div>${
     tone === "in"
       ? `<div class="absolute top-[115.84px] left-[calc(50%+55.44px)] size-[15px] rounded-full border-2 border-white bg-staff-primary shadow-[0_0_0_5px_rgba(31,63,122,0.2)]"></div>`
       : ""
@@ -87,12 +82,7 @@ const geoBlank = (iconClass, text) =>
 
 // 근무지 카드(Figma node 12:957): 연한 남보라. 근무 중 카드도 같은 판 — 남보라는 「지금 근무 중」이다.
 const siteCard = (title, sub, action = "") =>
-  `<section class="flex items-center gap-[8px] rounded-[18px] border border-[#dce4ff] bg-[#eef2ff] p-[20px]">${img(
-    "pin.svg",
-    14,
-    16,
-    "-scale-y-100",
-  )}<div class="flex min-w-0 flex-1 flex-col gap-[2px]"><p class="truncate text-[16px] font-bold">${title}</p><p class="text-[12px] text-staff-primary">${sub}</p></div>${action}</section>`;
+  `<section class="flex items-center gap-[8px] rounded-[18px] border border-[#dce4ff] bg-[#eef2ff] p-[20px]"><span class="flex text-staff-primary">${maskIcon("store-line.svg", 18)}</span><div class="flex min-w-0 flex-1 flex-col gap-[2px]"><p class="truncate text-[16px] font-bold">${title}</p><p class="text-[12px] text-staff-primary">${sub}</p></div>${action}</section>`;
 
 // 시각 블록: 라벨 13px semibold · 42px bold. dim 은 출근할 수 없는 상태라 흐린 글자.
 const clock = (label, time, { note, dim = false } = {}) =>
@@ -227,11 +217,7 @@ const VIEWS = {
 
   nosite: () =>
     body(
-      `<div class="flex flex-1 flex-col items-center justify-center gap-[8px] pt-[76px]"><span class="flex text-staff-placeholder">${maskIcon(
-        "store.svg",
-        30,
-        true,
-      )}</span><h2 class="pt-[6px] text-[18px] font-bold">근무가 종료되었습니다</h2><p class="max-w-[250px] text-[14px] text-staff-text-sub">급여명세서는 보존 기간(3년) 동안<br>급여 탭에서 확인할 수 있습니다.</p></div>`,
+      `<div class="flex flex-1 flex-col items-center justify-center gap-[8px] pt-[76px]"><span class="flex text-staff-placeholder">${maskIcon("store-line.svg", 30)}</span><h2 class="pt-[6px] text-[18px] font-bold">근무가 종료되었습니다</h2><p class="max-w-[250px] text-[14px] text-staff-text-sub">급여명세서는 보존 기간(3년) 동안<br>급여 탭에서 확인할 수 있습니다.</p></div>`,
       { variant: "detail", center: true },
     ),
 };
@@ -251,8 +237,8 @@ const SHEETS = {
     bottomSheet(
       "hifar",
       {
-        title: "매장 범위 밖에서 출근하시겠습니까?",
-        description: "관리자 확인이 필요한 기록으로 남습니다.",
+        title: "현재 매장 범위 밖에 있습니다.",
+        description: "지금 출근하면 관리자 확인이 필요한 기록으로 남습니다.<br>출근하시겠습니까?",
         closeLabel: "취소",
         ...a,
       },
@@ -267,8 +253,8 @@ const SHEETS = {
     bottomSheet(
       "byefar",
       {
-        title: "매장 범위 밖에서 퇴근하시겠습니까?",
-        description: "관리자 확인이 필요한 기록으로 남습니다.<br>퇴근하면 오늘 근무가 종료됩니다.",
+        title: "현재 매장 범위 밖에 있습니다.",
+        description: "지금 퇴근하면 관리자 확인이 필요한 기록으로 남으며, 오늘 근무가 종료됩니다.<br>퇴근하시겠습니까?",
         closeLabel: "취소",
         ...a,
       },

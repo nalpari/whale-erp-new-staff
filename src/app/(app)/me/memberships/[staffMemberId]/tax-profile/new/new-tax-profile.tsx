@@ -4,7 +4,7 @@ import Link from "next/link";
 import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent } from "react";
 import { Alert, BottomSheet, Button, Card, Dock, MaskIcon, Notice } from "@/components/common";
 import { CardLabel } from "@/app/_components/read-only-field";
-import { PayrollAccountFields, RrnField } from "@/app/_components/tax-profile-fields";
+import { PayrollAccountFields, RrnField, focusTaxProfileField } from "@/app/_components/tax-profile-fields";
 import { TaxIdentity, TaxOwnerNotice } from "@/app/_components/tax-profile-parts";
 import type { CodeValue } from "@/lib/codes";
 import {
@@ -163,6 +163,7 @@ export function TaxProfileCreateForm({
     const checked = validateTaxProfileCreate(readTaxProfileForm(formData));
     if (!("body" in checked)) {
       setLocal(checked.problem);
+      if (checked.problem) focusTaxProfileField(event.currentTarget, checked.problem.field);
       return;
     }
     setLocal(undefined);
@@ -171,7 +172,8 @@ export function TaxProfileCreateForm({
   };
 
   return (
-    <form action={formAction} onSubmit={onSubmit} className="flex flex-1 flex-col" autoComplete="off">
+    // noValidate — 브라우저 말풍선 대신 onSubmit 이 거른 오류를 칸 아래에 보인다(2026-11-23 사용자 결정).
+    <form action={formAction} onSubmit={onSubmit} noValidate className="flex flex-1 flex-col" autoComplete="off">
       <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
         <div className="flex flex-col gap-[6px]">
           <h2 className="text-[22px] font-bold">주민등록번호와 급여 계좌</h2>
