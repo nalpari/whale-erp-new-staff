@@ -1,7 +1,7 @@
 // node --test src/lib/payslip-rules.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { filterYears, historyEntries, isItemShown, itemAmount, parsePayFilter, parsePayslipId, receivedMonthLabel } from "./payslip-rules.ts";
+import { filterYears, historyEntries, isItemShown, itemAmount, parsePayFilter, parsePayslipId, receivedMonthLabel, receivedYears } from "./payslip-rules.ts";
 import type { PayslipItem, PayslipLog } from "./payslips.ts";
 
 const log = (payslipLogId: number, logType: PayslipLog["logType"], changedAt: string): PayslipLog => ({ payslipLogId, logType, changedAt });
@@ -62,4 +62,11 @@ test("명세서 번호는 1..2147483647 의 맨 숫자만 — 주소를 더럽�
   for (const raw of ["0", "01", "-1", "1.5", "1e3", " 1", "", "2147483648", "../me", "1/pdf", "1?x", "1\n"]) {
     assert.equal(parsePayslipId(raw), null, JSON.stringify(raw));
   }
+});
+
+test("받은 해만 고른다 — 보관 범위 안, 최신순, 없으면 올해 하나", () => {
+  const allowed = [2026, 2025, 2024, 2023];
+  assert.deepEqual(receivedYears(["2026-11-01", "2026-10-01"], allowed), [2026]);
+  assert.deepEqual(receivedYears(["2024-12-01", "2026-01-01", "2022-05-01"], allowed), [2026, 2024]);
+  assert.deepEqual(receivedYears([], allowed), [2026]);
 });

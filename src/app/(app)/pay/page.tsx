@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Button, PageHeader } from "@/components/common";
-import { filterYears, formatWon, monthLabel, parsePayFilter, receivedMonthLabel, sentDateLabel } from "@/lib/payslip-rules";
+import { filterYears, formatWon, receivedYears, monthLabel, parsePayFilter, receivedMonthLabel, sentDateLabel } from "@/lib/payslip-rules";
+import { getMyMemberships } from "@/lib/my-profile";
 import { getPayslips } from "@/lib/payslips";
+import { WorkplaceBox } from "@/app/_components/workplace-box";
 import { requireSession } from "@/lib/session";
 import { AboutSheet } from "./_components/about-sheet";
 import { CorrectingBadge } from "./_components/correcting-badge";
@@ -21,9 +23,43 @@ export const metadata: Metadata = { title: "급여 · Whale ERP" };
 export default async function PayPage({ searchParams }: PageProps<"/pay">) {
   await requireSession();
   const raw = await searchParams;
-  const years = filterYears();
+  const storeOnly = parsePayFilter(raw, filterYears()).storeId;
+  // 내 정보 › 내 근무지의 [급여명세서]로 왔으면(?from=sites&store=) 그 근무지 명세서만 모든 연도로, 맨 위 전체 합계 카드 · 칩 대신 근무지 상자,
+  // 뒤로 가기는 내 근무지(근로계약서 목록과 같은 방식, 2026-11-23 사용자 지정). 하단 급여 탭으로 오면 지금 화면 그대로다.
+  const site = raw.from === "sites" && storeOnly !== undefined ? storeOnly : null;
+  // 연도는 받은 명세서가 있는 해만 고른다(보관 3년 안) — 고정 4년(올해 ~ 3년 전)이면 서비스 전 해가 늘 빈 목록으로 보였다(2026-11-23 사용자 지정).
+  // 그래서 연도 없이 한 번 받아 화면에서 거른다. 받은 해가 없으면 올해 하나.
+  const all = await getPayslips({ storeId: storeOnly });
+  const years = receivedYears(
+    all.items.map((p) => p.periodStartDate),
+    filterYears(),
+  );
   const filter = parsePayFilter(raw, years);
-  const { thisMonth, stores, items } = await getPayslips(filter);
+  const { thisMonth, stores } = all;
+  const items = site === null ? all.items.filter((p) => Number(p.periodStartDate.slice(0, 4)) === filter.year) : all.items;
+  const siteName =
+    site === null
+      ? null
+      : (stores.find((x) => x.storeId === site)?.storeName ??
+        (await getMyMemberships(true))?.items.find((m) => m.store.storeId === site)?.store.storeName ??
+        "");
+  if (site !== null)
+    return (
+      <PayFrame header={<PageHeader title="급여명세서" backHref="/me/memberships" />}>
+        {siteName && <WorkplaceBox name={siteName} />}
+        <section className="flex flex-col rounded-[20px] border border-staff-border-light bg-white p-[20px]">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[13px] font-semibold text-staff-text-sub">명세서</h2>
+            <span className="text-[12px] text-staff-text-muted">{items.length}건</span>
+          </div>
+          {items.length > 0 ? (
+            <PayslipRows items={items} />
+          ) : (
+            <p className="pt-[24px] pb-[6px] text-center text-[14px] text-staff-text-sub">이 근무지에서 받은 급여명세서가 없습니다</p>
+          )}
+        </section>
+      </PayFrame>
+    );
 
   return (
     <PayFrame header={<PageHeader title="급여" backHref="/home" action={<AboutSheet />} />}>
@@ -55,28 +91,7 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
             </div>
             <PayFilter stores={stores} years={years} storeId={filter.storeId} year={filter.year} />
             {items.length > 0 ? (
-              <ul className="divide-y divide-staff-border-light pt-[4px]">
-                {items.map((p) => (
-                  <li key={p.payslipId}>
-                    <Link
-                      href={`/pay/${p.payslipId}`}
-                      transitionTypes={["nav-forward"]}
-                      className="flex min-h-[44px] w-full items-center gap-[12px] py-[17px] text-left transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-staff-primary-inactive"
-                    >
-                      <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="truncate text-[15px] font-semibold">{monthLabel(p.periodStartDate)}</span>
-                        <span className="truncate pt-[2px] text-[12px] text-staff-text-sub">{rowLabel(p.storeName, p.sentAt)}</span>
-                      </span>
-                      {p.correcting || p.netPayAmount === null ? (
-                        // 보낸 뒤 확정을 취소해 고치는 중 — 금액은 다시 받을 때까지 보이지 않는다
-                        <CorrectingBadge />
-                      ) : (
-                        <span className="shrink-0 text-[13.5px] tabular-nums">{formatWon(p.netPayAmount)}원</span>
-                      )}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <PayslipRows items={items} />
             ) : (
               <div className="flex flex-col items-center gap-[10px] pt-[24px] pb-[6px] text-center">
                 {/* 처음 필터(전체 근무지 · 올해)에서 비면 지울 필터가 없다 — 1월에 지난해 12월분만 받은 경우 등. 연도를 바꾸게 한다. */}
@@ -117,6 +132,34 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
         </div>
       )}
     </PayFrame>
+  );
+}
+
+/** 명세서 줄 — 급여 탭 · 내 근무지에서 온 근무지 목록이 같이 쓴다 */
+function PayslipRows({ items }: { items: Awaited<ReturnType<typeof getPayslips>>["items"] }) {
+  return (
+    <ul className="divide-y divide-staff-border-light pt-[4px]">
+      {items.map((p) => (
+        <li key={p.payslipId}>
+          <Link
+            href={`/pay/${p.payslipId}`}
+            transitionTypes={["nav-forward"]}
+            className="flex min-h-[44px] w-full items-center gap-[12px] py-[17px] text-left transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-staff-primary-inactive"
+          >
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate text-[15px] font-semibold">{monthLabel(p.periodStartDate)}</span>
+              <span className="truncate pt-[2px] text-[12px] text-staff-text-sub">{rowLabel(p.storeName, p.sentAt)}</span>
+            </span>
+            {p.correcting || p.netPayAmount === null ? (
+              // 보낸 뒤 확정을 취소해 고치는 중 — 금액은 다시 받을 때까지 보이지 않는다
+              <CorrectingBadge />
+            ) : (
+              <span className="shrink-0 text-[13.5px] tabular-nums">{formatWon(p.netPayAmount)}원</span>
+            )}
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 

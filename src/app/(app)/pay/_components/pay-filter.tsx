@@ -36,6 +36,7 @@ export function PayFilter({
           on={storeId !== undefined}
           onClick={() => setOpen("store")}
         />
+        {/* 연도 칩은 늘 둔다 — 고를 수 있는 해는 받은 명세서가 있는 해만(2026-11-23 사용자 지정) */}
         <Chip label={`${year}년`} on={year !== years[0]} onClick={() => setOpen("year")} />
       </div>
       <BottomSheet

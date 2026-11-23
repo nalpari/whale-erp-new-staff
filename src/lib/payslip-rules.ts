@@ -78,6 +78,13 @@ export function filterYears(now: Date = new Date()): number[] {
   return [0, 1, 2, 3].map((n) => thisYear - n);
 }
 
+/** 받은 명세서의 급여 기간 연도 가운데 고를 수 있는 해(보관 범위 allowed 안), 최신순. 하나도 없으면 allowed 의 첫해(올해) 하나. */
+export function receivedYears(periodStartDates: readonly string[], allowed: readonly number[]): number[] {
+  const got = new Set(periodStartDates.map((d) => Number(d.slice(0, 4))));
+  const years = allowed.filter((y) => got.has(y));
+  return years.length > 0 ? years : [allowed[0]];
+}
+
 /** 주소의 점포 · 연도 필터. 숫자가 아니거나 고를 수 없는 연도면 없는 것으로 본다(연도는 올해). */
 export function parsePayFilter(
   raw: { store?: string | string[]; year?: string | string[] },

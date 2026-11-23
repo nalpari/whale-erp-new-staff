@@ -278,7 +278,7 @@ export default async function MembershipsPage({ searchParams }: PageProps<"/me/m
                         {/* 그 근무지 계약서만(ME-7 · TAX-8) — 앱 전역에서 고른 근무지와 관계없다 */}
                         <ActionCell icon="/icons/doc-line.svg" label="근로계약서" href={`/contracts?store=${m.store.storeId}`} />
                         {/* 그 근무지 급여명세서만 — 급여 화면의 점포 칩(?store=)으로 거른다(2026-11-23 사용자 지정, 전엔 api 가 없어 막힌 「준비 중」 칸) */}
-                        <ActionCell icon="/icons/payslip-line.svg" label="급여명세서" href={`/pay?store=${m.store.storeId}`} />
+                        <ActionCell icon="/icons/payslip-line.svg" label="급여명세서" href={`/pay?from=sites&store=${m.store.storeId}`} />
                       </div>
                     )}
                   </li>
