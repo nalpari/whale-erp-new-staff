@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent } from "react";
-import { Alert, BottomSheet, Button, Card, Dock, MaskIcon, Notice } from "@/components/common";
-import { CardLabel } from "@/app/_components/read-only-field";
+import { Alert, BottomSheet, Button, Dock, IconTile, MaskIcon, Notice } from "@/components/common";
 import { PayrollAccountFields, RrnField, focusTaxProfileField } from "@/app/_components/tax-profile-fields";
 import { TaxIdentity, TaxOwnerNotice } from "@/app/_components/tax-profile-parts";
 import type { CodeValue } from "@/lib/codes";
@@ -20,10 +19,10 @@ import {
 // 날인 뒤 신고 정보 처음 넣기(WHALEERP-150). 기준: 데모 docs/demo/tax 의 intro · form · why. 건너뛰는 길을 두지 않는다(TAX-4) —
 // 안내에도 입력에도 「나중에」 버튼이 없다. 앱 전체를 막지는 않는다(2026-10-28 김민식: 흐름 안에서만 막기).
 
-const PURPOSES = [
-  { icon: "/icons/shield.svg", flipY: true, title: "4대보험 신고(가입 대상인 경우)", sub: "국민연금 · 건강보험 · 고용보험 · 산재보험" },
-  { icon: "/icons/contract.svg", flipY: false, title: "근로소득 원천징수", sub: "급여에서 공제한 세금 신고" },
-  { icon: "/icons/nav-pay.svg", flipY: false, title: "급여 지급", sub: "매달 급여를 받을 계좌" },
+// 입력할 정보 두 가지와 쓰는 곳 — 칸마다 근거를 따로 알린다(TAX-08). 전엔 「이용 목적」 세 줄이라 입력 칸과 이어지지 않았다(2026-11-23 사용자 지정).
+const FIELDS = [
+  { title: "주민등록번호", sub: "4대보험 신고(가입 대상인 경우) · 근로소득 원천징수" },
+  { title: "급여 계좌", sub: "매달 급여 이체" },
 ];
 
 /** 끝 글자에 받침이 있는지 — 닫는 괄호 · 따옴표 · 공백은 건너뛴다. 숫자는 읽는 소리(영 · 일 · 삼 · 육 · 칠 · 팔 · 십은 받침), 영문 등 판단할 수 없으면 null. */
@@ -45,56 +44,65 @@ const withGwa = (name: string) => {
 /** 안내(데모 intro). formHref 는 입력 단계(`?step=form`). */
 export function TaxProfileIntro({ storeName, formHref, signed }: { storeName: string; formHref: string; signed: boolean }) {
   const [why, setWhy] = useState(false);
+  // 정돈(2026-11-23 사용자 지정): 흰 바탕 · 입력할 정보 두 줄 · 암호화 안내는 상자 없이 · [입력하기]는 안내 바로 아래.
+  // 「입력해야 일을 시작할 수 있습니다」는 뺐다 — 입력하지 않아도 앱 사용을 막지 않는다.
   return (
     <>
-      <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
+      <div className="flex flex-1 flex-col justify-center gap-[24px] bg-white px-[24px] pt-[20px] pb-[32px] leading-[1.5] break-keep">
         <div className="flex flex-col items-center gap-[8px] text-center">
-          <span className="text-staff-text-sub">
-            <MaskIcon src="/icons/id-card-line.svg" size={28} />
+          <span className="mb-[6px] flex">
+            <IconTile src="/icons/id-card-line.svg" size={44} />
           </span>
-          <h2 className="text-[22px] font-bold">신고 정보를 입력해 주세요</h2>
-          <p className="text-[14px] break-keep text-staff-text-sub">
+          <h2 className="text-[20px] font-bold">신고 정보를 입력해 주세요</h2>
+          <p className="text-[14px] text-staff-text-sub">
             {/* 「근로계약이 완료되었습니다」는 서명 완료 화면에서 넘어왔을 때만 — 내 정보에서 서명 전에 들어오면 사실과 달라진다(PR #73 리뷰) */}
-            {signed ? <>{withGwa(storeName)} 근로계약이 완료되었습니다.</> : <><strong className="text-staff-text">{storeName}</strong>에 제출할 정보입니다.</>}
-            <br />
-            {/* 아래 「이용 목적」이 원천징수 · 4대보험을 풀어 말하므로 여기는 한 줄로 줄인다(2026-11-23 사용자 지정 — 「필요/한」으로 꺾였다) */}
-            급여 지급과 신고에 필요한 정보입니다.
+            {signed ? (
+              <>{withGwa(storeName)} 근로계약이 완료되었습니다.</>
+            ) : (
+              <>
+                <strong className="text-staff-text">{storeName}</strong>에 제출할 정보입니다.
+              </>
+            )}
           </p>
         </div>
-        <Card>
-          <CardLabel>이용 목적</CardLabel>
-          <ul className="flex flex-col divide-y divide-staff-border-light pt-[10px]">
-            {PURPOSES.map((p) => (
-              <li key={p.title} className="flex items-center gap-[12px] py-[10px] first:pt-0 last:pb-0">
-                <span className="text-staff-text-sub">
-                  <MaskIcon src={p.icon} size={20} flipY={p.flipY} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[14px] font-semibold">{p.title}</span>
-                  <span className="block text-[12px] text-staff-text-sub">{p.sub}</span>
-                </span>
+        <section className="rounded-[16px] border border-staff-border-light px-[18px] py-[14px]">
+          <p className="text-[13px] text-staff-text-sub">입력할 정보</p>
+          <ul className="flex flex-col divide-y divide-staff-border-light">
+            {FIELDS.map((f) => (
+              <li key={f.title} className="py-[12px] last:pb-[2px]">
+                <span className="block text-[15px] font-semibold">{f.title}</span>
+                <span className="block text-[13px] text-staff-text-sub">{f.sub}</span>
               </li>
             ))}
           </ul>
-        </Card>
-        <Notice icon={<MaskIcon src="/icons/shield.svg" size={14} flipY />}>
-          입력한 정보는 <strong>암호화해 보관</strong>합니다.
-          <br />
-          관리자에게 주민등록번호는 일부를 가린 형태로만 보이고, 급여 계좌는 급여를 이체하도록 그대로 보입니다. 신고 서류를 만들고 급여를 이체할 때만 사용합니다.
-        </Notice>
-        <Button variant="ghost" onClick={() => setWhy(true)}>
-          주민등록번호를 따로 받는 이유
-        </Button>
+        </section>
+        <p className="flex gap-[8px] text-[13px] text-staff-text-sub">
+          <span className="mt-[3px] flex shrink-0 text-staff-text-sub">
+            <MaskIcon src="/icons/shield.svg" size={14} flipY />
+          </span>
+          <span>
+            입력한 정보는 <strong className="text-staff-text">암호화하여 안전하게 보관</strong>합니다.
+            <br />
+            관리자에게는 주민등록번호 일부만 표시되며, 급여 계좌는 급여 이체를 위해 전체 정보가 표시됩니다.
+          </span>
+        </p>
+        <div className="flex flex-col items-center gap-[12px]">
+          <span className="w-full">
+            <Button href={formHref} transitionTypes={["nav-forward"]}>
+              입력하기
+            </Button>
+          </span>
+          <button
+            type="button"
+            onClick={() => setWhy(true)}
+            className="flex items-center gap-[2px] py-[4px] text-[13px] text-staff-text-sub underline underline-offset-[3px]"
+          >
+            주민등록번호를 따로 받는 이유
+          </button>
+        </div>
       </div>
-      <Dock>
-        <Button href={formHref} transitionTypes={["nav-forward"]}>
-          <MaskIcon src="/icons/pencil.svg" size={14} />
-          입력하기
-        </Button>
-        <p className="py-[2px] text-center text-[12px] text-staff-text-muted">신고 정보를 입력해야 이 근무지에서 일을 시작할 수 있습니다</p>
-      </Dock>
       <BottomSheet open={why} onClose={() => setWhy(false)} title="주민등록번호를 따로 받는 이유">
-        <div className="flex flex-col gap-[12px] text-[14px] text-staff-text-sub">
+        <div className="flex flex-col gap-[12px] text-[14px] break-keep text-staff-text-sub">
           <p>
             근로계약서에는 임금·근로시간·휴일·연차 같은 근로조건만 기재합니다.
             <br />
