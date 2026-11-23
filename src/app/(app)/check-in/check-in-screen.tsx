@@ -18,13 +18,13 @@ import {
   type ReviewReason,
 } from "@/lib/attendance-rules";
 import { kstToday, stampLabel } from "@/lib/attendance-history";
+import { browserLocation, readDeviceLocation } from "@/lib/device-location";
 import type { AttendanceRecordResult, MyAttendance } from "@/lib/my-attendance";
 import { nocontractHref, type CheckInSignWaiting } from "@/lib/sign-request";
 import { changeConsentAction } from "../me/actions";
 import { recordLocationReadAction, registerAttendanceAction } from "./actions";
 import { Clock, GeoBlank, GeoMap, SiteCard, Sunken, Values } from "./check-in-parts";
 import { KakaoGeoMap } from "./kakao-map";
-import { browserLocation, readDeviceLocation } from "@/lib/device-location";
 
 /**
  * 휴대전화 위치. 출퇴근 탭에 들어올 때와 출근 · 퇴근 버튼을 누를 때 읽는다(ATT-22 v229, 2026-10-28 재영). 탭에서 읽은 위치는 지도에
