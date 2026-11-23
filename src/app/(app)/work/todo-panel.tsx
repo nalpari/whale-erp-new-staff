@@ -213,7 +213,7 @@ export function TodoPanel({
   };
 
   return (
-    <div className="flex flex-col gap-[20px]">
+    <div className="flex flex-1 flex-col gap-[20px]">
       {stores.length > 1 && (
         <SegmentedControl
           label="근무지"
@@ -242,10 +242,12 @@ export function TodoPanel({
         })}
       </div>
       {status.error && !open && <Alert tone="warning">{status.error}</Alert>}
-      {/* 목록은 흰 상자 안에 — 회색 바탕에 줄만 있으면 비어 보였다(2026-11-23 사용자 지정). 근무스케줄 목록 · 급여명세서 목록 상자와 같은 모양 */}
-      <section className="rounded-[20px] border border-staff-border-light bg-white px-[20px]">
+      {/* 목록은 흰 상자 안에, 상자는 화면 남는 높이를 채운다 — 회색 바탕에 줄만 있거나 비었을 때 아래가 휑했다(2026-11-23 사용자 지정) */}
+      <section className="flex flex-1 flex-col rounded-[20px] border border-staff-border-light bg-white px-[20px]">
         {listed.length === 0 ? (
-          <p className="py-[40px] text-center text-[14px] leading-[1.5] text-staff-text-sub">{EMPTY_TEXT[statusFilter]}</p>
+          <p className="flex flex-1 items-center justify-center py-[40px] text-center text-[14px] leading-[1.5] text-staff-text-sub">
+            {EMPTY_TEXT[statusFilter]}
+          </p>
         ) : (
           <TodoRows todos={listed} now={now} status={status} staffMemberId={staffMemberId} onOpen={handleOpen} checkOpens />
         )}
