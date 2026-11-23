@@ -75,9 +75,10 @@ export function TaxOwnerNotice({ noConsent = false }: { noConsent?: boolean }) {
  * 가입 계정의 이름 · 생년월일(데모 form 의 sunken). 보기만 한다 — 주민등록번호 앞자리와 맞춰 보는 것은 rrnBirthMismatch(화면) · api
  * (RRN_BIRTH_MISMATCH)다(운영 정책 TAX-09). birthDate 는 표시용 글자.
  */
+// 주민등록번호 칸 바로 위에 흰 상자로 둔다 — 생년월일을 보면서 번호를 넣게(2026-11-23 사용자 지정). 앞자리 안내는 주민등록번호 칸 아래로 옮겼다.
 export function TaxIdentity({ realName, birthDate }: { realName: string; birthDate: string }) {
   return (
-    <Sunken>
+    <div className="w-full rounded-[12px] border border-staff-border-light bg-white p-[14px]">
       <Values
         flush
         rows={[
@@ -85,11 +86,7 @@ export function TaxIdentity({ realName, birthDate }: { realName: string; birthDa
           ["생년월일", birthDate],
         ]}
       />
-      <p className="pt-[8px] text-[12px] text-staff-text-muted">
-        가입할 때 입력한 정보입니다.
-        <br />
-        주민등록번호 앞자리가 생년월일과 다르면 등록할 수 없습니다.
-      </p>
-    </Sunken>
+      <p className="pt-[8px] text-[12px] text-staff-text-muted">가입할 때 입력한 정보입니다.</p>
+    </div>
   );
 }

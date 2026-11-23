@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent } from "react";
-import { Alert, BottomSheet, Button, Dock, IconTile, MaskIcon, Notice } from "@/components/common";
+import { Alert, Button, Dock, IconTile, MaskIcon } from "@/components/common";
 import { PayrollAccountFields, RrnField, focusTaxProfileField } from "@/app/_components/tax-profile-fields";
 import { TaxIdentity, TaxOwnerNotice } from "@/app/_components/tax-profile-parts";
 import type { CodeValue } from "@/lib/codes";
@@ -43,7 +43,6 @@ const withGwa = (name: string) => {
 
 /** 안내(데모 intro). formHref 는 입력 단계(`?step=form`). */
 export function TaxProfileIntro({ storeName, formHref, signed }: { storeName: string; formHref: string; signed: boolean }) {
-  const [why, setWhy] = useState(false);
   // 정돈(2026-11-23 사용자 지정): 흰 바탕 · 입력할 정보 두 줄 · 암호화 안내는 상자 없이 · [입력하기]는 안내 바로 아래.
   // 「입력해야 일을 시작할 수 있습니다」는 뺐다 — 입력하지 않아도 앱 사용을 막지 않는다.
   return (
@@ -86,36 +85,11 @@ export function TaxProfileIntro({ storeName, formHref, signed }: { storeName: st
             관리자에게는 주민등록번호 일부만 표시되며, 급여 계좌는 급여 이체를 위해 전체 정보가 표시됩니다.
           </span>
         </p>
-        <div className="flex flex-col items-center gap-[12px]">
-          <span className="w-full">
-            <Button href={formHref} transitionTypes={["nav-forward"]}>
-              입력하기
-            </Button>
-          </span>
-          <button
-            type="button"
-            onClick={() => setWhy(true)}
-            className="flex items-center gap-[2px] py-[4px] text-[13px] text-staff-text-sub underline underline-offset-[3px]"
-          >
-            주민등록번호를 따로 받는 이유
-          </button>
-        </div>
+        {/* [입력하기] 하나만 — 「주민등록번호를 따로 받는 이유」 링크 · 시트는 위 안내와 같은 말을 되풀이해 뺐다(2026-11-23 사용자 지정) */}
+        <Button href={formHref} transitionTypes={["nav-forward"]}>
+          입력하기
+        </Button>
       </div>
-      <BottomSheet open={why} onClose={() => setWhy(false)} title="주민등록번호를 따로 받는 이유">
-        <div className="flex flex-col gap-[12px] text-[14px] break-keep text-staff-text-sub">
-          <p>
-            근로계약서에는 임금·근로시간·휴일·연차 같은 근로조건만 기재합니다.
-            <br />
-            본인 확인은 이름과 생년월일로 충분합니다.
-          </p>
-          <p>
-            주민등록번호는 법령이 허용한 목적으로만 사용할 수 있습니다.
-            <br />
-            4대보험 신고와 원천징수 외에 쓰이지 않도록 계약서와 따로 수집합니다.
-          </p>
-          <Notice>관리자는 직원의 주민등록번호를 직접 입력하지 않습니다.</Notice>
-        </div>
-      </BottomSheet>
     </>
   );
 }
@@ -188,7 +162,9 @@ export function TaxProfileCreateForm({
           <h2 className="text-[22px] font-bold">주민등록번호와 급여 계좌</h2>
           <p className="text-[14px] text-staff-text-sub">신고와 급여 이체에 그대로 사용되니 정확히 입력해 주세요.</p>
         </div>
+        <TaxIdentity realName={realName} birthDate={birthDateLabel} />
         <RrnField
+          help="주민등록번호 앞자리는 생년월일과 같아야 합니다."
           front={rrnFront}
           back={rrnBack}
           onFrontChange={edit(setRrnFront)}
@@ -206,7 +182,6 @@ export function TaxProfileCreateForm({
           bankError={errorOf("bank")}
           accountError={errorOf("account")}
         />
-        <TaxIdentity realName={realName} birthDate={birthDateLabel} />
         {problem?.field === "form" && (
           <Alert tone="danger">
             <p>{problem.message}</p>
