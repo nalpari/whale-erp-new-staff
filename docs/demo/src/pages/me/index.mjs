@@ -332,8 +332,8 @@ const VIEWS = {
     const contactButton = (href, icon, text, aria, blank) =>
       `<a href="${href}"${blank ? ' target="_blank" rel="noopener noreferrer"' : ""} aria-label="${aria}" class="flex h-[36px] min-w-0 flex-1 items-center justify-center gap-[6px] rounded-[8px] border border-staff-border bg-white text-[13px] font-medium text-staff-text ${PRESS}"><span class="flex text-staff-text-sub">${maskIcon(icon, 15)}</span>${text}</a>`;
     // note: 이름 아래 작은 회색 한 줄(신고 정보 「급여 계좌 포함」, 앱 ActionCell, 2026-11-23 사용자 지정)
-    const actionCell = (icon, text, href, note = "") =>
-      `<a href="${href}" class="flex h-[76px] min-w-0 flex-1 flex-col items-center justify-center gap-[6px] pb-[12px] text-[13px] font-medium text-staff-text active:bg-staff-info-bg [&+&]:border-l [&+&]:border-staff-border-light ${PRESS}"><span class="flex text-staff-text-sub">${maskIcon(icon, 20)}</span><span class="relative">${text}${note ? `<span class="absolute top-full left-1/2 -translate-x-1/2 text-[11px] font-normal whitespace-nowrap text-staff-text-muted">${note}</span>` : ""}</span></a>`;
+    const actionCell = (icon, text, href) =>
+      `<a href="${href}" class="flex h-[72px] min-w-0 flex-1 flex-col items-center justify-center gap-[6px] text-[13px] font-medium text-staff-text active:bg-staff-info-bg [&+&]:border-l [&+&]:border-staff-border-light ${PRESS}"><span class="flex text-staff-text-sub">${maskIcon(icon, 20)}</span>${text}</a>`;
     const siteCard = (s) => {
       const retired = s.status === "retired";
       return `<li class="overflow-hidden rounded-[16px] border border-staff-border bg-white"><div class="flex flex-col gap-[10px] px-[20px] pt-[18px] pb-[14px]"><div class="flex items-start gap-[10px]"><h2 class="min-w-0 flex-1 text-[17px] font-bold break-keep ${retired ? "text-staff-text-sub" : ""}">${s.name}</h2>${
@@ -347,7 +347,7 @@ const VIEWS = {
       )}${contactButton(`tel:${s.phone.replace(/-/g, "")}`, "phone-call.svg", "전화하기", `${s.name} 전화하기 ${s.phone}`)}</div>`}</div></div>${
         retired
           ? ""
-          : `<div class="flex border-t border-staff-border-light">${actionCell("id-card-line.svg", "신고 정보", page("tax", "view"), "급여 계좌 포함")}${actionCell(
+          : `<div class="flex border-t border-staff-border-light">${actionCell("id-card-line.svg", "신고정보 · 계좌", page("tax", "view"))}${actionCell(
               "doc-line.svg",
               "근로계약서",
               page("contract", "list"),
