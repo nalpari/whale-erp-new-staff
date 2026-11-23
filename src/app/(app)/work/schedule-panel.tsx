@@ -128,7 +128,7 @@ export function SchedulePanel({
             {/* 근무가 없는 달은 눌러도 볼 것이 없어 안내를 빼고 아래 빈 상태만 둔다 */}
             {items.length > 0 && (
               <p className="border-t border-staff-border-light px-[4px] pt-[10px] text-[12px] text-staff-text-muted">
-                날짜를 누르면 그날 근무를 볼 수 있습니다.
+                날짜를 누르면 해당 날짜의 근무 일정을 확인할 수 있습니다.
               </p>
             )}
       </div>

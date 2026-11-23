@@ -2,7 +2,7 @@
 
 import { unstable_rethrow } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Alert, BottomSheet, Notice, SegmentedControl, SheetOption, StatusChip, TodoItem, TodoList } from "@/components/common";
+import { Alert, BottomSheet, Notice, SegmentedControl, StatusChip, TodoItem, TodoList } from "@/components/common";
 import {
   TODO_STATUS,
   TODO_STATUSES,
@@ -289,14 +289,26 @@ function TodoSheet({
   const performer = performerLine(todo);
   const shared = todo.executionMode === "ANY_ONE";
   const kind = (todo.isUrgent && todo.status !== "DONE") || shared;
+  const doneByOther = isDoneByOther(todo, staffMemberId);
   return (
-    <BottomSheet open={open} onClose={onClose} title={todo.title} description={todo.body ?? undefined} closeLabel={shared ? "확인" : undefined}>
-      {kind && (
-        <div className="flex gap-[4px]">
-          <KindChips todo={todo} />
-        </div>
-      )}
-      <dl className="grid grid-cols-[auto_1fr] items-center gap-x-[16px] gap-y-[6px] text-[14px] leading-[1.5]">
+    // 정돈(2026-11-23 사용자 지정): 긴급 · 공유는 제목 앞 배지, 수행 예정 · 근무지는 둥근 정보 상자, 상태는 「상태 변경」 한 줄 3칸.
+    // 상태 배지 줄은 3칸과 같은 말을 되풀이해 뺐다 — 다른 직원이 먼저 끝낸 공유 TO-DO 의 「완료됨」만 정보 상자에 남긴다.
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      title={todo.title}
+      heading={
+        kind ? (
+          <span className="flex flex-wrap items-center gap-[6px]">
+            <KindChips todo={todo} />
+            <span>{todo.title}</span>
+          </span>
+        ) : undefined
+      }
+      description={todo.body ?? undefined}
+      closeLabel={shared ? "확인" : undefined}
+    >
+      <dl className="grid grid-cols-[auto_1fr] items-center gap-x-[16px] gap-y-[6px] rounded-[12px] border border-staff-border-light px-[16px] py-[12px] text-[14px] leading-[1.5]">
         <dt className="text-staff-text-sub">수행 예정</dt>
         <dd>{dueLabel(todo)}</dd>
         {showStore && (
@@ -305,21 +317,41 @@ function TodoSheet({
             <dd>{todo.storeName ?? "이름 없는 근무지"}</dd>
           </>
         )}
-        <dt className="text-staff-text-sub">상태</dt>
-        <dd className="flex">
-          <StateChip todo={todo} staffMemberId={staffMemberId} />
-        </dd>
+        {doneByOther && (
+          <>
+            <dt className="text-staff-text-sub">상태</dt>
+            <dd className="flex">
+              <StateChip todo={todo} staffMemberId={staffMemberId} />
+            </dd>
+          </>
+        )}
       </dl>
       {performer && <p className="text-[13px] leading-[1.5] text-staff-text-sub">{performer}</p>}
       {shared && <Notice>먼저 완료 처리한 사람이 수행자로 기록됩니다.</Notice>}
       {error && <Alert tone="warning">{error}</Alert>}
-      {/* 상태 바꾸기는 데모의 「완료로 표시」 하나가 아니라 세 가지 그대로 둔다 — 직원이 진행 중을 고를 곳이 여기뿐이다 */}
-      <div role="group" aria-label="상태 바꾸기" className="flex flex-col gap-[8px]">
-        {TODO_STATUSES.map((s) => (
-          <SheetOption key={s} selected={todo.status === s} disabled={pending} onClick={() => change(todo.todoId, s)}>
-            {TODO_STATUS[s].label}
-          </SheetOption>
-        ))}
+      {/* 상태 바꾸기는 세 가지 그대로 둔다 — 직원이 진행 중을 고를 곳이 여기뿐이다 */}
+      <div className="flex flex-col gap-[8px]">
+        <p className="text-[14px] font-semibold">상태 변경</p>
+        <div role="group" aria-label="상태 변경" className="grid grid-cols-3 gap-[8px]">
+          {TODO_STATUSES.map((s) => {
+            const on = todo.status === s;
+            return (
+              <button
+                key={s}
+                type="button"
+                aria-pressed={on}
+                disabled={pending}
+                onClick={() => change(todo.todoId, s)}
+                className={`flex min-h-[48px] items-center justify-center gap-[4px] rounded-[12px] border text-[14px] font-semibold disabled:opacity-60 ${
+                  on ? "border-staff-primary bg-staff-primary-inactive text-staff-primary" : "border-staff-border bg-white text-staff-text"
+                }`}
+              >
+                {TODO_STATUS[s].label}
+                {on && <span aria-hidden>✓</span>}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </BottomSheet>
   );

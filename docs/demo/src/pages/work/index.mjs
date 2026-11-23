@@ -133,7 +133,7 @@ const schedule = () =>
     nextLabel: "다음 달",
     prevAttrs: { "data-toast": "8월로 옮겼습니다" },
     nextAttrs: { "data-toast": "10월로 옮겼습니다" },
-  })}<div class="flex flex-col gap-[12px] rounded-[18px] border border-staff-border-light bg-white px-[12px] pt-[16px] pb-[12px]">${monthCalendar()}<p class="border-t border-staff-border-light pt-[12px] text-[12px] text-staff-text-muted">날짜를 누르면 그날 근무를 볼 수 있습니다.</p></div></section>` +
+  })}<div class="flex flex-col gap-[12px] rounded-[18px] border border-staff-border-light bg-white px-[12px] pt-[16px] pb-[12px]">${monthCalendar()}<p class="border-t border-staff-border-light pt-[12px] text-[12px] text-staff-text-muted">날짜를 누르면 해당 날짜의 근무 일정을 확인할 수 있습니다.</p></div></section>` +
   `<section class="flex flex-col gap-[8px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">9월 10일 (목)</h2>${card(
     `<div class="flex items-center gap-[12px]">${storeSmall()}<p class="min-w-0 flex-1 truncate text-[14px] font-semibold">${STORE}</p></div>`,
   )}${card(
