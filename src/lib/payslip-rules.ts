@@ -78,6 +78,16 @@ export function filterYears(now: Date = new Date()): number[] {
   return [0, 1, 2, 3].map((n) => thisYear - n);
 }
 
+/**
+ * 받은 명세서의 급여 기간 연도, 최신순. 하나도 없으면 allowed 의 첫해(올해) 하나.
+ * 보관은 작성일부터 3년이라(PAY-4) 급여 기간이 그보다 앞선 명세서(예: 2022년 12월분을 2023년 1월에 작성)도 api 목록에 남는다 —
+ * 받은 해는 모두 고를 수 있어야 그 명세서가 보인다. 보관 범위는 api 가 거른다(리뷰 반영).
+ */
+export function receivedYears(periodStartDates: readonly string[], allowed: readonly number[]): number[] {
+  const years = [...new Set(periodStartDates.map((d) => Number(d.slice(0, 4))))].filter((y) => Number.isInteger(y) && y > 0).sort((a, b) => b - a);
+  return years.length > 0 ? years : [allowed[0]];
+}
+
 /** 주소의 점포 · 연도 필터. 숫자가 아니거나 고를 수 없는 연도면 없는 것으로 본다(연도는 올해). */
 export function parsePayFilter(
   raw: { store?: string | string[]; year?: string | string[] },

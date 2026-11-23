@@ -112,7 +112,7 @@ export default async function AffiliationDonePage({ searchParams }: PageProps<"/
         {contractHref ? (
           <Dock>
             <Button href={contractHref} replace transitionTypes={["nav-forward"]}>
-              <MaskIcon src="/icons/contract.svg" size={14} />
+              <MaskIcon src="/icons/doc-line.svg" size={14} />
               근로계약서 서명하기
             </Button>
             <Button variant="ghost" href={HOME_PATH} replace transitionTypes={["nav-forward"]}>

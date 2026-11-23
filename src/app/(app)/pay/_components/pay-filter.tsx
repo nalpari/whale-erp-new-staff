@@ -21,21 +21,23 @@ export function PayFilter({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState<"store" | "year" | null>(null);
-  const go = (next: { storeId?: number; year: number }) => {
+  // 근무지를 바꿀 때는 보던 해를 주소에 꼭 남긴다 — 고를 수 있는 해가 근무지마다 달라 「기본 해면 뺀다」가 다른 해로 풀렸다(리뷰 반영).
+  const go = (next: { storeId?: number; year: number }, keepYear = false) => {
     setOpen(null);
-    router.replace(payFilterHref(next, years[0]), { scroll: false });
+    router.replace(payFilterHref(next, keepYear ? null : years[0]), { scroll: false });
   };
   const storeName = stores.find((s) => s.storeId === storeId)?.storeName;
 
   return (
     <>
-      <div className="flex gap-[8px] pt-[10px]">
+      <div className="flex gap-[8px]">
         {/* 내 근무지에서 아직 명세서를 받지 않은 근무지로 오면 목록에 이름이 없다 — 「전체 근무지」로 보이면 빈 목록과 말이 엇갈려 「선택한 근무지」로 둔다 */}
         <Chip
           label={storeName ?? (storeId === undefined ? "전체 근무지" : "선택한 근무지")}
           on={storeId !== undefined}
           onClick={() => setOpen("store")}
         />
+        {/* 연도 칩은 늘 둔다 — 고를 수 있는 해는 받은 명세서가 있는 해만(2026-11-23 사용자 지정) */}
         <Chip label={`${year}년`} on={year !== years[0]} onClick={() => setOpen("year")} />
       </div>
       <BottomSheet
@@ -44,11 +46,11 @@ export function PayFilter({
         title="근무지 선택"
         description="퇴직한 근무지를 포함해 명세서를 받은 모든 근무지입니다."
       >
-        <SheetOption selected={storeName === undefined} onClick={() => go({ year })}>
+        <SheetOption selected={storeName === undefined} onClick={() => go({ year }, true)}>
           전체 근무지
         </SheetOption>
         {stores.map((s) => (
-          <SheetOption key={s.storeId} selected={s.storeId === storeId} onClick={() => go({ storeId: s.storeId, year })}>
+          <SheetOption key={s.storeId} selected={s.storeId === storeId} onClick={() => go({ storeId: s.storeId, year }, true)}>
             {s.storeName}
           </SheetOption>
         ))}
@@ -70,7 +72,7 @@ export function PayFilter({
 }
 
 /** 필터 주소. 기본값(전체 근무지 · 올해)은 싣지 않는다 — 「전체 명세서 보기」는 /pay 다. */
-function payFilterHref({ storeId, year }: { storeId?: number; year: number }, thisYear: number): string {
+function payFilterHref({ storeId, year }: { storeId?: number; year: number }, thisYear: number | null): string {
   const query = new URLSearchParams();
   if (storeId !== undefined) query.set("store", String(storeId));
   if (year !== thisYear) query.set("year", String(year));

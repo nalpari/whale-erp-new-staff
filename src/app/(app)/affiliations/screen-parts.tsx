@@ -50,7 +50,7 @@ function IconDot({ children, muted = false }: { children: ReactNode; muted?: boo
 export type PillIcon = "store" | "contract" | "clock" | "check" | "close";
 function Glyph({ icon }: { icon: PillIcon }) {
   if (icon === "store") return <MaskIcon src="/icons/store-line.svg" size={18} />;
-  if (icon === "contract") return <MaskIcon src="/icons/contract.svg" size={18} />;
+  if (icon === "contract") return <MaskIcon src="/icons/doc-line.svg" size={18} />;
   const path = icon === "check" ? "M5 12.5l4.5 4.5L19 7.5" : icon === "close" ? "M6 6l12 12M18 6L6 18" : "M12 7.5V12l3 2";
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

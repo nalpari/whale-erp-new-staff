@@ -93,20 +93,21 @@ function TodayCard({ items, next, action }: { items: MyWorkSchedule[]; next?: My
   return (
     <section
       aria-label="오늘 근무"
-      className="flex flex-col gap-[4px] rounded-[18px] bg-staff-primary px-[23px] pt-[24px] pb-[23px] leading-[1.5] text-white shadow-[0_9px_23px_rgba(49,93,245,0.15)]"
+      // 간격은 위 · 아래 · 좌우 24, 줄 사이 12 로 모두 같게 — 시간 줄 높이(46) · 휴게 줄 아래 15 가 섞여 간격이 들쭉날쭉했다(2026-11-23 사용자 지정)
+      className="flex flex-col gap-[12px] rounded-[18px] bg-staff-primary p-[24px] leading-[1.5] text-white shadow-[0_9px_23px_rgba(49,93,245,0.15)]"
     >
       <div className="flex items-center justify-between">
         <p className="text-[12px] text-[#dbe5ff]">오늘 근무</p>
         {action === "check-out" && WORKING}
       </div>
       {items.map((i) => (
-        <p key={i.workScheduleId} className="flex h-[46px] items-center gap-[4px] text-[30px] font-bold">
+        <p key={i.workScheduleId} className="flex items-center gap-[4px] text-[30px] leading-[1.15] font-bold">
           {i.startTime}
           <span className="w-[23px] text-center text-[14px] font-normal text-[#bccfff]">—</span>
           {i.endTime}
         </p>
       ))}
-      <p className={`flex items-center gap-[6px] text-[12px] text-[#dbe5ff] ${action ? "pb-[15px]" : ""}`}>
+      <p className="flex items-center gap-[6px] text-[12px] text-[#dbe5ff]">
         휴게 {breakMinutes}분 <span className="text-[11px]">·</span> 총 {durationLabel(total)} 근무
       </p>
       {action && <AttendanceButton action={action} />}

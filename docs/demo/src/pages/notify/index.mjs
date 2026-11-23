@@ -24,10 +24,10 @@ const STATES = [
 
 // 알림 유형별 아이콘과 누르면 가는 곳. 목업 pay.html 에 「다시 보낸 명세서」 상태가 있어 다시 발송 알림은 그리로 간다.
 const KIND = {
-  contract: { icon: "contract.svg", flipY: false, href: () => page("contract", "detail") },
+  contract: { icon: "doc-line.svg", flipY: false, href: () => page("contract", "detail") },
   schedule: { icon: "nav-work.svg", flipY: true, href: () => page("work") },
   todo: { icon: "check.svg", flipY: false, href: () => page("work", "todo") },
-  payslip: { icon: "nav-pay.svg", flipY: true, href: () => page("pay", "detail") },
+  payslip: { icon: "payslip-line.svg", flipY: false, href: () => page("pay", "detail") },
 };
 
 // 목업 알림함 여덟 줄 그대로. 위 넷이 미확인이다.

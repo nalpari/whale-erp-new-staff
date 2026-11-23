@@ -41,7 +41,7 @@ export function AboutSheet() {
           ))}
         </ol>
         <ul className="flex flex-col gap-[4px] px-[4px] text-[13px] text-staff-text-sub">
-          {["실제 급여 지급은 근무지에서 진행합니다.", "명세서는 만든 날부터 3년 동안 보관됩니다."].map((line) => (
+          {["명세서는 만든 날부터 3년 동안 보관됩니다."].map((line) => (
             <li key={line} className="flex gap-[6px]">
               <span aria-hidden className="text-staff-placeholder">
                 ·

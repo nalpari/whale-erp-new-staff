@@ -315,8 +315,8 @@ const VIEWS = {
   sites: () => {
     const sites = [
       { name: "웨일카페 강남역점", job: "파트타이머 · 바리스타", period: "2025년 11월 3일부터 근무", status: "working", address: "서울 강남구 테헤란로 1길 10", phone: "02-555-0101" },
-      { name: "웨일카페 홍대점", job: "파트타이머 · 홀 서빙", period: "2026년 11월 18일부터 근무", status: "working", address: "서울 마포구 양화로 12", phone: "02-333-0202" },
-      // 퇴직한 근무지도 둔다(ME-7, 2026-10-20 재영). 이름은 보조 글자색 · 「퇴직」 배지 · 근무 기간, 아래 세 칸은 없다(신고 정보도 볼 수 없다).
+      { name: "웨일카페 홍대점", job: "파트타이머 · 홀 서빙", period: "2026년 11월 18일부터 근무", status: "working", address: "서울 마포구 양화로 12", phone: "02-333-0202" , taxMissing: true },
+      // 퇴직한 근무지도 둔다(ME-7, 2026-10-20 재영). 이름은 보조 글자색 · 「퇴직」 배지 · 근무 기간. [지도 보기] · [전화하기]는 없다(2026-11-23 사용자 지정), 아래 세 칸도 지금은 없다(WHALEERP-765 로 조회만 열 예정).
       { name: "웨일베이커리 합정점", job: "파트타이머 · 제빵 보조", period: "2025년 3월 2일 – 2025년 12월 31일 근무", status: "retired", address: "서울 마포구 독막로 5", phone: "02-322-0303" },
     ];
     const CHIPS = [
@@ -331,22 +331,23 @@ const VIEWS = {
     const ids = Object.fromEntries(CHIPS.map(([k]) => [k, uid("sites")]));
     const contactButton = (href, icon, text, aria, blank) =>
       `<a href="${href}"${blank ? ' target="_blank" rel="noopener noreferrer"' : ""} aria-label="${aria}" class="flex h-[36px] min-w-0 flex-1 items-center justify-center gap-[6px] rounded-[8px] border border-staff-border bg-white text-[13px] font-medium text-staff-text ${PRESS}"><span class="flex text-staff-text-sub">${maskIcon(icon, 15)}</span>${text}</a>`;
-    const actionCell = (icon, text, href) =>
-      `<a href="${href}" class="flex h-[72px] min-w-0 flex-1 flex-col items-center justify-center gap-[6px] text-[13px] font-medium text-staff-text active:bg-staff-info-bg [&+&]:border-l [&+&]:border-staff-border-light ${PRESS}"><span class="flex text-staff-text-sub">${maskIcon(icon, 20)}</span>${text}</a>`;
+    // note: 이름 아래 작은 회색 한 줄(신고 정보 「급여 계좌 포함」, 앱 ActionCell, 2026-11-23 사용자 지정)
+    const actionCell = (icon, text, href, badge = "") =>
+      `<a href="${href}" class="flex h-[72px] min-w-0 flex-1 flex-col items-center justify-center gap-[6px] text-[13px] font-medium text-staff-text active:bg-staff-info-bg [&+&]:border-l [&+&]:border-staff-border-light ${PRESS}"><span class="relative flex text-staff-text-sub">${maskIcon(icon, 20)}${badge}</span>${text}</a>`;
     const siteCard = (s) => {
       const retired = s.status === "retired";
       return `<li class="overflow-hidden rounded-[16px] border border-staff-border bg-white"><div class="flex flex-col gap-[10px] px-[20px] pt-[18px] pb-[14px]"><div class="flex items-start gap-[10px]"><h2 class="min-w-0 flex-1 text-[17px] font-bold break-keep ${retired ? "text-staff-text-sub" : ""}">${s.name}</h2>${
         retired ? badge("waiting", "퇴직") : badge("working", "근무 중")
-      }</div><div class="flex flex-col gap-[2px] text-[14px] text-staff-text-sub"><p>${s.job}</p><p>${s.period}</p><div class="flex gap-[8px] pt-[4px]">${contactButton(
+      }</div><div class="flex flex-col gap-[2px] text-[14px] text-staff-text-sub"><p>${s.job}</p><p>${s.period}</p>${retired ? "" : `<div class="flex gap-[8px] pt-[4px]">${contactButton(
         `https://map.kakao.com/link/search/${encodeURIComponent(s.address)}`,
         "map-pin-line.svg",
         "지도 보기",
         `${s.name} 위치 지도에서 보기 — ${s.address}`,
         true,
-      )}${contactButton(`tel:${s.phone.replace(/-/g, "")}`, "phone-call.svg", "전화하기", `${s.name} 전화하기 ${s.phone}`)}</div></div></div>${
+      )}${contactButton(`tel:${s.phone.replace(/-/g, "")}`, "phone-call.svg", "전화하기", `${s.name} 전화하기 ${s.phone}`)}</div>`}</div></div>${
         retired
           ? ""
-          : `<div class="flex border-t border-staff-border-light">${actionCell("id-card-line.svg", "신고 정보", page("tax", "view"))}${actionCell(
+          : `<div class="flex border-t border-staff-border-light">${actionCell("id-card-line.svg", "신고정보 · 계좌", page("tax", "view"), s.taxMissing ? '<span class="absolute -top-[6px] left-[14px] rounded-full bg-staff-error px-[5px] text-[10px] leading-[16px] font-semibold whitespace-nowrap text-white">미입력</span>' : "")}${actionCell(
               "doc-line.svg",
               "근로계약서",
               page("contract", "list"),
@@ -386,7 +387,8 @@ const block = (id) => {
     const ids = { locOn: uid("loc"), locOff: uid("loc"), bpOn: uid("bp"), bpOff: uid("bp") };
     return `<div class="flex flex-1 flex-col leading-[1.5]">${meView(id, ids)}</div>${sheets(id, ids)}`;
   }
-  return `<div class="flex flex-1 flex-col leading-[1.5]">${backHeader(TITLE[id], BACK[id] ?? "view")}${VIEWS[id]()}</div>`;
+  // 내 근무지는 보기 화면이라 하단 메뉴를 둔다(개발 화면과 같다, 2026-11-23 사용자 지정). 입력 화면(이메일 · 비밀번호 등)은 두지 않는다.
+  return `<div class="flex flex-1 flex-col leading-[1.5]">${backHeader(TITLE[id], BACK[id] ?? "view")}${VIEWS[id]()}${id === "sites" ? `<div class="sticky bottom-0 mt-auto">${bottomNav("me")}</div>` : ""}</div>`;
 };
 
 export default () => ({

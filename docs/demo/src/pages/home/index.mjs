@@ -6,7 +6,7 @@
 //   HOME-5 퇴직 후에는 「근무가 종료되었습니다」, 하단 메뉴와 알림 버튼은 그대로 두고 급여 탭으로 간다.
 // 평상시(today)는 Figma 02.Main(node 8:3)을 따른다(오늘의 근무 node 9:152 · 이번 주 근무 node 9:242 · 근무지 시트 03.Sheet node 12:670).
 // 그 밖 상태(처리할 일 카드 · 휴무 · 가입 직후 · 퇴직 후 · 날인 요청 팝업)는 Figma 없음 — DESIGN.md 기준 초안.
-import { bottomNav, bottomSheet, button, empty, img, infoRow, maskIcon, page, sectionTitle, state, statusChip, storeSheet, STORES, todoItem, todoList, topBar, weekSelector } from "../../ui.mjs";
+import { bottomNav, bottomSheet, button, empty, iconTile, img, infoRow, maskIcon, page, sectionTitle, state, statusChip, storeSheet, STORES, todoItem, todoList, todoSheet, topBar, weekSelector } from "../../ui.mjs";
 
 // 목업 오른쪽 상태 목록 순서 그대로. store 는 목업의 「시트 열기」라 뒤에 평상시를, sign-req 는 가입 직후 빈 홈을 깐다(체결 완료 계약이 없어 점포 정보를 보이지 않음, 운영 정책 CTR-29).
 // 빈 홈에는 날인을 기다리는 근로계약서 카드만 있어 「나중에」로 닫은 뒤에도 그 카드로 서명 대기 계약서에 간다.
@@ -54,7 +54,7 @@ const plainTopBar = (bell) =>
 // 오늘의 근무(Figma node 9:152). 출근 전이라 버튼은 출근하기(HOME-3).
 // #DBE5FF·#BCCFFF 는 남보라 위의 흐린 글자, 그림자는 남보라를 옅게 깐 것이다.
 const todayCard = ([start, end]) =>
-  `<section aria-label="오늘 근무" class="flex flex-col gap-[4px] rounded-[18px] bg-staff-primary px-[23px] pt-[24px] pb-[23px] text-white shadow-[0_9px_23px_rgba(49,93,245,0.15)]"><p class="text-[12px] text-[#dbe5ff]">오늘 근무</p><p class="flex h-[46px] items-center gap-[4px] text-[30px] font-bold tracking-[-0.025em]">${start}<span class="w-[23px] text-center text-[14px] font-normal text-[#bccfff]">—</span>${end}</p><p class="flex items-center gap-[6px] pb-[15px] text-[12px] text-[#dbe5ff]">휴게 60분 <span class="text-[11px]">·</span> 총 8시간 근무</p><a href="${CHECK_IN}" class="flex min-h-[48px] items-center justify-center gap-[8px] rounded-[12px] bg-white px-[18px] text-[15px] font-bold text-staff-primary transition-colors duration-150 ease-out active:bg-staff-primary-inactive">출근하기${img(
+  `<section aria-label="오늘 근무" class="flex flex-col gap-[12px] rounded-[18px] bg-staff-primary p-[24px] text-white shadow-[0_9px_23px_rgba(49,93,245,0.15)]"><p class="text-[12px] text-[#dbe5ff]">오늘 근무</p><p class="flex items-center gap-[4px] text-[30px] leading-[1.15] font-bold tracking-[-0.025em]">${start}<span class="w-[23px] text-center text-[14px] font-normal text-[#bccfff]">—</span>${end}</p><p class="flex items-center gap-[6px] text-[12px] text-[#dbe5ff]">휴게 60분 <span class="text-[11px]">·</span> 총 8시간 근무</p><a href="${CHECK_IN}" class="flex min-h-[48px] items-center justify-center gap-[8px] rounded-[12px] bg-white px-[18px] text-[15px] font-bold text-staff-primary transition-colors duration-150 ease-out active:bg-staff-primary-inactive">출근하기${img(
     "arrow-right-brand.svg",
     14,
     12,
@@ -70,6 +70,8 @@ const thisWeek = (days) =>
   })}</div></section>`;
 
 // TO-DO 카드. 오른쪽 위 「전체 보기」로 근무 화면의 TO-DO 쪽에 바로 간다(HOME-1). TO-DO 가 없으면 섹션을 그리지 않는다(2026-10-20 재영).
+// 줄이나 체크칸을 누르면 근무 탭과 같은 TO-DO 상세 시트를 열고 상태는 시트에서 바꾼다 — 체크 한 번에 바로 완료되지 않는다
+// (개발 화면 home/todo-card.tsx, 2026-11-23 사용자 지정). 홈 시트에는 근무지 줄을 두지 않는다(고른 근무지의 TO-DO 만 보여서다).
 const todoSection = (count, children) =>
   `<section class="flex flex-col gap-[12px]">${sectionTitle("TO-DO", {
     count,
@@ -83,12 +85,12 @@ const workInfo = () =>
     icon: "menu-attendance.svg",
     title: "출퇴근 현황",
     description: "이번 달 출근 9회 · 지각 0회",
-  })}${infoRow({ href: page("pay"), icon: "menu-payslip.svg", title: "급여명세서", description: "2026년 8월분 받음" })}</section>`;
+  })}${infoRow({ href: page("pay"), icon: iconTile("payslip-line.svg", 33), title: "급여명세서", description: "2026년 8월분 받음" })}</section>`;
 
 // 날인 대기 계약서 카드. 누르면 그 계약서로 간다.
 const contractCard = (title, sub) =>
   `<a href="${CONTRACT}" class="flex items-center gap-[12px] rounded-[18px] bg-[#fff6e5] px-[16px] py-[14px] text-[#956013] transition-opacity duration-150 ease-out active:opacity-80">${maskIcon(
-    "contract.svg",
+    "doc-line.svg",
     18,
   )}<span class="flex min-w-0 flex-1 flex-col gap-[2px]"><span class="text-[14px] font-semibold">${title}</span><span class="text-[12px]">${sub}</span></span>${maskIcon(
     "chevron-right-muted.svg",
@@ -96,12 +98,50 @@ const contractCard = (title, sub) =>
     true,
   )}</a>`;
 
+const TODO_CHIP = { waiting: statusChip("neutral", "대기", "semibold"), doneByOther: statusChip("success", "완료됨", "semibold") };
+// TO-DO 상세 시트(근무 탭과 같은 todoSheet). [완료]를 누르면 고른 칸을 옮기고 닫는다 — 되돌리기 토스트는 없다.
+const todoSheets = (view) =>
+  view === "today"
+    ? todoSheet("todo-label", {
+        title: "유통기한 라벨 점검",
+        body: "진열대와 냉장고의 유통기한 라벨을 확인하고 지난 상품은 따로 빼 둔다.",
+        rows: [
+          ["수행 예정", "9월 10일(목) 20:00"],
+          ["상태", TODO_CHIP.waiting],
+        ],
+        done: { "data-close": true },
+      })
+    : view === "todo"
+      ? todoSheet("todo-refund", {
+          title: "환불 요청 처리",
+          body: "오전 주문 건 환불 요청을 확인하고 포스에서 환불 처리한다.",
+          chips: statusChip("warning", "긴급", "semibold"),
+          rows: [
+            ["수행 예정", "9월 10일(목) 13:00"],
+            ["상태", TODO_CHIP.waiting],
+          ],
+          done: { "data-close": true },
+        }) +
+        todoSheet("todo-closing", {
+          title: "마감 정산표 작성",
+          body: "전날 마감 정산표를 작성해 관리자에게 전송한다. 근무 직원 중 한 명만 완료 처리하면 된다.",
+          chips: statusChip("neutral", "공유", "semibold"),
+          rows: [
+            ["수행 예정", "9월 10일(목) 10:00"],
+            ["상태", TODO_CHIP.doneByOther],
+          ],
+          status: "done",
+          shared: true,
+          after: `<p class="text-[13px] leading-[1.5] text-staff-text-sub">이수민이 9월 10일(목) 09:12에 완료했습니다</p>`,
+        })
+      : "";
+
 const CONTENT = {
   today: () =>
     sections(
       todayCard(["09:00", "18:00"]) +
         thisWeek(weekWith(work("09-10", "목", 10, "09–18"))) +
-        todoSection(1, todoList(todoItem({ title: "유통기한 라벨 점검", meta: "오늘 20:00까지" }))) +
+        todoSection(1, todoList(todoItem({ title: "유통기한 라벨 점검", meta: "오늘 20:00까지", open: "todo-label", badges: TODO_CHIP.waiting }))) +
         workInfo(),
     ),
 
@@ -115,8 +155,14 @@ const CONTENT = {
         todoSection(
           2,
           todoList(
-            todoItem({ title: "환불 요청 처리", meta: "지금 바로", badges: statusChip("warning", "긴급", "semibold") }) +
-              todoItem({ title: "마감 정산표 작성", meta: "완료 · 이수민님이 09:12에 처리", done: true, toggle: false }),
+            todoItem({ title: "환불 요청 처리", meta: "지금 바로", open: "todo-refund", badges: statusChip("warning", "긴급", "semibold") + TODO_CHIP.waiting }) +
+              todoItem({
+                title: "마감 정산표 작성",
+                meta: "완료 · 이수민님이 09:12에 처리",
+                done: true,
+                open: "todo-closing",
+                badges: statusChip("neutral", "공유", "semibold") + TODO_CHIP.doneByOther,
+              }),
           ),
         ) +
         `<a href="${NOTIFY}" class="flex items-center gap-[12px] rounded-[18px] border border-staff-border-light bg-staff-info-bg px-[16px] py-[14px] transition-colors duration-150 ease-out active:bg-staff-primary-inactive">${img(
@@ -142,10 +188,10 @@ const CONTENT = {
   // 첫 근로계약서를 거부·만료·종료로 잃어 날인 대기도 체결 완료도 없는 때. 퇴직 후와 달리 근무한 적이 없다(운영 정책 CTR-29).
   "no-site": () =>
     empty(
-      maskIcon("contract.svg", 24, true),
+      maskIcon("doc-line.svg", 24),
       "연결된 근무지가 없습니다",
       `<p>근무지에서 근로계약서를 보내면 여기에 표시됩니다.<br>거절했거나 기한이 지난 계약서는 아래에서 확인해 주세요.</p><div class="flex flex-col gap-[8px] pt-[8px]">${button(
-        `${maskIcon("contract.svg", 16, true)}근로계약서 보기`,
+        `${maskIcon("doc-line.svg", 16)}근로계약서 보기`,
         { variant: "outline", href: page("contract", "list") },
       )}</div>`,
     ),
@@ -155,7 +201,7 @@ const CONTENT = {
       maskIcon("store-line.svg", 24),
       "근무가 종료되었습니다",
       `<p class="[&_strong]:font-bold [&_strong]:text-staff-text">급여명세서는 <strong>보존 기간(3년)</strong> 동안 확인할 수 있습니다.</p><div class="flex flex-col gap-[8px] pt-[8px]">${button(
-        `${maskIcon("nav-pay.svg", 16, true)}급여명세서 보기`,
+        `${maskIcon("payslip-line.svg", 16)}급여명세서 보기`,
         { variant: "outline", href: page("pay") },
       )}</div>`,
     ),
@@ -169,7 +215,7 @@ const header = (view) =>
 
 // 하단 메뉴는 모든 상태에서 그대로(HOME-5). 화면 아래에 붙여 둔다.
 const screen = (view) =>
-  `<div class="flex flex-1 flex-col gap-[24px] leading-[1.5]"><main class="flex flex-1 flex-col px-[22px] pt-[42px]">${header(
+  `<div class="flex flex-1 flex-col gap-[24px] leading-[1.5]"><main class="flex flex-1 flex-col px-[22px] pt-[20px]">${header(
     view,
   )}<div class="h-[20px]"></div>${CONTENT[
     view
@@ -192,14 +238,14 @@ const signReqSheet = (a = {}) =>
       .join(
         "",
       )}</dl><p class="text-[14px] text-staff-text-sub">서명해야 근무가 시작됩니다. 지금 확인하지 않아도 계약서 화면에서 다시 볼 수 있습니다.</p>${button(
-      `${maskIcon("contract.svg", 14)}서명하러 가기`,
+      `${maskIcon("doc-line.svg", 14)}서명하러 가기`,
       { href: CONTRACT },
     )}`,
   );
 
 const BLOCKS = {
-  today: () => screen("today") + storeSheet(),
-  todo: () => screen("todo") + storeSheet(),
+  today: () => screen("today") + todoSheets("today") + storeSheet(),
+  todo: () => screen("todo") + todoSheets("todo") + storeSheet(),
   off: () => screen("off") + storeSheet(),
   store: () => screen(SHEET_VIEW.store) + storeSheet({ "data-sheet-auto": true, "data-on-close": "#today" }),
   "sign-req": () => screen(SHEET_VIEW["sign-req"]) + signReqSheet({ "data-sheet-auto": true, "data-on-close": "#empty" }),

@@ -130,13 +130,13 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
               {files.map((d) => (
                 <li key={d.contractDocumentId} className="flex min-h-[44px] items-center gap-[12px]">
                   <span className="flex text-staff-error">
-                    <MaskIcon src="/icons/contract.svg" size={22} />
+                    <MaskIcon src="/icons/doc-line.svg" size={22} />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-[2px]">
                     <span className="text-[14px] font-semibold">{labelOf(documentKinds, d.kind)}</span>
                     <span className="text-[12px] break-all text-staff-text-muted">{d.fileName}</span>
                   </span>
-                  {/* 받기 · 내보내기 링크의 근거(아래 「계약서 PDF 받기」도 이것을 따른다). 이 앱의 라우트가 로그인 토큰으로 api 의 서명
+                  {/* 받기 · 내보내기 링크의 근거(아래 「근로계약서 PDF 다운로드」도 이것을 따른다). 이 앱의 라우트가 로그인 토큰으로 api 의 서명
                       주소를 받아 보낸다(documents/[contractDocumentId]/route.ts). 라우트
                       핸들러라 Link 의 미리 받기를 쓰지 않는다. 같은 탭에서 연다 — 성공하면 저장소가 attachment 로 내려줘 화면은 그대로
                       남고, 실패하면 라우트가 이 상세로 돌려보내 안내한다. target="_blank" 는 홈 화면에 둔 앱(PWA 단독 모드)에서 앱 밖
@@ -297,11 +297,11 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
         // 체결이 끝난 계약의 처리 완료본 내보내기(WHALEERP-149). 서명 대기에서는 내보내지 않는다 — 처리 완료본은 체결 뒤 파일 생성
         // (WHALEERP-131)이 만들어 documents 에 SIGNED_COPY 로 실린다. 아직 없으면 버튼도 없다.
         <Dock inset={30}>
-          {/* 종이 계약 「받기」와 같은 <a>(근거는 그 주석). 모양만 공통 Button 의 outline(급여명세서 「명세서 PDF 받기」와 같음).
+          {/* 종이 계약 「받기」와 같은 <a>(근거는 그 주석). 모양만 공통 Button 의 outline(급여명세서 「급여명세서 PDF 다운로드」와 같음).
               Plane 의 「공유 시트」는 휴대전화 브라우저가 받은 PDF 에 띄우는 저장 · 공유로 갈음한다 — Web Share API 는 서명 주소가
               다른 출처라 파일을 읽어 올 수 없어 쓰지 않는다. */}
           <a href={`/contracts/${c.contractId}/documents/${signedCopy.contractDocumentId}${storeQuery}`} className={buttonClass("outline")}>
-            계약서 PDF 받기
+            근로계약서 PDF 다운로드
           </a>
         </Dock>
       )}

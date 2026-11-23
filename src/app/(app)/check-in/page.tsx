@@ -40,7 +40,6 @@ export default async function CheckInPage() {
   const header = (
     <PageHeader
       title="출퇴근"
-      backHref="/home"
       action={
         // 데모 check-in — 머리줄 오른쪽은 출퇴근 현황으로 가는 버튼이다. 시계 아이콘만으로는 버튼인지 · 어디로 가는지 몰라 글자 알약
         // 「출퇴근 현황 ›」으로 바꿨다(2026-11-20 사용자 지정). 보이는 알약은 36px, 누르는 칸은 위아래를 넓혀 44px.

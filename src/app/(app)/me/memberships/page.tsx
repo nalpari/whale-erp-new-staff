@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { unstable_rethrow } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense } from "react";
-import { Alert, Badge, MaskIcon, Notice, PageHeader } from "@/components/common";
+import { Suspense, type ReactNode } from "react";
+import { Alert, Badge, BottomNav, MaskIcon, Notice, PageHeader } from "@/components/common";
 import { PRESS } from "@/components/common/theme";
 import { invitationTypeLabel } from "@/lib/affiliation-requests";
 import { formatTelephone } from "@/lib/contract-rules";
@@ -11,7 +11,7 @@ import { getContract, getContracts } from "@/lib/contracts";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { kstToday } from "@/lib/join";
 import { getMyInvitations } from "@/lib/my-invitations";
-import { getMyAffiliationRequests, getMyMemberships } from "@/lib/my-profile";
+import { getMyAffiliationRequests, getMyMemberships, getMyTaxProfile } from "@/lib/my-profile";
 import { pendingRequestRows } from "@/lib/pending-requests";
 import { dateLabel, kstMonthDayLabel, membershipStatusOf } from "@/lib/profile";
 
@@ -30,12 +30,13 @@ export const metadata: Metadata = { title: "내 근무지 · Whale ERP" };
 const ACTION_CELL =
   "flex h-[72px] min-w-0 flex-1 flex-col items-center justify-center gap-[6px] text-[13px] font-medium [&+&]:border-l [&+&]:border-staff-border-light";
 
-/** 카드 맨 아래 세 칸 중 하나(선 아이콘 위 · 이름 아래, 2026-11-23 사용자 지정) */
-function ActionCell({ icon, label, href }: { icon: string; label: string; href: string }) {
+/** 카드 맨 아래 세 칸 중 하나(선 아이콘 위 · 이름 아래, 2026-11-23 사용자 지정). 신고 정보는 급여 계좌가 들어 있는 것이 보이게 「신고정보 · 계좌」 한 줄(칸이 좁아 붙여 쓴다) */
+function ActionCell({ icon, label, href, badge }: { icon: string; label: string; href: string; badge?: ReactNode }) {
   return (
     <Link href={href} transitionTypes={["nav-forward"]} className={`${ACTION_CELL} text-staff-text active:bg-staff-info-bg ${PRESS}`}>
-      <span className="flex text-staff-text-sub">
+      <span className="relative flex text-staff-text-sub">
         <MaskIcon src={icon} size={20} />
+        {badge}
       </span>
       {label}
     </Link>
@@ -118,6 +119,21 @@ async function StoreContactButtons({
         </a>
       )}
     </div>
+  );
+}
+
+/**
+ * 신고 정보를 아직 내지 않은 근무지 — 「신고정보 · 계좌」 아이콘 오른쪽 위에 빨간 꼬리표 「미입력」(2026-11-23 사용자 지정). 근무지 목록 api 에
+ * 입력 여부가 없어 그 소속의 신고 정보를 따로 받는다(Suspense — 목록은 먼저 뜬다). 못 받으면 아무것도 두지 않는다.
+ * 세 칸 높이가 흔들리지 않게 아이콘 위에 띄운다.
+ */
+async function TaxMissingBadge({ staffMemberId }: { staffMemberId: number }) {
+  const tax = await getMyTaxProfile(staffMemberId);
+  if (!tax || tax.taxProfile) return null;
+  return (
+    <span className="absolute -top-[6px] left-[14px] rounded-full bg-staff-error px-[5px] text-[10px] leading-[16px] font-semibold whitespace-nowrap text-white">
+      미입력
+    </span>
   );
 }
 
@@ -238,19 +254,31 @@ export default async function MembershipsPage({ searchParams }: PageProps<"/me/m
                         ) : (
                           m.hiredDate && <p>{dateLabel(m.hiredDate)}부터 근무</p>
                         )}
-                        <Suspense>
-                          <StoreContactButtons storeId={m.store.storeId} storeName={m.store.storeName} contacts={storeContacts} />
-                        </Suspense>
+                        {/* 퇴직한 근무지에는 [지도 보기] · [전화하기]를 두지 않는다 — 더 다니지 않는 곳이다(2026-11-23 사용자 지정) */}
+                        {!retired && (
+                          <Suspense>
+                            <StoreContactButtons storeId={m.store.storeId} storeName={m.store.storeName} contacts={storeContacts} />
+                          </Suspense>
+                        )}
                       </div>
                     </div>
                     {/* 신고 정보 · 근로계약서 · 급여명세서 한 줄 세 칸 — 많이 쓰는 것을 오른쪽에(2026-11-23 사용자 지정, 처음 기획 2026-10-20). */}
                     {!retired && (
                       <div className="flex border-t border-staff-border-light">
-                        <ActionCell icon="/icons/id-card-line.svg" label="신고 정보" href={`/me/memberships/${m.staffMemberId}/tax-profile`} />
+                        <ActionCell
+                          icon="/icons/id-card-line.svg"
+                          label="신고정보 · 계좌"
+                          href={`/me/memberships/${m.staffMemberId}/tax-profile`}
+                          badge={
+                            <Suspense>
+                              <TaxMissingBadge staffMemberId={m.staffMemberId} />
+                            </Suspense>
+                          }
+                        />
                         {/* 그 근무지 계약서만(ME-7 · TAX-8) — 앱 전역에서 고른 근무지와 관계없다 */}
                         <ActionCell icon="/icons/doc-line.svg" label="근로계약서" href={`/contracts?store=${m.store.storeId}`} />
                         {/* 그 근무지 급여명세서만 — 급여 화면의 점포 칩(?store=)으로 거른다(2026-11-23 사용자 지정, 전엔 api 가 없어 막힌 「준비 중」 칸) */}
-                        <ActionCell icon="/icons/payslip-line.svg" label="급여명세서" href={`/pay?store=${m.store.storeId}`} />
+                        <ActionCell icon="/icons/payslip-line.svg" label="급여명세서" href={`/pay?from=sites&store=${m.store.storeId}`} />
                       </div>
                     )}
                   </li>
@@ -263,6 +291,10 @@ export default async function MembershipsPage({ searchParams }: PageProps<"/me/m
           <br />
           변경이 필요하면 근무지 관리자에게 문의해 주세요.
         </p>
+      </div>
+      {/* 목록 · 보기 화면은 하단 메뉴를 둔다(입력 화면은 두지 않는다 — 탭을 눌러 쓰던 내용을 잃지 않게, 2026-11-23 사용자 지정) */}
+      <div className="sticky bottom-0 mt-auto">
+        <BottomNav current="/me" />
       </div>
     </div>
   );

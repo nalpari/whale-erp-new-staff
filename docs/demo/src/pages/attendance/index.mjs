@@ -123,7 +123,7 @@ const weekRow = (title, sub, { current = false, upcoming = false } = {}) =>
 // 한 번에 고를 수 있는 폭이 1년이라 시작일·종료일 서로의 min·max 를 1년으로 묶는다(처음 값: 2026-09-01 – 2026-09-30).
 const periodView = () =>
   `${card(
-    `<p class="text-[13px] font-semibold text-staff-text-sub">조회 기간</p><div class="flex items-center gap-[8px] pt-[8px]"><input type="date" aria-label="시작일" min="2025-09-30" max="2026-09-30" class="${FIELD}" value="2026-09-01"><span aria-hidden="true" class="text-[12px] text-staff-text-muted">–</span><input type="date" aria-label="종료일" min="2026-09-01" max="2027-09-01" class="${FIELD}" value="2026-09-30"></div><div class="pt-[8px]">${button("조회", { "data-toast": "기간 기록을 불러왔습니다" })}</div><p class="pt-[8px] text-[12px] text-staff-text-muted [&_b]:font-bold">한 번에 <b>최대 1년</b>까지 조회할 수 있습니다.</p>`,
+    `<p class="text-[13px] font-semibold text-staff-text-sub">조회 기간</p><div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-[8px] pt-[8px]"><span class="relative block min-w-0"><input type="date" aria-label="시작일" min="2025-09-30" max="2026-09-30" class="${FIELD.replace("px-[14px]", "pl-[10px] pr-[32px]")} w-full min-w-0 appearance-none [&::-webkit-calendar-picker-indicator]:opacity-0" value="2026-09-01"><span aria-hidden="true" class="pointer-events-none absolute top-1/2 right-[10px] flex -translate-y-1/2 text-staff-text-sub">${maskIcon("calendar-line.svg", 16)}</span></span><span aria-hidden="true" class="text-[12px] text-staff-text-muted">–</span><span class="relative block min-w-0"><input type="date" aria-label="종료일" min="2026-09-01" max="2027-09-01" class="${FIELD.replace("px-[14px]", "pl-[10px] pr-[32px]")} w-full min-w-0 appearance-none [&::-webkit-calendar-picker-indicator]:opacity-0" value="2026-09-30"><span aria-hidden="true" class="pointer-events-none absolute top-1/2 right-[10px] flex -translate-y-1/2 text-staff-text-sub">${maskIcon("calendar-line.svg", 16)}</span></span></div><div class="pt-[8px]">${button("조회", { "data-toast": "기간 기록을 불러왔습니다" })}</div><p class="pt-[8px] text-[12px] text-staff-text-muted [&_b]:font-bold">한 번에 <b>최대 1년</b>까지 조회할 수 있습니다.</p>`,
   )}${sunken(
     `<p class="text-[13px] font-semibold text-staff-text-sub">총 근무 시간 · 9월 1일 – 30일</p><div class="flex flex-wrap items-baseline gap-x-[14px] pt-[6px]"><p class="text-[28px] font-bold [&_span]:text-[17px]">63<span>시간</span> 16<span>분</span></p><span class="text-[12px] text-staff-text-sub">지각 1회 · 연장 1시간 20분</span></div>`,
   )}<ul class="flex flex-col divide-y divide-staff-border-light rounded-[16px] border border-staff-border-light bg-white px-[16px]">${weekRow(
@@ -247,7 +247,7 @@ function screen(id) {
     .map((s) => SHEETS[s](s === id ? { "data-sheet-auto": true, "data-on-close": `#${view}` } : {}))
     .join("");
   return `<div class="flex flex-1 flex-col leading-[1.5]">${pageHeader("출퇴근 현황", {
-    backHref: page("home"),
+    backHref: page("check-in"),
     action: `<a href="${page("check-in")}" aria-label="출퇴근 등록" class="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">${img("history.svg", 21, 21, "-scale-y-100")}</a>`,
   })}<main class="flex flex-1 flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px]">${
     view !== "nosite"

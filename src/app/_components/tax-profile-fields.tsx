@@ -1,7 +1,7 @@
 "use client";
 
-import { useId } from "react";
-import { MaskIcon } from "@/components/common";
+import { useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { BottomSheet, MaskIcon } from "@/components/common";
 import { FIELD } from "@/components/common/theme";
 import type { CodeValue } from "@/lib/codes";
 import type { TaxProfileField } from "@/lib/tax-profile";
@@ -24,7 +24,7 @@ import { Basis, accountBasis, rrnBasis } from "./tax-profile-parts";
 // 없다(가리면 칸 이름조차 읽지 않는다). 이 칸은 본인의 기기에서 본인이 넣는 값이라 낭독기의 소리는 비밀번호 칸과 같은 정도로 본다.
 // required 는 처음 넣기(셋 다 필수)용이다. 고치기는 비워 둔 쪽을 그대로 두어 끈다.
 
-const LEGEND = "pb-[8px] text-[13px] font-semibold text-staff-text-sub";
+const LEGEND = "pb-[4px] text-[15px] font-bold text-staff-text";
 
 /**
  * 화면이 거른 오류 칸으로 초점을 옮긴다. 이 칸들을 담는 폼은 noValidate 라 브라우저 말풍선 대신 칸 아래 문구로 알린다
@@ -43,7 +43,7 @@ export function focusTaxProfileField(form: HTMLFormElement, field: TaxProfileFie
 }
 /** 뒷자리 칸의 복사 · 잘라내기 · 끌어 옮기기를 막는다(위 주석). */
 const blockCopy = (event: { preventDefault(): void }) => event.preventDefault();
-const noteClass = (error?: string) => `text-[12px] whitespace-pre-line ${error ? "text-staff-error" : "text-staff-text-muted"}`;
+const noteClass = (error?: string) => `text-[12px] whitespace-pre-line empty:hidden ${error ? "text-staff-error" : "text-staff-text-muted"}`;
 
 /**
  * 묶음 상자(boxed) — 신고 정보 다시 입력(정돈 시안 B안, 2026-11-20 사용자 지정). 안내 바탕 · 테두리 · 모서리 16 · 안쪽 18 상자에 담고,
@@ -98,9 +98,10 @@ export function RrnField({
   const note = error || help;
   return (
     <div className={boxed ? BOX : "flex flex-col gap-[8px]"}>
-      {!boxed && <Basis>{rrnBasis(true)}</Basis>}
       <fieldset className="flex flex-col gap-[8px]" disabled={disabled}>
-        {boxed ? <BoxLegend name="주민등록번호" current={current} /> : <legend className={LEGEND}>주민등록번호{required && "*"}</legend>}
+        {boxed ? <BoxLegend name="주민등록번호" current={current} /> : <legend className={LEGEND}>주민등록번호{required && <span aria-hidden className="text-staff-error">*</span>}</legend>}
+        {/* 근거(TAX-08)는 칸 이름 아래 · 입력칸 위 — 이름 위에 있으면 어느 칸의 말인지 흐렸다(2026-11-23 사용자 지정) */}
+        {!boxed && <Basis>{rrnBasis(true)}</Basis>}
         <div className="flex items-center gap-[8px]">
           <input
             name="rrnFront"
@@ -153,6 +154,8 @@ export function RrnField({
  * 급여 계좌 — 받은 근거 · 은행(공통코드 BANK) · 계좌번호 · 안내. 은행 목록을 받지 못하면(banks 가 빔) 은행을 고를 수 없어
  * 칸을 막고 그 사정을 안내 자리에 쓴다.
  */
+const noopSubscribe = () => () => {};
+
 export function PayrollAccountFields({
   banks,
   bankCode,
@@ -183,37 +186,95 @@ export function PayrollAccountFields({
   current?: string;
 }) {
   const id = useId();
+  const [picking, setPicking] = useState(false);
+  const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  // 스크립트가 붙기 전 기본 선택 상자에서 고른 은행을 상태로 옮긴다 — 붙는 순간 상자가 버튼으로 바뀌며 고른 값이 사라졌다(리뷰 반영).
+  // 하이드레이션 커밋 직후(상자가 아직 있을 때) 한 번 읽는다.
+  const preSelect = useRef<HTMLSelectElement>(null);
+  useLayoutEffect(() => {
+    const picked = preSelect.current?.value;
+    if (picked && picked !== bankCode) onBankChange(picked);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 하이드레이션 때 한 번만
+  }, []);
   const unavailable = banks.length === 0;
+  const bankLabel = banks.find((b) => b.value === bankCode)?.label;
   const error = bankError || accountError;
   const note = error || (unavailable ? "은행 목록을 불러오지 못해 지금은 계좌를 입력할 수 없습니다. 잠시 뒤 다시 열어 주세요." : help);
   return (
     <div className={boxed ? BOX : "flex flex-col gap-[8px]"}>
-      {!boxed && <Basis>{accountBasis(true)}</Basis>}
       <fieldset className="flex flex-col gap-[8px]" disabled={disabled || unavailable}>
-        {boxed ? <BoxLegend name="급여 계좌" current={current} /> : <legend className={LEGEND}>급여 계좌{required && "*"}</legend>}
-        <div className="relative">
-          <select
-            name="bankCode"
-            aria-label="은행"
-            autoComplete="off"
-            required={required}
-            value={bankCode}
-            onChange={(event) => onBankChange(event.target.value)}
+        {boxed ? <BoxLegend name="급여 계좌" current={current} /> : <legend className={LEGEND}>급여 계좌{required && <span aria-hidden className="text-staff-error">*</span>}</legend>}
+        {!boxed && <Basis>{accountBasis(true)}</Basis>}
+        {/* 은행은 네이티브 select 대신 바텀시트에서 3개씩 고른다(2026-11-23 사용자 지정) — 값은 숨은 칸으로 보낸다.
+            오류면 첫 오류 칸 찾기가 이 묶음(data-field-anchor)으로 옮긴다 */}
+        <div className="relative" data-field-anchor="bankCode">
+          {/* 화면 스크립트가 붙기 전(서버 그림 · 하이드레이션 전)에는 기본 선택 상자를 그대로 둔다 — 버튼은 그때 시트를 열지 못해 은행을 고를 수 없었다(리뷰 반영) */}
+          {!hydrated ? (
+            <select ref={preSelect} onChange={(e) => onBankChange(e.target.value)} name="bankCode" aria-label="은행" autoComplete="off" defaultValue={bankCode} className={`${FIELD} appearance-none pr-[44px]`}>
+              <option value="">은행 선택</option>
+              {banks.map((bank) => (
+                <option key={bank.value} value={bank.value}>
+                  {bank.label}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <>
+          <input type="hidden" name="bankCode" value={bankCode} />
+          <button
+            type="button"
+            aria-label={bankLabel ? `은행 ${bankLabel}` : "은행 선택"}
+            aria-haspopup="dialog"
             aria-invalid={bankError ? true : undefined}
             aria-describedby={`${id}-note`}
-            className={`${FIELD} appearance-none pr-[44px] ${bankCode ? "" : "text-staff-placeholder!"}`}
+            onClick={() => setPicking(true)}
+            className={`${FIELD} pr-[44px] text-left ${bankCode ? "" : "text-staff-placeholder!"}`}
           >
-            <option value="">은행 선택</option>
-            {banks.map((bank) => (
-              <option key={bank.value} value={bank.value} className="text-staff-text">
-                {bank.label}
-              </option>
-            ))}
-          </select>
+            {bankLabel ?? "은행 선택"}
+          </button>
+            </>
+          )}
           <span aria-hidden className="pointer-events-none absolute top-1/2 right-[14px] -translate-y-1/2 text-staff-text-sub">
             <MaskIcon src="/icons/chevron-down.svg" size={16} />
           </span>
         </div>
+        <BottomSheet open={picking} onClose={() => setPicking(false)} title="은행 선택">
+          <ul className="grid grid-cols-3 gap-[8px]">
+            {banks.map((bank) => {
+              const on = bank.value === bankCode;
+              return (
+                <li key={bank.value}>
+                  <button
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => {
+                      onBankChange(bank.value);
+                      setPicking(false);
+                    }}
+                    className={`flex min-h-[48px] w-full items-center justify-center rounded-[12px] border px-[6px] text-center text-[14px] font-semibold break-keep ${
+                      on ? "border-staff-primary bg-staff-primary-inactive text-staff-primary" : "border-staff-border bg-white text-staff-text"
+                    }`}
+                  >
+                    {bank.label}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          {/* 고치기(필수 아님)는 고른 은행을 비울 수 있어야 한다 — 은행만 골라 두면 계좌번호 없이 저장이 막힌다(리뷰 반영) */}
+          {!required && bankCode && (
+            <button
+              type="button"
+              onClick={() => {
+                onBankChange("");
+                setPicking(false);
+              }}
+              className="min-h-[44px] text-[14px] font-semibold text-staff-text-sub underline underline-offset-[3px]"
+            >
+              선택 해제
+            </button>
+          )}
+        </BottomSheet>
         <input
           name="payrollAccountNumber"
           aria-label="계좌번호"

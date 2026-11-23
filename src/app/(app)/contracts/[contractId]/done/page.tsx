@@ -97,14 +97,14 @@ export default async function ContractDonePage({ params, searchParams }: PagePro
           />
         </Sunken>
         {taxSubmitted ? (
-          <Notice icon={<MaskIcon src="/icons/contract.svg" size={14} />}>
+          <Notice icon={<MaskIcon src="/icons/id-card-line.svg" size={14} />}>
             이 근무지의 <strong>신고 정보는 이미 냈습니다.</strong>
             <br />
             바꿀 것이 있으면 신고 정보 화면에서 고칠 수 있습니다.
           </Notice>
         ) : (
           staffMemberId !== undefined && (
-            <Notice icon={<MaskIcon src="/icons/contract.svg" size={14} />}>
+            <Notice icon={<MaskIcon src="/icons/id-card-line.svg" size={14} />}>
               이제 <strong>신고 정보</strong>를 입력해 주세요.
               <br />
               급여 지급과 원천징수, 4대보험 신고(가입 대상인 경우)에 필요한 정보입니다.

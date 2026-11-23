@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Badge, MaskIcon, PageHeader, SubLine } from "@/components/common";
+import { Badge, BottomNav, MaskIcon, PageHeader, SubLine } from "@/components/common";
 import { contractSubText, deadlineOf, groupContracts, isFinished as isFinishedPhase, parseId, periodText, phaseLabel, phaseOf, statusTone } from "@/lib/contract-rules";
 import { getContracts, type ContractListItem } from "@/lib/contracts";
 import { getEnumOrEmpty, labelOf, type EnumValue } from "@/lib/enums";
@@ -39,7 +39,7 @@ export default async function ContractsPage({ searchParams }: PageProps<"/contra
       {items.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-[8px] pb-[52px] text-center">
           <span className="flex text-staff-placeholder">
-            <MaskIcon src="/icons/contract.svg" size={30} />
+            <MaskIcon src="/icons/doc-line.svg" size={30} />
           </span>
           <h2 className="pt-[6px] text-[18px] font-bold">{storeId === null ? "받은 근로계약서가 없습니다" : "이 근무지에서 받은 근로계약서가 없습니다"}</h2>
           <p className="text-[14px] text-staff-text-muted">
@@ -61,6 +61,10 @@ export default async function ContractsPage({ searchParams }: PageProps<"/contra
         </>
       )}
     </ContractFrame>
+    {/* 목록 · 보기 화면은 하단 메뉴를 둔다(입력 화면은 두지 않는다 — 탭을 눌러 쓰던 내용을 잃지 않게, 2026-11-23 사용자 지정) */}
+    <div className="sticky bottom-0 mt-auto">
+      <BottomNav current={storeId === null ? "/" : "/me"} />
+    </div>
     </div>
   );
 }
@@ -125,7 +129,7 @@ function ContractRow({
       >
         <span className="flex items-center gap-[8px]">
           <span aria-hidden className="flex text-staff-text-sub">
-            <MaskIcon src="/icons/contract.svg" size={18} />
+            <MaskIcon src="/icons/doc-line.svg" size={18} />
           </span>
           <span className="min-w-0 flex-1 truncate text-[15px] font-bold">{title}</span>
           <Badge tone={statusTone(phase)}>{status}</Badge>

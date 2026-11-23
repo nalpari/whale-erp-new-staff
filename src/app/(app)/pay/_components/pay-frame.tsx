@@ -2,14 +2,18 @@ import type { ReactNode } from "react";
 import { BottomNav } from "@/components/common";
 
 // 급여 화면 틀: 머리줄 · 본문(데모 body detail) · 하단 메뉴. 하단 메뉴는 앱의 탭 막대라 화면 아래에 붙인다(다섯 칸, 2026-10-08 재영).
-export function PayFrame({ header, children }: { header: ReactNode; children: ReactNode }) {
+// nav=false: 상세는 하단 메뉴를 두지 않는다 — 목록 · 탭 화면에만 둔다(근로계약서 상세와 같다, 2026-11-23 사용자 지정).
+// current: 켜 둘 하단 메뉴 칸 — 내 근무지에서 연 목록은 「내 정보」(근로계약서 목록과 같다, 2026-11-23 사용자 지정).
+export function PayFrame({ header, children, nav = true, current = "/pay" }: { header: ReactNode; children: ReactNode; nav?: boolean; current?: string }) {
   return (
     <div className="flex flex-1 flex-col leading-[1.5]">
       {header}
       <div className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[20px] pb-[14px]">{children}</div>
-      <div className="sticky bottom-0 mt-auto">
-        <BottomNav current="/pay" />
-      </div>
+      {nav && (
+        <div className="sticky bottom-0 mt-auto">
+          <BottomNav current={current} />
+        </div>
+      )}
     </div>
   );
 }

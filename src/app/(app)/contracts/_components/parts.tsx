@@ -55,7 +55,7 @@ export function ContractHead({ title, sub, urgent, badge }: { title: string; sub
       className={`flex items-center gap-[12px] rounded-[16px] p-[16px] ${urgent ? "bg-[#fff6e5]" : "border border-staff-border-light bg-white"}`}
     >
       <span className={`flex ${urgent ? "text-[#956013]" : "text-staff-placeholder"}`}>
-        <MaskIcon src="/icons/contract.svg" size={18} />
+        <MaskIcon src="/icons/doc-line.svg" size={18} />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
         <p className="text-[15px] font-bold">{title}</p>

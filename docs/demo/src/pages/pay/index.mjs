@@ -10,7 +10,7 @@
 // 「퇴직 전까지 조회」는 PAY-4 로 바뀐 목업 문구로 바꿨다. 7월 줄은 목업처럼 상태 칩 없이 둔다(Figma 는 「다시 보냄」 칩).
 // 상세 · 다시 보낸 명세서 · 빈 상태 · 안내 시트는 Figma 없음 — DESIGN.md 기준 초안. 상세의 실지급액은 목록과 같은 짙은 남색 카드다.
 // 하단 메뉴는 목업처럼 다섯 칸이다(2026-10-08 재영 결정, Figma 는 네 칸).
-import { backHeader, badge, body, bottomNav, bottomSheet, button, card, heroCard, img, notice, page, pageHeader, sheetOption, state, tiny } from "../../ui.mjs";
+import { backHeader, badge, body, bottomNav, bottomSheet, button, card, heroCard, iconTile, img, notice, page, pageHeader, sheetOption, state, tiny } from "../../ui.mjs";
 
 // 목업 오른쪽 목록 순서 그대로. 마지막은 목업의 「시트 열기」라 목록 위에 시트를 띄운다.
 const STATES = [
@@ -123,13 +123,12 @@ const payslipView = (p) => {
         .map(([at, kind]) => `<li><span class="tabular-nums">${at}</span> · ${kind}</li>`)
         .join("")}</ul>`,
     ) +
-    button("명세서 PDF 받기", { variant: "outline", "data-toast": "명세서 PDF를 내려받습니다" })
+    button("급여명세서 PDF 다운로드", { variant: "outline", "data-toast": "급여명세서 PDF를 내려받습니다" })
   );
 };
 
 const listHeader = () =>
-  pageHeader("급여", {
-    backHref: page("home"),
+  pageHeader("급여명세서", {
     action: `<button type="button" data-open="about" aria-label="급여명세서 안내" class="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">${infoIcon()}</button>`,
   });
 const backToList = () => backHeader("급여명세서", "list");
@@ -139,7 +138,7 @@ const sheet = (a = {}) =>
     "about",
     { title: "급여명세서는 이렇게 만들어집니다", ...a },
     `<p class="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text"><strong>기본급·주휴수당·연장수당</strong>은 근로계약과 출퇴근 기록으로 자동 계산되고, 관리자가 확인합니다.<br><strong>그 외 지급 항목과 공제 항목</strong>은 관리자가 직접 입력합니다.</p><p class="text-[14px] text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">맨 위 금액은 <strong>그 달에 받은 급여명세서의 실지급액 합계</strong>입니다.<br>근무지가 여러 곳이면 모두 더해서 보여 드립니다.</p>${notice(
-      "실제 급여 입금은 근무지에서 진행합니다.<br>명세서는 만든 날부터 3년 동안 보관됩니다.",
+      "명세서는 만든 날부터 3년 동안 보관됩니다.",
       infoIcon(16),
     )}`,
   );
@@ -177,17 +176,17 @@ const list = (filtered = false) =>
   body(
     // 이번 달 실지급액(Figma node 17:1003): 짙은 남색 · radius 24 · 안쪽 25. 남색 위 흐린 글자 #BAC7DE·#D1DAEB 는 이 카드에만 쓴다(/design/pay 그대로).
     // 이번 달에 받은(발송된) 명세서 전체의 실지급액 합. 근무지와 관계없이 세고 누르는 곳은 없다. 합계·건수·점포는 api 가 내려 준 값이다(PAY-9, 운영 정책 PAY-08).
-    `<section aria-label="이번 달에 받은 급여명세서" class="flex flex-col rounded-[24px] bg-staff-navy p-[25px] text-white"><p class="text-[13px] text-[#bac7de]">9월 실지급액 합계</p><p class="pt-[14px] pb-[16px] font-bold"><span class="text-[32px]">1,156,430</span><span class="text-[17px]"> 원</span></p><p class="border-t border-white/13 pt-[15px] text-[12px] text-[#d1daeb]">명세서 2건 · 웨일카페 강남역점, 웨일카페 홍대점</p></section>` +
-      `<section class="flex flex-col rounded-[20px] border border-staff-border-light bg-white p-[20px]"><div class="flex items-center justify-between"><h2 class="text-[13px] font-semibold text-staff-text-sub">명세서</h2><span class="text-[12px] text-staff-text-muted">${filtered ? 0 : PAST.length}건</span></div><div class="flex gap-[8px] pt-[10px]">${chip(filtered ? "웨일베이커리 합정점" : "전체 근무지", "pf-store", filtered)}${chip("2026년", "pf-year", false)}</div>${
+    `<section aria-label="이번 달에 받은 급여명세서" class="flex flex-col rounded-[24px] bg-staff-navy p-[25px] text-white"><p class="text-[13px] text-[#bac7de]">9월 실지급액 합계</p><p class="pt-[14px] pb-[16px] font-bold"><span class="text-[32px]">1,156,430</span><span class="text-[17px]"> 원</span></p><p class="border-t border-white/13 pt-[15px] text-[12px] text-[#d1daeb]">급여명세서 2건 · 웨일카페 강남역점, 웨일카페 홍대점</p></section>` +
+      `<section class="flex flex-col rounded-[20px] border border-staff-border-light bg-white p-[20px]"><div class="flex gap-[8px]">${chip(filtered ? "웨일베이커리 합정점" : "전체 근무지", "pf-store", filtered)}${chip("2026년", "pf-year", false)}</div><div class="flex items-center justify-between pt-[16px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">급여명세서</h2><span class="text-[12px] text-staff-text-muted">${filtered ? 0 : PAST.length}건</span></div>${
         filtered
           ? `<div class="flex flex-col items-center gap-[10px] pt-[24px] pb-[6px] text-center"><p class="text-[14px] text-staff-text-sub">선택한 근무지와 연도에 받은 명세서가 없습니다</p>${button("전체 명세서 보기", { variant: "outline", "data-go": "list" })}</div>`
           : ""
       }<ul class="divide-y divide-staff-border-light pt-[4px]"${filtered ? " hidden" : ""}>${PAST.map(
         (p) =>
-          `<li><button type="button" data-go="${p.to}" class="flex min-h-[44px] w-full items-center gap-[12px] py-[17px] text-left transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-staff-primary-inactive"><span class="flex min-w-0 flex-1 flex-col"><span class="truncate text-[15px] font-semibold">${p.month}</span><span class="truncate pt-[2px] text-[12px] text-staff-text-sub">${p.sent}</span></span><span class="flex shrink-0 flex-col items-end gap-[3px]"><span class="text-[13.5px] tabular-nums">${p.amount}</span></span></button></li>`,
+          `<li><button type="button" data-go="${p.to}" class="flex min-h-[44px] w-full items-center gap-[12px] py-[12px] text-left transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-staff-primary-inactive"><span class="flex min-w-0 flex-1 flex-col"><span class="truncate text-[15px] font-semibold">${p.month}</span><span class="truncate pt-[2px] text-[12px] text-staff-text-sub">${p.sent}</span></span><span class="flex shrink-0 flex-col items-end gap-[3px]"><span class="text-[13.5px] tabular-nums">${p.amount}</span></span></button></li>`,
       ).join("")}</ul></section>` +
       // 목업 grow 뒤 tiny · Figma mt-auto: 본문이 짧으면 맨 아래에 붙는다.
-      `<div class="mt-auto">${tiny("명세서는 이메일로도 함께 보내 드립니다.<br>퇴직한 뒤에도 <b>명세서를 만든 날부터 3년 동안</b> 볼 수 있습니다.<br>단, 계정을 탈퇴하면 볼 수 없습니다.")}</div>`,
+      `<div class="mt-auto">${tiny("급여명세서는 이메일로도 발송됩니다.<br>퇴직 후에도 <b>작성일로부터 3년간</b> 확인할 수 있으며, 계정 탈퇴 시에는 확인할 수 없습니다.")}</div>`,
     { variant: "detail" },
   );
 
@@ -196,7 +195,7 @@ const VIEWS = {
   "filter-empty": () => list(true) + sheet() + filterSheets(),
   detail: () =>
     backToList() +
-    body(payslipView(PAYSLIPS.detail) + tiny("실제 급여 입금은 근무지에서 진행합니다."), { variant: "detail" }),
+    body(payslipView(PAYSLIPS.detail), { variant: "detail" }),
   resent: () =>
     backToList() +
     body(
@@ -206,7 +205,7 @@ const VIEWS = {
   empty: () =>
     listHeader() +
     body(
-      `<div class="flex flex-1 flex-col items-center justify-center gap-[8px] py-[52px] text-center">${img("menu-payslip.svg", 44, 44, "mb-[6px]")}<p class="text-[18px] font-bold">받은 급여명세서가 없습니다</p><p class="max-w-[230px] text-[13px] text-staff-text-sub">근무지에서 급여명세서를 보내면 여기에 표시됩니다.</p></div>`,
+      `<div class="flex flex-1 flex-col items-center justify-center gap-[8px] py-[52px] text-center"><span class="mb-[6px] flex">${iconTile("payslip-line.svg", 44)}</span><p class="text-[18px] font-bold">받은 급여명세서가 없습니다</p><p class="max-w-[230px] text-[13px] text-staff-text-sub">근무지에서 급여명세서를 보내면 여기에 표시됩니다.</p></div>`,
       { variant: "detail" },
     ) +
     sheet(),
@@ -214,8 +213,9 @@ const VIEWS = {
 };
 
 export default () => ({
-  title: "급여",
+  title: "급여명세서",
   states: STATES,
   // 하단 메뉴는 앱의 탭 막대라 화면 아래에 붙여 둔다(/design/pay 그대로).
-  html: `<div class="flex flex-1 flex-col"><main class="flex flex-1 flex-col leading-[1.5]">${STATES.map((s) => state(s.id, VIEWS[s.id]())).join("")}</main><div class="sticky bottom-0 mt-auto">${bottomNav("pay")}</div></div>`,
+  // 상세(detail · resent)는 하단 메뉴를 두지 않는다 — 개발 화면 PayFrame nav={false} 와 같다(2026-11-23 사용자 지정). 그래서 메뉴를 상태마다 넣는다.
+  html: `<div class="flex flex-1 flex-col"><main class="flex flex-1 flex-col leading-[1.5]">${STATES.map((s) => state(s.id, `<div class="flex flex-1 flex-col">${VIEWS[s.id]()}${s.id === "detail" || s.id === "resent" ? "" : `<div class="sticky bottom-0 mt-auto">${bottomNav("pay")}</div>`}</div>`)).join("")}</main></div>`,
 });

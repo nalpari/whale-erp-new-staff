@@ -34,7 +34,8 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex flex-col gap-[16px] px-[24px] pt-[52px] pb-[24px] leading-[1.5]">
+      {/* 위 여백 52px(Figma 상태 표시줄 자리)는 실제 폰에서 상태 표시줄과 겹쳐 두 번 비었다 — 20px(2026-11-23 사용자 지정) */}
+      <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
         {/* 화면 제목은 보이지 않게만 둔다(인사말 줄을 뺐다) */}
         <h1 className="sr-only">홈</h1>
         {/* 머리줄 아래 인사말은 두지 않고 20px 만 띄운다(데모 home) — 사이 16 에 4 를 더한다 */}
@@ -67,7 +68,7 @@ export default async function HomePage() {
         {/* 고른 근무지의 TO-DO 만. 소속 목록을 못 받았으면 모든 근무지, 근무지가 없으면 카드를 두지 않는다. */}
         {current !== null && (
           <Suspense fallback={<TodoCardSkeleton />}>
-            <TodoCard storeId={current?.store.storeId} />
+            <TodoCard storeId={current?.store.storeId} staffMemberId={current?.staffMemberId} />
           </Suspense>
         )}
         {/* 나의 근무 정보 바로가기(데모). 급여명세서는 근무지가 없어도 보인다(HOME-5). 받는 동안은 비워 둔다. */}

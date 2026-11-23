@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
-import { Alert, Button, Dock, Notice, PageHeader } from "@/components/common";
+import { Alert, Button, Dock, IconTile, Notice, PageHeader } from "@/components/common";
 import { ApiError } from "@/lib/api";
 import { getCodesOrEmpty } from "@/lib/codes";
 import { labelOf } from "@/lib/enums";
@@ -85,7 +85,16 @@ function GuardItem({ icon, title, children }: { icon: ReactNode; title: string; 
   return (
     <div className="flex gap-[10px]">
       <span aria-hidden className="flex size-[28px] shrink-0 items-center justify-center rounded-full bg-white text-staff-text-sub">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           {icon}
         </svg>
       </span>
@@ -103,6 +112,12 @@ function GuardItem({ icon, title, children }: { icon: ReactNode; title: string; 
 // 「새로 넣기」(데모 form)는 이미 낸 신고 정보가 있을 때만 보이고 `./edit` 로 간다(WHALEERP-333). 아직 없으면 날인 뒤 흐름의
 // 처음 넣기(`./new`, WHALEERP-150)로 가는 「넣기」를 둔다 — 날인 뒤 흐름을 중간에 닫은 직원이 다시 넣는 길이다.
 // 고치고 돌아오면 `?changed=1` 로 와 알림을 띄우고 주소에서 지운다 — 다시 조회가 실패해도 지우고, 안내에 저장은 됐다고 덧붙인다(PR #26 참고). 내 소속이 아니면(퇴직 · 남의 id) 404 다.
+const EMPTY_GUIDE: readonly [string, string][] = [
+  ["왜 필요한가요?", "근무지가 급여 세금(원천징수)을 신고하고, 급여를 이체하는 데 사용합니다."],
+  ["언제 입력하나요?", "근로계약서에 서명한 직후 입력합니다."],
+  ["입력하지 않으면?", "근무지가 급여 계좌를 알 수 없어 급여 이체가 늦어질 수 있습니다."],
+];
+
 export default async function TaxProfilePage({ params, searchParams }: PageProps<"/me/memberships/[staffMemberId]/tax-profile">) {
   const staffMemberId = parseStaffMemberId((await params).staffMemberId);
   const changed = (await searchParams).changed === "1";
@@ -122,16 +137,44 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
 
   return (
     <div className="flex flex-1 flex-col bg-white">
-      <PageHeader title="등록된 신고 정보" backHref="/me/memberships" />
-      <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5] break-keep">
+      <PageHeader title="신고 정보" backHref="/me/memberships" />
+      <div className="flex flex-1 flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5] break-keep">
         {tax === null ? (
           <Alert tone="warning">
             <p>{after.unavailable}</p>
           </Alert>
         ) : !profile ? (
-          <Notice>
-            <strong>{storeName}</strong>에는 아직 신고 정보를 내지 않았습니다. 근로계약서 서명을 마쳤다면 지금 입력해 주세요.
-          </Notice>
+          // 빈 상태는 급여명세서 빈 화면처럼 아이콘 · 문구를 가운데에(2026-11-23 사용자 지정) — 맨 위 작은 안내 상자 아래가 휑했다
+          <div className="flex flex-1 flex-col items-center justify-center gap-[8px] py-[40px] text-center">
+            <span className="mb-[6px] flex">
+              <IconTile src="/icons/id-card-line.svg" size={44} />
+            </span>
+            <p className="text-[17px] font-bold">입력한 신고 정보가 없습니다</p>
+            <p className="text-[14px] text-staff-text-sub">{storeName}</p>
+            <p className="pt-[8px] text-[14px] text-staff-text-sub">
+              근로계약서에 서명했다면
+              <br />
+              지금 입력해 주세요.
+            </p>
+            {/* 왜 · 언제 · 안 하면 — 신고 정보 정책 TAX-02 · 04 · 08. 앱 사용은 막지 않으므로 「늦어질 수 있습니다」까지만 말한다(2026-11-23 사용자 지정) */}
+            <dl className="mt-[17px] flex w-full flex-col gap-[12px] rounded-[16px] bg-staff-bg px-[18px] py-[16px] text-left text-[13px] leading-[1.6]">
+              {EMPTY_GUIDE.map(([q, a]) => (
+                <div key={q}>
+                  <dt className="font-semibold text-staff-text">
+                    <span className="mr-[4px] text-staff-primary/50">Q.</span>
+                    {q}
+                  </dt>
+                  <dd className="text-staff-text-sub">{a}</dd>
+                </div>
+              ))}
+            </dl>
+            {/* 입력 버튼은 화면 맨 아래 대신 안내 바로 아래에 — 빈 화면에서 멀리 떨어져 있었다(2026-11-23 사용자 지정) */}
+            <div className="mt-[20px] w-full">
+              <Button href={`/me/memberships/${staffMemberId}/tax-profile/new`} transitionTypes={["nav-forward"]}>
+                신고 정보 입력하기
+              </Button>
+            </div>
+          </div>
         ) : (
           <>
             <WorkplaceBox name={storeName} />
@@ -179,19 +222,9 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
       </div>
       {profile ? (
         <Dock>
-          <Button href={`/me/memberships/${staffMemberId}/tax-profile/edit`}>
-            다시 입력하기
-          </Button>
+          <Button href={`/me/memberships/${staffMemberId}/tax-profile/edit`}>다시 입력하기</Button>
         </Dock>
-      ) : (
-        tax && (
-          <Dock>
-            <Button href={`/me/memberships/${staffMemberId}/tax-profile/new`} transitionTypes={["nav-forward"]}>
-              신고 정보 입력하기
-            </Button>
-          </Dock>
-        )
-      )}
+      ) : null}
       {changed && (
         <ChangedToast path={`/me/memberships/${staffMemberId}/tax-profile`}>{after.toast ? "신고 정보를 바꿨습니다" : undefined}</ChangedToast>
       )}
