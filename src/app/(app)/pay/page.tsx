@@ -155,7 +155,7 @@ function PayslipRows({ items }: { items: Awaited<ReturnType<typeof getPayslips>>
           <Link
             href={`/pay/${p.payslipId}`}
             transitionTypes={["nav-forward"]}
-            className="flex min-h-[44px] w-full items-center gap-[12px] py-[17px] text-left transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-staff-primary-inactive"
+            className="flex min-h-[44px] w-full items-center gap-[12px] py-[12px] text-left transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-staff-primary-inactive"
           >
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="truncate text-[15px] font-semibold">{monthLabel(p.periodStartDate)}</span>
