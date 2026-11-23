@@ -1,5 +1,11 @@
 # Bundle history
 
+## 2026-11-23
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 출퇴근 버튼에서 위치 읽음을 남기는 요청이 예외로 끝나면 「위치를 확인할 수 없음」이 아니라 요청 실패로 안내한다(PR #90 pr-agent 리뷰).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 앱 안인데 브리지가 없으면 출퇴근 위치를 브라우저로 넘기지 않고 앱 고장(broken)으로 본다. 브리지는 있는데 `measureLocation` 을 모르는 옛 앱만 브라우저 위치로 넘긴다(PR #90 pr-agent 리뷰).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 앱 위치가 10분보다 오래됐으면 출퇴근 판정에 쓰지 않고 「읽지 못함」으로 본다(`MAX_LOCATION_AGE_SECONDS`). 앱 답의 좌표 범위 · 위치 나이도 검사한다(PR #90 pr-agent 리뷰).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 출퇴근 위치를 설치형 앱 안에서는 브리지 `measureLocation` 으로 받아 모의 위치를 실제로 판정한다(계획 결정 8, `src/lib/device-location.ts`). 앱이 실패 · 거부로 답하면 브라우저로 넘어가지 않고, 약속 어긋남 · 거절은 업데이트 · 관리자 문의 안내를 따로 보인다.
+
 ## 2026-11-20
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 정돈 시안 후속: 화면 위 여백 20(근로계약서 12), `WorkplaceBox` 상자 없는 머리 줄, 근로계약서 상세 요약 카드 · 상태 안내 줄 · `InfoGroup`(사업주 → 근로자) · 전화 · 사업자등록번호 하이픈, 목록 이름 칸 76, 근무 화면 근무지 카드, 「근무정보 제공 동의」 이름 · 시트(표준 항목 이름, v1.0 유지), 명사형 자리표시, 외곽선 [조회], 「출퇴근하기 ›」 알약, 현재 비밀번호 불일치 판정(`isCurrentPasswordMismatch`).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 내 정보 정돈 시안(⑬) 반영: 프로필 카드(이름 · 생년월일 | 휴대전화), 줄 상자(아이디(이메일) · 주소 펼침 편집 · 비밀번호 변경), 내 근무지 묶음과 「새 근무지 초대 N건」 줄, 출퇴근 위치정보 이용 동의 · 근무정보 제공 동의 묶음(배지 · 일시 줄 · 가로 글자 버튼 · 상태별 안내), 로그아웃 아이콘 버튼. 화면의 「사업자 제공 동의」 이름을 「근무정보 제공 동의」로 통일(동의 본문 · 요약은 그대로).

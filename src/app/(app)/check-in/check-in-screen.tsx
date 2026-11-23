@@ -18,6 +18,8 @@ import {
   type ReviewReason,
 } from "@/lib/attendance-rules";
 import { kstToday, stampLabel } from "@/lib/attendance-history";
+import { browserLocation, readDeviceLocation } from "@/lib/device-location";
+import { isInApp } from "@/lib/native-bridge";
 import type { AttendanceRecordResult, MyAttendance } from "@/lib/my-attendance";
 import { nocontractHref, type CheckInSignWaiting } from "@/lib/sign-request";
 import { changeConsentAction } from "../me/actions";
@@ -28,15 +30,20 @@ import { KakaoGeoMap } from "./kakao-map";
 /**
  * 휴대전화 위치. 출퇴근 탭에 들어올 때와 출근 · 퇴근 버튼을 누를 때 읽는다(ATT-22 v229, 2026-10-28 재영). 탭에서 읽은 위치는 지도에
  * 보여 주기만 하고, 판정은 버튼을 누를 때 다시 읽어 정한다 — 화면을 열어 둔 사이에 움직일 수 있다. 판정은 여기서 끝난다 —
- * 좌표는 서버로 보내지 않는다(ATT-05). 위치 조작 감지(ATT-21)는 운영체제가 알려 줄 때만 판정하는데, 브라우저 위치(Geolocation API)는
- * 모의 위치 여부를 알려 주지 않아 지금은 늘 false 다. 오차도 따로 판정하지 않는다(ATT-4).
+ * 좌표는 서버로 보내지 않는다(ATT-05). 위치 조작 감지(ATT-21)는 운영체제가 알려 줄 때만 판정한다 — 설치형 앱 안에서는 앱이 좌표와
+ * 모의 위치 여부를 같은 측정값에서 넘기고(measureLocation), 브라우저 위치(Geolocation API)는 모의 위치 여부를 알려 주지 않아 false 다.
+ * 오차도 따로 판정하지 않는다(ATT-4).
  */
 type Geo =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "denied" }
   | { status: "unavailable" }
+  | { status: "broken" }
   | { status: "ok"; distance: number; inRange: boolean; mocked: boolean; position: { latitude: number; longitude: number } };
+
+/** 위치 읽음(확인자료)을 남기는 서버 요청이 예외로 끝났을 때(네트워크 끊김 등). 위치는 아직 읽지 않았다. */
+const LOCATION_READ_REQUEST_FAILED = "요청을 처리하지 못했습니다. 잠시 뒤 다시 시도해 주세요";
 
 type Sheet = "consent" | "bye" | "hifar" | "dup" | "nopunch" | "nocontract" | "noperiod" | "closed" | null;
 
@@ -103,22 +110,16 @@ export function CheckInScreen({
   }, []);
 
   const { latitude, longitude, radiusMeters } = store;
-  // 위치는 콜백으로만 받는다 — 브라우저가 위치를 주지 않는 기기도 오류 콜백으로 같은 「읽지 못함」이 된다
+  // 앱 안이면 앱이 잰 좌표와 모의 위치 여부를, 브라우저면 브라우저 위치를 쓴다(readDeviceLocation)
   const locate = useCallback(
-    () =>
-      new Promise<Geo>((resolve) => {
-        if (latitude === null || longitude === null) return resolve({ status: "unavailable" });
-        if (!navigator.geolocation) return resolve({ status: "unavailable" });
-        navigator.geolocation.getCurrentPosition(
-          ({ coords }) => {
-            const distance = distanceMeters(coords, { latitude, longitude });
-            const position = { latitude: coords.latitude, longitude: coords.longitude };
-            resolve({ status: "ok", distance, inRange: distance <= radiusMeters, mocked: false, position });
-          },
-          (failure) => resolve({ status: failure.code === failure.PERMISSION_DENIED ? "denied" : "unavailable" }),
-          GEO_OPTIONS,
-        );
-      }),
+    async (): Promise<Geo> => {
+      if (latitude === null || longitude === null) return { status: "unavailable" };
+      const read = await readDeviceLocation({ fromBrowser: () => browserLocation(GEO_OPTIONS) });
+      if (read.status !== "ok") return { status: read.status };
+      const position = { latitude: read.latitude, longitude: read.longitude };
+      const distance = distanceMeters(position, { latitude, longitude });
+      return { status: "ok", distance, inRange: distance <= radiusMeters, mocked: read.mocked, position };
+    },
     [latitude, longitude, radiusMeters],
   );
 
@@ -190,14 +191,31 @@ export function CheckInScreen({
   const readLocation = async (kind: AttendanceKind): Promise<{ reason: ReturnType<typeof reviewReasonOf>; locationReadId: number } | null> => {
     setError(null);
     setGeo({ status: "loading" });
-    const read = await recordLocationReadAction(data.staffMemberId);
+    // 예외가 나도 「위치를 확인하는 중」에 멈추지 않게 끝낸다. 서버 요청(확인자료 남기기)의 예외는 위치를 읽기 전이라 「위치를
+    // 확인할 수 없음」이 아니라 요청 실패로 안내하고, 위치 읽기의 예외만 읽지 못함으로 둔다.
+    let read: Awaited<ReturnType<typeof recordLocationReadAction>>;
+    try {
+      read = await recordLocationReadAction(data.staffMemberId);
+    } catch (thrown) {
+      console.error("[check-in] 위치 읽음을 남기지 못함", thrown);
+      setGeo({ status: "idle" });
+      setError(LOCATION_READ_REQUEST_FAILED);
+      return null;
+    }
     if (!read.ok) {
       setGeo({ status: "idle" });
       fail(read.problem);
       return null;
     }
     setReadId(read.locationReadId);
-    const next = await locate();
+    let next: Geo;
+    try {
+      next = await locate();
+    } catch (thrown) {
+      console.error("[check-in] 위치를 읽지 못함", thrown);
+      setGeo({ status: "unavailable" });
+      return null;
+    }
     setGeo(next);
     if (next.status !== "ok") return null;
     return { reason: reviewReasonOf(kind, next), locationReadId: read.locationReadId };
@@ -359,7 +377,10 @@ export function CheckInScreen({
     // 지도 위 안내 — 다시 읽는 중 · 탭에서 읽은 거리 · 버튼 안내 순
     const waitText =
       geo.status === "loading"
-        ? "위치를 확인하는 중입니다"
+        ? // 앱 안에서는 처음에 OS 권한 창이 뜰 수 있고, 앱이 최대 75초까지 기다린다
+          isInApp()
+          ? "위치를 확인하는 중입니다. 권한 창이 떠 있으면 골라 주세요"
+          : "위치를 확인하는 중입니다"
         : seen
           ? `매장까지 ${Math.round(seen.distance).toLocaleString("ko-KR")}m`
           : `${working ? "퇴근하기" : "출근하기"}를 누르면 위치를 확인합니다`;
@@ -388,6 +409,13 @@ export function CheckInScreen({
           <strong>위치 권한이 꺼져 있습니다.</strong>
           <br />
           출퇴근하려면 설정에서 위치 접근을 허용해 주세요.
+        </Alert>
+      </>
+    ) : geo.status === "broken" ? (
+      <>
+        <GeoBlank tone="muted" text="위치를 확인할 수 없습니다" />
+        <Alert tone="warning">
+          앱에서 위치를 받지 못했습니다. 앱을 최신 버전으로 업데이트하고, 계속되면 근무지 관리자에게 문의해 주세요.
         </Alert>
       </>
     ) : geo.status === "unavailable" ? (

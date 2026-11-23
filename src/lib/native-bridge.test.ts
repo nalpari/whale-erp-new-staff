@@ -11,6 +11,9 @@ import {
   readBridgeResult,
   waitForBridge,
   type Bridge,
+  MEASURE_LOCATION_TIMEOUT_MS,
+  isAppLocation,
+  measureLocation,
 } from "./native-bridge.ts";
 
 const ANDROID_APP =
@@ -218,4 +221,55 @@ test("앱 밖에서 브리지가 없는 것은 고장이 아니라 콘솔에 남
   const { win } = fakeWindow();
   assert.equal(await waitForBridge(win, { userAgent: SAFARI, timeoutMs: 10 }), null);
   assert.equal(bridgeErrors(error).length, 0);
+});
+
+test("measureLocation 은 앱에 measureLocation 이라는 이름으로 묻는다", async () => {
+  const calls: unknown[][] = [];
+  await measureLocation({
+    callHandler: async (...args: unknown[]) => {
+      calls.push(args);
+      return { ok: true, data: { status: "denied" } };
+    },
+  });
+  assert.deepEqual(calls, [["measureLocation"]]);
+});
+
+test("isAppLocation 은 약속에 맞는 값을 받는다 — 숫자 정확도 · 참거짓 precise · reason 다섯 가지", () => {
+  const ok = { status: "ok", latitude: 37.5, longitude: 127, accuracyMeters: 5, ageSeconds: 0, mocked: false, precise: true };
+  assert.equal(isAppLocation(ok), true);
+  assert.equal(isAppLocation({ ...ok, precise: false }), true);
+  assert.equal(isAppLocation({ ...ok, accuracyMeters: null, precise: null }), true);
+  for (const reason of ["serviceDisabled", "permissionCheckFailed", "permissionTimeout", "timeout", "error"]) {
+    assert.equal(isAppLocation({ status: "unavailable", reason }), true, reason);
+  }
+  assert.equal(isAppLocation({ status: "unavailable" }), false);
+  assert.equal(isAppLocation({ ...ok, accuracyMeters: undefined }), false);
+  assert.equal(isAppLocation({ ...ok, precise: undefined }), false);
+  assert.equal(isAppLocation({ ...ok, longitude: Number.POSITIVE_INFINITY }), false);
+});
+
+test("measureLocation 은 75초를 기다리고 약속에 맞는 답만 받는다", async (t) => {
+  t.mock.method(console, "error", () => {});
+  const ok = { status: "ok", latitude: 37.5, longitude: 127, accuracyMeters: null, ageSeconds: 3, mocked: true, precise: null };
+  assert.equal(MEASURE_LOCATION_TIMEOUT_MS, 75_000);
+  assert.deepEqual(await measureLocation({ callHandler: async () => ({ ok: true, data: ok }) }), { ok: true, data: ok });
+  assert.deepEqual(await measureLocation({ callHandler: async () => ({ ok: true, data: { status: "denied" } }) }), {
+    ok: true,
+    data: { status: "denied" },
+  });
+  assert.deepEqual(
+    await measureLocation({ callHandler: async () => ({ ok: true, data: { status: "unavailable", reason: "timeout" } }) }),
+    { ok: true, data: { status: "unavailable", reason: "timeout" } },
+  );
+  assert.equal(isAppLocation({ status: "unavailable", reason: "boom" }), false);
+  assert.equal(isAppLocation({ ...ok, mocked: "yes" }), false);
+  assert.equal(isAppLocation({ ...ok, latitude: Number.NaN }), false);
+  assert.equal(isAppLocation({ ...ok, ageSeconds: undefined }), false);
+  // 좌표 범위 · 위치 나이가 말이 안 되면 약속과 다른 답이다.
+  assert.equal(isAppLocation({ ...ok, latitude: 127 }), false);
+  assert.equal(isAppLocation({ ...ok, latitude: -90.1 }), false);
+  assert.equal(isAppLocation({ ...ok, longitude: 180.5 }), false);
+  assert.equal(isAppLocation({ ...ok, latitude: 90, longitude: -180 }), true);
+  assert.equal(isAppLocation({ ...ok, ageSeconds: -1 }), false);
+  assert.equal(isAppLocation({ status: "ok" }), false);
 });
