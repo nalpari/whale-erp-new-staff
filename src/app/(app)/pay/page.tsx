@@ -53,7 +53,7 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
             <span className="text-[12px] text-staff-text-muted">{items.length}건</span>
           </div>
           {items.length > 0 ? (
-            <PayslipRows items={items} />
+            <PayslipRows items={items} site={site} />
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-[8px] py-[40px] text-center">
               <span className="mb-[6px] flex">
@@ -102,7 +102,7 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
               <span className="text-[12px] text-staff-text-muted">{items.length}건</span>
             </div>
             {items.length > 0 ? (
-              <PayslipRows items={items} />
+              <PayslipRows items={items} site={site} />
             ) : (
               <div className="flex flex-col items-center gap-[10px] pt-[24px] pb-[6px] text-center">
                 {/* 처음 필터(전체 근무지 · 올해)에서 비면 지울 필터가 없다 — 1월에 지난해 12월분만 받은 경우 등. 연도를 바꾸게 한다. */}
@@ -148,13 +148,14 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
 }
 
 /** 명세서 줄 — 급여 탭 · 내 근무지에서 온 근무지 목록이 같이 쓴다 */
-function PayslipRows({ items }: { items: Awaited<ReturnType<typeof getPayslips>>["items"] }) {
+// 근무지 모드(?from=sites)에서 연 상세는 뒤로 가기가 이 목록으로 돌아오게 출처를 싣는다(리뷰 반영).
+function PayslipRows({ items, site }: { items: Awaited<ReturnType<typeof getPayslips>>["items"]; site: number | null }) {
   return (
     <ul className="divide-y divide-staff-border-light pt-[4px]">
       {items.map((p) => (
         <li key={p.payslipId}>
           <Link
-            href={`/pay/${p.payslipId}`}
+            href={site === null ? `/pay/${p.payslipId}` : `/pay/${p.payslipId}?from=sites&store=${site}`}
             transitionTypes={["nav-forward"]}
             className="flex min-h-[44px] w-full items-center gap-[12px] py-[12px] text-left transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-staff-primary-inactive"
           >

@@ -42,7 +42,8 @@ const STORE_NOTICE = (
 
 /** 출퇴근 현황 본문 — 탭 · 이번 주 카드 · 기간별 누계와 주별 줄 · 시트(데모 attendance 의 상태 · 시트 그대로) */
 /** now 는 서버가 그린 시각(ISO) — 근무 중 막대 끝을 서버 · 브라우저가 같게 그린다 */
-export function AttendanceHistoryScreen({ tab, records, today, weekStart, now }: { tab: Tab; records: MyAttendanceRecords; today: string; weekStart: string; now: string }) {
+// fromHome: 홈에서 왔으면(?back=home) 탭 · 기간을 바꿔도 뒤로 가기가 홈이 되게 주소에 남긴다(리뷰 반영)
+export function AttendanceHistoryScreen({ tab, records, today, weekStart, now, fromHome = false }: { tab: Tab; records: MyAttendanceRecords; today: string; weekStart: string; now: string; fromHome?: boolean }) {
   const router = useRouter();
   const [sheet, setSheet] = useState<Sheet>(null);
   const close = () => setSheet(null);
@@ -58,14 +59,14 @@ export function AttendanceHistoryScreen({ tab, records, today, weekStart, now }:
           { value: "period", label: "기간별" },
         ]}
         onChange={(next) => {
-          if (next !== tab) router.push(next === "period" ? "/attendance?tab=period" : "/attendance");
+          if (next !== tab) router.push(`/attendance${next === "period" ? "?tab=period" : ""}${fromHome ? (next === "period" ? "&" : "?") + "back=home" : ""}`);
         }}
       />
       <div id={PANEL} role="tabpanel" aria-labelledby={segmentTabId(PANEL, tab)} className="flex flex-1 flex-col gap-[20px]">
         {tab === "week" ? (
           <WeekView records={records} today={today} weekStart={weekStart} now={now} onOpen={setSheet} />
         ) : (
-          <PeriodView records={records} today={today} />
+          <PeriodView records={records} today={today} fromHome={fromHome} />
         )}
       </div>
       <DaySheets sheet={sheet} onClose={close} onOpen={setSheet} />
@@ -218,11 +219,11 @@ function DaySheets({ sheet, onClose, onOpen }: { sheet: Sheet; onClose: () => vo
   );
 }
 
-function PeriodView({ records, today }: { records: MyAttendanceRecords; today: string }) {
+function PeriodView({ records, today, fromHome }: { records: MyAttendanceRecords; today: string; fromHome: boolean }) {
   const totals = periodTotals(records, today);
   return (
     <>
-      <PeriodPicker from={records.from} to={records.to} />
+      <PeriodPicker from={records.from} to={records.to} fromHome={fromHome} />
       <Sunken label={`총 근무 시간 · ${rangeLabel(records.from, records.to)}`}>
         <div className="flex flex-wrap items-baseline gap-x-[14px]">
           <p className="text-[28px] font-bold [&_span]:text-[17px]">
@@ -260,7 +261,7 @@ function PeriodView({ records, today }: { records: MyAttendanceRecords; today: s
 // 아이폰 Safari 는 날짜 칸이 기본 모양(appearance)일 때 min-w-0 · 칸 폭을 무시하고 글자 폭만큼 늘어나 카드 밖으로 밀렸다 — 기본 모양을 끄고 폭을 칸에 맞춘다(2026-11-23 사용자 지정)
 const DATE_FIELD = `${FIELD.replace("px-[14px]", "px-[10px]")} w-full min-w-0 max-w-full appearance-none text-left [&::-webkit-date-and-time-value]:text-left`;
 
-function PeriodPicker({ from, to }: { from: string; to: string }) {
+function PeriodPicker({ from, to, fromHome }: { from: string; to: string; fromHome: boolean }) {
   const [start, setStart] = useState(from);
   const [end, setEnd] = useState(to);
   const noteId = useId();
@@ -287,6 +288,7 @@ function PeriodPicker({ from, to }: { from: string; to: string }) {
         }}
       >
         <input type="hidden" name="tab" value="period" />
+        {fromHome && <input type="hidden" name="back" value="home" />}
         <p className="text-[13px] font-semibold text-staff-text-sub">조회 기간</p>
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-[8px] pt-[8px]">
           <input

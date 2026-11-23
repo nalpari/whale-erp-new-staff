@@ -19,8 +19,12 @@ export const metadata: Metadata = { title: "급여명세서 · Whale ERP" };
 // 데모 resent 와 같이 다시 보낸 명세서는 머리 메타에 가장 최근에 받은 날을 적는다. 아래 「실제 급여 지급은 …」 안내는 없앴다(2026-11-23 사용자 지정).
 // 보낸 뒤 확정을 취소해 고치는 중이면(api correcting) 「검토 중」과 안내만 — 금액 · 항목 · 내보내기는 다시 받을 때까지 없다
 // (2026-10-21 사용자 결정, 고치는 중인 값을 보이지 않게).
-export default async function PayslipPage({ params }: PageProps<"/pay/[payslipId]">) {
+export default async function PayslipPage({ params, searchParams }: PageProps<"/pay/[payslipId]">) {
   await requireSession();
+  // 내 근무지 › 급여명세서(?from=sites&store=)에서 왔으면 그 목록으로 돌아간다. 숫자가 아니면 급여 탭으로.
+  const raw = await searchParams;
+  const store = typeof raw.store === "string" && /^d{1,10}$/.test(raw.store) ? raw.store : null;
+  const backHref = raw.from === "sites" && store ? `/pay?from=sites&store=${store}` : "/pay";
   const payslipId = parsePayslipId((await params).payslipId);
   const payslip = payslipId === null ? null : await getPayslip(payslipId);
   if (!payslip) notFound();
@@ -38,7 +42,7 @@ export default async function PayslipPage({ params }: PageProps<"/pay/[payslipId
     .join(" · ");
 
   return (
-    <PayFrame header={<PageHeader title="급여명세서" backHref="/pay" />}>
+    <PayFrame header={<PageHeader title="급여명세서" backHref={backHref} />}>
       {/* 목업 card--sunken: 안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14. */}
       <section className="flex flex-col gap-[8px] rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px]">
         <div className="flex items-start justify-between gap-[12px]">

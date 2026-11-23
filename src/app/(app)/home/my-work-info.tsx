@@ -49,7 +49,7 @@ export async function MyWorkInfo({ staffMemberId }: { staffMemberId?: number }) 
       )}
       {staffMemberId && (
         <InfoRow
-          href="/attendance"
+          href="/attendance?back=home"
           icon="/icons/menu-attendance.svg"
           title="출퇴근 현황"
           description={records ? monthAttendanceLabel(records, today) : undefined}

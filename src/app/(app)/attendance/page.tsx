@@ -21,6 +21,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
   const now = new Date();
   const today = kstToday(now);
   const tab = params.tab === "period" ? "period" : "week";
+  const fromHome = params.back === "home";
   const monday = mondayOf(today);
   const range = tab === "period" ? parsePeriod(params.from, params.to, today) : { from: monday, to: addDays(monday, 6) };
 
@@ -34,7 +35,8 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
     <div className="flex flex-1 flex-col">
       <PageHeader
         title="출퇴근 현황"
-        backHref="/check-in"
+        // 홈 「출퇴근 현황」에서 왔으면(?back=home) 홈으로, 그 밖에는 출퇴근 화면으로(리뷰 반영). from 은 기간 시작일이라 따로 둔다
+        backHref={fromHome ? "/home" : "/check-in"}
         action={
           // 출퇴근 화면의 「출퇴근 현황 ›」과 짝 — 시계 아이콘만으로는 버튼인지 · 어디로 가는지 몰라 글자 알약으로(2026-11-20 사용자 지정).
           // 보이는 알약은 36px, 누르는 칸은 위아래를 넓혀 44px.
@@ -74,7 +76,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
           )}
         </div>
       ) : (
-        <AttendanceHistoryScreen key={`${current.staffMemberId}-${tab}`} tab={tab} records={records} today={today} weekStart={monday} now={now.toISOString()} />
+        <AttendanceHistoryScreen key={`${current.staffMemberId}-${tab}`} tab={tab} records={records} today={today} weekStart={monday} now={now.toISOString()} fromHome={fromHome} />
       )}
       <div className="sticky bottom-0 mt-auto">
         <BottomNav current="/check-in" />

@@ -236,6 +236,19 @@ export function PayrollAccountFields({
               );
             })}
           </ul>
+          {/* 고치기(필수 아님)는 고른 은행을 비울 수 있어야 한다 — 은행만 골라 두면 계좌번호 없이 저장이 막힌다(리뷰 반영) */}
+          {!required && bankCode && (
+            <button
+              type="button"
+              onClick={() => {
+                onBankChange("");
+                setPicking(false);
+              }}
+              className="min-h-[44px] text-[14px] font-semibold text-staff-text-sub underline underline-offset-[3px]"
+            >
+              선택 해제
+            </button>
+          )}
         </BottomSheet>
         <input
           name="payrollAccountNumber"
