@@ -265,8 +265,38 @@ export const todoList = (children) => `<ul class="w-full divide-y divide-[#e8edf
 export const CHECK_ON = "bg-staff-primary";
 export const CHECK_OFF = "bg-staff-primary-inactive";
 const checkMark = (done) => img(done ? "todo-check-on.svg" : "todo-check-off.svg", 12, 9, "pointer-events-none");
-export const todoItem = ({ title, meta, done = false, overdue = false, toggle = true, badges = "", ...a }) =>
-  `<li class="flex items-center gap-[12px] py-[17px] leading-[1.5]"><label data-check class="relative flex size-[28px] shrink-0 items-center justify-center rounded-[2px] transition-colors duration-150 ${EASE_OUT} ${done ? CHECK_ON : CHECK_OFF}"><input type="checkbox"${done ? " checked" : ""}${toggle ? "" : " disabled"}${attrs(a)} aria-label="${title} 완료" class="absolute -inset-[8px] appearance-none rounded-[10px]">${checkMark(done)}</label><div class="flex min-w-0 flex-1 flex-col"><p data-check-title class="truncate text-[15px] font-semibold ${done ? "text-staff-text-muted" : "text-staff-text"}">${title}</p><p class="truncate pt-[2px] text-[12px] ${overdue ? "text-[#956013]" : "text-staff-text-sub"}">${meta}</p></div>${badges ? `<div class="flex shrink-0 gap-[4px]">${badges}</div>` : ""}</li>`;
+// open(시트 이름)을 주면 체크칸 · 제목 칸 어디를 눌러도 그 TO-DO 상세 시트(todoSheet)를 열고 체크는 바뀌지 않는다 — 상태는 시트에서 바꾼다
+// (개발 화면 홈 카드 · 근무 탭, 2026-11-23 사용자 지정. 체크 한 번에 바로 완료돼 사라지면 잘못 눌렀을 때 당황스러웠다).
+// 체크칸은 같은 모양의 버튼이고, 누르는 칸은 체크박스처럼 사방 8px 넓다.
+export const todoItem = ({ title, meta, done = false, overdue = false, toggle = true, open, badges = "", ...a }) => {
+  const box = `relative flex size-[28px] shrink-0 items-center justify-center rounded-[2px] transition-colors duration-150 ${EASE_OUT} ${done ? CHECK_ON : CHECK_OFF}`;
+  const check = open
+    ? `<button type="button" data-open="${open}"${attrs(a)} aria-label="${title} 상세 보기" class="${box}"><span aria-hidden="true" class="absolute -inset-[8px] rounded-[10px]"></span>${checkMark(done)}</button>`
+    : `<label data-check class="${box}"><input type="checkbox"${done ? " checked" : ""}${toggle ? "" : " disabled"}${attrs(a)} aria-label="${title} 완료" class="absolute -inset-[8px] appearance-none rounded-[10px]">${checkMark(done)}</label>`;
+  const line = open ? "span" : "p";
+  const text = `<${line} data-check-title class="truncate text-[15px] font-semibold ${done ? "text-staff-text-muted" : "text-staff-text"}">${title}</${line}><${line} class="truncate pt-[2px] text-[12px] ${overdue ? "text-[#956013]" : "text-staff-text-sub"}">${meta}</${line}>`;
+  const main = open
+    ? `<button type="button" data-open="${open}" class="flex min-w-0 flex-1 flex-col text-left">${text}</button>`
+    : `<div class="flex min-w-0 flex-1 flex-col">${text}</div>`;
+  return `<li class="flex items-center gap-[12px] py-[17px] leading-[1.5]">${check}${main}${badges ? `<div class="flex shrink-0 gap-[4px]">${badges}</div>` : ""}</li>`;
+};
+
+// TO-DO 상세 시트(work/todo-panel.tsx TodoSheet). 홈 TO-DO 카드와 근무 탭이 같이 쓴다. 제목 · 내용 · 긴급/공유 칩 · 수행 예정 · (근무지) · 상태,
+// 아래에 상태 바꾸기 [대기] [진행 중] [완료] — 개발 화면처럼 시트를 닫지 않고 고른 칸만 바뀐다. done(속성)을 주면 [완료]가 그 상태로 옮기며 닫는다.
+// 되돌리기 토스트는 없다. 공유 TO-DO 는 닫기 버튼이 「확인」이고 수행자 안내를 붙인다.
+const TODO_STATES = [
+  ["waiting", "대기"],
+  ["progress", "진행 중"],
+  ["done", "완료"],
+];
+export const todoSheet = (name, { title, body, chips = "", rows, status = "waiting", shared = false, after = "", done = {}, ...a }) =>
+  bottomSheet(
+    name,
+    { title, description: body, ...(shared ? { closeLabel: "확인" } : {}), ...a },
+    `${chips ? `<div class="flex gap-[4px]">${chips}</div>` : ""}${sunken(values(rows))}${after}${shared ? notice("먼저 완료 처리한 사람이 수행자로 기록됩니다.") : ""}<div role="group" aria-label="상태 바꾸기" data-pick class="flex flex-col gap-[8px]">${each(TODO_STATES, ([v, label]) =>
+      sheetOption(label, { selected: v === status, ...(v === "done" && v !== status ? done : {}) }),
+    )}</div>`,
+  );
 
 // ── 데모 조각(옛 src/app/demo/_components). DESIGN.md 「데모 조각」 절 ──
 

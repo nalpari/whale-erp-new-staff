@@ -337,9 +337,6 @@
   .mx-auto {
     margin-inline: auto;
   }
-  .-my-\[4px\] {
-    margin-block: calc(4px * -1);
-  }
   .-my-\[8px\] {
     margin-block: calc(8px * -1);
   }

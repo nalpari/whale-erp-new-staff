@@ -5,18 +5,13 @@
 //   WORK-3 공유 TO-DO 수행자 이름 공개 · WORK-4 근무지 전환은 홈 상단과 이 화면의 근무지 카드 두 곳, 같은 앱 전역 근무지(2026-10-20)
 // 화면 틀은 Figma 06.근무 정보(node 15:183 · 본문 15:193), TO-DO 목록은 Figma 07.근무 정보_list(node 17:602~)를 따른다.
 // 월 달력 · 고른 날 상세 · 근무지 없음 · 등록된 근무 없음 · 시트 2개는 Figma 없음 — DESIGN.md 기준 초안. 하단 메뉴는 다섯 칸(2026-10-08 재영 결정).
-// React 판과 다른 점: 미완료 TO-DO 체크칸을 켜도 체크칸·제목 색만 바뀌고 줄 순서·개수·상태 칩은 그대로다(React 판은 다시 정렬했다).
+// TO-DO 줄은 체크칸 · 제목 어디를 눌러도 상세 시트를 열고 상태는 시트에서 바꾼다(개발 화면과 같다, 2026-11-23). 시트에서 고른 상태는 칩만 옮기고 목록은 그대로다.
 import {
   STORES,
   bottomNav,
-  bottomSheet,
-  button,
   card,
-  checkBox,
-  EASE_OUT,
   img,
   maskIcon,
-  notice,
   page,
   pageHeader,
   storeSheet,
@@ -26,7 +21,9 @@ import {
   state,
   statusChip,
   sunken,
+  todoItem,
   todoList,
+  todoSheet,
   values,
   workTimeBar,
 } from "../../ui.mjs";
@@ -35,7 +32,7 @@ import {
 const STATES = [
   { id: "week", label: "월 달력", note: "고른 날 상세" },
   { id: "todo", label: "TO-DO 목록", note: "5건" },
-  { id: "todo-done", label: "완료 처리 직후", note: "토스트 확인" },
+  { id: "todo-done", label: "완료 처리 직후", note: "시트에서 완료" },
   { id: "shared", label: "공유 TO-DO 선점됨", note: "동료가 먼저 완료" },
   { id: "nosite", label: "근무지 없음", note: "퇴직 후" },
   { id: "empty", label: "등록된 근무 없음", note: "빈 상태" },
@@ -84,11 +81,11 @@ const monthCalendar = () =>
 
 // ── TO-DO 탭(todo-panel.tsx) ──
 const TODOS = [
-  { id: "fridge", title: "냉장고 온도 점검 및 사진 제출", meta: "9월 10일(목) 14:00", status: "waiting", due: "09-10 14:00", urgent: true, sheet: "fridge" },
-  { id: "clean", title: "마감 청소 사진 촬영", meta: "9월 9일(수) · 기한 지남", status: "waiting", due: "09-09", overdue: true },
-  { id: "menu", title: "신메뉴 시식 후 피드백 작성", meta: "9월 10일(목) · 시간 미정", status: "progress", due: "09-10" },
-  { id: "stock", title: "매장 재고 실사 보조", meta: "9월 11일(금) 10:00", status: "waiting", due: "09-11 10:00", shared: true, sheet: "sharedInfo" },
-  { id: "pop", title: "여름 시즌 POP 철거", meta: "9월 8일(화) 16:40 완료", status: "done", due: "09-08 16:40" },
+  { id: "fridge", title: "냉장고 온도 점검 및 사진 제출", meta: "9월 10일(목) 14:00", status: "waiting", due: "09-10 14:00", urgent: true, sheet: "fridge", body: "강남역점 냉장·냉동고 온도를 확인하고 온도계가 보이는 사진을 찍어 관리자에게 전송한다. 이상 온도가 발견되면 즉시 전화로도 알린다.", dueLabel: "9월 10일(목) 14:00" },
+  { id: "clean", title: "마감 청소 사진 촬영", meta: "9월 9일(수) · 기한 지남", status: "waiting", due: "09-09", overdue: true, sheet: "clean", body: "마감 청소를 마친 뒤 홀 · 주방 · 화장실 사진을 한 장씩 찍어 관리자에게 전송한다.", dueLabel: "9월 9일(수) · 시간 미정" },
+  { id: "menu", title: "신메뉴 시식 후 피드백 작성", meta: "9월 10일(목) · 시간 미정", status: "progress", due: "09-10", sheet: "menu", body: "가을 신메뉴 두 가지를 시식하고 맛 · 양 · 담음새 의견을 남긴다.", dueLabel: "9월 10일(목) · 시간 미정" },
+  { id: "stock", title: "매장 재고 실사 보조", meta: "9월 11일(금) 10:00", status: "waiting", due: "09-11 10:00", shared: true, sheet: "sharedInfo", body: "강남역점 재고 실사를 돕는다. 강남역점 근무 직원 4명 전체에게 배정되었고, 그중 한 명만 완료 처리하면 나머지 전원에게도 완료로 표시된다.", dueLabel: "9월 11일(금) 10:00" },
+  { id: "pop", title: "여름 시즌 POP 철거", meta: "9월 8일(화) 16:40 완료", status: "done", due: "09-08 16:40", sheet: "pop", body: "매장 안팎의 여름 시즌 POP 와 배너를 떼어 창고에 보관한다.", dueLabel: "9월 8일(화) 16:00" },
 ];
 const todosOf = (s) =>
   TODOS.map((t) => {
@@ -103,34 +100,23 @@ const STATUS = {
   done: { label: "완료", tone: "success" },
 };
 
-// 공통 TodoItem 과 같은 줄에, 제목을 누르면 상세 시트를 여는 버튼만 더했다(목업 row__main 버튼).
-// 긴급 건 체크칸은 완료 처리 직후로 옮기고, 나머지 미완료 건은 그 자리에서 켜고 끈다. 완료된 건은 보기 전용.
+// 공통 TodoItem 줄. 체크칸 · 제목 칸 어디를 눌러도 그 TO-DO 상세 시트를 연다 — 체크 한 번에 바로 완료되지 않고 상태는 시트에서 바꾼다
+// (개발 화면 work/todo-panel.tsx, 2026-11-23 사용자 지정). 완료된 건도 시트를 연다(공유 TO-DO 는 수행자 안내).
 const todoRow = (t) => {
   const done = t.status === "done";
-  const overdue = t.overdue && !done;
-  const label = `${t.title} 완료`;
-  const box = done
-    ? checkBox({ checked: true, label, toggle: false })
-    : t.urgent
-      ? checkBox({ checked: false, label, "data-go": "todo-done", "data-toast": "완료 처리했습니다" })
-      : checkBox({ checked: false, label });
-  const text = `<span${done ? "" : " data-check-title"} class="block truncate text-[15px] font-semibold ${done ? "text-staff-text-muted" : "text-staff-text"}">${t.title}</span><span class="block truncate pt-[2px] text-[12px] ${overdue ? "text-[#956013]" : "text-staff-text-sub"}">${t.meta}</span>`;
-  const main =
-    t.sheet && !t.doneByOther
-      ? `<button type="button" data-open="${t.sheet}" class="-my-[4px] flex min-h-[44px] min-w-0 flex-1 flex-col justify-center rounded-[10px] text-left transition-colors duration-150 ${EASE_OUT} active:bg-staff-primary-inactive">${text}</button>`
-      : `<div class="min-w-0 flex-1">${text}</div>`;
   const badges =
     (t.urgent && !done ? statusChip("warning", "긴급", "semibold") : "") +
     (t.shared ? statusChip("neutral", "공유", "semibold") : "") +
     statusChip(STATUS[t.status].tone, t.doneByOther ? "완료됨" : STATUS[t.status].label, "semibold");
-  return `<li class="flex items-center gap-[12px] py-[17px] leading-[1.5]">${box}${main}<div class="flex shrink-0 gap-[4px]">${badges}</div></li>`;
+  return todoItem({ title: t.title, meta: t.meta, done, overdue: t.overdue && !done, open: t.sheet, badges });
 };
+// 목록은 흰 상자 안에 — 회색 바탕에 줄만 있으면 비어 보였다(2026-11-23 사용자 지정). 근무스케줄 · 급여명세서 목록 상자와 같은 모양.
 const todoPanel = (s) => {
   const todos = todosOf(s).sort((a, b) => rank(a) - rank(b) || a.due.localeCompare(b.due));
   const count = (st) => todos.filter((t) => t.status === st).length;
   return `<div class="flex flex-col gap-[20px]"><p class="flex gap-[14px] text-[12px] text-staff-text-muted"><span>대기 <b class="text-staff-text">${count("waiting")}</b></span><span>진행 중 <b class="text-[#315df5]">${count(
     "progress",
-  )}</b></span><span>완료 <b class="text-[#13785e]">${count("done")}</b></span></p>${todoList(todos.map(todoRow).join(""))}</div>`;
+  )}</b></span><span>완료 <b class="text-[#13785e]">${count("done")}</b></span></p><section class="rounded-[20px] border border-staff-border-light bg-white px-[20px]">${todoList(todos.map(todoRow).join(""))}</section></div>`;
 };
 
 // 근무지 카드: 두 탭 위에 두고 누르면 홈과 같은 근무지 고르기 시트를 연다(WORK-4, 2026-10-20 재영). 고른 근무지는 앱 전체가 따른다.
@@ -171,29 +157,31 @@ const emptyView = (icon, title, description) =>
   `<div class="flex flex-1 flex-col items-center justify-center gap-[8px] py-[52px] text-center"><span class="flex items-center justify-center pb-[6px] text-staff-placeholder">${icon}</span><p class="text-[18px] font-bold">${title}</p><p class="max-w-[260px] text-[13px] text-staff-text-sub">${description}</p></div>`;
 
 // ── 시트 ──
+// TO-DO 상세 시트(개발 화면 TodoSheet): 제목 · 내용 · 칩 · 수행 예정 · 상태 + 상태 바꾸기 [대기] [진행 중] [완료]. 근무지는 TO-DO 가 한 근무지라 두지 않는다.
+// 긴급 건의 [완료]는 완료 처리 직후로 옮긴다. 되돌리기 토스트는 없다.
 const sheets = (s) => {
   // 시트 상태(fridge·sharedInfo)에서 닫으면 TO-DO 목록으로 돌아간다. 목록에서 연 시트는 닫히기만 한다.
   const a = (name) => (isSheet(s) ? { "data-on-close": "#todo", "data-sheet-auto": s === name } : {});
-  return (
-    bottomSheet(
-      "fridge",
-      { title: "냉장고 온도 점검 및 사진 제출", ...a("fridge") },
-      `<div class="flex">${statusChip("warning", "긴급")}</div><p class="text-[14px] text-staff-text-sub">강남역점 냉장·냉동고 온도를 확인하고 온도계가 보이는 사진을 찍어 관리자에게 전송한다. 이상 온도가 발견되면 즉시 전화로도 알린다.</p>${sunken(
-        values([
-          ["수행 예정", "9월 10일(목) 14:00"],
-          ["근무지", STORE],
-          ["상태", statusChip("neutral", "대기")],
-        ]),
-      )}${button("완료로 표시", { "data-go": "todo-done", "data-toast": "완료 처리했습니다", "data-close": true })}`,
-    ) +
-    bottomSheet(
-      "sharedInfo",
-      { title: "매장 재고 실사 보조", closeLabel: "확인", ...a("sharedInfo") },
-      `<div class="flex">${statusChip("neutral", "공유")}</div><p class="text-[14px] text-staff-text-sub">강남역점 재고 실사를 돕는다. 강남역점 근무 직원 4명 전체에게 배정되었고, 그중 한 명만 완료 처리하면 나머지 전원에게도 완료로 표시된다.</p>${notice(
-        "먼저 완료 처리한 사람이 수행자로 기록됩니다.",
-      )}`,
-    )
-  );
+  return todosOf(s)
+    .map((t) => {
+      const done = t.status === "done";
+      const chips = (t.urgent && !done ? statusChip("warning", "긴급", "semibold") : "") + (t.shared ? statusChip("neutral", "공유", "semibold") : "");
+      return todoSheet(t.sheet, {
+        title: t.title,
+        body: t.body,
+        chips,
+        rows: [
+          ["수행 예정", t.dueLabel],
+          ["상태", statusChip(STATUS[t.status].tone, t.doneByOther ? "완료됨" : STATUS[t.status].label, "semibold")],
+        ],
+        status: t.status,
+        shared: t.shared,
+        after: t.doneByOther ? `<p class="text-[13px] leading-[1.5] text-staff-text-sub">${t.meta}</p>` : "",
+        done: t.urgent ? { "data-go": "todo-done", "data-close": true } : {},
+        ...a(t.sheet),
+      });
+    })
+    .join("");
 };
 
 const view = (s) => {

@@ -6,7 +6,7 @@
 //   HOME-5 퇴직 후에는 「근무가 종료되었습니다」, 하단 메뉴와 알림 버튼은 그대로 두고 급여 탭으로 간다.
 // 평상시(today)는 Figma 02.Main(node 8:3)을 따른다(오늘의 근무 node 9:152 · 이번 주 근무 node 9:242 · 근무지 시트 03.Sheet node 12:670).
 // 그 밖 상태(처리할 일 카드 · 휴무 · 가입 직후 · 퇴직 후 · 날인 요청 팝업)는 Figma 없음 — DESIGN.md 기준 초안.
-import { bottomNav, bottomSheet, button, empty, iconTile, img, infoRow, maskIcon, page, sectionTitle, state, statusChip, storeSheet, STORES, todoItem, todoList, topBar, weekSelector } from "../../ui.mjs";
+import { bottomNav, bottomSheet, button, empty, iconTile, img, infoRow, maskIcon, page, sectionTitle, state, statusChip, storeSheet, STORES, todoItem, todoList, todoSheet, topBar, weekSelector } from "../../ui.mjs";
 
 // 목업 오른쪽 상태 목록 순서 그대로. store 는 목업의 「시트 열기」라 뒤에 평상시를, sign-req 는 가입 직후 빈 홈을 깐다(체결 완료 계약이 없어 점포 정보를 보이지 않음, 운영 정책 CTR-29).
 // 빈 홈에는 날인을 기다리는 근로계약서 카드만 있어 「나중에」로 닫은 뒤에도 그 카드로 서명 대기 계약서에 간다.
@@ -70,6 +70,8 @@ const thisWeek = (days) =>
   })}</div></section>`;
 
 // TO-DO 카드. 오른쪽 위 「전체 보기」로 근무 화면의 TO-DO 쪽에 바로 간다(HOME-1). TO-DO 가 없으면 섹션을 그리지 않는다(2026-10-20 재영).
+// 줄이나 체크칸을 누르면 근무 탭과 같은 TO-DO 상세 시트를 열고 상태는 시트에서 바꾼다 — 체크 한 번에 바로 완료되지 않는다
+// (개발 화면 home/todo-card.tsx, 2026-11-23 사용자 지정). 홈 시트에는 근무지 줄을 두지 않는다(고른 근무지의 TO-DO 만 보여서다).
 const todoSection = (count, children) =>
   `<section class="flex flex-col gap-[12px]">${sectionTitle("TO-DO", {
     count,
@@ -96,12 +98,50 @@ const contractCard = (title, sub) =>
     true,
   )}</a>`;
 
+const TODO_CHIP = { waiting: statusChip("neutral", "대기", "semibold"), doneByOther: statusChip("success", "완료됨", "semibold") };
+// TO-DO 상세 시트(근무 탭과 같은 todoSheet). [완료]를 누르면 고른 칸을 옮기고 닫는다 — 되돌리기 토스트는 없다.
+const todoSheets = (view) =>
+  view === "today"
+    ? todoSheet("todo-label", {
+        title: "유통기한 라벨 점검",
+        body: "진열대와 냉장고의 유통기한 라벨을 확인하고 지난 상품은 따로 빼 둔다.",
+        rows: [
+          ["수행 예정", "9월 10일(목) 20:00"],
+          ["상태", TODO_CHIP.waiting],
+        ],
+        done: { "data-close": true },
+      })
+    : view === "todo"
+      ? todoSheet("todo-refund", {
+          title: "환불 요청 처리",
+          body: "오전 주문 건 환불 요청을 확인하고 포스에서 환불 처리한다.",
+          chips: statusChip("warning", "긴급", "semibold"),
+          rows: [
+            ["수행 예정", "9월 10일(목) 13:00"],
+            ["상태", TODO_CHIP.waiting],
+          ],
+          done: { "data-close": true },
+        }) +
+        todoSheet("todo-closing", {
+          title: "마감 정산표 작성",
+          body: "전날 마감 정산표를 작성해 관리자에게 전송한다. 근무 직원 중 한 명만 완료 처리하면 된다.",
+          chips: statusChip("neutral", "공유", "semibold"),
+          rows: [
+            ["수행 예정", "9월 10일(목) 10:00"],
+            ["상태", TODO_CHIP.doneByOther],
+          ],
+          status: "done",
+          shared: true,
+          after: `<p class="text-[13px] leading-[1.5] text-staff-text-sub">이수민이 9월 10일(목) 09:12에 완료했습니다</p>`,
+        })
+      : "";
+
 const CONTENT = {
   today: () =>
     sections(
       todayCard(["09:00", "18:00"]) +
         thisWeek(weekWith(work("09-10", "목", 10, "09–18"))) +
-        todoSection(1, todoList(todoItem({ title: "유통기한 라벨 점검", meta: "오늘 20:00까지" }))) +
+        todoSection(1, todoList(todoItem({ title: "유통기한 라벨 점검", meta: "오늘 20:00까지", open: "todo-label", badges: TODO_CHIP.waiting }))) +
         workInfo(),
     ),
 
@@ -115,8 +155,14 @@ const CONTENT = {
         todoSection(
           2,
           todoList(
-            todoItem({ title: "환불 요청 처리", meta: "지금 바로", badges: statusChip("warning", "긴급", "semibold") }) +
-              todoItem({ title: "마감 정산표 작성", meta: "완료 · 이수민님이 09:12에 처리", done: true, toggle: false }),
+            todoItem({ title: "환불 요청 처리", meta: "지금 바로", open: "todo-refund", badges: statusChip("warning", "긴급", "semibold") + TODO_CHIP.waiting }) +
+              todoItem({
+                title: "마감 정산표 작성",
+                meta: "완료 · 이수민님이 09:12에 처리",
+                done: true,
+                open: "todo-closing",
+                badges: statusChip("neutral", "공유", "semibold") + TODO_CHIP.doneByOther,
+              }),
           ),
         ) +
         `<a href="${NOTIFY}" class="flex items-center gap-[12px] rounded-[18px] border border-staff-border-light bg-staff-info-bg px-[16px] py-[14px] transition-colors duration-150 ease-out active:bg-staff-primary-inactive">${img(
@@ -198,8 +244,8 @@ const signReqSheet = (a = {}) =>
   );
 
 const BLOCKS = {
-  today: () => screen("today") + storeSheet(),
-  todo: () => screen("todo") + storeSheet(),
+  today: () => screen("today") + todoSheets("today") + storeSheet(),
+  todo: () => screen("todo") + todoSheets("todo") + storeSheet(),
   off: () => screen("off") + storeSheet(),
   store: () => screen(SHEET_VIEW.store) + storeSheet({ "data-sheet-auto": true, "data-on-close": "#today" }),
   "sign-req": () => screen(SHEET_VIEW["sign-req"]) + signReqSheet({ "data-sheet-auto": true, "data-on-close": "#empty" }),
