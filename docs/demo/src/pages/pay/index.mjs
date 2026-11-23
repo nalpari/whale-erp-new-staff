@@ -128,7 +128,7 @@ const payslipView = (p) => {
 };
 
 const listHeader = () =>
-  pageHeader("급여", {
+  pageHeader("급여명세서", {
     backHref: page("home"),
     action: `<button type="button" data-open="about" aria-label="급여명세서 안내" class="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">${infoIcon()}</button>`,
   });
@@ -214,7 +214,7 @@ const VIEWS = {
 };
 
 export default () => ({
-  title: "급여",
+  title: "급여명세서",
   states: STATES,
   // 하단 메뉴는 앱의 탭 막대라 화면 아래에 붙여 둔다(/design/pay 그대로).
   html: `<div class="flex flex-1 flex-col"><main class="flex flex-1 flex-col leading-[1.5]">${STATES.map((s) => state(s.id, VIEWS[s.id]())).join("")}</main><div class="sticky bottom-0 mt-auto">${bottomNav("pay")}</div></div>`,

@@ -11,7 +11,7 @@ import { CorrectingBadge } from "./_components/correcting-badge";
 import { PayFilter } from "./_components/pay-filter";
 import { PayFrame, Tiny } from "./_components/pay-frame";
 
-export const metadata: Metadata = { title: "급여 · Whale ERP" };
+export const metadata: Metadata = { title: "급여명세서 · Whale ERP" };
 
 // 급여 목록. 기준: 데모 docs/demo/src/pages/pay(목록 · 빈 상태 · 필터 결과 없음 · 급여명세서 안내 시트), Figma 08.급여(node 17:825).
 // 맨 위는 이번 달(한국 시간)에 받은 명세서 전체의 실지급액 합계 카드(PAY-9) — 근무지 · 필터와 관계없고 누르는 곳이 없다.
@@ -72,7 +72,7 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
     );
 
   return (
-    <PayFrame header={<PageHeader title="급여" backHref="/home" action={<AboutSheet />} />}>
+    <PayFrame header={<PageHeader title="급여명세서" backHref="/home" action={<AboutSheet />} />}>
       {stores.length > 0 ? (
         <>
           {/* 이번 달 실지급액 합계(Figma node 17:1003): 짙은 남색 · radius 24 · 안쪽 25. 남색 위 흐린 글자 #BAC7DE·#D1DAEB 는 이 카드에만 쓴다. */}
