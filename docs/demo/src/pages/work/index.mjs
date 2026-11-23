@@ -139,7 +139,7 @@ const storeCard = () =>
   `<button type="button" data-open="store" aria-label="근무지 바꾸기, 지금 ${STORE}" class="flex w-full items-center gap-[14px] rounded-[18px] border border-staff-border-light bg-[#eef2ff] px-[20px] py-[18px] text-left">${storeSmall()}<span class="flex min-w-0 flex-1 flex-col gap-[2px]"><span class="truncate text-[16px] font-bold" data-slot="store">${STORE}</span><span class="text-[12px] text-staff-text-sub">연결된 근무지 ${STORES.length}곳</span></span>${img("chevron-down.svg", 15, 15, "-scale-y-100")}</button>`;
 
 // ── 근무스케줄 탭(week) ──
-const storeSmall = () => img("store-small.svg", 14.625, 13.5);
+const storeSmall = () => `<span class="flex text-staff-primary">${maskIcon("store-line.svg", 16)}</span>`;
 const schedule = () =>
   `<section class="flex flex-col gap-[8px]">${periodNav({
     label: "2026년 9월",
@@ -216,7 +216,7 @@ const view = (s) => {
   const content =
     v === "nosite"
       ? emptyView(
-          maskIcon("store.svg", 40, true),
+          maskIcon("store-line.svg", 40),
           "근무가 종료되었습니다",
           "급여명세서는 보존 기간(3년) 동안<br>급여 탭에서 확인할 수 있습니다.",
         )

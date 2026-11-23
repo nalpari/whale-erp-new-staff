@@ -167,22 +167,22 @@ const flaggedView = () =>
   )}${todayCard()}</div>`;
 
 // 빈 화면(기록 없음 · 근무지 없음). 가운데에 아이콘 · 제목(Title 2) · 설명.
-const emptyView = (icon, title, text) =>
-  `<div class="flex flex-1 flex-col items-center justify-center gap-[8px] py-[52px] text-center"><span class="flex pb-[6px] text-staff-text-muted">${maskIcon(icon, 40, true)}</span><h2 class="text-[18px] font-bold">${title}</h2><p class="max-w-[250px] text-[14px] text-staff-text-sub">${text}</p></div>`;
+const emptyView = (icon, title, text, flipY = true) =>
+  `<div class="flex flex-1 flex-col items-center justify-center gap-[8px] py-[52px] text-center"><span class="flex pb-[6px] text-staff-text-muted">${maskIcon(icon, 40, flipY)}</span><h2 class="text-[18px] font-bold">${title}</h2><p class="max-w-[250px] text-[14px] text-staff-text-sub">${text}</p></div>`;
 
 const VIEWS = {
   week: weekView,
   period: periodView,
   flagged: flaggedView,
   empty: () => emptyView("history.svg", "출퇴근 기록이 없습니다", "출근을 등록하면 여기에 표시됩니다."),
-  nosite: () => emptyView("store.svg", "근무가 종료되었습니다", "지난 출퇴근 기록은<br>근무지 관리자에게 문의해 주세요."),
+  nosite: () => emptyView("store-line.svg", "근무가 종료되었습니다", "지난 출퇴근 기록은<br>근무지 관리자에게 문의해 주세요.", false),
 };
 
 // 확인 필요 시트의 근무지 관리자 문의 안내(HIST-3).
 const storeNotice = () =>
   notice(
     "관리자가 확인하고 있습니다.<br>기록이 다르면 <strong>근무지 관리자에게 문의해 주세요.</strong>",
-    maskIcon("store-small.svg", 16),
+    maskIcon("store-line.svg", 16),
   );
 
 const SHEETS = {
@@ -232,7 +232,7 @@ const SHEETS = {
         description: "09:14 출근 기록만 있고 퇴근 기록이 없습니다.",
         ...a,
       },
-      notice("퇴근을 등록하지 못했다면<br><strong>근무지 관리자에게 문의해 주세요.</strong>", maskIcon("store-small.svg", 16)),
+      notice("퇴근을 등록하지 못했다면<br><strong>근무지 관리자에게 문의해 주세요.</strong>", maskIcon("store-line.svg", 16)),
     ),
 };
 

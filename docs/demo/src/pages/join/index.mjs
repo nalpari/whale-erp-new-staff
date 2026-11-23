@@ -151,7 +151,7 @@ const VIEWS = {
       lead("초대가 도착했습니다", "웨일카페 강남역점에서 함께 일하자고 초대했습니다.", { large: true }) +
         card(
           rows(
-            iconRow({ icon: "store-small.svg", title: "웨일카페 · 강남역점", sub: "서울 강남구 테헤란로 1길" }) +
+            iconRow({ icon: "store-line.svg", title: "웨일카페 · 강남역점", sub: "서울 강남구 테헤란로 1길" }) +
               iconRow({ icon: "contract.svg", title: "고용 형태", sub: "파트타이머 · 시급제" }),
           ),
         ) +
@@ -259,7 +259,7 @@ const VIEWS = {
       lead("새 근무지 초대가 도착했습니다", "웨일카페 홍대점에서 함께 일하자고 초대했습니다.", { heading: "h2" }) +
         card(
           rows(
-            iconRow({ icon: "store-small.svg", title: "근무지", sub: "웨일카페 홍대점" }) +
+            iconRow({ icon: "store-line.svg", title: "근무지", sub: "웨일카페 홍대점" }) +
               iconRow({ icon: "contract.svg", title: "고용 형태", sub: "파트타이머 · 주 20시간" }),
           ),
         ) +

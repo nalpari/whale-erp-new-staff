@@ -461,6 +461,9 @@
   .h-\[52px\] {
     height: 52px;
   }
+  .h-\[72px\] {
+    height: 72px;
+  }
   .h-\[136\.5px\] {
     height: 136.5px;
   }
@@ -1141,6 +1144,9 @@
   .pt-\[16px\] {
     padding-top: 16px;
   }
+  .pt-\[18px\] {
+    padding-top: 18px;
+  }
   .pt-\[19px\] {
     padding-top: 19px;
   }
@@ -1576,9 +1582,6 @@
     --tw-outline-style: none !important;
     outline-style: none !important;
   }
-  .group-open\:rotate-180:is(:where(.group):is([open], :popover-open, :open) *) {
-    rotate: 180deg;
-  }
   .selection\:bg-staff-primary ::selection {
     background-color: var(--color-staff-primary);
   }
@@ -1789,6 +1792,13 @@
   }
   .\[\&_strong\]\:text-staff-text strong {
     color: var(--color-staff-text);
+  }
+  .\[\&\+\&\]\:border-l + .\[\&\+\&\]\:border-l {
+    border-left-style: var(--tw-border-style);
+    border-left-width: 1px;
+  }
+  .\[\&\+\&\]\:border-staff-border-light + .\[\&\+\&\]\:border-staff-border-light {
+    border-color: var(--color-staff-border-light);
   }
   .\[\&\:\:-webkit-details-marker\]\:hidden::-webkit-details-marker {
     display: none;
