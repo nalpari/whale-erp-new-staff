@@ -129,7 +129,6 @@ const payslipView = (p) => {
 
 const listHeader = () =>
   pageHeader("급여명세서", {
-    backHref: page("home"),
     action: `<button type="button" data-open="about" aria-label="급여명세서 안내" class="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">${infoIcon()}</button>`,
   });
 const backToList = () => backHeader("급여명세서", "list");

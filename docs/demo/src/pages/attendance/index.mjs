@@ -247,7 +247,7 @@ function screen(id) {
     .map((s) => SHEETS[s](s === id ? { "data-sheet-auto": true, "data-on-close": `#${view}` } : {}))
     .join("");
   return `<div class="flex flex-1 flex-col leading-[1.5]">${pageHeader("출퇴근 현황", {
-    backHref: page("home"),
+    backHref: page("check-in"),
     action: `<a href="${page("check-in")}" aria-label="출퇴근 등록" class="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">${img("history.svg", 21, 21, "-scale-y-100")}</a>`,
   })}<main class="flex flex-1 flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px]">${
     view !== "nosite"

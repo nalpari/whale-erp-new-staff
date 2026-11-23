@@ -336,7 +336,6 @@ const view = (id) => {
     v === "done"
       ? ""
       : pageHeader("출퇴근", {
-          backHref: page("home"),
           action: `<a href="${page("attendance")}" aria-label="출퇴근 현황" class="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">${img("history.svg", 21, 21, "-scale-y-100")}</a>`,
         });
   return `<main class="flex flex-1 flex-col leading-[1.5]">${header}${VIEWS[v]()}</main><div class="sticky bottom-0 mt-auto">${bottomNav("check-in")}</div>${sheets}`;

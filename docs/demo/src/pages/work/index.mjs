@@ -224,7 +224,6 @@ const view = (s) => {
           v === "empty" ? emptyView(img("menu-schedule.svg", 44, 44), "이번 달 근무가 없습니다", "근무지에서 근무스케줄을 등록하면 여기에 표시됩니다.") : ""
         }${v === "week" ? schedule() : ""}</div>`;
   return `<div class="flex flex-1 flex-col">${pageHeader("근무 정보", {
-    backHref: page("home"),
   })}<main class="flex flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px] leading-[1.5] ${v === "nosite" ? "flex-1" : ""}">${v === "nosite" ? "" : storeCard()}${tabs}${content}</main><div class="sticky bottom-0 mt-auto">${bottomNav(
     "work",
   )}</div></div>${v === "nosite" || v === "empty" || v === "week" ? "" : sheets(s)}${v === "nosite" ? "" : storeSheet()}`;

@@ -72,7 +72,7 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
     );
 
   return (
-    <PayFrame header={<PageHeader title="급여명세서" backHref="/home" action={<AboutSheet />} />}>
+    <PayFrame header={<PageHeader title="급여명세서" action={<AboutSheet />} />}>
       {stores.length > 0 ? (
         <>
           {/* 이번 달 실지급액 합계(Figma node 17:1003): 짙은 남색 · radius 24 · 안쪽 25. 남색 위 흐린 글자 #BAC7DE·#D1DAEB 는 이 카드에만 쓴다. */}

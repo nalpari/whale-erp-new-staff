@@ -66,7 +66,7 @@ export const sectionTitle = (title, { count, right = "" } = {}) =>
 
 // page-header.tsx. backHref 는 다른 화면 주소, backAttrs 를 주면 링크 대신 그 단서를 단 버튼(데모 BackHeader 와 같은 일).
 export const pageHeader = (title, { backHref, action = "" } = {}) =>
-  `<header class="flex min-h-[72px] w-full items-center gap-[20px] bg-white px-[22px] py-[14px]"><a href="${backHref}" data-dir="nav-back" aria-label="뒤로" class="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">${img("back.svg", 19, 19, "-scale-y-100")}</a><h1 class="min-w-0 flex-1 truncate text-[18px] leading-[1.5] font-bold">${title}</h1>${action}</header>`;
+  `<header class="flex min-h-[72px] w-full items-center gap-[20px] bg-white px-[22px] py-[14px]">${backHref ? `<a href="${backHref}" data-dir="nav-back" aria-label="뒤로" class="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">${img("back.svg", 19, 19, "-scale-y-100")}</a>` : ""}<h1 class="min-w-0 flex-1 truncate text-[18px] leading-[1.5] font-bold">${title}</h1>${action}</header>`;
 
 // period-nav.tsx. prevAttrs/nextAttrs: 누를 때 단서
 export const periodNav = ({ label, prevLabel, nextLabel, prevAttrs = {}, nextAttrs = {} }) => {

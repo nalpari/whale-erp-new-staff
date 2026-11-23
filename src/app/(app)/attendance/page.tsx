@@ -34,7 +34,7 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
     <div className="flex flex-1 flex-col">
       <PageHeader
         title="출퇴근 현황"
-        backHref="/home"
+        backHref="/check-in"
         action={
           // 출퇴근 화면의 「출퇴근 현황 ›」과 짝 — 시계 아이콘만으로는 버튼인지 · 어디로 가는지 몰라 글자 알약으로(2026-11-20 사용자 지정).
           // 보이는 알약은 36px, 누르는 칸은 위아래를 넓혀 44px.
