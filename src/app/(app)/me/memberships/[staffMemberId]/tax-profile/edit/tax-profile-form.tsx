@@ -52,10 +52,7 @@ export function TaxProfileForm({
   currentRrn?: string;
   currentAccount?: string;
 }) {
-  const [state, formAction, pending] = useActionState<TaxProfileEditState, FormData>(
-    action,
-    {},
-  );
+  const [state, formAction, pending] = useActionState<TaxProfileEditState, FormData>(action, {});
   const [rrnFront, setRrnFront] = useState("");
   const [rrnBack, setRrnBack] = useState("");
   const [bankCode, setBankCode] = useState("");
@@ -148,7 +145,14 @@ export function TaxProfileForm({
           <input hidden readOnly type="text" autoComplete="username" value={email} tabIndex={-1} aria-hidden />
           <div className="rounded-[16px] border border-staff-border bg-staff-bg p-[18px]">
             <TextField
-              label={<span className="text-[15px] font-bold text-staff-text">현재 비밀번호</span>}
+              label={
+                <span className="text-[15px] font-bold text-staff-text">
+                  현재 비밀번호
+                  <span aria-hidden className="text-staff-error">
+                    *
+                  </span>
+                </span>
+              }
               name="currentPassword"
               type="password"
               autoComplete="current-password"
