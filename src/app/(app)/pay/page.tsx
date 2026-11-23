@@ -47,7 +47,8 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
     return (
       <PayFrame header={<PageHeader title="급여명세서" backHref="/me/memberships" />}>
         {siteName && <WorkplaceBox name={siteName} />}
-        <section className="flex flex-col rounded-[20px] border border-staff-border-light bg-white p-[20px]">
+        {/* 상자는 화면 남는 높이를 채운다 — 비었을 때 아래가 휑했다(2026-11-23 사용자 지정) */}
+        <section className="flex flex-1 flex-col rounded-[20px] border border-staff-border-light bg-white p-[20px]">
           <div className="flex items-center justify-between">
             <h2 className="text-[13px] font-semibold text-staff-text-sub">명세서</h2>
             <span className="text-[12px] text-staff-text-muted">{items.length}건</span>
@@ -55,7 +56,15 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
           {items.length > 0 ? (
             <PayslipRows items={items} />
           ) : (
-            <p className="pt-[24px] pb-[6px] text-center text-[14px] text-staff-text-sub">이 근무지에서 받은 급여명세서가 없습니다</p>
+            <div className="flex flex-1 flex-col items-center justify-center gap-[8px] py-[40px] text-center">
+              <Image src="/icons/menu-payslip.svg" alt="" width={44} height={44} className="mb-[6px]" />
+              <p className="text-[17px] font-bold">이 근무지에서 받은 급여명세서가 없습니다</p>
+              <p className="text-[14px] break-keep text-staff-text-sub">
+                근무지에서 급여명세서를 보내면
+                <br />
+                여기에서 확인할 수 있습니다.
+              </p>
+            </div>
           )}
         </section>
       </PayFrame>
