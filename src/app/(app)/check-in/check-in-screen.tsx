@@ -24,12 +24,14 @@ import { changeConsentAction } from "../me/actions";
 import { recordLocationReadAction, registerAttendanceAction } from "./actions";
 import { Clock, GeoBlank, GeoMap, SiteCard, Sunken, Values } from "./check-in-parts";
 import { KakaoGeoMap } from "./kakao-map";
+import { browserLocation, readDeviceLocation } from "@/lib/device-location";
 
 /**
  * 휴대전화 위치. 출퇴근 탭에 들어올 때와 출근 · 퇴근 버튼을 누를 때 읽는다(ATT-22 v229, 2026-10-28 재영). 탭에서 읽은 위치는 지도에
  * 보여 주기만 하고, 판정은 버튼을 누를 때 다시 읽어 정한다 — 화면을 열어 둔 사이에 움직일 수 있다. 판정은 여기서 끝난다 —
- * 좌표는 서버로 보내지 않는다(ATT-05). 위치 조작 감지(ATT-21)는 운영체제가 알려 줄 때만 판정하는데, 브라우저 위치(Geolocation API)는
- * 모의 위치 여부를 알려 주지 않아 지금은 늘 false 다. 오차도 따로 판정하지 않는다(ATT-4).
+ * 좌표는 서버로 보내지 않는다(ATT-05). 위치 조작 감지(ATT-21)는 운영체제가 알려 줄 때만 판정한다 — 설치형 앱 안에서는 앱이 좌표와
+ * 모의 위치 여부를 같은 측정값에서 넘기고(measureLocation), 브라우저 위치(Geolocation API)는 모의 위치 여부를 알려 주지 않아 false 다.
+ * 오차도 따로 판정하지 않는다(ATT-4).
  */
 type Geo =
   | { status: "idle" }
@@ -103,22 +105,16 @@ export function CheckInScreen({
   }, []);
 
   const { latitude, longitude, radiusMeters } = store;
-  // 위치는 콜백으로만 받는다 — 브라우저가 위치를 주지 않는 기기도 오류 콜백으로 같은 「읽지 못함」이 된다
+  // 앱 안이면 앱이 잰 좌표와 모의 위치 여부를, 브라우저면 브라우저 위치를 쓴다(readDeviceLocation)
   const locate = useCallback(
-    () =>
-      new Promise<Geo>((resolve) => {
-        if (latitude === null || longitude === null) return resolve({ status: "unavailable" });
-        if (!navigator.geolocation) return resolve({ status: "unavailable" });
-        navigator.geolocation.getCurrentPosition(
-          ({ coords }) => {
-            const distance = distanceMeters(coords, { latitude, longitude });
-            const position = { latitude: coords.latitude, longitude: coords.longitude };
-            resolve({ status: "ok", distance, inRange: distance <= radiusMeters, mocked: false, position });
-          },
-          (failure) => resolve({ status: failure.code === failure.PERMISSION_DENIED ? "denied" : "unavailable" }),
-          GEO_OPTIONS,
-        );
-      }),
+    async (): Promise<Geo> => {
+      if (latitude === null || longitude === null) return { status: "unavailable" };
+      const read = await readDeviceLocation({ fromBrowser: () => browserLocation(GEO_OPTIONS) });
+      if (read.status !== "ok") return { status: read.status };
+      const position = { latitude: read.latitude, longitude: read.longitude };
+      const distance = distanceMeters(position, { latitude, longitude });
+      return { status: "ok", distance, inRange: distance <= radiusMeters, mocked: read.mocked, position };
+    },
     [latitude, longitude, radiusMeters],
   );
 

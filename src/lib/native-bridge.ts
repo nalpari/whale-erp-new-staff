@@ -166,3 +166,57 @@ export function isAppInfo(data: unknown): data is AppInfo {
 export function getAppInfo(bridge?: Bridge | null): Promise<BridgeResult<AppInfo>> {
   return callNative("appInfo", [], isAppInfo, bridge);
 }
+
+/**
+ * `measureLocation` 을 기다리는 시간. 권한 창이 뜨면 사용자가 고르는 동안 앱이 기다리고(앱 안 상한 60초), 측정 · 재확인까지
+ * 최악 약 73초가 걸린다(앱 `docs/native-bridge.md`). 기본 10초로 부르면 권한 창을 보는 사이 실패로 끝난다.
+ */
+export const MEASURE_LOCATION_TIMEOUT_MS = 75_000;
+
+/** `measureLocation` 의 data. 이름은 출퇴근 화면의 위치 상태(ok · denied · unavailable)에 맞췄다. */
+export type AppLocation =
+  | {
+      status: "ok";
+      latitude: number;
+      longitude: number;
+      /** 운영체제가 알려 주지 않으면 null. */
+      accuracyMeters: number | null;
+      /** 그 위치를 잰 뒤 지난 초. 대략적 위치는 운영체제가 준 첫 위치를 그대로 써서 클 수 있다. */
+      ageSeconds: number;
+      /** 운영체제가 알려 준 모의 위치 여부(Android isMock · iOS isSimulatedBySoftware). */
+      mocked: boolean;
+      /** false 면 「대략적 위치」, null 이면 정확도 설정을 읽지 못함. */
+      precise: boolean | null;
+    }
+  | { status: "denied" }
+  | {
+      status: "unavailable";
+      reason: "serviceDisabled" | "permissionCheckFailed" | "permissionTimeout" | "timeout" | "error";
+    };
+
+const LOCATION_UNAVAILABLE_REASONS = ["serviceDisabled", "permissionCheckFailed", "permissionTimeout", "timeout", "error"];
+const isFiniteNumber = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
+
+export function isAppLocation(data: unknown): data is AppLocation {
+  if (typeof data !== "object" || data === null || !("status" in data)) return false;
+  if (data.status === "denied") return true;
+  if (data.status === "unavailable") return "reason" in data && LOCATION_UNAVAILABLE_REASONS.includes(data.reason as string);
+  if (data.status !== "ok") return false;
+  const d = data as Record<string, unknown>;
+  return (
+    isFiniteNumber(d.latitude) &&
+    isFiniteNumber(d.longitude) &&
+    (d.accuracyMeters === null || isFiniteNumber(d.accuracyMeters)) &&
+    isFiniteNumber(d.ageSeconds) &&
+    typeof d.mocked === "boolean" &&
+    (d.precise === null || typeof d.precise === "boolean")
+  );
+}
+
+/**
+ * 앱이 위치를 새로 한 번 재어 좌표와 모의 위치 여부를 같은 측정값에서 함께 돌려준다(계획 결정 8). 권한 창 · 안내는 앱이 띄운다.
+ * 부작용이 없어 다시 불러도 된다(위치를 한 번 더 잴 뿐).
+ */
+export function measureLocation(bridge?: Bridge | null): Promise<BridgeResult<AppLocation>> {
+  return callNative("measureLocation", [], isAppLocation, bridge, { timeoutMs: MEASURE_LOCATION_TIMEOUT_MS });
+}

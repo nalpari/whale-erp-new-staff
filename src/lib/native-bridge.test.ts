@@ -11,6 +11,9 @@ import {
   readBridgeResult,
   waitForBridge,
   type Bridge,
+  MEASURE_LOCATION_TIMEOUT_MS,
+  isAppLocation,
+  measureLocation,
 } from "./native-bridge.ts";
 
 const ANDROID_APP =
@@ -218,4 +221,24 @@ test("앱 밖에서 브리지가 없는 것은 고장이 아니라 콘솔에 남
   const { win } = fakeWindow();
   assert.equal(await waitForBridge(win, { userAgent: SAFARI, timeoutMs: 10 }), null);
   assert.equal(bridgeErrors(error).length, 0);
+});
+
+test("measureLocation 은 75초를 기다리고 약속에 맞는 답만 받는다", async (t) => {
+  t.mock.method(console, "error", () => {});
+  const ok = { status: "ok", latitude: 37.5, longitude: 127, accuracyMeters: null, ageSeconds: 3, mocked: true, precise: null };
+  assert.equal(MEASURE_LOCATION_TIMEOUT_MS, 75_000);
+  assert.deepEqual(await measureLocation({ callHandler: async () => ({ ok: true, data: ok }) }), { ok: true, data: ok });
+  assert.deepEqual(await measureLocation({ callHandler: async () => ({ ok: true, data: { status: "denied" } }) }), {
+    ok: true,
+    data: { status: "denied" },
+  });
+  assert.deepEqual(
+    await measureLocation({ callHandler: async () => ({ ok: true, data: { status: "unavailable", reason: "timeout" } }) }),
+    { ok: true, data: { status: "unavailable", reason: "timeout" } },
+  );
+  assert.equal(isAppLocation({ status: "unavailable", reason: "boom" }), false);
+  assert.equal(isAppLocation({ ...ok, mocked: "yes" }), false);
+  assert.equal(isAppLocation({ ...ok, latitude: Number.NaN }), false);
+  assert.equal(isAppLocation({ ...ok, ageSeconds: undefined }), false);
+  assert.equal(isAppLocation({ status: "ok" }), false);
 });
