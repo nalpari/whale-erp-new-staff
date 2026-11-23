@@ -95,11 +95,12 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
           </section>
 
           <section className="flex flex-col rounded-[20px] border border-staff-border-light bg-white p-[20px]">
-            <div className="flex items-center justify-between">
+            {/* 근무지 · 연도 고르기를 먼저, 그 아래 「명세서 N건」 — 거른 결과의 건수라 고르기 아래가 맞다(2026-11-23 사용자 지정) */}
+            <PayFilter stores={stores} years={years} storeId={filter.storeId} year={filter.year} />
+            <div className="flex items-center justify-between pt-[16px]">
               <h2 className="text-[13px] font-semibold text-staff-text-sub">명세서</h2>
               <span className="text-[12px] text-staff-text-muted">{items.length}건</span>
             </div>
-            <PayFilter stores={stores} years={years} storeId={filter.storeId} year={filter.year} />
             {items.length > 0 ? (
               <PayslipRows items={items} />
             ) : (

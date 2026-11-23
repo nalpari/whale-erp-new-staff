@@ -29,7 +29,7 @@ export function PayFilter({
 
   return (
     <>
-      <div className="flex gap-[8px] pt-[10px]">
+      <div className="flex gap-[8px]">
         {/* 내 근무지에서 아직 명세서를 받지 않은 근무지로 오면 목록에 이름이 없다 — 「전체 근무지」로 보이면 빈 목록과 말이 엇갈려 「선택한 근무지」로 둔다 */}
         <Chip
           label={storeName ?? (storeId === undefined ? "전체 근무지" : "선택한 근무지")}
