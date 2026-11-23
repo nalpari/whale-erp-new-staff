@@ -112,6 +112,12 @@ function GuardItem({ icon, title, children }: { icon: ReactNode; title: string; 
 // 「새로 넣기」(데모 form)는 이미 낸 신고 정보가 있을 때만 보이고 `./edit` 로 간다(WHALEERP-333). 아직 없으면 날인 뒤 흐름의
 // 처음 넣기(`./new`, WHALEERP-150)로 가는 「넣기」를 둔다 — 날인 뒤 흐름을 중간에 닫은 직원이 다시 넣는 길이다.
 // 고치고 돌아오면 `?changed=1` 로 와 알림을 띄우고 주소에서 지운다 — 다시 조회가 실패해도 지우고, 안내에 저장은 됐다고 덧붙인다(PR #26 참고). 내 소속이 아니면(퇴직 · 남의 id) 404 다.
+const EMPTY_GUIDE: readonly [string, string][] = [
+  ["왜 필요한가요?", "근무지가 4대보험 신고와 급여 세금(원천징수) 신고를 하고, 급여를 이체하는 데 사용합니다."],
+  ["언제 입력하나요?", "근로계약서에 서명한 직후 입력합니다."],
+  ["입력하지 않으면?", "앱은 그대로 쓸 수 있지만, 근무지가 급여 계좌를 알 수 없어 급여 이체와 4대보험 신고가 늦어질 수 있습니다."],
+];
+
 export default async function TaxProfilePage({ params, searchParams }: PageProps<"/me/memberships/[staffMemberId]/tax-profile">) {
   const staffMemberId = parseStaffMemberId((await params).staffMemberId);
   const changed = (await searchParams).changed === "1";
@@ -150,6 +156,15 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
               <br />
               지금 입력해 주세요.
             </p>
+            {/* 왜 · 언제 · 안 하면 — 신고 정보 정책 TAX-02 · 04 · 08. 앱 사용은 막지 않으므로 「늦어질 수 있습니다」까지만 말한다(2026-11-23 사용자 지정) */}
+            <dl className="mt-[20px] flex w-full flex-col gap-[12px] rounded-[16px] bg-staff-bg px-[18px] py-[16px] text-left text-[13px] leading-[1.6]">
+              {EMPTY_GUIDE.map(([q, a]) => (
+                <div key={q}>
+                  <dt className="font-semibold text-staff-text">{q}</dt>
+                  <dd className="text-staff-text-sub">{a}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         ) : (
           <>
