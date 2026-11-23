@@ -115,7 +115,7 @@ function GuardItem({ icon, title, children }: { icon: ReactNode; title: string; 
 const EMPTY_GUIDE: readonly [string, string][] = [
   ["왜 필요한가요?", "근무지가 급여 세금(원천징수)을 신고하고, 급여를 이체하는 데 사용합니다."],
   ["언제 입력하나요?", "근로계약서에 서명한 직후 입력합니다."],
-  ["입력하지 않으면?", "앱은 그대로 쓸 수 있지만, 근무지가 급여 계좌를 알 수 없어 급여 이체가 늦어질 수 있습니다."],
+  ["입력하지 않으면?", "근무지가 급여 계좌를 알 수 없어 급여 이체가 늦어질 수 있습니다."],
 ];
 
 export default async function TaxProfilePage({ params, searchParams }: PageProps<"/me/memberships/[staffMemberId]/tax-profile">) {
