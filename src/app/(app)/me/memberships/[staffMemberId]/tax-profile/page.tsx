@@ -157,7 +157,7 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
               지금 입력해 주세요.
             </p>
             {/* 왜 · 언제 · 안 하면 — 신고 정보 정책 TAX-02 · 04 · 08. 앱 사용은 막지 않으므로 「늦어질 수 있습니다」까지만 말한다(2026-11-23 사용자 지정) */}
-            <dl className="mt-[20px] flex w-full flex-col gap-[12px] rounded-[16px] bg-staff-bg px-[18px] py-[16px] text-left text-[13px] leading-[1.6]">
+            <dl className="mt-[17px] flex w-full flex-col gap-[12px] rounded-[16px] bg-staff-bg px-[18px] py-[16px] text-left text-[13px] leading-[1.6]">
               {EMPTY_GUIDE.map(([q, a]) => (
                 <div key={q}>
                   <dt className="font-semibold text-staff-text">
@@ -168,6 +168,12 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
                 </div>
               ))}
             </dl>
+            {/* 입력 버튼은 화면 맨 아래 대신 안내 바로 아래에 — 빈 화면에서 멀리 떨어져 있었다(2026-11-23 사용자 지정) */}
+            <div className="mt-[20px] w-full">
+              <Button href={`/me/memberships/${staffMemberId}/tax-profile/new`} transitionTypes={["nav-forward"]}>
+                신고 정보 입력하기
+              </Button>
+            </div>
           </div>
         ) : (
           <>
@@ -218,15 +224,7 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
         <Dock>
           <Button href={`/me/memberships/${staffMemberId}/tax-profile/edit`}>다시 입력하기</Button>
         </Dock>
-      ) : (
-        tax && (
-          <Dock>
-            <Button href={`/me/memberships/${staffMemberId}/tax-profile/new`} transitionTypes={["nav-forward"]}>
-              신고 정보 입력하기
-            </Button>
-          </Dock>
-        )
-      )}
+      ) : null}
       {changed && (
         <ChangedToast path={`/me/memberships/${staffMemberId}/tax-profile`}>{after.toast ? "신고 정보를 바꿨습니다" : undefined}</ChangedToast>
       )}
