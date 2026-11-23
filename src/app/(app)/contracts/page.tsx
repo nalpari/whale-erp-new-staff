@@ -63,7 +63,7 @@ export default async function ContractsPage({ searchParams }: PageProps<"/contra
     </ContractFrame>
     {/* 목록 · 보기 화면은 하단 메뉴를 둔다(입력 화면은 두지 않는다 — 탭을 눌러 쓰던 내용을 잃지 않게, 2026-11-23 사용자 지정) */}
     <div className="sticky bottom-0 mt-auto">
-      <BottomNav current={storeId === null ? "/home" : "/me"} />
+      <BottomNav current={storeId === null ? "/" : "/me"} />
     </div>
     </div>
   );

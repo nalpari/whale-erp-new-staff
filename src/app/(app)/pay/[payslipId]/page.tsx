@@ -23,7 +23,7 @@ export default async function PayslipPage({ params, searchParams }: PageProps<"/
   await requireSession();
   // 내 근무지 › 급여명세서(?from=sites&store=)에서 왔으면 그 목록으로 돌아간다. 숫자가 아니면 급여 탭으로.
   const raw = await searchParams;
-  const store = typeof raw.store === "string" && /^d{1,10}$/.test(raw.store) ? raw.store : null;
+  const store = typeof raw.store === "string" && /^\d{1,10}$/.test(raw.store) ? raw.store : null;
   const backHref = raw.from === "sites" && store ? `/pay?from=sites&store=${store}` : "/pay";
   const payslipId = parsePayslipId((await params).payslipId);
   const payslip = payslipId === null ? null : await getPayslip(payslipId);

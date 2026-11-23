@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, useSyncExternalStore } from "react";
+import { useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { BottomSheet, MaskIcon } from "@/components/common";
 import { FIELD } from "@/components/common/theme";
 import type { CodeValue } from "@/lib/codes";
@@ -188,6 +188,14 @@ export function PayrollAccountFields({
   const id = useId();
   const [picking, setPicking] = useState(false);
   const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  // 스크립트가 붙기 전 기본 선택 상자에서 고른 은행을 상태로 옮긴다 — 붙는 순간 상자가 버튼으로 바뀌며 고른 값이 사라졌다(리뷰 반영).
+  // 하이드레이션 커밋 직후(상자가 아직 있을 때) 한 번 읽는다.
+  const preSelect = useRef<HTMLSelectElement>(null);
+  useLayoutEffect(() => {
+    const picked = preSelect.current?.value;
+    if (picked && picked !== bankCode) onBankChange(picked);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 하이드레이션 때 한 번만
+  }, []);
   const unavailable = banks.length === 0;
   const bankLabel = banks.find((b) => b.value === bankCode)?.label;
   const error = bankError || accountError;
@@ -202,7 +210,7 @@ export function PayrollAccountFields({
         <div className="relative" data-field-anchor="bankCode">
           {/* 화면 스크립트가 붙기 전(서버 그림 · 하이드레이션 전)에는 기본 선택 상자를 그대로 둔다 — 버튼은 그때 시트를 열지 못해 은행을 고를 수 없었다(리뷰 반영) */}
           {!hydrated ? (
-            <select name="bankCode" aria-label="은행" autoComplete="off" defaultValue={bankCode} className={`${FIELD} appearance-none pr-[44px]`}>
+            <select ref={preSelect} onChange={(e) => onBankChange(e.target.value)} name="bankCode" aria-label="은행" autoComplete="off" defaultValue={bankCode} className={`${FIELD} appearance-none pr-[44px]`}>
               <option value="">은행 선택</option>
               {banks.map((bank) => (
                 <option key={bank.value} value={bank.value}>
