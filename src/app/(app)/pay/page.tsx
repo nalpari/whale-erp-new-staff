@@ -49,7 +49,7 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
         {/* 상자는 화면 남는 높이를 채운다 — 비었을 때 아래가 휑했다(2026-11-23 사용자 지정) */}
         <section className="flex flex-1 flex-col rounded-[20px] border border-staff-border-light bg-white p-[20px]">
           <div className="flex items-center justify-between">
-            <h2 className="text-[13px] font-semibold text-staff-text-sub">명세서</h2>
+            <h2 className="text-[13px] font-semibold text-staff-text-sub">급여명세서</h2>
             <span className="text-[12px] text-staff-text-muted">{items.length}건</span>
           </div>
           {items.length > 0 ? (
@@ -85,7 +85,7 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
                   <span className="text-[17px]"> 원</span>
                 </p>
                 <p className="border-t border-white/13 pt-[15px] text-[12px] text-[#d1daeb]">
-                  명세서 {thisMonth.count}건 · {thisMonth.storeNames.join(", ")}
+                  급여명세서 {thisMonth.count}건 · {thisMonth.storeNames.join(", ")}
                 </p>
               </>
             ) : (
@@ -98,7 +98,7 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
             {/* 근무지 · 연도 고르기를 먼저, 그 아래 「명세서 N건」 — 거른 결과의 건수라 고르기 아래가 맞다(2026-11-23 사용자 지정) */}
             <PayFilter stores={stores} years={years} storeId={filter.storeId} year={filter.year} />
             <div className="flex items-center justify-between pt-[16px]">
-              <h2 className="text-[13px] font-semibold text-staff-text-sub">명세서</h2>
+              <h2 className="text-[13px] font-semibold text-staff-text-sub">급여명세서</h2>
               <span className="text-[12px] text-staff-text-muted">{items.length}건</span>
             </div>
             {items.length > 0 ? (
