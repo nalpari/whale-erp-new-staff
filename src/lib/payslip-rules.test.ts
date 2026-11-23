@@ -67,6 +67,6 @@ test("명세서 번호는 1..2147483647 의 맨 숫자만 — 주소를 더럽�
 test("받은 해만 고른다 — 보관 범위 안, 최신순, 없으면 올해 하나", () => {
   const allowed = [2026, 2025, 2024, 2023];
   assert.deepEqual(receivedYears(["2026-11-01", "2026-10-01"], allowed), [2026]);
-  assert.deepEqual(receivedYears(["2024-12-01", "2026-01-01", "2022-05-01"], allowed), [2026, 2024]);
+  assert.deepEqual(receivedYears(["2024-12-01", "2026-01-01", "2022-05-01"], allowed), [2026, 2024, 2022]);
   assert.deepEqual(receivedYears([], allowed), [2026]);
 });

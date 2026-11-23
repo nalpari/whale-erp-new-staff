@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, useSyncExternalStore } from "react";
 import { BottomSheet, MaskIcon } from "@/components/common";
 import { FIELD } from "@/components/common/theme";
 import type { CodeValue } from "@/lib/codes";
@@ -154,6 +154,8 @@ export function RrnField({
  * 급여 계좌 — 받은 근거 · 은행(공통코드 BANK) · 계좌번호 · 안내. 은행 목록을 받지 못하면(banks 가 빔) 은행을 고를 수 없어
  * 칸을 막고 그 사정을 안내 자리에 쓴다.
  */
+const noopSubscribe = () => () => {};
+
 export function PayrollAccountFields({
   banks,
   bankCode,
@@ -185,6 +187,7 @@ export function PayrollAccountFields({
 }) {
   const id = useId();
   const [picking, setPicking] = useState(false);
+  const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
   const unavailable = banks.length === 0;
   const bankLabel = banks.find((b) => b.value === bankCode)?.label;
   const error = bankError || accountError;
@@ -197,6 +200,18 @@ export function PayrollAccountFields({
         {/* 은행은 네이티브 select 대신 바텀시트에서 3개씩 고른다(2026-11-23 사용자 지정) — 값은 숨은 칸으로 보낸다.
             오류면 첫 오류 칸 찾기가 이 묶음(data-field-anchor)으로 옮긴다 */}
         <div className="relative" data-field-anchor="bankCode">
+          {/* 화면 스크립트가 붙기 전(서버 그림 · 하이드레이션 전)에는 기본 선택 상자를 그대로 둔다 — 버튼은 그때 시트를 열지 못해 은행을 고를 수 없었다(리뷰 반영) */}
+          {!hydrated ? (
+            <select name="bankCode" aria-label="은행" autoComplete="off" defaultValue={bankCode} className={`${FIELD} appearance-none pr-[44px]`}>
+              <option value="">은행 선택</option>
+              {banks.map((bank) => (
+                <option key={bank.value} value={bank.value}>
+                  {bank.label}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <>
           <input type="hidden" name="bankCode" value={bankCode} />
           <button
             type="button"
@@ -209,6 +224,8 @@ export function PayrollAccountFields({
           >
             {bankLabel ?? "은행 선택"}
           </button>
+            </>
+          )}
           <span aria-hidden className="pointer-events-none absolute top-1/2 right-[14px] -translate-y-1/2 text-staff-text-sub">
             <MaskIcon src="/icons/chevron-down.svg" size={16} />
           </span>
