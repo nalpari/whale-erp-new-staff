@@ -1,7 +1,7 @@
 "use client";
 
-import { useId } from "react";
-import { MaskIcon } from "@/components/common";
+import { useId, useState } from "react";
+import { BottomSheet, MaskIcon } from "@/components/common";
 import { FIELD } from "@/components/common/theme";
 import type { CodeValue } from "@/lib/codes";
 import type { TaxProfileField } from "@/lib/tax-profile";
@@ -183,7 +183,9 @@ export function PayrollAccountFields({
   current?: string;
 }) {
   const id = useId();
+  const [picking, setPicking] = useState(false);
   const unavailable = banks.length === 0;
+  const bankLabel = banks.find((b) => b.value === bankCode)?.label;
   const error = bankError || accountError;
   const note = error || (unavailable ? "은행 목록을 불러오지 못해 지금은 계좌를 입력할 수 없습니다. 잠시 뒤 다시 열어 주세요." : help);
   return (
@@ -191,29 +193,49 @@ export function PayrollAccountFields({
       {!boxed && <Basis>{accountBasis(true)}</Basis>}
       <fieldset className="flex flex-col gap-[8px]" disabled={disabled || unavailable}>
         {boxed ? <BoxLegend name="급여 계좌" current={current} /> : <legend className={LEGEND}>급여 계좌{required && "*"}</legend>}
-        <div className="relative">
-          <select
-            name="bankCode"
-            aria-label="은행"
-            autoComplete="off"
-            required={required}
-            value={bankCode}
-            onChange={(event) => onBankChange(event.target.value)}
+        {/* 은행은 네이티브 select 대신 바텀시트에서 3개씩 고른다(2026-11-23 사용자 지정) — 값은 숨은 칸으로 보낸다.
+            오류면 첫 오류 칸 찾기가 이 묶음(data-field-anchor)으로 옮긴다 */}
+        <div className="relative" data-field-anchor="bankCode">
+          <input type="hidden" name="bankCode" value={bankCode} />
+          <button
+            type="button"
+            aria-label={bankLabel ? `은행 ${bankLabel}` : "은행 선택"}
+            aria-haspopup="dialog"
             aria-invalid={bankError ? true : undefined}
             aria-describedby={`${id}-note`}
-            className={`${FIELD} appearance-none pr-[44px] ${bankCode ? "" : "text-staff-placeholder!"}`}
+            onClick={() => setPicking(true)}
+            className={`${FIELD} pr-[44px] text-left ${bankCode ? "" : "text-staff-placeholder!"}`}
           >
-            <option value="">은행 선택</option>
-            {banks.map((bank) => (
-              <option key={bank.value} value={bank.value} className="text-staff-text">
-                {bank.label}
-              </option>
-            ))}
-          </select>
+            {bankLabel ?? "은행 선택"}
+          </button>
           <span aria-hidden className="pointer-events-none absolute top-1/2 right-[14px] -translate-y-1/2 text-staff-text-sub">
             <MaskIcon src="/icons/chevron-down.svg" size={16} />
           </span>
         </div>
+        <BottomSheet open={picking} onClose={() => setPicking(false)} title="은행 선택">
+          <ul className="grid grid-cols-3 gap-[8px]">
+            {banks.map((bank) => {
+              const on = bank.value === bankCode;
+              return (
+                <li key={bank.value}>
+                  <button
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => {
+                      onBankChange(bank.value);
+                      setPicking(false);
+                    }}
+                    className={`flex min-h-[48px] w-full items-center justify-center rounded-[12px] border px-[6px] text-center text-[14px] font-semibold break-keep ${
+                      on ? "border-staff-primary bg-staff-primary-inactive text-staff-primary" : "border-staff-border bg-white text-staff-text"
+                    }`}
+                  >
+                    {bank.label}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </BottomSheet>
         <input
           name="payrollAccountNumber"
           aria-label="계좌번호"
