@@ -265,5 +265,11 @@ test("measureLocation 은 75초를 기다리고 약속에 맞는 답만 받는�
   assert.equal(isAppLocation({ ...ok, mocked: "yes" }), false);
   assert.equal(isAppLocation({ ...ok, latitude: Number.NaN }), false);
   assert.equal(isAppLocation({ ...ok, ageSeconds: undefined }), false);
+  // 좌표 범위 · 위치 나이가 말이 안 되면 약속과 다른 답이다.
+  assert.equal(isAppLocation({ ...ok, latitude: 127 }), false);
+  assert.equal(isAppLocation({ ...ok, latitude: -90.1 }), false);
+  assert.equal(isAppLocation({ ...ok, longitude: 180.5 }), false);
+  assert.equal(isAppLocation({ ...ok, latitude: 90, longitude: -180 }), true);
+  assert.equal(isAppLocation({ ...ok, ageSeconds: -1 }), false);
   assert.equal(isAppLocation({ status: "ok" }), false);
 });

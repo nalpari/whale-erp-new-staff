@@ -1,7 +1,7 @@
 // node --test src/lib/device-location.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { fromAppLocation, readDeviceLocation, type DeviceLocation } from "./device-location.ts";
+import { MAX_LOCATION_AGE_SECONDS, fromAppLocation, readDeviceLocation, type DeviceLocation } from "./device-location.ts";
 import type { AppLocation, BridgeResult } from "./native-bridge.ts";
 
 const okApp = (mocked: boolean): BridgeResult<AppLocation> => ({
@@ -13,6 +13,15 @@ const browser: DeviceLocation = { status: "ok", latitude: 1, longitude: 2, mocke
 test("앱이 잰 위치는 좌표와 모의 위치 여부를 그대로 쓴다", () => {
   assert.deepEqual(fromAppLocation(okApp(true)), { status: "ok", latitude: 37.5, longitude: 127, mocked: true });
   assert.deepEqual(fromAppLocation(okApp(false)), { status: "ok", latitude: 37.5, longitude: 127, mocked: false });
+});
+
+test("앱 위치가 너무 오래됐으면(대략적 위치의 옛 좌표) 판정에 쓰지 않고 읽지 못함", () => {
+  const aged = (ageSeconds: number): BridgeResult<AppLocation> => ({
+    ok: true,
+    data: { status: "ok", latitude: 37.5, longitude: 127, accuracyMeters: 900, ageSeconds, mocked: false, precise: false },
+  });
+  assert.deepEqual(fromAppLocation(aged(MAX_LOCATION_AGE_SECONDS)), { status: "ok", latitude: 37.5, longitude: 127, mocked: false });
+  assert.deepEqual(fromAppLocation(aged(MAX_LOCATION_AGE_SECONDS + 1)), { status: "unavailable" });
 });
 
 test("앱이 거부 · 읽지 못함이라 답하면 그대로", () => {

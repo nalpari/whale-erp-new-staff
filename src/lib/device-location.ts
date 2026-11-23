@@ -7,6 +7,13 @@ import { isInApp, measureLocation, type AppLocation, type BridgeResult } from ".
  * - 앱과의 약속이 어긋났거나(malformed) 앱이 호출을 받지 않았으면(forbidden) broken — 다시 시도해도 풀리지 않는다.
  *   브라우저 위치로 넘기지 않는다(모의 위치 판정이 빠지므로).
  */
+/**
+ * 출퇴근 판정에 쓸 앱 위치의 최대 나이(초). 정확한 위치는 앱이 2초 안쪽 새 위치만 주므로 걸리지 않는다. 「대략적 위치」는 앱이
+ * 운영체제가 준 첫 위치를 그대로 주는데(Android 는 대략적 위치를 최대 10분에 한 번 새로 만든다), 그보다 오래된 위치는
+ * 매장을 벗어난 뒤에도 매장 안으로 판정할 수 있어 「읽지 못함」으로 본다(다시 누르면 새로 잰다).
+ */
+export const MAX_LOCATION_AGE_SECONDS = 600;
+
 export type DeviceLocation =
   | { status: "ok"; latitude: number; longitude: number; mocked: boolean }
   | { status: "denied" }
@@ -38,7 +45,10 @@ export function fromAppLocation(result: BridgeResult<AppLocation>): DeviceLocati
     return { status: "broken" };
   }
   const data = result.data;
-  if (data.status === "ok") return { status: "ok", latitude: data.latitude, longitude: data.longitude, mocked: data.mocked };
+  if (data.status === "ok") {
+    if (data.ageSeconds > MAX_LOCATION_AGE_SECONDS) return { status: "unavailable" };
+    return { status: "ok", latitude: data.latitude, longitude: data.longitude, mocked: data.mocked };
+  }
   return { status: data.status };
 }
 

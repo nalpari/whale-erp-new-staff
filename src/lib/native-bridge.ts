@@ -205,9 +205,14 @@ export function isAppLocation(data: unknown): data is AppLocation {
   const d = data as Record<string, unknown>;
   return (
     isFiniteNumber(d.latitude) &&
+    d.latitude >= -90 &&
+    d.latitude <= 90 &&
     isFiniteNumber(d.longitude) &&
+    d.longitude >= -180 &&
+    d.longitude <= 180 &&
     (d.accuracyMeters === null || isFiniteNumber(d.accuracyMeters)) &&
     isFiniteNumber(d.ageSeconds) &&
+    d.ageSeconds >= 0 &&
     typeof d.mocked === "boolean" &&
     (d.precise === null || typeof d.precise === "boolean")
   );
