@@ -153,7 +153,7 @@ export function SignupForm({
             help="가입 후에는 변경할 수 없으니 정확히 입력해 주세요."
             error={errorOf("birthDate")}
           />
-          <Choice label={<>성별<RequiredMark announce={false} /></>} error={errorOf("gender")}>
+          <Choice anchor="gender" label={<>성별<RequiredMark announce={false} /></>} error={errorOf("gender")}>
             <SegmentedControl
               label="성별 필수"
               items={genders}
@@ -192,7 +192,7 @@ export function SignupForm({
         />
 
         <SectionTitle title="주소" />
-        <div className="flex flex-col gap-[16px]">
+        <div className="flex flex-col gap-[16px]" data-field-anchor="address">
           <ReadOnlyField
             label={<>주소<RequiredMark /></>}
             value={picked.address ? `(${picked.zipCode}) ${picked.address}` : ""}
@@ -255,9 +255,9 @@ export function SignupForm({
 }
 
 /** 고르는 칸(성별 · 외국인 여부)의 이름과 오류. 입력칸(TextField)과 같은 이름 글자 · 오류 글자다. */
-function Choice({ label, error, children }: { label: ReactNode; error?: string; children: ReactNode }) {
+function Choice({ anchor, label, error, children }: { anchor?: string; label: ReactNode; error?: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-[8px]">
+    <div className="flex flex-col gap-[8px]" data-field-anchor={anchor}>
       <p className="text-[13px] font-semibold text-staff-text-sub">{label}</p>
       {children}
       {error && <p className="text-[12px] text-staff-error">{error}</p>}

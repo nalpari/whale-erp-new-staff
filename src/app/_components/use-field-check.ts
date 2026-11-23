@@ -59,14 +59,23 @@ export function useFieldCheck(validate: (data: FormData) => FieldErrors) {
   return { errors, check, clear, dismiss, messageOf, blocked };
 }
 
-/** 폼 칸 순서(DOM)대로 보아 names 중 처음 나오는, 초점을 받을 수 있는 칸에 초점을 옮긴다. 숨은 칸 · 막힌 칸은 건너뛴다. */
+/**
+ * 폼 칸 순서(DOM)대로 보아 names 중 처음 나오는 칸에 초점을 옮긴다. 막힌 칸은 건너뛴다. 값을 숨은 칸(type="hidden")에 담는 고르기
+ * (성별 · 주소 검색)는 그 칸 대신 `data-field-anchor="이름"` 을 단 묶음 안 첫 버튼에 초점을 주고 화면에 보이게 옮긴다 — 안 그러면
+ * 막힌 제출이 아무 일도 안 한 것처럼 보였다.
+ */
 export function focusFirstField(form: HTMLFormElement, names: readonly string[]) {
   for (const element of Array.from(form.elements)) {
     if (!(element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement)) continue;
-    if (element.type === "hidden" || element.hidden || element.matches(":disabled")) continue;
-    if (names.includes(element.name)) {
-      element.focus();
+    if (!names.includes(element.name) || element.matches(":disabled")) continue;
+    if (element.type === "hidden" || element.hidden) {
+      const anchor = form.querySelector<HTMLElement>(`[data-field-anchor="${element.name}"]`);
+      if (!anchor) continue;
+      anchor.scrollIntoView({ block: "center" });
+      anchor.querySelector<HTMLElement>("button:not(:disabled), input:not([type=hidden]):not(:disabled)")?.focus({ preventScroll: true });
       return;
     }
+    element.focus();
+    return;
   }
 }

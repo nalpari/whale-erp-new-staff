@@ -47,26 +47,78 @@ function ActionCell({ icon, label, href }: { icon: string; label: string; href: 
  * (2026-11-23 사용자 지정 — api 를 고치지 않는 안). 서명한 계약은 서명할 때의 값이라 점포가 바꾸면 옛 값일 수 있다.
  * 값이 없거나 못 받으면 그 줄을 두지 않는다(목록은 그대로 보인다).
  */
-type StoreContact = { address: string | null; phone: string | null };
+type StoreContact = { address: string | null; mapQuery: string | null; phone: string | null };
 async function getStoreContacts(): Promise<Map<number, StoreContact>> {
   const contacts = new Map<number, StoreContact>();
   try {
     const firstByStore = new Map<number, number>();
     for (const c of await getContracts()) if (!firstByStore.has(c.storeId)) firstByStore.set(c.storeId, c.contractId);
-    const details = await Promise.all([...firstByStore.values()].map((id) => getContract(id).catch(() => null)));
+    const details = await Promise.all(
+      [...firstByStore.values()].map((id) =>
+        getContract(id).catch((error) => {
+          unstable_rethrow(error); // 로그인 만료 이동(redirect)은 삼키지 않는다
+          return null;
+        }),
+      ),
+    );
     for (const d of details) {
       if (!d) continue;
       const e = d.employer;
       const address = [e.storeAddress, e.storeAddressDetail].filter(Boolean).join(" ") || null;
-      contacts.set(d.storeId, {
-        address,
-        phone: formatTelephone(e.storePhone),
-      });
+      // 지도 검색은 기본 주소만 — 층 · 호수까지 넣으면 카카오맵이 찾지 못한다
+      contacts.set(d.storeId, { address, mapQuery: e.storeAddress, phone: formatTelephone(e.storePhone) });
     }
   } catch (error) {
     unstable_rethrow(error);
   }
   return contacts;
+}
+
+/**
+ * 근무지 위치 · 전화 — 반반 나눈 두 버튼(2026-11-23 사용자 지정). 주소는 다 보이지 않고 [지도 보기]가 카카오맵에서 그 주소를 찾는다
+ * (앱이 있으면 앱, 없으면 웹). 하나만 있으면 그 버튼이 줄을 채우고, 둘 다 없으면 줄을 두지 않는다.
+ */
+async function StoreContactButtons({
+  storeId,
+  storeName,
+  contacts,
+}: {
+  storeId: number;
+  storeName: string;
+  contacts: Promise<Map<number, StoreContact>>;
+}) {
+  const contact = (await contacts).get(storeId);
+  if (!contact || (!contact.mapQuery && !contact.phone)) return null;
+  return (
+    <div className="flex gap-[8px] pt-[4px]">
+      {contact.mapQuery && (
+        <a
+          href={`https://map.kakao.com/link/search/${encodeURIComponent(contact.mapQuery)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${storeName} 위치 지도에서 보기 — ${contact.address}`}
+          className={`flex h-[36px] min-w-0 flex-1 items-center justify-center gap-[6px] rounded-[8px] border border-staff-border bg-white text-[13px] font-medium text-staff-text ${PRESS}`}
+        >
+          <span className="flex text-staff-text-sub">
+            <MaskIcon src="/icons/map-pin-line.svg" size={15} />
+          </span>
+          지도 보기
+        </a>
+      )}
+      {contact.phone && (
+        <a
+          href={`tel:${contact.phone.replace(/-/g, "")}`}
+          aria-label={`${storeName} 전화하기 ${contact.phone}`}
+          className={`flex h-[36px] min-w-0 flex-1 items-center justify-center gap-[6px] rounded-[8px] border border-staff-border bg-white text-[13px] font-medium text-staff-text ${PRESS}`}
+        >
+          <span className="flex text-staff-text-sub">
+            <MaskIcon src="/icons/phone-call.svg" size={15} />
+          </span>
+          전화하기
+        </a>
+      )}
+    </div>
+  );
 }
 
 type StatusFilter = "all" | "working" | "retiring" | "retired";
@@ -116,11 +168,9 @@ function StatusChips({ counts, current }: { counts: Record<StatusFilter, number>
 
 export default async function MembershipsPage({ searchParams }: PageProps<"/me/memberships">) {
   const filter = statusFilterOf((await searchParams).status);
-  const [memberships, employmentTypes, storeContacts] = await Promise.all([
-    getMyMemberships(true),
-    getEnumOrEmpty("EmploymentType"),
-    getStoreContacts(),
-  ]);
+  // 연락처(계약 목록 + 근무지 수만큼 상세)는 기다리지 않는다 — 카드마다 Suspense 로 받아 근무지 목록이 먼저 뜬다
+  const storeContacts = getStoreContacts();
+  const [memberships, employmentTypes] = await Promise.all([getMyMemberships(true), getEnumOrEmpty("EmploymentType")]);
   const today = kstToday();
 
   return (
@@ -188,38 +238,9 @@ export default async function MembershipsPage({ searchParams }: PageProps<"/me/m
                         ) : (
                           m.hiredDate && <p>{dateLabel(m.hiredDate)}부터 근무</p>
                         )}
-                        {/* 근무지 위치 · 전화는 반반 나눈 두 버튼(2026-11-23 사용자 지정). 주소는 다 보이지 않고 [지도 보기]가 카카오맵에서 그 주소를 찾는다
-    (앱이 있으면 앱, 없으면 웹). 전화번호가 없으면 [지도 보기] 하나가 줄을 채운다. */}
-                        {(storeContacts.get(m.store.storeId)?.address || storeContacts.get(m.store.storeId)?.phone) && (
-                          <div className="flex gap-[8px] pt-[4px]">
-                            {storeContacts.get(m.store.storeId)?.address && (
-                              <a
-                                href={`https://map.kakao.com/link/search/${encodeURIComponent(storeContacts.get(m.store.storeId)!.address!)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label={`${m.store.storeName} 위치 지도에서 보기 — ${storeContacts.get(m.store.storeId)!.address}`}
-                                className={`flex h-[36px] min-w-0 flex-1 items-center justify-center gap-[6px] rounded-[8px] border border-staff-border bg-white text-[13px] font-medium text-staff-text ${PRESS}`}
-                              >
-                                <span className="flex text-staff-text-sub">
-                                  <MaskIcon src="/icons/map-pin-line.svg" size={15} />
-                                </span>
-                                지도 보기
-                              </a>
-                            )}
-                            {storeContacts.get(m.store.storeId)?.phone && (
-                              <a
-                                href={`tel:${storeContacts.get(m.store.storeId)!.phone!.replace(/-/g, "")}`}
-                                aria-label={`${m.store.storeName} 전화하기 ${storeContacts.get(m.store.storeId)!.phone}`}
-                                className={`flex h-[36px] min-w-0 flex-1 items-center justify-center gap-[6px] rounded-[8px] border border-staff-border bg-white text-[13px] font-medium text-staff-text ${PRESS}`}
-                              >
-                                <span className="flex text-staff-text-sub">
-                                  <MaskIcon src="/icons/phone-call.svg" size={15} />
-                                </span>
-                                전화하기
-                              </a>
-                            )}
-                          </div>
-                        )}
+                        <Suspense>
+                          <StoreContactButtons storeId={m.store.storeId} storeName={m.store.storeName} contacts={storeContacts} />
+                        </Suspense>
                       </div>
                     </div>
                     {/* 신고 정보 · 근로계약서 · 급여명세서 한 줄 세 칸 — 많이 쓰는 것을 오른쪽에(2026-11-23 사용자 지정, 처음 기획 2026-10-20). */}

@@ -276,7 +276,16 @@ function PeriodPicker({ from, to }: { from: string; to: string }) {
   const error = fields.errors.from ?? fields.errors.to;
   return (
     <Card>
-      <form action="/attendance" noValidate onSubmit={fields.check} onChange={fields.clear}>
+      {/* 기간 오류는 두 날짜에 함께 걸리므로 어느 칸을 바꿔도 둘 다 내린다 */}
+      <form
+        action="/attendance"
+        noValidate
+        onSubmit={fields.check}
+        onChange={() => {
+          fields.dismiss("from");
+          fields.dismiss("to");
+        }}
+      >
         <input type="hidden" name="tab" value="period" />
         <p className="text-[13px] font-semibold text-staff-text-sub">조회 기간</p>
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-[8px] pt-[8px]">
