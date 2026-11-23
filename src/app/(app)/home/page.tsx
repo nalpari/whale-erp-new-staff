@@ -34,7 +34,8 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex flex-col gap-[16px] px-[24px] pt-[52px] pb-[24px] leading-[1.5]">
+      {/* 위 여백 52px(Figma 상태 표시줄 자리)는 실제 폰에서 상태 표시줄과 겹쳐 두 번 비었다 — 20px(2026-11-23 사용자 지정) */}
+      <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
         {/* 화면 제목은 보이지 않게만 둔다(인사말 줄을 뺐다) */}
         <h1 className="sr-only">홈</h1>
         {/* 머리줄 아래 인사말은 두지 않고 20px 만 띄운다(데모 home) — 사이 16 에 4 를 더한다 */}

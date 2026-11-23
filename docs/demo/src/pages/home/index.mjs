@@ -169,7 +169,7 @@ const header = (view) =>
 
 // 하단 메뉴는 모든 상태에서 그대로(HOME-5). 화면 아래에 붙여 둔다.
 const screen = (view) =>
-  `<div class="flex flex-1 flex-col gap-[24px] leading-[1.5]"><main class="flex flex-1 flex-col px-[22px] pt-[42px]">${header(
+  `<div class="flex flex-1 flex-col gap-[24px] leading-[1.5]"><main class="flex flex-1 flex-col px-[22px] pt-[20px]">${header(
     view,
   )}<div class="h-[20px]"></div>${CONTENT[
     view
