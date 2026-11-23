@@ -216,5 +216,6 @@ export default () => ({
   title: "급여명세서",
   states: STATES,
   // 하단 메뉴는 앱의 탭 막대라 화면 아래에 붙여 둔다(/design/pay 그대로).
-  html: `<div class="flex flex-1 flex-col"><main class="flex flex-1 flex-col leading-[1.5]">${STATES.map((s) => state(s.id, VIEWS[s.id]())).join("")}</main><div class="sticky bottom-0 mt-auto">${bottomNav("pay")}</div></div>`,
+  // 상세(detail · resent)는 하단 메뉴를 두지 않는다 — 개발 화면 PayFrame nav={false} 와 같다(2026-11-23 사용자 지정). 그래서 메뉴를 상태마다 넣는다.
+  html: `<div class="flex flex-1 flex-col"><main class="flex flex-1 flex-col leading-[1.5]">${STATES.map((s) => state(s.id, `<div class="flex flex-1 flex-col">${VIEWS[s.id]()}${s.id === "detail" || s.id === "resent" ? "" : `<div class="sticky bottom-0 mt-auto">${bottomNav("pay")}</div>`}</div>`)).join("")}</main></div>`,
 });

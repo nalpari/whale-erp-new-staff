@@ -42,7 +42,7 @@ export default async function PayslipPage({ params, searchParams }: PageProps<"/
     .join(" · ");
 
   return (
-    <PayFrame header={<PageHeader title="급여명세서" backHref={backHref} />}>
+    <PayFrame nav={false} header={<PageHeader title="급여명세서" backHref={backHref} />}>
       {/* 목업 card--sunken: 안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14. */}
       <section className="flex flex-col gap-[8px] rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px]">
         <div className="flex items-start justify-between gap-[12px]">
