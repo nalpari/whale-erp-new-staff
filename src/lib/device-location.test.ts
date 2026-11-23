@@ -20,11 +20,33 @@ test("앱이 거부 · 읽지 못함이라 답하면 그대로", () => {
   assert.deepEqual(fromAppLocation({ ok: true, data: { status: "unavailable", reason: "serviceDisabled" } }), { status: "unavailable" });
 });
 
-test("브리지 호출이 실패하면 읽지 못함, 앱이 이 기능을 모르면(unavailable) null 로 브라우저에 넘긴다", () => {
+test("앱 기능 실패는 읽지 못함, 약속 어긋남 · 거절은 broken, 앱이 이 기능을 모르면(unavailable) null 로 브라우저에 넘긴다", (t) => {
+  t.mock.method(console, "error", () => {});
   assert.deepEqual(fromAppLocation({ ok: false, error: "failed" }), { status: "unavailable" });
-  assert.deepEqual(fromAppLocation({ ok: false, error: "forbidden" }), { status: "unavailable" });
-  assert.deepEqual(fromAppLocation({ ok: false, error: "malformed" }), { status: "unavailable" });
+  assert.deepEqual(fromAppLocation({ ok: false, error: "forbidden" }), { status: "broken" });
+  assert.deepEqual(fromAppLocation({ ok: false, error: "malformed" }), { status: "broken" });
   assert.equal(fromAppLocation({ ok: false, error: "unavailable" }), null);
+});
+
+test("앱 안에서 앱이 실패 · 거부 · 읽지 못함으로 답하면 브라우저 위치로 넘어가지 않는다(모의 위치 판정을 피해 가지 못하게)", async (t) => {
+  t.mock.method(console, "error", () => {});
+  const cases: [BridgeResult<AppLocation>, DeviceLocation][] = [
+    [{ ok: false, error: "failed" }, { status: "unavailable" }],
+    [{ ok: false, error: "forbidden" }, { status: "broken" }],
+    [{ ok: false, error: "malformed" }, { status: "broken" }],
+    [{ ok: true, data: { status: "denied" } }, { status: "denied" }],
+    [{ ok: true, data: { status: "unavailable", reason: "timeout" } }, { status: "unavailable" }],
+  ];
+  for (const [answer, expected] of cases) {
+    let browserRead = false;
+    const read = await readDeviceLocation({
+      inApp: true,
+      fromApp: async () => answer,
+      fromBrowser: async () => { browserRead = true; return browser; },
+    });
+    assert.deepEqual(read, expected, JSON.stringify(answer));
+    assert.equal(browserRead, false, JSON.stringify(answer));
+  }
 });
 
 test("앱 안이면 앱 위치를 쓰고 브라우저 위치는 읽지 않는다", async () => {

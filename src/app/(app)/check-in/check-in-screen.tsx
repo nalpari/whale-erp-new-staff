@@ -19,6 +19,7 @@ import {
 } from "@/lib/attendance-rules";
 import { kstToday, stampLabel } from "@/lib/attendance-history";
 import { browserLocation, readDeviceLocation } from "@/lib/device-location";
+import { isInApp } from "@/lib/native-bridge";
 import type { AttendanceRecordResult, MyAttendance } from "@/lib/my-attendance";
 import { nocontractHref, type CheckInSignWaiting } from "@/lib/sign-request";
 import { changeConsentAction } from "../me/actions";
@@ -38,6 +39,7 @@ type Geo =
   | { status: "loading" }
   | { status: "denied" }
   | { status: "unavailable" }
+  | { status: "broken" }
   | { status: "ok"; distance: number; inRange: boolean; mocked: boolean; position: { latitude: number; longitude: number } };
 
 type Sheet = "consent" | "bye" | "hifar" | "dup" | "nopunch" | "nocontract" | "noperiod" | "closed" | null;
@@ -186,14 +188,23 @@ export function CheckInScreen({
   const readLocation = async (kind: AttendanceKind): Promise<{ reason: ReturnType<typeof reviewReasonOf>; locationReadId: number } | null> => {
     setError(null);
     setGeo({ status: "loading" });
-    const read = await recordLocationReadAction(data.staffMemberId);
-    if (!read.ok) {
-      setGeo({ status: "idle" });
-      fail(read.problem);
+    // 예외가 나도 「위치를 확인하는 중」에 멈추지 않게 읽지 못함으로 끝낸다.
+    let read: Awaited<ReturnType<typeof recordLocationReadAction>>;
+    let next: Geo;
+    try {
+      read = await recordLocationReadAction(data.staffMemberId);
+      if (!read.ok) {
+        setGeo({ status: "idle" });
+        fail(read.problem);
+        return null;
+      }
+      setReadId(read.locationReadId);
+      next = await locate();
+    } catch (thrown) {
+      console.error("[check-in] 위치를 읽지 못함", thrown);
+      setGeo({ status: "unavailable" });
       return null;
     }
-    setReadId(read.locationReadId);
-    const next = await locate();
     setGeo(next);
     if (next.status !== "ok") return null;
     return { reason: reviewReasonOf(kind, next), locationReadId: read.locationReadId };
@@ -355,7 +366,10 @@ export function CheckInScreen({
     // 지도 위 안내 — 다시 읽는 중 · 탭에서 읽은 거리 · 버튼 안내 순
     const waitText =
       geo.status === "loading"
-        ? "위치를 확인하는 중입니다"
+        ? // 앱 안에서는 처음에 OS 권한 창이 뜰 수 있고, 앱이 최대 75초까지 기다린다
+          isInApp()
+          ? "위치를 확인하는 중입니다. 권한 창이 떠 있으면 골라 주세요"
+          : "위치를 확인하는 중입니다"
         : seen
           ? `매장까지 ${Math.round(seen.distance).toLocaleString("ko-KR")}m`
           : `${working ? "퇴근하기" : "출근하기"}를 누르면 위치를 확인합니다`;
@@ -384,6 +398,13 @@ export function CheckInScreen({
           <strong>위치 권한이 꺼져 있습니다.</strong>
           <br />
           출퇴근하려면 설정에서 위치 접근을 허용해 주세요.
+        </Alert>
+      </>
+    ) : geo.status === "broken" ? (
+      <>
+        <GeoBlank tone="muted" text="위치를 확인할 수 없습니다" />
+        <Alert tone="warning">
+          앱에서 위치를 받지 못했습니다. 앱을 최신 버전으로 업데이트하고, 계속되면 근무지 관리자에게 문의해 주세요.
         </Alert>
       </>
     ) : geo.status === "unavailable" ? (

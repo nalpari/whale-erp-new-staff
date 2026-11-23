@@ -223,6 +223,31 @@ test("앱 밖에서 브리지가 없는 것은 고장이 아니라 콘솔에 남
   assert.equal(bridgeErrors(error).length, 0);
 });
 
+test("measureLocation 은 앱에 measureLocation 이라는 이름으로 묻는다", async () => {
+  const calls: unknown[][] = [];
+  await measureLocation({
+    callHandler: async (...args: unknown[]) => {
+      calls.push(args);
+      return { ok: true, data: { status: "denied" } };
+    },
+  });
+  assert.deepEqual(calls, [["measureLocation"]]);
+});
+
+test("isAppLocation 은 약속에 맞는 값을 받는다 — 숫자 정확도 · 참거짓 precise · reason 다섯 가지", () => {
+  const ok = { status: "ok", latitude: 37.5, longitude: 127, accuracyMeters: 5, ageSeconds: 0, mocked: false, precise: true };
+  assert.equal(isAppLocation(ok), true);
+  assert.equal(isAppLocation({ ...ok, precise: false }), true);
+  assert.equal(isAppLocation({ ...ok, accuracyMeters: null, precise: null }), true);
+  for (const reason of ["serviceDisabled", "permissionCheckFailed", "permissionTimeout", "timeout", "error"]) {
+    assert.equal(isAppLocation({ status: "unavailable", reason }), true, reason);
+  }
+  assert.equal(isAppLocation({ status: "unavailable" }), false);
+  assert.equal(isAppLocation({ ...ok, accuracyMeters: undefined }), false);
+  assert.equal(isAppLocation({ ...ok, precise: undefined }), false);
+  assert.equal(isAppLocation({ ...ok, longitude: Number.POSITIVE_INFINITY }), false);
+});
+
 test("measureLocation 은 75초를 기다리고 약속에 맞는 답만 받는다", async (t) => {
   t.mock.method(console, "error", () => {});
   const ok = { status: "ok", latitude: 37.5, longitude: 127, accuracyMeters: null, ageSeconds: 3, mocked: true, precise: null };
