@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Alert, Button, Notice, TextField } from "@/components/common";
 import { AuthScreen } from "../../_components/auth-screen";
 import { Countdown, useNow } from "@/app/_components/countdown";
+import { useFieldCheck } from "@/app/_components/use-field-check";
 import { resendPinAction, verifyPinAction, type PinState, type ResendState } from "../actions";
 
 // 기준: 데모 docs/demo/src/pages/login 의 pin · pin-out. 10분이 지난 것(pin-out)은 서버가 그릴 때 이미 지났으면 expired 로,
@@ -30,6 +31,8 @@ export function PinForm({
   const [state, formAction, pending] = useActionState<PinState, FormData>(verifyPinAction, { pin: "" });
   const [resend, resendAction, resending] = useActionState<ResendState, FormData>(resendPinAction, {});
   const now = useNow(serverNow);
+  // 브라우저 말풍선 대신 칸 아래 문구(use-field-check). 「인증번호 다시 받기」는 formNoValidate 라 칸을 보지 않는다.
+  const fields = useFieldCheck((data) => (String(data.get("pin") ?? "").trim() ? {} : { pin: "인증번호를 입력해 주세요" }));
   // 다시 받으면 서버가 쿠키의 issuedAt 을 새로 쓰고, 이 화면은 서버 컴포넌트가 다시 그려 새 값을 받는다.
   const resendLeft = now === null ? resendMs : Math.max(0, issuedAt + resendMs - now);
   // 다시 받은 뒤에는 앞 핀으로 낸 오류가 새 안내를 가리지 않게 한다.
@@ -37,7 +40,7 @@ export function PinForm({
 
   if (expired || (now !== null && now >= issuedAt + validMs)) {
     return (
-      <form action={resendAction} className="flex flex-1 flex-col">
+      <form action={resendAction} noValidate className="flex flex-1 flex-col">
         <AuthScreen
           title="인증번호가 만료되었습니다"
           description={
@@ -65,7 +68,7 @@ export function PinForm({
   }
 
   return (
-    <form action={formAction} className="flex flex-1 flex-col">
+    <form action={formAction} noValidate onSubmit={fields.check} onChange={fields.clear} className="flex flex-1 flex-col">
       <AuthScreen
         title="인증번호 입력"
         description={
@@ -104,7 +107,7 @@ export function PinForm({
             maxLength={20}
             placeholder="인증번호 6자리"
             defaultValue={state.pin}
-            error={pinError ?? resend.error}
+            error={fields.messageOf("pin", pinError ?? resend.error)}
             help={resend.notice}
           />
           <div className="flex items-center justify-between text-[12px] text-staff-text-muted">

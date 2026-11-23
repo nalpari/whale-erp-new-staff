@@ -8,6 +8,8 @@ import { forgetAffiliationPopup } from "@/lib/affiliation-popup-memory";
 import { forgetSignRequestPopup } from "@/lib/sign-request-popup-memory";
 import { forgetHqReconsentPopup } from "@/lib/hq-reconsent-popup-memory";
 import { type AttemptLock, lockCountdown } from "@/lib/attempt-lock";
+import { isEmailShape } from "@/lib/email-change";
+import { useFieldCheck } from "@/app/_components/use-field-check";
 import { AuthScreen } from "../_components/auth-screen";
 import { useFocusedTitle } from "../_components/use-focused-title";
 import { loginAction, type LoginState } from "./actions";
@@ -39,6 +41,14 @@ export function LoginForm({
   const [autoLogin, setAutoLogin] = useState(false);
   // 「다시 로그인」으로 걷어 낸 잠금 결과. 같은 결과 객체로는 잠금 화면을 다시 그리지 않는다(새로 제출해 잠기면 새 객체다).
   const [dismissed, setDismissed] = useState<LoginState | null>(null);
+  // 브라우저 말풍선 대신 칸 아래 문구(use-field-check). 문구는 서버 액션과 같다.
+  const fields = useFieldCheck((data) => {
+    const email = String(data.get("email") ?? "").trim();
+    return {
+      email: !email ? "이메일을 입력해 주세요" : isEmailShape(email) ? undefined : "이메일 형식을 확인해 주세요",
+      password: data.get("password") ? undefined : "비밀번호를 입력해 주세요",
+    };
+  });
 
   if (state.locked && state !== dismissed) {
     return <Locked lock={state} onRetry={() => setDismissed(state)} />;
@@ -49,7 +59,10 @@ export function LoginForm({
     // 팝업이 다시 뜨게 한다.
     <form
       action={formAction}
-      onSubmit={() => {
+      noValidate
+      onChange={fields.clear}
+      onSubmit={(event) => {
+        if (!fields.check(event)) return;
         forgetAffiliationPopup();
         forgetSignRequestPopup();
         forgetHqReconsentPopup();
@@ -91,7 +104,7 @@ export function LoginForm({
             maxLength={254}
             placeholder="가입한 이메일을 입력해 주세요"
             defaultValue={state.email}
-            error={state.field === "email" ? state.error : undefined}
+            error={fields.messageOf("email", state.field === "email" ? state.error : undefined)}
           />
           <TextField
             label="비밀번호"
@@ -101,7 +114,7 @@ export function LoginForm({
             required
             maxLength={128}
             placeholder="비밀번호를 입력해 주세요"
-            error={state.field === "password" ? state.error : undefined}
+            error={fields.messageOf("password", state.field === "password" ? state.error : undefined)}
           />
           <div className="-my-[8px] flex flex-wrap gap-x-[20px]">
             <CheckBox name="saveEmail" checked={saveEmail} onChange={setSaveEmail}>

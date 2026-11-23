@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { AttendanceDayCard, BottomSheet, Button, Card, DayOffRow, MaskIcon, Notice, SegmentedControl, StatusChip, WorkTimeBar, segmentTabId } from "@/components/common";
 import { EASE_OUT, FIELD } from "@/components/common/theme";
 import {
@@ -26,6 +26,7 @@ import {
 } from "@/lib/attendance-history";
 import type { MyAttendanceRecords } from "@/lib/my-attendance";
 import { Sunken, Values } from "../check-in/check-in-parts";
+import { useFieldCheck } from "@/app/_components/use-field-check";
 
 type Tab = "week" | "period";
 type Sheet = { kind: "edits" | "flag" | "missing-out"; day: MyAttendanceDay } | null;
@@ -251,7 +252,10 @@ function PeriodView({ records, today }: { records: MyAttendanceRecords; today: s
   );
 }
 
-/** 시작일 · 종료일 — 서로의 min · max 를 1년으로 묶는다(HIST-2). 조회는 주소로 간다(form GET) */
+/**
+ * 시작일 · 종료일 — 서로의 min · max 를 1년으로 묶는다(HIST-2). 조회는 주소로 간다(form GET).
+ * 브라우저 말풍선 대신(noValidate) 빈 칸 · 순서 · 1년 넘김을 두 칸 줄 아래 한 줄 빨간 문구로 알린다(2026-11-23 사용자 결정).
+ */
 // 날짜 칸 두 개가 카드 폭 안에 들어가게 — 칸이 글자 폭만큼 버티지 않도록 min-w-0 · 좌우 여백 10(2026-11-20 사용자 지정: 오른쪽 칸이 카드 밖으로 밀렸다)
 // 아이폰 Safari 는 날짜 칸이 기본 모양(appearance)일 때 min-w-0 · 칸 폭을 무시하고 글자 폭만큼 늘어나 카드 밖으로 밀렸다 — 기본 모양을 끄고 폭을 칸에 맞춘다(2026-11-23 사용자 지정)
 const DATE_FIELD = `${FIELD.replace("px-[14px]", "px-[10px]")} w-full min-w-0 max-w-full appearance-none text-left [&::-webkit-date-and-time-value]:text-left`;
@@ -259,9 +263,20 @@ const DATE_FIELD = `${FIELD.replace("px-[14px]", "px-[10px]")} w-full min-w-0 ma
 function PeriodPicker({ from, to }: { from: string; to: string }) {
   const [start, setStart] = useState(from);
   const [end, setEnd] = useState(to);
+  const noteId = useId();
+  const fields = useFieldCheck((data) => {
+    const f = String(data.get("from") ?? "");
+    const t = String(data.get("to") ?? "");
+    if (!f) return { from: "시작일을 선택해 주세요" };
+    if (!t) return { to: "종료일을 선택해 주세요" };
+    if (t < f) return { to: "종료일은 시작일 이후로 선택해 주세요" };
+    if (t > addDays(f, MAX_PERIOD_DAYS - 1)) return { to: "한 번에 최대 1년까지 조회할 수 있습니다" };
+    return {};
+  });
+  const error = fields.errors.from ?? fields.errors.to;
   return (
     <Card>
-      <form action="/attendance">
+      <form action="/attendance" noValidate onSubmit={fields.check} onChange={fields.clear}>
         <input type="hidden" name="tab" value="period" />
         <p className="text-[13px] font-semibold text-staff-text-sub">조회 기간</p>
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-[8px] pt-[8px]">
@@ -270,6 +285,8 @@ function PeriodPicker({ from, to }: { from: string; to: string }) {
             name="from"
             aria-label="시작일"
             required
+            aria-invalid={fields.errors.from ? true : undefined}
+            aria-describedby={error ? noteId : undefined}
             className={DATE_FIELD}
             value={start}
             min={end ? addDays(end, -(MAX_PERIOD_DAYS - 1)) : undefined}
@@ -284,6 +301,8 @@ function PeriodPicker({ from, to }: { from: string; to: string }) {
             name="to"
             aria-label="종료일"
             required
+            aria-invalid={fields.errors.to ? true : undefined}
+            aria-describedby={error ? noteId : undefined}
             className={DATE_FIELD}
             value={end}
             min={start || undefined}
@@ -291,6 +310,12 @@ function PeriodPicker({ from, to }: { from: string; to: string }) {
             onChange={(e) => setEnd(e.target.value)}
           />
         </div>
+        {/* 두 칸이 한 줄이라 칸 오류는 줄 아래 한 줄로 둔다(입력칸 안내 · 오류와 같은 12px 오류색, 칸과 사이 8). */}
+        {error && (
+          <p id={noteId} className="pt-[8px] text-[12px] text-staff-error">
+            {error}
+          </p>
+        )}
         <div className="pt-[8px]">
           {/* 남보라 큰 버튼은 화면에서 너무 강해 외곽선 버튼으로(2026-11-20 사용자 지정) */}
           <Button type="submit" variant="outline">

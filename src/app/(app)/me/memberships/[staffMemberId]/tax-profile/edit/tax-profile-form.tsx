@@ -2,7 +2,7 @@
 
 import { startTransition, useActionState, useState, type FormEvent } from "react";
 import { Alert, Button, Dock, MaskIcon, TextField } from "@/components/common";
-import { PayrollAccountFields, RrnField } from "@/app/_components/tax-profile-fields";
+import { PayrollAccountFields, RrnField, focusTaxProfileField } from "@/app/_components/tax-profile-fields";
 import { TAX_KEEP_TEXT, TAX_NO_CONSENT_TEXT } from "@/app/_components/tax-profile-parts";
 import type { CodeValue } from "@/lib/codes";
 import {
@@ -86,6 +86,7 @@ export function TaxProfileForm({
     const checked = validateTaxProfileEdit(readTaxProfileForm(formData));
     if (!("body" in checked)) {
       setLocal(checked.problem);
+      if (checked.problem) focusTaxProfileField(event.currentTarget, checked.problem.field);
       return;
     }
     setLocal(undefined);
@@ -93,7 +94,8 @@ export function TaxProfileForm({
   };
 
   return (
-    <form action={formAction} onSubmit={onSubmit} className="flex flex-1 flex-col bg-white" autoComplete="off">
+    // noValidate — 브라우저 말풍선 대신 onSubmit 이 거른 오류를 칸 아래에 보인다(2026-11-23 사용자 결정).
+    <form action={formAction} onSubmit={onSubmit} noValidate className="flex flex-1 flex-col bg-white" autoComplete="off">
       {/* 정돈 시안 B안(2026-11-20 사용자 지정): 근무지명(남보라) · 큰 제목 · 설명, 가입 정보 한 줄 상자(사람 아이콘 · 이름 | 생년월일),
           주민등록번호 · 급여 계좌 · 현재 비밀번호를 각각 상자로 묶고(사이 16), 사업주 안내는 상자 없는 회색 글. */}
       <div className="flex flex-col px-[24px] pt-[20px] pb-[8px] leading-[1.5] break-keep">

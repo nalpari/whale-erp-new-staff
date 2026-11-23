@@ -4,6 +4,8 @@ import { useId } from "react";
 import { MaskIcon } from "@/components/common";
 import { FIELD } from "@/components/common/theme";
 import type { CodeValue } from "@/lib/codes";
+import type { TaxProfileField } from "@/lib/tax-profile";
+import { focusFirstField } from "./use-field-check";
 import { Basis, accountBasis, rrnBasis } from "./tax-profile-parts";
 
 // 신고 정보 입력 칸(데모 docs/demo/tax 의 form). 고치기(WHALEERP-333)와 날인 뒤 처음 넣기(150)가 같이 쓴다.
@@ -23,6 +25,22 @@ import { Basis, accountBasis, rrnBasis } from "./tax-profile-parts";
 // required 는 처음 넣기(셋 다 필수)용이다. 고치기는 비워 둔 쪽을 그대로 두어 끈다.
 
 const LEGEND = "pb-[8px] text-[13px] font-semibold text-staff-text-sub";
+
+/**
+ * 화면이 거른 오류 칸으로 초점을 옮긴다. 이 칸들을 담는 폼은 noValidate 라 브라우저 말풍선 대신 칸 아래 문구로 알린다
+ * (2026-11-23 사용자 결정). 주민등록번호는 앞자리가 6자리면 뒷자리로 간다. 버튼 위 알림(form)은 옮기지 않는다.
+ */
+export function focusTaxProfileField(form: HTMLFormElement, field: TaxProfileField) {
+  const front = String(new FormData(form).get("rrnFront") ?? "").replace(/[\s-]/g, "");
+  const names: Record<TaxProfileField, string[]> = {
+    rrn: [/^\d{6}$/.test(front) ? "rrnBack" : "rrnFront"],
+    bank: ["bankCode"],
+    account: ["payrollAccountNumber"],
+    currentPassword: ["currentPassword"],
+    form: [],
+  };
+  focusFirstField(form, names[field]);
+}
 /** 뒷자리 칸의 복사 · 잘라내기 · 끌어 옮기기를 막는다(위 주석). */
 const blockCopy = (event: { preventDefault(): void }) => event.preventDefault();
 const noteClass = (error?: string) => `text-[12px] whitespace-pre-line ${error ? "text-staff-error" : "text-staff-text-muted"}`;

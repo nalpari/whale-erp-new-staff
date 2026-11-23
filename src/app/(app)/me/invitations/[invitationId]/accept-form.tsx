@@ -30,7 +30,7 @@ export function AcceptInvitationForm({
   if (state.step === "joined") return <InvitationJoined />;
 
   return (
-    <form action={formAction} className="flex flex-1 flex-col">
+    <form action={formAction} noValidate className="flex flex-1 flex-col">
       <AuthScreen
         title="근무지를 더할까요?"
         description={

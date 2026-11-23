@@ -22,7 +22,7 @@ export function LogoutSheet() {
         description="다시 로그인하려면 이메일과 비밀번호가 필요합니다."
         closeLabel="취소"
       >
-        <form action={logoutAction}>
+        <form action={logoutAction} noValidate>
           <DangerButton type="submit">로그아웃</DangerButton>
         </form>
       </BottomSheet>

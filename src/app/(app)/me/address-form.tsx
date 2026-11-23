@@ -37,7 +37,7 @@ export function AddressForm({
     picked.zipCode !== (zipCode ?? "") || picked.address !== (address ?? "") || detail.trim() !== (addressDetail ?? "");
 
   return (
-    <form action={formAction} className="flex flex-col gap-[8px]">
+    <form action={formAction} noValidate className="flex flex-col gap-[8px]">
       <input type="hidden" name="zipCode" value={picked.zipCode} />
       <input type="hidden" name="address" value={picked.address} />
       <ReadOnlyField
