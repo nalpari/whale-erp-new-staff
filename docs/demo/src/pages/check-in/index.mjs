@@ -251,8 +251,8 @@ const SHEETS = {
     bottomSheet(
       "hifar",
       {
-        title: "매장 범위 밖에서 출근하시겠습니까?",
-        description: "관리자 확인이 필요한 기록으로 남습니다.",
+        title: "현재 매장 범위 밖에 있습니다.",
+        description: "지금 출근하면 관리자 확인이 필요한 기록으로 남습니다.<br>출근하시겠습니까?",
         closeLabel: "취소",
         ...a,
       },
@@ -267,8 +267,8 @@ const SHEETS = {
     bottomSheet(
       "byefar",
       {
-        title: "매장 범위 밖에서 퇴근하시겠습니까?",
-        description: "관리자 확인이 필요한 기록으로 남습니다.<br>퇴근하면 오늘 근무가 종료됩니다.",
+        title: "현재 매장 범위 밖에 있습니다.",
+        description: "지금 퇴근하면 관리자 확인이 필요한 기록으로 남으며, 오늘 근무가 종료됩니다.<br>퇴근하시겠습니까?",
         closeLabel: "취소",
         ...a,
       },

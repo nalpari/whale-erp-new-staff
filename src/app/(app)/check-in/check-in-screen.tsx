@@ -240,8 +240,8 @@ export function CheckInScreen({
 
   const schedule = data.todaySchedules[0];
   const elapsed = working ? elapsedOf(new Date(working.recordedAt), now) : null;
-  const distanceText = geo.status === "ok" ? `매장까지 ${Math.round(geo.distance)}m` : "";
-  const outOfRange = `${distanceText} · 출퇴근 범위 ${store.radiusMeters}m`;
+  const distanceText = geo.status === "ok" ? `매장까지 ${Math.round(geo.distance).toLocaleString("ko-KR")}m` : "";
+  const outOfRange = `${distanceText} · 출퇴근 범위 ${store.radiusMeters.toLocaleString("ko-KR")}m`;
   const workSummary = working && elapsed && (
     <Sunken>
       <Values
@@ -361,7 +361,7 @@ export function CheckInScreen({
       geo.status === "loading"
         ? "위치를 확인하는 중입니다"
         : seen
-          ? `매장까지 ${Math.round(seen.distance)}m`
+          ? `매장까지 ${Math.round(seen.distance).toLocaleString("ko-KR")}m`
           : `${working ? "퇴근하기" : "출근하기"}를 누르면 위치를 확인합니다`;
     // 위치 블록: 위치를 보지 않는 근무지는 지도 없이 시각만 보인다
     const geoBlock = !located ? null : !target ? (
@@ -653,10 +653,13 @@ export function CheckInScreen({
       <BottomSheet
         open={sheet === "bye"}
         onClose={() => setSheet(null)}
-        title={checkOutReason === "MOCK_LOCATION" ? "모의 위치 상태로 퇴근하시겠습니까?" : checkOutReason ? "매장 범위 밖에서 퇴근하시겠습니까?" : "퇴근하시겠습니까?"}
+        title={checkOutReason === "MOCK_LOCATION" ? "모의 위치 상태로 퇴근하시겠습니까?" : checkOutReason ? "현재 매장 범위 밖에 있습니다." : "퇴근하시겠습니까?"}
         description={
-          checkOutReason
+          // 매장 범위 밖: 제목은 지금 상황, 본문 끝에 묻는 말(2026-11-23 사용자 지정)
+          checkOutReason === "MOCK_LOCATION"
             ? "관리자 확인이 필요한 기록으로 남습니다.\n퇴근하면 오늘 근무가 종료됩니다."
+            : checkOutReason
+            ? "지금 퇴근하면 관리자 확인이 필요한 기록으로 남으며, 오늘 근무가 종료됩니다.\n퇴근하시겠습니까?"
             : "퇴근하면 오늘 근무가 종료됩니다.\n다시 출근하려면 출근을 새로 등록해야 합니다."
         }
         closeLabel="취소"
@@ -673,8 +676,8 @@ export function CheckInScreen({
       <BottomSheet
         open={sheet === "hifar"}
         onClose={() => setSheet(null)}
-        title="매장 범위 밖에서 출근하시겠습니까?"
-        description="관리자 확인이 필요한 기록으로 남습니다."
+        title="현재 매장 범위 밖에 있습니다."
+        description={"지금 출근하면 관리자 확인이 필요한 기록으로 남습니다.\n출근하시겠습니까?"}
         closeLabel="취소"
       >
         <Sunken prose label="출근할 근무지">

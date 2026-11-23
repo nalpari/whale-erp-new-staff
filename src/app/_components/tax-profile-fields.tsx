@@ -29,20 +29,20 @@ const noteClass = (error?: string) => `text-[12px] whitespace-pre-line ${error ?
 
 /**
  * 묶음 상자(boxed) — 신고 정보 다시 입력(정돈 시안 B안, 2026-11-20 사용자 지정). 안내 바탕 · 테두리 · 모서리 16 · 안쪽 18 상자에 담고,
- * 칸 이름은 15px bold · 오른쪽에 「현재 등록된 정보: …」, 받은 근거는 따로 두지 않고 안내 문단(help)에 잇는다. 안내는 13px · 칸과 사이 6.
+ * 칸 이름은 15px bold(줄바꿈 없음) · 그 아래 줄에 「현재 등록된 정보: …」(자르지 않음, 2026-11-23 사용자 지정), 받은 근거는 따로 두지 않고 안내 문단(help)에 잇는다. 안내는 13px · 칸과 사이 6.
  * 처음 넣기(150)는 상자 없이 그대로다.
  */
 // 흰 바탕 화면(정돈 시안)에서 쓰는 묶음 상자 — 연회색(staff-bg). 전엔 staff-info-bg 라 흰 바탕과 거의 같아 보였다(2026-11-20 사용자 지정)
 const BOX = "flex flex-col gap-[10px] rounded-[16px] border border-staff-border bg-staff-bg p-[18px]";
-const BOX_LEGEND = "flex w-full items-baseline justify-between gap-[8px] pb-[10px] text-[15px] font-bold text-staff-text";
+const BOX_LEGEND = "flex w-full flex-col gap-[2px] pb-[10px] text-[15px] font-bold text-staff-text";
 const boxNoteClass = (error?: string) => `-mt-[2px] text-[13px] leading-[1.4] break-keep ${error ? "text-staff-error" : "text-staff-text-muted"}`;
 
-/** 묶음 상자의 칸 이름 줄 — 이름과 오른쪽 「현재 등록된 정보: …」(13px 흐린 글자). */
+/** 묶음 상자의 칸 이름 줄 — 이름(줄바꿈 없음)과 그 아래 「현재 등록된 정보: …」(13px 흐린 글자, 자르지 않고 길면 줄바꿈). */
 function BoxLegend({ name, current }: { name: string; current?: string }) {
   return (
     <legend className={BOX_LEGEND}>
-      {name}
-      {current && <span className="min-w-0 truncate text-[13px] font-normal text-staff-text-muted">현재 등록된 정보: {current}</span>}
+      <span className="whitespace-nowrap">{name}</span>
+      {current && <span className="text-[13px] font-normal break-all text-staff-text-muted">현재 등록된 정보: {current}</span>}
     </legend>
   );
 }

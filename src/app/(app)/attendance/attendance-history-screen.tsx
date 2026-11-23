@@ -253,7 +253,8 @@ function PeriodView({ records, today }: { records: MyAttendanceRecords; today: s
 
 /** 시작일 · 종료일 — 서로의 min · max 를 1년으로 묶는다(HIST-2). 조회는 주소로 간다(form GET) */
 // 날짜 칸 두 개가 카드 폭 안에 들어가게 — 칸이 글자 폭만큼 버티지 않도록 min-w-0 · 좌우 여백 10(2026-11-20 사용자 지정: 오른쪽 칸이 카드 밖으로 밀렸다)
-const DATE_FIELD = `${FIELD.replace("px-[14px]", "px-[10px]")} min-w-0`;
+// 아이폰 Safari 는 날짜 칸이 기본 모양(appearance)일 때 min-w-0 · 칸 폭을 무시하고 글자 폭만큼 늘어나 카드 밖으로 밀렸다 — 기본 모양을 끄고 폭을 칸에 맞춘다(2026-11-23 사용자 지정)
+const DATE_FIELD = `${FIELD.replace("px-[14px]", "px-[10px]")} w-full min-w-0 max-w-full appearance-none text-left [&::-webkit-date-and-time-value]:text-left`;
 
 function PeriodPicker({ from, to }: { from: string; to: string }) {
   const [start, setStart] = useState(from);
