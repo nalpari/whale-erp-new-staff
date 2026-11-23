@@ -160,7 +160,10 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
             <dl className="mt-[20px] flex w-full flex-col gap-[12px] rounded-[16px] bg-staff-bg px-[18px] py-[16px] text-left text-[13px] leading-[1.6]">
               {EMPTY_GUIDE.map(([q, a]) => (
                 <div key={q}>
-                  <dt className="font-semibold text-staff-text">{q}</dt>
+                  <dt className="font-semibold text-staff-text">
+                    <span className="mr-[4px] text-staff-primary">Q.</span>
+                    {q}
+                  </dt>
                   <dd className="text-staff-text-sub">{a}</dd>
                 </div>
               ))}
