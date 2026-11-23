@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Alert, Badge, BottomNav, Dock, MaskIcon, Notice, PageHeader, buttonClass } from "@/components/common";
+import { Alert, Badge, Dock, MaskIcon, Notice, PageHeader, buttonClass } from "@/components/common";
 import {
   bodyMissing,
   contractSubText,
@@ -312,12 +312,6 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           rejectAction={rejectContractAction.bind(null, c.contractId, storeId)}
           correctionAction={requestContractCorrectionAction.bind(null, c.contractId, storeId)}
         />
-      )}
-      {!canDecide && (
-        // 서명 · 거절할 계약(아래 버튼 줄)이 아니면 보기 화면이라 하단 메뉴를 둔다(2026-11-23 사용자 지정)
-        <div className="sticky bottom-0 mt-auto">
-          <BottomNav current={storeId === null ? "/home" : "/me"} />
-        </div>
       )}
       {query.done !== undefined && (
         // 수정 요청 뒤 이 화면으로 돌아왔다(`?done=correction`). 알린 뒤 주소에서 지운다 — `?store=` 는 이어 준다(받기 실패 안내와 같다).
