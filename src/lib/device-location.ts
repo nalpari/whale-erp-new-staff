@@ -1,9 +1,10 @@
-import { isInApp, measureLocation, type AppLocation, type BridgeResult } from "./native-bridge.ts";
+import { isInApp, measureLocation, waitForBridge, type AppLocation, type Bridge, type BridgeResult } from "./native-bridge.ts";
 
 /**
  * 출퇴근 화면이 쓰는 기기 위치 한 번. 판정(반경 안 · 밖)은 부른 쪽이 한다 — 좌표는 서버로 보내지 않는다(ATT-05).
  * - 설치형 앱 안이면 앱이 잰 좌표와 모의 위치 여부를 쓴다(계획 결정 8, 위치 조작 감지 ATT-21 이 실제로 쌓인다).
- * - 브라우저이거나, 앱이 이 기능을 모르는 옛 버전이면(unavailable) 브라우저 위치를 쓰고 모의 위치는 판정하지 않는다(false).
+ * - 브라우저이거나, 브리지는 있는데 앱이 이 기능을 모르는 옛 버전이면(unavailable) 브라우저 위치를 쓰고 모의 위치는
+ *   판정하지 않는다(false). 앱 안인데 브리지 자체가 없으면 앱 쪽 고장이라 broken — 브라우저로 넘기면 모의 위치 판정이 빠진다.
  * - 앱과의 약속이 어긋났거나(malformed) 앱이 호출을 받지 않았으면(forbidden) broken — 다시 시도해도 풀리지 않는다.
  *   브라우저 위치로 넘기지 않는다(모의 위치 판정이 빠지므로).
  */
@@ -54,15 +55,21 @@ export function fromAppLocation(result: BridgeResult<AppLocation>): DeviceLocati
 
 export async function readDeviceLocation({
   inApp = isInApp(),
-  fromApp = () => measureLocation(),
+  bridgeReady = () => waitForBridge(),
+  fromApp = (bridge) => measureLocation(bridge),
   fromBrowser,
 }: {
   inApp?: boolean;
-  fromApp?: () => Promise<BridgeResult<AppLocation>>;
+  bridgeReady?: () => Promise<Bridge | null>;
+  fromApp?: (bridge: Bridge) => Promise<BridgeResult<AppLocation>>;
   fromBrowser: () => Promise<DeviceLocation>;
 }): Promise<DeviceLocation> {
   if (inApp) {
-    const reading = fromAppLocation(await fromApp());
+    // 브리지가 있어야 「옛 앱이라 기능이 없음」과 「브리지 고장」을 가를 수 있다. 브리지가 없으면 고장으로 보고 브라우저로 넘기지 않는다
+    // (waitForBridge 가 이미 콘솔에 남긴다).
+    const bridge = await bridgeReady();
+    if (bridge === null) return { status: "broken" };
+    const reading = fromAppLocation(await fromApp(bridge));
     if (reading !== null) return reading;
   }
   return fromBrowser();

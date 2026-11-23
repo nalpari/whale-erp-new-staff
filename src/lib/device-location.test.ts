@@ -2,12 +2,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { MAX_LOCATION_AGE_SECONDS, fromAppLocation, readDeviceLocation, type DeviceLocation } from "./device-location.ts";
-import type { AppLocation, BridgeResult } from "./native-bridge.ts";
+import type { AppLocation, Bridge, BridgeResult } from "./native-bridge.ts";
 
 const okApp = (mocked: boolean): BridgeResult<AppLocation> => ({
   ok: true,
   data: { status: "ok", latitude: 37.5, longitude: 127, accuracyMeters: 5, ageSeconds: 0, mocked, precise: true },
 });
+const bridge: Bridge = { callHandler: async () => null };
+const ready = async () => bridge;
 const browser: DeviceLocation = { status: "ok", latitude: 1, longitude: 2, mocked: false };
 
 test("앱이 잰 위치는 좌표와 모의 위치 여부를 그대로 쓴다", () => {
@@ -50,6 +52,7 @@ test("앱 안에서 앱이 실패 · 거부 · 읽지 못함으로 답하면 브
     let browserRead = false;
     const read = await readDeviceLocation({
       inApp: true,
+      bridgeReady: ready,
       fromApp: async () => answer,
       fromBrowser: async () => { browserRead = true; return browser; },
     });
@@ -62,6 +65,7 @@ test("앱 안이면 앱 위치를 쓰고 브라우저 위치는 읽지 않는다
   let browserRead = false;
   const read = await readDeviceLocation({
     inApp: true,
+    bridgeReady: ready,
     fromApp: async () => okApp(true),
     fromBrowser: async () => { browserRead = true; return browser; },
   });
@@ -80,9 +84,28 @@ test("브라우저면 앱을 부르지 않고 브라우저 위치를 쓴다", as
   assert.equal(appCalled, false);
 });
 
-test("옛 앱(기능 없음)이면 브라우저 위치로 넘어간다", async () => {
+test("브리지는 있는데 옛 앱(기능 없음)이면 브라우저 위치로 넘어간다", async () => {
   assert.deepEqual(
-    await readDeviceLocation({ inApp: true, fromApp: async () => ({ ok: false, error: "unavailable" }), fromBrowser: async () => browser }),
+    await readDeviceLocation({
+      inApp: true,
+      bridgeReady: ready,
+      fromApp: async () => ({ ok: false, error: "unavailable" }),
+      fromBrowser: async () => browser,
+    }),
     browser,
   );
+});
+
+test("앱 안인데 브리지가 없으면 고장(broken)이고 브라우저 위치로 넘어가지 않는다(모의 위치 판정을 피하지 못하게)", async () => {
+  let appCalled = false;
+  let browserRead = false;
+  const read = await readDeviceLocation({
+    inApp: true,
+    bridgeReady: async () => null,
+    fromApp: async () => { appCalled = true; return okApp(true); },
+    fromBrowser: async () => { browserRead = true; return browser; },
+  });
+  assert.deepEqual(read, { status: "broken" });
+  assert.equal(appCalled, false);
+  assert.equal(browserRead, false);
 });
