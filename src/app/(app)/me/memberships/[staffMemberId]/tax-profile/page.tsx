@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
-import { Alert, Button, Dock, Notice, PageHeader } from "@/components/common";
+import { Alert, Button, Dock, IconTile, Notice, PageHeader } from "@/components/common";
 import { ApiError } from "@/lib/api";
 import { getCodesOrEmpty } from "@/lib/codes";
 import { labelOf } from "@/lib/enums";
@@ -85,7 +85,16 @@ function GuardItem({ icon, title, children }: { icon: ReactNode; title: string; 
   return (
     <div className="flex gap-[10px]">
       <span aria-hidden className="flex size-[28px] shrink-0 items-center justify-center rounded-full bg-white text-staff-text-sub">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           {icon}
         </svg>
       </span>
@@ -123,17 +132,25 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
   return (
     <div className="flex flex-1 flex-col bg-white">
       <PageHeader title="신고 정보" backHref="/me/memberships" />
-      <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5] break-keep">
+      <div className="flex flex-1 flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5] break-keep">
         {tax === null ? (
           <Alert tone="warning">
             <p>{after.unavailable}</p>
           </Alert>
         ) : !profile ? (
-          <Notice>
-            <strong>{storeName}</strong>에 입력한 신고 정보가 없습니다.
-            <br />
-            근로계약서에 서명했다면 지금 입력해 주세요.
-          </Notice>
+          // 빈 상태는 급여명세서 빈 화면처럼 아이콘 · 문구를 가운데에(2026-11-23 사용자 지정) — 맨 위 작은 안내 상자 아래가 휑했다
+          <div className="flex flex-1 flex-col items-center justify-center gap-[8px] py-[40px] text-center">
+            <span className="mb-[6px] flex">
+              <IconTile src="/icons/id-card-line.svg" size={44} />
+            </span>
+            <p className="text-[17px] font-bold">입력한 신고 정보가 없습니다</p>
+            <p className="text-[14px] text-staff-text-sub">{storeName}</p>
+            <p className="pt-[8px] text-[14px] text-staff-text-sub">
+              근로계약서에 서명했다면
+              <br />
+              지금 입력해 주세요.
+            </p>
+          </div>
         ) : (
           <>
             <WorkplaceBox name={storeName} />
@@ -181,9 +198,7 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
       </div>
       {profile ? (
         <Dock>
-          <Button href={`/me/memberships/${staffMemberId}/tax-profile/edit`}>
-            다시 입력하기
-          </Button>
+          <Button href={`/me/memberships/${staffMemberId}/tax-profile/edit`}>다시 입력하기</Button>
         </Dock>
       ) : (
         tax && (

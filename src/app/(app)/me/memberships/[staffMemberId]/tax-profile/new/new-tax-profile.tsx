@@ -53,11 +53,12 @@ export function TaxProfileIntro({ storeName, formHref, signed }: { storeName: st
             <MaskIcon src="/icons/id-card-line.svg" size={28} />
           </span>
           <h2 className="text-[22px] font-bold">신고 정보를 입력해 주세요</h2>
-          <p className="text-[14px] text-staff-text-sub">
+          <p className="text-[14px] break-keep text-staff-text-sub">
             {/* 「근로계약이 완료되었습니다」는 서명 완료 화면에서 넘어왔을 때만 — 내 정보에서 서명 전에 들어오면 사실과 달라진다(PR #73 리뷰) */}
             {signed ? <>{withGwa(storeName)} 근로계약이 완료되었습니다.</> : <><strong className="text-staff-text">{storeName}</strong>에 제출할 정보입니다.</>}
             <br />
-            급여 지급과 원천징수, 4대보험 신고(가입 대상인 경우)에 필요한 정보입니다.
+            {/* 아래 「이용 목적」이 원천징수 · 4대보험을 풀어 말하므로 여기는 한 줄로 줄인다(2026-11-23 사용자 지정 — 「필요/한」으로 꺾였다) */}
+            급여 지급과 신고에 필요한 정보입니다.
           </p>
         </div>
         <Card>
