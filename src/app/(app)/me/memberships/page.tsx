@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { unstable_rethrow } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense, type ReactNode } from "react";
+import { Suspense } from "react";
 import { Alert, Badge, MaskIcon, Notice, PageHeader } from "@/components/common";
 import { PRESS } from "@/components/common/theme";
 import { invitationTypeLabel } from "@/lib/affiliation-requests";
+import { formatTelephone } from "@/lib/contract-rules";
+import { getContract, getContracts } from "@/lib/contracts";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import { kstToday } from "@/lib/join";
 import { getMyInvitations } from "@/lib/my-invitations";
@@ -18,56 +21,123 @@ export const metadata: Metadata = { title: "내 근무지 · Whale ERP" };
 // 맨 위에 「확인을 기다리는 요청」을 고정하고 받은 때 최신순으로 보인다(ME-8, 2026-10-28 김민식 · 재영) — 가입한 사람이 받은 가입 초대
 // (WHALEERP-604, 초대 코드 없이 여기서 수락) · 근무지 추가 확인 · 복귀 확인(WHALEERP-144, 홈 팝업을 닫아도 여기서 찾는다)을 한 칸에 섞는다.
 // 그 아래 지금 근무지, 그 뒤 퇴직한 근무지(ME-7, api includeRetired — 퇴직일 최근 순).
-// 근무지마다 근로계약서 · 급여명세서 · 신고 정보로 간다(2026-10-20 기획, api #79). 근로계약서는 그 근무지 계약서 목록으로 가고,
-// 급여명세서는 계정 api 가 아직 없어 「준비 중」으로 막아 둔다. 퇴직한 근무지는 신고 정보도 볼 수 없어(api 404) 줄을 두지 않는다.
-// 정돈 시안 A안(2026-11-20 사용자 지정): 근무지마다 카드 한 장 — 이름 · 배지, 이름 칸 폭을 고정한 「고용 형태 · 근무 시작」 줄,
-// 그 아래 누르는 줄(아이콘 · 이름 · 꺾쇠). 전엔 한 카드에 근무지를 쌓고 세 칸 버튼이었다.
+// 근무지마다 신고 정보 · 근로계약서 · 급여명세서로 간다(2026-10-20 기획, api #79). 근로계약서 · 급여명세서는 그 근무지 것만 거른 목록으로 간다.
+// 퇴직한 근무지는 신고 정보도 볼 수 없어(api 404) 세 칸을 두지 않는다.
+// 카드(2026-11-23 사용자 지정): 이름 · 배지, 라벨 없는 회색 두 줄(고용 형태 · 직무 / 근무 시작), [지도 보기] · [전화하기](근로계약서의 근무지 주소 · 전화),
+// 맨 아래 세 칸(선 아이콘 · 이름, 많이 쓰는 급여명세서가 오른쪽). 맨 위 상태 칩으로 거른다.
 
 /** 카드 안 이름 · 값 한 줄 — 이름 칸 폭 고정 · 값 왼쪽 정렬(값이 길어도 같은 칸 안에서 줄바꿈). */
-function ValueLine({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex gap-[12px] text-[14px]">
-      <span className="w-[64px] shrink-0 text-staff-text-muted">{label}</span>
-      <span className="min-w-0 flex-1 break-keep">{children}</span>
-    </div>
-  );
-}
+const ACTION_CELL =
+  "flex h-[72px] min-w-0 flex-1 flex-col items-center justify-center gap-[6px] text-[13px] font-medium [&+&]:border-l [&+&]:border-staff-border-light";
 
-const ACTION_ROW = "flex min-h-[52px] items-center gap-[12px] border-t border-staff-border-light px-[20px] text-[15px]";
-
-/** 카드 아래 누르는 줄(아이콘 · 이름 · 꺾쇠). href 가 없으면 막힌 줄 — 오른쪽에 「준비 중」. */
-function ActionRow({ icon, label, href }: { icon: string; label: string; href?: string }) {
-  // nav-me.svg 는 Figma 가 뒤집어 내보내 flipY(하단 메뉴와 같다)
-  const flipY = icon === "/icons/nav-me.svg";
-  if (!href)
-    return (
-      <div className={`${ACTION_ROW} text-staff-placeholder`}>
-        <MaskIcon src={icon} size={18} flipY={flipY} />
-        <span className="flex-1">
-          {label}
-        </span>
-        <Badge tone="waiting">준비 중</Badge>
-      </div>
-    );
+/** 카드 맨 아래 세 칸 중 하나(선 아이콘 위 · 이름 아래, 2026-11-23 사용자 지정) */
+function ActionCell({ icon, label, href }: { icon: string; label: string; href: string }) {
   return (
-    <Link href={href} transitionTypes={["nav-forward"]} className={`${ACTION_ROW} active:bg-staff-info-bg ${PRESS}`}>
+    <Link href={href} transitionTypes={["nav-forward"]} className={`${ACTION_CELL} text-staff-text active:bg-staff-info-bg ${PRESS}`}>
       <span className="flex text-staff-text-sub">
-        <MaskIcon src={icon} size={18} flipY={flipY} />
+        <MaskIcon src={icon} size={20} />
       </span>
-      <span className="flex-1">{label}</span>
-      <Image src="/icons/chevron-right-muted.svg" alt="" width={12} height={12} className="-scale-y-100" />
+      {label}
     </Link>
   );
 }
 
-export default async function MembershipsPage() {
-  const [memberships, employmentTypes] = await Promise.all([getMyMemberships(true), getEnumOrEmpty("EmploymentType")]);
+/**
+ * 근무지별 위치 · 연락처 — 계정 근무지 응답(MyStoreDto)엔 주소 · 전화가 없어, 그 점포의 내 근로계약 중 api 순서 첫 장의 상세에서 「사업주」의 근무지 주소 · 전화를 가져온다
+ * (2026-11-23 사용자 지정 — api 를 고치지 않는 안). 서명한 계약은 서명할 때의 값이라 점포가 바꾸면 옛 값일 수 있다.
+ * 값이 없거나 못 받으면 그 줄을 두지 않는다(목록은 그대로 보인다).
+ */
+type StoreContact = { address: string | null; phone: string | null };
+async function getStoreContacts(): Promise<Map<number, StoreContact>> {
+  const contacts = new Map<number, StoreContact>();
+  try {
+    const firstByStore = new Map<number, number>();
+    for (const c of await getContracts()) if (!firstByStore.has(c.storeId)) firstByStore.set(c.storeId, c.contractId);
+    const details = await Promise.all([...firstByStore.values()].map((id) => getContract(id).catch(() => null)));
+    for (const d of details) {
+      if (!d) continue;
+      const e = d.employer;
+      const address = [e.storeAddress, e.storeAddressDetail].filter(Boolean).join(" ") || null;
+      contacts.set(d.storeId, {
+        address,
+        phone: formatTelephone(e.storePhone),
+      });
+    }
+  } catch (error) {
+    unstable_rethrow(error);
+  }
+  return contacts;
+}
+
+type StatusFilter = "all" | "working" | "retiring" | "retired";
+const STATUS_CHIPS: readonly [StatusFilter, string][] = [
+  ["all", "전체"],
+  ["working", "근무 중"],
+  ["retiring", "퇴직 예정"],
+  ["retired", "퇴직"],
+];
+const EMPTY_TEXT: Record<Exclude<StatusFilter, "all">, string> = {
+  working: "근무 중인 근무지가 없습니다.",
+  retiring: "퇴직 예정인 근무지가 없습니다.",
+  retired: "퇴직한 근무지가 없습니다.",
+};
+const statusFilterOf = (raw: string | string[] | undefined): StatusFilter => {
+  const v = Array.isArray(raw) ? raw[0] : raw;
+  return v === "working" || v === "retiring" || v === "retired" ? v : "all";
+};
+
+/**
+ * 맨 위 상태 칩 — [전체 N] [근무 중 N] [퇴직 예정 N] [퇴직 N](0건도 보인다). 누르면 그 상태의 근무지만 보이고 주소(?status=)에 남아 뒤로 갔다 와도
+ * 그대로다. 고른 칩은 남보라(급여 필터 칩과 같은 모양)(2026-11-23 사용자 지정)
+ */
+function StatusChips({ counts, current }: { counts: Record<StatusFilter, number>; current: StatusFilter }) {
+  return (
+    <nav aria-label="근무지 상태" className="flex flex-wrap gap-[8px]">
+      {STATUS_CHIPS.map(([key, label]) => {
+        const on = key === current;
+        return (
+          <Link
+            key={key}
+            href={key === "all" ? "/me/memberships" : `/me/memberships?status=${key}`}
+            replace
+            scroll={false}
+            aria-current={on ? "true" : undefined}
+            className={`flex h-[36px] items-center gap-[4px] rounded-full border px-[14px] text-[13px] font-semibold ${
+              on ? "border-staff-primary bg-staff-primary-inactive text-staff-primary" : "border-staff-border bg-white text-staff-text-sub"
+            }`}
+          >
+            {label} <span className="tabular-nums">{counts[key]}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+export default async function MembershipsPage({ searchParams }: PageProps<"/me/memberships">) {
+  const filter = statusFilterOf((await searchParams).status);
+  const [memberships, employmentTypes, storeContacts] = await Promise.all([
+    getMyMemberships(true),
+    getEnumOrEmpty("EmploymentType"),
+    getStoreContacts(),
+  ]);
   const today = kstToday();
 
   return (
     <div className="flex flex-1 flex-col">
       <PageHeader title="내 근무지" backHref="/me" />
       <div className="flex flex-col gap-[12px] px-[16px] pt-[20px] pb-[24px] leading-[1.5]">
+        {memberships !== null && memberships.items.length > 0 && (
+          <StatusChips
+            current={filter}
+            counts={{
+              all: memberships.items.length,
+              working: memberships.items.filter((m) => membershipStatusOf(m.retiredDate, today) === "working").length,
+              retiring: memberships.items.filter((m) => membershipStatusOf(m.retiredDate, today) === "retiring").length,
+              retired: memberships.items.filter((m) => membershipStatusOf(m.retiredDate, today) === "retired").length,
+            }}
+          />
+        )}
         {/* 요청 목록은 근무지와 따로 받아 api 가 느려도 근무지를 먼저 보인다(받으면 위에 붙는다). */}
         <Suspense>
           <PendingRequests />
@@ -78,53 +148,93 @@ export default async function MembershipsPage() {
           </Alert>
         ) : memberships.items.length === 0 ? (
           <Notice>근로계약이 체결된 근무지가 아직 없습니다.</Notice>
+        ) : filter !== "all" && !memberships.items.some((m) => membershipStatusOf(m.retiredDate, today) === filter) ? (
+          <Notice>{EMPTY_TEXT[filter]}</Notice>
         ) : (
           <ul className="flex flex-col gap-[12px]">
-            {memberships.items.map((m) => {
-              const status = membershipStatusOf(m.retiredDate, today);
-              const retired = status === "retired";
-              return (
-                <li key={m.staffMemberId} className="overflow-hidden rounded-[16px] border border-staff-border bg-white">
-                  <div className="flex flex-col gap-[10px] px-[20px] pt-[18px] pb-[14px]">
-                    <div className="flex items-start gap-[10px]">
-                      {/* 이 화면은 카드마다 근무지라 점포명 앞 아이콘을 두지 않는다 — 아래 메뉴 줄 아이콘과 겹쳐 헷갈렸다(2026-11-23 사용자 지정) */}
-                      {/* 퇴직한 근무지는 흐리게 보이되 글자 대비가 떨어지지 않게 투명도 대신 보조 글자 토큰을 쓴다. */}
-                      <h2 className={`min-w-0 flex-1 text-[17px] font-bold break-keep ${retired ? "text-staff-text-sub" : ""}`}>{m.store.storeName}</h2>
-                      {/* 퇴직 예정도 소속이다(퇴직일까지). 배지 글자로 갈라 보인다. */}
-                      {retired ? (
-                        <Badge tone="waiting">퇴직</Badge>
-                      ) : status === "retiring" ? (
-                        <Badge tone="waiting">{dateLabel(m.retiredDate!)} 퇴직 예정</Badge>
-                      ) : (
-                        <Badge tone="working">근무 중</Badge>
-                      )}
+            {memberships.items
+              .filter((m) => filter === "all" || membershipStatusOf(m.retiredDate, today) === filter)
+              .map((m) => {
+                const status = membershipStatusOf(m.retiredDate, today);
+                const retired = status === "retired";
+                return (
+                  <li key={m.staffMemberId} className="overflow-hidden rounded-[16px] border border-staff-border bg-white">
+                    <div className="flex flex-col gap-[10px] px-[20px] pt-[18px] pb-[14px]">
+                      <div className="flex items-start gap-[10px]">
+                        {/* 이 화면은 카드마다 근무지라 점포명 앞 아이콘을 두지 않는다 — 아래 메뉴 줄 아이콘과 겹쳐 헷갈렸다(2026-11-23 사용자 지정) */}
+                        {/* 퇴직한 근무지는 흐리게 보이되 글자 대비가 떨어지지 않게 투명도 대신 보조 글자 토큰을 쓴다. */}
+                        <h2 className={`min-w-0 flex-1 text-[17px] font-bold break-keep ${retired ? "text-staff-text-sub" : ""}`}>
+                          {m.store.storeName}
+                        </h2>
+                        {/* 퇴직 예정도 소속이다(퇴직일까지). 배지 글자로 갈라 보인다. */}
+                        {retired ? (
+                          <Badge tone="waiting">퇴직</Badge>
+                        ) : status === "retiring" ? (
+                          <Badge tone="waiting">{dateLabel(m.retiredDate!)} 퇴직 예정</Badge>
+                        ) : (
+                          <Badge tone="working">근무 중</Badge>
+                        )}
+                      </div>
+                      {/* 고용 형태 · 근무 기간은 이름(라벨) 없이 점포명 아래 회색 두 줄 — 라벨 칸 때문에 안쪽으로 들여 써져 보였다(2026-11-23 사용자 지정) */}
+                      <div className="flex flex-col gap-[2px] text-[14px] text-staff-text-sub">
+                        <p>
+                          {labelOf(employmentTypes, m.employmentType)} · {m.jobTitle}
+                        </p>
+                        {retired ? (
+                          <p>
+                            {m.hiredDate ? `${dateLabel(m.hiredDate)} – ` : ""}
+                            {dateLabel(m.retiredDate!)} 근무
+                          </p>
+                        ) : (
+                          m.hiredDate && <p>{dateLabel(m.hiredDate)}부터 근무</p>
+                        )}
+                        {/* 근무지 위치 · 전화는 반반 나눈 두 버튼(2026-11-23 사용자 지정). 주소는 다 보이지 않고 [지도 보기]가 카카오맵에서 그 주소를 찾는다
+    (앱이 있으면 앱, 없으면 웹). 전화번호가 없으면 [지도 보기] 하나가 줄을 채운다. */}
+                        {(storeContacts.get(m.store.storeId)?.address || storeContacts.get(m.store.storeId)?.phone) && (
+                          <div className="flex gap-[8px] pt-[4px]">
+                            {storeContacts.get(m.store.storeId)?.address && (
+                              <a
+                                href={`https://map.kakao.com/link/search/${encodeURIComponent(storeContacts.get(m.store.storeId)!.address!)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={`${m.store.storeName} 위치 지도에서 보기 — ${storeContacts.get(m.store.storeId)!.address}`}
+                                className={`flex h-[36px] min-w-0 flex-1 items-center justify-center gap-[6px] rounded-[8px] border border-staff-border bg-white text-[13px] font-medium text-staff-text ${PRESS}`}
+                              >
+                                <span className="flex text-staff-text-sub">
+                                  <MaskIcon src="/icons/map-pin-line.svg" size={15} />
+                                </span>
+                                지도 보기
+                              </a>
+                            )}
+                            {storeContacts.get(m.store.storeId)?.phone && (
+                              <a
+                                href={`tel:${storeContacts.get(m.store.storeId)!.phone!.replace(/-/g, "")}`}
+                                aria-label={`${m.store.storeName} 전화하기 ${storeContacts.get(m.store.storeId)!.phone}`}
+                                className={`flex h-[36px] min-w-0 flex-1 items-center justify-center gap-[6px] rounded-[8px] border border-staff-border bg-white text-[13px] font-medium text-staff-text ${PRESS}`}
+                              >
+                                <span className="flex text-staff-text-sub">
+                                  <MaskIcon src="/icons/phone-call.svg" size={15} />
+                                </span>
+                                전화하기
+                              </a>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-[6px] pl-[28px]">
-                      <ValueLine label="고용 형태">
-                        {labelOf(employmentTypes, m.employmentType)} · {m.jobTitle}
-                      </ValueLine>
-                      {retired ? (
-                        <ValueLine label="근무 기간">
-                          {m.hiredDate ? `${dateLabel(m.hiredDate)} – ` : ""}
-                          {dateLabel(m.retiredDate!)}
-                        </ValueLine>
-                      ) : (
-                        m.hiredDate && <ValueLine label="근무 시작">{dateLabel(m.hiredDate)}</ValueLine>
-                      )}
-                    </div>
-                  </div>
-                  {/* 근로계약서 · 급여명세서 · 신고 정보(2026-10-20 기획). 급여명세서는 계정 api 가 없어 막힌 「준비 중」 줄이다. */}
-                  {!retired && (
-                    <>
-                      {/* 그 근무지 계약서만(ME-7 · TAX-8) — 앱 전역에서 고른 근무지와 관계없다 */}
-                      <ActionRow icon="/icons/contract.svg" label="근로계약서" href={`/contracts?store=${m.store.storeId}`} />
-                      <ActionRow icon="/icons/nav-pay.svg" label="급여명세서" />
-                      <ActionRow icon="/icons/nav-me.svg" label="신고 정보" href={`/me/memberships/${m.staffMemberId}/tax-profile`} />
-                    </>
-                  )}
-                </li>
-              );
-            })}
+                    {/* 신고 정보 · 근로계약서 · 급여명세서 한 줄 세 칸 — 많이 쓰는 것을 오른쪽에(2026-11-23 사용자 지정, 처음 기획 2026-10-20). */}
+                    {!retired && (
+                      <div className="flex border-t border-staff-border-light">
+                        <ActionCell icon="/icons/id-card-line.svg" label="신고 정보" href={`/me/memberships/${m.staffMemberId}/tax-profile`} />
+                        {/* 그 근무지 계약서만(ME-7 · TAX-8) — 앱 전역에서 고른 근무지와 관계없다 */}
+                        <ActionCell icon="/icons/doc-line.svg" label="근로계약서" href={`/contracts?store=${m.store.storeId}`} />
+                        {/* 그 근무지 급여명세서만 — 급여 화면의 점포 칩(?store=)으로 거른다(2026-11-23 사용자 지정, 전엔 api 가 없어 막힌 「준비 중」 칸) */}
+                        <ActionCell icon="/icons/payslip-line.svg" label="급여명세서" href={`/pay?store=${m.store.storeId}`} />
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
           </ul>
         )}
         <p className="px-[4px] pt-[6px] text-[13px] break-keep text-staff-text-muted">
