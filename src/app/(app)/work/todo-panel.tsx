@@ -89,6 +89,20 @@ function TodoRows({
   );
 }
 
+const EMPTY_TEXT: Record<TodoStatus | "ALL", string> = {
+  ALL: "배정된 TO-DO 가 없습니다",
+  PENDING: "대기 중인 TO-DO 가 없습니다",
+  IN_PROGRESS: "진행 중인 TO-DO 가 없습니다",
+  DONE: "완료한 TO-DO 가 없습니다",
+};
+
+const STATUS_CHIPS: readonly [TodoStatus | "ALL", string][] = [
+  ["ALL", "전체"],
+  ["PENDING", "대기"],
+  ["IN_PROGRESS", "진행 중"],
+  ["DONE", "완료"],
+];
+
 /**
  * 홈 TO-DO 카드(#316)의 목록. 줄이나 체크칸을 누르면 근무 탭과 같은 상세 시트를 열고 거기서 상태를 바꾼다 — 체크 한 번에 바로 완료돼
  * 목록에서 사라지면 잘못 눌렀을 때 당황스러웠다(2026-11-23 사용자 지정, 전엔 체크로 완료만 하고 상세는 열지 않았다).
@@ -186,6 +200,9 @@ export function TodoPanel({
   const storeId = stores.some((s) => String(s.storeId) === store) ? Number(store) : null;
   const shown = storeId === null ? todos : todos.filter((t) => t.storeId === storeId);
   const counts = countByStatus(shown);
+  // 상태 칩 — 내 근무지 상태 칩과 같은 모양 · 동작(2026-11-23 사용자 지정). 0건도 보이고 누르면 그 상태만 거른다.
+  const [statusFilter, setStatusFilter] = useState<TodoStatus | "ALL">("ALL");
+  const listed = statusFilter === "ALL" ? shown : shown.filter((t) => t.status === statusFilter);
   const current = picked && todos.find((t) => t.todoId === picked.todoId);
   const open = sheetOpen && Boolean(current);
   const handleOpen = (todoId: number) => {
@@ -205,24 +222,32 @@ export function TodoPanel({
           items={[{ value: ALL, label: "전체" }, ...stores.map((s) => ({ value: String(s.storeId), label: s.storeName }))]}
         />
       )}
-      <p className="flex gap-[14px] text-[12px] leading-[1.5] text-staff-text-muted">
-        <span>
-          대기 <b className="text-staff-text">{counts.PENDING}</b>
-        </span>
-        <span>
-          진행 중 <b className="text-[#315df5]">{counts.IN_PROGRESS}</b>
-        </span>
-        <span>
-          완료 <b className="text-[#13785e]">{counts.DONE}</b>
-        </span>
-      </p>
+      <div role="group" aria-label="TO-DO 상태" className="flex flex-wrap gap-[8px]">
+        {STATUS_CHIPS.map(([key, label]) => {
+          const on = key === statusFilter;
+          const n = key === "ALL" ? shown.length : counts[key];
+          return (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={on}
+              onClick={() => setStatusFilter(key)}
+              className={`flex h-[36px] items-center gap-[4px] rounded-full border px-[14px] text-[13px] font-semibold ${
+                on ? "border-staff-primary bg-staff-primary-inactive text-staff-primary" : "border-staff-border bg-white text-staff-text-sub"
+              }`}
+            >
+              {label} <span className="tabular-nums">{n}</span>
+            </button>
+          );
+        })}
+      </div>
       {status.error && !open && <Alert tone="warning">{status.error}</Alert>}
       {/* 목록은 흰 상자 안에 — 회색 바탕에 줄만 있으면 비어 보였다(2026-11-23 사용자 지정). 근무스케줄 목록 · 급여명세서 목록 상자와 같은 모양 */}
       <section className="rounded-[20px] border border-staff-border-light bg-white px-[20px]">
-        {shown.length === 0 ? (
-          <p className="py-[40px] text-center text-[14px] leading-[1.5] text-staff-text-sub">배정된 TO-DO 가 없습니다</p>
+        {listed.length === 0 ? (
+          <p className="py-[40px] text-center text-[14px] leading-[1.5] text-staff-text-sub">{EMPTY_TEXT[statusFilter]}</p>
         ) : (
-          <TodoRows todos={shown} now={now} status={status} staffMemberId={staffMemberId} onOpen={handleOpen} checkOpens />
+          <TodoRows todos={listed} now={now} status={status} staffMemberId={staffMemberId} onOpen={handleOpen} checkOpens />
         )}
       </section>
       {picked && (
