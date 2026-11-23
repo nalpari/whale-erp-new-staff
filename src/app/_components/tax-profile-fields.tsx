@@ -99,7 +99,7 @@ export function RrnField({
   return (
     <div className={boxed ? BOX : "flex flex-col gap-[8px]"}>
       <fieldset className="flex flex-col gap-[8px]" disabled={disabled}>
-        {boxed ? <BoxLegend name="주민등록번호" current={current} /> : <legend className={LEGEND}>주민등록번호{required && "*"}</legend>}
+        {boxed ? <BoxLegend name="주민등록번호" current={current} /> : <legend className={LEGEND}>주민등록번호{required && <span aria-hidden className="text-staff-error">*</span>}</legend>}
         {/* 근거(TAX-08)는 칸 이름 아래 · 입력칸 위 — 이름 위에 있으면 어느 칸의 말인지 흐렸다(2026-11-23 사용자 지정) */}
         {!boxed && <Basis>{rrnBasis(true)}</Basis>}
         <div className="flex items-center gap-[8px]">
@@ -192,7 +192,7 @@ export function PayrollAccountFields({
   return (
     <div className={boxed ? BOX : "flex flex-col gap-[8px]"}>
       <fieldset className="flex flex-col gap-[8px]" disabled={disabled || unavailable}>
-        {boxed ? <BoxLegend name="급여 계좌" current={current} /> : <legend className={LEGEND}>급여 계좌{required && "*"}</legend>}
+        {boxed ? <BoxLegend name="급여 계좌" current={current} /> : <legend className={LEGEND}>급여 계좌{required && <span aria-hidden className="text-staff-error">*</span>}</legend>}
         {!boxed && <Basis>{accountBasis(true)}</Basis>}
         {/* 은행은 네이티브 select 대신 바텀시트에서 3개씩 고른다(2026-11-23 사용자 지정) — 값은 숨은 칸으로 보낸다.
             오류면 첫 오류 칸 찾기가 이 묶음(data-field-anchor)으로 옮긴다 */}

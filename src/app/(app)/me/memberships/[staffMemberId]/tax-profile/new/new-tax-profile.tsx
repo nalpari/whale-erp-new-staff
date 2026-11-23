@@ -156,7 +156,7 @@ export function TaxProfileCreateForm({
 
   return (
     // noValidate — 브라우저 말풍선 대신 onSubmit 이 거른 오류를 칸 아래에 보인다(2026-11-23 사용자 결정).
-    <form action={formAction} onSubmit={onSubmit} noValidate className="flex flex-1 flex-col" autoComplete="off">
+    <form action={formAction} onSubmit={onSubmit} noValidate className="flex flex-1 flex-col bg-white" autoComplete="off">
       <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
         <div className="flex flex-col gap-[6px]">
           <h2 className="text-[22px] font-bold">주민등록번호와 급여 계좌</h2>
