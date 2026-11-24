@@ -58,9 +58,36 @@ const item = (itemCode: string, itemCategory: PayslipItem["itemCategory"], amoun
 
 test("3.3% 를 켜면 원천징수 둘이 보이고 소득세 · 지방소득세는 빠진다, 끄면 반대", () => {
   const lines = [item("INCOME_TAX", "BASIC"), item("LOCAL_INCOME_TAX", "BASIC"), item("NATIONAL_PENSION", "BASIC"), item("WITHHOLDING_TAX", "WITHHOLDING"), item("EXTRA", "ADDITIONAL")];
-  const shown = (on: boolean) => lines.filter((l) => isItemShown(l, on)).map((l) => l.itemCode);
+  const both = { isHealthPensionInsured: true, isEmploymentInjuryInsured: true };
+  const shown = (on: boolean) => lines.filter((l) => isItemShown(l, on, both)).map((l) => l.itemCode);
   assert.deepEqual(shown(true), ["NATIONAL_PENSION", "WITHHOLDING_TAX", "EXTRA"]);
   assert.deepEqual(shown(false), ["INCOME_TAX", "LOCAL_INCOME_TAX", "NATIONAL_PENSION", "EXTRA"]);
+});
+
+test("4대보험 줄은 근로계약의 가입 체크대로 — 미가입이면 없고, 건강보험 · 국민연금만 · 고용보험 · 산재보험만(WHALEERP-756)", () => {
+  const lines = ["NATIONAL_PENSION", "HEALTH_INSURANCE", "EMPLOYMENT_INSURANCE", "LONG_TERM_CARE_INSURANCE", "INCOME_TAX", "LOCAL_INCOME_TAX"].map((code) => item(code, "BASIC"));
+  const shown = (withholding: boolean, isHealthPensionInsured: boolean, isEmploymentInjuryInsured: boolean) =>
+    lines.filter((l) => isItemShown(l, withholding, { isHealthPensionInsured, isEmploymentInjuryInsured })).map((l) => l.itemCode);
+  assert.deepEqual(shown(false, false, false), ["INCOME_TAX", "LOCAL_INCOME_TAX"]);
+  assert.deepEqual(shown(true, false, false), []);
+  assert.deepEqual(shown(false, true, false), ["NATIONAL_PENSION", "HEALTH_INSURANCE", "LONG_TERM_CARE_INSURANCE", "INCOME_TAX", "LOCAL_INCOME_TAX"]);
+  assert.deepEqual(shown(false, false, true), ["EMPLOYMENT_INSURANCE", "INCOME_TAX", "LOCAL_INCOME_TAX"]);
+  // 지급 · 추가 공제는 가입과 관계없다
+  assert.equal(isItemShown(item("EXTRA", "ADDITIONAL"), false, { isHealthPensionInsured: false, isEmploymentInjuryInsured: false }), true);
+});
+
+test("미가입 4대보험 줄도 0 아닌 금액이면 보인다 — 0 원 · 미입력이면 숨는다(2026-11-24 사용자 결정)", () => {
+  const none = { isHealthPensionInsured: false, isEmploymentInjuryInsured: false };
+  assert.equal(isItemShown(item("NATIONAL_PENSION", "BASIC", { isEntered: true, adjustedAmount: 45_000 }), false, none), true);
+  assert.equal(isItemShown(item("EMPLOYMENT_INSURANCE", "BASIC", { isEntered: true, calculatedAmount: 9_000 }), false, none), true);
+  assert.equal(isItemShown(item("NATIONAL_PENSION", "BASIC", { isEntered: true, adjustedAmount: 0 }), false, none), false);
+  assert.equal(isItemShown(item("NATIONAL_PENSION", "BASIC", { isEntered: false, adjustedAmount: 45_000 }), false, none), false);
+});
+
+test("가입 여부 칸이 없는 응답(api 를 되돌린 경우)은 4대보험 줄을 숨기지 않는다", () => {
+  const missing = {} as { isHealthPensionInsured: boolean; isEmploymentInjuryInsured: boolean };
+  assert.equal(isItemShown(item("NATIONAL_PENSION", "BASIC", { isEntered: false }), false, missing), true);
+  assert.equal(isItemShown(item("EMPLOYMENT_INSURANCE", "BASIC", { isEntered: true, adjustedAmount: 0 }), false, missing), true);
 });
 
 test("줄 금액은 조정 값 → 계산 값 → 0", () => {

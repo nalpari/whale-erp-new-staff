@@ -46,7 +46,8 @@ export default async function PayslipPage({ params, searchParams }: PageProps<"/
   const sentAt = payslip.sentAt;
   const { grossPayAmount, totalDeductionAmount, netPayAmount } = payslip;
   const correcting = payslip.correcting || grossPayAmount === null || totalDeductionAmount === null || netPayAmount === null;
-  const items = payslip.items.filter((i) => isItemShown(i, payslip.isWithholdingApplied));
+  // 4대보험 줄은 근로계약의 가입 체크대로만(api 가 준 가입 여부, WHALEERP-756)
+  const items = payslip.items.filter((i) => isItemShown(i, payslip.isWithholdingApplied, payslip));
   const earnings = items.filter(isEarning);
   const deductions = items.filter((i) => !isEarning(i));
   // PDF 받기가 실패해 돌아왔다(pdf/route.ts). 안내를 띄운 뒤 주소의 `?download=` 는 지운다 — 새로 고칠 때마다 다시 뜨지 않게.
