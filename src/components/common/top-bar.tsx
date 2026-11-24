@@ -70,7 +70,8 @@ export function TopBar({
     return (
       <header className="flex w-full items-center gap-[10px]">
         {/* 홈에만 작은 고래 로고 — 첫 화면에서 앱을 알린다. 탭 화면은 제목 중심이라 두지 않는다(2026-11-24 사용자 지정) */}
-        <span aria-hidden className="relative size-[36px] shrink-0">
+        {/* 고래 몸통(별 아래) 가운데를 점포 동그라미 · 글자 가운데에 맞춘다 — 상자 가운데로 두면 별 때문에 몸통이 4.4px 아래로 처져 보였다(2026-11-24 사용자 지정) */}
+        <span aria-hidden className="relative size-[36px] shrink-0 -translate-y-[4.4px]">
           <Image src="/icons/logo-whale-small.svg" alt="" width={36.193} height={27.446} className="absolute top-[8.75px] left-0" />
           <Image src="/icons/logo-stars-small.svg" alt="" width={17.494} height={12.668} className="absolute top-0 left-[5.43px]" />
         </span>
