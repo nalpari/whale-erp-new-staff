@@ -189,6 +189,8 @@ const hhmmOf = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart
 export interface PeriodTotals {
   workedMinutes: number;
   late: number;
+  /** 미출근(ABSENT) 날 수 — 날짜 칩 「미출근」과 같은 말(2026-11-24 사용자 지정: 지각만 있고 결근이 안 보였다) */
+  absent: number;
   overtimeMinutes: number;
 }
 /**
@@ -200,6 +202,7 @@ export function periodTotals(records: Pick<MyAttendanceRecords, "items" | "total
     workedMinutes: records.totals.workedMinutes,
     overtimeMinutes: records.totals.overtimeMinutes,
     late: records.items.filter((d) => d.date <= today && d.status === "LATE").length,
+    absent: records.items.filter((d) => d.date <= today && d.status === "ABSENT").length,
   };
 }
 
@@ -214,6 +217,12 @@ export const durationLabel = (minutes: number) => `${Math.floor(minutes / 60)}�
 
 export interface WeekRow {
   title: string;
+  /** 「10월 5주」 */
+  name: string;
+  /** 「10/26 – 11/1」 */
+  range: string;
+  /** 그 주 월요일 — 주 줄을 펼쳐 날짜 카드를 그릴 때 쓴다 */
+  monday: string;
   sub: string;
   current: boolean;
   upcoming: boolean;
@@ -229,15 +238,22 @@ export function weekRows(records: Pick<MyAttendanceRecords, "items" | "weeks">, 
     // 주의 이름은 그 주 목요일이 든 달 기준(달력 주 차)
     const thu = addDays(monday, 3);
     const nth = Math.floor((Number(thu.slice(8, 10)) - 1) / 7) + 1;
-    const title = `${Number(thu.slice(5, 7))}월 ${nth}주 · ${dayLabel(monday).slice(2)} – ${dayLabel(sunday).slice(2)}`;
+    const name = `${Number(thu.slice(5, 7))}월 ${nth}주`;
+    const range = `${dayLabel(monday).slice(2)} – ${dayLabel(sunday).slice(2)}`;
+    const title = `${name} · ${range}`;
     const current = monday <= today && today <= sunday;
     const upcoming = monday > today;
     const worked = inWeek.filter((d) => d.date <= today && d.pairs.some((p) => p.checkIn));
-    const t = { workedMinutes: week.workedMinutes, overtimeMinutes: week.overtimeMinutes, late: inWeek.filter((d) => d.status === "LATE").length };
+    const t = {
+      workedMinutes: week.workedMinutes,
+      overtimeMinutes: week.overtimeMinutes,
+      late: inWeek.filter((d) => d.status === "LATE").length,
+      absent: inWeek.filter((d) => d.date <= today && d.status === "ABSENT").length,
+    };
     const sub = upcoming
       ? "근무 예정"
-      : `${current ? "이번 주 · " : `근무 ${worked.length}일 · `}${durationLabel(t.workedMinutes)} · 지각 ${t.late}회${t.overtimeMinutes ? ` · 연장 ${durationLabel(t.overtimeMinutes)}` : ""}`;
-    rows.push({ title, sub, current, upcoming });
+      : `${current ? "이번 주 · " : `근무 ${worked.length}일 · `}${durationLabel(t.workedMinutes)} · 지각 ${t.late}회 · 미출근 ${t.absent}회${t.overtimeMinutes ? ` · 연장 ${durationLabel(t.overtimeMinutes)}` : ""}`;
+    rows.push({ title, name, range, monday, sub, current, upcoming });
   }
   return rows;
 }

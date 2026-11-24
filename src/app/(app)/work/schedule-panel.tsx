@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { WorkTimeBar } from "@/components/common";
 import {
@@ -38,17 +38,19 @@ export function SchedulePanel({
   storeName: string;
 }) {
   const router = useRouter();
+  // 알림에서 왔으면 달을 넘겨도 뒤로 가기(알림 목록)가 이어지게 from 을 남긴다
+  const from = useSearchParams().get("from") === "notifications" ? "&from=notifications" : "";
   // 달이 바뀌면(이 컴포넌트는 key={month} 로 다시 그린다) 처음 고른 날도 다시 정한다.
   const [picked, setPicked] = useState(() => day ?? initialDay(month, today, items));
   const byDay = new Map<string, MyWorkSchedule[]>();
   for (const item of items) byDay.set(item.workDate, [...(byDay.get(item.workDate) ?? []), item]);
   const pickedItems = byDay.get(picked) ?? [];
-  const go = (delta: number) => router.replace(`/work?tab=schedule&month=${shiftMonth(month, delta)}`, { scroll: false });
+  const go = (delta: number) => router.replace(`/work?tab=schedule&month=${shiftMonth(month, delta)}${from}`, { scroll: false });
   // 「오늘」 — 이번 달로 돌아와 오늘을 고른다(2026-10-23 재영). 주소의 day 도 오늘로 맞춰 새로 고쳐도 오늘이 골라진다.
   // 다른 달이면 주소가 바뀌어 패널이 새로 그려지므로, 옛 달 근무로 오늘 상세를 잠깐 그리지 않게 이번 달일 때만 바로 고른다.
   const goToday = () => {
     if (today.startsWith(month)) setPicked(today);
-    router.replace(`/work?tab=schedule&month=${today.slice(0, 7)}&day=${today}`, { scroll: false });
+    router.replace(`/work?tab=schedule&month=${today.slice(0, 7)}&day=${today}${from}`, { scroll: false });
   };
   const navButton =
     "flex size-[36px] shrink-0 items-center justify-center rounded-[12px] border border-staff-border-light bg-white transition-colors duration-150 ease-out active:bg-staff-info-bg";

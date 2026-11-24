@@ -33,7 +33,8 @@ export default async function WorkPage({ searchParams }: PageProps<"/work">) {
   return (
     <div className="flex flex-1 flex-col">
       {/* 종은 홈 머리줄에만 둔다(데모 · 목업 근무정보에 없음, 2026-10-23 재영). */}
-      <PageHeader title="근무 정보" />
+      {/* 하단 메뉴로 열면 뒤로 가기가 없고, 알림에서 열었으면(?from=notifications) 알림 목록으로 돌아간다(2026-11-24 사용자 지정) */}
+      <PageHeader title="근무 정보" backHref={params.from === "notifications" ? "/notifications" : undefined} />
       <div className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[20px] pb-[24px] leading-[1.5]">
         {!memberships ? (
           <Alert tone="warning">근무지를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>

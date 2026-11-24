@@ -27,7 +27,8 @@ export function AttendanceDayCard({
 }: {
   state: keyof typeof CARD;
   day: string;
-  store: string;
+  /** 근무지 — 출퇴근 현황은 탭 위에 한 번 두어 비운다 */
+  store?: string;
   status?: AttendanceDayStatus;
   edited?: boolean;
   summary: string;
@@ -37,7 +38,7 @@ export function AttendanceDayCard({
     <article className={`flex flex-col gap-[3px] rounded-[18px] border px-[20px] pt-[20px] pb-[32px] leading-[1.5] ${CARD[state]}`}>
       <div className="flex items-center gap-[8px] pb-[5px]">
         <h3 className="min-w-0 flex-1 text-[13px] font-bold">{day}</h3>
-        <span className={`truncate text-[12px] ${sub}`}>{store}</span>
+        {store && <span className={`truncate text-[12px] ${sub}`}>{store}</span>}
         {edited && <Image src="/icons/pencil.svg" alt="수정된 기록" width={11.719} height={13.719} />}
         {status && <StatusChip tone={status.tone}>{status.label}</StatusChip>}
       </div>

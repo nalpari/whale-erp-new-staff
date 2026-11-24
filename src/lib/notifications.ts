@@ -14,10 +14,10 @@ const DAY_MS = 24 * 60 * MINUTE_MS;
 export function targetHref(target: NotificationTarget | null | undefined): string | null {
   if (!target) return null;
   if (target.type === "WORK_SCHEDULE")
-    return target.workDate ? `/work?tab=schedule&month=${target.workDate.slice(0, 7)}&day=${target.workDate}` : null;
-  if (target.type === "TODO") return "/work?tab=todo";
+    return target.workDate ? `/work?tab=schedule&month=${target.workDate.slice(0, 7)}&day=${target.workDate}&from=notifications` : null;
+  if (target.type === "TODO") return "/work?tab=todo&from=notifications";
   // 상세(급여명세서 · 근로계약서)는 ?from=notifications 를 붙여 뒤로 가기가 알림 목록으로 오게 한다(2026-11-24 사용자 지정).
-  // 근무 탭(근무스케줄 · TO-DO)은 하단 메뉴 탭 화면이라 뒤로 가기가 없다
+  // 근무 탭(근무스케줄 · TO-DO)도 알림에서 왔으면 뒤로 가기를 두어 알림 목록으로 돌아간다(탭 · 달을 바꿔도 이어진다)
   if (target.type === "PAYSLIP") return target.payslipId ? `/pay/${target.payslipId}?from=notifications` : null;
   // 근로계약서는 계약 상세로 — 서명을 마친 계약도 연다(api 는 직원 앱이 여는 내 계약(서명 대기 이후)이면 갈 곳을 준다, WHALEERP-741)
   if (target.type === "CONTRACT") return target.contractId ? `/contracts/${target.contractId}?from=notifications` : null;
