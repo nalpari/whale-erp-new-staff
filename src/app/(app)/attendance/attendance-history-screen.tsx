@@ -256,7 +256,7 @@ function PeriodView({
   return (
     <>
       <PeriodPicker from={records.from} to={records.to} fromHome={fromHome} today={today} />
-      {/* 조회 기간 요약 — 위층 「얼마나 일했나」(근무일 → 근무시간 큰 숫자, 2026-11-24 사용자 지정 순서), 아래층 「어떻게 일했나」(정상 · 지각 · 미기록 한 줄).
+      {/* 조회 기간 요약 — 위층 「얼마나 일했나」(근무일 → 근로시간 큰 숫자 — 휴게를 뺀 시간이라 「근로시간」(근로기준법 제50조, DESIGN.md 용어), 2026-11-24 사용자 지정), 아래층 「어떻게 일했나」(정상 · 지각 · 미기록 한 줄).
           지각 · 미기록은 0 이 아니면 호박색 꼬리표, 0 이면 회색 글자. 문의 안내 줄은 뺐다(2026-11-24 사용자 지정) */}
       <section className="rounded-[18px] border border-staff-border-light bg-white p-[20px]">
         <dl className="grid grid-cols-2 divide-x divide-staff-border-light [&>div:last-child]:pl-[16px]">
@@ -268,7 +268,7 @@ function PeriodView({
             </dd>
           </div>
           <div>
-            <dt className="text-[13px] font-semibold text-staff-text-sub">근무시간</dt>
+            <dt className="text-[13px] font-semibold text-staff-text-sub">근로시간</dt>
             <dd className="pt-[2px] text-[24px] font-bold tabular-nums [&_span]:text-[15px]">
               {Math.floor(totals.workedMinutes / 60)}
               <span>시간</span> {String(totals.workedMinutes % 60).padStart(2, "0")}
