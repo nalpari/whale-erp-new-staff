@@ -13,7 +13,7 @@ import { TaxProfileForm } from "./tax-profile-form";
 export const metadata: Metadata = { title: "신고 정보 다시 입력 · Whale ERP" };
 
 // 신고 정보 「새로 넣기」(WHALEERP-333, api 334). 이미 낸 신고 정보만 여기서 고친다 — 아직 없으면(첫 입력은 날인 뒤 흐름 150 몫)
-// 보기 화면으로 돌려보낸다. 내 소속이 아니면 404. 이름 · 생년월일은 가입 계정 값(내 정보)이고 고칠 수 없다.
+// 보기 화면으로 돌려보낸다. 퇴직한 근무지(조회만, WHALEERP-765)도 보기 화면으로. 내 소속이 아니면 404. 이름 · 생년월일은 가입 계정 값(내 정보)이고 고칠 수 없다.
 export default async function TaxProfileEditPage({ params }: PageProps<"/me/memberships/[staffMemberId]/tax-profile/edit">) {
   const raw = (await params).staffMemberId;
   const staffMemberId = parseStaffMemberId(raw);
@@ -27,7 +27,8 @@ export default async function TaxProfileEditPage({ params }: PageProps<"/me/memb
     if (error instanceof ApiError && error.status === 404) notFound();
     throw error;
   }
-  if (tax && !tax.taxProfile) redirect(viewHref, RedirectType.replace);
+  // editable 은 false 일 때만 막는다(칸이 없는 옛 api 와 섞여도 재직 근무지는 고친다)
+  if (tax && (tax.editable === false || !tax.taxProfile)) redirect(viewHref, RedirectType.replace);
   const [profile, memberships, banks] = await Promise.all([getMyProfile(), getMyMemberships(), getCodesOrEmpty("BANK")]);
   const storeName = memberships?.items.find((m) => m.staffMemberId === staffMemberId)?.store.storeName ?? "근무지";
 

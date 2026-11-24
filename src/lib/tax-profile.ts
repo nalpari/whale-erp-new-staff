@@ -1,6 +1,6 @@
 // 신고 정보(TAX-8, WHALEERP-333 · api 334)의 순수 계산 — 주소의 소속 id 읽기(parseStaffMemberId), 주민등록번호 앞자리 · 생년월일
 // 맞춰 보기(rrnBirthMismatch), 고치기 폼 값 읽기 · 거르기(readTaxProfileForm · validateTaxProfileEdit), 신고 정보가 없으면 고치지 않기
-// (taxProfileEditBlocked), 저장 실패를 화면 상태로 바꾸기(taxProfileSaveFailure), 날인 뒤 처음 넣기(WHALEERP-150)의 거르기 · 실패
+// (taxProfileEditBlocked · 처음 넣기는 taxProfileCreateBlocked — 퇴직한 근무지는 둘 다 조회만), 저장 실패를 화면 상태로 바꾸기(taxProfileSaveFailure), 날인 뒤 처음 넣기(WHALEERP-150)의 거르기 · 실패
 // (validateTaxProfileCreate · taxProfileCreateFailure). api 를 부르는 쪽은 me/memberships/[staffMemberId]/tax-profile 의 edit/actions.ts · new/actions.ts 다.
 // node --test 가 직접 읽으므로 값 import 는 같은 폴더의 순수 모듈(.ts 확장자)만 둔다.
 // 주민등록번호 · 계좌번호 · 지금 비밀번호 원문은 api 본문(validateTaxProfileEdit · validateTaxProfileCreate 의 body)에만 싣고, 화면 상태(TaxProfileEditState) · 문구에는 싣지 않는다.
@@ -88,12 +88,28 @@ export function taxViewAfterChange(changed: boolean, tax: { taxProfile: unknown 
 /** 이 소속에 낸 신고 정보가 없을 때 — 이 화면은 고치기만 한다(WHALEERP-333 첫 입력은 날인 뒤 흐름 150 몫, 2026-10-23 노영주). */
 export const TAX_PROFILE_MISSING = "이 근무지에 낸 신고 정보가 없어 여기서 고칠 수 없습니다. 신고 정보 화면에서 다시 열어 주세요";
 
+/** 퇴직한 근무지 — 신고 정보는 조회만 된다(WHALEERP-765, api `editable: false` · PUT 409 STAFF_RETIRED). */
+export const TAX_PROFILE_READ_ONLY = "퇴직한 근무지라 신고 정보는 조회만 할 수 있습니다";
+
 /**
- * 저장 전에 지금 신고 정보를 보고 고칠 수 있는지. 없으면(`taxProfile: null`) PUT 하지 않고 이 상태를 돌려준다 — 서버 액션은 누구나
- * 직접 부를 수 있어, 화면이 버튼을 숨긴 것만으로는 첫 입력(셋 다 보내면 api 가 만든다)을 막지 못한다. 있으면 null.
+ * 저장 전 조회(`GET`)의 응답 중 막기 판단에 쓰는 칸. `editable` 은 false 일 때만 막는다 — 칸이 없는 옛 api 와 섞여 배포돼도
+ * 재직 근무지가 막히지 않게(그때 퇴직한 근무지는 api 의 409 가 막는다).
  */
-export function taxProfileEditBlocked(current: { taxProfile: unknown }): TaxProfileEditState | null {
+type TaxProfileCurrent = { taxProfile: unknown; editable?: boolean };
+
+/**
+ * 저장 전에 지금 신고 정보를 보고 고칠 수 있는지. 퇴직한 근무지(`editable: false`)거나 없으면(`taxProfile: null`) PUT 하지 않고 이 상태를
+ * 돌려준다 — 서버 액션은 누구나 직접 부를 수 있어, 화면이 버튼을 숨긴 것만으로는 첫 입력(셋 다 보내면 api 가 만든다)을 막지 못한다. 고칠 수 있으면 null.
+ */
+export function taxProfileEditBlocked(current: TaxProfileCurrent): TaxProfileEditState | null {
+  if (current.editable === false) return problem("form", TAX_PROFILE_READ_ONLY);
   return current.taxProfile ? null : problem("form", TAX_PROFILE_MISSING);
+}
+
+/** 처음 넣기 전에 — 퇴직한 근무지거나 이미 낸 신고 정보가 있으면 PUT 하지 않는다(처음 넣기는 덮어쓰지 않는다). 넣을 수 있으면 null. */
+export function taxProfileCreateBlocked(current: TaxProfileCurrent): TaxProfileEditState | null {
+  if (current.editable === false) return problem("form", TAX_PROFILE_READ_ONLY);
+  return current.taxProfile ? problem("form", TAX_PROFILE_ALREADY_SUBMITTED) : null;
 }
 
 /** api 처럼 하이픈 · 공백을 지운다. */
@@ -172,6 +188,8 @@ export function taxProfileSaveFailure(failure: ApiFailure): { state: TaxProfileE
   }
   if (status === 404)
     return { state: problem("form", "이 근무지의 신고 정보를 고칠 수 없습니다. 내 근무지에서 다시 열어 주세요"), log: false };
+  // 409 — 조회와 저장 사이에 퇴직이 확정됐다(퇴직한 근무지는 조회만, WHALEERP-765).
+  if (status === 409 && code === "STAFF_RETIRED") return { state: problem("form", TAX_PROFILE_READ_ONLY), log: false };
   if (status === 429) return { state: problem("form", RATE_LIMITED), log: false };
   // 503 — 서버에 암호화 키가 없음. 저장 전 조회(GET)의 503 사유는 「볼 수 없습니다」라 api 사유를 쓰지 않고 고정 문구다.
   if (status === 503) return { state: problem("form", `신고 정보를 저장하지 못했습니다. ${RETRY_LATER}`), log: false };
@@ -184,7 +202,7 @@ export function taxProfileSaveFailure(failure: ApiFailure): { state: TaxProfileE
 export const TAX_PROFILE_ALREADY_SUBMITTED = "이 근무지에는 이미 낸 신고 정보가 있습니다. 바꾸려면 신고 정보의 「다시 입력하기」에서 바꿔 주세요";
 /** 처음 넣기에서 은행을 고르지 않았을 때. */
 export const BANK_REQUIRED = "급여를 받을 은행을 선택해 주세요";
-/** 처음 넣기의 api 404 — 내 소속이 아니다(퇴직 · 남의 id). */
+/** 처음 넣기의 api 404 — 내 소속이 아니다(남의 id · 임시저장 계약만). 퇴직한 근무지는 409 다(TAX_PROFILE_READ_ONLY). */
 export const TAX_PROFILE_CREATE_NOT_FOUND = "이 근무지에는 신고 정보를 입력할 수 없습니다. 내 근무지에서 다시 열어 주세요";
 
 /**
