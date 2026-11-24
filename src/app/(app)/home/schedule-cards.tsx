@@ -73,14 +73,16 @@ function AttendanceButton({ action }: { action: Exclude<HomeAttendanceAction, nu
 function TodayCard({ items, next, action }: { items: MyWorkSchedule[]; next?: MyWorkSchedule; action: HomeAttendanceAction }) {
   if (items.length === 0)
     return (
-      // 기존 모양(굵은 한 줄 + 다음 근무)에 왼쪽 달력 칸만 더했다 — 칸 색은 「이번 주 근무」 날짜 칸과 같은 옅은 남보라 · 남보라 그림이라 홈 색감이 이어진다(2026-11-24 사용자 지정)
-      <section aria-label="오늘 근무" className="flex flex-col gap-[12px] rounded-[18px] border border-staff-border-light bg-white px-[19px] py-[17px] leading-[1.5]">
+      // 기존 모양(굵은 한 줄 + 다음 근무)에 왼쪽 달력 칸을 더했다 — 칸 색은 「이번 주 근무」 날짜 칸과 같은 옅은 남보라 · 남보라 그림.
+      // 근무하는 날의 보라 카드 자리가 비었다는 뜻으로 상자는 남보라 점선, 제목도 먹색 대신 남보라(먹색은 어색했다).
+      // 안쪽은 보라 카드와 같은 20(테두리 1px 를 빼 19)(2026-11-24 사용자 지정)
+      <section aria-label="오늘 근무" className="flex flex-col gap-[12px] rounded-[18px] border border-dashed border-[#bccfff] bg-white p-[19px] leading-[1.5]">
         <div className="flex items-center gap-[12px]">
           <span aria-hidden className="flex size-[40px] shrink-0 items-center justify-center rounded-[13px] bg-[#eef2ff] text-staff-primary">
             <MaskIcon src="/icons/calendar-line.svg" size={22} />
           </span>
           <div className="flex min-w-0 flex-col">
-            <p className="text-[15px] font-bold">오늘은 휴무입니다</p>
+            <p className="text-[15px] font-bold text-staff-primary">오늘은 휴무입니다</p>
             {next && (
               <p className="text-[12px] text-staff-text-sub">
                 다음 근무 · {dayTitle(next.workDate)} {next.startTime} – {next.endTime}
