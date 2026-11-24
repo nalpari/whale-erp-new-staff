@@ -102,15 +102,15 @@ function TodayCard({ items, next, action }: { items: MyWorkSchedule[]; next?: My
   return (
     <section
       aria-label="오늘 근무"
-      // 안쪽 위 · 아래 · 좌우 24. 시각과 「총 N 근무 · 휴게 N분」은 한 묶음이라 붙이고(글자 사이 8), 머리 줄 → 시각 · 묶음 → 버튼은 글자 기준 18 로 같게 —
-      // 상자 간격만 12 로 같게 두니 큰 시각 글자의 위아래 여백 때문에 보이는 간격이 18 · 20 · 15 로 달랐다(2026-11-24 사용자 지정)
-      className="flex flex-col gap-[12px] rounded-[18px] bg-staff-primary p-[24px] leading-[1.5] text-white shadow-[0_9px_23px_rgba(49,93,245,0.15)]"
+      // 안쪽 위 · 아래 · 좌우 20(24 는 넓기만 했다). 시각과 「근로 · 휴게」 줄은 한 묶음으로 붙이고, 머리 줄 → 시각은 글자 기준 12, 묶음 → 버튼은 16 —
+      // 큰 시각 글자는 위아래 여백이 있어 상자 간격이 아니라 보이는 글자 기준으로 맞췄다(2026-11-24 사용자 지정)
+      className="flex flex-col rounded-[18px] bg-staff-primary p-[20px] leading-[1.5] text-white shadow-[0_9px_23px_rgba(49,93,245,0.15)]"
     >
       <div className="flex items-center justify-between">
         <p className="text-[12px] text-[#dbe5ff]">오늘 근무</p>
         {action === "check-out" && WORKING}
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-col pt-[6px]">
         {items.map((i) => (
           <p key={i.workScheduleId} className="flex items-center gap-[4px] text-[30px] leading-[1.15] font-bold">
             {i.startTime}
@@ -124,7 +124,7 @@ function TodayCard({ items, next, action }: { items: MyWorkSchedule[]; next?: My
         </p>
       </div>
       {action && (
-        <div className="pt-[3px]">
+        <div className="pt-[14px]">
           <AttendanceButton action={action} />
         </div>
       )}
