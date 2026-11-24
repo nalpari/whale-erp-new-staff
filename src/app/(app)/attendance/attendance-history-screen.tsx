@@ -256,10 +256,17 @@ function PeriodView({
   return (
     <>
       <PeriodPicker from={records.from} to={records.to} fromHome={fromHome} today={today} />
-      {/* 조회 기간 요약 — 위층 「얼마나 일했나」(근무시간 · 근무일 큰 숫자), 아래층 「어떻게 일했나」(정상 · 지각 · 미기록 한 줄).
+      {/* 조회 기간 요약 — 위층 「얼마나 일했나」(근무일 → 근무시간 큰 숫자, 2026-11-24 사용자 지정 순서), 아래층 「어떻게 일했나」(정상 · 지각 · 미기록 한 줄).
           지각 · 미기록은 0 이 아니면 호박색 꼬리표, 0 이면 회색 글자. 문의 안내 줄은 뺐다(2026-11-24 사용자 지정) */}
       <section className="rounded-[18px] border border-staff-border-light bg-white p-[20px]">
         <dl className="grid grid-cols-2 divide-x divide-staff-border-light [&>div:last-child]:pl-[16px]">
+          <div>
+            <dt className="text-[13px] font-semibold text-staff-text-sub">근무일</dt>
+            <dd className="pt-[2px] text-[24px] font-bold tabular-nums [&_span]:text-[15px]">
+              {totals.workedDays}
+              <span>일</span>
+            </dd>
+          </div>
           <div>
             <dt className="text-[13px] font-semibold text-staff-text-sub">근무시간</dt>
             <dd className="pt-[2px] text-[24px] font-bold tabular-nums [&_span]:text-[15px]">
@@ -268,13 +275,6 @@ function PeriodView({
               <span>분</span>
             </dd>
             {totals.overtimeMinutes > 0 && <dd className="text-[12px] text-staff-text-sub">연장 {durationLabel(totals.overtimeMinutes)}</dd>}
-          </div>
-          <div>
-            <dt className="text-[13px] font-semibold text-staff-text-sub">근무일</dt>
-            <dd className="pt-[2px] text-[24px] font-bold tabular-nums [&_span]:text-[15px]">
-              {totals.workedDays}
-              <span>일</span>
-            </dd>
           </div>
         </dl>
         {/* 아래층은 세 칸 같은 폭 · 가운데, 칸 사이 옅은 세로선. 지각 · 미기록은 0 이 아니면 호박색 글자(꼬리표는 튀었다, 2026-11-24 사용자 지정) */}
