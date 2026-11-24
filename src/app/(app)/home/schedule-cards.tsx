@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Alert, Button, SectionTitle } from "@/components/common";
+import { Alert, Button, MaskIcon, SectionTitle } from "@/components/common";
 import { homeAttendanceAction, type HomeAttendanceAction } from "@/lib/attendance-rules";
 import { getMyAttendance } from "@/lib/my-attendance";
 import { getMyWorkSchedules } from "@/lib/my-work-schedules";
@@ -42,7 +42,7 @@ export async function ScheduleCards({ staffMemberId }: { staffMemberId: number }
         </SectionTitle>
         {/* 근무가 있는 주의 요약 줄(N일 · H시간)은 데모 home 처럼 두지 않는다 — 빈 주의 안내만 둔다 */}
         <ThisWeek week={week} today={today} items={items}>
-          {items.length === 0 ? "이번 주 등록된 근무가 없습니다" : null}
+          {items.length === 0 ? "이번 주에 등록된 근무가 없습니다." : null}
         </ThisWeek>
       </section>
     </>
@@ -73,26 +73,27 @@ function AttendanceButton({ action }: { action: Exclude<HomeAttendanceAction, nu
 function TodayCard({ items, next, action }: { items: MyWorkSchedule[]; next?: MyWorkSchedule; action: HomeAttendanceAction }) {
   if (items.length === 0)
     return (
-      // 근무하는 날 카드와 같은 짜임(머리 줄 · 큰 글자 · 아래 한 줄)에 흰 바탕 — 날마다 홈 첫 칸 모양이 흔들리지 않게, 색으로 근무일과 가른다.
-      // 안쪽은 테두리 1px 를 빼 23 — 보라 카드(테두리 없음 24)와 같은 크기(2026-11-24 사용자 지정)
-      <section aria-label="오늘 근무" className="flex flex-col gap-[12px] rounded-[18px] border border-staff-border-light bg-white p-[23px] leading-[1.5]">
-        <p className="text-[12px] text-staff-text-sub">오늘 근무</p>
-        <div className="flex flex-col">
-          <p className="text-[30px] leading-[1.15] font-bold">휴무</p>
-          {next && (
-            <p className="text-[12px] text-staff-text-sub">
-              다음 근무 · {dayTitle(next.workDate)} {next.startTime} – {next.endTime}
-            </p>
-          )}
+      // 기존 모양(굵은 한 줄 + 다음 근무)에 왼쪽 달력 칸만 더했다 — 칸 색은 「이번 주 근무」 날짜 칸과 같은 옅은 남보라 · 남보라 그림이라 홈 색감이 이어진다(2026-11-24 사용자 지정)
+      <section aria-label="오늘 근무" className="flex flex-col gap-[12px] rounded-[18px] border border-staff-border-light bg-white px-[19px] py-[17px] leading-[1.5]">
+        <div className="flex items-center gap-[12px]">
+          <span aria-hidden className="flex size-[40px] shrink-0 items-center justify-center rounded-[13px] bg-[#eef2ff] text-staff-primary">
+            <MaskIcon src="/icons/calendar-line.svg" size={22} />
+          </span>
+          <div className="flex min-w-0 flex-col">
+            <p className="text-[15px] font-bold">오늘은 휴무입니다</p>
+            {next && (
+              <p className="text-[12px] text-staff-text-sub">
+                다음 근무 · {dayTitle(next.workDate)} {next.startTime} – {next.endTime}
+              </p>
+            )}
+          </div>
         </div>
         {/* 어제 시작해 자정을 넘긴 근무처럼 오늘 근무스케줄 없이 출근이 열려 있으면 퇴근은 여기서 */}
         {action === "check-out" && (
-          <div className="pt-[3px]">
-            <Button href="/check-in" transitionTypes={["nav-forward"]}>
-              퇴근하기
-              <Image src="/icons/arrow-right.svg" alt="" width={14} height={12} />
-            </Button>
-          </div>
+          <Button href="/check-in" transitionTypes={["nav-forward"]}>
+            퇴근하기
+            <Image src="/icons/arrow-right.svg" alt="" width={14} height={12} />
+          </Button>
         )}
       </section>
     );
