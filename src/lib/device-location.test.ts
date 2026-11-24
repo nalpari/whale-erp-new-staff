@@ -34,8 +34,8 @@ test("앱이 거부 · 읽지 못함이라 답하면 그대로", () => {
 test("앱 기능 실패는 읽지 못함, 약속 어긋남 · 거절은 broken, 앱이 이 기능을 모르면(unavailable) null 로 브라우저에 넘긴다", (t) => {
   t.mock.method(console, "error", () => {});
   assert.deepEqual(fromAppLocation({ ok: false, error: "failed" }), { status: "unavailable" });
-  assert.deepEqual(fromAppLocation({ ok: false, error: "forbidden" }), { status: "broken" });
-  assert.deepEqual(fromAppLocation({ ok: false, error: "malformed" }), { status: "broken" });
+  assert.deepEqual(fromAppLocation({ ok: false, error: "forbidden" }), { status: "broken", reason: "forbidden" });
+  assert.deepEqual(fromAppLocation({ ok: false, error: "malformed" }), { status: "broken", reason: "mismatch" });
   assert.equal(fromAppLocation({ ok: false, error: "unavailable" }), null);
 });
 
@@ -43,8 +43,8 @@ test("앱 안에서 앱이 실패 · 거부 · 읽지 못함으로 답하면 브
   t.mock.method(console, "error", () => {});
   const cases: [BridgeResult<AppLocation>, DeviceLocation][] = [
     [{ ok: false, error: "failed" }, { status: "unavailable" }],
-    [{ ok: false, error: "forbidden" }, { status: "broken" }],
-    [{ ok: false, error: "malformed" }, { status: "broken" }],
+    [{ ok: false, error: "forbidden" }, { status: "broken", reason: "forbidden" }],
+    [{ ok: false, error: "malformed" }, { status: "broken", reason: "mismatch" }],
     [{ ok: true, data: { status: "denied" } }, { status: "denied" }],
     [{ ok: true, data: { status: "unavailable", reason: "timeout" } }, { status: "unavailable" }],
   ];
@@ -96,16 +96,31 @@ test("브리지는 있는데 옛 앱(기능 없음)이면 브라우저 위치로
   );
 });
 
-test("앱 안인데 브리지가 없으면 고장(broken)이고 브라우저 위치로 넘어가지 않는다(모의 위치 판정을 피하지 못하게)", async () => {
+test("앱 안인데 브리지가 두 번 기다려도 없으면 not-ready 고장이고 브라우저 위치로 넘어가지 않는다(모의 위치 판정을 피하지 못하게)", async () => {
   let appCalled = false;
   let browserRead = false;
+  let waits = 0;
   const read = await readDeviceLocation({
     inApp: true,
-    bridgeReady: async () => null,
+    bridgeReady: async () => { waits++; return null; },
     fromApp: async () => { appCalled = true; return okApp(true); },
     fromBrowser: async () => { browserRead = true; return browser; },
   });
-  assert.deepEqual(read, { status: "broken" });
+  assert.deepEqual(read, { status: "broken", reason: "not-ready" });
+  assert.equal(waits, 2);
   assert.equal(appCalled, false);
   assert.equal(browserRead, false);
+});
+
+test("브리지가 처음에 늦어도 한 번 더 기다려 오면 그 브리지로 앱 위치를 읽는다(자동 재시도)", async () => {
+  let waits = 0;
+  const bridge = { callHandler: async () => null };
+  const read = await readDeviceLocation({
+    inApp: true,
+    bridgeReady: async () => (++waits === 1 ? null : bridge),
+    fromApp: async (b) => { assert.equal(b, bridge); return okApp(false); },
+    fromBrowser: async () => browser,
+  });
+  assert.deepEqual(read, { status: "ok", latitude: 37.5, longitude: 127, mocked: false });
+  assert.equal(waits, 2);
 });

@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-11-24
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 앱 안 출퇴근에서 브리지가 늦으면 한 번 더 기다리고, 앱 고장 안내를 까닭(not-ready · forbidden · mismatch)마다 나눠 일시 장애는 「다시 눌러 주세요 · 관리자에게 출퇴근 등록 요청」으로 안내한다. `measureLocation` 약속 어긋남은 좌표 없이 어긋난 칸 이름만 콘솔에 남긴다(2026-11-23 창수 결정, 재영 #90 리뷰).
+
 ## 2026-11-23
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 출퇴근 버튼에서 위치 읽음을 남기는 요청이 예외로 끝나면 「위치를 확인할 수 없음」이 아니라 요청 실패로 안내한다(PR #90 pr-agent 리뷰).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 앱 안인데 브리지가 없으면 출퇴근 위치를 브라우저로 넘기지 않고 앱 고장(broken)으로 본다. 브리지는 있는데 `measureLocation` 을 모르는 옛 앱만 브라우저 위치로 넘긴다(PR #90 pr-agent 리뷰).

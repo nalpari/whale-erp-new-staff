@@ -18,7 +18,7 @@ import {
   type ReviewReason,
 } from "@/lib/attendance-rules";
 import { kstToday, stampLabel } from "@/lib/attendance-history";
-import { browserLocation, readDeviceLocation } from "@/lib/device-location";
+import { browserLocation, readDeviceLocation, type AppProblem } from "@/lib/device-location";
 import { isInApp } from "@/lib/native-bridge";
 import type { AttendanceRecordResult, MyAttendance } from "@/lib/my-attendance";
 import { nocontractHref, type CheckInSignWaiting } from "@/lib/sign-request";
@@ -39,7 +39,7 @@ type Geo =
   | { status: "loading" }
   | { status: "denied" }
   | { status: "unavailable" }
-  | { status: "broken" }
+  | { status: "broken"; reason: AppProblem }
   | { status: "ok"; distance: number; inRange: boolean; mocked: boolean; position: { latitude: number; longitude: number } };
 
 /** 위치 읽음(확인자료)을 남기는 서버 요청이 예외로 끝났을 때(네트워크 끊김 등). 위치는 아직 읽지 않았다. */
@@ -52,6 +52,16 @@ const blockSheet = { STORE_CLOSED: "closed", CONTRACT_PENDING_SIGNATURE: "nocont
   NonNullable<MyAttendance["checkInBlock"]>["reason"],
   Sheet
 >;
+
+/**
+ * 앱 안인데 앱 위치를 받지 못했을 때의 안내(2026-11-23 창수 결정, 재영 #90 리뷰). 일시 장애는 다시 누르게 하고, 계속되면 근무지 관리자가
+ * 관리자 웹에서 출퇴근을 대신 등록할 수 있게 문의로 잇는다. 「업데이트」 안내는 실제로 앱과 약속이 어긋날 때만 보인다.
+ */
+const appProblemText: Record<AppProblem, string> = {
+  "not-ready": "앱 연결이 잠깐 안 됐습니다. 버튼을 다시 눌러 주세요. 계속되면 근무지 관리자에게 출퇴근 등록을 요청해 주세요.",
+  forbidden: "지금 주소에서는 앱으로 위치를 확인할 수 없습니다. 근무지 관리자에게 출퇴근 등록을 요청해 주세요.",
+  mismatch: "앱에서 위치를 받지 못했습니다. 앱을 최신 버전으로 업데이트하고, 계속되면 근무지 관리자에게 문의해 주세요.",
+};
 
 const GEO_OPTIONS: PositionOptions = { enableHighAccuracy: true, timeout: 15_000, maximumAge: 0 };
 
@@ -115,7 +125,7 @@ export function CheckInScreen({
     async (): Promise<Geo> => {
       if (latitude === null || longitude === null) return { status: "unavailable" };
       const read = await readDeviceLocation({ fromBrowser: () => browserLocation(GEO_OPTIONS) });
-      if (read.status !== "ok") return { status: read.status };
+      if (read.status !== "ok") return read;
       const position = { latitude: read.latitude, longitude: read.longitude };
       const distance = distanceMeters(position, { latitude, longitude });
       return { status: "ok", distance, inRange: distance <= radiusMeters, mocked: read.mocked, position };
@@ -414,9 +424,7 @@ export function CheckInScreen({
     ) : geo.status === "broken" ? (
       <>
         <GeoBlank tone="muted" text="위치를 확인할 수 없습니다" />
-        <Alert tone="warning">
-          앱에서 위치를 받지 못했습니다. 앱을 최신 버전으로 업데이트하고, 계속되면 근무지 관리자에게 문의해 주세요.
-        </Alert>
+        <Alert tone="warning">{appProblemText[geo.reason]}</Alert>
       </>
     ) : geo.status === "unavailable" ? (
       <>

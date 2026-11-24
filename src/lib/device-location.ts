@@ -5,8 +5,11 @@ import { isInApp, measureLocation, waitForBridge, type AppLocation, type Bridge,
  * - 설치형 앱 안이면 앱이 잰 좌표와 모의 위치 여부를 쓴다(계획 결정 8, 위치 조작 감지 ATT-21 이 실제로 쌓인다).
  * - 브라우저이거나, 브리지는 있는데 앱이 이 기능을 모르는 옛 버전이면(unavailable) 브라우저 위치를 쓰고 모의 위치는
  *   판정하지 않는다(false). 앱 안인데 브리지 자체가 없으면 앱 쪽 고장이라 broken — 브라우저로 넘기면 모의 위치 판정이 빠진다.
- * - 앱과의 약속이 어긋났거나(malformed) 앱이 호출을 받지 않았으면(forbidden) broken — 다시 시도해도 풀리지 않는다.
+ * - 앱과의 약속이 어긋났거나(malformed) 앱이 호출을 받지 않았으면(forbidden) broken.
  *   브라우저 위치로 넘기지 않는다(모의 위치 판정이 빠지므로).
+ * - broken 의 까닭(reason)마다 안내가 다르다(2026-11-23 창수 결정, 재영 #90 리뷰): 브리지가 늦은 일시 장애(not-ready)는 한 번 더
+ *   기다려 본 뒤에도 안 되면 「다시 눌러 주세요」와 관리자 대신 등록 안내, 주소 · 설정 문제(forbidden)는 관리자 문의,
+ *   앱과 약속이 어긋남(mismatch)은 앱 업데이트 안내.
  */
 /**
  * 출퇴근 판정에 쓸 앱 위치의 최대 나이(초). 정확한 위치는 앱이 2초 안쪽 새 위치만 주므로 걸리지 않는다. 「대략적 위치」는 앱이
@@ -19,7 +22,11 @@ export type DeviceLocation =
   | { status: "ok"; latitude: number; longitude: number; mocked: boolean }
   | { status: "denied" }
   | { status: "unavailable" }
-  | { status: "broken" };
+  | { status: "broken"; reason: AppProblem };
+
+/** 앱 안인데 앱 위치를 받지 못한 까닭. not-ready: 브리지가 제때 준비되지 않음(일시 장애, 다시 누르면 풀릴 수 있다).
+ * forbidden: 앱이 호출을 받지 않음(허용하지 않은 주소 등, 다시 해도 풀리지 않는다). mismatch: 앱 답이 약속과 다름(옛 앱 · 앱 고장). */
+export type AppProblem = "not-ready" | "forbidden" | "mismatch";
 
 /** 브라우저 위치 한 번. 위치는 콜백으로만 받는다 — 브라우저가 위치를 주지 않는 기기도 오류 콜백으로 같은 「읽지 못함」이 된다. */
 export function browserLocation(options: PositionOptions): Promise<DeviceLocation> {
@@ -42,8 +49,11 @@ export function fromAppLocation(result: BridgeResult<AppLocation>): DeviceLocati
     if (result.error === "unavailable") return null;
     if (result.error === "failed") return { status: "unavailable" };
     // malformed 는 callNative 가 이미 남긴다. forbidden 은 남기지 않으므로 여기서 남긴다.
-    if (result.error === "forbidden") console.error("[native-bridge] measureLocation 호출을 앱이 받지 않음(forbidden)");
-    return { status: "broken" };
+    if (result.error === "forbidden") {
+      console.error("[native-bridge] measureLocation 호출을 앱이 받지 않음(forbidden)");
+      return { status: "broken", reason: "forbidden" };
+    }
+    return { status: "broken", reason: "mismatch" };
   }
   const data = result.data;
   if (data.status === "ok") {
@@ -65,10 +75,10 @@ export async function readDeviceLocation({
   fromBrowser: () => Promise<DeviceLocation>;
 }): Promise<DeviceLocation> {
   if (inApp) {
-    // 브리지가 있어야 「옛 앱이라 기능이 없음」과 「브리지 고장」을 가를 수 있다. 브리지가 없으면 고장으로 보고 브라우저로 넘기지 않는다
-    // (waitForBridge 가 이미 콘솔에 남긴다).
-    const bridge = await bridgeReady();
-    if (bridge === null) return { status: "broken" };
+    // 브리지가 있어야 「옛 앱이라 기능이 없음」과 「브리지 고장」을 가를 수 있다. 앱이 막 켜졌을 때 브리지가 조금 늦을 수 있어
+    // 한 번 더 기다려 보고(자동 재시도), 그래도 없으면 not-ready 로 보고 브라우저로 넘기지 않는다(waitForBridge 가 콘솔에 남긴다).
+    const bridge = (await bridgeReady()) ?? (await bridgeReady());
+    if (bridge === null) return { status: "broken", reason: "not-ready" };
     const reading = fromAppLocation(await fromApp(bridge));
     if (reading !== null) return reading;
   }
