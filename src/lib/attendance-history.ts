@@ -192,6 +192,10 @@ export interface PeriodTotals {
   /** 미출근(ABSENT) 날 수 — 날짜 칩 「미출근」과 같은 말(2026-11-24 사용자 지정: 지각만 있고 결근이 안 보였다) */
   absent: number;
   overtimeMinutes: number;
+  /** 출근 기록이 있는 날 수(오늘까지) */
+  workedDays: number;
+  /** 정상(NORMAL) 날 수(오늘까지) */
+  normal: number;
 }
 /**
  * 기간 누계 — 근무 · 연장은 api 가 급여 계산과 같은 규칙(휴게 뺌, 주 40시간 초과 포함)으로 센 값을 그대로 쓴다(2026-10-26 재영).
@@ -203,6 +207,8 @@ export function periodTotals(records: Pick<MyAttendanceRecords, "items" | "total
     overtimeMinutes: records.totals.overtimeMinutes,
     late: records.items.filter((d) => d.date <= today && d.status === "LATE").length,
     absent: records.items.filter((d) => d.date <= today && d.status === "ABSENT").length,
+    workedDays: records.items.filter((d) => d.date <= today && d.pairs.some((p) => p.checkIn)).length,
+    normal: records.items.filter((d) => d.date <= today && d.status === "NORMAL").length,
   };
 }
 
@@ -223,6 +229,13 @@ export interface WeekRow {
   range: string;
   /** 그 주 월요일 — 주 줄을 펼쳐 날짜 카드를 그릴 때 쓴다 */
   monday: string;
+  /** 주 줄 숫자 — 시간을 굵게 먼저, 지각 · 미출근은 0 이 아닐 때만 꼬리표로(2026-11-24 사용자 지정) */
+  workedMinutes: number;
+  workedDays: number;
+  late: number;
+  absent: number;
+  /** 오늘까지 기록 · 예정이 하나도 없는 주 — 「기록 없음」 흐린 한 줄, 펼치지 않는다 */
+  empty: boolean;
   sub: string;
   current: boolean;
   upcoming: boolean;
@@ -253,7 +266,20 @@ export function weekRows(records: Pick<MyAttendanceRecords, "items" | "weeks">, 
     const sub = upcoming
       ? "근무 예정"
       : `${current ? "이번 주 · " : `근무 ${worked.length}일 · `}${durationLabel(t.workedMinutes)} · 지각 ${t.late}회 · 미출근 ${t.absent}회${t.overtimeMinutes ? ` · 연장 ${durationLabel(t.overtimeMinutes)}` : ""}`;
-    rows.push({ title, name, range, monday, sub, current, upcoming });
+    rows.push({
+      title,
+      name,
+      range,
+      monday,
+      sub,
+      current,
+      upcoming,
+      workedMinutes: t.workedMinutes,
+      workedDays: worked.length,
+      late: t.late,
+      absent: t.absent,
+      empty: inWeek.length === 0,
+    });
   }
   return rows;
 }

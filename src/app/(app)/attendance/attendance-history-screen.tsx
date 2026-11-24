@@ -47,7 +47,7 @@ export function AttendanceHistoryScreen({ tab, records, today, weekStart, now, f
   const close = () => setSheet(null);
 
   return (
-    <main className="flex flex-1 flex-col gap-[12px] px-[22px] pt-[20px] pb-[24px] leading-[1.5]">
+    <main className="flex flex-1 flex-col gap-[12px] px-[22px] pt-[12px] pb-[24px] leading-[1.5]">
       <SegmentedControl
         label="기간"
         panelId={PANEL}
@@ -255,20 +255,35 @@ function PeriodView({
   const inRange = (date: string) => date >= records.from && date <= records.to;
   return (
     <>
-      {/* 언제(조회 기간) → 얼마나(총 근무 시간)를 한 상자에. 어디(근무지)는 탭 위(2026-11-24 사용자 지정) */}
-      <PeriodPicker from={records.from} to={records.to} fromHome={fromHome} today={today}>
-        <p className="text-[13px] font-semibold text-staff-text-sub">총 근무 시간</p>
-        <div className="flex flex-wrap items-baseline gap-x-[14px] pt-[4px]">
-          <p className="text-[26px] font-bold [&_span]:text-[16px]">
-            {Math.floor(totals.workedMinutes / 60)}
-            <span>시간</span> {String(totals.workedMinutes % 60).padStart(2, "0")}
-            <span>분</span>
-          </p>
-          <span className="text-[12px] text-staff-text-sub">
-            지각 {totals.late}회 · 미출근 {totals.absent}회{totals.overtimeMinutes ? ` · 연장 ${durationLabel(totals.overtimeMinutes)}` : ""}
-          </span>
-        </div>
-      </PeriodPicker>
+      <PeriodPicker from={records.from} to={records.to} fromHome={fromHome} today={today} />
+      {/* 조회 기간 요약 — 근무시간 큰 숫자, 아래 근무일 · 정상 · 지각 · 미출근 네 칸(2026-11-24 사용자 지정). 지각 · 미출근은 0 이 아니면 호박색 */}
+      <section className="rounded-[18px] border border-staff-border-light bg-white p-[20px]">
+        <p className="text-[13px] font-semibold text-staff-text-sub">근무시간</p>
+        <p className="pt-[2px] text-[26px] font-bold [&_span]:text-[16px]">
+          {Math.floor(totals.workedMinutes / 60)}
+          <span>시간</span> {String(totals.workedMinutes % 60).padStart(2, "0")}
+          <span>분</span>
+          {totals.overtimeMinutes > 0 && <span className="pl-[8px] font-normal text-staff-text-sub">연장 {durationLabel(totals.overtimeMinutes)}</span>}
+        </p>
+        <dl className="mt-[14px] grid grid-cols-4 gap-[8px]">
+          {(
+            [
+              ["근무일", totals.workedDays, "일", false],
+              ["정상", totals.normal, "일", false],
+              ["지각", totals.late, "회", totals.late > 0],
+              ["미출근", totals.absent, "회", totals.absent > 0],
+            ] as const
+          ).map(([label, n, unit, warn]) => (
+            <div key={label} className="flex flex-col items-center rounded-[12px] bg-staff-bg py-[10px]">
+              <dt className="text-[12px] text-staff-text-sub">{label}</dt>
+              <dd className={`text-[16px] font-bold tabular-nums ${warn ? "text-[#956013]" : ""}`}>
+                {n}
+                <span className="text-[12px] font-normal">{unit}</span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
       {records.items.length === 0 ? (
         <EmptyRecords />
       ) : (
@@ -281,19 +296,36 @@ function PeriodView({
                 <button
                   type="button"
                   aria-expanded={open}
+                  disabled={w.empty}
                   onClick={() => setOpened(open ? null : w.monday)}
                   className="flex w-full items-center gap-[10px] py-[14px] text-left"
                 >
                   <span className="flex min-w-0 flex-1 flex-col gap-[2px]">
                     {/* 주 이름은 굵게 왼쪽, 날짜는 오른쪽 끝 회색 — 가운뎃점 하나로 붙어 구분되지 않았다(2026-11-24 사용자 지정) */}
-                    <span className={`flex items-baseline justify-between gap-[8px] ${w.upcoming ? "text-staff-text-muted" : ""}`}>
-                      <span className="text-[14px] font-semibold">{w.name}</span>
+                    <span className={`flex items-baseline justify-between gap-[8px] ${w.upcoming || w.empty ? "text-staff-text-muted" : ""}`}>
+                      <span className="text-[14px] font-semibold">
+                        {w.name}
+                        {w.current && <span className="pl-[6px] text-[12px] font-normal text-staff-text-sub">이번 주</span>}
+                      </span>
                       <span className="text-[12px] text-staff-text-sub tabular-nums">{w.range}</span>
                     </span>
-                    <span className={`text-[12px] ${w.current ? "text-staff-primary" : "text-staff-text-sub"}`}>{w.sub}</span>
+                    {/* 시간을 굵게 먼저, 지각 · 미출근은 0 이 아닐 때만 꼬리표 — 0 까지 모두 적으니 주마다 같아 보였다 */}
+                    <span className="flex flex-wrap items-center gap-x-[6px] gap-y-[4px] text-[12px] text-staff-text-sub">
+                      {w.upcoming ? (
+                        "근무 예정"
+                      ) : w.empty ? (
+                        "기록 없음"
+                      ) : (
+                        <>
+                          <b className="text-[13px] text-staff-text">{durationLabel(w.workedMinutes)}</b>· 근무 {w.workedDays}일
+                          {w.late > 0 && <StatusChip tone="warning">지각 {w.late}</StatusChip>}
+                          {w.absent > 0 && <StatusChip tone="warning">미출근 {w.absent}</StatusChip>}
+                        </>
+                      )}
+                    </span>
                   </span>
-                  {/* chevron-down.svg 는 위를 보게 그려져 있어 닫힘에서 뒤집는다 */}
-                  <span aria-hidden className={`flex text-staff-text-sub transition-transform duration-150 ${EASE_OUT} ${open ? "" : "rotate-180"}`}>
+                  {/* chevron-down.svg 는 위를 보게 그려져 있어 닫힘에서 뒤집는다. 기록 없는 주는 펼치지 않아 꺾쇠도 없다 */}
+                  <span hidden={w.empty} aria-hidden className={`flex text-staff-text-sub transition-transform duration-150 ${EASE_OUT} ${open ? "" : "rotate-180"}`}>
                     <MaskIcon src="/icons/chevron-down.svg" size={16} />
                   </span>
                 </button>

@@ -38,7 +38,7 @@ export default async function WorkPage({ searchParams }: PageProps<"/work">) {
       <div className="bg-white px-[24px] pt-[16px] pb-[8px]">
         <StoreHeader title="근무 정보" backHref={params.from === "notifications" ? "/notifications" : undefined} />
       </div>
-      <div className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[20px] pb-[24px] leading-[1.5]">
+      <div className="flex flex-1 flex-col gap-[12px] px-[22px] pt-[12px] pb-[24px] leading-[1.5]">
         {!memberships ? (
           <Alert tone="warning">근무지를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>
         ) : !current ? (

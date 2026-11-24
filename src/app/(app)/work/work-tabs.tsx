@@ -26,7 +26,7 @@ export function WorkTabs({ tab, children }: { tab: WorkTab; children: ReactNode 
           { value: "todo", label: "TO-DO" },
         ]}
       />
-      <div id={PANEL_ID} role="tabpanel" aria-labelledby={segmentTabId(PANEL_ID, tab)} className="flex flex-1 flex-col gap-[20px]">
+      <div id={PANEL_ID} role="tabpanel" aria-labelledby={segmentTabId(PANEL_ID, tab)} className="flex flex-1 flex-col gap-[12px]">
         {children}
       </div>
     </>

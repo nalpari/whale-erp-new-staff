@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
-import { BottomSheet, Button, Card, MaskIcon } from "@/components/common";
+import { useRef, useState } from "react";
+import { BottomSheet, Button, MaskIcon } from "@/components/common";
 import { EASE_OUT, FIELD } from "@/components/common/theme";
 import { MAX_PERIOD_DAYS, addDays } from "@/lib/attendance-history";
 
@@ -30,19 +30,17 @@ function monthCells(month: string): (string | null)[] {
   return cells;
 }
 
-// 한 상자에 언제(조회 기간) → 얼마나(children, 총 근무 시간) 순서로 둔다(근무지는 화면 탭 위) — 상자 셋이 따로 떠 간격이 들쭉날쭉했다(2026-11-24 사용자 지정)
+// 날짜 칸만 — 「조회 기간」 이름표 없이 맨 위에, 1년 안내는 달력 시트 안(2026-11-24 사용자 지정) — 상자 셋이 따로 떠 간격이 들쭉날쭉했다(2026-11-24 사용자 지정)
 export function PeriodPicker({
   from,
   to,
   fromHome,
   today,
-  children,
 }: {
   from: string;
   to: string;
   fromHome: boolean;
   today: string;
-  children: ReactNode;
 }) {
   const form = useRef<HTMLFormElement>(null);
   const [range, setRange] = useState({ from, to });
@@ -69,26 +67,21 @@ export function PeriodPicker({
   };
 
   return (
-    <Card>
+    <>
       <form ref={form} action="/attendance">
         <input type="hidden" name="tab" value="period" />
         {fromHome && <input type="hidden" name="back" value="home" />}
         <input type="hidden" name="from" value={range.from} />
         <input type="hidden" name="to" value={range.to} />
-        <p className="text-[13px] font-semibold text-staff-text-sub">조회 기간</p>
-        <div className="relative pt-[8px]">
-          <button type="button" aria-haspopup="dialog" onClick={handleOpen} className={`${FIELD} pr-[44px] text-left tabular-nums`}>
+        <div className="relative">
+          <button type="button" aria-haspopup="dialog" aria-label={`조회 기간 ${dot(range.from)} ~ ${dot(range.to)}`} onClick={handleOpen} className={`${FIELD} pr-[44px] text-left tabular-nums`}>
             {dot(range.from)} ~ {dot(range.to)}
           </button>
-          <span aria-hidden className="pointer-events-none absolute top-[calc(50%+4px)] right-[14px] flex -translate-y-1/2 text-staff-text-sub">
+          <span aria-hidden className="pointer-events-none absolute top-1/2 right-[14px] flex -translate-y-1/2 text-staff-text-sub">
             <MaskIcon src="/icons/calendar-line.svg" size={16} />
           </span>
         </div>
-        <p className="pt-[8px] text-[12px] text-staff-text-muted [&_b]:font-bold">
-          한 번에 <b>최대 1년</b>까지 조회할 수 있습니다.
-        </p>
       </form>
-      <div className="mt-[16px] border-t border-staff-border-light pt-[16px]">{children}</div>
       <BottomSheet open={open} onClose={() => setOpen(false)} title="조회 기간" closeLabel="취소">
         <div className="flex flex-col gap-[12px]">
           <div className="flex items-center justify-between">
@@ -153,11 +146,14 @@ export function PeriodPicker({
                 ? "한 번에 최대 1년까지 조회할 수 있습니다"
                 : `${label(draft.start)} ~ ${label(draft.end)} · ${daysBetween(draft.start, draft.end)}일`}
           </p>
+          <p className="text-center text-[12px] text-staff-text-muted [&_b]:font-bold">
+            한 번에 <b>최대 1년</b>까지 조회할 수 있습니다.
+          </p>
           <Button disabled={draft.end === null || tooLong} onClick={handleApply}>
             적용
           </Button>
         </div>
       </BottomSheet>
-    </Card>
+    </>
   );
 }

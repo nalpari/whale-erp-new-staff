@@ -56,7 +56,7 @@ export function SchedulePanel({
     "flex size-[36px] shrink-0 items-center justify-center rounded-[12px] border border-staff-border-light bg-white transition-colors duration-150 ease-out active:bg-staff-info-bg";
 
   return (
-    <div className="flex flex-col gap-[20px]">
+    <div className="flex flex-col gap-[12px]">
       <div className="flex flex-col gap-[6px] rounded-[18px] border border-staff-border-light bg-white px-[8px] pt-[14px] pb-[10px]">
         {/* 양쪽 화살표 칸을 같은 폭(36)으로 두어 가운데 칸(달 이름 · 「오늘」)이 한가운데에 온다(데모 work) */}
         <div className="grid grid-cols-[36px_1fr_36px] items-center gap-[8px] px-[6px] pb-[8px] leading-[1.5]">

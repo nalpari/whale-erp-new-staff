@@ -86,7 +86,7 @@ test("이번 주 7일 · 날 라벨 · 주별 줄 · 누계", () => {
   assert.equal(week[1].day?.date, "2026-10-20");
   const days = [day("2026-10-13"), day("2026-10-14", { status: "LATE", pairs: [{ checkIn: punch("2026-10-14", "09:10"), checkOut: punch("2026-10-14", "19:10") }] })];
   // 근무 · 연장은 api 값(급여 계산 규칙)을 그대로 — 지각만 날에서 센다
-  assert.deepEqual(periodTotals({ items: days, totals: { workedMinutes: 17 * 60, overtimeMinutes: 60 } }, TODAY), { workedMinutes: 17 * 60, late: 1, overtimeMinutes: 60, absent: 0 });
+  assert.deepEqual(periodTotals({ items: days, totals: { workedMinutes: 17 * 60, overtimeMinutes: 60 } }, TODAY), { workedMinutes: 17 * 60, late: 1, overtimeMinutes: 60, absent: 0, workedDays: 2, normal: 1 });
   // 홈 출퇴근 현황 줄 — 출근 기록이 있는 날만 센다(기록 없는 날 · 오늘 뒤는 빼고)
   const withEmpty = [...days, day("2026-10-15", { pairs: [], status: "ABSENT" }), day("2026-10-30")];
   assert.equal(monthAttendanceLabel({ items: withEmpty, totals: { workedMinutes: 0, overtimeMinutes: 0 } }, TODAY), "이번 달 출근 2회 · 지각 1회");
