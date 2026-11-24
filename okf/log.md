@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-24
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #91 pr-agent 리뷰 반영: 출퇴근 위치 읽기도 준비된 브리지만 쓰고(strict 두 번, 아니면 다시 시도), 위치를 보지 않는 출퇴근은 다시 시도로 가리지 않으며, 약속 어긋남 기록 실패 때 예외 메시지 대신 고정 표식만 남긴다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 「다시 시도」가 strict 로 기다리는지와 약속 어긋남 기록이 실패해도 원본(좌표)을 남기지 않는지를 테스트로 고정했다. strict 로 떨어진 브리지는 「브리지 없음」이 아니라 「준비 표시 없음」으로 남긴다(PR 전 코드리뷰 2라운드).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 「다시 시도」는 출근 읽기처럼 두 번까지 기다리고, 반쯤 준비된 브리지(Android 준비 표시 없음)는 연결됨으로 보지 않는다. 위치를 쓸 수 없는 상태(동의 없음 · 일시 중지)면 다시 시도 버튼도 끈다. 약속 어긋남 기록을 만들다 예외가 나도 위치 읽기 결과는 그대로 둔다(PR 전 코드리뷰).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 루트 `viewport` 에 `viewportFit: "cover"` · `themeColor` 를 넣어 `env(safe-area-inset-*)` 여백이 동작하게 했다(mobile-app webview-plan 1절).

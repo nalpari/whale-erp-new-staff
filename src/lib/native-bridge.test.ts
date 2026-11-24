@@ -303,12 +303,13 @@ test("약속과 다른 답의 기록을 만들다 예외가 나도 결과는 mal
     [],
     (data: unknown): data is string => typeof data === "string",
     bridgeAnswering({ ok: true, data: { latitude: 37.5665, longitude: 126.978 } }),
-    { describeMalformed: () => { throw new Error("기록 실패"); } },
+    // 예외 메시지에도 좌표가 담길 수 있다.
+    { describeMalformed: () => { throw new Error("기록 실패 37.5665,126.978"); } },
   );
   assert.deepEqual(result, { ok: false, error: "malformed" });
   const ours = everything.filter((args) => String(args[0]).startsWith("[native-bridge]"));
   assert.equal(ours.length, 1);
-  assert.deepEqual(ours[0][1], { describeFailed: "Error: 기록 실패" });
+  assert.deepEqual(ours[0][1], { describeFailed: true });
   const text = JSON.stringify(everything);
   assert.equal(text.includes("37.5665"), false);
   assert.equal(text.includes("126.978"), false);

@@ -556,7 +556,8 @@ export function CheckInScreen({
       );
       dock = (
         <>
-          {disconnected ? (
+          {/* 위치를 보지 않거나 근무지 좌표가 없는 퇴근은 앱 연결 없이도 되므로 다시 시도로 가리지 않는다(ATT-36) */}
+          {disconnected && located && target ? (
             retryButton
           ) : (
             <Button disabled={pending || !(usable || !target)} onClick={pressCheckOut}>
@@ -624,7 +625,7 @@ export function CheckInScreen({
             <Button disabled={pending} onClick={openConsent}>
               위치정보 동의하기
             </Button>
-          ) : disconnected ? (
+          ) : disconnected && located ? (
             retryButton
           ) : (
             <Button disabled={pending || !usable} onClick={pressCheckIn}>

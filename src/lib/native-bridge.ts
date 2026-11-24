@@ -161,9 +161,9 @@ export async function callNative<T>(
     let described: unknown;
     try {
       described = describeMalformed(raw);
-    } catch (failure) {
-      // 원본은 좌표가 담길 수 있어 남기지 않고, 기록 함수가 왜 깨졌는지만 남긴다.
-      described = { describeFailed: failure instanceof Error ? `${failure.name}: ${failure.message}` : typeof failure };
+    } catch {
+      // 원본은 좌표가 담길 수 있어 남기지 않는다. 예외 메시지에도 좌표가 담길 수 있어 고정 표식만 남긴다.
+      described = { describeFailed: true };
     }
     console.error(`[native-bridge] ${name} 의 답이 약속과 다르다`, described);
   }

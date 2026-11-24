@@ -134,6 +134,23 @@ test("다시 시도는 브리지만 다시 확인하고 위치는 읽지 않는�
   assert.equal(error.mock.callCount(), 0);
 });
 
+test("출퇴근 위치도 반쯤 준비된 브리지로 부르지 않도록 strict 로 두 번 기다리고, 그래도 안 되면 not-ready(다시 시도)", async () => {
+  const options: unknown[] = [];
+  let appCalled = false;
+  const read = await readDeviceLocation({
+    inApp: true,
+    waitFor: async (_win, opts) => {
+      options.push(opts);
+      return null;
+    },
+    fromApp: async () => { appCalled = true; return okApp(false); },
+    fromBrowser: async () => browser,
+  });
+  assert.deepEqual(read, { status: "broken", reason: "not-ready" });
+  assert.deepEqual(options, [{ strict: true }, { strict: true }]);
+  assert.equal(appCalled, false);
+});
+
 test("다시 시도는 반쯤 준비된 브리지를 연결됨으로 보지 않도록 strict 로 기다린다", async () => {
   const options: unknown[] = [];
   await checkAppConnection({

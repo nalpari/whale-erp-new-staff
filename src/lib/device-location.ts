@@ -65,11 +65,16 @@ export function fromAppLocation(result: BridgeResult<AppLocation>): DeviceLocati
 
 export async function readDeviceLocation({
   inApp = isInApp(),
-  bridgeReady = () => waitForBridge(),
+  waitFor = waitForBridge,
+  // 반쯤 준비된 브리지(Android 준비 표시 없음)로 위치를 부르면 시간 초과로 「읽지 못함」이 되어 다시 시도 버튼도 안 나온다.
+  // 준비 표시까지 있어야 부르고(strict), 두 번 기다려도 준비되지 않으면 not-ready(다시 시도)로 본다.
+  bridgeReady = () => waitFor(undefined, { strict: true }),
   fromApp = (bridge) => measureLocation(bridge),
   fromBrowser,
 }: {
   inApp?: boolean;
+  /** 브리지 대기 함수(테스트에서 strict 로 부르는지 확인하려고 바꿔 끼운다). */
+  waitFor?: typeof waitForBridge;
   bridgeReady?: () => Promise<Bridge | null>;
   fromApp?: (bridge: Bridge) => Promise<BridgeResult<AppLocation>>;
   fromBrowser: () => Promise<DeviceLocation>;
