@@ -206,6 +206,23 @@ export function getAppInfo(bridge?: Bridge | null): Promise<BridgeResult<AppInfo
   return callNative("appInfo", [], isAppInfo, bridge);
 }
 
+/** 기기 식별자 형식 — 앱이 기기 고유값을 SHA-256 으로 바꾼 64자 소문자 16진수(앱 `docs/native-bridge.md` 의 deviceId). */
+export const APP_DEVICE_ID_PATTERN = /^[0-9a-f]{64}$/;
+
+export type AppDeviceId = { deviceId: string };
+
+export function isAppDeviceId(data: unknown): data is AppDeviceId {
+  return typeof data === "object" && data !== null && "deviceId" in data && typeof data.deviceId === "string" && APP_DEVICE_ID_PATTERN.test(data.deviceId);
+}
+
+/**
+ * 앱이 주는 기기 식별자(계획 결정 9). 로그인의 deviceIdentifier 로 쿠키 UUID 대신 쓴다 — 쿠키는 앱을 지우면 바뀌지만 이 값은
+ * 대체로 그대로다. 기기 고유값은 앱이 해시해 넘겨 원래 값은 모른다. 옛 앱(기능 없음)이나 앱 밖이면 unavailable.
+ */
+export function getAppDeviceId(bridge?: Bridge | null): Promise<BridgeResult<AppDeviceId>> {
+  return callNative("deviceId", [], isAppDeviceId, bridge);
+}
+
 /**
  * `measureLocation` 을 기다리는 시간. 권한 창이 뜨면 사용자가 고르는 동안 앱이 기다리고(앱 안 상한 60초), 측정 · 재확인까지
  * 최악 약 73초가 걸린다(앱 `docs/native-bridge.md`). 기본 10초로 부르면 권한 창을 보는 사이 실패로 끝난다.

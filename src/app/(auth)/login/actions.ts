@@ -8,7 +8,7 @@ import { login } from "@/lib/auth";
 import { clientIpFrom } from "@/lib/client-ip";
 import { HOME_PATH, safeNextPath } from "@/lib/login-return";
 import { readLoginForm } from "@/lib/login-input";
-import { getDeviceId, saveLogin, saveLoginEmail } from "@/lib/session";
+import { getDeviceId, saveDeviceId, saveLogin, saveLoginEmail } from "@/lib/session";
 import { CONNECTION_FAILED_MESSAGE } from "../_components/auth-screen";
 
 /**
@@ -25,9 +25,13 @@ export type LoginState = { email: string } & (
 );
 
 export async function loginAction(_previous: LoginState, formData: FormData): Promise<LoginState> {
-  const { email, password, saveEmail, autoLogin } = readLoginForm(formData);
+  const { email, password, saveEmail, autoLogin, appDeviceId } = readLoginForm(formData);
   if (!email) return { email, error: "이메일을 입력해 주세요", field: "email" };
   if (!password) return { email, error: "비밀번호를 입력해 주세요", field: "password" };
+
+  // 설치형 앱 안이면 앱이 준 기기 식별자를 쓰고 쿠키에도 남긴다(계획 결정 9) — 앱을 다시 깔아도 같은 기기로 보여, 다시 로그인하면
+  // 그 기기의 이전 접속이 끊긴다. 가입 등 다른 곳도 쿠키를 읽어 같은 값을 쓴다. 앱 밖이면 지금처럼 쿠키 UUID.
+  if (appDeviceId) await saveDeviceId(appDeviceId);
 
   let result;
   try {

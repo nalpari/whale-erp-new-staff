@@ -17,6 +17,7 @@ import {
   isAppLocation,
   measureLocation,
   appLocationProblems,
+  isAppDeviceId,
 } from "./native-bridge.ts";
 
 const ANDROID_APP =
@@ -387,4 +388,13 @@ test("모듈이 불러와지기 전에 지나간 준비 이벤트도 레이아�
   t.mock.method(console, "error", () => {});
   const replaced = fakeWindow(bridgeAnswering(null));
   assert.equal(await waitForBridge(replaced.win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), null);
+});
+
+test("deviceId 답은 64자 소문자 16진수 deviceId 만 받는다", () => {
+  const hex = "0".repeat(64);
+  assert.equal(isAppDeviceId({ deviceId: hex }), true);
+  assert.equal(isAppDeviceId({ deviceId: "F".repeat(64) }), false);
+  assert.equal(isAppDeviceId({ deviceId: "9774d56d682e549c" }), false);
+  assert.equal(isAppDeviceId({ deviceId: 1 }), false);
+  assert.equal(isAppDeviceId(null), false);
 });

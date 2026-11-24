@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-24
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 설치형 앱 안에서는 로그인의 `deviceIdentifier` 로 쿠키 UUID 대신 앱이 주는 기기 식별자(해시, 브리지 `deviceId`)를 쓰고 `device_id` 쿠키에도 남긴다(계획 결정 9).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 급여명세서 PDF 받기가 실패하면 글자 응답 대신 명세서 상세로 돌려보내 안내를 띄운다(계약서 파일 받기와 같다). 받기 링크에서 `download` 속성을 뺐다. `native-bridge.ts` 실패 종류 주석을 strict 대기에 맞췄다(재영 #91 머지 댓글).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 회원 탈퇴 화면 `/me/withdrawal` 을 더하고(재직 중이면 퇴직 처리 요청 안내, 현재 비밀번호 확인 뒤 탈퇴, 성공하면 `/login?withdrawn=1`) 내 정보에 「회원 탈퇴」 링크를 두었다(WHALEERP-770). 탈퇴 성공 때 아이디 저장 쿠키도 지운다(1차 리뷰). [탈퇴] 는 확인 시트를 거쳐 제출한다(노영주 결정).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 머리줄 통일(`StoreHeader` · `TitleHeader`, 근무 화면 근무지 카드 삭제, 출퇴근 화면 근무지는 보이기만), 근무지 고르기 시트 줄 모양, 출퇴근 현황 기간별(범위 달력 · 기간 요약 · 주 줄 펼침 · 미출근/미기록 · 예정 없음), 홈 「근로 · 휴게」 · 예정 없는 날 카드, 알림에서 연 화면의 뒤로 가기(`from=notifications`).
