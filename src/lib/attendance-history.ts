@@ -112,7 +112,9 @@ export function statusChipOf(d: MyAttendanceDay, today: string): { label: string
   if (d.date === today && open) return { label: "근무 중", tone: "working" };
   if (d.status === "MISSING_CHECK_OUT") return { label: "퇴근 기록 없음", tone: "neutral" };
   if (d.status === "MISSING_CHECK_IN") return { label: "출근 기록 없음", tone: "neutral" };
-  if (d.status === "ABSENT") return { label: "미출근", tone: "warning" };
+  // 기록 없는 날 — 오늘은 아직 올 수 있어 「미출근」, 지난 날은 사실만 말하는 「미기록」(관리자 웹 근태 요약과 같은 말).
+  // 결근은 휴가 · 교대 같은 사정을 따진 판단이라 앱이 단정하지 않는다(2026-11-24 사용자 지정)
+  if (d.status === "ABSENT") return d.date === today ? { label: "미출근", tone: "warning" } : { label: "미기록", tone: "warning" };
   if (d.status === "LATE") return { label: `지각 ${lateMinutes(d)}분`, tone: "warning" };
   if (punches(d).some((p) => p?.entryMethod === "PROXY")) return { label: "대신 등록", tone: "neutral" };
   if (d.status === "NORMAL") return { label: "정상", tone: "success" };
@@ -189,7 +191,7 @@ const hhmmOf = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart
 export interface PeriodTotals {
   workedMinutes: number;
   late: number;
-  /** 미출근(ABSENT) 날 수 — 날짜 칩 「미출근」과 같은 말(2026-11-24 사용자 지정: 지각만 있고 결근이 안 보였다) */
+  /** 미기록(ABSENT, 지난 날) 날 수 — 날짜 칩 「미기록」과 같은 말(2026-11-24 사용자 지정) */
   absent: number;
   overtimeMinutes: number;
   /** 출근 기록이 있는 날 수(오늘까지) */
@@ -206,7 +208,8 @@ export function periodTotals(records: Pick<MyAttendanceRecords, "items" | "total
     workedMinutes: records.totals.workedMinutes,
     overtimeMinutes: records.totals.overtimeMinutes,
     late: records.items.filter((d) => d.date <= today && d.status === "LATE").length,
-    absent: records.items.filter((d) => d.date <= today && d.status === "ABSENT").length,
+    // 미기록 — 지난 날만 센다(오늘 미출근은 아직 끝나지 않은 날이라 세지 않는다)
+    absent: records.items.filter((d) => d.date < today && d.status === "ABSENT").length,
     workedDays: records.items.filter((d) => d.date <= today && d.pairs.some((p) => p.checkIn)).length,
     normal: records.items.filter((d) => d.date <= today && d.status === "NORMAL").length,
   };
@@ -229,7 +232,7 @@ export interface WeekRow {
   range: string;
   /** 그 주 월요일 — 주 줄을 펼쳐 날짜 카드를 그릴 때 쓴다 */
   monday: string;
-  /** 주 줄 숫자 — 시간을 굵게 먼저, 지각 · 미출근은 0 이 아닐 때만 꼬리표로(2026-11-24 사용자 지정) */
+  /** 주 줄 숫자 — 시간을 굵게 먼저, 지각 · 미기록은 0 이 아닐 때만 꼬리표로(2026-11-24 사용자 지정) */
   workedMinutes: number;
   workedDays: number;
   late: number;
@@ -261,11 +264,11 @@ export function weekRows(records: Pick<MyAttendanceRecords, "items" | "weeks">, 
       workedMinutes: week.workedMinutes,
       overtimeMinutes: week.overtimeMinutes,
       late: inWeek.filter((d) => d.status === "LATE").length,
-      absent: inWeek.filter((d) => d.date <= today && d.status === "ABSENT").length,
+      absent: inWeek.filter((d) => d.date < today && d.status === "ABSENT").length,
     };
     const sub = upcoming
       ? "근무 예정"
-      : `${current ? "이번 주 · " : `근무 ${worked.length}일 · `}${durationLabel(t.workedMinutes)} · 지각 ${t.late}회 · 미출근 ${t.absent}회${t.overtimeMinutes ? ` · 연장 ${durationLabel(t.overtimeMinutes)}` : ""}`;
+      : `${current ? "이번 주 · " : `근무 ${worked.length}일 · `}${durationLabel(t.workedMinutes)} · 지각 ${t.late}회 · 미기록 ${t.absent}회${t.overtimeMinutes ? ` · 연장 ${durationLabel(t.overtimeMinutes)}` : ""}`;
     rows.push({
       title,
       name,

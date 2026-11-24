@@ -256,33 +256,35 @@ function PeriodView({
   return (
     <>
       <PeriodPicker from={records.from} to={records.to} fromHome={fromHome} today={today} />
-      {/* 조회 기간 요약 — 근무시간 큰 숫자, 아래 근무일 · 정상 · 지각 · 미출근 네 칸(2026-11-24 사용자 지정). 지각 · 미출근은 0 이 아니면 호박색 */}
+      {/* 조회 기간 요약 — 위층 「얼마나 일했나」(근무시간 · 근무일 큰 숫자), 아래층 「어떻게 일했나」(정상 · 지각 · 미기록 한 줄).
+          지각 · 미기록은 0 이 아니면 호박색 꼬리표, 0 이면 회색 글자(2026-11-24 사용자 지정) */}
       <section className="rounded-[18px] border border-staff-border-light bg-white p-[20px]">
-        <p className="text-[13px] font-semibold text-staff-text-sub">근무시간</p>
-        <p className="pt-[2px] text-[26px] font-bold [&_span]:text-[16px]">
-          {Math.floor(totals.workedMinutes / 60)}
-          <span>시간</span> {String(totals.workedMinutes % 60).padStart(2, "0")}
-          <span>분</span>
-          {totals.overtimeMinutes > 0 && <span className="pl-[8px] font-normal text-staff-text-sub">연장 {durationLabel(totals.overtimeMinutes)}</span>}
-        </p>
-        <dl className="mt-[14px] grid grid-cols-4 gap-[8px]">
-          {(
-            [
-              ["근무일", totals.workedDays, "일", false],
-              ["정상", totals.normal, "일", false],
-              ["지각", totals.late, "회", totals.late > 0],
-              ["미출근", totals.absent, "회", totals.absent > 0],
-            ] as const
-          ).map(([label, n, unit, warn]) => (
-            <div key={label} className="flex flex-col items-center rounded-[12px] bg-staff-bg py-[10px]">
-              <dt className="text-[12px] text-staff-text-sub">{label}</dt>
-              <dd className={`text-[16px] font-bold tabular-nums ${warn ? "text-[#956013]" : ""}`}>
-                {n}
-                <span className="text-[12px] font-normal">{unit}</span>
-              </dd>
-            </div>
-          ))}
+        <dl className="grid grid-cols-2 gap-[12px]">
+          <div>
+            <dt className="text-[13px] font-semibold text-staff-text-sub">근무시간</dt>
+            <dd className="pt-[2px] text-[24px] font-bold tabular-nums [&_span]:text-[15px]">
+              {Math.floor(totals.workedMinutes / 60)}
+              <span>시간</span> {String(totals.workedMinutes % 60).padStart(2, "0")}
+              <span>분</span>
+            </dd>
+            {totals.overtimeMinutes > 0 && <dd className="text-[12px] text-staff-text-sub">연장 {durationLabel(totals.overtimeMinutes)}</dd>}
+          </div>
+          <div>
+            <dt className="text-[13px] font-semibold text-staff-text-sub">근무일</dt>
+            <dd className="pt-[2px] text-[24px] font-bold tabular-nums [&_span]:text-[15px]">
+              {totals.workedDays}
+              <span>일</span>
+            </dd>
+          </div>
         </dl>
+        <p className="mt-[16px] flex flex-wrap items-center gap-x-[14px] gap-y-[6px] border-t border-staff-border-light pt-[14px] text-[13px] text-staff-text-sub">
+          <span>
+            정상 <b className="text-staff-text tabular-nums">{totals.normal}</b>일
+          </span>
+          {totals.late > 0 ? <StatusChip tone="warning">지각 {totals.late}회</StatusChip> : <span>지각 0회</span>}
+          {totals.absent > 0 ? <StatusChip tone="warning">미기록 {totals.absent}회</StatusChip> : <span>미기록 0회</span>}
+        </p>
+        {(totals.late > 0 || totals.absent > 0) && <p className="pt-[10px] text-[12px] text-staff-text-muted">기록이 다르면 근무지 관리자에게 문의해 주세요.</p>}
       </section>
       {records.items.length === 0 ? (
         <EmptyRecords />
@@ -309,7 +311,7 @@ function PeriodView({
                       </span>
                       <span className="text-[12px] text-staff-text-sub tabular-nums">{w.range}</span>
                     </span>
-                    {/* 시간을 굵게 먼저, 지각 · 미출근은 0 이 아닐 때만 꼬리표 — 0 까지 모두 적으니 주마다 같아 보였다 */}
+                    {/* 시간을 굵게 먼저, 지각 · 미기록은 0 이 아닐 때만 꼬리표 — 0 까지 모두 적으니 주마다 같아 보였다 */}
                     <span className="flex flex-wrap items-center gap-x-[6px] gap-y-[4px] text-[12px] text-staff-text-sub">
                       {w.upcoming ? (
                         "근무 예정"
@@ -319,7 +321,7 @@ function PeriodView({
                         <>
                           <b className="text-[13px] text-staff-text">{durationLabel(w.workedMinutes)}</b>· 근무 {w.workedDays}일
                           {w.late > 0 && <StatusChip tone="warning">지각 {w.late}</StatusChip>}
-                          {w.absent > 0 && <StatusChip tone="warning">미출근 {w.absent}</StatusChip>}
+                          {w.absent > 0 && <StatusChip tone="warning">미기록 {w.absent}</StatusChip>}
                         </>
                       )}
                     </span>

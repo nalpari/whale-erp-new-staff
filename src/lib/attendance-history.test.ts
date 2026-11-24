@@ -93,7 +93,7 @@ test("이번 주 7일 · 날 라벨 · 주별 줄 · 누계", () => {
   const weeks = ["2026-10-12", "2026-10-19", "2026-10-26"].map((monday, i) => ({ monday, workedMinutes: i ? 0 : 19 * 60, overtimeMinutes: i ? 0 : 60 }));
   const rows = weekRows({ items: days, weeks }, TODAY);
   assert.equal(rows[0].title, "10월 3주 · 10/12 – 10/18");
-  assert.equal(rows[0].sub, "근무 2일 · 19시간 · 지각 1회 · 미출근 0회 · 연장 1시간");
+  assert.equal(rows[0].sub, "근무 2일 · 19시간 · 지각 1회 · 미기록 0회 · 연장 1시간");
   assert.equal(rows[1].current, true);
   assert.equal(rows[2].upcoming, true);
   assert.equal(durationLabel(63 * 60 + 16), "63시간 16분");
