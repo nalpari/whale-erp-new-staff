@@ -324,7 +324,7 @@ function PeriodView({
                       <span className="text-[12px] text-staff-text-sub tabular-nums">{w.range}</span>
                     </span>
                     {/* 둘째 줄은 공통 둥근 꺾은선(SubLine)으로 주 이름 아래 요약임을 보인다 — 「기록 없음」 · 「근무 예정」도 같은 들여쓰기.
-                        시간을 먼저(먹색 보통 굵기), 근무 · 지각 · 미기록은 단위 없이 숫자만(「근무 2 · 지각 2」), 지각 · 미기록은 0 이 아닐 때만 호박색(2026-11-24 사용자 지정) */}
+                        시간 · 근무 · 지각 · 미기록 모두 꺾은선과 같은 회색 한 가지(색이 섞이면 어지러웠다), 단위 없이 숫자만(「근무 2 · 지각 2」), 지각 · 미기록은 0 이 아닐 때만(2026-11-24 사용자 지정) */}
                     <SubLine>
                       {w.upcoming ? (
                         "근무 예정"
@@ -332,11 +332,21 @@ function PeriodView({
                         "기록 없음"
                       ) : (
                         <span className="flex flex-wrap items-center gap-x-[6px]">
-                          <span className="font-medium text-staff-text">{durationLabel(w.workedMinutes)}</span>
+                          <span>{durationLabel(w.workedMinutes)}</span>
                           <span aria-hidden>·</span>
                           <span>근무 {w.workedDays}</span>
-                          {w.late > 0 && <span className="text-[#956013]">· 지각 {w.late}</span>}
-                          {w.absent > 0 && <span className="text-[#956013]">· 미기록 {w.absent}</span>}
+                          {w.late > 0 && (
+                            <>
+                              <span aria-hidden>·</span>
+                              <span>지각 {w.late}</span>
+                            </>
+                          )}
+                          {w.absent > 0 && (
+                            <>
+                              <span aria-hidden>·</span>
+                              <span>미기록 {w.absent}</span>
+                            </>
+                          )}
                         </span>
                       )}
                     </SubLine>
