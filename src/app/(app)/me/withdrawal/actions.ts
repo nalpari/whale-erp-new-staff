@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { RedirectType, redirect } from "next/navigation";
 import { ApiError, failureOf, logFailure } from "@/lib/api";
 import { clientIpFrom } from "@/lib/client-ip";
-import { employedStoresOf, validateWithdrawal, withdrawalFailure, type WithdrawalState } from "@/lib/withdrawal";
+import { employedStoresOf, requireConfirmation, validateWithdrawal, withdrawalFailure, type WithdrawalState } from "@/lib/withdrawal";
 import { authedRequest, clearSession, saveLoginEmail } from "@/lib/session";
 
 /**
@@ -12,6 +12,9 @@ import { authedRequest, clearSession, saveLoginEmail } from "@/lib/session";
  * 로그인 화면으로 보낸다. 거르기와 실패 처리는 lib/withdrawal.ts.
  */
 export async function withdrawAction(_previous: WithdrawalState, formData: FormData): Promise<WithdrawalState> {
+  // 확인 시트를 거치지 않은 제출(JS 없음 · 하이드레이션 전)은 api 를 부르지 않고 거절한다.
+  const unconfirmed = requireConfirmation(formData.get("confirm"));
+  if (unconfirmed) return unconfirmed;
   const currentPassword = String(formData.get("currentPassword") ?? "");
   const invalid = validateWithdrawal(currentPassword);
   if (invalid) return invalid;

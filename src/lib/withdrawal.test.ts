@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CONNECTION_FAILED, RATE_LIMITED } from "./action-errors.ts";
 import { CURRENT_PASSWORD_MISMATCH } from "./password-change.ts";
-import { employedStoresOf, validateWithdrawal, withdrawalFailure } from "./withdrawal.ts";
+import { employedStoresOf, requireConfirmation, validateWithdrawal, withdrawalFailure } from "./withdrawal.ts";
 
 test("validateWithdrawal — 빈 값 · 128자 초과는 입력칸 오류", () => {
   assert.equal(validateWithdrawal("")?.problem?.field, "currentPassword");
@@ -44,4 +44,9 @@ test("employedStoresOf — 모양이 다른 항목은 거른다", () => {
   ]);
   assert.deepEqual(employedStoresOf(null), []);
   assert.deepEqual(employedStoresOf({ employedStores: "x" }), []);
+});
+
+test("requireConfirmation — confirm=1 만 통과, 없거나 다른 값은 form 오류", () => {
+  assert.equal(requireConfirmation("1"), null);
+  for (const value of [null, undefined, "", "0", "true"]) assert.equal(requireConfirmation(value)?.problem?.field, "form");
 });

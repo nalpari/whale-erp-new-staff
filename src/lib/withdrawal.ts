@@ -35,6 +35,13 @@ export function employedStoresOf(body: unknown): EmployedStore[] {
 
 const problem = (field: WithdrawalField, message: string): WithdrawalState => ({ problem: { field, message } });
 
+export const CONFIRM_REQUIRED = "확인 창에서 탈퇴를 확인해 주세요.";
+
+/** 확인 시트의 [탈퇴](name=confirm value=1)가 아닌 제출은 거절한다 — JS 가 없거나 하이드레이션 전의 첫 제출이 확인 없이 탈퇴되지 않게. 맞으면 null. */
+export function requireConfirmation(confirm: unknown): WithdrawalState | null {
+  return confirm === "1" ? null : problem("form", CONFIRM_REQUIRED);
+}
+
 /** 서버 액션은 누구나 직접 부를 수 있어 빈 값을 다시 거른다. 맞으면 null. 128자는 api DTO 상한이라 넘으면 지금 비밀번호일 수 없다. */
 export function validateWithdrawal(currentPassword: string): WithdrawalState | null {
   if (!currentPassword) return problem("currentPassword", "현재 비밀번호를 입력해 주세요");
