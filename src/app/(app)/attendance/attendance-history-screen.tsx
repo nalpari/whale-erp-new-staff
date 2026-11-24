@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { AttendanceDayCard, BottomSheet, Button, DayOffRow, MaskIcon, Notice, SegmentedControl, StatusChip, WorkTimeBar, segmentTabId } from "@/components/common";
+import { AttendanceDayCard, BottomSheet, Button, DayOffRow, MaskIcon, Notice, SegmentedControl, StatusChip, SubLine, WorkTimeBar, segmentTabId } from "@/components/common";
 import { EASE_OUT } from "@/components/common/theme";
 import {
   barOf,
@@ -321,22 +321,23 @@ function PeriodView({
                       </span>
                       <span className="text-[12px] text-staff-text-sub tabular-nums">{w.range}</span>
                     </span>
-                    {/* 시간을 먼저(먹색 보통 굵기 — 주 이름 굵은 글자와 부딪혀 한 단계 낮췄다), 지각 · 미기록은 0 이 아닐 때만 호박색 글자(꼬리표는 너무 튀었다) — 0 까지 모두 적으니 주마다 같아 보였다 */}
-                    <span className="flex flex-wrap items-center gap-x-[6px] gap-y-[4px] text-[12px] text-staff-text-sub">
+                    {/* 둘째 줄은 공통 둥근 꺾은선(SubLine)으로 주 이름 아래 요약임을 보인다 — 「기록 없음」 · 「근무 예정」도 같은 들여쓰기.
+                        시간을 먼저(먹색 보통 굵기), 근무 · 지각 · 미기록은 단위 없이 숫자만(「근무 2 · 지각 2」), 지각 · 미기록은 0 이 아닐 때만 호박색(2026-11-24 사용자 지정) */}
+                    <SubLine>
                       {w.upcoming ? (
                         "근무 예정"
                       ) : w.empty ? (
                         "기록 없음"
                       ) : (
-                        <>
+                        <span className="flex flex-wrap items-center gap-x-[6px]">
                           <span className="font-medium text-staff-text">{durationLabel(w.workedMinutes)}</span>
                           <span aria-hidden>·</span>
-                          <span>근무 {w.workedDays}일</span>
-                          {w.late > 0 && <span className="text-[#956013]">· 지각 {w.late}회</span>}
-                          {w.absent > 0 && <span className="text-[#956013]">· 미기록 {w.absent}회</span>}
-                        </>
+                          <span>근무 {w.workedDays}</span>
+                          {w.late > 0 && <span className="text-[#956013]">· 지각 {w.late}</span>}
+                          {w.absent > 0 && <span className="text-[#956013]">· 미기록 {w.absent}</span>}
+                        </span>
                       )}
-                    </span>
+                    </SubLine>
                   </span>
                   {/* chevron-down.svg 는 위를 보게 그려져 있어 닫힘에서 뒤집는다. 기록 없는 주는 펼치지 않아 꺾쇠를 감추되 자리는 남겨 오른쪽 날짜 줄이 틀어지지 않게(2026-11-24 사용자 지정) */}
                   <span aria-hidden className={`flex text-staff-text-sub ${w.empty ? "invisible" : ""} transition-transform duration-150 ${EASE_OUT} ${open ? "" : "rotate-180"}`}>
