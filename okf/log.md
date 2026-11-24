@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-24
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — `api-types.d.ts` 다시 생성(api 확정 422 설명에 `WORK_HOURS_MISSING`, WHALEERP-755 — 화면 변화 없음).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — `api-types.d.ts` 다시 생성(api PR #317 리뷰 — 급여명세서 수정 DTO `workMinutes` 설명 · multipleOf 뺌, 화면 변화 없음).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 급여명세서 지급 표에 줄마다 계산식(WHALEERP-755): 비과세 · 원천징수 안내가 없는 줄은 api `calculationText` 를 항목 이름 아래 12px 흐린 글자로(목업 PAY-3 자리, 관리자 상세 · PDF 와 같은 글자). 식이 없는 줄(전 명세서)은 그대로. `api-types.d.ts` 다시 생성.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 급여명세서 상세의 4대보험 공제 줄을 근로계약서 가입 체크대로만 보인다(WHALEERP-756, 2026-11-20 김지영): `isItemShown` 이 api 상세 `isHealthPensionInsured` · `isEmploymentInjuryInsured` 를 받아 국민연금 · 건강보험 · 장기요양보험 / 고용보험을 가린다(관리자 화면 · api PDF 와 같은 규칙) — 미가입이어도 0 아닌 금액이 든 줄은 보인다(2026-11-24 사용자 결정). `api-types.d.ts` 를 다시 만들었고, 그사이 api 에서 필수가 된 `storeIsHq` 를 시험 고정값 둘(출퇴근 · TO-DO)에 넣었다.
