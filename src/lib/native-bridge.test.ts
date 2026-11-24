@@ -359,3 +359,12 @@ test("appLocationProblems 는 약속 문서의 칸만, 모양이 틀린 것만 �
   assert.deepEqual(appLocationProblems({ ok: true, data: { status: "unavailable", reason: "boom" } }), { code: "measureLocation-malformed", fields: ["reason"] });
   assert.deepEqual(appLocationProblems({ ok: true, data: { status: "weird" } }), { code: "measureLocation-malformed", fields: ["status"] });
 });
+
+test("준비 이벤트를 받은 브리지는 준비 표시가 없어도 다음 strict 대기에서 바로 준비된 것으로 본다(다시 시도 뒤 출퇴근)", async () => {
+  const bridge = bridgeAnswering(null);
+  const { win, ready } = fakeWindow(bridge);
+  const first = waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 1000, strict: true });
+  ready(bridge);
+  assert.equal(await first, bridge);
+  assert.equal(await waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), bridge);
+});

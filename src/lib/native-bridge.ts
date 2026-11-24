@@ -72,9 +72,13 @@ function isBridge(value: unknown): value is Bridge {
  * 준비 이벤트 전에는 부를 수 없다. 플러그인(flutter_inappwebview_android)은 준비 이벤트를 보낼 때
  * `_platformReady = true` 를 남기므로 그것까지 본다. iOS 는 이 표시를 남기지 않지만 `callHandler` 가 보이면 부를 수 있다.
  */
+/** 준비 이벤트를 받은 브리지. 이벤트는 한 번만 오므로 기억해 두고, 다음 대기에서도 준비된 것으로 본다. */
+const readyByEvent = new WeakSet<object>();
+
 function isReadyBridge(value: unknown, userAgent: string): value is Bridge {
   if (!isBridge(value)) return false;
   if (!/\bAndroid\b/.test(userAgent)) return true;
+  if (readyByEvent.has(value)) return true;
   return "_platformReady" in value && value._platformReady === true;
 }
 
@@ -96,6 +100,7 @@ export function waitForBridge(
       clearTimeout(timer);
       win.removeEventListener(BRIDGE_READY_EVENT, onReady);
       const bridge = win.flutter_inappwebview;
+      if (byEvent && isBridge(bridge)) readyByEvent.add(bridge);
       // 이벤트가 왔거나 시간이 다 됐으면 callHandler 가 있는 것만으로 부른다(준비 표시를 못 받아도 시도는 해 본다).
       // strict 면 시간이 다 됐을 때는 준비 표시까지 있어야 한다.
       if (strict && !byEvent ? isReadyBridge(bridge, ua) : isBridge(bridge)) return resolve(bridge as Bridge);
