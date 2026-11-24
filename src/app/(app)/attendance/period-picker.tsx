@@ -126,25 +126,44 @@ export function PeriodPicker({
                   aria-pressed={isEdge || inside}
                   aria-label={label(day)}
                   onClick={() => handlePick(day)}
-                  className={`flex h-[40px] items-center justify-center ${band}`}
+                  className="relative flex h-[48px] items-start justify-center pt-[4px]"
                 >
+                  {/* 띠는 숫자 동그라미 높이에만 */}
+                  {band && <span aria-hidden className={`absolute inset-x-0 top-[4px] h-[32px] ${band}`} />}
                   <span
-                    className={`flex size-[36px] items-center justify-center rounded-full text-[14px] tabular-nums transition-colors duration-150 ${EASE_OUT} ${
+                    className={`relative flex size-[32px] items-center justify-center rounded-full text-[14px] tabular-nums transition-colors duration-150 ${EASE_OUT} ${
                       isEdge ? "bg-staff-primary font-bold text-white" : day === today ? "font-bold text-staff-primary" : "text-staff-text"
                     }`}
                   >
                     {Number(day.slice(8, 10))}
                   </span>
+                  {/* 양 끝 아래 「시작」 · 「종료」 꼬리표 — 어느 쪽이 시작인지 달력에서 바로 보이게(2026-11-24 사용자 지정) */}
+                  {isEdge && (
+                    <span className="absolute bottom-[1px] text-[10px] leading-none font-bold text-staff-primary">
+                      {draft.end === null || draft.start === draft.end ? (draft.end === null ? "시작" : "하루") : day === draft.start ? "시작" : "종료"}
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
-          <p aria-live="polite" className={`text-center text-[14px] ${tooLong ? "text-staff-error" : "text-staff-text-sub"}`}>
-            {draft.end === null
-              ? `${label(draft.start)}부터 · 종료일을 선택해 주세요`
-              : tooLong
-                ? "한 번에 최대 1년까지 조회할 수 있습니다"
-                : `${label(draft.start)} ~ ${label(draft.end)} · ${daysBetween(draft.start, draft.end)}일`}
+          {/* 고른 기간 · 날 수 — 날 수는 굵은 꼬리표로 기간 글자와 가른다(2026-11-24 사용자 지정) */}
+          <p aria-live="polite" className={`flex items-center justify-center gap-[8px] text-[14px] ${tooLong ? "text-staff-error" : "text-staff-text"}`}>
+            {draft.end === null ? (
+              <>
+                <span className="font-semibold">{label(draft.start)}</span>
+                <span className="text-staff-text-sub">종료일을 선택해 주세요</span>
+              </>
+            ) : tooLong ? (
+              "한 번에 최대 1년까지 조회할 수 있습니다"
+            ) : (
+              <>
+                <span className="font-semibold">
+                  {label(draft.start)} ~ {label(draft.end)}
+                </span>
+                <span className="rounded-full bg-staff-bg px-[10px] py-[2px] text-[13px] font-bold tabular-nums">{daysBetween(draft.start, draft.end)}일</span>
+              </>
+            )}
           </p>
           <p className="text-center text-[12px] text-staff-text-muted [&_b]:font-bold">
             한 번에 <b>최대 1년</b>까지 조회할 수 있습니다.
