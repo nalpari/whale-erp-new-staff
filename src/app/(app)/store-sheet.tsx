@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { BottomSheet, SheetOption } from "@/components/common";
+import { BottomSheet, SheetOption, StoreMark } from "@/components/common";
 import { pickStoreAction } from "./store-actions";
 
 export type StoreChoice = { staffMemberId: number; storeName: string };
@@ -24,7 +24,7 @@ export function useStoreSheet(stores: StoreChoice[], currentId: number) {
   const sheet = (
     <BottomSheet open={open} onClose={() => setOpen(false)} title="근무지 선택" description="선택한 근무지의 근무 정보가 표시됩니다.">
       {stores.map((s) => (
-        <SheetOption key={s.staffMemberId} selected={s.staffMemberId === currentId} onClick={() => handlePick(s.staffMemberId)}>
+        <SheetOption key={s.staffMemberId} selected={s.staffMemberId === currentId} onClick={() => handlePick(s.staffMemberId)} icon={<StoreMark />}>
           {s.storeName}
         </SheetOption>
       ))}

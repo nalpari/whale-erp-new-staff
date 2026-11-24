@@ -20,7 +20,11 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/contracts/[contr
   // 소속 근무지 목록에서 왔으면 상세의 뒤로 가기가 그 목록으로 가도록 ?store= 를 이어 준다
   const storeId = parseId(req.nextUrl.searchParams.get("store") ?? undefined);
   if (contractId === null) redirect("/contracts");
-  const back = `/contracts/${contractId}${storeId === null ? "" : `?store=${storeId}`}`;
+  // 알림에서 연 상세였으면(?from=notifications) 돌아가서도 뒤로 가기가 알림 목록으로 가게 이어 준다
+  const keep = new URLSearchParams();
+  if (storeId !== null) keep.set("store", String(storeId));
+  if (req.nextUrl.searchParams.get("from") === "notifications") keep.set("from", "notifications");
+  const back = `/contracts/${contractId}${keep.size > 0 ? `?${keep}` : ""}`;
   const fail = (reason: Failure) => redirect(`${back}${back.includes("?") ? "&" : "?"}download=${reason}`);
 
   const session = await getSession();

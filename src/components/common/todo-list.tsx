@@ -41,9 +41,10 @@ export function TodoItem({
   );
   return (
     <li className="flex items-center gap-[12px] py-[17px] leading-[1.5]">
+      {/* 체크칸 — 안 한 일은 흰 바탕 · 1.5px 테두리(빈 연보라 네모는 아무것도 없는 칸처럼 보였다), 한 일은 먹색(navy) 바탕 · 흰 체크 — 보라는 튀었다(2026-11-24 사용자 지정) */}
       <label
-        className={`relative flex size-[28px] shrink-0 items-center justify-center rounded-[2px] transition-colors duration-150 ${EASE_OUT} ${
-          done ? "bg-staff-primary" : "bg-staff-primary-inactive"
+        className={`relative flex size-[24px] shrink-0 items-center justify-center rounded-[7px] border-[1.5px] transition-colors duration-150 ${EASE_OUT} ${
+          done ? "border-staff-navy bg-staff-navy" : "border-staff-border bg-white"
         }`}
       >
         <input

@@ -213,7 +213,7 @@ export function TodoPanel({
   };
 
   return (
-    <div className="flex flex-1 flex-col gap-[20px]">
+    <div className="flex flex-1 flex-col gap-[12px]">
       {stores.length > 1 && (
         <SegmentedControl
           label="근무지"

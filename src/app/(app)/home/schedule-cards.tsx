@@ -1,14 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Alert, Button, SectionTitle } from "@/components/common";
+import { Alert, Button, MaskIcon, SectionTitle } from "@/components/common";
 import { homeAttendanceAction, type HomeAttendanceAction } from "@/lib/attendance-rules";
 import { getMyAttendance } from "@/lib/my-attendance";
 import { getMyWorkSchedules } from "@/lib/my-work-schedules";
 import { dayTitle, durationLabel, kstDate, weekDates, workMinutes, type MyWorkSchedule } from "@/lib/work-schedules";
 import { ThisWeek } from "./this-week";
-
-// 이번 주 근무 머리의 「9/7」. weekDates 는 월~일이라 요일은 (월) · (일)로 붙인다(데모 home).
-const md = (ymd: string) => `${Number(ymd.slice(5, 7))}/${Number(ymd.slice(8, 10))}`;
 
 // 홈 오늘 근무 · 이번 주 근무(#313, HOME-1). 앱 전역 근무지의 근무스케줄을 근무 탭과 같은 api 로 받는다 —
 // 이번 주가 두 달에 걸치면 두 달을 받아 합친다. 근무일은 시작한 날이다.
@@ -23,7 +20,7 @@ export async function ScheduleCards({ staffMemberId }: { staffMemberId: number }
   if (lists.some((l) => !l)) return <Alert tone="warning">근무스케줄을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>;
   const items = lists.flatMap((l) => l!.items).filter((i) => week.includes(i.workDate));
   const todays = items.filter((i) => i.workDate === today);
-  // 휴무 카드의 「다음 근무」 — 이번 주 안에서 오늘 뒤 첫 근무(이번 주 근무스케줄만 받으므로 다음 주 근무는 보이지 않는다)
+  // 예정 없는 날 카드의 「다음 근무」 — 이번 주 안에서 오늘 뒤 첫 근무(이번 주 근무스케줄만 받으므로 다음 주 근무는 보이지 않는다)
   const next = items
     .filter((i) => i.workDate > today)
     .sort((a, b) => a.workDate.localeCompare(b.workDate) || a.startTime.localeCompare(b.startTime))[0];
@@ -31,15 +28,21 @@ export async function ScheduleCards({ staffMemberId }: { staffMemberId: number }
   return (
     <>
       <TodayCard items={todays} next={next} action={attendance && homeAttendanceAction(attendance, todays.length > 0)} />
-      <section className="flex flex-col gap-[13px]">
+      <section className="flex flex-col gap-[12px]">
+        {/* 날짜 범위 대신 「전체 보기 ›」 — 다음 주 근무로 가는 길이 홈에 없었다. 근무 탭 달력의 오늘로 간다. TO-DO 「전체 보기」와 같은 모양(2026-11-24 사용자 지정) */}
         <SectionTitle title="이번 주 근무">
-          <span className="text-[14px] text-staff-text-sub">
-            {md(week[0])} (월) – {md(week[6])} (일)
-          </span>
+          <Link
+            href={`/work?month=${today.slice(0, 7)}&day=${today}`}
+            transitionTypes={["nav-forward"]}
+            className="-my-[13px] flex min-h-[44px] items-center text-[12px] text-staff-text-sub"
+          >
+            전체 보기
+            <Image src="/icons/chevron-right-small.svg" alt="" width={11} height={11} className="-scale-y-100" />
+          </Link>
         </SectionTitle>
         {/* 근무가 있는 주의 요약 줄(N일 · H시간)은 데모 home 처럼 두지 않는다 — 빈 주의 안내만 둔다 */}
         <ThisWeek week={week} today={today} items={items}>
-          {items.length === 0 ? "이번 주 등록된 근무가 없습니다" : null}
+          {items.length === 0 ? "이번 주에 등록된 근무가 없습니다." : null}
         </ThisWeek>
       </section>
     </>
@@ -66,25 +69,33 @@ function AttendanceButton({ action }: { action: Exclude<HomeAttendanceAction, nu
   );
 }
 
-// 데모(/design/home) 「오늘 근무」 카드 모양. #DBE5FF · #BCCFFF 는 남보라 위의 흐린 글자다.
+// 데모(/design/home) 「오늘 근무」 카드 모양. #DBE5FF · #BCCFFF 는 남보라 위의 흐린 글자다(#BCCFFF 는 예정 없는 날 카드의 점선 테두리에도 쓴다).
 function TodayCard({ items, next, action }: { items: MyWorkSchedule[]; next?: MyWorkSchedule; action: HomeAttendanceAction }) {
   if (items.length === 0)
     return (
-      <section aria-label="오늘 근무" className="flex flex-col gap-[2px] rounded-[18px] border border-staff-border-light bg-white px-[20px] py-[18px] leading-[1.5]">
-        <p className="text-[15px] font-bold">오늘은 휴무입니다</p>
-        {next && (
-          <p className="text-[12px] text-staff-text-sub">
-            다음 근무 · {dayTitle(next.workDate)} {next.startTime} – {next.endTime}
-          </p>
-        )}
+      // 기존 모양(굵은 한 줄 + 다음 근무)에 왼쪽 달력 칸을 더했다 — 칸 색은 「이번 주 근무」 날짜 칸과 같은 옅은 남보라 · 남보라 그림.
+      // 근무하는 날의 보라 카드 자리가 비었다는 뜻으로 상자는 남보라 점선, 제목은 보조 글자색(먹색은 어색했고 남보라는 튀었다).
+      // 높이는 낮게 — 위아래 12(20 은 높기만 했다) · 좌우 16(테두리 1px 를 빼 11 · 15), 달력 칸 36(2026-11-24 사용자 지정)
+      <section aria-label="오늘 근무" className="flex flex-col gap-[12px] rounded-[18px] border border-dashed border-[#bccfff] bg-white px-[15px] py-[11px] leading-[1.5]">
+        <div className="flex items-center gap-[12px]">
+          <span aria-hidden className="flex size-[36px] shrink-0 items-center justify-center rounded-[12px] bg-[#eef2ff] text-staff-primary">
+            <MaskIcon src="/icons/calendar-line.svg" size={20} />
+          </span>
+          <div className="flex min-w-0 flex-col">
+            <p className="text-[15px] font-bold text-staff-text-sub">오늘 예정된 근무가 없습니다</p>
+            {next && (
+              <p className="text-[12px] text-staff-text-sub">
+                다음 근무 · {dayTitle(next.workDate)} {next.startTime} – {next.endTime}
+              </p>
+            )}
+          </div>
+        </div>
         {/* 어제 시작해 자정을 넘긴 근무처럼 오늘 근무스케줄 없이 출근이 열려 있으면 퇴근은 여기서 */}
         {action === "check-out" && (
-          <div className="pt-[12px]">
-            <Button href="/check-in" transitionTypes={["nav-forward"]}>
-              퇴근하기
-              <Image src="/icons/arrow-right.svg" alt="" width={14} height={12} />
-            </Button>
-          </div>
+          <Button href="/check-in" transitionTypes={["nav-forward"]}>
+            퇴근하기
+            <Image src="/icons/arrow-right.svg" alt="" width={14} height={12} />
+          </Button>
         )}
       </section>
     );
@@ -93,24 +104,32 @@ function TodayCard({ items, next, action }: { items: MyWorkSchedule[]; next?: My
   return (
     <section
       aria-label="오늘 근무"
-      // 간격은 위 · 아래 · 좌우 24, 줄 사이 12 로 모두 같게 — 시간 줄 높이(46) · 휴게 줄 아래 15 가 섞여 간격이 들쭉날쭉했다(2026-11-23 사용자 지정)
-      className="flex flex-col gap-[12px] rounded-[18px] bg-staff-primary p-[24px] leading-[1.5] text-white shadow-[0_9px_23px_rgba(49,93,245,0.15)]"
+      // 안쪽 위 · 아래 · 좌우 20(24 는 넓기만 했다). 시각과 「근로 · 휴게」 줄은 한 묶음으로 붙이고, 머리 줄 → 시각은 글자 기준 12, 묶음 → 버튼은 16 —
+      // 큰 시각 글자는 위아래 여백이 있어 상자 간격이 아니라 보이는 글자 기준으로 맞췄다(2026-11-24 사용자 지정)
+      className="flex flex-col rounded-[18px] bg-staff-primary p-[20px] leading-[1.5] text-white shadow-[0_9px_23px_rgba(49,93,245,0.15)]"
     >
       <div className="flex items-center justify-between">
         <p className="text-[12px] text-[#dbe5ff]">오늘 근무</p>
         {action === "check-out" && WORKING}
       </div>
-      {items.map((i) => (
-        <p key={i.workScheduleId} className="flex items-center gap-[4px] text-[30px] leading-[1.15] font-bold">
-          {i.startTime}
-          <span className="w-[23px] text-center text-[14px] font-normal text-[#bccfff]">—</span>
-          {i.endTime}
+      <div className="flex flex-col pt-[6px]">
+        {items.map((i) => (
+          <p key={i.workScheduleId} className="flex items-center gap-[4px] text-[30px] leading-[1.15] font-bold">
+            {i.startTime}
+            <span className="w-[23px] text-center text-[14px] font-normal text-[#bccfff]">—</span>
+            {i.endTime}
+          </p>
+        ))}
+        <p className="flex items-center gap-[6px] text-[12px] text-[#dbe5ff]">
+          {/* 휴게를 뺀 시간이라 「근로」(근로기준법 제50조 · 출퇴근 현황 「근로시간」과 같은 말, 2026-11-24 사용자 지정) */}
+          근로 {durationLabel(total)} <span className="text-[11px]">·</span> 휴게 {breakMinutes}분
         </p>
-      ))}
-      <p className="flex items-center gap-[6px] text-[12px] text-[#dbe5ff]">
-        휴게 {breakMinutes}분 <span className="text-[11px]">·</span> 총 {durationLabel(total)} 근무
-      </p>
-      {action && <AttendanceButton action={action} />}
+      </div>
+      {action && (
+        <div className="pt-[14px]">
+          <AttendanceButton action={action} />
+        </div>
+      )}
     </section>
   );
 }

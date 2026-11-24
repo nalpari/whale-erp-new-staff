@@ -10,7 +10,7 @@
 // 「퇴직 전까지 조회」는 PAY-4 로 바뀐 목업 문구로 바꿨다. 7월 줄은 목업처럼 상태 칩 없이 둔다(Figma 는 「다시 보냄」 칩).
 // 상세 · 다시 보낸 명세서 · 빈 상태 · 안내 시트는 Figma 없음 — DESIGN.md 기준 초안. 상세의 실지급액은 목록과 같은 짙은 남색 카드다.
 // 하단 메뉴는 목업처럼 다섯 칸이다(2026-10-08 재영 결정, Figma 는 네 칸).
-import { backHeader, badge, body, bottomNav, bottomSheet, button, card, heroCard, iconTile, img, notice, page, pageHeader, sheetOption, state, tiny } from "../../ui.mjs";
+import { backHeader, badge, body, bottomNav, bottomSheet, button, card, heroCard, iconTile, img, notice, page, sheetOption, state, tabHeader, tiny, topBar } from "../../ui.mjs";
 
 // 목업 오른쪽 목록 순서 그대로. 마지막은 목업의 「시트 열기」라 목록 위에 시트를 띄운다.
 const STATES = [
@@ -127,10 +127,16 @@ const payslipView = (p) => {
   );
 };
 
+// 하단 메뉴 탭 제목은 모두 같은 머리줄(22px 제목 · 종). 안내 ⓘ 는 제목 바로 뒤(2026-11-24)
 const listHeader = () =>
-  pageHeader("급여명세서", {
-    action: `<button type="button" data-open="about" aria-label="급여명세서 안내" class="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">${infoIcon()}</button>`,
-  });
+  tabHeader(
+    topBar({
+      title: "급여명세서",
+      alarmHref: page("notify"),
+      titleAfter: `<button type="button" data-open="about" aria-label="급여명세서 안내" class="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">${infoIcon()}</button>`,
+    }),
+    { store: false },
+  );
 const backToList = () => backHeader("급여명세서", "list");
 
 const sheet = (a = {}) =>
@@ -187,7 +193,7 @@ const list = (filtered = false) =>
       ).join("")}</ul></section>` +
       // 목업 grow 뒤 tiny · Figma mt-auto: 본문이 짧으면 맨 아래에 붙는다.
       `<div class="mt-auto">${tiny("급여명세서는 이메일로도 발송됩니다.<br>퇴직 후에도 <b>작성일로부터 3년간</b> 확인할 수 있으며, 계정 탈퇴 시에는 확인할 수 없습니다.")}</div>`,
-    { variant: "detail" },
+    { variant: "tab" },
   );
 
 const VIEWS = {
@@ -206,7 +212,7 @@ const VIEWS = {
     listHeader() +
     body(
       `<div class="flex flex-1 flex-col items-center justify-center gap-[8px] py-[52px] text-center"><span class="mb-[6px] flex">${iconTile("payslip-line.svg", 44)}</span><p class="text-[18px] font-bold">받은 급여명세서가 없습니다</p><p class="max-w-[230px] text-[13px] text-staff-text-sub">근무지에서 급여명세서를 보내면 여기에 표시됩니다.</p></div>`,
-      { variant: "detail" },
+      { variant: "tab" },
     ) +
     sheet(),
   about: () => list() + sheet({ "data-sheet-auto": true, "data-on-close": "#list" }),

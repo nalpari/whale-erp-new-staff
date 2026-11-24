@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Button, IconTile, PageHeader } from "@/components/common";
+import { Button, IconTile } from "@/components/common";
+import { TitleHeader } from "../title-header";
 import { filterYears, formatWon, receivedYears, monthLabel, parsePayFilter, receivedMonthLabel, sentDateLabel } from "@/lib/payslip-rules";
 import { getMyMemberships } from "@/lib/my-profile";
 import { getPayslips } from "@/lib/payslips";
@@ -44,7 +45,7 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
         "");
   if (site !== null)
     return (
-      <PayFrame current="/me" header={<PageHeader title="급여명세서" backHref="/me/memberships" />}>
+      <PayFrame current="/me" header={<TitleHeader title="급여명세서" backHref="/me/memberships" />}>
         {siteName && <WorkplaceBox name={siteName} />}
         {/* 상자는 화면 남는 높이를 채운다 — 비었을 때 아래가 휑했다(2026-11-23 사용자 지정) */}
         <section className="flex flex-1 flex-col rounded-[20px] border border-staff-border-light bg-white p-[20px]">
@@ -72,7 +73,7 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
     );
 
   return (
-    <PayFrame header={<PageHeader title="급여명세서" action={<AboutSheet />} />}>
+    <PayFrame header={<TitleHeader title="급여명세서" titleAfter={<AboutSheet />} />}>
       {stores.length > 0 ? (
         <>
           {/* 이번 달 실지급액 합계(Figma node 17:1003): 짙은 남색 · radius 24 · 안쪽 25. 남색 위 흐린 글자 #BAC7DE·#D1DAEB 는 이 카드에만 쓴다. */}

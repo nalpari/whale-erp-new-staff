@@ -3,7 +3,7 @@
 export { StaffRoot } from "./staff-root";
 export { IconTile, MaskIcon } from "./icon";
 export { BrandLogo } from "./brand-logo";
-export { TopBar } from "./top-bar";
+export { StoreMark, TopBar } from "./top-bar";
 export { SectionTitle } from "./section-title";
 export { PageHeader } from "./page-header";
 export { PeriodNav } from "./period-nav";

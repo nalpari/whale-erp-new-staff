@@ -10,10 +10,12 @@ import {
   STORES,
   bottomNav,
   card,
+  iconTile,
   img,
   maskIcon,
   page,
-  pageHeader,
+  tabHeader,
+  topBar,
   storeSheet,
   periodNav,
   segmentedControl,
@@ -117,16 +119,11 @@ const todoPanel = (s) => {
   // 상태 칩 [전체] [대기] [진행 중] [완료] — 내 근무지 상태 칩과 같은 모양, 0건도 보인다(개발 화면 todo-panel, 2026-11-23). 목록 상자는 남는 높이를 채운다.
   const chip = (label, n, on) =>
     `<button type="button" aria-pressed="${on}" class="flex h-[36px] items-center gap-[4px] rounded-full border px-[14px] text-[13px] font-semibold ${on ? "border-staff-primary bg-staff-primary-inactive text-staff-primary" : "border-staff-border bg-white text-staff-text-sub"}">${label} <span class="tabular-nums">${n}</span></button>`;
-  return `<div class="flex flex-1 flex-col gap-[20px]"><div role="group" aria-label="TO-DO 상태" class="flex flex-wrap gap-[8px]">${chip("전체", todos.length, true)}${chip("대기", count("waiting"), false)}${chip("진행 중", count("progress"), false)}${chip("완료", count("done"), false)}</div><section class="flex flex-1 flex-col rounded-[20px] border border-staff-border-light bg-white px-[20px]">${todoList(todos.map(todoRow).join(""))}</section></div>`;
+  return `<div class="flex flex-1 flex-col gap-[12px]"><div role="group" aria-label="TO-DO 상태" class="flex flex-wrap gap-[8px]">${chip("전체", todos.length, true)}${chip("대기", count("waiting"), false)}${chip("진행 중", count("progress"), false)}${chip("완료", count("done"), false)}</div><section class="flex flex-1 flex-col rounded-[20px] border border-staff-border-light bg-white px-[20px]">${todoList(todos.map(todoRow).join(""))}</section></div>`;
 };
 
-// 근무지 카드: 두 탭 위에 두고 누르면 홈과 같은 근무지 고르기 시트를 연다(WORK-4, 2026-10-20 재영). 고른 근무지는 앱 전체가 따른다.
-// 근무지가 하나뿐인 직원이면 누를 수 없는 표시로 두고 펼침 표시를 뺀다.
-const storeCard = () =>
-  `<button type="button" data-open="store" aria-label="근무지 바꾸기, 지금 ${STORE}" class="flex w-full items-center gap-[14px] rounded-[18px] border border-staff-border-light bg-[#eef2ff] px-[20px] py-[18px] text-left">${storeSmall()}<span class="flex min-w-0 flex-1 flex-col gap-[2px]"><span class="truncate text-[16px] font-bold" data-slot="store">${STORE}</span><span class="text-[12px] text-staff-text-sub">연결된 근무지 ${STORES.length}곳</span></span>${img("chevron-down.svg", 15, 15, "-scale-y-100")}</button>`;
-
 // ── 근무스케줄 탭(week) ──
-const storeSmall = () => `<span class="flex text-staff-primary">${maskIcon("store-line.svg", 16)}</span>`;
+const storeSmall = () => `<span class="flex text-staff-text">${maskIcon("store-line.svg", 16)}</span>`;
 const schedule = () =>
   `<section class="flex flex-col gap-[8px]">${periodNav({
     label: "2026년 9월",
@@ -209,11 +206,18 @@ const view = (s) => {
           "근무가 종료되었습니다",
           "급여명세서는 보존 기간(3년) 동안<br>급여 탭에서 확인할 수 있습니다.",
         )
-      : `<div id="${PANEL}" role="tabpanel" aria-labelledby="${segmentTabId(PANEL, tab)}" class="flex ${isTodo(v) ? "flex-1 " : ""}flex-col gap-[20px]">${isTodo(v) ? todoPanel(v) : ""}${
-          v === "empty" ? emptyView(img("menu-schedule.svg", 44, 44), "이번 달 근무가 없습니다", "근무지에서 근무스케줄을 등록하면 여기에 표시됩니다.") : ""
+      : `<div id="${PANEL}" role="tabpanel" aria-labelledby="${segmentTabId(PANEL, tab)}" class="flex ${isTodo(v) ? "flex-1 " : ""}flex-col gap-[12px]">${isTodo(v) ? todoPanel(v) : ""}${
+          v === "empty" ? emptyView(iconTile("nav-work.svg", 44), "이번 달 근무가 없습니다", "근무지에서 근무스케줄을 등록하면 여기에 표시됩니다.") : ""
         }${v === "week" ? schedule() : ""}</div>`;
-  return `<div class="flex flex-1 flex-col">${pageHeader("근무 정보", {
-  })}<main class="flex flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px] leading-[1.5] ${v === "nosite" || isTodo(v) ? "flex-1" : ""}">${v === "nosite" ? "" : storeCard()}${tabs}${content}</main><div class="sticky bottom-0 mt-auto">${bottomNav(
+  // 머리줄은 홈 · 출퇴근과 같은 근무지 머리줄(제목 줄 + 근무지 줄) — 근무지 카드는 뺐다. 근무지는 머리줄에서 보이고 바꾼다(2026-11-24)
+  const header = tabHeader(
+    topBar(
+      v === "nosite"
+        ? { title: "근무 정보", alarmHref: page("notify"), store: "근무 종료", chevron: false }
+        : { title: "근무 정보", alarmHref: page("notify"), store: STORE, storeAttrs: { "data-open": "store" } },
+    ),
+  );
+  return `<div class="flex flex-1 flex-col">${header}<main class="flex flex-col gap-[12px] px-[22px] pt-[12px] pb-[24px] leading-[1.5] ${v === "nosite" || isTodo(v) ? "flex-1" : ""}">${tabs}${content}</main><div class="sticky bottom-0 mt-auto">${bottomNav(
     "work",
   )}</div></div>${v === "nosite" || v === "empty" || v === "week" ? "" : sheets(s)}${v === "nosite" ? "" : storeSheet()}`;
 };

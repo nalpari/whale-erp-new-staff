@@ -45,9 +45,10 @@ export const img = (name, w, h, cls = "", alt = "") => `<img alt="${alt}" width=
 export const maskIcon = (name, size, flipY = false) =>
   `<span aria-hidden="true" class="shrink-0 bg-current [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain] ${flipY ? "-scale-y-100" : ""}" style="width:${size}px;height:${size}px;mask-image:url(${A}icons/${name})"></span>`;
 
-// icon.tsx IconTile — menu-*.svg 와 같은 둥근 바탕(#eef2ff · 한 변의 1/3)에 선 아이콘(브랜드색). 근로계약서 · 급여명세서 · 신고 정보는 내 근무지 선 아이콘으로 맞춘다(2026-11-23).
-export const iconTile = (name, size) =>
-  `<span aria-hidden="true" class="flex shrink-0 items-center justify-center bg-[#eef2ff] text-staff-primary" style="width:${size}px;height:${size}px;border-radius:${size / 3}px">${maskIcon(name, Math.round(size * 0.6))}</span>`;
+// icon.tsx IconTile — 둥근 네모 바탕(한 변의 1/3)에 선 아이콘. 바탕은 옅은 회색 · 아이콘은 보조 글자색 — 보라 아이콘은 쓰지 않는다(2026-11-24).
+// tone="soft" 는 홈 전용 — 「이번 주 근무」 날짜 칸과 같은 옅은 남보라(#EEF2FF) 바탕, 아이콘은 그대로 보조 글자색(2026-11-24).
+export const iconTile = (name, size, tone = "neutral") =>
+  `<span aria-hidden="true" class="flex shrink-0 items-center justify-center text-staff-text-sub ${tone === "soft" ? "bg-[#eef2ff]" : "bg-staff-bg"}" style="width:${size}px;height:${size}px;border-radius:${size / 3}px">${maskIcon(name, Math.round(size * 0.6))}</span>`;
 
 // staff-root.tsx
 export const staffRoot = (html) => `<div class="${STAFF_THEME} min-h-[100dvh]">${html}</div>`;
@@ -56,9 +57,38 @@ export const staffRoot = (html) => `<div class="${STAFF_THEME} min-h-[100dvh]">$
 export const brandLogo = () =>
   `<div class="flex flex-col items-center gap-[8px]"><div class="relative size-[60px]">${img("logo-whale.svg", 60.322, 45.744, "absolute top-[14.58px] left-0")}${img("logo-stars.svg", 29.156, 21.113, "absolute top-0 left-[9.05px]")}</div><p class="text-center leading-[1.5] text-staff-text"><span class="block text-[28px] font-bold tracking-[-0.08px]">WHALE ERP</span><span class="block text-[13px] font-medium tracking-[-0.025em]">FOR RESTAURANT&amp;CAFE</span></p></div>`;
 
-// top-bar.tsx. storeAttrs: 점포 이름 버튼에 붙일 단서(시트 열기 등). 점포 이름 칸은 data-slot="store" 라 고르면 바뀐다.
-export const topBar = ({ store, storeAttrs = {}, alarmHref, hasNewAlarm = false }) =>
-  `<header class="flex w-full items-center gap-[10px]"><span class="relative size-[36px] shrink-0">${img("logo-whale-small.svg", 36.193, 27.446, "absolute top-[8.75px] left-0")}${img("logo-stars-small.svg", 17.494, 12.668, "absolute top-0 left-[5.43px]")}</span><div class="min-w-0 flex-1"><button type="button"${attrs(storeAttrs)} aria-label="점포 바꾸기, 지금 ${store}" class="flex min-h-[44px] max-w-full items-center gap-[7px] py-[10px] text-[15px] leading-[1.5] font-bold text-staff-text"><span class="truncate" data-slot="store">${store}</span>${img("chevron-down.svg", 15, 15, "-scale-y-100")}</button></div><a href="${alarmHref}" aria-label="${hasNewAlarm ? "알림, 새 알림 있음" : "알림"}" class="relative flex size-[44px] shrink-0 items-center justify-center rounded-[14px] border border-[#e9edf3] bg-white transition-colors duration-150 ease-out active:bg-staff-info-bg">${img("bell.svg", 21, 21, "-scale-y-100")}${hasNewAlarm ? `<span class="absolute top-[11px] right-[12px] size-[8px] rounded-full border border-white bg-[#c24242]"></span>` : ""}</a></header>`;
+// top-bar.tsx StoreMark — 근무지 줄의 점포 표시: 흰 바탕 · 1px 테두리 동그라미(28px) 안 먹색 점포 아이콘(2026-11-24)
+export const storeMark = () =>
+  `<span aria-hidden="true" class="flex size-[28px] shrink-0 items-center justify-center rounded-full border border-staff-border bg-white text-staff-text">${maskIcon("store-line.svg", 15)}</span>`;
+
+// top-bar.tsx. 근무지 머리줄 — 홈 · 근무 · 출퇴근 탭이 같이 쓴다(2026-11-24, 배달 앱 주소 머리줄을 본뜸).
+//   홈(title 없음): 고래 로고 · 근무지(17px bold) + 꺾쇠 · 오른쪽 알림 종(상자 없음)
+//   탭 화면(title): 첫 줄 제목(22px bold) · 종, 둘째 줄 근무지(15px bold) + 꺾쇠 · 오른쪽 끝 action. store 를 비우면 근무지 줄 없이 제목 줄만(급여 · 내 정보)
+// storeAttrs: 근무지 버튼에 붙일 단서(시트 열기 등). 근무지 이름 칸은 data-slot="store" 라 고르면 바뀐다. chevron=false 면 꺾쇠 없음(근무지가 하나).
+export const topBar = ({ store, storeAttrs = {}, alarmHref, hasNewAlarm = false, title, backHref, action = "", titleAfter = "", chevron = true }) => {
+  const storeButton =
+    store !== undefined
+      ? `<button type="button"${attrs(storeAttrs)} aria-label="근무지 바꾸기, 지금 ${store}" class="flex min-h-[44px] max-w-full min-w-0 items-center gap-[6px] font-bold text-staff-text ${title ? "text-[15px]" : "text-[17px]"}">${storeMark()}<span class="truncate" data-slot="store">${store}</span>${chevron ? img("chevron-down.svg", 13, 13, "shrink-0 -scale-y-100") : ""}</button>`
+      : "";
+  const bell = `<a href="${alarmHref}" aria-label="${hasNewAlarm ? "알림, 새 알림 있음" : "알림"}" class="relative -mr-[10px] flex size-[44px] shrink-0 items-center justify-center rounded-full transition-colors duration-150 ease-out active:bg-staff-info-bg">${img("bell.svg", 23, 23, "-scale-y-100")}${hasNewAlarm ? `<span class="absolute top-[10px] right-[11px] size-[8px] rounded-full border border-white bg-[#c24242]"></span>` : ""}</a>`;
+  // 고래 몸통(별 아래) 가운데를 점포 동그라미 · 글자 가운데에 맞춘다 — 상자 가운데로 두면 별 때문에 몸통이 4.4px 처져 보였다(2026-11-24)
+  if (!title)
+    return `<header class="flex w-full items-center gap-[10px]"><span aria-hidden="true" class="relative size-[36px] shrink-0 -translate-y-[4.4px]">${img("logo-whale-small.svg", 36.193, 27.446, "absolute top-[8.75px] left-0")}${img("logo-stars-small.svg", 17.494, 12.668, "absolute top-0 left-[5.43px]")}</span><div class="min-w-0 flex-1">${storeButton}</div>${bell}</header>`;
+  return `<header class="flex w-full flex-col"><div class="flex min-h-[44px] items-center gap-[12px]">${
+    backHref ? `<a href="${backHref}" data-dir="nav-back" aria-label="뒤로" class="-ml-[10px] flex size-[44px] shrink-0 items-center justify-center">${img("back.svg", 19, 19, "-scale-y-100")}</a>` : ""
+  }<div class="flex min-w-0 flex-1 items-center gap-[2px]"><h1 class="min-w-0 truncate text-[22px] leading-[1.4] font-bold">${title}</h1>${titleAfter}</div>${storeButton ? "" : action}${bell}</div>${
+    storeButton ? `<div class="flex items-center justify-between gap-[10px]"><div class="min-w-0 flex-1">${storeButton}</div>${action}</div>` : ""
+  }</header>`;
+};
+// 탭 화면 머리줄을 감싸는 흰 띠(store-header · title-header). 근무지 줄이 있으면 아래 8, 제목 줄만이면 아래 12
+export const tabHeader = (html, { store = true } = {}) => `<div class="bg-white px-[24px] pt-[16px] ${store ? "pb-[8px]" : "pb-[12px]"}">${html}</div>`;
+// 머리줄 오른쪽 글자 알약(「출퇴근 현황 ›」 · 「출퇴근하기 ›」). 보이는 알약 36px, 누르는 칸은 위아래를 넓혀 44px
+export const pillLink = (href, label, icon = "") =>
+  `<a href="${href}" class="group -my-[4px] flex min-h-[44px] shrink-0 items-center"><span class="flex h-[36px] items-center gap-[4px] rounded-full border border-staff-border bg-white pr-[10px] pl-[12px] text-[13px] font-semibold text-staff-text-sub group-active:bg-staff-primary-inactive ${PRESS}">${icon}${label}${maskIcon("chevron-right-small.svg", 12)}</span></a>`;
+
+// sub-line.tsx — 값 · 항목 아래 한 칸 들여 둥근 └ 선(12×14, #C3CAD6)과 13px 흐린 글자
+export const subLine = (children) =>
+  `<span class="flex items-start gap-[6px] pl-[4px] text-[13px] leading-[1.5] break-keep text-staff-text-muted"><svg aria-hidden="true" width="12" height="14" viewBox="0 0 12 14" fill="none" class="mt-[1px] shrink-0"><path d="M1.5 0.5V5.5Q1.5 9.5 5.5 9.5H11" stroke="#c3cad6" stroke-width="1.4" stroke-linecap="round"></path></svg><span class="min-w-0">${children}</span></span>`;
 
 // section-title.tsx
 export const sectionTitle = (title, { count, right = "" } = {}) =>
@@ -122,7 +152,8 @@ const DAY_CARD = {
 };
 export function attendanceDayCard({ state, day, store, status, edited = false, summary, ...bar }) {
   const sub = state === "done" ? "text-staff-text-sub" : "";
-  return `<article class="flex flex-col gap-[3px] rounded-[18px] border px-[20px] pt-[20px] pb-[32px] leading-[1.5] ${DAY_CARD[state]}"><div class="flex items-center gap-[8px] pb-[5px]"><h3 class="min-w-0 flex-1 text-[13px] font-bold">${day}</h3><span class="truncate text-[12px] ${sub}">${store}</span>${edited ? img("pencil.svg", 11.719, 13.719, "", "수정된 기록") : ""}${status ? statusChip(status.tone, status.label) : ""}</div>${workTimeBar(bar)}<p class="pt-[2px] text-[12px] ${sub}">${summary}</p></article>`;
+  // 사방 20(아래 32 는 위아래가 달라 보였다), 근무지는 출퇴근 현황이 탭 위에 한 번 두어 비운다, 요약은 출근 · 퇴근 한 쌍씩 한 줄(2026-11-24)
+  return `<article class="flex flex-col gap-[3px] rounded-[18px] border px-[20px] py-[20px] leading-[1.5] ${DAY_CARD[state]}"><div class="flex items-center gap-[8px] pb-[5px]"><h3 class="min-w-0 flex-1 text-[13px] font-bold">${day}</h3>${store ? `<span class="truncate text-[12px] ${sub}">${store}</span>` : ""}${edited ? img("pencil.svg", 11.719, 13.719, "", "수정된 기록") : ""}${status ? statusChip(status.tone, status.label) : ""}</div>${workTimeBar(bar)}<p class="pt-[2px] text-[12px] whitespace-pre-line ${sub}">${summary}</p></article>`;
 }
 export const dayOffRow = (label) =>
   `<p class="rounded-[12px] border border-staff-border-light bg-[#f9fbfd] px-[9px] pt-[11px] pb-[10px] text-center text-[13px] leading-[1.5] text-staff-text-sub">${label}</p>`;
@@ -130,9 +161,13 @@ export const dayOffRow = (label) =>
 // bottom-sheet.tsx. name: data-open 으로 여는 이름. a: dialog 에 붙일 단서(data-sheet-auto · data-on-close 등)
 export const bottomSheet = (name, { title, description, closeLabel = "닫기", ...a }, children) =>
   `<dialog data-sheet="${name}" aria-label="${title}"${attrs(a)} class="m-0 mt-auto max-h-[90dvh] w-full max-w-none translate-y-full overflow-visible bg-transparent p-0 transition-[translate,overlay,display] transition-discrete duration-200 ease-in open:translate-y-0 open:duration-[260ms] open:ease-[cubic-bezier(0.23,1,0.32,1)] starting:open:translate-y-full backdrop:bg-[rgba(23,37,61,0.38)] backdrop:opacity-0 backdrop:backdrop-blur-[1.5px] backdrop:transition-[opacity,overlay,display] backdrop:transition-discrete backdrop:duration-200 open:backdrop:opacity-100 starting:open:backdrop:opacity-0 motion-reduce:transition-none motion-reduce:backdrop:transition-none"><div class="flex max-h-[90dvh] flex-col overflow-y-auto rounded-t-[26px] bg-white px-[24px] pt-[12px] pb-[max(22px,env(safe-area-inset-bottom))] leading-[1.5] text-staff-text shadow-[0_-8px_28px_rgba(22,25,28,0.16)]"><span aria-hidden="true" class="mx-auto h-[4px] w-[40px] shrink-0 rounded-[2px] bg-[#dce1e9]"></span><h2 class="pt-[25px] text-[20px] font-bold">${title}</h2>${description ? `<p class="pt-[19px] text-[14px] text-staff-text-sub">${description}</p>` : ""}<div class="flex flex-col gap-[13px] pt-[20px]">${children}<button type="button" data-close class="flex min-h-[52px] items-center justify-center rounded-[14px] text-[15px] font-semibold text-staff-text-sub transition-colors duration-150 ease-out active:bg-staff-primary-inactive">${closeLabel}</button></div></div></dialog>`;
-// 고른 표시(체크)는 staff.js 가 data-pick 묶음 안에서 옮긴다. 체크 그림은 늘 두고 aria-pressed 로 숨긴다.
-export const sheetOption = (label, { selected = false, ...a } = {}) =>
-  `<button type="button" aria-pressed="${selected}"${attrs(a)} class="flex min-h-[52px] items-center justify-center gap-[9px] rounded-[12px] border border-[#e4e8ef] bg-white px-[18px] text-[15px] font-semibold text-staff-text-sub transition-colors duration-150 ease-out active:bg-staff-primary-inactive disabled:opacity-40">${label}${img("check-sub.svg", 19, 19, `-scale-y-100${selected ? "" : " hidden"}`)}</button>`;
+// 고르기 시트의 한 줄(bottom-sheet.tsx SheetOption). 왼쪽 정렬, 앞에 아이콘(근무지면 storeMark)을 둘 수 있다.
+// 고른 줄은 남색 테두리 · 옅은 회색 바탕 · 먹색 글자에 오른쪽 끝 20px 남색 체크 동그라미(2026-11-24).
+// 고른 표시는 staff.js 가 data-pick 묶음 안에서 옮긴다 — 줄 색은 data-on/data-off, 체크 동그라미는 data-pick-only 로 숨긴다.
+const OPTION_ON = "border-staff-navy bg-staff-bg text-staff-text";
+const OPTION_OFF = "border-[#e4e8ef] bg-white text-staff-text-sub";
+export const sheetOption = (label, { selected = false, icon = "", ...a } = {}) =>
+  `<button type="button" aria-pressed="${selected}" data-on="${OPTION_ON}" data-off="${OPTION_OFF}"${attrs(a)} class="flex min-h-[52px] items-center gap-[10px] rounded-[12px] border px-[14px] text-left text-[15px] font-semibold transition-colors duration-150 ease-out active:bg-staff-primary-inactive disabled:opacity-40 ${selected ? OPTION_ON : OPTION_OFF}">${icon}<span class="min-w-0 flex-1 truncate">${label}</span><span aria-hidden="true" data-pick-only class="flex size-[20px] shrink-0 items-center justify-center rounded-full bg-staff-navy text-white${selected ? "" : " hidden"}"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2 5 8.6l4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></button>`;
 
 // 근무지 고르기 시트(Figma 03.Sheet, HOME-2·WORK-4). 선택지는 /design 과 같다(2026-10-12 재영), 제목·설명은 문구 정리로 바꿨다. 홈 상단 선택기와
 // 근무 정보의 근무지 카드가 같은 시트를 열고, 고른 근무지를 앱 전체가 따른다. 최근 선택이 곧 지금 근무지다.
@@ -145,6 +180,7 @@ export const storeSheet = (a = {}) =>
     { title: "근무지 선택", description: "선택한 근무지의 근무 정보가 표시됩니다.", ...a },
     `<div data-pick class="contents">${STORES.map((s) =>
       sheetOption(s, {
+        icon: storeMark(),
         selected: s === STORES[0],
         "data-set": `store=${s}`,
         "data-toast": s === STORES[0] ? undefined : `${s}으로 변경했습니다`,
@@ -254,8 +290,8 @@ export function weekSelector({ days, selected, show = {} }) {
   return `<div data-pick class="flex w-full gap-[8px]">${each(days, (day) => {
     const on = day.key === selected;
     // 고르지 않은 날의 근무 시간 글자는 남보라. 고르면 빠진다 — data-on/off 로 같이 바꾸게 note 칸에 표시를 단다.
-    return `<button type="button" aria-pressed="${on}" aria-label="${day.weekday} ${day.date}일 ${day.note ?? (day.work ? "근무" : "휴무")}" data-on="${weekTone(true)}" data-off="${weekTone(false, day.muted)}"${show[day.key] ? ` data-show="${show[day.key]}"` : ""} class="flex min-h-[82px] min-w-0 flex-1 flex-col items-center gap-[6px] rounded-[12px] border pt-[8px] pb-[16px] leading-[1.5] transition-[background-color,border-color,color,box-shadow] duration-200 ${EASE_OUT} ${weekTone(on, day.muted)}"><span class="text-[12px]">${day.weekday}</span><span class="text-[16px] font-bold">${day.date}</span>${
-      day.note ? `<span data-note class="text-[10px] ${on ? "" : "text-staff-primary"}">${day.note}</span>` : day.work ? `<span class="size-[4px] rounded-[2px] bg-current"></span>` : ""
+    return `<button type="button" aria-pressed="${on}" aria-label="${day.weekday} ${day.date}일 ${day.note ?? (day.work ? "근무" : "예정 없음")}" data-on="${weekTone(true)}" data-off="${weekTone(false, day.muted)}"${show[day.key] ? ` data-show="${show[day.key]}"` : ""} class="flex min-w-0 flex-1 flex-col items-center gap-[4px] rounded-[10px] border py-[10px] leading-[1.5] transition-[background-color,border-color,color,box-shadow] duration-200 ${EASE_OUT} ${weekTone(on, day.muted)}"><span class="text-[12px]">${day.weekday}</span><span class="text-[16px] font-bold">${day.date}</span>${
+      day.note ? `<span data-note class="text-[10px] ${on ? "" : "text-staff-primary"}">${day.note}</span>` : day.work ? `<span class="flex h-[6px] items-center gap-[3px]"><span class="size-[4px] rounded-[2px] bg-current"></span></span>` : ""
     }</button>`;
   })}</div>`;
 }
@@ -268,11 +304,14 @@ const checkMark = (done) => img(done ? "todo-check-on.svg" : "todo-check-off.svg
 // open(시트 이름)을 주면 체크칸 · 제목 칸 어디를 눌러도 그 TO-DO 상세 시트(todoSheet)를 열고 체크는 바뀌지 않는다 — 상태는 시트에서 바꾼다
 // (개발 화면 홈 카드 · 근무 탭, 2026-11-23 사용자 지정. 체크 한 번에 바로 완료돼 사라지면 잘못 눌렀을 때 당황스러웠다).
 // 체크칸은 같은 모양의 버튼이고, 누르는 칸은 체크박스처럼 사방 8px 넓다.
+// 체크칸 — 안 한 일은 흰 바탕 · 1.5px 테두리, 한 일은 남색(navy) 바탕 · 흰 체크(보라는 튀었다, 2026-11-24). staff.js 는 data-check="todo" 를 이 두 클래스로 바꾼다
+export const TODO_CHECK_ON = "border-staff-navy bg-staff-navy";
+export const TODO_CHECK_OFF = "border-staff-border bg-white";
 export const todoItem = ({ title, meta, done = false, overdue = false, toggle = true, open, badges = "", ...a }) => {
-  const box = `relative flex size-[28px] shrink-0 items-center justify-center rounded-[2px] transition-colors duration-150 ${EASE_OUT} ${done ? CHECK_ON : CHECK_OFF}`;
+  const box = `relative flex size-[24px] shrink-0 items-center justify-center rounded-[7px] border-[1.5px] transition-colors duration-150 ${EASE_OUT} ${done ? TODO_CHECK_ON : TODO_CHECK_OFF}`;
   const check = open
     ? `<button type="button" data-open="${open}"${attrs(a)} aria-label="${title} 상세 보기" class="${box}"><span aria-hidden="true" class="absolute -inset-[8px] rounded-[10px]"></span>${checkMark(done)}</button>`
-    : `<label data-check class="${box}"><input type="checkbox"${done ? " checked" : ""}${toggle ? "" : " disabled"}${attrs(a)} aria-label="${title} 완료" class="absolute -inset-[8px] appearance-none rounded-[10px]">${checkMark(done)}</label>`;
+    : `<label data-check="todo" class="${box}"><input type="checkbox"${done ? " checked" : ""}${toggle ? "" : " disabled"}${attrs(a)} aria-label="${title} 완료" class="absolute -inset-[8px] appearance-none rounded-[10px]">${checkMark(done)}</label>`;
   const line = open ? "span" : "p";
   const text = `<${line} data-check-title class="truncate text-[15px] font-semibold ${done ? "text-staff-text-muted" : "text-staff-text"}">${title}</${line}><${line} class="truncate pt-[2px] text-[12px] ${overdue ? "text-[#956013]" : "text-staff-text-sub"}">${meta}</${line}>`;
   const main = open
@@ -313,6 +352,10 @@ export const backHeader = (title, backState) =>
 const BODY = {
   form: (center) => `flex flex-col gap-[16px] px-[24px] pt-[30px] pb-[24px] ${center ? "text-center" : ""}`,
   detail: (center) => `flex flex-1 flex-col gap-[20px] px-[22px] pb-[14px] ${center ? "pt-[52px] text-center" : "pt-[22px]"}`,
+  // 하단 메뉴 탭 화면 본문 — 묶음 사이 · 위 여백 모두 12(2026-11-24)
+  tab: () => "flex flex-1 flex-col gap-[12px] px-[22px] pt-[12px] pb-[14px]",
+  // 출퇴근 화면 본문(좌우 24 · 아래 8)
+  tab24: () => "flex flex-1 flex-col gap-[12px] px-[24px] pt-[12px] pb-[8px]",
 };
 export const body = (children, { variant = "form", center = false } = {}) => `<div class="${BODY[variant](center)}">${children}</div>`;
 export const dock = (children, inset = 24) =>
