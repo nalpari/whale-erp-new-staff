@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Alert, TopBar } from "@/components/common";
 import { useStoreSheet, type StoreChoice } from "../store-sheet";
 
@@ -10,12 +11,18 @@ export function StoreTopBar({
   currentId,
   hasNewAlarm,
   retired,
+  title,
+  backHref,
+  action,
 }: {
   stores: StoreChoice[];
   currentId: number | null;
   hasNewAlarm: boolean;
   /** 지금 소속이 없고 퇴직한 소속이 있다 */
   retired: boolean;
+  title?: string;
+  backHref?: string;
+  action?: ReactNode;
 }) {
   const current = stores.find((s) => s.staffMemberId === currentId);
   const { openSheet, pending, error, sheet } = useStoreSheet(stores, current?.staffMemberId ?? 0);
@@ -26,6 +33,9 @@ export function StoreTopBar({
         onStoreClick={stores.length > 1 ? () => !pending && openSheet() : undefined}
         alarmHref="/notifications"
         hasNewAlarm={hasNewAlarm}
+        title={title}
+        backHref={backHref}
+        action={action}
       />
       {error && <Alert tone="warning">{error}</Alert>}
       {stores.length > 1 && sheet}

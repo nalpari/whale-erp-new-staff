@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { Alert, BottomNav, MaskIcon, PageHeader } from "@/components/common";
+import { Alert, BottomNav, MaskIcon } from "@/components/common";
 import { StoreHeader } from "../store-header";
 import { PRESS } from "@/components/common/theme";
 import { requestsLoadFailure } from "@/lib/affiliation-requests";
@@ -39,15 +39,12 @@ export default async function CheckInPage() {
       ? ((await getMyProfileForExtra("profile-check-in"))?.locationConsent.pausedAt ?? null)
       : null;
   // 근무지는 홈 · 근무와 같은 머리줄에서 보이고 바꾼다(2026-11-24 사용자 지정)
+  // 근무지는 홈 · 근무와 같은 머리줄에서 보이고 바꾼다(2026-11-24 사용자 지정)
   const header = (
-    <>
-      <div className="bg-white px-[24px] pt-[20px]">
-        <StoreHeader />
-      </div>
-    <PageHeader
-      underBar
-      title="출퇴근"
-      action={
+    <div className="bg-white px-[24px] pt-[16px] pb-[8px]">
+      <StoreHeader
+        title="출퇴근"
+        action={
         // 데모 check-in — 머리줄 오른쪽은 출퇴근 현황으로 가는 버튼이다. 시계 아이콘만으로는 버튼인지 · 어디로 가는지 몰라 글자 알약
         // 「출퇴근 현황 ›」으로 바꿨다(2026-11-20 사용자 지정). 보이는 알약은 36px, 누르는 칸은 위아래를 넓혀 44px.
         <Link href="/attendance" transitionTypes={["nav-forward"]} className="group -my-[4px] flex min-h-[44px] shrink-0 items-center">
@@ -60,8 +57,8 @@ export default async function CheckInPage() {
           </span>
         </Link>
       }
-    />
-    </>
+      />
+    </div>
   );
 
   return (
