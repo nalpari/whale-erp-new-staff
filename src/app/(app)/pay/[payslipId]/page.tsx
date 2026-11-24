@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Alert, Badge, Card, HeroCard, Notice, PageHeader } from "@/components/common";
+import { Alert, Badge, Button, Card, HeroCard, Notice, PageHeader } from "@/components/common";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
 import {
   formatWon,
@@ -39,7 +39,22 @@ export default async function PayslipPage({ params, searchParams }: PageProps<"/
   const backHref = raw.from === "notifications" ? "/notifications" : raw.from === "sites" && store ? `/pay?from=sites&store=${store}` : "/pay";
   const payslipId = parsePayslipId((await params).payslipId);
   const payslip = payslipId === null ? null : await getPayslip(payslipId);
-  if (!payslip) notFound();
+  if (!payslip) {
+    // 상세를 연 사이 명세서가 지워져 PDF 받기도 상세도 404면, 받기 실패 안내를 보이고 목록으로 돌아갈 길을 둔다
+    // (기본 404 화면은 영어이고 돌아갈 길이 없다).
+    const missingAlert = payslipDownloadAlert(raw.download);
+    if (!missingAlert) notFound();
+    return (
+      <PayFrame nav={false} header={<PageHeader title="급여명세서" backHref={backHref} />}>
+        <Alert tone="warning">
+          <p>{missingAlert}</p>
+        </Alert>
+        <Button variant="outline" href={backHref}>
+          목록으로
+        </Button>
+      </PayFrame>
+    );
+  }
 
   // 한글 이름 하나 때문에 화면 전체를 오류로 만들지 않는다. 못 받으면 labelOf 가 값 그대로 보인다.
   const employmentTypes = await getEnumOrEmpty("EmploymentType");

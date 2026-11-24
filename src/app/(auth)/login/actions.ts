@@ -32,7 +32,7 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
   // 설치형 앱 안이면 앱이 준 기기 식별자를 쓰고 쿠키에도 남긴다(계획 결정 9) — 앱을 다시 깔아도 같은 기기로 보여, 다시 로그인하면
   // 그 기기의 이전 접속이 끊긴다. 가입은 쿠키만 읽으므로 앱 안에서 로그인한 뒤에야 같은 값을 쓴다(그 전 가입은 쿠키 UUID).
   // 앱 밖 · 옛 앱 · 값을 받기 전 제출이면 쿠키 값을 쓴다(처음에는 UUID, 앱 안에서 한 번 로그인한 뒤에는 그 해시).
-  if (appDeviceId) await saveDeviceId(appDeviceId);
+  // 쿠키는 로그인이 성공한 뒤에만 바꾼다(비밀번호가 틀리거나 api 가 실패하면 그대로 둔다).
 
   let result;
   try {
@@ -61,6 +61,7 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
   // 저장은 try 밖이다. 여기서 나는 오류는 api 응답 모양이 바뀐 결함이라 연결 실패로 숨기지 않고 오류 화면으로 보낸다.
   // 쿠키 만료는 api 가 준 refreshTokenExpiresAt(30일 · 7일)을 그대로 쓴다.
   await saveLogin(result);
+  if (appDeviceId) await saveDeviceId(appDeviceId);
   // 아이디 저장 — api 와 같이 소문자로 둔다.
   await saveLoginEmail(saveEmail ? email.toLowerCase() : null);
   // 보던 화면으로 돌려보낸다(WHALEERP-166). 폼 값은 누구나 고쳐 보낼 수 있어 화면에서 거른 값도 다시 거른다.
