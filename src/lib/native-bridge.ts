@@ -72,37 +72,58 @@ function isBridge(value: unknown): value is Bridge {
  * 준비 이벤트 전에는 부를 수 없다. 플러그인(flutter_inappwebview_android)은 준비 이벤트를 보낼 때
  * `_platformReady = true` 를 남기므로 그것까지 본다. iOS 는 이 표시를 남기지 않지만 `callHandler` 가 보이면 부를 수 있다.
  */
+/** 준비 이벤트를 받은 브리지. 이벤트는 한 번만 오므로 기억해 두고, 다음 대기에서도 준비된 것으로 본다. */
+const readyByEvent = new WeakSet<object>();
+
+/** 루트 레이아웃 `<head>` 의 인라인 스크립트(`BRIDGE_READY_TRACKER_SCRIPT`)가 준비 이벤트를 받을 때마다 그때의 브리지 객체를 담는 곳(브리지가 바뀌면 새 이벤트로 덮는다). */
+export const BRIDGE_READY_FLAG = "__whaleBridgeReady";
+
+/**
+ * 페이지 맨 앞에서 준비 이벤트를 받아 두는 스크립트. 이 모듈은 출퇴근 화면을 열 때에야 불러와져, 그 전에 이미 지나간 준비 이벤트를
+ * 받지 못한다(이벤트는 한 번만 온다). 레이아웃 `<head>` 에 넣어 문서를 읽는 즉시 듣게 한다.
+ */
+export const BRIDGE_READY_TRACKER_SCRIPT = `window.addEventListener(${JSON.stringify(BRIDGE_READY_EVENT)},function(){window.${BRIDGE_READY_FLAG}=window.flutter_inappwebview});`;
+
 function isReadyBridge(value: unknown, userAgent: string): value is Bridge {
   if (!isBridge(value)) return false;
   if (!/\bAndroid\b/.test(userAgent)) return true;
+  if (readyByEvent.has(value)) return true;
+  // 이벤트를 받았을 때의 그 브리지일 때만(브리지가 바뀌었으면 새 것은 다시 준비를 확인한다).
+  if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>)[BRIDGE_READY_FLAG] === value) return true;
   return "_platformReady" in value && value._platformReady === true;
 }
 
 /**
  * 브리지를 기다린다. 앱 밖이면 바로 null, 앱 안이면 준비 이벤트를 [timeoutMs] 까지 기다리고 못 받으면 null.
  * 앱은 페이지 스크립트보다 먼저 준비되는 게 보통이지만, 첫 화면에서 바로 부르면 이벤트를 기다려야 할 수 있다.
+ * [strict] 면 시간이 다 됐을 때 `callHandler` 만 보이는 반쯤 준비된 브리지(Android 준비 표시 없음)는 null 로 본다 —
+ * 「다시 시도」가 아직 부를 수 없는 브리지를 「연결됨」으로 잘못 알리지 않게.
  */
 export function waitForBridge(
   win: BridgeWindow | undefined = typeof window === "undefined" ? undefined : (window as unknown as BridgeWindow),
-  { userAgent, timeoutMs = 3000 }: { userAgent?: string; timeoutMs?: number } = {},
+  { userAgent, timeoutMs = 3000, strict = false }: { userAgent?: string; timeoutMs?: number; strict?: boolean } = {},
 ): Promise<Bridge | null> {
   const ua = userAgent ?? (typeof navigator === "undefined" ? "" : navigator.userAgent);
   if (win === undefined || !isInApp(ua)) return Promise.resolve(null);
   if (isReadyBridge(win.flutter_inappwebview, ua)) return Promise.resolve(win.flutter_inappwebview);
   return new Promise((resolve) => {
-    const finish = (reason: string) => {
+    const finish = (reason: string, byEvent: boolean) => {
       clearTimeout(timer);
       win.removeEventListener(BRIDGE_READY_EVENT, onReady);
       const bridge = win.flutter_inappwebview;
+      if (byEvent && isBridge(bridge)) readyByEvent.add(bridge);
       // 이벤트가 왔거나 시간이 다 됐으면 callHandler 가 있는 것만으로 부른다(준비 표시를 못 받아도 시도는 해 본다).
-      if (isBridge(bridge)) return resolve(bridge);
+      // strict 면 시간이 다 됐을 때는 준비 표시까지 있어야 한다.
+      if (strict && !byEvent ? isReadyBridge(bridge, ua) : isBridge(bridge)) return resolve(bridge as Bridge);
       // 앱 안인데 브리지가 없다 = 앱 쪽 고장. 앱 밖(조용한 null)과 구분되게 남긴다.
+      // strict 로 떨어진 것(브리지는 있지만 준비 표시가 없음)은 고장이 아니라 아직 준비 중이라 따로 적는다.
       const version = appVersionOf(ua);
-      console.error(`[native-bridge] 앱(${version}) 안인데 브리지가 없다: ${reason}`);
+      const state = isBridge(bridge) ? "브리지는 있지만 준비 표시가 없음(strict)" : "브리지가 없다";
+      console.error(`[native-bridge] 앱(${version}) 안인데 ${state}: ${reason}`);
       resolve(null);
     };
-    const onReady = () => finish("준비 이벤트는 왔지만 callHandler 가 없음");
-    const timer = setTimeout(() => finish(`${timeoutMs}ms 안에 준비 이벤트가 오지 않음`), timeoutMs);
+    const onReady = () => finish("준비 이벤트는 왔지만 callHandler 가 없음", true);
+    const timer = setTimeout(() => finish(`${timeoutMs}ms 안에 준비 이벤트가 오지 않음`, false), timeoutMs);
     win.addEventListener(BRIDGE_READY_EVENT, onReady);
   });
 }
@@ -119,7 +140,14 @@ export async function callNative<T>(
   args: unknown[],
   isData: (data: unknown) => data is T,
   bridge?: Bridge | null,
-  { timeoutMs = 10_000 }: { timeoutMs?: number } = {},
+  {
+    timeoutMs = 10_000,
+    describeMalformed = (raw) => raw,
+  }: {
+    timeoutMs?: number;
+    /** 약속과 다른 답을 콘솔에 남길 모양. 기본은 답 원본. 개인정보(좌표 등)가 담기는 기능은 원본 대신 어긋난 칸 이름만 넘긴다. */
+    describeMalformed?: (raw: unknown) => unknown;
+  } = {},
 ): Promise<BridgeResult<T>> {
   const target = bridge === undefined ? await waitForBridge() : bridge;
   if (target === null) return { ok: false, error: "unavailable" };
@@ -144,7 +172,17 @@ export async function callNative<T>(
     return { ok: false, error: "failed" };
   }
   const result = readBridgeResult(raw, isData);
-  if (!result.ok && result.error === "malformed") console.error(`[native-bridge] ${name} 의 답이 약속과 다르다`, raw);
+  if (!result.ok && result.error === "malformed") {
+    // 기록을 만들다 예외가 나도 결과(malformed)는 그대로 돌려준다 — 위치 읽기 전체가 실패로 번지지 않게.
+    let described: unknown;
+    try {
+      described = describeMalformed(raw);
+    } catch {
+      // 원본은 좌표가 담길 수 있어 남기지 않는다. 예외 메시지에도 좌표가 담길 수 있어 고정 표식만 남긴다.
+      described = { describeFailed: true };
+    }
+    console.error(`[native-bridge] ${name} 의 답이 약속과 다르다`, described);
+  }
   return result;
 }
 
@@ -218,10 +256,39 @@ export function isAppLocation(data: unknown): data is AppLocation {
   );
 }
 
+const APP_LOCATION_FIELDS = ["status", "latitude", "longitude", "accuracyMeters", "ageSeconds", "mocked", "precise", "reason"] as const;
+
+/**
+ * `measureLocation` 답이 약속과 다를 때 콘솔에 남길 것. 답에는 위도 · 경도가 있어 원본도 값도 남기지 않는다 — 오류 수집 서비스를
+ * 붙이면 좌표가 서버로 가기 때문이다(ATT-05, 2026-11-23 재영 #90 리뷰). 고정 오류 코드와, 약속 문서에 있는 칸 가운데 모양이
+ * 틀린 칸 이름만 남긴다. 약속에 없는 칸은 이름도 남기지 않는다(이름에 값이 들어 있을 수 있다).
+ */
+export function appLocationProblems(raw: unknown): { code: "measureLocation-malformed"; fields: string[] } {
+  const code = "measureLocation-malformed" as const;
+  if (typeof raw !== "object" || raw === null || !("ok" in raw)) return { code, fields: ["(답 모양)"] };
+  if (raw.ok !== true) return { code, fields: ["ok", "error"] };
+  if (!("data" in raw) || typeof raw.data !== "object" || raw.data === null) return { code, fields: ["data"] };
+  const d = raw.data as Record<string, unknown>;
+  const checks: Record<(typeof APP_LOCATION_FIELDS)[number], boolean> = {
+    status: d.status === "ok" || d.status === "denied" || d.status === "unavailable",
+    latitude: d.status !== "ok" || (isFiniteNumber(d.latitude) && d.latitude >= -90 && d.latitude <= 90),
+    longitude: d.status !== "ok" || (isFiniteNumber(d.longitude) && d.longitude >= -180 && d.longitude <= 180),
+    accuracyMeters: d.status !== "ok" || d.accuracyMeters === null || isFiniteNumber(d.accuracyMeters),
+    ageSeconds: d.status !== "ok" || (isFiniteNumber(d.ageSeconds) && d.ageSeconds >= 0),
+    mocked: d.status !== "ok" || typeof d.mocked === "boolean",
+    precise: d.status !== "ok" || d.precise === null || typeof d.precise === "boolean",
+    reason: d.status !== "unavailable" || LOCATION_UNAVAILABLE_REASONS.includes(d.reason as string),
+  };
+  return { code, fields: APP_LOCATION_FIELDS.filter((field) => !checks[field]) };
+}
+
 /**
  * 앱이 위치를 새로 한 번 재어 좌표와 모의 위치 여부를 같은 측정값에서 함께 돌려준다(계획 결정 8). 권한 창 · 안내는 앱이 띄운다.
- * 부작용이 없어 다시 불러도 된다(위치를 한 번 더 잴 뿐).
+ * 부작용이 없어 다시 불러도 된다(위치를 한 번 더 잴 뿐). 약속과 다른 답은 좌표 없이 어긋난 칸 이름만 남긴다(appLocationProblems).
  */
 export function measureLocation(bridge?: Bridge | null): Promise<BridgeResult<AppLocation>> {
-  return callNative("measureLocation", [], isAppLocation, bridge, { timeoutMs: MEASURE_LOCATION_TIMEOUT_MS });
+  return callNative("measureLocation", [], isAppLocation, bridge, {
+    timeoutMs: MEASURE_LOCATION_TIMEOUT_MS,
+    describeMalformed: appLocationProblems,
+  });
 }
