@@ -71,6 +71,12 @@ test("미가입 4대보험 줄도 0 아닌 금액이면 보인다 — 0 원 · �
   assert.equal(isItemShown(item("NATIONAL_PENSION", "BASIC", { isEntered: false, adjustedAmount: 45_000 }), false, none), false);
 });
 
+test("가입 여부 칸이 없는 응답(api 를 되돌린 경우)은 4대보험 줄을 숨기지 않는다", () => {
+  const missing = {} as { isHealthPensionInsured: boolean; isEmploymentInjuryInsured: boolean };
+  assert.equal(isItemShown(item("NATIONAL_PENSION", "BASIC", { isEntered: false }), false, missing), true);
+  assert.equal(isItemShown(item("EMPLOYMENT_INSURANCE", "BASIC", { isEntered: true, adjustedAmount: 0 }), false, missing), true);
+});
+
 test("줄 금액은 조정 값 → 계산 값 → 0", () => {
   assert.equal(itemAmount(item("A", "EARNING", { adjustedAmount: 0, calculatedAmount: 500 })), 0);
   assert.equal(itemAmount(item("A", "EARNING", { calculatedAmount: 500 })), 500);
