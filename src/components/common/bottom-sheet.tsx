@@ -18,6 +18,7 @@ export function BottomSheet({
   heading,
   description,
   closeLabel = "닫기",
+  initialFocus,
   children,
 }: {
   open: boolean;
@@ -31,16 +32,22 @@ export function BottomSheet({
   /** 글자면 \n 에서 줄을 바꾼다. 굵게 할 곳은 <strong> 으로 넘긴다(데모 <b>). */
   description?: ReactNode;
   closeLabel?: string;
+  /** "close" 면 열릴 때 첫 포커스를 닫기 버튼에 둔다 — 위험 동작 버튼이 먼저 포커스를 받아 엔터 한 번에 눌리는 것을 막는다(탈퇴 확인). 기본은 브라우저 동작. */
+  initialFocus?: "close";
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
+    if (open && !dialog.open) {
+      dialog.showModal();
+      if (initialFocus === "close") closeRef.current?.focus();
+    }
     if (!open && dialog.open) dialog.close();
-  }, [open]);
+  }, [open, initialFocus]);
 
   return (
     <dialog
@@ -67,6 +74,7 @@ export function BottomSheet({
         <div className="flex flex-col gap-[13px] pt-[20px]">
           {children}
           <button
+            ref={closeRef}
             type="button"
             onClick={onClose}
             className="flex min-h-[52px] items-center justify-center rounded-[14px] text-[15px] font-semibold text-staff-text-sub transition-colors duration-150 ease-out active:bg-staff-primary-inactive"

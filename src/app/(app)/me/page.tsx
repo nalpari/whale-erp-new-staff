@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { Alert, BottomNav } from "@/components/common";
 import { getMyInvitations } from "@/lib/my-invitations";
@@ -107,6 +108,10 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
 
         {/* 로그아웃은 맨 아래(S-PHHICH 확정). 자주 누를 것이 아니고 실수로 눌리면 곤란해서다. */}
         <LogoutSheet />
+        {/* 회원 탈퇴(WHALEERP-770) — 로그아웃 아래 작은 글자 링크. 실수로 눌리지 않게 눈에 덜 띄게 둔다. */}
+        <Link href="/me/withdrawal" className="self-center text-[13px] text-staff-text-muted underline underline-offset-2">
+          회원 탈퇴
+        </Link>
       </div>
       {toast && <ChangedToast>{toast}</ChangedToast>}
       <div className="sticky bottom-0 mt-auto">

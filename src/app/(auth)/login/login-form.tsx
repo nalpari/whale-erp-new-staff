@@ -26,12 +26,14 @@ export function LoginForm({
   expired,
   reset,
   unavailable,
+  withdrawn,
   next,
   savedEmail,
 }: {
   expired: boolean;
   reset: boolean;
   unavailable: boolean;
+  withdrawn: boolean;
   next: string | null;
   savedEmail: string | null;
 }) {
@@ -137,6 +139,10 @@ export function LoginForm({
         ) : reset ? (
           <Notice>
             비밀번호를 바꿨습니다. <strong>새 비밀번호로 로그인해 주세요.</strong> 다른 기기는 모두 로그아웃되었습니다.
+          </Notice>
+        ) : withdrawn ? (
+          <Notice>
+            <strong>탈퇴가 완료되었습니다.</strong>
           </Notice>
         ) : null}
       </AuthScreen>
