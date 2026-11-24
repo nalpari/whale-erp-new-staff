@@ -92,6 +92,17 @@ export const TAX_PROFILE_MISSING = "이 근무지에 낸 신고 정보가 없어
 export const TAX_PROFILE_READ_ONLY = "퇴직한 근무지라 신고 정보는 조회만 할 수 있습니다";
 
 /**
+ * 신고 정보 빈 상태의 제목 · 덧말 — api `expired`(퇴직일로부터 3년이 지남, 운영 정책 RET-01 · TAX-08)면 보관 기간이 지났다는
+ * 사실을 알린다. 「입력한 신고 정보가 없습니다」는 넣은 적이 있는 직원에게 사실과 달라서다(WHALEERP-772 B안, 2026-11-24 재영).
+ * 「지웠습니다」가 아니라 「보관하지 않습니다」 — expired 는 퇴직일로만 정해 넣은 적 없이 기한이 지난 경우도 들어서다.
+ * `expired` 가 없는 옛 api 응답은 넣은 적 없음으로 본다.
+ */
+export function taxProfileEmptyOf(tax: { expired?: boolean }): { expired: boolean; title: string; detail: string | null } {
+  if (tax.expired === true) return { expired: true, title: "신고 정보 보관 기간이 지났습니다", detail: "퇴직 후 3년이 지나 이 근무지의 신고 정보를 보관하지 않습니다." };
+  return { expired: false, title: "입력한 신고 정보가 없습니다", detail: null };
+}
+
+/**
  * 저장 전 조회(`GET`)의 응답 중 막기 판단에 쓰는 칸. `editable` 은 false 일 때만 막는다 — 칸이 없는 옛 api 와 섞여 배포돼도
  * 재직 근무지가 막히지 않게(그때 퇴직한 근무지는 api 의 409 가 막는다).
  */

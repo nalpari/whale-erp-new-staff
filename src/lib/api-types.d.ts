@@ -10227,7 +10227,7 @@ export interface components {
             createdByName: string | null;
             /**
              * Format: date-time
-             * @description 최종수정 일시 — 관리자 [수정] 때만. 고친 적이 없으면 null(상세에 줄이 없다). 상태 변경은 바꾸지 않는다 (WHALEERP-698)
+             * @description 최종수정 일시 — 관리자 [수정] 때만. 고친 적이 없으면 null(상세는 줄을 두고 「-」로 보인다). 상태 변경은 바꾸지 않는다 (WHALEERP-698)
              */
             modifiedAt: string | null;
             /** @description 최종수정 관리자 이름 — createdByName 과 같은 규칙 */
@@ -11053,7 +11053,13 @@ export interface components {
              *     false 면 고치기 · 처음 넣기(`PUT`)가 409 STAFF_RETIRED 다.
              */
             editable: boolean;
-            /** @description 이 소속에 낸 신고 정보. 아직 내지 않았으면 null */
+            /**
+             * @description 보존 기간(퇴직 + 3년, 운영 정책 RET-01 · TAX-08)이 지났는지 — 퇴직일이 파기 배치와 같은 기준(`retiredBefore`)보다 앞이면 true 이고
+             *     그때 taxProfile 은 늘 null 이다(배치가 이미 지웠든 배치 전이든). 화면은 이것으로 「넣은 적 없음」과 「보존 기간이 지나 지움」을
+             *     가른다(WHALEERP-772). 퇴직하지 않았거나 기한 안이면 false
+             */
+            expired: boolean;
+            /** @description 이 소속에 낸 신고 정보. 아직 내지 않았거나 보존 기간이 지났으면(expired) null */
             taxProfile: components["schemas"]["MyTaxProfileDto"] | null;
         };
         SaveMyTaxProfileDto: {
@@ -11791,9 +11797,9 @@ export interface components {
             pendingActionCount: number;
         };
         HomeStoreTableDto: {
-            /** @description 운영 점포 전체 수 */
+            /** @description 운영 점포 수 — 본사 점포는 세지 않는다(점포 카드와 같다, 운영 정책 SCP-09 · WHALEERP-751) */
             total: number;
-            /** @description 운영 점포 모두 — 확인 필요 많은 순, 같으면 점포명(HOM-06) */
+            /** @description 운영 점포 모두 — 본사 점포 줄이 맨 위, 나머지는 확인 필요 많은 순, 같으면 점포명(HOM-06) */
             items: components["schemas"]["HomeStoreRowDto"][];
         };
         HomeSummaryResponseDto: {
@@ -11838,6 +11844,11 @@ export interface components {
             asOf: string;
             /** @description 플랫폼 계정이면 true — items 는 빈 배열 */
             platform: boolean;
+            /**
+             * @description items 로 센 건 가운데 미운영 점포의 건수 — 점포별 현황(운영 점포만, HOM-06)에는 없고 확인 필요에만 센다(HOM-07).
+             *     문의 답변완료는 점포가 없어 넣지 않는다(그 줄의 count 를 읽는다). 플랫폼 빈 결과는 0(WHALEERP-759)
+             */
+            notOperatingCount: number;
             /** @description 건수가 0인 유형과 권한이 없는 유형은 뺀다. 순서는 갱신 예정 → 계약 → 직원 → 문의 → TO-DO */
             items: components["schemas"]["HomePendingItemDto"][];
         };
