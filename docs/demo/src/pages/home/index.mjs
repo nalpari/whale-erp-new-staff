@@ -14,7 +14,7 @@ import { bottomNav, bottomSheet, button, empty, iconTile, img, infoRow, maskIcon
 const STATES = [
   { id: "today", label: "평상시", note: "오늘 근무 있음" },
   { id: "todo", label: "처리할 일 쌓임", note: "계약·TO-DO·알림" },
-  { id: "off", label: "오늘 휴무", note: "근무 없음" },
+  { id: "off", label: "오늘 예정 없음", note: "근무스케줄 없음" },
   { id: "empty", label: "가입 직후", note: "서명 대기 계약서만" },
   { id: "no-site", label: "근무지 없음 · 계약 전", note: "거절·만료·종료 뒤" },
   { id: "retired", label: "퇴직 후", note: "연결된 근무지 없음" },
@@ -35,36 +35,43 @@ const WEEK_HEAD = [work("09-07", "월", 7, "09–18"), work("09-08", "화", 8, "
 const WEEK_TAIL = [work("09-11", "금", 11, "13–22"), off("09-12", "토", 12), work("09-13", "일", 13, "10–19")];
 const weekWith = (today) => [...WEEK_HEAD, today, ...WEEK_TAIL];
 
-// 묶음 사이 20(Figma 02.Main), 하단 메뉴와는 24.
-const sections = (children) => `<div class="flex flex-col gap-[20px]">${children}</div>`;
+// 묶음 사이 12 — 근무 · 출퇴근 · 급여 탭과 같다(2026-11-24, 머리줄 아래 20 · 카드 사이 16 이 넓어 보였다). 하단 메뉴와는 24.
+const sections = (children) => `<div class="flex flex-col gap-[12px]">${children}</div>`;
 
 // 근무지 선택기가 없는 상태의 머리줄. TopBar 와 같은 자리·크기로 로고 · 알림 버튼(있을 때만)을 둔다.
 const plainTopBar = (bell) =>
-  `<header class="flex min-h-[44px] w-full items-center gap-[10px]"><span class="relative size-[36px] shrink-0">${img("logo-whale-small.svg", 36.193, 27.446, "absolute top-[8.75px] left-0")}${img(
+  `<header class="flex min-h-[44px] w-full items-center gap-[10px]"><span aria-hidden="true" class="relative size-[36px] shrink-0 -translate-y-[4.4px]">${img("logo-whale-small.svg", 36.193, 27.446, "absolute top-[8.75px] left-0")}${img(
     "logo-stars-small.svg",
     17.494,
     12.668,
     "absolute top-0 left-[5.43px]",
   )}</span><p class="min-w-0 flex-1"></p>${
     bell
-      ? `<a href="${NOTIFY}" aria-label="알림" class="flex size-[44px] shrink-0 items-center justify-center rounded-[14px] border border-[#e9edf3] bg-white transition-colors duration-150 ease-out active:bg-staff-info-bg">${img("bell.svg", 21, 21, "-scale-y-100")}</a>`
+      ? `<a href="${NOTIFY}" aria-label="알림" class="relative -mr-[10px] flex size-[44px] shrink-0 items-center justify-center rounded-full transition-colors duration-150 ease-out active:bg-staff-info-bg">${img("bell.svg", 23, 23, "-scale-y-100")}</a>`
       : ""
   }</header>`;
 
 // 오늘의 근무(Figma node 9:152). 출근 전이라 버튼은 출근하기(HOME-3).
 // #DBE5FF·#BCCFFF 는 남보라 위의 흐린 글자, 그림자는 남보라를 옅게 깐 것이다.
+// 안쪽 20, 시각과 「근로 · 휴게」 줄은 한 묶음 — 머리 줄 → 시각 12 · 묶음 → 버튼 16(보이는 글자 기준). 휴게를 뺀 시간이라 「근로」(2026-11-24)
 const todayCard = ([start, end]) =>
-  `<section aria-label="오늘 근무" class="flex flex-col gap-[12px] rounded-[18px] bg-staff-primary p-[24px] text-white shadow-[0_9px_23px_rgba(49,93,245,0.15)]"><p class="text-[12px] text-[#dbe5ff]">오늘 근무</p><p class="flex items-center gap-[4px] text-[30px] leading-[1.15] font-bold tracking-[-0.025em]">${start}<span class="w-[23px] text-center text-[14px] font-normal text-[#bccfff]">—</span>${end}</p><p class="flex items-center gap-[6px] text-[12px] text-[#dbe5ff]">휴게 60분 <span class="text-[11px]">·</span> 총 8시간 근무</p><a href="${CHECK_IN}" class="flex min-h-[48px] items-center justify-center gap-[8px] rounded-[12px] bg-white px-[18px] text-[15px] font-bold text-staff-primary transition-colors duration-150 ease-out active:bg-staff-primary-inactive">출근하기${img(
+  `<section aria-label="오늘 근무" class="flex flex-col rounded-[18px] bg-staff-primary p-[20px] leading-[1.5] text-white shadow-[0_9px_23px_rgba(49,93,245,0.15)]"><div class="flex items-center justify-between"><p class="text-[12px] text-[#dbe5ff]">오늘 근무</p></div><div class="flex flex-col pt-[6px]"><p class="flex items-center gap-[4px] text-[30px] leading-[1.15] font-bold">${start}<span class="w-[23px] text-center text-[14px] font-normal text-[#bccfff]">—</span>${end}</p><p class="flex items-center gap-[6px] text-[12px] text-[#dbe5ff]">근로 8시간 <span class="text-[11px]">·</span> 휴게 60분</p></div><div class="pt-[14px]"><a href="${CHECK_IN}" class="flex min-h-[48px] items-center justify-center gap-[8px] rounded-[12px] bg-white px-[18px] text-[15px] font-bold text-staff-primary transition-colors duration-150 ease-out active:bg-staff-primary-inactive">출근하기${img(
     "arrow-right-brand.svg",
     14,
     12,
-  )}</a></section>`;
+  )}</a></div></section>`;
 
-// 이번 주 근무(Figma node 9:242). 월~일, 한국 표준시 기준(화면 안내 줄은 뺐다). 처음 고른 날은 오늘.
+// 예정된 근무가 없는 날 — 보라 카드 자리가 비었다는 뜻으로 남보라 점선 상자, 왼쪽 옅은 남보라 달력 칸, 제목은 보조 글자색.
+// 앱은 근무스케줄이 없다는 것만 알아 「휴무」라고 단정하지 않는다(2026-11-24). 높이는 낮게 — 위아래 12 · 좌우 16(테두리 1px 를 빼 11 · 15)
+const offCard = (next) =>
+  `<section aria-label="오늘 근무" class="flex flex-col gap-[12px] rounded-[18px] border border-dashed border-[#bccfff] bg-white px-[15px] py-[11px] leading-[1.5]"><div class="flex items-center gap-[12px]"><span aria-hidden="true" class="flex size-[36px] shrink-0 items-center justify-center rounded-[12px] bg-[#eef2ff] text-staff-primary">${maskIcon("calendar-line.svg", 20)}</span><div class="flex min-w-0 flex-col"><p class="text-[15px] font-bold text-staff-text-sub">오늘 예정된 근무가 없습니다</p><p class="text-[12px] text-staff-text-sub">다음 근무 · ${next}</p></div></div></section>`;
+
+// 이번 주 근무(Figma node 9:242). 월~일, 한국 표준시 기준. 처음 고른 날은 오늘. 머리 오른쪽은 날짜 범위 대신 「전체 보기 ›」(근무 탭 달력, 2026-11-24).
+// 상자 바깥에서 칸까지 · 칸 사이 모두 8(안쪽 7 + 테두리 1)
 const thisWeek = (days) =>
-  `<section class="flex flex-col gap-[13px]">${sectionTitle("이번 주 근무", {
-    right: `<span class="text-[14px] text-staff-text-sub">9/7 (월) – 9/13 (일)</span>`,
-  })}<div class="flex flex-col gap-[13px] rounded-[18px] border border-staff-border-light bg-white px-[12px] pt-[16px] pb-[12px]">${weekSelector({
+  `<section class="flex flex-col gap-[12px]">${sectionTitle("이번 주 근무", {
+    right: `<a href="${page("work")}" class="-my-[13px] flex min-h-[44px] items-center text-[12px] text-staff-text-sub">전체 보기${img("chevron-right-small.svg", 11, 11, "-scale-y-100")}</a>`,
+  })}<div class="flex flex-col gap-[8px] rounded-[18px] border border-staff-border-light bg-white p-[7px]">${weekSelector({
     days,
     selected: "09-10",
   })}</div></section>`;
@@ -78,14 +85,15 @@ const todoSection = (count, children) =>
     right: `<a href="${page("work", "todo")}" class="-my-[13px] flex min-h-[44px] items-center gap-[2px] text-[12px] text-staff-text-sub">전체 보기${img("chevron-right-small.svg", 11, 11, "-scale-y-100")}</a>`,
   })}<div class="rounded-[18px] border border-staff-border-light bg-white px-[16px]">${children}</div></section>`;
 
-// 근무 정보(Figma 「나의 근무 정보」 줄 모양). 요약만 보이고 자세한 것은 각 화면에서 본다.
+// 근무 정보(Figma 「나의 근무 정보」 줄 모양). 요약만 보이고 자세한 것은 각 화면에서 본다. 개발 화면 순서(급여명세서 · 근무스케줄 · 출퇴근 현황),
+// 아이콘 바탕은 「이번 주 근무」 날짜 칸과 같은 옅은 남보라(홈 전용 iconTile soft, 2026-11-24)
 const workInfo = () =>
-  `<section class="flex flex-col gap-[12px]">${sectionTitle("근무 정보")}${infoRow({ href: page("work"), icon: "menu-schedule.svg", title: "근무스케줄", description: "이번 달 근무 12일" })}${infoRow({
-    href: page("attendance"),
-    icon: "menu-attendance.svg",
-    title: "출퇴근 현황",
-    description: "이번 달 출근 9회 · 지각 0회",
-  })}${infoRow({ href: page("pay"), icon: iconTile("payslip-line.svg", 33), title: "급여명세서", description: "2026년 8월분 받음" })}</section>`;
+  `<section class="flex flex-col gap-[12px]">${sectionTitle("근무 정보")}${infoRow({ href: page("pay"), icon: iconTile("payslip-line.svg", 33, "soft"), title: "급여명세서", description: "2026년 8월분 받음" })}${infoRow({
+    href: page("work"),
+    icon: iconTile("nav-work.svg", 33, "soft"),
+    title: "근무스케줄",
+    description: "이번 달 근무 12일",
+  })}${infoRow({ href: page("attendance"), icon: iconTile("nav-attendance.svg", 33, "soft"), title: "출퇴근 현황", description: "이번 달 출근 9회 · 지각 0회" })}</section>`;
 
 // 날인 대기 계약서 카드. 누르면 그 계약서로 간다.
 const contractCard = (title, sub) =>
@@ -176,7 +184,7 @@ const CONTENT = {
 
   off: () =>
     sections(
-      `<div class="flex flex-col gap-[2px] rounded-[18px] border border-staff-border-light bg-staff-info-bg px-[20px] py-[18px]"><p class="text-[16px] font-bold">오늘은 휴무입니다</p><p class="text-[12px] text-staff-text-sub">다음 근무 · 9월 11일 (금) 13:00 – 22:00</p></div>` +
+      offCard("9월 11일(금) 13:00 – 22:00") +
         thisWeek(weekWith(off("09-10", "목", 10))) +
         workInfo(),
     ),
@@ -214,10 +222,9 @@ const header = (view) =>
     : plainTopBar(view === "retired" || view === "no-site");
 
 // 하단 메뉴는 모든 상태에서 그대로(HOME-5). 화면 아래에 붙여 둔다.
+// 개발 화면 홈: 좌우 24 · 위 20 · 아래 24, 머리줄과 묶음 사이도 12(2026-11-24)
 const screen = (view) =>
-  `<div class="flex flex-1 flex-col gap-[24px] leading-[1.5]"><main class="flex flex-1 flex-col px-[22px] pt-[20px]">${header(
-    view,
-  )}<div class="h-[20px]"></div>${CONTENT[
+  `<div class="flex flex-1 flex-col leading-[1.5]"><main class="flex flex-1 flex-col gap-[12px] px-[24px] pt-[20px] pb-[24px]">${header(view)}${CONTENT[
     view
   ]()}</main><div class="sticky bottom-0 mt-auto">${bottomNav("home")}</div></div>`;
 

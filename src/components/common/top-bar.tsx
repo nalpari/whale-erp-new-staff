@@ -1,47 +1,115 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { MaskIcon } from "./icon";
 
-// Figma 02.Main 머리줄(node 8:53): 작은 로고(36px) · 점포 이름 버튼(15px bold + 아래 꺾쇠) · 알림 버튼.
-// onStoreClick 이 없으면(근무지가 하나 · 없음) 꺾쇠를 그리지 않는다(#314, 2026-10-23 재영).
-// 알림 버튼은 흰 바탕 · #E9EDF3 테두리 · radius 14 · 44px, 새 알림이 있으면 오른쪽 위 8px 빨간 점(#C24242).
-// 두 색은 이 버튼에만 나와 토큰으로 두지 않는다. 아이콘은 Figma 가 뒤집어 내보내 -scale-y-100 으로 세운다.
+// 근무지 머리줄 — 홈 · 근무 · 출퇴근 탭이 같이 쓴다(2026-11-24 사용자 지정, 배달 앱 주소 머리줄을 본뜸).
+//   홈(title 없음): 작은 고래 로고 · 점포 동그라미 · 근무지 이름(17px bold) + 꺾쇠 · 오른쪽 알림 종
+//   탭 화면(title): 첫 줄 화면 제목(22px bold) · 알림 종, 둘째 줄 근무지 이름(15px bold) + 꺾쇠 · 오른쪽 끝 action
+// onStoreClick 이 없으면(근무지가 하나 · 없음 · 출퇴근 화면) 버튼 대신 글자로, 꺾쇠 없이 그린다(#314, 2026-10-23 재영).
+// 알림 종은 테두리 상자 없이 아이콘만(누르는 칸 44px), 새 알림이 있으면 오른쪽 위 8px 빨간 점(#C24242 — 이 점에만 나와 토큰으로 두지 않는다).
+// 아이콘은 Figma 가 뒤집어 내보내 -scale-y-100 으로 세운다.
+/** 근무지 줄의 점포 표시 — 흰 바탕 · 1px 테두리 동그라미(28px) 안 먹색 점포 아이콘(머리줄 · 출퇴근 현황 · 근무지 선택 시트가 같이 쓴다) */
+export function StoreMark() {
+  return (
+    <span aria-hidden className="flex size-[28px] shrink-0 items-center justify-center rounded-full border border-staff-border bg-white text-staff-text">
+      <MaskIcon src="/icons/store-line.svg" size={15} />
+    </span>
+  );
+}
+
 export function TopBar({
   store,
   onStoreClick,
   alarmHref,
   hasNewAlarm = false,
+  title,
+  backHref,
+  action,
+  titleAfter,
 }: {
-  store: string;
+  /** 근무지 — 비우면(급여처럼 근무지 필터를 따로 쓰는 탭) 근무지 줄 없이 제목 줄만 */
+  store?: string;
   onStoreClick?: () => void;
   alarmHref: string;
   hasNewAlarm?: boolean;
+  /** 탭 화면 제목 — 있으면 제목 줄 아래에 근무지 줄을 둔다 */
+  title?: string;
+  /** 이어 들어온 화면(알림에서 연 근무 정보 등)만 뒤로 가기 */
+  backHref?: string;
+  /** 근무지 줄 오른쪽 끝(출퇴근의 「출퇴근 현황 ›」) */
+  action?: ReactNode;
+  /** 제목 글자 바로 뒤(급여명세서의 안내 ⓘ) */
+  titleAfter?: ReactNode;
 }) {
+  const storeClass = `flex min-h-[44px] max-w-full min-w-0 items-center gap-[6px] font-bold text-staff-text ${title ? "text-[15px]" : "text-[17px]"}`;
+  // 바꿀 근무지가 없으면(하나뿐 · 출퇴근 화면) 누르는 버튼이 아니라 글자로 둔다 — 눌러도 아무 일 없는 「근무지 바꾸기」 버튼이 되지 않게(리뷰)
+  const storeButton =
+    store !== undefined &&
+    (onStoreClick ? (
+    <button
+      type="button"
+      onClick={onStoreClick}
+      aria-label={`근무지 바꾸기, 지금 ${store}`}
+      className={storeClass}
+    >
+      {/* 근무지임을 알리는 점포 아이콘 — 흰 바탕 · 1px 테두리 동그라미, 아이콘은 글자와 같은 먹색(2026-11-24 사용자 지정) */}
+      <StoreMark />
+      <span className="truncate">{store}</span>
+      <Image src="/icons/chevron-down.svg" alt="" width={13} height={13} className="shrink-0 -scale-y-100" />
+    </button>
+    ) : (
+      <p className={storeClass}>
+        <StoreMark />
+        <span className="truncate">{store}</span>
+      </p>
+    ));
+  const bell = (
+    <Link
+      href={alarmHref}
+      transitionTypes={["nav-forward"]}
+      aria-label={hasNewAlarm ? "알림, 새 알림 있음" : "알림"}
+      className="relative -mr-[10px] flex size-[44px] shrink-0 items-center justify-center rounded-full transition-colors duration-150 ease-out active:bg-staff-info-bg"
+    >
+      <Image src="/icons/bell.svg" alt="" width={23} height={23} className="-scale-y-100" />
+      {hasNewAlarm && <span className="absolute top-[10px] right-[11px] size-[8px] rounded-full border border-white bg-[#c24242]" />}
+    </Link>
+  );
+  if (!title)
+    return (
+      <header className="flex w-full items-center gap-[10px]">
+        {/* 홈에만 작은 고래 로고 — 첫 화면에서 앱을 알린다. 탭 화면은 제목 중심이라 두지 않는다(2026-11-24 사용자 지정) */}
+        {/* 고래 몸통(별 아래) 가운데를 점포 동그라미 · 글자 가운데에 맞춘다 — 상자 가운데로 두면 별 때문에 몸통이 4.4px 아래로 처져 보였다(2026-11-24 사용자 지정) */}
+        <span aria-hidden className="relative size-[36px] shrink-0 -translate-y-[4.4px]">
+          <Image src="/icons/logo-whale-small.svg" alt="" width={36.193} height={27.446} className="absolute top-[8.75px] left-0" />
+          <Image src="/icons/logo-stars-small.svg" alt="" width={17.494} height={12.668} className="absolute top-0 left-[5.43px]" />
+        </span>
+        <div className="min-w-0 flex-1">{storeButton}</div>
+        {bell}
+      </header>
+    );
   return (
-    <header className="flex w-full items-center gap-[10px]">
-      <span className="relative size-[36px] shrink-0">
-        <Image src="/icons/logo-whale-small.svg" alt="" width={36.193} height={27.446} className="absolute top-[8.75px] left-0" />
-        <Image src="/icons/logo-stars-small.svg" alt="" width={17.494} height={12.668} className="absolute top-0 left-[5.43px]" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <button
-          type="button"
-          onClick={onStoreClick}
-          aria-label={`점포 바꾸기, 지금 ${store}`}
-          className="flex min-h-[44px] max-w-full items-center gap-[7px] py-[10px] text-[15px] leading-[1.5] font-bold text-staff-text"
-        >
-          <span className="truncate">{store}</span>
-          {onStoreClick && <Image src="/icons/chevron-down.svg" alt="" width={15} height={15} className="-scale-y-100" />}
-        </button>
+    <header className="flex w-full flex-col">
+      <div className="flex min-h-[44px] items-center gap-[12px]">
+        {backHref && (
+          <Link href={backHref} transitionTypes={["nav-back"]} aria-label="뒤로" className="-ml-[10px] flex size-[44px] shrink-0 items-center justify-center">
+            <Image src="/icons/back.svg" alt="" width={19} height={19} className="-scale-y-100" />
+          </Link>
+        )}
+        <div className="flex min-w-0 flex-1 items-center gap-[2px]">
+          <h1 className="min-w-0 truncate text-[22px] leading-[1.4] font-bold">{title}</h1>
+          {titleAfter}
+        </div>
+        {/* 근무지 줄이 없으면 action 을 제목 줄 종 앞에 둔다 */}
+        {!storeButton && action}
+        {bell}
       </div>
-      <Link
-        href={alarmHref}
-        transitionTypes={["nav-forward"]}
-        aria-label={hasNewAlarm ? "알림, 새 알림 있음" : "알림"}
-        className="relative flex size-[44px] shrink-0 items-center justify-center rounded-[14px] border border-[#e9edf3] bg-white transition-colors duration-150 ease-out active:bg-staff-info-bg"
-      >
-        <Image src="/icons/bell.svg" alt="" width={21} height={21} className="-scale-y-100" />
-        {hasNewAlarm && <span className="absolute top-[11px] right-[12px] size-[8px] rounded-full border border-white bg-[#c24242]" />}
-      </Link>
+      {storeButton && (
+        <div className="flex items-center justify-between gap-[10px]">
+          <div className="min-w-0 flex-1">{storeButton}</div>
+          {action}
+        </div>
+      )}
     </header>
   );
 }

@@ -1,32 +1,30 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
-import { AttendanceDayCard, BottomSheet, Button, Card, DayOffRow, MaskIcon, Notice, SegmentedControl, StatusChip, WorkTimeBar, segmentTabId } from "@/components/common";
-import { EASE_OUT, FIELD } from "@/components/common/theme";
+import { useState } from "react";
+import { AttendanceDayCard, BottomSheet, Button, DayOffRow, MaskIcon, Notice, SegmentedControl, StatusChip, SubLine, WorkTimeBar, segmentTabId } from "@/components/common";
+import { EASE_OUT } from "@/components/common/theme";
 import {
-  addDays,
   barOf,
   dayLabel,
   durationLabel,
   editRows,
   flagDescription,
-  flagLine,
+  flaggedPairLines,
   flagsOf,
   flagTitle,
   isEdited,
-  MAX_PERIOD_DAYS,
   periodTotals,
-  rangeLabel,
   statusChipOf,
   summaryOf,
   weekDays,
+  weekBarRange,
   weekRows,
   type MyAttendanceDay,
 } from "@/lib/attendance-history";
 import type { MyAttendanceRecords } from "@/lib/my-attendance";
 import { Sunken, Values } from "../check-in/check-in-parts";
-import { useFieldCheck } from "@/app/_components/use-field-check";
+import { PeriodPicker } from "./period-picker";
 
 type Tab = "week" | "period";
 type Sheet = { kind: "edits" | "flag" | "missing-out"; day: MyAttendanceDay } | null;
@@ -49,7 +47,7 @@ export function AttendanceHistoryScreen({ tab, records, today, weekStart, now, f
   const close = () => setSheet(null);
 
   return (
-    <main className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[20px] pb-[24px] leading-[1.5]">
+    <main className="flex flex-1 flex-col gap-[12px] px-[22px] pt-[12px] pb-[24px] leading-[1.5]">
       <SegmentedControl
         label="기간"
         panelId={PANEL}
@@ -62,11 +60,11 @@ export function AttendanceHistoryScreen({ tab, records, today, weekStart, now, f
           if (next !== tab) router.push(`/attendance${next === "period" ? "?tab=period" : ""}${fromHome ? (next === "period" ? "&" : "?") + "back=home" : ""}`);
         }}
       />
-      <div id={PANEL} role="tabpanel" aria-labelledby={segmentTabId(PANEL, tab)} className="flex flex-1 flex-col gap-[20px]">
+      <div id={PANEL} role="tabpanel" aria-labelledby={segmentTabId(PANEL, tab)} className="flex flex-1 flex-col gap-[12px]">
         {tab === "week" ? (
           <WeekView records={records} today={today} weekStart={weekStart} now={now} onOpen={setSheet} />
         ) : (
-          <PeriodView records={records} today={today} fromHome={fromHome} />
+          <PeriodView records={records} today={today} fromHome={fromHome} onOpen={setSheet} />
         )}
       </div>
       <DaySheets sheet={sheet} onClose={close} onOpen={setSheet} />
@@ -75,6 +73,8 @@ export function AttendanceHistoryScreen({ tab, records, today, weekStart, now, f
 }
 
 function WeekView({ records, today, weekStart, now, onOpen }: { records: MyAttendanceRecords; today: string; weekStart: string; now: string; onOpen: (s: Sheet) => void }) {
+  // 한 주 카드는 같은 눈금을 쓴다 — 날마다 범위가 다르면 같은 시각이 카드마다 다른 자리에 보였다(2026-11-24 사용자 지정)
+  const range = weekBarRange(records.items.map((d) => barOf(d, new Date(now))));
   if (records.items.length === 0) return <EmptyRecords />;
   const flagCount = records.items.reduce((n, d) => n + flagsOf(d).length, 0);
   return (
@@ -91,17 +91,34 @@ function WeekView({ records, today, weekStart, now, onOpen }: { records: MyAtten
           </p>
         </div>
       )}
-      <div className="flex flex-col gap-[8px]">
+      <div className="flex flex-col gap-[12px]">
         {weekDays(weekStart, records.items).map(({ date, day }) =>
-          day ? <DayCard key={date} day={day} store={records.storeName} today={today} now={now} onOpen={onOpen} /> : <DayOffRow key={date} label={`${dayLabel(date)} · 휴무`} />,
+          day ? (
+            <DayCard key={date} day={day} today={today} now={now} range={range} onOpen={onOpen} />
+          ) : (
+            <DayOffRow key={date} label={`${dayLabel(date)} · 예정 없음`} />
+          ),
         )}
       </div>
     </>
   );
 }
 
-function DayCard({ day, store, today, now, onOpen }: { day: MyAttendanceDay; store: string; today: string; now: string; onOpen: (s: Sheet) => void }) {
-  const bar = barOf(day, new Date(now));
+function DayCard({
+  day,
+  today,
+  now,
+  range,
+  onOpen,
+}: {
+  day: MyAttendanceDay;
+  today: string;
+  now: string;
+  /** 한 주 카드가 같은 눈금을 쓰게 주 전체의 막대 범위(weekBarRange) */
+  range: { from: number; to: number };
+  onOpen: (s: Sheet) => void;
+}) {
+  const bar = { ...barOf(day, new Date(now)), ...range };
   const flags = flagsOf(day);
   // 확인 필요 꼬리표가 붙은 날 — 호박색 카드 전체가 사유 시트를 연다(데모 flaggedDayCard). 직원이 누를 처리 버튼은 없다(HIST-3).
   if (flags.length > 0)
@@ -109,15 +126,18 @@ function DayCard({ day, store, today, now, onOpen }: { day: MyAttendanceDay; sto
       <button
         type="button"
         onClick={() => onOpen({ kind: "flag", day })}
-        className={`flex w-full flex-col gap-[3px] rounded-[18px] border border-[#f6e3bd] bg-[#fffbf2] px-[20px] pt-[20px] pb-[32px] text-left text-[#6f4608] transition-[background-color] duration-150 ${EASE_OUT} active:bg-[#fff3dc]`}
+        className={`flex w-full flex-col gap-[3px] rounded-[18px] border border-[#f6e3bd] bg-[#fffbf2] px-[20px] py-[20px] text-left text-[#6f4608] transition-[background-color] duration-150 ${EASE_OUT} active:bg-[#fff3dc]`}
       >
         <span className="flex w-full items-center gap-[8px] pb-[5px]">
           <span className="min-w-0 flex-1 text-[13px] font-bold">{dayLabel(day.date)}</span>
-          <span className="truncate text-[12px]">{store}</span>
           <StatusChip tone="warning">확인 필요</StatusChip>
         </span>
         <WorkTimeBar {...bar} />
-        <span className="pt-[2px] text-[13px]">{flags.map(flagLine).join(" / ")}</span>
+        <span className="flex flex-col pt-[2px] text-[13px]">
+          {flaggedPairLines(day, today).map((line, i) => (
+            <span key={i}>{line}</span>
+          ))}
+        </span>
       </button>
     );
 
@@ -126,7 +146,6 @@ function DayCard({ day, store, today, now, onOpen }: { day: MyAttendanceDay; sto
     <AttendanceDayCard
       state={state}
       day={dayLabel(day.date)}
-      store={store}
       status={statusChipOf(day, today)}
       edited={isEdited(day)}
       summary={summaryOf(day, today)}
@@ -219,138 +238,199 @@ function DaySheets({ sheet, onClose, onOpen }: { sheet: Sheet; onClose: () => vo
   );
 }
 
-function PeriodView({ records, today, fromHome }: { records: MyAttendanceRecords; today: string; fromHome: boolean }) {
+function PeriodView({
+  records,
+  today,
+  fromHome,
+  onOpen,
+}: {
+  records: MyAttendanceRecords;
+  today: string;
+  fromHome: boolean;
+  onOpen: (s: Sheet) => void;
+}) {
   const totals = periodTotals(records, today);
+  // 주 줄을 누르면 그 주의 날짜 줄을 펼친다 — 지난 주의 날마다 출퇴근 시각을 볼 곳이 없었다(급여명세서가 이 기록으로 작성된다, 2026-11-24 사용자 지정)
+  const [opened, setOpened] = useState<string | null>(null);
+  const inRange = (date: string) => date >= records.from && date <= records.to;
   return (
     <>
-      <PeriodPicker from={records.from} to={records.to} fromHome={fromHome} />
-      <Sunken label={`총 근무 시간 · ${rangeLabel(records.from, records.to)}`}>
-        <div className="flex flex-wrap items-baseline gap-x-[14px]">
-          <p className="text-[28px] font-bold [&_span]:text-[17px]">
-            {Math.floor(totals.workedMinutes / 60)}
-            <span>시간</span> {String(totals.workedMinutes % 60).padStart(2, "0")}
-            <span>분</span>
-          </p>
-          <span className="text-[12px] text-staff-text-sub">
-            지각 {totals.late}회{totals.overtimeMinutes ? ` · 연장 ${durationLabel(totals.overtimeMinutes)}` : ""}
-          </span>
-        </div>
-      </Sunken>
+      <PeriodPicker from={records.from} to={records.to} fromHome={fromHome} today={today} />
+      {/* 조회 기간 요약 — 위층 「얼마나 일했나」(근무일 → 근로시간 큰 숫자 — 휴게를 뺀 시간이라 「근로시간」(근로기준법 제50조, DESIGN.md 용어), 2026-11-24 사용자 지정), 아래층 「어떻게 일했나」(정상 · 지각 · 미기록 한 줄).
+          세 칸 모두 옅은 회색 칸(둥근 10px — 상자 18px 안쪽 8px 에 맞춘 값)이고 간격은 한 값 — 상자 테두리 바깥에서 칸까지 · 칸 사이 가로 · 세로 모두 8px(안쪽 7px + 테두리 1px), 숫자 20px 로 줄였다(위아래 양옆 간격이 달라 보였다).
+          숫자는 먹색 한 가지(호박색 · 꼬리표는 튀었다). 문의 안내 줄은 뺐다(2026-11-24 사용자 지정) */}
+      <section className="flex flex-col gap-[8px] rounded-[18px] border border-staff-border-light bg-white p-[7px]">
+        <dl className="grid grid-cols-2 gap-[8px] [&>div]:rounded-[10px] [&>div]:bg-staff-bg [&>div]:px-[14px] [&>div]:py-[12px]">
+          <div>
+            <dt className="text-[13px] font-semibold text-staff-text-sub">근무일</dt>
+            <dd className="text-[20px] font-bold tabular-nums [&_span]:text-[14px]">
+              {totals.workedDays}
+              <span>일</span>
+            </dd>
+          </div>
+          <div>
+            <dt className="flex items-baseline gap-[6px] text-[13px] font-semibold text-staff-text-sub">
+              근로시간
+              <span className="text-[12px] font-normal text-staff-text-muted">휴게시간 제외</span>
+            </dt>
+            <dd className="text-[20px] font-bold tabular-nums [&_span]:text-[14px]">
+              {Math.floor(totals.workedMinutes / 60)}
+              <span>시간</span> {String(totals.workedMinutes % 60).padStart(2, "0")}
+              <span>분</span>
+            </dd>
+            {totals.overtimeMinutes > 0 && <dd className="text-[12px] text-staff-text-sub">연장 {durationLabel(totals.overtimeMinutes)}</dd>}
+          </div>
+        </dl>
+        {/* 아래층은 한 칸에 셋을 같은 폭 · 가운데로 */}
+        <dl className="grid grid-cols-3 rounded-[10px] bg-staff-bg px-[8px] py-[10px] text-center text-[13px]">
+          {(
+            [
+              ["정상", totals.normal, "일"],
+              ["지각", totals.late, "회"],
+              ["미기록", totals.absent, "회"],
+            ] as const
+          ).map(([label, n, unit]) => (
+            <div key={label} className="flex items-baseline justify-center gap-[4px]">
+              <dt className="text-staff-text-sub">{label}</dt>
+              <dd className="font-semibold text-staff-text tabular-nums">
+                {n}
+                <span className="font-normal">{unit}</span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
       {records.items.length === 0 ? (
         <EmptyRecords />
       ) : (
         <ul className="flex flex-col divide-y divide-staff-border-light rounded-[16px] border border-staff-border-light bg-white px-[16px]">
-          {weekRows(records, today).map((w) => (
-            <li key={w.title} className={`flex flex-col gap-[2px] py-[14px] ${w.upcoming ? "opacity-55" : ""}`}>
-              <p className={`text-[14px] font-semibold ${w.upcoming ? "text-staff-text-muted" : ""}`}>{w.title}</p>
-              <p className={`text-[12px] ${w.current ? "text-staff-primary" : "text-staff-text-sub"}`}>{w.sub}</p>
-            </li>
-          ))}
+          {weekRows(records, today).map((w) => {
+            const open = opened === w.monday;
+            const days = weekDays(w.monday, records.items).filter(({ date }) => inRange(date));
+            return (
+              <li key={w.title} className={w.upcoming ? "opacity-55" : ""}>
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  disabled={w.empty}
+                  onClick={() => setOpened(open ? null : w.monday)}
+                  className="flex w-full items-center gap-[10px] py-[14px] text-left"
+                >
+                  <span className="flex min-w-0 flex-1 flex-col gap-[2px]">
+                    {/* 주 이름은 굵게 왼쪽, 날짜는 오른쪽 끝 회색 — 가운뎃점 하나로 붙어 구분되지 않았다(2026-11-24 사용자 지정) */}
+                    <span className={`flex items-baseline justify-between gap-[8px] ${w.upcoming || w.empty ? "text-staff-text-muted" : ""}`}>
+                      <span className="text-[14px] font-semibold">
+                        {w.name}
+                        {w.current && <span className="pl-[6px] text-[12px] font-normal text-staff-text-sub">이번 주</span>}
+                      </span>
+                      <span className="text-[12px] text-staff-text-sub tabular-nums">{w.range}</span>
+                    </span>
+                    {/* 둘째 줄은 공통 둥근 꺾은선(SubLine)으로 주 이름 아래 요약임을 보인다 — 「기록 없음」 · 「근무 예정」도 같은 들여쓰기.
+                        시간 · 근무 · 지각 · 미기록 모두 꺾은선과 같은 회색 한 가지(색이 섞이면 어지러웠다), 단위 없이 숫자만(「근무 2 · 지각 2」), 지각 · 미기록은 0 이 아닐 때만(2026-11-24 사용자 지정) */}
+                    <SubLine>
+                      {w.empty ? (
+                        w.upcoming ? "예정 없음" : "기록 없음"
+                      ) : w.upcoming ? (
+                        "근무 예정"
+                      ) : (
+                        <span className="flex flex-wrap items-center gap-x-[6px]">
+                          <span>{durationLabel(w.workedMinutes)}</span>
+                          <span aria-hidden>·</span>
+                          <span>근무 {w.workedDays}</span>
+                          {w.late > 0 && (
+                            <>
+                              <span aria-hidden>·</span>
+                              <span>지각 {w.late}</span>
+                            </>
+                          )}
+                          {w.absent > 0 && (
+                            <>
+                              <span aria-hidden>·</span>
+                              <span>미기록 {w.absent}</span>
+                            </>
+                          )}
+                        </span>
+                      )}
+                    </SubLine>
+                  </span>
+                  {/* chevron-down.svg 는 위를 보게 그려져 있어 닫힘에서 뒤집는다. 기록 없는 주는 펼치지 않아 꺾쇠를 감추되 자리는 남겨 오른쪽 날짜 줄이 틀어지지 않게(2026-11-24 사용자 지정) */}
+                  <span aria-hidden className={`flex text-staff-text-sub ${w.empty ? "invisible" : ""} transition-transform duration-150 ${EASE_OUT} ${open ? "" : "rotate-180"}`}>
+                    <MaskIcon src="/icons/chevron-down.svg" size={16} />
+                  </span>
+                </button>
+                {/* 펼친 주는 날마다 한 줄(날짜 · 출근 · 퇴근 · 상태) — 막대 카드를 넣으니 무겁고 길었다(2026-11-24 사용자 지정) */}
+                {open && (
+                  // 펼친 날짜 줄은 옅은 회색 상자로 주 줄(흰 바탕)과 가른다. 줄 사이 선은 회색 바탕에서 보이게 한 단계 진한 선(2026-11-24 사용자 지정)
+                  <ul className="mb-[14px] flex flex-col divide-y divide-staff-border rounded-[12px] bg-staff-bg px-[12px]">
+                    {days.map(({ date, day }) => (
+                      <DayLine key={date} date={date} day={day} today={today} onOpen={onOpen} />
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
-      <p className="text-[12px] text-staff-text-muted">출퇴근 기록은 보존 기간(3년) 동안 조회할 수 있습니다.</p>
+      {/* 보존 기준은 기록한 날로부터 3년(운영 정책 RET-03). 문의 안내를 여기 한 번 둔다(2026-11-24 사용자 지정) */}
+      <p className="px-[4px] text-[12px] text-staff-text-muted">
+        출퇴근 기록은 기록한 날로부터 3년 동안 조회할 수 있습니다.
+        <br />
+        기록이 실제와 다르면 근무지 관리자에게 문의해 주세요.
+      </p>
     </>
   );
 }
 
-/**
- * 시작일 · 종료일 — 서로의 min · max 를 1년으로 묶는다(HIST-2). 조회는 주소로 간다(form GET).
- * 브라우저 말풍선 대신(noValidate) 빈 칸 · 순서 · 1년 넘김을 두 칸 줄 아래 한 줄 빨간 문구로 알린다(2026-11-23 사용자 결정).
- */
-// 날짜 칸 두 개가 카드 폭 안에 들어가게 — 칸이 글자 폭만큼 버티지 않도록 min-w-0 · 좌우 여백 10(2026-11-20 사용자 지정: 오른쪽 칸이 카드 밖으로 밀렸다)
-// 아이폰 Safari 는 날짜 칸이 기본 모양(appearance)일 때 min-w-0 · 칸 폭을 무시하고 글자 폭만큼 늘어나 카드 밖으로 밀렸다 — 기본 모양을 끄고 폭을 칸에 맞춘다(2026-11-23 사용자 지정)
-// 아이폰 Safari 는 날짜 칸에 달력 그림을 그리지 않아(데스크톱 크롬만 그린다) 같은 달력 선 아이콘을 직접 얹는다. 크롬의 기본 그림은 투명하게 두어
-// 그 자리를 눌러도 날짜판이 열리게 한다(2026-11-23 사용자 지정).
-const DATE_FIELD = `${FIELD.replace("px-[14px]", "pl-[10px] pr-[32px]")} w-full min-w-0 max-w-full appearance-none text-left [&::-webkit-date-and-time-value]:text-left [&::-webkit-calendar-picker-indicator]:opacity-0`;
-const DateIcon = () => (
-  <span aria-hidden className="pointer-events-none absolute top-1/2 right-[10px] flex -translate-y-1/2 text-staff-text-sub">
-    <MaskIcon src="/icons/calendar-line.svg" size={16} />
-  </span>
-);
-
-function PeriodPicker({ from, to, fromHome }: { from: string; to: string; fromHome: boolean }) {
-  const [start, setStart] = useState(from);
-  const [end, setEnd] = useState(to);
-  const noteId = useId();
-  const fields = useFieldCheck((data) => {
-    const f = String(data.get("from") ?? "");
-    const t = String(data.get("to") ?? "");
-    if (!f) return { from: "시작일을 선택해 주세요" };
-    if (!t) return { to: "종료일을 선택해 주세요" };
-    if (t < f) return { to: "종료일은 시작일 이후로 선택해 주세요" };
-    if (t > addDays(f, MAX_PERIOD_DAYS - 1)) return { to: "한 번에 최대 1년까지 조회할 수 있습니다" };
-    return {};
-  });
-  const error = fields.errors.from ?? fields.errors.to;
+/** 기간별 펼친 주의 하루 한 줄 — 날짜 · 출퇴근 쌍(쌍마다 한 줄) · 상태. 확인 필요 · 수정 · 퇴근 기록 없음이면 눌러 시트를 연다 */
+function DayLine({ date, day, today, onOpen }: { date: string; day: MyAttendanceDay | null; today: string; onOpen: (s: Sheet) => void }) {
+  // 시각만 쌍마다 한 줄(「15:58 – 18:14」) — 사유까지 붙이면 줄 중간에서 꺾였다. 사유는 확인 필요 줄을 눌러 시트에서 본다
+  const lines = !day
+    ? ["예정 없음"]
+    : day.pairs.length === 0
+      ? [summaryOf(day, today)]
+      : day.pairs.map((p) => `${p.checkIn?.time ?? "기록 없음"} – ${p.checkOut?.time ?? (date === today ? "근무 중" : "퇴근 기록 없음")}`);
+  // 실제 기록이 있거나 지난 날이면 그날 근무스케줄을 회색 「예정」 줄로 함께 — 예정과 실제를 견줘 지각인지 보이게(2026-11-24 사용자 지정)
+  const plans = day && !(day.pairs.length === 0 && date >= today) ? day.schedules.map((p) => `예정 ${p.startTime} – ${p.endTime}`) : [];
+  // 확인 필요여도 지각 · 근무 중 같은 상태 글자는 함께 둔다 — 확인 필요가 지각을 가렸다
+  const status = day ? statusChipOf(day, today) : undefined;
+  const chips = day ? [...(flagsOf(day).length > 0 ? [{ label: "확인 필요", tone: "warning" as const }] : []), ...(status ? [status] : [])] : [];
+  const sheet: Sheet = !day ? null : flagsOf(day).length > 0 ? { kind: "flag", day } : isEdited(day) ? { kind: "edits", day } : day.status === "MISSING_CHECK_OUT" ? { kind: "missing-out", day } : null;
+  const body = (
+    <>
+      <span className="w-[64px] shrink-0 text-[13px] font-semibold">{dayLabel(date)}</span>
+      <span className={`flex min-w-0 flex-1 flex-col text-[13px] tabular-nums ${day ? "" : "text-staff-text-muted"}`}>
+        {lines.map((l, i) => (
+          <span key={i}>{l}</span>
+        ))}
+        {plans.map((l, i) => (
+          <span key={`p${i}`} className="pt-[2px] text-[12px] text-staff-text-muted">
+            {l}
+          </span>
+        ))}
+      </span>
+      {/* 펼친 날짜 줄의 상태는 칩 대신 12px 글자 — 칩을 두 개 쌓으니 줄이 두꺼웠다. 주의할 것(확인 필요 · 지각 · 미출근 · 미기록)만 먹색, 나머지는 회색 — 호박색은 튀었다(2026-11-24 사용자 지정) */}
+      {chips.length > 0 && (
+        <span className="flex shrink-0 flex-col items-end gap-[2px] pt-[1px] text-[12px] font-semibold">
+          {chips.map((c) => (
+            <span key={c.label} className={c.tone === "warning" ? "text-staff-text" : "text-staff-text-sub"}>
+              {c.label}
+            </span>
+          ))}
+        </span>
+      )}
+    </>
+  );
   return (
-    <Card>
-      {/* 기간 오류는 두 날짜에 함께 걸리므로 어느 칸을 바꿔도 둘 다 내린다 */}
-      <form
-        action="/attendance"
-        noValidate
-        onSubmit={fields.check}
-        onChange={() => {
-          fields.dismiss("from");
-          fields.dismiss("to");
-        }}
-      >
-        <input type="hidden" name="tab" value="period" />
-        {fromHome && <input type="hidden" name="back" value="home" />}
-        <p className="text-[13px] font-semibold text-staff-text-sub">조회 기간</p>
-        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-[8px] pt-[8px]">
-          <span className="relative block min-w-0">
-          <input
-            type="date"
-            name="from"
-            aria-label="시작일"
-            required
-            aria-invalid={fields.errors.from ? true : undefined}
-            aria-describedby={error ? noteId : undefined}
-            className={DATE_FIELD}
-            value={start}
-            min={end ? addDays(end, -(MAX_PERIOD_DAYS - 1)) : undefined}
-            max={end || undefined}
-            onChange={(e) => setStart(e.target.value)}
-          />
-          <DateIcon />
-          </span>
-          <span aria-hidden className="text-[12px] text-staff-text-muted">
-            –
-          </span>
-          <span className="relative block min-w-0">
-          <input
-            type="date"
-            name="to"
-            aria-label="종료일"
-            required
-            aria-invalid={fields.errors.to ? true : undefined}
-            aria-describedby={error ? noteId : undefined}
-            className={DATE_FIELD}
-            value={end}
-            min={start || undefined}
-            max={start ? addDays(start, MAX_PERIOD_DAYS - 1) : undefined}
-            onChange={(e) => setEnd(e.target.value)}
-          />
-          <DateIcon />
-          </span>
-        </div>
-        {/* 두 칸이 한 줄이라 칸 오류는 줄 아래 한 줄로 둔다(입력칸 안내 · 오류와 같은 12px 오류색, 칸과 사이 8). */}
-        {error && (
-          <p id={noteId} className="pt-[8px] text-[12px] text-staff-error">
-            {error}
-          </p>
-        )}
-        <div className="pt-[8px]">
-          {/* 남보라 큰 버튼은 화면에서 너무 강해 외곽선 버튼으로(2026-11-20 사용자 지정) */}
-          <Button type="submit" variant="outline">
-            조회
-          </Button>
-        </div>
-        <p className="pt-[8px] text-[12px] text-staff-text-muted [&_b]:font-bold">
-          한 번에 <b>최대 1년</b>까지 조회할 수 있습니다.
-        </p>
-      </form>
-    </Card>
+    <li>
+      {sheet ? (
+        <button type="button" onClick={() => onOpen(sheet)} className="flex w-full items-start gap-[8px] py-[10px] text-left active:bg-staff-bg">
+          {body}
+        </button>
+      ) : (
+        <div className="flex items-start gap-[8px] py-[10px]">{body}</div>
+      )}
+    </li>
   );
 }
 
