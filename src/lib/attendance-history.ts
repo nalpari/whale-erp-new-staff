@@ -115,7 +115,11 @@ export function statusChipOf(d: MyAttendanceDay, today: string): { label: string
   // 기록 없는 날 — 오늘은 아직 올 수 있어 「미출근」, 지난 날은 사실만 말하는 「미기록」(관리자 웹 근태 요약과 같은 말).
   // 결근은 휴가 · 교대 같은 사정을 따진 판단이라 앱이 단정하지 않는다(2026-11-24 사용자 지정)
   if (d.status === "ABSENT") return d.date === today ? { label: "미출근", tone: "warning" } : { label: "미기록", tone: "warning" };
-  if (d.status === "LATE") return { label: `지각 ${lateMinutes(d)}분`, tone: "warning" };
+  // 한 시간을 넘으면 「지각 688분」이 읽히지 않아 시간 · 분으로(2026-11-24)
+  if (d.status === "LATE") {
+    const m = lateMinutes(d);
+    return { label: `지각 ${m < 60 ? `${m}분` : durationLabel(m)}`, tone: "warning" };
+  }
   if (punches(d).some((p) => p?.entryMethod === "PROXY")) return { label: "대신 등록", tone: "neutral" };
   if (d.status === "NORMAL") return { label: "정상", tone: "success" };
   return undefined;

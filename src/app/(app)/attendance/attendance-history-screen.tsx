@@ -388,7 +388,11 @@ function DayLine({ date, day, today, onOpen }: { date: string; day: MyAttendance
     : day.pairs.length === 0
       ? [summaryOf(day, today)]
       : day.pairs.map((p) => `${p.checkIn?.time ?? "기록 없음"} – ${p.checkOut?.time ?? (date === today ? "근무 중" : "퇴근 기록 없음")}`);
-  const chip = day && (flagsOf(day).length > 0 ? { label: "확인 필요", tone: "warning" as const } : statusChipOf(day, today));
+  // 실제 기록이 있거나 지난 날이면 그날 근무스케줄을 회색 「예정」 줄로 함께 — 예정과 실제를 견줘 지각인지 보이게(2026-11-24 사용자 지정)
+  const plans = day && !lines[0].startsWith("예정") ? day.schedules.map((p) => `예정 ${p.startTime} – ${p.endTime}`) : [];
+  // 확인 필요여도 지각 · 근무 중 같은 상태 칩은 함께 둔다 — 확인 필요가 지각을 가렸다
+  const status = day ? statusChipOf(day, today) : undefined;
+  const chips = day ? [...(flagsOf(day).length > 0 ? [{ label: "확인 필요", tone: "warning" as const }] : []), ...(status ? [status] : [])] : [];
   const sheet: Sheet = !day ? null : flagsOf(day).length > 0 ? { kind: "flag", day } : isEdited(day) ? { kind: "edits", day } : day.status === "MISSING_CHECK_OUT" ? { kind: "missing-out", day } : null;
   const body = (
     <>
@@ -397,8 +401,22 @@ function DayLine({ date, day, today, onOpen }: { date: string; day: MyAttendance
         {lines.map((l, i) => (
           <span key={i}>{l}</span>
         ))}
+        {plans.map((l, i) => (
+          <span key={`p${i}`} className="pt-[2px] text-[12px] text-staff-text-muted">
+            {l}
+          </span>
+        ))}
       </span>
-      {chip && <StatusChip tone={chip.tone}>{chip.label}</StatusChip>}
+      {/* 펼친 날짜 줄의 상태는 칩 대신 12px 글자 — 칩을 두 개 쌓으니 줄이 두꺼웠다. 주의할 것(확인 필요 · 지각 · 미기록)만 호박색(2026-11-24 사용자 지정) */}
+      {chips.length > 0 && (
+        <span className="flex shrink-0 flex-col items-end gap-[2px] pt-[1px] text-[12px] font-semibold">
+          {chips.map((c) => (
+            <span key={c.label} className={c.tone === "warning" ? "text-[#956013]" : "text-staff-text-sub"}>
+              {c.label}
+            </span>
+          ))}
+        </span>
+      )}
     </>
   );
   return (
