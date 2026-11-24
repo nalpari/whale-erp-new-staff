@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { MaskIcon } from "./icon";
 
 // 근무지 머리줄 — 홈 · 근무 · 출퇴근 탭이 같이 쓴다(2026-11-24 사용자 지정, 배달 앱 주소 머리줄을 본뜸).
 //   홈(title 없음): 근무지 이름(17px bold) + 꺾쇠 · 오른쪽 알림 종
@@ -16,8 +17,10 @@ export function TopBar({
   title,
   backHref,
   action,
+  titleAfter,
 }: {
-  store: string;
+  /** 근무지 — 비우면(급여처럼 근무지 필터를 따로 쓰는 탭) 근무지 줄 없이 제목 줄만 */
+  store?: string;
   onStoreClick?: () => void;
   alarmHref: string;
   hasNewAlarm?: boolean;
@@ -27,14 +30,20 @@ export function TopBar({
   backHref?: string;
   /** 근무지 줄 오른쪽 끝(출퇴근의 「출퇴근 현황 ›」) */
   action?: ReactNode;
+  /** 제목 글자 바로 뒤(급여명세서의 안내 ⓘ) */
+  titleAfter?: ReactNode;
 }) {
-  const storeButton = (
+  const storeButton = store !== undefined && (
     <button
       type="button"
       onClick={onStoreClick}
       aria-label={`근무지 바꾸기, 지금 ${store}`}
       className={`flex min-h-[44px] max-w-full min-w-0 items-center gap-[6px] font-bold text-staff-text ${title ? "text-[15px]" : "text-[17px]"}`}
     >
+      {/* 근무지임을 알리는 작은 점포 아이콘(2026-11-24 사용자 지정) */}
+      <span className="flex shrink-0 text-staff-primary">
+        <MaskIcon src="/icons/store-line.svg" size={title ? 16 : 18} />
+      </span>
       <span className="truncate">{store}</span>
       {onStoreClick && <Image src="/icons/chevron-down.svg" alt="" width={13} height={13} className="shrink-0 -scale-y-100" />}
     </button>
@@ -65,13 +74,20 @@ export function TopBar({
             <Image src="/icons/back.svg" alt="" width={19} height={19} className="-scale-y-100" />
           </Link>
         )}
-        <h1 className="min-w-0 flex-1 truncate text-[22px] leading-[1.4] font-bold">{title}</h1>
+        <div className="flex min-w-0 flex-1 items-center gap-[2px]">
+          <h1 className="min-w-0 truncate text-[22px] leading-[1.4] font-bold">{title}</h1>
+          {titleAfter}
+        </div>
+        {/* 근무지 줄이 없으면 action 을 제목 줄 종 앞에 둔다 */}
+        {!storeButton && action}
         {bell}
       </div>
-      <div className="flex items-center justify-between gap-[10px]">
-        <div className="min-w-0 flex-1">{storeButton}</div>
-        {action}
-      </div>
+      {storeButton && (
+        <div className="flex items-center justify-between gap-[10px]">
+          <div className="min-w-0 flex-1">{storeButton}</div>
+          {action}
+        </div>
+      )}
     </header>
   );
 }
