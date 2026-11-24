@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-24
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 퇴직 근무지 신고 정보: 보관 기간(퇴직 후 3년)이 지나 api 가 `expired: true` 를 주면 빈 상태를 「신고 정보 보관 기간이 지났습니다」 · 「퇴직 후 3년이 지나 이 근무지의 신고 정보를 보관하지 않습니다.」로 보인다(B안, 2026-11-24 재영 · WHALEERP-772, `taxProfileEmptyOf`). 넣은 적 없는 근무지는 「입력한 신고 정보가 없습니다」 그대로. `api-types.d.ts` 다시 생성(api trapinch).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 급여명세서 상세의 4대보험 공제 줄을 근로계약서 가입 체크대로만 보인다(WHALEERP-756, 2026-11-20 김지영): `isItemShown` 이 api 상세 `isHealthPensionInsured` · `isEmploymentInjuryInsured` 를 받아 국민연금 · 건강보험 · 장기요양보험 / 고용보험을 가린다(관리자 화면 · api PDF 와 같은 규칙) — 미가입이어도 0 아닌 금액이 든 줄은 보인다(2026-11-24 사용자 결정). `api-types.d.ts` 를 다시 만들었고, 그사이 api 에서 필수가 된 `storeIsHq` 를 시험 고정값 둘(출퇴근 · TO-DO)에 넣었다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 회원 탈퇴 화면 `/me/withdrawal` 을 더하고(재직 중이면 퇴직 처리 요청 안내, 현재 비밀번호 확인 뒤 탈퇴, 성공하면 `/login?withdrawn=1`) 내 정보에 「회원 탈퇴」 링크를 두었다(WHALEERP-770). 탈퇴 성공 때 아이디 저장 쿠키도 지운다(1차 리뷰). [탈퇴] 는 확인 시트를 거쳐 제출한다(노영주 결정).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 머리줄 통일(`StoreHeader` · `TitleHeader`, 근무 화면 근무지 카드 삭제, 출퇴근 화면 근무지는 보이기만), 근무지 고르기 시트 줄 모양, 출퇴근 현황 기간별(범위 달력 · 기간 요약 · 주 줄 펼침 · 미출근/미기록 · 예정 없음), 홈 「근로 · 휴게」 · 예정 없는 날 카드, 알림에서 연 화면의 뒤로 가기(`from=notifications`).
