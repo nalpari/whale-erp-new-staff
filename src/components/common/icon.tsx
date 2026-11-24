@@ -13,12 +13,12 @@ export function MaskIcon({ src, size, flipY = false }: { src: string; size: numb
 
 // 둥근 네모 바탕에 선 아이콘(public/icons/*-line.svg). 바탕은 옅은 회색 · 아이콘은 보조 글자색 — 보라 아이콘은 쓰지 않는다(2026-11-24 사용자 지정).
 // 근로계약서 · 급여명세서 · 신고 정보는 앱 어디서나 「내 정보 › 내 근무지」의 선 아이콘으로 보인다(2026-11-23 사용자 지정).
-// 모서리는 한 변의 1/3.
-export function IconTile({ src, size }: { src: string; size: number }) {
+// 모서리는 한 변의 1/3. tone="soft" 는 홈 전용 — 「이번 주 근무」 날짜 칸과 같은 옅은 남보라(#EEF2FF) 바탕에 아이콘은 그대로 보조 글자색(2026-11-24 사용자 지정).
+export function IconTile({ src, size, tone = "neutral" }: { src: string; size: number; tone?: "neutral" | "soft" }) {
   return (
     <span
       aria-hidden
-      className="flex shrink-0 items-center justify-center bg-staff-bg text-staff-text-sub"
+      className={`flex shrink-0 items-center justify-center text-staff-text-sub ${tone === "soft" ? "bg-[#eef2ff]" : "bg-staff-bg"}`}
       style={{ width: size, height: size, borderRadius: size / 3 }}
     >
       <MaskIcon src={src} size={Math.round(size * 0.6)} />
