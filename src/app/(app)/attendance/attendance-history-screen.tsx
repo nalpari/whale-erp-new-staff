@@ -259,7 +259,7 @@ function PeriodView({
       {/* 조회 기간 요약 — 위층 「얼마나 일했나」(근무시간 · 근무일 큰 숫자), 아래층 「어떻게 일했나」(정상 · 지각 · 미기록 한 줄).
           지각 · 미기록은 0 이 아니면 호박색 꼬리표, 0 이면 회색 글자. 문의 안내 줄은 뺐다(2026-11-24 사용자 지정) */}
       <section className="rounded-[18px] border border-staff-border-light bg-white p-[20px]">
-        <dl className="grid grid-cols-2 gap-[12px]">
+        <dl className="grid grid-cols-2 divide-x divide-staff-border-light [&>div:last-child]:pl-[16px]">
           <div>
             <dt className="text-[13px] font-semibold text-staff-text-sub">근무시간</dt>
             <dd className="pt-[2px] text-[24px] font-bold tabular-nums [&_span]:text-[15px]">
@@ -277,13 +277,24 @@ function PeriodView({
             </dd>
           </div>
         </dl>
-        <p className="mt-[16px] flex flex-wrap items-center gap-x-[14px] gap-y-[6px] border-t border-staff-border-light pt-[14px] text-[13px] text-staff-text-sub">
-          <span>
-            정상 <b className="text-staff-text tabular-nums">{totals.normal}</b>일
-          </span>
-          {totals.late > 0 ? <StatusChip tone="warning">지각 {totals.late}회</StatusChip> : <span>지각 0회</span>}
-          {totals.absent > 0 ? <StatusChip tone="warning">미기록 {totals.absent}회</StatusChip> : <span>미기록 0회</span>}
-        </p>
+        {/* 아래층은 세 칸 같은 폭 · 가운데, 칸 사이 옅은 세로선. 지각 · 미기록은 0 이 아니면 호박색 글자(꼬리표는 튀었다, 2026-11-24 사용자 지정) */}
+        <dl className="mt-[16px] grid grid-cols-3 divide-x divide-staff-border-light border-t border-staff-border-light pt-[14px] text-center text-[13px]">
+          {(
+            [
+              ["정상", totals.normal, "일", false],
+              ["지각", totals.late, "회", totals.late > 0],
+              ["미기록", totals.absent, "회", totals.absent > 0],
+            ] as const
+          ).map(([label, n, unit, warn]) => (
+            <div key={label} className="flex items-baseline justify-center gap-[4px]">
+              <dt className="text-staff-text-sub">{label}</dt>
+              <dd className={`font-semibold tabular-nums ${warn ? "text-[#956013]" : "text-staff-text"}`}>
+                {n}
+                <span className="font-normal">{unit}</span>
+              </dd>
+            </div>
+          ))}
+        </dl>
       </section>
       {records.items.length === 0 ? (
         <EmptyRecords />
@@ -310,7 +321,7 @@ function PeriodView({
                       </span>
                       <span className="text-[12px] text-staff-text-sub tabular-nums">{w.range}</span>
                     </span>
-                    {/* 시간을 먼저(먹색 보통 굵기 — 주 이름 굵은 글자와 부딪혀 한 단계 낮췄다), 지각 · 미기록은 0 이 아닐 때만 꼬리표 — 0 까지 모두 적으니 주마다 같아 보였다 */}
+                    {/* 시간을 먼저(먹색 보통 굵기 — 주 이름 굵은 글자와 부딪혀 한 단계 낮췄다), 지각 · 미기록은 0 이 아닐 때만 호박색 글자(꼬리표는 너무 튀었다) — 0 까지 모두 적으니 주마다 같아 보였다 */}
                     <span className="flex flex-wrap items-center gap-x-[6px] gap-y-[4px] text-[12px] text-staff-text-sub">
                       {w.upcoming ? (
                         "근무 예정"
@@ -321,8 +332,8 @@ function PeriodView({
                           <span className="font-medium text-staff-text">{durationLabel(w.workedMinutes)}</span>
                           <span aria-hidden>·</span>
                           <span>근무 {w.workedDays}일</span>
-                          {w.late > 0 && <StatusChip tone="warning">지각 {w.late}</StatusChip>}
-                          {w.absent > 0 && <StatusChip tone="warning">미기록 {w.absent}</StatusChip>}
+                          {w.late > 0 && <span className="text-[#956013]">· 지각 {w.late}회</span>}
+                          {w.absent > 0 && <span className="text-[#956013]">· 미기록 {w.absent}회</span>}
                         </>
                       )}
                     </span>
@@ -334,8 +345,8 @@ function PeriodView({
                 </button>
                 {/* 펼친 주는 날마다 한 줄(날짜 · 출근 · 퇴근 · 상태) — 막대 카드를 넣으니 무겁고 길었다(2026-11-24 사용자 지정) */}
                 {open && (
-                  // 펼친 날짜 줄은 옅은 회색 상자로 주 줄(흰 바탕)과 가른다(2026-11-24 사용자 지정)
-                  <ul className="mb-[14px] flex flex-col divide-y divide-staff-border-light rounded-[12px] bg-staff-bg px-[12px]">
+                  // 펼친 날짜 줄은 옅은 회색 상자로 주 줄(흰 바탕)과 가른다. 줄 사이 선은 회색 바탕에서 보이게 한 단계 진한 선(2026-11-24 사용자 지정)
+                  <ul className="mb-[14px] flex flex-col divide-y divide-staff-border rounded-[12px] bg-staff-bg px-[12px]">
                     {days.map(({ date, day }) => (
                       <DayLine key={date} date={date} day={day} today={today} onOpen={onOpen} />
                     ))}
