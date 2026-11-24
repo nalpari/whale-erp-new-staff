@@ -1,6 +1,8 @@
 # Bundle history
 
 ## 2026-11-24
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 루트 `viewport` 에 `viewportFit: "cover"` · `themeColor` 를 넣어 `env(safe-area-inset-*)` 여백이 동작하게 했다(mobile-app webview-plan 1절).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 앱 연결이 잠깐 안 됐을 때(not-ready) 출근 · 퇴근 버튼 대신 「다시 시도」를 두고, 앱 연결만 다시 확인해 되면 원래 버튼으로 돌아간다(2026-11-24 창수).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 앱 안 출퇴근에서 브리지가 늦으면 한 번 더 기다리고, 앱 고장 안내를 까닭(not-ready · forbidden · mismatch)마다 나눠 일시 장애는 「다시 눌러 주세요 · 관리자에게 출퇴근 등록 요청」으로 안내한다. `measureLocation` 약속 어긋남은 좌표 없이 어긋난 칸 이름만 콘솔에 남긴다(2026-11-23 창수 결정, 재영 #90 리뷰).
 
 ## 2026-11-23
