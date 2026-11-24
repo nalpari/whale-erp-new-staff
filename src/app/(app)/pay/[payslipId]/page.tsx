@@ -1,11 +1,22 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Badge, Card, HeroCard, Notice, PageHeader } from "@/components/common";
+import { Alert, Badge, Button, Card, HeroCard, Notice, PageHeader } from "@/components/common";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
-import { formatWon, historyEntries, isEarning, isItemShown, parsePayslipId, periodLabel, sentDateLabel } from "@/lib/payslip-rules";
+import {
+  formatWon,
+  historyEntries,
+  isEarning,
+  isItemShown,
+  parsePayslipId,
+  payslipDownloadAlert,
+  payslipKeepQuery,
+  periodLabel,
+  sentDateLabel,
+} from "@/lib/payslip-rules";
 import { getPayslip } from "@/lib/payslips";
 import { requireSession } from "@/lib/session";
+import { ChangedToast } from "../../me/changed-toast";
 import { CorrectingBadge } from "../_components/correcting-badge";
 import { ExportButton } from "../_components/export-button";
 import { PayFrame } from "../_components/pay-frame";
@@ -28,7 +39,22 @@ export default async function PayslipPage({ params, searchParams }: PageProps<"/
   const backHref = raw.from === "notifications" ? "/notifications" : raw.from === "sites" && store ? `/pay?from=sites&store=${store}` : "/pay";
   const payslipId = parsePayslipId((await params).payslipId);
   const payslip = payslipId === null ? null : await getPayslip(payslipId);
-  if (!payslip) notFound();
+  if (!payslip) {
+    // 상세를 연 사이 명세서가 지워져 PDF 받기도 상세도 404면, 받기 실패 안내를 보이고 목록으로 돌아갈 길을 둔다
+    // (기본 404 화면은 영어이고 돌아갈 길이 없다).
+    const missingAlert = payslipDownloadAlert(raw.download);
+    if (!missingAlert) notFound();
+    return (
+      <PayFrame nav={false} header={<PageHeader title="급여명세서" backHref={backHref} />}>
+        <Alert tone="warning">
+          <p>{missingAlert}</p>
+        </Alert>
+        <Button variant="outline" href={backHref}>
+          목록으로
+        </Button>
+      </PayFrame>
+    );
+  }
 
   // 한글 이름 하나 때문에 화면 전체를 오류로 만들지 않는다. 못 받으면 labelOf 가 값 그대로 보인다.
   const employmentTypes = await getEnumOrEmpty("EmploymentType");
@@ -39,12 +65,23 @@ export default async function PayslipPage({ params, searchParams }: PageProps<"/
   const items = payslip.items.filter((i) => isItemShown(i, payslip.isWithholdingApplied, payslip));
   const earnings = items.filter(isEarning);
   const deductions = items.filter((i) => !isEarning(i));
+  // PDF 받기가 실패해 돌아왔다(pdf/route.ts). 안내를 띄운 뒤 주소의 `?download=` 는 지운다 — 새로 고칠 때마다 다시 뜨지 않게.
+  const keepQuery = payslipKeepQuery((name) => (typeof raw[name] === "string" ? raw[name] : null));
+  const downloadAlert = payslipDownloadAlert(raw.download);
   const meta = [payslip.storeName, labelOf(employmentTypes, payslip.employmentType), sentAt ? `${sentDateLabel(sentAt)} 받음` : null]
     .filter(Boolean)
     .join(" · ");
 
   return (
     <PayFrame nav={false} header={<PageHeader title="급여명세서" backHref={backHref} />}>
+      {downloadAlert && (
+        <>
+          <Alert tone="warning">
+            <p>{downloadAlert}</p>
+          </Alert>
+          <ChangedToast path={`/pay/${payslip.payslipId}${keepQuery}`} />
+        </>
+      )}
       {/* 목업 card--sunken: 안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14. */}
       <section className="flex flex-col gap-[8px] rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px]">
         <div className="flex items-start justify-between gap-[12px]">
@@ -95,7 +132,7 @@ export default async function PayslipPage({ params, searchParams }: PageProps<"/
         </ul>
       </Card>
 
-      {!correcting && <ExportButton payslipId={payslip.payslipId} />}
+      {!correcting && <ExportButton payslipId={payslip.payslipId} keepQuery={keepQuery} />}
     </PayFrame>
   );
 }
