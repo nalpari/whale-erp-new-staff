@@ -52,8 +52,7 @@ export async function ScheduleCards({ staffMemberId }: { staffMemberId: number }
 // 데모(/design/home) 「근무 중」 표시와 출퇴근 버튼(흰 바탕 · 남보라 글자)
 const WORKING = (
   <span className="flex items-center gap-[5px] rounded-[6px] bg-white/12 px-[6px] py-[4px] text-[11px]">
-    {/* 근무 중 점은 연두 + 옅은 빛 — 지금 일하는 중임이 살아 보이게(2026-11-24 사용자 지정) */}
-    <span className="size-[5px] rounded-[2.5px] bg-[#86efac] shadow-[0_0_0_3px_rgba(134,239,172,0.35)]" />
+    <span className="size-[5px] rounded-[2.5px] bg-white" />
     근무 중
   </span>
 );
@@ -62,7 +61,7 @@ function AttendanceButton({ action }: { action: Exclude<HomeAttendanceAction, nu
     <Link
       href="/check-in"
       transitionTypes={["nav-forward"]}
-      className="flex min-h-[48px] items-center justify-center gap-[8px] rounded-[12px] bg-white px-[18px] text-[15px] font-bold text-staff-primary shadow-[0_4px_10px_rgba(30,30,120,0.18)] transition-colors duration-150 ease-out active:bg-staff-primary-inactive"
+      className="flex min-h-[48px] items-center justify-center gap-[8px] rounded-[12px] bg-white px-[18px] text-[15px] font-bold text-staff-primary transition-colors duration-150 ease-out active:bg-staff-primary-inactive"
     >
       {action === "check-in" ? "출근하기" : "퇴근하기"}
       <Image src="/icons/arrow-right-brand.svg" alt="" width={14} height={12} />
@@ -107,14 +106,8 @@ function TodayCard({ items, next, action }: { items: MyWorkSchedule[]; next?: My
       aria-label="오늘 근무"
       // 안쪽 위 · 아래 · 좌우 20(24 는 넓기만 했다). 시각과 「근로 · 휴게」 줄은 한 묶음으로 붙이고, 머리 줄 → 시각은 글자 기준 12, 묶음 → 버튼은 16 —
       // 큰 시각 글자는 위아래 여백이 있어 상자 간격이 아니라 보이는 글자 기준으로 맞췄다(2026-11-24 사용자 지정)
-      // 입체감 — 왼쪽 위가 밝은 남보라 그라데이션, 윗변 1px 하이라이트, 보라빛 그림자, 오른쪽 위 빛 번짐 · 오른쪽 아래 옅은 선 원(2026-11-24 사용자 지정).
-      // 그라데이션 양 끝(#6366F1 · #3F3FC4)은 이 카드에만 나와 토큰으로 두지 않는다. 가운데는 staff-primary(#4C4DDC)
-      className="relative flex flex-col overflow-hidden rounded-[18px] bg-[linear-gradient(135deg,#6366f1_0%,#4c4ddc_55%,#3f3fc4_100%)] p-[20px] leading-[1.5] text-white shadow-[0_12px_28px_-6px_rgba(76,77,220,0.45),inset_0_1px_0_rgba(255,255,255,0.18)] [&>*]:relative"
+      className="flex flex-col rounded-[18px] bg-staff-primary p-[20px] leading-[1.5] text-white shadow-[0_9px_23px_rgba(49,93,245,0.15)]"
     >
-      <span aria-hidden className="pointer-events-none !absolute inset-0">
-        <span className="absolute -top-[50px] -right-[40px] size-[170px] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.18),rgba(255,255,255,0)_70%)]" />
-        <span className="absolute right-[30px] -bottom-[70px] size-[140px] rounded-full border border-white/12" />
-      </span>
       <div className="flex items-center justify-between">
         <p className="text-[12px] text-[#dbe5ff]">오늘 근무</p>
         {action === "check-out" && WORKING}
