@@ -84,3 +84,11 @@ export async function readDeviceLocation({
   }
   return fromBrowser();
 }
+
+/**
+ * 「다시 시도」 버튼이 앱 연결(브리지)만 다시 확인한다. 위치는 읽지 않는다 — 위치는 출근 · 퇴근 버튼에서 위치 읽음(확인자료)을
+ * 먼저 남긴 뒤에만 읽는다(ATT-22). 브리지가 준비되면 true, 앱 밖이거나 이번에도 준비되지 않으면 false.
+ */
+export async function checkAppConnection({ bridgeReady = () => waitForBridge() }: { bridgeReady?: () => Promise<Bridge | null> } = {}): Promise<boolean> {
+  return (await bridgeReady()) !== null;
+}

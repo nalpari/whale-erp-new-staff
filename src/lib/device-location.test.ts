@@ -1,7 +1,7 @@
 // node --test src/lib/device-location.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { MAX_LOCATION_AGE_SECONDS, fromAppLocation, readDeviceLocation, type DeviceLocation } from "./device-location.ts";
+import { MAX_LOCATION_AGE_SECONDS, checkAppConnection, fromAppLocation, readDeviceLocation, type DeviceLocation } from "./device-location.ts";
 import type { AppLocation, Bridge, BridgeResult } from "./native-bridge.ts";
 
 const okApp = (mocked: boolean): BridgeResult<AppLocation> => ({
@@ -123,4 +123,10 @@ test("브리지가 처음에 늦어도 한 번 더 기다려 오면 그 브리�
   });
   assert.deepEqual(read, { status: "ok", latitude: 37.5, longitude: 127, mocked: false });
   assert.equal(waits, 2);
+});
+
+test("다시 시도는 브리지만 다시 확인하고 위치는 읽지 않는다", async () => {
+  const throwing: Bridge = { callHandler: async () => { throw new Error("위치를 읽으면 안 된다"); } };
+  assert.equal(await checkAppConnection({ bridgeReady: async () => throwing }), true);
+  assert.equal(await checkAppConnection({ bridgeReady: async () => null }), false);
 });
