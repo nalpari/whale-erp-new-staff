@@ -138,6 +138,7 @@ test("상세로 돌아갈 때 이어 줄 주소 값은 from=notifications 또는
 test("받기 실패 주소는 앱이 알아보는 /pay/<id>?download= 모양이고 이어 줄 값 뒤에 붙는다", () => {
   assert.equal(payslipFailurePath(12, "", "failed"), "/pay/12?download=failed");
   assert.equal(payslipFailurePath(12, "?from=notifications", "reviewing"), "/pay/12?from=notifications&download=reviewing");
-  const keep = payslipKeepQuery((name) => ({ from: "sites", store: "7" })[name]);
+  const query: Record<string, string> = { from: "sites", store: "7" };
+  const keep = payslipKeepQuery((name) => query[name] ?? null);
   assert.equal(payslipFailurePath(12, keep, "notfound"), "/pay/12?from=sites&store=7&download=notfound");
 });
