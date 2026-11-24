@@ -279,18 +279,18 @@ function PeriodView({
             {totals.overtimeMinutes > 0 && <dd className="text-[12px] text-staff-text-sub">연장 {durationLabel(totals.overtimeMinutes)}</dd>}
           </div>
         </dl>
-        {/* 아래층은 세 칸 같은 폭 · 가운데, 칸 사이 옅은 세로선. 지각 · 미기록은 0 이 아니면 호박색 글자(꼬리표는 튀었다, 2026-11-24 사용자 지정) */}
+        {/* 아래층은 세 칸 같은 폭 · 가운데, 칸 사이 옅은 세로선. 숫자는 모두 먹색 한 가지(호박색 · 꼬리표는 튀었다, 2026-11-24 사용자 지정) */}
         <dl className="mt-[16px] grid grid-cols-3 divide-x divide-staff-border-light border-t border-staff-border-light pt-[14px] text-center text-[13px]">
           {(
             [
-              ["정상", totals.normal, "일", false],
-              ["지각", totals.late, "회", totals.late > 0],
-              ["미기록", totals.absent, "회", totals.absent > 0],
+              ["정상", totals.normal, "일"],
+              ["지각", totals.late, "회"],
+              ["미기록", totals.absent, "회"],
             ] as const
-          ).map(([label, n, unit, warn]) => (
+          ).map(([label, n, unit]) => (
             <div key={label} className="flex items-baseline justify-center gap-[4px]">
               <dt className="text-staff-text-sub">{label}</dt>
-              <dd className={`font-semibold tabular-nums ${warn ? "text-[#956013]" : "text-staff-text"}`}>
+              <dd className="font-semibold text-staff-text tabular-nums">
                 {n}
                 <span className="font-normal">{unit}</span>
               </dd>
@@ -407,11 +407,11 @@ function DayLine({ date, day, today, onOpen }: { date: string; day: MyAttendance
           </span>
         ))}
       </span>
-      {/* 펼친 날짜 줄의 상태는 칩 대신 12px 글자 — 칩을 두 개 쌓으니 줄이 두꺼웠다. 주의할 것(확인 필요 · 지각 · 미기록)만 호박색(2026-11-24 사용자 지정) */}
+      {/* 펼친 날짜 줄의 상태는 칩 대신 12px 글자 — 칩을 두 개 쌓으니 줄이 두꺼웠다. 주의할 것(확인 필요 · 지각 · 미기록)만 먹색, 나머지는 회색 — 호박색은 튀었다(2026-11-24 사용자 지정) */}
       {chips.length > 0 && (
         <span className="flex shrink-0 flex-col items-end gap-[2px] pt-[1px] text-[12px] font-semibold">
           {chips.map((c) => (
-            <span key={c.label} className={c.tone === "warning" ? "text-[#956013]" : "text-staff-text-sub"}>
+            <span key={c.label} className={c.tone === "warning" ? "text-staff-text" : "text-staff-text-sub"}>
               {c.label}
             </span>
           ))}
