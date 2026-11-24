@@ -7,9 +7,6 @@ import { getMyWorkSchedules } from "@/lib/my-work-schedules";
 import { dayTitle, durationLabel, kstDate, weekDates, workMinutes, type MyWorkSchedule } from "@/lib/work-schedules";
 import { ThisWeek } from "./this-week";
 
-// 이번 주 근무 머리의 「9/7」. weekDates 는 월~일이라 요일은 (월) · (일)로 붙인다(데모 home).
-const md = (ymd: string) => `${Number(ymd.slice(5, 7))}/${Number(ymd.slice(8, 10))}`;
-
 // 홈 오늘 근무 · 이번 주 근무(#313, HOME-1). 앱 전역 근무지의 근무스케줄을 근무 탭과 같은 api 로 받는다 —
 // 이번 주가 두 달에 걸치면 두 달을 받아 합친다. 근무일은 시작한 날이다.
 // 출퇴근은 오늘 근무 카드 안에서 시작한다(HOME-3) — 출근 전이면 출근하기, 근무 중이면 「근무 중」과 퇴근하기, 누르면 출퇴근 화면.
@@ -31,11 +28,17 @@ export async function ScheduleCards({ staffMemberId }: { staffMemberId: number }
   return (
     <>
       <TodayCard items={todays} next={next} action={attendance && homeAttendanceAction(attendance, todays.length > 0)} />
-      <section className="flex flex-col gap-[13px]">
+      <section className="flex flex-col gap-[12px]">
+        {/* 날짜 범위 대신 「전체 보기 ›」 — 다음 주 근무로 가는 길이 홈에 없었다. 근무 탭 달력의 오늘로 간다. TO-DO 「전체 보기」와 같은 모양(2026-11-24 사용자 지정) */}
         <SectionTitle title="이번 주 근무">
-          <span className="text-[14px] text-staff-text-sub">
-            {md(week[0])} (월) – {md(week[6])} (일)
-          </span>
+          <Link
+            href={`/work?month=${today.slice(0, 7)}&day=${today}`}
+            transitionTypes={["nav-forward"]}
+            className="-my-[13px] flex min-h-[44px] items-center text-[12px] text-staff-text-sub"
+          >
+            전체 보기
+            <Image src="/icons/chevron-right-small.svg" alt="" width={11} height={11} className="-scale-y-100" />
+          </Link>
         </SectionTitle>
         {/* 근무가 있는 주의 요약 줄(N일 · H시간)은 데모 home 처럼 두지 않는다 — 빈 주의 안내만 둔다 */}
         <ThisWeek week={week} today={today} items={items}>
@@ -93,24 +96,31 @@ function TodayCard({ items, next, action }: { items: MyWorkSchedule[]; next?: My
   return (
     <section
       aria-label="오늘 근무"
-      // 간격은 위 · 아래 · 좌우 24, 줄 사이 12 로 모두 같게 — 시간 줄 높이(46) · 휴게 줄 아래 15 가 섞여 간격이 들쭉날쭉했다(2026-11-23 사용자 지정)
+      // 안쪽 위 · 아래 · 좌우 24. 시각과 「총 N 근무 · 휴게 N분」은 한 묶음이라 붙이고(글자 사이 8), 머리 줄 → 시각 · 묶음 → 버튼은 글자 기준 18 로 같게 —
+      // 상자 간격만 12 로 같게 두니 큰 시각 글자의 위아래 여백 때문에 보이는 간격이 18 · 20 · 15 로 달랐다(2026-11-24 사용자 지정)
       className="flex flex-col gap-[12px] rounded-[18px] bg-staff-primary p-[24px] leading-[1.5] text-white shadow-[0_9px_23px_rgba(49,93,245,0.15)]"
     >
       <div className="flex items-center justify-between">
         <p className="text-[12px] text-[#dbe5ff]">오늘 근무</p>
         {action === "check-out" && WORKING}
       </div>
-      {items.map((i) => (
-        <p key={i.workScheduleId} className="flex items-center gap-[4px] text-[30px] leading-[1.15] font-bold">
-          {i.startTime}
-          <span className="w-[23px] text-center text-[14px] font-normal text-[#bccfff]">—</span>
-          {i.endTime}
+      <div className="flex flex-col">
+        {items.map((i) => (
+          <p key={i.workScheduleId} className="flex items-center gap-[4px] text-[30px] leading-[1.15] font-bold">
+            {i.startTime}
+            <span className="w-[23px] text-center text-[14px] font-normal text-[#bccfff]">—</span>
+            {i.endTime}
+          </p>
+        ))}
+        <p className="flex items-center gap-[6px] text-[12px] text-[#dbe5ff]">
+          총 {durationLabel(total)} 근무 <span className="text-[11px]">·</span> 휴게 {breakMinutes}분
         </p>
-      ))}
-      <p className="flex items-center gap-[6px] text-[12px] text-[#dbe5ff]">
-        휴게 {breakMinutes}분 <span className="text-[11px]">·</span> 총 {durationLabel(total)} 근무
-      </p>
-      {action && <AttendanceButton action={action} />}
+      </div>
+      {action && (
+        <div className="pt-[3px]">
+          <AttendanceButton action={action} />
+        </div>
+      )}
     </section>
   );
 }
