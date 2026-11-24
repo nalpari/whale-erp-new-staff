@@ -2,6 +2,14 @@
 
 ## 2026-11-24
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 내 근무지의 퇴직한 근무지 카드에도 신고정보 · 계좌 · 근로계약서 · 급여명세서 세 칸(재직 카드와 같은 링크, 「미입력」 꼬리표 없음)을 두고, 퇴직한 근무지의 신고 정보는 조회만(api `editable: false` · PUT 409 `STAFF_RETIRED`) — `editable === false` 일 때만(옛 api 와 섞여도 재직 근무지는 막지 않는다), 고치기 · 입력 버튼 없이 「퇴직한 근무지라 신고 정보는 조회만 할 수 있습니다.」(WHALEERP-765). `edit` · `new` 는 보기 화면으로 돌려보내고 서버 액션도 PUT 하지 않는다. `api-types.d.ts` 를 다시 만들어 먼저 들어간 api 의 `storeIsHq` 등도 함께 들어왔다(시험 고정값 두 곳에 `storeIsHq: false`).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 루트 레이아웃 `<head>` 에 브리지 준비 이벤트를 듣는 인라인 스크립트를 넣어, 출퇴근 화면 코드가 불러와지기 전에 지나간 이벤트도 준비로 본다(PR #91 pr-agent 재리뷰).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 준비 이벤트를 받은 브리지를 기억해, 다시 시도로 연결된 직후 출퇴근 버튼이 다시 not-ready 가 되지 않게 했다(PR #91 pr-agent 재리뷰).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #91 pr-agent 리뷰 반영: 출퇴근 위치 읽기도 준비된 브리지만 쓰고(strict 두 번, 아니면 다시 시도), 위치를 보지 않는 출퇴근은 다시 시도로 가리지 않으며, 약속 어긋남 기록 실패 때 예외 메시지 대신 고정 표식만 남긴다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 「다시 시도」가 strict 로 기다리는지와 약속 어긋남 기록이 실패해도 원본(좌표)을 남기지 않는지를 테스트로 고정했다. strict 로 떨어진 브리지는 「브리지 없음」이 아니라 「준비 표시 없음」으로 남긴다(PR 전 코드리뷰 2라운드).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 「다시 시도」는 출근 읽기처럼 두 번까지 기다리고, 반쯤 준비된 브리지(Android 준비 표시 없음)는 연결됨으로 보지 않는다. 위치를 쓸 수 없는 상태(동의 없음 · 일시 중지)면 다시 시도 버튼도 끈다. 약속 어긋남 기록을 만들다 예외가 나도 위치 읽기 결과는 그대로 둔다(PR 전 코드리뷰).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 루트 `viewport` 에 `viewportFit: "cover"` · `themeColor` 를 넣어 `env(safe-area-inset-*)` 여백이 동작하게 했다(mobile-app webview-plan 1절).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 앱 연결이 잠깐 안 됐을 때(not-ready) 출근 · 퇴근 버튼 대신 「다시 시도」를 두고, 앱 연결만 다시 확인해 되면 원래 버튼으로 돌아간다(2026-11-24 창수).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 앱 안 출퇴근에서 브리지가 늦으면 한 번 더 기다리고, 앱 고장 안내를 까닭(not-ready · forbidden · mismatch)마다 나눠 일시 장애는 「다시 눌러 주세요 · 관리자에게 출퇴근 등록 요청」으로 안내한다. `measureLocation` 약속 어긋남은 좌표 없이 어긋난 칸 이름만 콘솔에 남긴다(2026-11-23 창수 결정, 재영 #90 리뷰).
 
 ## 2026-11-23
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 출퇴근 버튼에서 위치 읽음을 남기는 요청이 예외로 끝나면 「위치를 확인할 수 없음」이 아니라 요청 실패로 안내한다(PR #90 pr-agent 리뷰).
