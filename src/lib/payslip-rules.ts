@@ -161,3 +161,11 @@ export function payslipKeepQuery(get: (name: string) => string | null | undefine
   }
   return keep.size > 0 ? `?${keep}` : "";
 }
+
+/**
+ * 받기에 실패해 돌려보낼 명세서 상세 주소. [keep] 은 payslipKeepQuery 의 결과(빈 문자열이거나 `?` 로 시작).
+ * 설치형 앱은 경로 `/pay/<id>` 와 `download` 키로 이 안내 화면을 알아보므로(앱 `isPayslipFailurePage`) 모양을 바꾸면 앱도 고친다.
+ */
+export function payslipFailurePath(payslipId: number, keep: string, reason: PayslipDownloadFailure): string {
+  return `/pay/${payslipId}${keep}${keep ? "&" : "?"}download=${reason}`;
+}

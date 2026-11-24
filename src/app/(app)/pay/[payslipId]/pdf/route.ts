@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { redirect } from "next/navigation";
 import { baseUrl } from "@/lib/api";
 import { withNext } from "@/lib/login-return";
-import { parsePayslipId, payslipDownloadFailure, payslipKeepQuery, type PayslipDownloadFailure } from "@/lib/payslip-rules";
+import { parsePayslipId, payslipDownloadFailure, payslipFailurePath, payslipKeepQuery, type PayslipDownloadFailure } from "@/lib/payslip-rules";
 import { EXPIRED_LOGIN_PATH, getSession } from "@/lib/session";
 
 // PAY-2 「명세서 내보내기」 — api GET /me/payslips/:id/pdf 를 로그인한 직원의 토큰으로 불러 그대로 내려준다.
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/pay/[payslipId]/
   // 알림 · 소속 근무지에서 연 상세였으면 돌아가서도 뒤로 가기가 그 목록으로 가게 이어 준다
   const keep = payslipKeepQuery((name) => req.nextUrl.searchParams.get(name));
   const back = `/pay/${payslipId}${keep}`;
-  const fail = (reason: PayslipDownloadFailure) => redirect(`${back}${keep ? "&" : "?"}download=${reason}`);
+  const fail = (reason: PayslipDownloadFailure) => redirect(payslipFailurePath(payslipId, keep, reason));
   const session = await getSession();
   // 접속이 끝났으면 다시 로그인한 뒤 명세서 상세로 돌아온다(내려받기 주소로 돌아오면 빈 화면에 파일만 받는다)
   if (!session) redirect(withNext(EXPIRED_LOGIN_PATH, back));
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/pay/[payslipId]/
     return fail("failed");
   }
   if (response.status === 401) redirect(withNext(EXPIRED_LOGIN_PATH, back));
-  // 404 · 409(상세를 연 사이 관리자가 확정을 취소해 검토 중) — 오류가 아니라 지금 내려받을 수 없는 것이다
+  // 404(없음) · 409(상세를 연 사이 관리자가 확정을 취소해 검토 중)는 연결 오류가 아니라 지금 내려받을 수 없는 것이라 까닭별로 안내한다
   if (response.status === 404 || response.status === 409) fail(payslipDownloadFailure(response.status));
   if (!response.ok || !response.body) {
     console.error(`[pay-pdf] ${payslipId} api 응답 ${response.status}`);
