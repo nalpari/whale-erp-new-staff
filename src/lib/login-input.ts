@@ -8,6 +8,11 @@ export interface LoginInput {
   saveEmail: boolean;
   /** 「자동 로그인」 = api rememberMe. 켜면 마지막 사용 후 30일, 끄면 7일. */
   autoLogin: boolean;
+  /**
+   * 설치형 앱이 준 기기 식별자(64자 소문자 16진수, 앱 브리지 deviceId). 앱 밖 · 옛 앱 · 아직 못 받았으면 null —
+   * 그때는 쿠키 값(`device_id`)을 쓴다. 폼에서 오는 값이라 형식이 아니면 버린다.
+   */
+  appDeviceId: string | null;
 }
 
 /**
@@ -20,5 +25,11 @@ export function readLoginForm(form: Pick<FormData, "get">): LoginInput {
     password: String(form.get("password") ?? ""),
     saveEmail: form.get("saveEmail") === "on",
     autoLogin: form.get("autoLogin") === "on",
+    appDeviceId: appDeviceIdOf(form.get("appDeviceId")),
   };
+}
+
+/** 앱 기기 식별자 칸을 읽는다. native-bridge 의 APP_DEVICE_ID_PATTERN 과 같은 모양만 받는다(이 파일은 값 import 를 하지 않는다). */
+export function appDeviceIdOf(value: unknown): string | null {
+  return typeof value === "string" && /^[0-9a-f]{64}$/.test(value) ? value : null;
 }

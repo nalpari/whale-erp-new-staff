@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Alert, BrandLogo, Button, CheckBox, Notice, TextField } from "@/components/common";
 import { useNow } from "@/app/_components/countdown";
 import { forgetAffiliationPopup } from "@/lib/affiliation-popup-memory";
@@ -9,6 +9,7 @@ import { forgetSignRequestPopup } from "@/lib/sign-request-popup-memory";
 import { forgetHqReconsentPopup } from "@/lib/hq-reconsent-popup-memory";
 import { type AttemptLock, lockCountdown } from "@/lib/attempt-lock";
 import { isEmailShape } from "@/lib/email-change";
+import { getAppDeviceId, isInApp } from "@/lib/native-bridge";
 import { useFieldCheck } from "@/app/_components/use-field-check";
 import { AuthScreen } from "../_components/auth-screen";
 import { useFocusedTitle } from "../_components/use-focused-title";
@@ -41,6 +42,19 @@ export function LoginForm({
   // React 19 폼 액션은 제출 뒤 칸을 처음 값으로 되돌린다. 실패한 뒤에도 고른 값이 남도록 상태로 든다.
   const [saveEmail, setSaveEmail] = useState(savedEmail !== null);
   const [autoLogin, setAutoLogin] = useState(false);
+  // 설치형 앱 안이면 앱이 주는 기기 식별자(해시)를 받아 숨은 칸으로 넘긴다(계획 결정 9). 못 받으면(옛 앱 · 앱 밖) 비워 두고
+  // 서버가 쿠키 값(`device_id`)을 쓴다. 받기 전에 제출해도 같다.
+  const [appDeviceId, setAppDeviceId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!isInApp()) return;
+    let live = true;
+    void getAppDeviceId().then((result) => {
+      if (live && result.ok) setAppDeviceId(result.data.deviceId);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
   // 「다시 로그인」으로 걷어 낸 잠금 결과. 같은 결과 객체로는 잠금 화면을 다시 그리지 않는다(새로 제출해 잠기면 새 객체다).
   const [dismissed, setDismissed] = useState<LoginState | null>(null);
   // 브라우저 말풍선 대신 칸 아래 문구(use-field-check). 문구는 서버 액션과 같다.
@@ -72,6 +86,7 @@ export function LoginForm({
       className="flex flex-1 flex-col"
     >
       {next ? <input type="hidden" name="next" value={next} /> : null}
+      {appDeviceId ? <input type="hidden" name="appDeviceId" value={appDeviceId} /> : null}
       <AuthScreen
         top={expired ? undefined : <BrandLogo />}
         // 기본 화면은 데모 login 처럼 로고 아래 제목 · 설명이 없다(제목은 화면 낭독기에만). 만료 안내는 실제 상황이라 둔다

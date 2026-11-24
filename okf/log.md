@@ -1,6 +1,10 @@
 # Bundle history
 
 ## 2026-11-24
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 로그인에서 앱 기기 식별자 쿠키는 로그인이 성공한 뒤에만 저장한다. 상세를 연 사이 지워진 명세서는 받기 실패 안내와 「목록으로」를 보인다(PR #97 pr-agent 리뷰).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR 전 코드리뷰 반영: 받기 실패 주소를 `payslipFailurePath` 로 빼 테스트로 고정(앱이 `/pay/<id>?download=` 모양으로 알아본다), 로그인은 앱 기기 식별자를 쿠키 재읽기 없이 바로 넘기고, 약속과 다른 `deviceId` 답은 값 대신 모양만 콘솔에 남긴다. `device_id` 가 UUID 로 남는 경우(옛 앱, 그리고 앱 안에서 아직 로그인한 적이 없을 때의 받기 전 제출 · 가입 먼저)를 적었다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 설치형 앱 안에서는 로그인의 `deviceIdentifier` 로 쿠키 UUID 대신 앱이 주는 기기 식별자(해시, 브리지 `deviceId`)를 쓰고 `device_id` 쿠키에도 남긴다(계획 결정 9).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 급여명세서 PDF 받기가 실패하면 글자 응답 대신 명세서 상세로 돌려보내 안내를 띄운다(계약서 파일 받기와 같다). 받기 링크에서 `download` 속성을 뺐다. `native-bridge.ts` 실패 종류 주석을 strict 대기에 맞췄다(재영 #91 머지 댓글).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 퇴직 근무지 신고 정보: 보관 기간(퇴직 후 3년)이 지나 api 가 `expired: true` 를 주면 빈 상태를 「신고 정보 보관 기간이 지났습니다」 · 「퇴직 후 3년이 지나 이 근무지의 신고 정보를 보관하지 않습니다.」로 보인다(B안, 2026-11-24 재영 · WHALEERP-772, `taxProfileEmptyOf`). 넣은 적 없는 근무지는 「입력한 신고 정보가 없습니다」 그대로. `api-types.d.ts` 다시 생성(api trapinch).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 급여명세서 상세의 4대보험 공제 줄을 근로계약서 가입 체크대로만 보인다(WHALEERP-756, 2026-11-20 김지영): `isItemShown` 이 api 상세 `isHealthPensionInsured` · `isEmploymentInjuryInsured` 를 받아 국민연금 · 건강보험 · 장기요양보험 / 고용보험을 가린다(관리자 화면 · api PDF 와 같은 규칙) — 미가입이어도 0 아닌 금액이 든 줄은 보인다(2026-11-24 사용자 결정). `api-types.d.ts` 를 다시 만들었고, 그사이 api 에서 필수가 된 `storeIsHq` 를 시험 고정값 둘(출퇴근 · TO-DO)에 넣었다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 회원 탈퇴 화면 `/me/withdrawal` 을 더하고(재직 중이면 퇴직 처리 요청 안내, 현재 비밀번호 확인 뒤 탈퇴, 성공하면 `/login?withdrawn=1`) 내 정보에 「회원 탈퇴」 링크를 두었다(WHALEERP-770). 탈퇴 성공 때 아이디 저장 쿠키도 지운다(1차 리뷰). [탈퇴] 는 확인 시트를 거쳐 제출한다(노영주 결정).

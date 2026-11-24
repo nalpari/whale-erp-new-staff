@@ -21,7 +21,10 @@ export const BRIDGE_READY_EVENT = "flutterInAppWebViewPlatformReady";
  * - failed: 앱 기능이 실패했거나, 호출이 예외로 끝났거나, 앱이 제때 답하지 않았다. 앱 기능 실패는 앱 로그에,
  *   예외 · 시간 초과는 웹 콘솔에 남는다.
  * - unavailable: 앱 안이 아니거나, 기다려도 `callHandler` 가 없거나, 앱에 없는 기능이다(앱 버전이 낮을 때 등).
- *   Android 에서 준비 이벤트가 제때 안 와도 `callHandler` 가 보이면 그것으로 불러 본다(waitForBridge).
+ *   기본 대기(waitForBridge)는 Android 에서 준비 이벤트가 제때 안 와도 `callHandler` 가 보이면 그것으로 불러 본다.
+ *   엄격 대기(strict — 출퇴근 위치 · 「다시 시도」)는 시간이 다 됐을 때 준비 표시까지 있어야 부르고, 없으면 부르지 않는다.
+ *   이때 waitForBridge 는 null 을 돌려주고, 출퇴근 위치(readDeviceLocation)는 not-ready 로, 「다시 시도」(checkAppConnection)는
+ *   false(연결 안 됨)로 본다.
  * - malformed: 앱이 약속과 다른 모양으로 답했다.
  */
 export type BridgeError = "forbidden" | "failed" | "unavailable" | "malformed";
@@ -203,6 +206,33 @@ export function isAppInfo(data: unknown): data is AppInfo {
 /** 앱 버전과 운영체제. 브리지가 살아 있는지 확인하거나 앱 버전별로 기능을 켜고 끌 때 쓴다. */
 export function getAppInfo(bridge?: Bridge | null): Promise<BridgeResult<AppInfo>> {
   return callNative("appInfo", [], isAppInfo, bridge);
+}
+
+/** 기기 식별자 형식 — 앱이 기기 고유값을 SHA-256 으로 바꾼 64자 소문자 16진수(앱 `docs/native-bridge.md` 의 deviceId). */
+export const APP_DEVICE_ID_PATTERN = /^[0-9a-f]{64}$/;
+
+export type AppDeviceId = { deviceId: string };
+
+export function isAppDeviceId(data: unknown): data is AppDeviceId {
+  return typeof data === "object" && data !== null && "deviceId" in data && typeof data.deviceId === "string" && APP_DEVICE_ID_PATTERN.test(data.deviceId);
+}
+
+/**
+ * 앱이 주는 기기 식별자(계획 결정 9). 로그인의 deviceIdentifier 로 쿠키 UUID 대신 쓴다 — 쿠키는 앱을 지우면 바뀌지만 이 값은
+ * 대체로 그대로다. 기기 고유값은 앱이 해시해 넘겨 원래 값은 모른다. 옛 앱(기능 없음)이나 앱 밖이면 unavailable.
+ */
+export function getAppDeviceId(bridge?: Bridge | null): Promise<BridgeResult<AppDeviceId>> {
+  // 약속과 다른 답은 원본 대신 모양만 남긴다 — 다른 버전 앱이 기기 고유값을 그대로 넘겨도 콘솔에 남지 않게.
+  return callNative("deviceId", [], isAppDeviceId, bridge, { describeMalformed: deviceIdShape });
+}
+
+/** 약속과 다른 deviceId 답(앱 답 전체)의 모양. 값은 남기지 않고 칸 이름과 deviceId 의 종류 · 길이만. */
+function deviceIdShape(raw: unknown): unknown {
+  if (typeof raw !== "object" || raw === null) return typeof raw;
+  const data = (raw as { data?: unknown }).data;
+  if (typeof data !== "object" || data === null) return { keys: Object.keys(raw), data: typeof data };
+  const value = (data as { deviceId?: unknown }).deviceId;
+  return { keys: Object.keys(raw), dataKeys: Object.keys(data), deviceId: typeof value === "string" ? `string(${value.length})` : typeof value };
 }
 
 /**
