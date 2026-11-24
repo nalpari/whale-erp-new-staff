@@ -250,7 +250,7 @@ function PeriodView({
   onOpen: (s: Sheet) => void;
 }) {
   const totals = periodTotals(records, today);
-  // 주 줄을 누르면 그 주의 날짜 카드를 펼친다 — 지난 주의 날마다 출퇴근 시각을 볼 곳이 없었다(급여명세서가 이 기록으로 작성된다, 2026-11-24 사용자 지정)
+  // 주 줄을 누르면 그 주의 날짜 줄을 펼친다 — 지난 주의 날마다 출퇴근 시각을 볼 곳이 없었다(급여명세서가 이 기록으로 작성된다, 2026-11-24 사용자 지정)
   const [opened, setOpened] = useState<string | null>(null);
   const inRange = (date: string) => date >= records.from && date <= records.to;
   return (
@@ -328,10 +328,10 @@ function PeriodView({
                     {/* 둘째 줄은 공통 둥근 꺾은선(SubLine)으로 주 이름 아래 요약임을 보인다 — 「기록 없음」 · 「근무 예정」도 같은 들여쓰기.
                         시간 · 근무 · 지각 · 미기록 모두 꺾은선과 같은 회색 한 가지(색이 섞이면 어지러웠다), 단위 없이 숫자만(「근무 2 · 지각 2」), 지각 · 미기록은 0 이 아닐 때만(2026-11-24 사용자 지정) */}
                     <SubLine>
-                      {w.upcoming ? (
+                      {w.empty ? (
+                        w.upcoming ? "예정 없음" : "기록 없음"
+                      ) : w.upcoming ? (
                         "근무 예정"
-                      ) : w.empty ? (
-                        "기록 없음"
                       ) : (
                         <span className="flex flex-wrap items-center gap-x-[6px]">
                           <span>{durationLabel(w.workedMinutes)}</span>
@@ -384,15 +384,15 @@ function PeriodView({
 
 /** 기간별 펼친 주의 하루 한 줄 — 날짜 · 출퇴근 쌍(쌍마다 한 줄) · 상태. 확인 필요 · 수정 · 퇴근 기록 없음이면 눌러 시트를 연다 */
 function DayLine({ date, day, today, onOpen }: { date: string; day: MyAttendanceDay | null; today: string; onOpen: (s: Sheet) => void }) {
-  // 시각만 쌍마다 한 줄(「15:58 – 18:14」) — 사유까지 붙이면 줄 중간에서 꺾였다. 사유는 확인 필요 칩 줄을 눌러 시트에서 본다
+  // 시각만 쌍마다 한 줄(「15:58 – 18:14」) — 사유까지 붙이면 줄 중간에서 꺾였다. 사유는 확인 필요 줄을 눌러 시트에서 본다
   const lines = !day
     ? ["예정 없음"]
     : day.pairs.length === 0
       ? [summaryOf(day, today)]
       : day.pairs.map((p) => `${p.checkIn?.time ?? "기록 없음"} – ${p.checkOut?.time ?? (date === today ? "근무 중" : "퇴근 기록 없음")}`);
   // 실제 기록이 있거나 지난 날이면 그날 근무스케줄을 회색 「예정」 줄로 함께 — 예정과 실제를 견줘 지각인지 보이게(2026-11-24 사용자 지정)
-  const plans = day && !lines[0].startsWith("예정") ? day.schedules.map((p) => `예정 ${p.startTime} – ${p.endTime}`) : [];
-  // 확인 필요여도 지각 · 근무 중 같은 상태 칩은 함께 둔다 — 확인 필요가 지각을 가렸다
+  const plans = day && !(day.pairs.length === 0 && date >= today) ? day.schedules.map((p) => `예정 ${p.startTime} – ${p.endTime}`) : [];
+  // 확인 필요여도 지각 · 근무 중 같은 상태 글자는 함께 둔다 — 확인 필요가 지각을 가렸다
   const status = day ? statusChipOf(day, today) : undefined;
   const chips = day ? [...(flagsOf(day).length > 0 ? [{ label: "확인 필요", tone: "warning" as const }] : []), ...(status ? [status] : [])] : [];
   const sheet: Sheet = !day ? null : flagsOf(day).length > 0 ? { kind: "flag", day } : isEdited(day) ? { kind: "edits", day } : day.status === "MISSING_CHECK_OUT" ? { kind: "missing-out", day } : null;
@@ -409,7 +409,7 @@ function DayLine({ date, day, today, onOpen }: { date: string; day: MyAttendance
           </span>
         ))}
       </span>
-      {/* 펼친 날짜 줄의 상태는 칩 대신 12px 글자 — 칩을 두 개 쌓으니 줄이 두꺼웠다. 주의할 것(확인 필요 · 지각 · 미기록)만 먹색, 나머지는 회색 — 호박색은 튀었다(2026-11-24 사용자 지정) */}
+      {/* 펼친 날짜 줄의 상태는 칩 대신 12px 글자 — 칩을 두 개 쌓으니 줄이 두꺼웠다. 주의할 것(확인 필요 · 지각 · 미출근 · 미기록)만 먹색, 나머지는 회색 — 호박색은 튀었다(2026-11-24 사용자 지정) */}
       {chips.length > 0 && (
         <span className="flex shrink-0 flex-col items-end gap-[2px] pt-[1px] text-[12px] font-semibold">
           {chips.map((c) => (

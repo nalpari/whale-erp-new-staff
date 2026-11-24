@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-11-24
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 머리줄 통일(`StoreHeader` · `TitleHeader`, 근무 화면 근무지 카드 삭제, 출퇴근 화면 근무지는 보이기만), 근무지 고르기 시트 줄 모양, 출퇴근 현황 기간별(범위 달력 · 기간 요약 · 주 줄 펼침 · 미출근/미기록 · 예정 없음), 홈 「근로 · 휴게」 · 예정 없는 날 카드, 알림에서 연 화면의 뒤로 가기(`from=notifications`).
+
 ## 2026-11-23
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 출퇴근 버튼에서 위치 읽음을 남기는 요청이 예외로 끝나면 「위치를 확인할 수 없음」이 아니라 요청 실패로 안내한다(PR #90 pr-agent 리뷰).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 앱 안인데 브리지가 없으면 출퇴근 위치를 브라우저로 넘기지 않고 앱 고장(broken)으로 본다. 브리지는 있는데 `measureLocation` 을 모르는 옛 앱만 브라우저 위치로 넘긴다(PR #90 pr-agent 리뷰).

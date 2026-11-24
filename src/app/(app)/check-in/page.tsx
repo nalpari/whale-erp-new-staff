@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { Alert, BottomNav, MaskIcon } from "@/components/common";
 import { StoreHeader } from "../store-header";
 import { PRESS } from "@/components/common/theme";
 import { requestsLoadFailure } from "@/lib/affiliation-requests";
 import { failureOf, logFailure } from "@/lib/api";
 import { getContracts } from "@/lib/contracts";
-import { CURRENT_STAFF_MEMBER_COOKIE, pickCurrentMembership } from "@/lib/current-store";
+import { getCurrentMembership, hasRetiredMembership } from "@/lib/current-membership";
 import { getMyAttendance } from "@/lib/my-attendance";
-import { getMyMemberships, getMyProfileForExtra } from "@/lib/my-profile";
+import { getMyProfileForExtra } from "@/lib/my-profile";
 import { requireSession } from "@/lib/session";
 import { checkInSignWaitingOf } from "@/lib/sign-request";
 import { CheckInScreen } from "./check-in-screen";
@@ -22,10 +21,11 @@ export const metadata: Metadata = { title: "출퇴근 · Whale ERP" };
 // 카카오 지도 키는 요청 때 서버 env 에서 읽어 넘긴다 — 값 파일은 이미지 빌드 뒤에 마운트되므로 NEXT_PUBLIC_ 으로 빌드에 박을 수 없다.
 export default async function CheckInPage() {
   await requireSession();
-  const memberships = await getMyMemberships();
-  const current = memberships && pickCurrentMembership(memberships.items, (await cookies()).get(CURRENT_STAFF_MEMBER_COOKIE)?.value);
+  // 머리줄(StoreHeader)과 같은 응답을 나눠 쓴다(cache) — 따로 받으면 한쪽만 실패해 머리줄 · 본문 근무지가 어긋났다
+  const memberships = await getCurrentMembership();
+  const current = memberships?.current ?? null;
   // 퇴직한 소속이 있을 때만 퇴직 후 안내 — 가입 직후 · 계약 전(거절 · 만료)에는 중립 안내. 퇴직 포함 목록을 못 받으면 중립 안내
-  const retired = memberships && !current && ((await getMyMemberships(true))?.items.some((m) => m.retiredDate !== null) ?? false);
+  const retired = memberships && !current && (await hasRetiredMembership());
   const attendance = current && (await getMyAttendance(current.staffMemberId));
   // 출근이 서명 대기 계약으로 막혔으면 시트가 그 계약서로 잇는다(146) — 그때만 내 계약 목록을 받는다
   const block = attendance?.checkInBlock;
@@ -39,13 +39,14 @@ export default async function CheckInPage() {
       ? ((await getMyProfileForExtra("profile-check-in"))?.locationConsent.pausedAt ?? null)
       : null;
   // 근무지는 홈 · 근무와 같은 머리줄에서 보이고 바꾼다(2026-11-24 사용자 지정)
-  // 근무지는 홈 · 근무와 같은 머리줄에서 보이고 바꾼다(2026-11-24 사용자 지정)
   const header = (
     <div className="bg-white px-[24px] pt-[16px] pb-[8px]">
       <StoreHeader
         title="출퇴근"
+        // 출퇴근 등록 화면에서는 근무지를 고르지 않는다(ATT-07) — 근무지는 보이기만 하고 바꾸기는 홈 · 근무 머리줄에서
+        pickable={false}
         action={
-        // 데모 check-in — 머리줄 오른쪽은 출퇴근 현황으로 가는 버튼이다. 시계 아이콘만으로는 버튼인지 · 어디로 가는지 몰라 글자 알약
+        // 데모 check-in — 근무지 줄 오른쪽 끝은 출퇴근 현황으로 가는 버튼이다. 시계 아이콘만으로는 버튼인지 · 어디로 가는지 몰라 글자 알약
         // 「출퇴근 현황 ›」으로 바꿨다(2026-11-20 사용자 지정). 보이는 알약은 36px, 누르는 칸은 위아래를 넓혀 44px.
         <Link href="/attendance" transitionTypes={["nav-forward"]} className="group -my-[4px] flex min-h-[44px] shrink-0 items-center">
           <span

@@ -78,9 +78,8 @@ export function BottomSheet({
   );
 }
 
-// 시트 안의 고르기 버튼(Figma node 12:677): 52px · radius 12 · #E4E8EF 테두리 · 15px semibold 보조 글자.
-// 지금 고른 것은 글자 옆에 19px 체크(사이 9). 색이 아니라 체크와 aria-pressed 로 고른 것을 알린다.
-// disabled 면(보내는 중 등) 흐리게 하고 누르지 못한다.
+// 시트 안의 고르기 버튼(Figma node 12:677): 52px · radius 12 · 안 고른 줄 #E4E8EF 테두리 · 15px semibold 보조 글자.
+// 고른 것은 체크 동그라미와 aria-pressed 로도 알린다(색만으로 말하지 않는다). disabled 면(보내는 중 등) 흐리게 하고 누르지 못한다.
 // 고르기 시트의 한 줄. 왼쪽 정렬, 앞에 아이콘(근무지면 StoreMark)을 둘 수 있다.
 // 고른 줄은 남색 테두리 · 옅은 회색 바탕 · 먹색 글자에 오른쪽 끝 남색 체크 동그라미 — 회색 체크 하나로는 고른 줄이 잘 안 보였다(2026-11-24 사용자 지정)
 export function SheetOption({
@@ -107,7 +106,8 @@ export function SheetOption({
       }`}
     >
       {icon}
-      <span className="min-w-0 flex-1 truncate">{children}</span>
+      {/* 근무지 이름은 자르지 않고 줄을 바꾼다 — 비슷한 지점 이름이 잘리면 서로 갈리지 않는다 */}
+      <span className="min-w-0 flex-1 py-[12px] break-keep">{children}</span>
       {selected && (
         <span aria-hidden className="flex size-[20px] shrink-0 items-center justify-center rounded-full bg-staff-navy text-white">
           <svg width="11" height="11" viewBox="0 0 12 12" fill="none">

@@ -27,7 +27,7 @@ export function AttendanceDayCard({
 }: {
   state: keyof typeof CARD;
   day: string;
-  /** 근무지 — 출퇴근 현황은 탭 위에 한 번 두어 비운다 */
+  /** 근무지 — 출퇴근 현황은 머리줄에 근무지가 있어 비운다 */
   store?: string;
   status?: AttendanceDayStatus;
   edited?: boolean;
@@ -48,7 +48,7 @@ export function AttendanceDayCard({
   );
 }
 
-// 쉬는 날 한 줄(node 12:1353): #F9FBFD 바탕 · radius 12 · 13px 보조 글자 가운데.
+// 근무스케줄 · 기록이 없는 날 한 줄(「예정 없음」, node 12:1353): #F9FBFD 바탕 · radius 12 · 13px 보조 글자 가운데.
 export function DayOffRow({ label }: { label: string }) {
   return (
     <p className="rounded-[12px] border border-staff-border-light bg-[#f9fbfd] px-[9px] pt-[11px] pb-[10px] text-center text-[13px] leading-[1.5] text-staff-text-sub">

@@ -43,15 +43,16 @@ export function PeriodPicker({
   today: string;
 }) {
   const form = useRef<HTMLFormElement>(null);
-  const [range, setRange] = useState({ from, to });
+  const fromInput = useRef<HTMLInputElement>(null);
+  const toInput = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   // 시트 안에서 고르는 중인 값 — [적용] 전에는 칸 값을 바꾸지 않는다
   const [draft, setDraft] = useState<{ start: string; end: string | null }>({ start: from, end: to });
   const [month, setMonth] = useState(monthOf(to));
 
   const handleOpen = () => {
-    setDraft({ start: range.from, end: range.to });
-    setMonth(monthOf(range.to));
+    setDraft({ start: from, end: to });
+    setMonth(monthOf(to));
     setOpen(true);
   };
   // 시작일 · 종료일이 다 있으면 새로 시작일, 시작일만 있으면 그 뒤 날은 종료일 · 앞 날은 새 시작일
@@ -60,10 +61,13 @@ export function PeriodPicker({
   const tooLong = draft.end !== null && daysBetween(draft.start, draft.end) > MAX_PERIOD_DAYS;
   const handleApply = () => {
     if (draft.end === null || tooLong) return;
-    setRange({ from: draft.start, to: draft.end });
+    // 칸 글자는 받은 기간(props) 그대로 두고 보낼 값만 숨은 칸에 넣는다 — 상태로 먼저 바꾸면 뒤로 가기(bfcache)로 되살아난 화면에서 칸과 목록이 어긋났다
+    if (fromInput.current && toInput.current) {
+      fromInput.current.value = draft.start;
+      toInput.current.value = draft.end;
+    }
     setOpen(false);
-    // 숨은 칸이 새 값으로 그려진 뒤 보낸다
-    requestAnimationFrame(() => form.current?.requestSubmit());
+    form.current?.requestSubmit();
   };
 
   return (
@@ -71,11 +75,11 @@ export function PeriodPicker({
       <form ref={form} action="/attendance">
         <input type="hidden" name="tab" value="period" />
         {fromHome && <input type="hidden" name="back" value="home" />}
-        <input type="hidden" name="from" value={range.from} />
-        <input type="hidden" name="to" value={range.to} />
+        <input ref={fromInput} type="hidden" name="from" defaultValue={from} />
+        <input ref={toInput} type="hidden" name="to" defaultValue={to} />
         <div className="relative">
-          <button type="button" aria-haspopup="dialog" aria-label={`조회 기간 ${dot(range.from)} ~ ${dot(range.to)}`} onClick={handleOpen} className={`${FIELD} pr-[44px] text-left tabular-nums`}>
-            {dot(range.from)} ~ {dot(range.to)}
+          <button type="button" aria-haspopup="dialog" aria-label={`조회 기간 ${dot(from)} ~ ${dot(to)}`} onClick={handleOpen} className={`${FIELD} pr-[44px] text-left tabular-nums`}>
+            {dot(from)} ~ {dot(to)}
           </button>
           <span aria-hidden className="pointer-events-none absolute top-1/2 right-[14px] flex -translate-y-1/2 text-staff-text-sub">
             <MaskIcon src="/icons/calendar-line.svg" size={16} />
@@ -102,7 +106,8 @@ export function PeriodPicker({
               </span>
             ))}
           </div>
-          <div role="grid" aria-label={`${month} 달력`} className="grid grid-cols-7 gap-y-[4px]">
+          {/* 화살표 키 이동이 없어 grid 대신 group — 날짜마다 버튼이다(리뷰) */}
+          <div role="group" aria-label={`${Number(month.slice(0, 4))}년 ${Number(month.slice(5, 7))}월`} className="grid grid-cols-7 gap-y-[4px]">
             {monthCells(month).map((day, i) => {
               if (!day) return <span key={`e${i}`} />;
               const end = draft.end ?? draft.start;
@@ -124,7 +129,7 @@ export function PeriodPicker({
                   key={day}
                   type="button"
                   aria-pressed={isEdge || inside}
-                  aria-label={label(day)}
+                  aria-label={`${label(day)}${isEdge ? (draft.end === null || draft.start === draft.end ? ", 선택한 날" : day === draft.start ? ", 시작일" : ", 종료일") : ""}`}
                   onClick={() => handlePick(day)}
                   className="relative flex h-[48px] items-start justify-center pt-[4px]"
                 >

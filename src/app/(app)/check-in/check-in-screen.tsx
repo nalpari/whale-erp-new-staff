@@ -473,7 +473,6 @@ export function CheckInScreen({
       body = (
         <>
           {geoBlock}
-          {/* 정돈 시안 ⑯(2026-11-20 사용자 지정): 근무지명 위 · 출근 시각(24px)을 크게, 「근무 중」은 점 + 글자로 출근 줄에 */}
           {/* 근무 중 상자 — 흰 바탕 · 옅은 테두리(연보라 판은 튀었다), 근무지 이름은 머리줄에 있어 뺐다. 근무 중 점은 초록(2026-11-24 사용자 지정) */}
           <section className="flex items-center gap-[12px] rounded-[18px] border border-staff-border-light bg-white px-[20px] py-[16px]">
             <div className="flex min-w-0 flex-1 flex-col">

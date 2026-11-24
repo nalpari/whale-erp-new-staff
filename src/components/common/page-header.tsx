@@ -8,12 +8,9 @@ import type { ReactNode } from "react";
 // 아이콘은 Figma 가 뒤집어 내보내 -scale-y-100 으로 세운다. 뒤로 가기는 늘 돌아가는 이동이라 nav-back 슬라이드를 붙인다.
 // backHref 를 주지 않으면 뒤로 가기를 두지 않는다 — 하단 메뉴로 바로 여는 화면(근무 · 출퇴근 · 급여)은 첫 화면이라 돌아갈 곳이 없다.
 // 그 화면에서 이어 들어간 화면만 뒤로 가기를 둔다(2026-11-23 사용자 지정).
-// underBar: 위에 근무지 머리줄(StoreHeader)이 붙는 탭 화면 — 위 여백을 줄이고 머리줄과 같은 좌우 24 로 맞춘다(2026-11-24 사용자 지정)
-export function PageHeader({ title, backHref, action, underBar = false }: { title: string; backHref?: string; action?: ReactNode; underBar?: boolean }) {
+export function PageHeader({ title, backHref, action }: { title: string; backHref?: string; action?: ReactNode }) {
   return (
-    <header
-      className={`flex w-full items-center gap-[20px] bg-white ${underBar ? "min-h-[56px] px-[24px] pt-[12px] pb-[16px]" : "min-h-[72px] px-[22px] py-[14px]"}`}
-    >
+    <header className="flex min-h-[72px] w-full items-center gap-[20px] bg-white px-[22px] py-[14px]">
       {backHref && (
         <Link href={backHref} transitionTypes={["nav-back"]} aria-label="뒤로" className="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">
           <Image src="/icons/back.svg" alt="" width={19} height={19} className="-scale-y-100" />

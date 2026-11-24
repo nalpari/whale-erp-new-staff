@@ -76,8 +76,14 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   // 소속 근무지에서 그 근무지 목록으로 왔으면 같은 목록으로 돌아간다
   const storeId = parseId(query.store);
   const storeQuery = storeId === null ? "" : `?store=${storeId}`;
-  // 알림에서 열었으면(?from=notifications) 알림 목록으로 돌아간다(2026-11-24 사용자 지정)
-  const backHref = query.from === "notifications" ? "/notifications" : `/contracts${storeQuery}`;
+  // 알림에서 열었으면(?from=notifications) 알림 목록으로 돌아간다(2026-11-24 사용자 지정). 받기 · 서명 뒤 상세로 돌아와도 이어지게
+  // 상세로 돌아오는 주소(받기 실패 · 토스트 뒤 주소 정리)에는 store 와 함께 from 도 싣는다(리뷰)
+  const fromNotifications = query.from === "notifications";
+  const backHref = fromNotifications ? "/notifications" : `/contracts${storeQuery}`;
+  const keepParams = new URLSearchParams();
+  if (storeId !== null) keepParams.set("store", String(storeId));
+  if (fromNotifications) keepParams.set("from", "notifications");
+  const keepQuery = keepParams.size > 0 ? `?${keepParams}` : "";
   // 받기가 실패해 돌아왔다. 주소에서 오는 값이라 정한 키만 받고(프로토타입 이름 막기), 안내를 띄운 뒤 주소의 `?download=` 는 지운다.
   const downloadAlert =
     typeof query.download === "string" && Object.hasOwn(DOWNLOAD_ALERT, query.download) ? (
@@ -85,7 +91,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
         <Alert tone="warning">
           <p>{DOWNLOAD_ALERT[query.download]}</p>
         </Alert>
-        <ChangedToast path={`/contracts/${c.contractId}${storeQuery}`} />
+        <ChangedToast path={`/contracts/${c.contractId}${keepQuery}`} />
       </>
     ) : null;
 
@@ -144,7 +150,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
                       브라우저 창으로 빠져 실패 안내가 그 창에 뜨고, download 속성은 실패 때 돌려보낸 상세 HTML 을 파일로 저장해 버려 두지
                       않는다(성공 때 주소는 다른 출처라 어차피 무시된다). */}
                   <a
-                    href={`/contracts/${c.contractId}/documents/${d.contractDocumentId}${storeQuery}`}
+                    href={`/contracts/${c.contractId}/documents/${d.contractDocumentId}${keepQuery}`}
                     className="inline-flex h-[36px] shrink-0 items-center rounded-[10px] border border-staff-border bg-white px-[12px] text-[13px] font-semibold text-staff-text active:bg-staff-primary-inactive"
                   >
                     받기<span className="sr-only"> · {labelOf(documentKinds, d.kind)}</span>
@@ -301,7 +307,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           {/* 종이 계약 「받기」와 같은 <a>(근거는 그 주석). 모양만 공통 Button 의 outline(급여명세서 「급여명세서 PDF 다운로드」와 같음).
               Plane 의 「공유 시트」는 휴대전화 브라우저가 받은 PDF 에 띄우는 저장 · 공유로 갈음한다 — Web Share API 는 서명 주소가
               다른 출처라 파일을 읽어 올 수 없어 쓰지 않는다. */}
-          <a href={`/contracts/${c.contractId}/documents/${signedCopy.contractDocumentId}${storeQuery}`} className={buttonClass("outline")}>
+          <a href={`/contracts/${c.contractId}/documents/${signedCopy.contractDocumentId}${keepQuery}`} className={buttonClass("outline")}>
             근로계약서 PDF 다운로드
           </a>
         </Dock>
@@ -316,7 +322,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
       )}
       {query.done !== undefined && (
         // 수정 요청 뒤 이 화면으로 돌아왔다(`?done=correction`). 알린 뒤 주소에서 지운다 — `?store=` 는 이어 준다(받기 실패 안내와 같다).
-        <ChangedToast path={`/contracts/${c.contractId}${storeQuery}`}>{query.done === "correction" ? "수정을 요청했습니다" : undefined}</ChangedToast>
+        <ChangedToast path={`/contracts/${c.contractId}${keepQuery}`}>{query.done === "correction" ? "수정을 요청했습니다" : undefined}</ChangedToast>
       )}
     </>
   );

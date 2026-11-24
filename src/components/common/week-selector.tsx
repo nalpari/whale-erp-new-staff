@@ -2,9 +2,9 @@
 
 import { EASE_OUT } from "./theme";
 
-// work: 근무가 있는 날(아래 4px 점). note: 점 대신 셋째 줄에 쓰는 10px 글자(근무 시간 "09-18"·"휴무", 고르지 않은 날은 남보라).
+// work: 근무가 있는 날(아래 4px 점). note: 점 대신 셋째 줄에 쓰는 10px 글자(근무 시간 "09-18"·"예정 없음", 고르지 않은 날은 남보라).
 // workCount: 그날 근무 수 — 점을 그만큼 가로로 찍는다(없으면 1, 2026-10-23 재영: 하루 두 번이면 점 둘).
-// muted: 흰 바탕·흐린 글자로 낮춘 날(쉬는 날 등 — 어떤 날을 낮출지는 화면이 정한다).
+// muted: 흰 바탕·흐린 글자로 낮춘 날(근무 없는 날 등 — 어떤 날을 낮출지는 화면이 정한다).
 export type WeekDay = { key: string; weekday: string; date: number; work?: boolean; workCount?: number; muted?: boolean; note?: string };
 
 // Figma 02.Main 「이번 주 근무」 날짜 줄(node 9:243): 7칸(사이 8), 칸마다 radius 10 · #DCE4FF 테두리, 위아래 안쪽 10px 같게.

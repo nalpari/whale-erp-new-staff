@@ -49,11 +49,11 @@ export function GeoBlank({ tone, text }: { tone: "muted" | "warning" | "error"; 
   );
 }
 
-/** 안내 카드(Figma node 12:957) — 흰 바탕 · 옅은 테두리 · 먹색 아이콘(연보라 판은 튀었다, 2026-11-24 사용자 지정) */
+/** 안내 카드 — 지금은 「퇴근 등록 기한이 지났습니다」가 쓴다. 흰 바탕 · 옅은 테두리 · 먹색 아이콘(연보라 판은 튀었다, 2026-11-24 사용자 지정) */
 export function SiteCard({ title, sub }: { title: string; sub?: string }) {
   return (
     <section className="flex items-center gap-[8px] rounded-[18px] border border-staff-border-light bg-white p-[20px]">
-      {/* 근무지 이름 앞 아이콘은 앱 전체 점포 아이콘(store-line)으로 하나(2026-11-23 사용자 지정 — 전엔 화면마다 위치 핀 · 채운 점포 등 달랐다) */}
+      {/* 앞 아이콘은 앱 전체 점포 아이콘(store-line)으로 하나(2026-11-23 사용자 지정 — 전엔 화면마다 위치 핀 · 채운 점포 등 달랐다) */}
       <span className="flex text-staff-text"><MaskIcon src="/icons/store-line.svg" size={18} /></span>
       <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
         <p className="truncate text-[16px] font-bold">{title}</p>
