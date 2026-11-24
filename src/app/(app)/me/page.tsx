@@ -9,6 +9,7 @@ import { AddressRow } from "./address-row";
 import { ChangedToast } from "./changed-toast";
 import { HqSharingConsentCard, LocationConsentCard } from "./consent-cards";
 import { LogoutSheet } from "./logout-sheet";
+import { TitleHeader } from "../title-header";
 import { LineIcon, LinkRow, RowBox, RowGroup, RowIcon } from "./me-rows";
 
 export const metadata: Metadata = { title: "내 정보 · Whale ERP" };
@@ -34,11 +35,10 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="flex min-h-[72px] w-full items-center bg-white px-[22px] py-[14px]">
-        <h1 className="min-w-0 flex-1 text-[18px] leading-[1.5] font-bold">내 정보</h1>
-      </header>
-      <div className="flex flex-col gap-[22px] px-[16px] pt-[20px] pb-[24px] leading-[1.5]">
-        <div className="flex flex-col gap-[10px]">
+      {/* 하단 메뉴 탭 제목은 모두 같은 머리줄(22px 제목 · 종, 2026-11-24 사용자 지정) */}
+      <TitleHeader title="내 정보" />
+      <div className="flex flex-col gap-[12px] px-[16px] pt-[12px] pb-[24px] leading-[1.5]">
+        <div className="flex flex-col gap-[12px]">
           {/* 프로필 카드 — 이름 · 생년월일 · 휴대전화. 직원이 고칠 수 없는 값이라 보이기만 하고 아래 한 줄로 알린다. */}
           <div className="flex flex-col items-center gap-[14px] rounded-[20px] border border-staff-border bg-white px-[20px] pt-[24px] pb-[18px]">
             <span aria-hidden className="flex size-[64px] items-center justify-center rounded-full bg-staff-primary-inactive text-staff-primary">

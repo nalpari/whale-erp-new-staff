@@ -16,7 +16,7 @@
 //
 // HTML 판에서 다른 점: 화면 안에서 철회하거나 다시 동의하면 두 모양(동의함·철회 등)을 미리 그려 두고 data-pick·data-show 로 바꾼다.
 // 그래서 숨긴 카드가 DOM 에 함께 있고, 그 버튼은 <div data-pick> 하나로 감싸여 있다. 주소 검색에서 고른 도로명은 내 정보로 옮겨지지 않는다(토스트만).
-import { PRESS, alert, backHeader, badge, body, bottomNav, bottomSheet, button, card, dangerButton, dock, FIELD, img, label, maskIcon, notice, page, state, sunken, textField, uid, values } from "../../ui.mjs";
+import { PRESS, alert, backHeader, badge, body, bottomNav, bottomSheet, button, card, dangerButton, dock, FIELD, img, label, maskIcon, notice, page, state, sunken, textField, uid, values, tabHeader, topBar } from "../../ui.mjs";
 
 // 확인을 기다리는 요청(ME-8) — 받은 때 최신순. [점포, 초대 종류, 고용 형태 · 받은 날 · 만료일]
 const REQUESTS = [
@@ -143,7 +143,8 @@ const meView = (mode, ids) => {
     })}${smallButton("동의 철회", { "data-open": "bprevoke" })}</div>${tinyLine("철회해도 근무에는 영향이 없으며, 가맹본부에는 점포별 숫자로만 보입니다.", true)}`,
   );
 
-  return `<header class="flex min-h-[72px] w-full items-center bg-white px-[22px] py-[14px]"><h1 class="min-w-0 flex-1 text-[18px] font-bold">내 정보</h1></header><main class="flex flex-col gap-[14px] px-[16px] pt-[16px] pb-[24px]">${card(
+  // 하단 메뉴 탭 제목은 모두 같은 머리줄(22px 제목 · 종), 묶음 사이 · 위 여백 12(2026-11-24)
+  return `${tabHeader(topBar({ title: "내 정보", alarmHref: page("notify") }), { store: false })}<main class="flex flex-col gap-[12px] px-[16px] pt-[12px] pb-[24px]">${card(
     `${label("기본 정보")}<div class="flex flex-col gap-[10px] pt-[8px]">${readOnlyField({ label: "이름", value: "이하은" })}${readOnlyField({ label: "생년월일", value: "1998.04.12" })}${readOnlyField({
       label: "입사일",
       value: "2025.11.03",

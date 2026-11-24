@@ -23,7 +23,11 @@ export default async function SignContractPage({ params, searchParams }: PagePro
   if (!c) notFound();
   // 소속 근무지에서 왔으면(`?store=`) 상세 · 완료 화면에도 이어 준다 — 뒤로 가기가 그 근무지 상세 · 목록으로 간다
   const storeId = parseId(query.store);
-  const detailHref = `/contracts/${c.contractId}${storeId === null ? "" : `?store=${storeId}`}`;
+  // 알림에서 연 상세에서 왔으면(?from=notifications) 상세로 돌아가서도 뒤로 가기가 알림 목록으로 가게 이어 준다
+  const keep = new URLSearchParams();
+  if (storeId !== null) keep.set("store", String(storeId));
+  if (query.from === "notifications") keep.set("from", "notifications");
+  const detailHref = `/contracts/${c.contractId}${keep.size > 0 ? `?${keep}` : ""}`;
   const seen = query.sentAt;
   // 본문(조항)을 받지 못한 계약은 상세가 서명 버튼을 열지 않는다 — 앞서 받은 서명 링크로 와도 같다(bodyMissing)
   if (!c.signable || c.contractMethod === "PAPER" || bodyMissing(c) || !isSentAt(seen)) redirect(detailHref, RedirectType.replace);
@@ -52,7 +56,7 @@ export default async function SignContractPage({ params, searchParams }: PagePro
   const employmentType = c.employmentType && labelOf(await getEnumOrEmpty("EmploymentType"), c.employmentType);
   return (
     <SignForm
-      action={signContractAction.bind(null, c.contractId, storeId, seen)}
+      action={signContractAction.bind(null, c.contractId, storeId, seen, query.from === "notifications")}
       header={header}
       title={[c.employer.storeName, employmentType].filter(Boolean).join(" · ")}
       signerName={c.account.name}

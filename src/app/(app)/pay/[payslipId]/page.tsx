@@ -24,7 +24,8 @@ export default async function PayslipPage({ params, searchParams }: PageProps<"/
   // 내 근무지 › 급여명세서(?from=sites&store=)에서 왔으면 그 목록으로 돌아간다. 숫자가 아니면 급여 탭으로.
   const raw = await searchParams;
   const store = typeof raw.store === "string" && /^\d{1,10}$/.test(raw.store) ? raw.store : null;
-  const backHref = raw.from === "sites" && store ? `/pay?from=sites&store=${store}` : "/pay";
+  // 알림에서 열었으면(?from=notifications) 알림 목록으로 돌아간다(2026-11-24 사용자 지정)
+  const backHref = raw.from === "notifications" ? "/notifications" : raw.from === "sites" && store ? `/pay?from=sites&store=${store}` : "/pay";
   const payslipId = parsePayslipId((await params).payslipId);
   const payslip = payslipId === null ? null : await getPayslip(payslipId);
   if (!payslip) notFound();

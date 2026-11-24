@@ -10,6 +10,7 @@
 // 기간별 날짜 칸의 서로 묶인 min·max(1년)는 assets/staff.js 가 맞춘다.
 // 근무시간 · 연장은 앱이 셈하지 않고 API 가 주는 급여와 같은 값이다 — 휴게 제외, 1주 40시간 초과 연장 포함(2026-10-26 재영).
 import {
+  EASE_OUT,
   FIELD,
   attendanceDayCard,
   bottomNav,
@@ -21,7 +22,9 @@ import {
   maskIcon,
   notice,
   page,
-  pageHeader,
+  pillLink,
+  storeMark,
+  subLine,
   segmentTabId,
   segmentedControl,
   state,
@@ -34,7 +37,8 @@ import {
 // 목업 오른쪽 상태 목록 순서 그대로. 시트 넷은 목업에서 카드를 눌러 여는 것이라 데모 도구에서도 열 수 있게 뒤에 붙였다.
 const STATES = [
   { id: "week", label: "이번 주", note: "기본 상태" },
-  { id: "period", label: "기간별", note: "시작일–종료일" },
+  { id: "period", label: "기간별", note: "주 줄 펼치기" },
+  { id: "periodCal", label: "조회 기간 달력", note: "시트 · 시작 · 종료" },
   { id: "flagged", label: "확인 필요 섞임", note: "위치 실패·퇴근 기록 없음" },
   { id: "empty", label: "기록 없음", note: "빈 상태" },
   { id: "nosite", label: "근무지 없음", note: "퇴직 후" },
@@ -44,7 +48,7 @@ const STATES = [
   { id: "flagWed", label: "퇴근 기록 없음", note: "시트 · 수 9/9" },
 ];
 // 시트마다 뒤에 깔리는 상태.
-const SHEET_BASE = { editInfo: "week", proxyInfo: "week", flagTue: "flagged", flagWed: "flagged" };
+const SHEET_BASE = { editInfo: "week", proxyInfo: "week", flagTue: "flagged", flagWed: "flagged", periodCal: "period" };
 
 const STORE = "웨일카페 강남역점";
 const PANEL = "attendance-panel";
@@ -57,7 +61,6 @@ const todayCard = () =>
   attendanceDayCard({
     state: "today",
     day: "목 9/10",
-    store: STORE,
     status: { label: "근무 중", tone: "working" },
     schedule: { start: "09:00", end: "18:00" },
     worked: { start: "09:02", end: "14:00" },
@@ -67,14 +70,13 @@ const todayCard = () =>
 
 // 이번 주 — Figma node 12:1233 의 하루 카드 그대로. 연필 표시가 있는 카드(대신 등록 · 보정)는 눌러 시트를 연다.
 const weekView = () =>
-  `<div class="flex flex-col gap-[8px]">${pressable(
+  `<div class="flex flex-col gap-[12px]">${pressable(
     "월 9/7 대신 등록 정보 보기",
     "proxyInfo",
     attendanceDayCard({
       state: "done",
       day: "월 9/7",
-      store: STORE,
-      edited: true,
+        edited: true,
       status: { label: "대신 등록", tone: "neutral" },
       schedule: { start: "09:00", end: "18:00" },
       worked: { start: "09:00", end: "18:00" },
@@ -83,7 +85,6 @@ const weekView = () =>
   )}${attendanceDayCard({
     state: "done",
     day: "화 9/8",
-    store: STORE,
     status: { label: "정상", tone: "success" },
     schedule: { start: "09:00", end: "18:00" },
     worked: { start: "08:58", end: "18:00" },
@@ -94,8 +95,7 @@ const weekView = () =>
     attendanceDayCard({
       state: "done",
       day: "수 9/9",
-      store: STORE,
-      edited: true,
+        edited: true,
       status: { label: "지각 14분", tone: "warning" },
       schedule: { start: "09:00", end: "18:00" },
       worked: { start: "09:14", end: "18:02" },
@@ -104,36 +104,123 @@ const weekView = () =>
   )}${todayCard()}${attendanceDayCard({
     state: "upcoming",
     day: "금 9/11",
-    store: STORE,
     schedule: { start: "09:00", end: "18:00" },
     summary: "예정 09:00 – 18:00",
   })}${attendanceDayCard({
     state: "upcoming",
     day: "토 9/12",
-    store: STORE,
     schedule: { start: "13:00", end: "22:00" },
     summary: "예정 13:00 – 22:00",
-  })}${dayOffRow("일 9/13 · 휴무")}</div>`;
+  })}${dayOffRow("일 9/13 · 예정 없음")}</div>`;
 
-// 주별 한 줄. 이번 주는 지금 근무 중이라 설명을 남보라로, 아직 오지 않은 주는 흐리게(목업 opacity 0.55).
-const weekRow = (title, sub, { current = false, upcoming = false } = {}) =>
-  `<li class="flex flex-col gap-[2px] py-[14px] ${upcoming ? "opacity-55" : ""}"><p class="text-[14px] font-semibold ${upcoming ? "text-staff-text-muted" : ""}">${title}</p><p class="text-[12px] ${current ? "text-staff-primary" : "text-staff-text-sub"}">${sub}</p></li>`;
+// ── 기간별(개발 화면 attendance-history-screen PeriodView · period-picker) ──
+// 조회 기간 — 칸 하나를 눌러 달력 시트에서 시작일 → 종료일을 누른다(2026-11-24). 사이 날은 연보라 띠, 양 끝은 남보라 동그라미에 「시작」 · 「종료」 꼬리표.
+const periodField = () =>
+  `<div class="relative"><button type="button" data-open="periodCal" aria-haspopup="dialog" aria-label="조회 기간 2026.09.01 ~ 2026.09.30" class="${FIELD} pr-[44px] text-left tabular-nums">2026.09.01 ~ 2026.09.30</button><span aria-hidden="true" class="pointer-events-none absolute top-1/2 right-[14px] flex -translate-y-1/2 text-staff-text-sub">${maskIcon(
+    "calendar-line.svg",
+    16,
+  )}</span></div>`;
+// 2026년 9월 달력(9/1 은 화요일). 데모는 9월 1일 ~ 30일을 고른 모습만 보인다 — 날짜를 눌러 바꾸는 동작은 개발 화면에서 본다.
+const calCell = (d) => {
+  const day = `2026-09-${String(d).padStart(2, "0")}`;
+  const isEdge = d === 1 || d === 30;
+  const inside = d > 1 && d < 30;
+  const band = inside
+    ? "bg-staff-primary-inactive"
+    : d === 1
+      ? "bg-[linear-gradient(to_right,transparent_50%,var(--color-staff-primary-inactive)_50%)]"
+      : "bg-[linear-gradient(to_left,transparent_50%,var(--color-staff-primary-inactive)_50%)]";
+  return `<button type="button" aria-pressed="true" aria-label="9월 ${d}일" class="relative flex h-[48px] items-start justify-center pt-[4px]"><span aria-hidden="true" class="absolute inset-x-0 top-[4px] h-[32px] ${band}"></span><span class="relative flex size-[32px] items-center justify-center rounded-full text-[14px] tabular-nums transition-colors duration-150 ${EASE_OUT} ${
+    isEdge ? "bg-staff-primary font-bold text-white" : day === "2026-09-10" ? "font-bold text-staff-primary" : "text-staff-text"
+  }">${d}</span>${isEdge ? `<span class="absolute bottom-[1px] text-[10px] leading-none font-bold text-staff-primary">${d === 1 ? "시작" : "종료"}</span>` : ""}</button>`;
+};
+const periodCalendar = () =>
+  `<div class="flex flex-col gap-[12px]"><div class="flex items-center justify-between"><button type="button" aria-label="이전 달" data-toast="8월로 옮겼습니다" class="flex size-[40px] items-center justify-center rounded-full text-staff-text-sub active:bg-staff-bg">${maskIcon(
+    "chevron-left-24.svg",
+    20,
+  )}</button><p class="text-[16px] font-bold">2026년 9월</p><button type="button" aria-label="다음 달" data-toast="10월로 옮겼습니다" class="flex size-[40px] items-center justify-center rounded-full text-staff-text-sub active:bg-staff-bg">${maskIcon(
+    "chevron-right-24.svg",
+    20,
+  )}</button></div><div class="grid grid-cols-7 text-center text-[12px] text-staff-text-sub">${["월", "화", "수", "목", "금", "토", "일"].map((w) => `<span class="py-[4px]">${w}</span>`).join("")}</div><div role="grid" aria-label="2026-09 달력" class="grid grid-cols-7 gap-y-[4px]"><span></span>${Array.from(
+    { length: 30 },
+    (_, i) => calCell(i + 1),
+  ).join(
+    "",
+  )}<span></span><span></span><span></span><span></span></div><p aria-live="polite" class="flex items-center justify-center gap-[8px] text-[14px] text-staff-text"><span class="font-semibold">9월 1일 ~ 9월 30일</span><span class="rounded-full bg-staff-bg px-[10px] py-[2px] text-[13px] font-bold tabular-nums">30일</span></p><p class="text-center text-[12px] text-staff-text-muted [&_b]:font-bold">한 번에 <b>최대 1년</b>까지 조회할 수 있습니다.</p>${button("적용", { "data-close": true, "data-toast": "기간 기록을 불러왔습니다" })}</div>`;
 
-// 기간별 — 시작일·종료일을 직접 고른다. 들어오면 이번 달(9월)이 잡혀 있다. 누계·주별 줄은 목업의 고정 값이다.
-// 한 번에 고를 수 있는 폭이 1년이라 시작일·종료일 서로의 min·max 를 1년으로 묶는다(처음 값: 2026-09-01 – 2026-09-30).
+// 조회 기간 요약 — 옅은 회색 칸 셋: 근무일 | 근로시간(휴게시간 제외), 아래 정상 · 지각 · 미기록. 상자 바깥에서 칸까지 · 칸 사이 모두 8, 숫자 20px, 모두 먹색(2026-11-24)
+const periodSummary = () =>
+  `<section class="flex flex-col gap-[8px] rounded-[18px] border border-staff-border-light bg-white p-[7px]"><dl class="grid grid-cols-2 gap-[8px] [&>div]:rounded-[10px] [&>div]:bg-staff-bg [&>div]:px-[14px] [&>div]:py-[12px]"><div><dt class="text-[13px] font-semibold text-staff-text-sub">근무일</dt><dd class="text-[20px] font-bold tabular-nums [&_span]:text-[14px]">9<span>일</span></dd></div><div><dt class="flex items-baseline gap-[6px] text-[13px] font-semibold text-staff-text-sub">근로시간<span class="text-[12px] font-normal text-staff-text-muted">휴게시간 제외</span></dt><dd class="text-[20px] font-bold tabular-nums [&_span]:text-[14px]">63<span>시간</span> 16<span>분</span></dd><dd class="text-[12px] text-staff-text-sub">연장 1시간 20분</dd></div></dl><dl class="grid grid-cols-3 rounded-[10px] bg-staff-bg px-[8px] py-[10px] text-center text-[13px]">${[
+    ["정상", 7, "일"],
+    ["지각", 2, "회"],
+    ["미기록", 0, "회"],
+  ]
+    .map(
+      ([label, n, unit]) =>
+        `<div class="flex items-baseline justify-center gap-[4px]"><dt class="text-staff-text-sub">${label}</dt><dd class="font-semibold text-staff-text tabular-nums">${n}<span class="font-normal">${unit}</span></dd></div>`,
+    )
+    .join("")}</dl></section>`;
+
+// 펼친 주의 하루 한 줄 — 날짜 · 실제 시각(짝마다 한 줄) · 회색 「예정」 줄 · 상태(12px 글자, 주의할 것만 먹색). 근무스케줄이 없는 날은 「예정 없음」(2026-11-24)
+const dayLine = (day, lines, { plan, status = [], muted = false } = {}) =>
+  `<li><div class="flex items-start gap-[8px] py-[10px]"><span class="w-[64px] shrink-0 text-[13px] font-semibold">${day}</span><span class="flex min-w-0 flex-1 flex-col text-[13px] tabular-nums ${muted ? "text-staff-text-muted" : ""}">${lines
+    .map((l) => `<span>${l}</span>`)
+    .join("")}${plan ? `<span class="pt-[2px] text-[12px] text-staff-text-muted">${plan}</span>` : ""}</span>${
+    status.length
+      ? `<span class="flex shrink-0 flex-col items-end gap-[2px] pt-[1px] text-[12px] font-semibold">${status
+          .map(([label, warn]) => `<span class="${warn ? "text-staff-text" : "text-staff-text-sub"}">${label}</span>`)
+          .join("")}</span>`
+      : ""
+  }</div></li>`;
+const PLAN = "예정 09:00 – 18:00";
+const WEEK1 = [
+  dayLine("화 9/1", ["08:57 – 18:01"], { plan: PLAN, status: [["정상"]] }),
+  dayLine("수 9/2", ["08:55 – 18:00"], { plan: PLAN, status: [["정상"]] }),
+  dayLine("목 9/3", ["08:58 – 19:20"], { plan: PLAN, status: [["정상"]] }),
+  dayLine("금 9/4", ["08:59 – 18:00"], { plan: PLAN, status: [["정상"]] }),
+  dayLine("토 9/5", ["12:56 – 22:00"], { plan: "예정 13:00 – 22:00", status: [["정상"]] }),
+  dayLine("일 9/6", ["예정 없음"], { muted: true }),
+];
+const WEEK2 = [
+  dayLine("월 9/7", ["09:00 – 18:00"], { status: [["대신 등록"]] }),
+  dayLine("화 9/8", ["08:58 – 18:00"], { plan: PLAN, status: [["정상"]] }),
+  dayLine("수 9/9", ["09:14 – 18:02"], { plan: PLAN, status: [["지각 14분", true]] }),
+  dayLine("목 9/10", ["09:02 – 근무 중"], { plan: PLAN, status: [["근무 중"]] }),
+  dayLine("금 9/11", [PLAN]),
+  dayLine("토 9/12", ["예정 13:00 – 22:00"]),
+  dayLine("일 9/13", ["예정 없음"], { muted: true }),
+];
+// 주 한 줄 — 주 이름 굵게 왼쪽 · 날짜 오른쪽 회색, 둘째 줄은 둥근 꺾은선(subLine) 요약을 회색 한 가지로(단위 없이 「근무 2 · 지각 2」).
+// 누르면 그 주의 날짜 줄을 옅은 회색 상자로 펼친다(데모는 details). 기록 없는 주 · 아직 오지 않은 주는 펼치지 않고 꺾쇠 자리만 남긴다(2026-11-24)
+const chevron = (hidden) =>
+  `<span aria-hidden="true" class="flex text-staff-text-sub ${hidden ? "invisible" : ""} transition-transform duration-150 ${EASE_OUT} rotate-180 group-open:rotate-0">${maskIcon("chevron-down.svg", 16)}</span>`;
+const weekHead = (name, range, sub, { current = false, dim = false } = {}) =>
+  `<span class="flex min-w-0 flex-1 flex-col gap-[2px]"><span class="flex items-baseline justify-between gap-[8px] ${dim ? "text-staff-text-muted" : ""}"><span class="text-[14px] font-semibold">${name}${
+    current ? `<span class="pl-[6px] text-[12px] font-normal text-staff-text-sub">이번 주</span>` : ""
+  }</span><span class="text-[12px] text-staff-text-sub tabular-nums">${range}</span></span>${subLine(sub)}</span>`;
+const sep = `<span aria-hidden="true">·</span>`;
+const summaryLine = (parts) => `<span class="flex flex-wrap items-center gap-x-[6px]">${parts.map((p) => `<span>${p}</span>`).join(sep)}</span>`;
+const weekRow = (name, range, parts, days, { current = false, open = false } = {}) =>
+  `<li><details class="group"${open ? " open" : ""}><summary class="flex w-full cursor-pointer list-none items-center gap-[10px] py-[14px] text-left [&::-webkit-details-marker]:hidden">${weekHead(
+    name,
+    range,
+    summaryLine(parts),
+    { current },
+  )}${chevron(false)}</summary><ul class="mb-[14px] flex flex-col divide-y divide-staff-border rounded-[12px] bg-staff-bg px-[12px]">${days.join("")}</ul></details></li>`;
+const weekRowStill = (name, range, sub, { upcoming = false } = {}) =>
+  `<li class="${upcoming ? "opacity-55" : ""}"><div class="flex w-full items-center gap-[10px] py-[14px]">${weekHead(name, range, sub, { dim: true })}${chevron(!upcoming)}</div></li>`;
+
 const periodView = () =>
-  `${card(
-    `<p class="text-[13px] font-semibold text-staff-text-sub">조회 기간</p><div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-[8px] pt-[8px]"><span class="relative block min-w-0"><input type="date" aria-label="시작일" min="2025-09-30" max="2026-09-30" class="${FIELD.replace("px-[14px]", "pl-[10px] pr-[32px]")} w-full min-w-0 appearance-none [&::-webkit-calendar-picker-indicator]:opacity-0" value="2026-09-01"><span aria-hidden="true" class="pointer-events-none absolute top-1/2 right-[10px] flex -translate-y-1/2 text-staff-text-sub">${maskIcon("calendar-line.svg", 16)}</span></span><span aria-hidden="true" class="text-[12px] text-staff-text-muted">–</span><span class="relative block min-w-0"><input type="date" aria-label="종료일" min="2026-09-01" max="2027-09-01" class="${FIELD.replace("px-[14px]", "pl-[10px] pr-[32px]")} w-full min-w-0 appearance-none [&::-webkit-calendar-picker-indicator]:opacity-0" value="2026-09-30"><span aria-hidden="true" class="pointer-events-none absolute top-1/2 right-[10px] flex -translate-y-1/2 text-staff-text-sub">${maskIcon("calendar-line.svg", 16)}</span></span></div><div class="pt-[8px]">${button("조회", { "data-toast": "기간 기록을 불러왔습니다" })}</div><p class="pt-[8px] text-[12px] text-staff-text-muted [&_b]:font-bold">한 번에 <b>최대 1년</b>까지 조회할 수 있습니다.</p>`,
-  )}${sunken(
-    `<p class="text-[13px] font-semibold text-staff-text-sub">총 근무 시간 · 9월 1일 – 30일</p><div class="flex flex-wrap items-baseline gap-x-[14px] pt-[6px]"><p class="text-[28px] font-bold [&_span]:text-[17px]">63<span>시간</span> 16<span>분</span></p><span class="text-[12px] text-staff-text-sub">지각 1회 · 연장 1시간 20분</span></div>`,
-  )}<ul class="flex flex-col divide-y divide-staff-border-light rounded-[16px] border border-staff-border-light bg-white px-[16px]">${weekRow(
-    "9월 1주 · 8/31 – 9/6",
-    "근무 5일 · 40시간 12분 · 지각 0회 · 연장 1시간 20분",
-  )}${weekRow("9월 2주 · 9/7 – 9/13", "이번 주 · 23시간 04분 · 지각 1회", { current: true })}${weekRow(
-    "9월 3주 · 9/14 – 9/20",
-    "근무 예정",
-    { upcoming: true },
-  )}${weekRow("9월 4주 · 9/21 – 9/27", "근무 예정", { upcoming: true })}</ul><p class="text-[12px] text-staff-text-muted">출퇴근 기록은 보존 기간(3년) 동안 조회할 수 있습니다.</p>`;
+  `${periodField()}${periodSummary()}<ul class="flex flex-col divide-y divide-staff-border-light rounded-[16px] border border-staff-border-light bg-white px-[16px]">${weekRow(
+    "9월 1주",
+    "8/31 – 9/6",
+    ["40시간 12분", "근무 5"],
+    WEEK1,
+  )}${weekRow("9월 2주", "9/7 – 9/13", ["23시간 04분", "근무 4", "지각 2"], WEEK2, { current: true, open: true })}${weekRowStill("9월 3주", "9/14 – 9/20", "근무 예정", {
+    upcoming: true,
+  })}${weekRowStill("9월 4주", "9/21 – 9/27", "근무 예정", { upcoming: true })}${weekRowStill("9월 5주", "9/28 – 10/4", "근무 예정", {
+    upcoming: true,
+  })}</ul><p class="px-[4px] text-[12px] text-staff-text-muted">출퇴근 기록은 기록한 날로부터 3년 동안 조회할 수 있습니다.<br>기록이 실제와 다르면 근무지 관리자에게 문의해 주세요.</p>`;
 
 // 경고 아이콘(목업 ph-warning). 저장소에 맞는 SVG 가 없어 여기서만 그린다. 20px 칸 가운데.
 const warningIcon = () =>
@@ -143,24 +230,23 @@ const warningIcon = () =>
 // 바탕·글자만 경고 칩(StatusChip warning)과 같은 호박색 계열이다(칩이 묻히지 않게 바탕은 칩보다 한 단계 옅다) — 목업 card--amber, 이 카드에만 나와 토큰으로 두지 않는다.
 // 카드 전체가 사유 시트를 여는 버튼이다. 공통으로 올린다면 AttendanceDayCard 의 state 에 "flagged" 를 더하는 쪽이다.
 const flaggedDayCard = ({ day, summary, worked, sheet }) =>
-  `<button type="button" data-open="${sheet}" class="flex w-full flex-col gap-[3px] rounded-[18px] border border-[#f6e3bd] bg-[#fffbf2] px-[20px] pt-[20px] pb-[32px] text-left text-[#6f4608] transition-[background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-[#fff3dc]"><span class="flex w-full items-center gap-[8px] pb-[5px]"><span class="min-w-0 flex-1 text-[13px] font-bold">${day}</span><span class="truncate text-[12px]">${STORE}</span>${statusChip(
+  `<button type="button" data-open="${sheet}" class="flex w-full flex-col gap-[3px] rounded-[18px] border border-[#f6e3bd] bg-[#fffbf2] px-[20px] py-[20px] text-left text-[#6f4608] transition-[background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-[#fff3dc]"><span class="flex w-full items-center gap-[8px] pb-[5px]"><span class="min-w-0 flex-1 text-[13px] font-bold">${day}</span>${statusChip(
     "warning",
     "확인 필요",
-  )}</span>${workTimeBar({ schedule: { start: "09:00", end: "18:00" }, worked })}<span class="pt-[2px] text-[13px]">${summary}</span></button>`;
+  )}</span>${workTimeBar({ schedule: { start: "09:00", end: "18:00" }, worked })}<span class="flex flex-col pt-[2px] text-[13px]">${summary}</span></button>`;
 
 // 확인 필요가 섞인 이번 주. 꼬리표가 붙은 카드와 퇴근 기록 없음 카드는 눌러 시트를 연다. 직원이 누를 처리 버튼은 없다(HIST-3).
 // 퇴근 기록 없음(HIST-4): 확인 필요 사유가 아니라 그 날 카드에 붙는 별도 표시라 일반 카드에 둔다.
 const flaggedView = () =>
-  `<div class="flex gap-[6px] rounded-[12px] border border-[#f6e3bd] bg-[#fff6e5] p-[14px] text-[13px] text-[#6f4608] [&_strong]:font-bold">${warningIcon()}<p class="min-w-0 flex-1"><strong>확인이 필요한 기록이 1건 있습니다.</strong><br>관리자가 확인하고 있습니다.<br>기록이 다르면 근무지 관리자에게 문의해 주세요.</p></div><div class="flex flex-col gap-[8px]">${dayOffRow(
-    "월 9/7 · 휴무",
-  )}${flaggedDayCard({ day: "화 9/8", summary: "출근 09:58 · 반경 밖 출근", worked: { start: "09:58", end: "18:00" }, sheet: "flagTue" })}${pressable(
+  `<div class="flex gap-[6px] rounded-[12px] border border-[#f6e3bd] bg-[#fff6e5] p-[14px] text-[13px] text-[#6f4608] [&_strong]:font-bold">${warningIcon()}<p class="min-w-0 flex-1"><strong>확인이 필요한 기록이 1건 있습니다.</strong><br>관리자가 확인하고 있습니다.<br>기록이 다르면 근무지 관리자에게 문의해 주세요.</p></div><div class="flex flex-col gap-[12px]">${dayOffRow(
+    "월 9/7 · 예정 없음",
+  )}${flaggedDayCard({ day: "화 9/8", summary: "09:58 – 18:00 · 반경 밖", worked: { start: "09:58", end: "18:00" }, sheet: "flagTue" })}${pressable(
     "수 9/9 퇴근 기록 없음 보기",
     "flagWed",
     attendanceDayCard({
       state: "done",
       day: "수 9/9",
-      store: STORE,
-      status: { label: "퇴근 기록 없음", tone: "neutral" },
+        status: { label: "퇴근 기록 없음", tone: "neutral" },
       schedule: { start: "09:00", end: "18:00" },
       summary: "출근 09:14 · 퇴근 기록 없음",
     }),
@@ -186,6 +272,7 @@ const storeNotice = () =>
   );
 
 const SHEETS = {
+  periodCal: (a) => bottomSheet("periodCal", { title: "조회 기간", closeLabel: "취소", ...a }, periodCalendar()),
   editInfo: (a) =>
     bottomSheet(
       "editInfo",
@@ -246,10 +333,15 @@ function screen(id) {
     .filter((s) => SHEET_BASE[s] === view)
     .map((s) => SHEETS[s](s === id ? { "data-sheet-auto": true, "data-on-close": `#${view}` } : {}))
     .join("");
-  return `<div class="flex flex-1 flex-col leading-[1.5]">${pageHeader("출퇴근 현황", {
-    backHref: page("check-in"),
-    action: `<a href="${page("check-in")}" aria-label="출퇴근 등록" class="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">${img("history.svg", 21, 21, "-scale-y-100")}</a>`,
-  })}<main class="flex flex-1 flex-col gap-[20px] px-[22px] pt-[22px] pb-[24px]">${
+  const header = `<header class="flex flex-col bg-white px-[24px] pt-[16px] pb-[8px]"><div class="flex min-h-[44px] items-center gap-[12px]"><a href="${page("check-in")}" data-dir="nav-back" aria-label="뒤로" class="-ml-[10px] flex size-[44px] shrink-0 items-center justify-center">${img(
+    "back.svg",
+    19,
+    19,
+    "-scale-y-100",
+  )}</a><h1 class="min-w-0 flex-1 truncate text-[22px] leading-[1.4] font-bold">출퇴근 현황</h1></div><div class="flex min-h-[44px] items-center justify-between gap-[10px]">${
+    view === "nosite" ? "<span></span>" : `<p class="flex min-w-0 items-center gap-[6px] text-[15px] font-bold">${storeMark()}<span class="truncate">${STORE}</span></p>`
+  }${pillLink(page("check-in"), "출퇴근하기")}</div></header>`;
+  return `<div class="flex flex-1 flex-col leading-[1.5]">${header}<main class="flex flex-1 flex-col gap-[12px] px-[22px] pt-[12px] pb-[24px]">${
     view !== "nosite"
       ? segmentedControl({
           label: "기간",
@@ -263,7 +355,7 @@ function screen(id) {
           itemAttrs: { [tab === "week" ? "period" : "week"]: tabGo[tab === "week" ? "period" : "week"] },
         })
       : ""
-  }<div class="flex flex-1 flex-col gap-[20px]"${
+  }<div class="flex flex-1 flex-col gap-[12px]"${
     view !== "nosite" ? ` id="${PANEL}" role="tabpanel" aria-labelledby="${segmentTabId(PANEL, tab)}"` : ""
   }>${VIEWS[view]()}</div></main></div><div class="sticky bottom-0 mt-auto">${bottomNav("check-in")}</div>${sheets}`;
 }

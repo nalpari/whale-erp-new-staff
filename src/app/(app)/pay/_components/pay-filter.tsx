@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { BottomSheet, SheetOption } from "@/components/common";
+import { BottomSheet, SheetOption, StoreMark } from "@/components/common";
 import type { PayslipList } from "@/lib/payslips";
 
 // 명세서 목록 필터 칩(데모 pay 의 pf-store · pf-year, PAY-10). 누르면 시트에서 고르고, 고른 값은 주소(?store · ?year)에 실어
@@ -46,11 +46,11 @@ export function PayFilter({
         title="근무지 선택"
         description="퇴직한 근무지를 포함해 명세서를 받은 모든 근무지입니다."
       >
-        <SheetOption selected={storeName === undefined} onClick={() => go({ year }, true)}>
+        <SheetOption selected={storeName === undefined} onClick={() => go({ year }, true)} icon={<StoreMark />}>
           전체 근무지
         </SheetOption>
         {stores.map((s) => (
-          <SheetOption key={s.storeId} selected={s.storeId === storeId} onClick={() => go({ storeId: s.storeId, year }, true)}>
+          <SheetOption key={s.storeId} selected={s.storeId === storeId} onClick={() => go({ storeId: s.storeId, year }, true)} icon={<StoreMark />}>
             {s.storeName}
           </SheetOption>
         ))}

@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { Alert, BottomNav, Notice, PageHeader } from "@/components/common";
-import { getCurrentMembership } from "@/lib/current-membership";
-import { getMyMemberships } from "@/lib/my-profile";
+import { Alert, BottomNav, Notice } from "@/components/common";
+import { getCurrentMembership, hasRetiredMembership } from "@/lib/current-membership";
 import { getMyTodos } from "@/lib/my-todos";
 import { getMyWorkSchedules } from "@/lib/my-work-schedules";
 import { requireSession } from "@/lib/session";
 import { kstDate, parseMonth } from "@/lib/work-schedules";
 import { SchedulePanel } from "./schedule-panel";
-import { StoreCard } from "./store-card";
+import { StoreHeader } from "../store-header";
 import { TodoPanel } from "./todo-panel";
 import { WorkTabs, type WorkTab } from "./work-tabs";
 
@@ -16,7 +15,7 @@ export const metadata: Metadata = { title: "근무 정보 · Whale ERP" };
 // ponytail: 한 번에 api 최대치(200)만 받는다. 근무지 칩 · 개수는 받은 것으로 센다 — 넘는 직원이 생기면 상태별로 나눠 받는다.
 const TODO_QUERY = "pageSize=200";
 
-// 하단 메뉴 「근무」(목업 work.html). 두 탭 위의 근무지 카드가 앱 전역 근무지를 고르고(WORK-4), 두 탭이 그 근무지를 따른다.
+// 하단 메뉴 「근무」(목업 work.html). 머리줄(StoreHeader)의 근무지가 앱 전역 근무지를 고르고(WORK-4), 두 탭이 그 근무지를 따른다.
 export default async function WorkPage({ searchParams }: PageProps<"/work">) {
   await requireSession();
   const params = await searchParams;
@@ -28,13 +27,16 @@ export default async function WorkPage({ searchParams }: PageProps<"/work">) {
   const memberships = await getCurrentMembership();
   const current = memberships?.current;
   // 퇴직한 소속이 있을 때만 퇴직 후 안내 — 가입 직후 · 계약 전(거절 · 만료)에는 중립 안내. 퇴직 포함 목록을 못 받으면 중립 안내
-  const retired = memberships && !current && ((await getMyMemberships(true))?.items.some((m) => m.retiredDate !== null) ?? false);
+  const retired = memberships && !current && (await hasRetiredMembership());
 
   return (
     <div className="flex flex-1 flex-col">
-      {/* 종은 홈 머리줄에만 둔다(데모 · 목업 근무정보에 없음, 2026-10-23 재영). */}
-      <PageHeader title="근무 정보" />
-      <div className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[20px] pb-[24px] leading-[1.5]">
+      {/* 하단 메뉴로 열면 뒤로 가기가 없고, 알림에서 열었으면(?from=notifications) 알림 목록으로 돌아간다(2026-11-24 사용자 지정) */}
+      {/* 근무지는 홈과 같은 머리줄에서 보이고 바꾼다 — 근무지 카드는 뺐다(2026-11-24 사용자 지정) */}
+      <div className="bg-white px-[24px] pt-[16px] pb-[8px]">
+        <StoreHeader title="근무 정보" backHref={params.from === "notifications" ? "/notifications" : undefined} />
+      </div>
+      <div className="flex flex-1 flex-col gap-[12px] px-[22px] pt-[12px] pb-[24px] leading-[1.5]">
         {!memberships ? (
           <Alert tone="warning">근무지를 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>
         ) : !current ? (
@@ -59,10 +61,6 @@ export default async function WorkPage({ searchParams }: PageProps<"/work">) {
           </div>
         ) : (
           <>
-            <StoreCard
-              stores={memberships.items.map((m) => ({ staffMemberId: m.staffMemberId, storeName: m.store.storeName }))}
-              currentId={current.staffMemberId}
-            />
             <WorkTabs tab={tab}>
               {tab === "schedule" ? (
                 <ScheduleTab staffMemberId={current.staffMemberId} storeName={current.store.storeName} month={month} today={today} day={day} />

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { Alert, BottomNav, MaskIcon, PageHeader } from "@/components/common";
+import { Alert, BottomNav, MaskIcon, StoreMark } from "@/components/common";
 import { PRESS } from "@/components/common/theme";
 import { addDays, kstToday, mondayOf, parsePeriod } from "@/lib/attendance-history";
 import { CURRENT_STAFF_MEMBER_COOKIE, pickCurrentMembership } from "@/lib/current-store";
@@ -33,13 +34,25 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
 
   return (
     <div className="flex flex-1 flex-col">
-      <PageHeader
-        title="출퇴근 현황"
-        // 홈 「출퇴근 현황」에서 왔으면(?back=home) 홈으로, 그 밖에는 출퇴근 화면으로(리뷰 반영). from 은 기간 시작일이라 따로 둔다
-        backHref={fromHome ? "/home" : "/check-in"}
-        action={
-          // 출퇴근 화면의 「출퇴근 현황 ›」과 짝 — 시계 아이콘만으로는 버튼인지 · 어디로 가는지 몰라 글자 알약으로(2026-11-20 사용자 지정).
-          // 보이는 알약은 36px, 누르는 칸은 위아래를 넓혀 44px.
+      {/* 출퇴근 · 근무 머리줄과 같은 꼴 — 첫 줄 뒤로 가기 · 제목, 둘째 줄 근무지(점포 동그라미 · 이름) · 「출퇴근하기 ›」(2026-11-24 사용자 지정).
+          근무지는 여기서 바꾸지 않는다(출퇴근 · 근무 · 홈 머리줄에서 바꾼다) */}
+      <header className="flex flex-col bg-white px-[24px] pt-[16px] pb-[8px]">
+        <div className="flex min-h-[44px] items-center gap-[12px]">
+          {/* 홈 「출퇴근 현황」에서 왔으면(?back=home) 홈으로, 그 밖에는 출퇴근 화면으로(리뷰 반영). from 은 기간 시작일이라 따로 둔다 */}
+          <Link href={fromHome ? "/home" : "/check-in"} transitionTypes={["nav-back"]} aria-label="뒤로" className="-ml-[10px] flex size-[44px] shrink-0 items-center justify-center">
+            <Image src="/icons/back.svg" alt="" width={19} height={19} className="-scale-y-100" />
+          </Link>
+          <h1 className="min-w-0 flex-1 truncate text-[22px] leading-[1.4] font-bold">출퇴근 현황</h1>
+        </div>
+        <div className="flex min-h-[44px] items-center justify-between gap-[10px]">
+          {current ? (
+            <p className="flex min-w-0 items-center gap-[6px] text-[15px] font-bold">
+              <StoreMark />
+              <span className="truncate">{current.store.storeName}</span>
+            </p>
+          ) : (
+            <span />
+          )}
           <Link href="/check-in" transitionTypes={["nav-forward"]} className="group -my-[4px] flex min-h-[44px] shrink-0 items-center">
             <span
               className={`flex h-[36px] items-center gap-[4px] rounded-full border border-staff-border bg-white pr-[10px] pl-[12px] text-[13px] font-semibold text-staff-text-sub group-active:bg-staff-primary-inactive ${PRESS}`}
@@ -48,8 +61,8 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
               <MaskIcon src="/icons/chevron-right-small.svg" size={12} />
             </span>
           </Link>
-        }
-      />
+        </div>
+      </header>
       {!memberships || (current && !records) ? (
         <div className="px-[22px] pt-[20px]">
           <Alert tone="warning">출퇴근 기록을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.</Alert>

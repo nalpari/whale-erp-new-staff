@@ -51,7 +51,11 @@ export default async function ContractDonePage({ params, searchParams }: PagePro
   const c = contractId === null ? null : await getContract(contractId);
   if (!c) notFound();
   const storeId = parseId(query.store);
-  const storeQuery = storeId === null ? "" : `?store=${storeId}`;
+  // 알림에서 연 계약이면(?from=notifications) 완료 화면 · 상세로 돌아가서도 뒤로 가기가 알림 목록으로 가게 이어 준다
+  const keep = new URLSearchParams();
+  if (storeId !== null) keep.set("store", String(storeId));
+  if (query.from === "notifications") keep.set("from", "notifications");
+  const storeQuery = keep.size > 0 ? `?${keep}` : "";
   const detailHref = `/contracts/${c.contractId}${storeQuery}`;
   const done = query.done;
   const toast = done === "signed" || done === "rejected" ? TOAST[done] : undefined;
