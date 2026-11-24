@@ -268,7 +268,9 @@ function PeriodView({
             </dd>
           </div>
           <div>
-            <dt className="text-[13px] font-semibold text-staff-text-sub">근로시간</dt>
+            <dt className="text-[13px] font-semibold text-staff-text-sub">
+              근로시간 <span className="pl-[2px] text-[12px] font-normal text-staff-text-muted">휴게시간 제외</span>
+            </dt>
             <dd className="pt-[2px] text-[24px] font-bold tabular-nums [&_span]:text-[15px]">
               {Math.floor(totals.workedMinutes / 60)}
               <span>시간</span> {String(totals.workedMinutes % 60).padStart(2, "0")}
