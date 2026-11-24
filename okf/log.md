@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-11-24
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 내 근무지의 퇴직한 근무지 카드에도 신고정보 · 계좌 · 근로계약서 · 급여명세서 세 칸(재직 카드와 같은 링크, 「미입력」 꼬리표 없음)을 두고, 퇴직한 근무지의 신고 정보는 조회만(api `editable: false` · PUT 409 `STAFF_RETIRED`) — `editable === false` 일 때만(옛 api 와 섞여도 재직 근무지는 막지 않는다), 고치기 · 입력 버튼 없이 「퇴직한 근무지라 신고 정보는 조회만 할 수 있습니다.」(WHALEERP-765). `edit` · `new` 는 보기 화면으로 돌려보내고 서버 액션도 PUT 하지 않는다. `api-types.d.ts` 를 다시 만들어 먼저 들어간 api 의 `storeIsHq` 등도 함께 들어왔다(시험 고정값 두 곳에 `storeIsHq: false`).
+
 ## 2026-11-23
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 출퇴근 버튼에서 위치 읽음을 남기는 요청이 예외로 끝나면 「위치를 확인할 수 없음」이 아니라 요청 실패로 안내한다(PR #90 pr-agent 리뷰).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 앱 안인데 브리지가 없으면 출퇴근 위치를 브라우저로 넘기지 않고 앱 고장(broken)으로 본다. 브리지는 있는데 `measureLocation` 을 모르는 옛 앱만 브라우저 위치로 넘긴다(PR #90 pr-agent 리뷰).
