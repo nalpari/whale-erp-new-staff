@@ -2,7 +2,34 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CONNECTION_FAILED, RATE_LIMITED, RETRY_LATER } from "./action-errors.ts";
-import { ACCOUNT_INCOMPLETE, ACCOUNT_SHAPE, BANK_REQUIRED, CURRENT_PASSWORD_EMPTY, CURRENT_PASSWORD_MISMATCH, NOTHING_TO_CHANGE, parseStaffMemberId, purposeItems, readTaxProfileForm, RRN_BIRTH_MISMATCH, RRN_SHAPE, rrnBirthMismatch, TAX_PROFILE_ALREADY_SUBMITTED, TAX_PROFILE_CREATE_NOT_FOUND, TAX_PROFILE_MISSING, TAX_PROFILE_READ_ONLY, TAX_VIEW_UNAVAILABLE, TAX_VIEW_UNAVAILABLE_AFTER_SAVE, taxProfileCreateBlocked, taxProfileCreateFailure, taxProfileEditBlocked, taxProfileEmptyOf, taxProfileSaveFailure, taxViewAfterChange, validateTaxProfileCreate, validateTaxProfileEdit } from "./tax-profile.ts";
+import {
+  purposeItems,
+  ACCOUNT_INCOMPLETE,
+  BANK_REQUIRED,
+  TAX_PROFILE_CREATE_NOT_FOUND,
+  taxProfileCreateFailure,
+  validateTaxProfileCreate,
+  CURRENT_PASSWORD_EMPTY,
+  CURRENT_PASSWORD_MISMATCH,
+  ACCOUNT_SHAPE,
+  NOTHING_TO_CHANGE,
+  RRN_BIRTH_MISMATCH,
+  RRN_SHAPE,
+  TAX_PROFILE_MISSING,
+  TAX_VIEW_UNAVAILABLE,
+  TAX_VIEW_UNAVAILABLE_AFTER_SAVE,
+  taxViewAfterChange,
+  taxProfileEditBlocked,
+  taxProfileCreateBlocked,
+  TAX_PROFILE_ALREADY_SUBMITTED,
+  TAX_PROFILE_READ_ONLY,
+  parseStaffMemberId,
+  readTaxProfileForm,
+  rrnBirthMismatch,
+  taxProfileSaveFailure,
+  validateTaxProfileEdit,
+  taxProfileEmptyOf,
+} from "./tax-profile.ts";
 
 /** 테스트용 지금 비밀번호 — 실패 상태에 남지 않는지도 이 글자로 본다. */
 const PW = "Petra-Secret 1234!";

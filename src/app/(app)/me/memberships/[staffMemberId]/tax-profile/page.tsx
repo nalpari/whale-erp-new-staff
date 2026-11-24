@@ -113,7 +113,7 @@ function GuardItem({ icon, title, children }: { icon: ReactNode; title: string; 
 // 처음 넣기(`./new`, WHALEERP-150)로 가는 「넣기」를 둔다 — 날인 뒤 흐름을 중간에 닫은 직원이 다시 넣는 길이다.
 // 고치고 돌아오면 `?changed=1` 로 와 알림을 띄우고 주소에서 지운다 — 다시 조회가 실패해도 지우고, 안내에 저장은 됐다고 덧붙인다(PR #26 참고). 내 소속이 아니면(남의 id) 404 다.
 // 퇴직한 근무지(api `editable: false`)는 조회만 된다(WHALEERP-765 — 그곳에 쓴 급여 계좌를 다시 본다): 「다시 입력하기」 · 「입력하기」 없이 조회만 안내하고,
-// 고치는 법을 말하는 안내 문구는 뺀다. 보관 기간(퇴직 후 3년)이 지나면 api 가 지우고 `expired` 를 준다 — 빈 상태 대신 지웠다는
+// 고치는 법을 말하는 안내 문구는 뺀다. 보관 기간(퇴직 후 3년)이 지나면 api 가 지우고 `expired` 를 준다 — 빈 상태 대신 보관 기간이 지났다는
 // 사실을 보이고 「조회만」 안내는 두지 않는다(WHALEERP-772, taxProfileEmptyOf).
 const EMPTY_GUIDE: readonly [string, string][] = [
   ["왜 필요한가요?", "근무지가 급여 세금(원천징수)을 신고하고, 급여를 이체하는 데 사용합니다."],
