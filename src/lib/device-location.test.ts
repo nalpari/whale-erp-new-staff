@@ -125,8 +125,23 @@ test("브리지가 처음에 늦어도 한 번 더 기다려 오면 그 브리�
   assert.equal(waits, 2);
 });
 
-test("다시 시도는 브리지만 다시 확인하고 위치는 읽지 않는다", async () => {
-  const throwing: Bridge = { callHandler: async () => { throw new Error("위치를 읽으면 안 된다"); } };
-  assert.equal(await checkAppConnection({ bridgeReady: async () => throwing }), true);
-  assert.equal(await checkAppConnection({ bridgeReady: async () => null }), false);
+test("다시 시도는 브리지만 다시 확인하고 위치는 읽지 않는다(앱 기능을 한 번도 부르지 않는다)", async (t) => {
+  const error = t.mock.method(console, "error", () => {});
+  let calls = 0;
+  const counting: Bridge = { callHandler: async () => { calls++; return null; } };
+  assert.equal(await checkAppConnection({ bridgeReady: async () => counting }), true);
+  assert.equal(calls, 0);
+  assert.equal(error.mock.callCount(), 0);
+});
+
+test("다시 시도도 출근 읽기처럼 두 번까지 기다린다", async () => {
+  let waits = 0;
+  assert.equal(await checkAppConnection({ bridgeReady: async () => (++waits === 1 ? null : bridge) }), true);
+  assert.equal(waits, 2);
+  waits = 0;
+  assert.equal(await checkAppConnection({ bridgeReady: async () => { waits++; return null; } }), false);
+  assert.equal(waits, 2);
+  waits = 0;
+  assert.equal(await checkAppConnection({ bridgeReady: async () => { waits++; return bridge; } }), true);
+  assert.equal(waits, 1);
 });

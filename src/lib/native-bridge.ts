@@ -81,28 +81,31 @@ function isReadyBridge(value: unknown, userAgent: string): value is Bridge {
 /**
  * 브리지를 기다린다. 앱 밖이면 바로 null, 앱 안이면 준비 이벤트를 [timeoutMs] 까지 기다리고 못 받으면 null.
  * 앱은 페이지 스크립트보다 먼저 준비되는 게 보통이지만, 첫 화면에서 바로 부르면 이벤트를 기다려야 할 수 있다.
+ * [strict] 면 시간이 다 됐을 때 `callHandler` 만 보이는 반쯤 준비된 브리지(Android 준비 표시 없음)는 null 로 본다 —
+ * 「다시 시도」가 아직 부를 수 없는 브리지를 「연결됨」으로 잘못 알리지 않게.
  */
 export function waitForBridge(
   win: BridgeWindow | undefined = typeof window === "undefined" ? undefined : (window as unknown as BridgeWindow),
-  { userAgent, timeoutMs = 3000 }: { userAgent?: string; timeoutMs?: number } = {},
+  { userAgent, timeoutMs = 3000, strict = false }: { userAgent?: string; timeoutMs?: number; strict?: boolean } = {},
 ): Promise<Bridge | null> {
   const ua = userAgent ?? (typeof navigator === "undefined" ? "" : navigator.userAgent);
   if (win === undefined || !isInApp(ua)) return Promise.resolve(null);
   if (isReadyBridge(win.flutter_inappwebview, ua)) return Promise.resolve(win.flutter_inappwebview);
   return new Promise((resolve) => {
-    const finish = (reason: string) => {
+    const finish = (reason: string, byEvent: boolean) => {
       clearTimeout(timer);
       win.removeEventListener(BRIDGE_READY_EVENT, onReady);
       const bridge = win.flutter_inappwebview;
       // 이벤트가 왔거나 시간이 다 됐으면 callHandler 가 있는 것만으로 부른다(준비 표시를 못 받아도 시도는 해 본다).
-      if (isBridge(bridge)) return resolve(bridge);
+      // strict 면 시간이 다 됐을 때는 준비 표시까지 있어야 한다.
+      if (strict && !byEvent ? isReadyBridge(bridge, ua) : isBridge(bridge)) return resolve(bridge as Bridge);
       // 앱 안인데 브리지가 없다 = 앱 쪽 고장. 앱 밖(조용한 null)과 구분되게 남긴다.
       const version = appVersionOf(ua);
       console.error(`[native-bridge] 앱(${version}) 안인데 브리지가 없다: ${reason}`);
       resolve(null);
     };
-    const onReady = () => finish("준비 이벤트는 왔지만 callHandler 가 없음");
-    const timer = setTimeout(() => finish(`${timeoutMs}ms 안에 준비 이벤트가 오지 않음`), timeoutMs);
+    const onReady = () => finish("준비 이벤트는 왔지만 callHandler 가 없음", true);
+    const timer = setTimeout(() => finish(`${timeoutMs}ms 안에 준비 이벤트가 오지 않음`, false), timeoutMs);
     win.addEventListener(BRIDGE_READY_EVENT, onReady);
   });
 }
@@ -151,7 +154,16 @@ export async function callNative<T>(
     return { ok: false, error: "failed" };
   }
   const result = readBridgeResult(raw, isData);
-  if (!result.ok && result.error === "malformed") console.error(`[native-bridge] ${name} 의 답이 약속과 다르다`, describeMalformed(raw));
+  if (!result.ok && result.error === "malformed") {
+    // 기록을 만들다 예외가 나도 결과(malformed)는 그대로 돌려준다 — 위치 읽기 전체가 실패로 번지지 않게.
+    let described: unknown;
+    try {
+      described = describeMalformed(raw);
+    } catch {
+      described = "(기록을 만들지 못함)";
+    }
+    console.error(`[native-bridge] ${name} 의 답이 약속과 다르다`, described);
+  }
   return result;
 }
 

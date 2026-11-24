@@ -277,15 +277,45 @@ test("measureLocation 은 75초를 기다리고 약속에 맞는 답만 받는�
 
 test("measureLocation 의 약속과 다른 답은 좌표 없이 어긋난 칸 이름만 콘솔에 남긴다(ATT-05)", async (t) => {
   const logged: unknown[][] = [];
-  t.mock.method(console, "error", (...args: unknown[]) => { logged.push(args); });
+  const everything: unknown[][] = [];
+  t.mock.method(console, "error", (...args: unknown[]) => { logged.push(args); everything.push(args); });
+  for (const level of ["warn", "log", "info", "debug"] as const) {
+    t.mock.method(console, level, (...args: unknown[]) => { everything.push(args); });
+  }
   const raw = { ok: true, data: { status: "ok", latitude: 37.5665, longitude: 126.978, accuracyMeters: 5, ageSeconds: "x", mocked: true, precise: true, "37.5665,126.978": 1 } };
   assert.deepEqual(await measureLocation({ callHandler: async () => raw }), { ok: false, error: "malformed" });
   const ours = logged.filter((args) => String(args[0]).startsWith("[native-bridge]"));
   assert.equal(ours.length, 1);
   assert.deepEqual(ours[0][1], { code: "measureLocation-malformed", fields: ["ageSeconds"] });
-  const text = JSON.stringify(ours);
+  // 접두어와 상관없이, 어떤 수준의 콘솔 출력에도 좌표가 없어야 한다
+  const text = JSON.stringify(everything);
   assert.equal(text.includes("37.5665"), false);
   assert.equal(text.includes("126.978"), false);
+});
+
+test("약속과 다른 답의 기록을 만들다 예외가 나도 결과는 malformed 로 돌려준다", async (t) => {
+  t.mock.method(console, "error", () => {});
+  const result = await callNative("x", [], (data: unknown): data is string => typeof data === "string", bridgeAnswering({ ok: true, data: 1 }), {
+    describeMalformed: () => { throw new Error("기록 실패"); },
+  });
+  assert.deepEqual(result, { ok: false, error: "malformed" });
+});
+
+test("strict 면 시간이 다 됐을 때 준비 표시 없는 Android 브리지는 null(다시 시도가 연결됨으로 잘못 알리지 않게)", async (t) => {
+  t.mock.method(console, "error", () => {});
+  const early = bridgeAnswering(null);
+  const { win } = fakeWindow(early);
+  assert.equal(await waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), null);
+  const readyBridge = { ...bridgeAnswering(null), _platformReady: true };
+  assert.equal(await waitForBridge(fakeWindow(readyBridge).win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), readyBridge);
+});
+
+test("strict 여도 준비 이벤트가 오면 그 브리지를 쓴다", async () => {
+  const early = bridgeAnswering(null);
+  const { win, ready } = fakeWindow(early);
+  const waiting = waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 1000, strict: true });
+  ready(early);
+  assert.equal(await waiting, early);
 });
 
 test("appLocationProblems 는 약속 문서의 칸만, 모양이 틀린 것만 고른다", () => {

@@ -166,7 +166,7 @@ export function CheckInScreen({
       show(`앱과 다시 연결됐습니다. ${working ? "퇴근하기" : "출근하기"}를 눌러 주세요`);
     });
   const retryButton = (
-    <Button disabled={pending} onClick={retryConnection}>
+    <Button disabled={pending || !canLocate} onClick={retryConnection}>
       다시 시도
     </Button>
   );

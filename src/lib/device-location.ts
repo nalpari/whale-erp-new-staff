@@ -8,8 +8,8 @@ import { isInApp, measureLocation, waitForBridge, type AppLocation, type Bridge,
  * - 앱과의 약속이 어긋났거나(malformed) 앱이 호출을 받지 않았으면(forbidden) broken.
  *   브라우저 위치로 넘기지 않는다(모의 위치 판정이 빠지므로).
  * - broken 의 까닭(reason)마다 안내가 다르다(2026-11-23 창수 결정, 재영 #90 리뷰): 브리지가 늦은 일시 장애(not-ready)는 한 번 더
- *   기다려 본 뒤에도 안 되면 「다시 눌러 주세요」와 관리자 대신 등록 안내, 주소 · 설정 문제(forbidden)는 관리자 문의,
- *   앱과 약속이 어긋남(mismatch)은 앱 업데이트 안내.
+ *   기다려 본 뒤에도 안 되면 출근 · 퇴근 버튼 대신 「다시 시도」 버튼(`checkAppConnection`, 위치는 읽지 않음, 2026-11-24 창수)과
+ *   관리자 대신 등록 안내, 주소 · 설정 문제(forbidden)는 관리자 문의, 앱과 약속이 어긋남(mismatch)은 앱 업데이트 안내.
  */
 /**
  * 출퇴근 판정에 쓸 앱 위치의 최대 나이(초). 정확한 위치는 앱이 2초 안쪽 새 위치만 주므로 걸리지 않는다. 「대략적 위치」는 앱이
@@ -87,8 +87,12 @@ export async function readDeviceLocation({
 
 /**
  * 「다시 시도」 버튼이 앱 연결(브리지)만 다시 확인한다. 위치는 읽지 않는다 — 위치는 출근 · 퇴근 버튼에서 위치 읽음(확인자료)을
- * 먼저 남긴 뒤에만 읽는다(ATT-22). 브리지가 준비되면 true, 앱 밖이거나 이번에도 준비되지 않으면 false.
+ * 먼저 남긴 뒤에만 읽는다(ATT-22). 출근 · 퇴근 읽기와 같이 두 번까지 기다리고, 반쯤 준비된 브리지(Android 준비 표시 없음)는
+ * 「연결됨」으로 보지 않는다(strict) — 연결됐다고 알린 뒤 출근이 다시 실패하지 않게.
+ * 브리지가 준비되면 true, 앱 밖이거나 이번에도 준비되지 않으면 false.
  */
-export async function checkAppConnection({ bridgeReady = () => waitForBridge() }: { bridgeReady?: () => Promise<Bridge | null> } = {}): Promise<boolean> {
-  return (await bridgeReady()) !== null;
+export async function checkAppConnection({
+  bridgeReady = () => waitForBridge(undefined, { strict: true }),
+}: { bridgeReady?: () => Promise<Bridge | null> } = {}): Promise<boolean> {
+  return ((await bridgeReady()) ?? (await bridgeReady())) !== null;
 }
