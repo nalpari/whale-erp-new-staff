@@ -43,7 +43,7 @@ export function LoginForm({
   const [saveEmail, setSaveEmail] = useState(savedEmail !== null);
   const [autoLogin, setAutoLogin] = useState(false);
   // 설치형 앱 안이면 앱이 주는 기기 식별자(해시)를 받아 숨은 칸으로 넘긴다(계획 결정 9). 못 받으면(옛 앱 · 앱 밖) 비워 두고
-  // 서버가 쿠키 UUID 를 쓴다. 받기 전에 제출해도 같다.
+  // 서버가 쿠키 값(`device_id`)을 쓴다. 받기 전에 제출해도 같다.
   const [appDeviceId, setAppDeviceId] = useState<string | null>(null);
   useEffect(() => {
     if (!isInApp()) return;

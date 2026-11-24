@@ -23,7 +23,8 @@ export const BRIDGE_READY_EVENT = "flutterInAppWebViewPlatformReady";
  * - unavailable: 앱 안이 아니거나, 기다려도 `callHandler` 가 없거나, 앱에 없는 기능이다(앱 버전이 낮을 때 등).
  *   기본 대기(waitForBridge)는 Android 에서 준비 이벤트가 제때 안 와도 `callHandler` 가 보이면 그것으로 불러 본다.
  *   엄격 대기(strict — 출퇴근 위치 · 「다시 시도」)는 시간이 다 됐을 때 준비 표시까지 있어야 부르고, 없으면 부르지 않는다.
- *   이때는 unavailable 이 아니라 device-location.ts 의 not-ready 다.
+ *   이때 waitForBridge 는 null 을 돌려주고, 출퇴근 위치(readDeviceLocation)는 not-ready 로, 「다시 시도」(checkAppConnection)는
+ *   false(연결 안 됨)로 본다.
  * - malformed: 앱이 약속과 다른 모양으로 답했다.
  */
 export type BridgeError = "forbidden" | "failed" | "unavailable" | "malformed";

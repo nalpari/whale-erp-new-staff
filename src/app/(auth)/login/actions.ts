@@ -31,7 +31,7 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
 
   // 설치형 앱 안이면 앱이 준 기기 식별자를 쓰고 쿠키에도 남긴다(계획 결정 9) — 앱을 다시 깔아도 같은 기기로 보여, 다시 로그인하면
   // 그 기기의 이전 접속이 끊긴다. 가입은 쿠키만 읽으므로 앱 안에서 로그인한 뒤에야 같은 값을 쓴다(그 전 가입은 쿠키 UUID).
-  // 앱 밖 · 옛 앱 · 값을 받기 전 제출이면 지금처럼 쿠키 UUID.
+  // 앱 밖 · 옛 앱 · 값을 받기 전 제출이면 쿠키 값을 쓴다(처음에는 UUID, 앱 안에서 한 번 로그인한 뒤에는 그 해시).
   if (appDeviceId) await saveDeviceId(appDeviceId);
 
   let result;

@@ -10,7 +10,7 @@ export interface LoginInput {
   autoLogin: boolean;
   /**
    * 설치형 앱이 준 기기 식별자(64자 소문자 16진수, 앱 브리지 deviceId). 앱 밖 · 옛 앱 · 아직 못 받았으면 null —
-   * 그때는 지금처럼 쿠키 UUID 를 쓴다. 폼에서 오는 값이라 형식이 아니면 버린다.
+   * 그때는 쿠키 값(`device_id`)을 쓴다. 폼에서 오는 값이라 형식이 아니면 버린다.
    */
   appDeviceId: string | null;
 }
