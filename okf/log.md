@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-24
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 회원 탈퇴 화면 `/me/withdrawal` 을 더하고(재직 중이면 퇴직 처리 요청 안내, 현재 비밀번호 확인 뒤 탈퇴, 성공하면 `/login?withdrawn=1`) 내 정보에 「회원 탈퇴」 링크를 두었다(WHALEERP-770). 탈퇴 성공 때 아이디 저장 쿠키도 지운다(1차 리뷰). [탈퇴] 는 확인 시트를 거쳐 제출한다(노영주 결정).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 머리줄 통일(`StoreHeader` · `TitleHeader`, 근무 화면 근무지 카드 삭제, 출퇴근 화면 근무지는 보이기만), 근무지 고르기 시트 줄 모양, 출퇴근 현황 기간별(범위 달력 · 기간 요약 · 주 줄 펼침 · 미출근/미기록 · 예정 없음), 홈 「근로 · 휴게」 · 예정 없는 날 카드, 알림에서 연 화면의 뒤로 가기(`from=notifications`).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 루트 레이아웃 `<head>` 에 브리지 준비 이벤트를 듣는 인라인 스크립트를 넣어, 출퇴근 화면 코드가 불러와지기 전에 지나간 이벤트도 준비로 본다(PR #91 pr-agent 재리뷰).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 준비 이벤트를 받은 브리지를 기억해, 다시 시도로 연결된 직후 출퇴근 버튼이 다시 not-ready 가 되지 않게 했다(PR #91 pr-agent 재리뷰).

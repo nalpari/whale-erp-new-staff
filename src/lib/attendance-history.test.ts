@@ -20,6 +20,7 @@ const day = (date: string, patch: Partial<MyAttendanceDay> = {}): MyAttendanceDa
   phone: "01000000000",
   storeId: 1,
   storeName: "강남역점",
+  storeIsHq: false,
   employmentType: "PART_TIME",
   employmentStatus: "EMPLOYED",
   schedules: [{ startTime: "09:00", endTime: "18:00", breakMinutes: 60 }],
