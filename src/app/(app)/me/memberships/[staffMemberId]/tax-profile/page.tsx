@@ -7,7 +7,7 @@ import { getCodesOrEmpty } from "@/lib/codes";
 import { labelOf } from "@/lib/enums";
 import { getMyMemberships, getMyTaxProfile } from "@/lib/my-profile";
 import { kstDateTimeLabel } from "@/lib/profile";
-import { TAX_PROFILE_READ_ONLY, parseStaffMemberId, purposeItems, taxViewAfterChange } from "@/lib/tax-profile";
+import { TAX_PROFILE_READ_ONLY, parseStaffMemberId, purposeItems, taxProfileEmptyOf, taxViewAfterChange } from "@/lib/tax-profile";
 import { TAX_KEEP_TEXT } from "@/app/_components/tax-profile-parts";
 import { WorkplaceBox } from "@/app/_components/workplace-box";
 import { ChangedToast } from "../../../changed-toast";
@@ -113,7 +113,8 @@ function GuardItem({ icon, title, children }: { icon: ReactNode; title: string; 
 // 처음 넣기(`./new`, WHALEERP-150)로 가는 「넣기」를 둔다 — 날인 뒤 흐름을 중간에 닫은 직원이 다시 넣는 길이다.
 // 고치고 돌아오면 `?changed=1` 로 와 알림을 띄우고 주소에서 지운다 — 다시 조회가 실패해도 지우고, 안내에 저장은 됐다고 덧붙인다(PR #26 참고). 내 소속이 아니면(남의 id) 404 다.
 // 퇴직한 근무지(api `editable: false`)는 조회만 된다(WHALEERP-765 — 그곳에 쓴 급여 계좌를 다시 본다): 「다시 입력하기」 · 「입력하기」 없이 조회만 안내하고,
-// 고치는 법을 말하는 안내 문구는 뺀다. 보관 기간(퇴직 후 3년)이 지나면 api 가 지워 빈 상태로 보인다.
+// 고치는 법을 말하는 안내 문구는 뺀다. 보관 기간(퇴직 후 3년)이 지나면 api 가 지우고 `expired` 를 준다 — 빈 상태 대신 지웠다는
+// 사실을 보이고 「조회만」 안내는 두지 않는다(WHALEERP-772, taxProfileEmptyOf).
 const EMPTY_GUIDE: readonly [string, string][] = [
   ["왜 필요한가요?", "근무지가 급여 세금(원천징수)을 신고하고, 급여를 이체하는 데 사용합니다."],
   ["언제 입력하나요?", "근로계약서에 서명한 직후 입력합니다."],
@@ -139,6 +140,7 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
   // 칸이 없는 옛 api 와 섞여 배포돼도 재직 근무지를 막지 않게 false 일 때만 조회 전용이다
   const readOnly = tax?.editable === false;
   const after = taxViewAfterChange(changed, tax);
+  const empty = taxProfileEmptyOf(tax ?? {});
 
   return (
     <div className="flex flex-1 flex-col bg-white">
@@ -154,9 +156,11 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
             <span className="mb-[6px] flex">
               <IconTile src="/icons/id-card-line.svg" size={44} />
             </span>
-            <p className="text-[17px] font-bold">입력한 신고 정보가 없습니다</p>
+            <p className="text-[17px] font-bold">{empty.title}</p>
             <p className="text-[14px] text-staff-text-sub">{storeName}</p>
-            {readOnly ? (
+            {empty.expired ? (
+              <p className="pt-[8px] text-[14px] text-staff-text-sub">{empty.detail}</p>
+            ) : readOnly ? (
               <div className="mt-[17px] w-full text-left">
                 <Notice>{TAX_PROFILE_READ_ONLY}.</Notice>
               </div>

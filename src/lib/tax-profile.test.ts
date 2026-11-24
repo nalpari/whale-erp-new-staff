@@ -2,33 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CONNECTION_FAILED, RATE_LIMITED, RETRY_LATER } from "./action-errors.ts";
-import {
-  purposeItems,
-  ACCOUNT_INCOMPLETE,
-  BANK_REQUIRED,
-  TAX_PROFILE_CREATE_NOT_FOUND,
-  taxProfileCreateFailure,
-  validateTaxProfileCreate,
-  CURRENT_PASSWORD_EMPTY,
-  CURRENT_PASSWORD_MISMATCH,
-  ACCOUNT_SHAPE,
-  NOTHING_TO_CHANGE,
-  RRN_BIRTH_MISMATCH,
-  RRN_SHAPE,
-  TAX_PROFILE_MISSING,
-  TAX_VIEW_UNAVAILABLE,
-  TAX_VIEW_UNAVAILABLE_AFTER_SAVE,
-  taxViewAfterChange,
-  taxProfileEditBlocked,
-  taxProfileCreateBlocked,
-  TAX_PROFILE_ALREADY_SUBMITTED,
-  TAX_PROFILE_READ_ONLY,
-  parseStaffMemberId,
-  readTaxProfileForm,
-  rrnBirthMismatch,
-  taxProfileSaveFailure,
-  validateTaxProfileEdit,
-} from "./tax-profile.ts";
+import { ACCOUNT_INCOMPLETE, ACCOUNT_SHAPE, BANK_REQUIRED, CURRENT_PASSWORD_EMPTY, CURRENT_PASSWORD_MISMATCH, NOTHING_TO_CHANGE, parseStaffMemberId, purposeItems, readTaxProfileForm, RRN_BIRTH_MISMATCH, RRN_SHAPE, rrnBirthMismatch, TAX_PROFILE_ALREADY_SUBMITTED, TAX_PROFILE_CREATE_NOT_FOUND, TAX_PROFILE_MISSING, TAX_PROFILE_READ_ONLY, TAX_VIEW_UNAVAILABLE, TAX_VIEW_UNAVAILABLE_AFTER_SAVE, taxProfileCreateBlocked, taxProfileCreateFailure, taxProfileEditBlocked, taxProfileEmptyOf, taxProfileSaveFailure, taxViewAfterChange, validateTaxProfileCreate, validateTaxProfileEdit } from "./tax-profile.ts";
 
 /** 테스트용 지금 비밀번호 — 실패 상태에 남지 않는지도 이 글자로 본다. */
 const PW = "Petra-Secret 1234!";
@@ -320,4 +294,14 @@ test("purposeItems — 쉼표 · 가운뎃점으로 나누고 빈 항목은 뺀�
   // api TAX_PROFILE_PURPOSE 값 그대로
   assert.deepEqual(purposeItems("취득 신고 · 원천징수 · 급여 이체"), ["취득 신고", "원천징수", "급여 이체"]);
   assert.deepEqual(purposeItems(" , "), []);
+});
+
+test("신고 정보 빈 상태 — 보관 기간이 지났으면(api expired) 그 사실을, 넣은 적이 없으면 지금 문구 그대로(WHALEERP-772 B안)", () => {
+  const expired = taxProfileEmptyOf({ expired: true });
+  assert.equal(expired.expired, true);
+  assert.equal(expired.title, "신고 정보 보관 기간이 지났습니다");
+  assert.equal(expired.detail, "퇴직 후 3년이 지나 이 근무지의 신고 정보를 보관하지 않습니다.");
+  assert.deepEqual(taxProfileEmptyOf({ expired: false }), { expired: false, title: "입력한 신고 정보가 없습니다", detail: null });
+  // expired 가 없는 옛 api 응답은 넣은 적 없음으로 본다
+  assert.deepEqual(taxProfileEmptyOf({}), { expired: false, title: "입력한 신고 정보가 없습니다", detail: null });
 });
