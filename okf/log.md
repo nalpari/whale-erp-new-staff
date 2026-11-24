@@ -1,6 +1,9 @@
 # Bundle history
 
 ## 2026-11-24
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — `api-types.d.ts` 다시 생성(api 확정 422 설명에 `WORK_HOURS_MISSING`, WHALEERP-755 — 화면 변화 없음).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — `api-types.d.ts` 다시 생성(api PR #317 리뷰 — 급여명세서 수정 DTO `workMinutes` 설명 · multipleOf 뺌, 화면 변화 없음).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 급여명세서 지급 표에 줄마다 계산식(WHALEERP-755): 비과세 · 원천징수 안내가 없는 줄은 api `calculationText` 를 항목 이름 아래 12px 흐린 글자로(목업 PAY-3 자리, 관리자 상세 · PDF 와 같은 글자). 식이 없는 줄(전 명세서)은 그대로. `api-types.d.ts` 다시 생성.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 로그인에서 앱 기기 식별자 쿠키는 로그인이 성공한 뒤에만 저장한다. 상세를 연 사이 지워진 명세서는 받기 실패 안내와 「목록으로」를 보인다(PR #97 pr-agent 리뷰).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR 전 코드리뷰 반영: 받기 실패 주소를 `payslipFailurePath` 로 빼 테스트로 고정(앱이 `/pay/<id>?download=` 모양으로 알아본다), 로그인은 앱 기기 식별자를 쿠키 재읽기 없이 바로 넘기고, 약속과 다른 `deviceId` 답은 값 대신 모양만 콘솔에 남긴다. `device_id` 가 UUID 로 남는 경우(옛 앱, 그리고 앱 안에서 아직 로그인한 적이 없을 때의 받기 전 제출 · 가입 먼저)를 적었다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 설치형 앱 안에서는 로그인의 `deviceIdentifier` 로 쿠키 UUID 대신 앱이 주는 기기 식별자(해시, 브리지 `deviceId`)를 쓰고 `device_id` 쿠키에도 남긴다(계획 결정 9).
