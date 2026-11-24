@@ -100,8 +100,10 @@ export function waitForBridge(
       // strict 면 시간이 다 됐을 때는 준비 표시까지 있어야 한다.
       if (strict && !byEvent ? isReadyBridge(bridge, ua) : isBridge(bridge)) return resolve(bridge as Bridge);
       // 앱 안인데 브리지가 없다 = 앱 쪽 고장. 앱 밖(조용한 null)과 구분되게 남긴다.
+      // strict 로 떨어진 것(브리지는 있지만 준비 표시가 없음)은 고장이 아니라 아직 준비 중이라 따로 적는다.
       const version = appVersionOf(ua);
-      console.error(`[native-bridge] 앱(${version}) 안인데 브리지가 없다: ${reason}`);
+      const state = isBridge(bridge) ? "브리지는 있지만 준비 표시가 없음(strict)" : "브리지가 없다";
+      console.error(`[native-bridge] 앱(${version}) 안인데 ${state}: ${reason}`);
       resolve(null);
     };
     const onReady = () => finish("준비 이벤트는 왔지만 callHandler 가 없음", true);
@@ -159,8 +161,9 @@ export async function callNative<T>(
     let described: unknown;
     try {
       described = describeMalformed(raw);
-    } catch {
-      described = "(기록을 만들지 못함)";
+    } catch (failure) {
+      // 원본은 좌표가 담길 수 있어 남기지 않고, 기록 함수가 왜 깨졌는지만 남긴다.
+      described = { describeFailed: failure instanceof Error ? `${failure.name}: ${failure.message}` : typeof failure };
     }
     console.error(`[native-bridge] ${name} 의 답이 약속과 다르다`, described);
   }

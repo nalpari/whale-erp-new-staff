@@ -293,12 +293,25 @@ test("measureLocation 의 약속과 다른 답은 좌표 없이 어긋난 칸 �
   assert.equal(text.includes("126.978"), false);
 });
 
-test("약속과 다른 답의 기록을 만들다 예외가 나도 결과는 malformed 로 돌려준다", async (t) => {
-  t.mock.method(console, "error", () => {});
-  const result = await callNative("x", [], (data: unknown): data is string => typeof data === "string", bridgeAnswering({ ok: true, data: 1 }), {
-    describeMalformed: () => { throw new Error("기록 실패"); },
-  });
+test("약속과 다른 답의 기록을 만들다 예외가 나도 결과는 malformed 로 돌려주고 원본(좌표)은 남기지 않는다", async (t) => {
+  const everything: unknown[][] = [];
+  for (const level of ["error", "warn", "log", "info", "debug"] as const) {
+    t.mock.method(console, level, (...args: unknown[]) => { everything.push(args); });
+  }
+  const result = await callNative(
+    "x",
+    [],
+    (data: unknown): data is string => typeof data === "string",
+    bridgeAnswering({ ok: true, data: { latitude: 37.5665, longitude: 126.978 } }),
+    { describeMalformed: () => { throw new Error("기록 실패"); } },
+  );
   assert.deepEqual(result, { ok: false, error: "malformed" });
+  const ours = everything.filter((args) => String(args[0]).startsWith("[native-bridge]"));
+  assert.equal(ours.length, 1);
+  assert.deepEqual(ours[0][1], { describeFailed: "Error: 기록 실패" });
+  const text = JSON.stringify(everything);
+  assert.equal(text.includes("37.5665"), false);
+  assert.equal(text.includes("126.978"), false);
 });
 
 test("strict 면 시간이 다 됐을 때 준비 표시 없는 Android 브리지는 null(다시 시도가 연결됨으로 잘못 알리지 않게)", async (t) => {
@@ -308,6 +321,23 @@ test("strict 면 시간이 다 됐을 때 준비 표시 없는 Android 브리지
   assert.equal(await waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), null);
   const readyBridge = { ...bridgeAnswering(null), _platformReady: true };
   assert.equal(await waitForBridge(fakeWindow(readyBridge).win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), readyBridge);
+});
+
+test("strict 로 기다리는 사이 준비 표시만 붙고 이벤트가 없으면 시간이 다 된 뒤 그 브리지를 쓴다", async () => {
+  const late: { callHandler: Bridge["callHandler"]; _platformReady?: boolean } = { ...bridgeAnswering(null) };
+  const { win } = fakeWindow(late);
+  const waiting = waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 20, strict: true });
+  late._platformReady = true;
+  assert.equal(await waiting, late);
+});
+
+test("strict 로 떨어진 것은 「브리지가 없다」가 아니라 준비 표시 없음으로 남긴다", async (t) => {
+  const error = t.mock.method(console, "error", () => {});
+  const { win } = fakeWindow(bridgeAnswering(null));
+  assert.equal(await waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), null);
+  const messages = error.mock.calls.map((call) => String(call.arguments[0]));
+  assert.equal(messages.some((m) => m.includes("준비 표시가 없음(strict)")), true);
+  assert.equal(messages.some((m) => m.includes("브리지가 없다")), false);
 });
 
 test("strict 여도 준비 이벤트가 오면 그 브리지를 쓴다", async () => {

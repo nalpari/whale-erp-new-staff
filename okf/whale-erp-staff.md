@@ -10,7 +10,7 @@ sources:
   - { id: common, resource: ../src/components/common, title: Common UI components }
   - { id: design-md, resource: ../DESIGN.md, title: Design system }
   - { id: affiliation-done, resource: ../src/app/(app)/affiliations/done/page.tsx, title: 근무지 추가 확인 결과 화면 — 수락 완료의 「근로계약서 서명하기」 }
-generated: { by: claude-code/opus-5.5, at: 2026-11-24T06:00:00Z }
+generated: { by: claude-code/opus-5.5, at: 2026-11-24T01:30:00Z }
 ---
 
 # Stack

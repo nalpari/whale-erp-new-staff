@@ -92,7 +92,12 @@ export async function readDeviceLocation({
  * 브리지가 준비되면 true, 앱 밖이거나 이번에도 준비되지 않으면 false.
  */
 export async function checkAppConnection({
-  bridgeReady = () => waitForBridge(undefined, { strict: true }),
-}: { bridgeReady?: () => Promise<Bridge | null> } = {}): Promise<boolean> {
+  waitFor = waitForBridge,
+  bridgeReady = () => waitFor(undefined, { strict: true }),
+}: {
+  /** 브리지 대기 함수(테스트에서 strict 로 부르는지 확인하려고 바꿔 끼운다). */
+  waitFor?: typeof waitForBridge;
+  bridgeReady?: () => Promise<Bridge | null>;
+} = {}): Promise<boolean> {
   return ((await bridgeReady()) ?? (await bridgeReady())) !== null;
 }

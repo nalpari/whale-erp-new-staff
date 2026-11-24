@@ -134,6 +134,17 @@ test("다시 시도는 브리지만 다시 확인하고 위치는 읽지 않는�
   assert.equal(error.mock.callCount(), 0);
 });
 
+test("다시 시도는 반쯤 준비된 브리지를 연결됨으로 보지 않도록 strict 로 기다린다", async () => {
+  const options: unknown[] = [];
+  await checkAppConnection({
+    waitFor: async (_win, opts) => {
+      options.push(opts);
+      return bridge;
+    },
+  });
+  assert.deepEqual(options, [{ strict: true }]);
+});
+
 test("다시 시도도 출근 읽기처럼 두 번까지 기다린다", async () => {
   let waits = 0;
   assert.equal(await checkAppConnection({ bridgeReady: async () => (++waits === 1 ? null : bridge) }), true);
