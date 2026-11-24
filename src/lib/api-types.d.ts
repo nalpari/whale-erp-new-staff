@@ -2562,7 +2562,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 내 근로계약 상세 — 계약서에 그릴 값 · 사용자 칸 · 본인 대조 미리보기(서명할 수 있는지 · 다른 항목) */
+        /** 내 근로계약 상세 — 계약서에 그릴 값 · 사업주 칸 · 본인 대조 미리보기(서명할 수 있는지 · 다른 항목) */
         get: operations["MyContractViewsController_findOne"];
         put?: never;
         post?: never;
@@ -4288,13 +4288,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 그 소속의 신고 정보 (TAX-8). 주민등록번호 · 계좌번호는 가린 값만 준다 */
+        /**
+         * 그 소속의 신고 정보 (TAX-8). 주민등록번호 · 계좌번호는 가린 값만 준다.
+         *     퇴직한 소속도 같은 가린 값으로 주고 `editable: false` 다 — 조회만 된다(WHALEERP-765, 퇴직 후 3년. 지나면 파기 배치가 지워 `taxProfile: null`).
+         */
         get: operations["MyMembershipsController_taxProfile"];
         /**
          * 신고 정보 작성 · 수정 (WHALEERP-334). 직원 본인만 — 관리자 토큰은 403. 처음에는 주민등록번호 · 은행 · 계좌번호를 모두,
          *     고칠 때는 주민등록번호만 또는 급여 계좌(은행 · 계좌번호 함께)만 보낸다. 주민등록번호를 새로 받으면 수집 일시가 바뀌고
          *     이전 값은 남기지 않는다. 급여 계좌는 다음 급여부터 쓴다. 응답은 조회와 같다(가린 값만).
          *     이미 낸 신고 정보를 고칠 때는 `currentPassword`(지금 비밀번호)도 보낸다 — 처음 작성에는 필요 없다(2026-10-23).
+         *     퇴직한 소속은 고치기 · 처음 넣기 모두 409 다(WHALEERP-765).
          */
         put: operations["MyMembershipsController_saveTaxProfile"];
         post?: never;
@@ -5390,6 +5394,8 @@ export interface components {
             name: string;
             /** @description 공통코드 STORE_TYPE — DIRECT 직영 · FRANCHISE 가맹 */
             storeType: string;
+            /** @description 본사 점포(stores.is_hq) — 화면은 「[본사] 상호」로 보인다(WHALEERP-726 · 750) */
+            isHq: boolean;
         };
         /** @enum {string} */
         InvitationType: "SIGNUP" | "REINVITE" | "AFFILIATION_CONFIRM" | "RETURN_CONFIRM";
@@ -5591,7 +5597,7 @@ export interface components {
             /**
              * @description 신고 정보의 급여 계좌 — 은행 이름 · 계좌번호 전체(하이픈 없음, 가리지 않음). 신고 정보가 없으면 null. 계약이 없어도
              *     신고 정보가 있으면 오고, 급여 지급 방식(계좌 · 현금)과 상관없다. canViewPayrollAccount 가 false 이면 신고 정보를
-             *     읽지 않고 항상 null
+             *     읽지 않고 항상 null. 신고 정보를 풀 수 없으면(키 없음 · 복호화 실패) null 이고 payrollAccountUnavailable 이 true
              */
             payrollAccount: components["schemas"]["StaffMemberPayrollAccountDto"] | null;
             /** @description 계약이 없으면 null */
@@ -5603,11 +5609,19 @@ export interface components {
              *     자체를 숨긴다
              */
             canViewPayrollAccount: boolean;
+            /**
+             * @description 신고 정보는 있지만 지금 풀 수 없다(암호화 키 없음 · 복호화 실패). 이때 payrollAccount 는 null 이고 계약 칸은 그대로 온다 —
+             *     화면은 「급여 계좌」 줄만 「지금 볼 수 없음」으로 보인다(WHALEERP-758). canViewPayrollAccount 가 false 이거나 신고 정보가
+             *     없으면 false
+             */
+            payrollAccountUnavailable: boolean;
         };
         StaffMemberWeekScheduleItemDto: {
             workScheduleId: number;
             storeId: number;
             storeName: string;
+            /** @description 본사 점포(stores.is_hq) — 화면은 「[본사] 상호」로 보인다(WHALEERP-750) */
+            storeIsHq: boolean;
             /** @description 근무일(YYYY-MM-DD) — 시작 일시의 한국 날짜 */
             workDate: string;
             /** @description 시작 HH:mm(한국 시각) */
@@ -5722,6 +5736,8 @@ export interface components {
             workDate: string;
             /** @description 근무지 점포 이름 */
             storeName: string;
+            /** @description 본사 점포(stores.is_hq) — 화면은 「[본사] 상호」로 보인다(WHALEERP-750) */
+            storeIsHq: boolean;
             /** @description 시작 HH:mm(한국 시각) */
             startTime: string;
             /** @description 종료 HH:mm(한국 시각). 시작보다 이르면 다음 날이다 */
@@ -7504,6 +7520,8 @@ export interface components {
             staffName: string | null;
             storeId: number;
             storeName: string;
+            /** @description 본사 점포(stores.is_hq) — 화면은 「[본사] 상호」로 보인다 */
+            storeIsHq: boolean;
             /** @description 급여 기간 시작일(YYYY-MM-DD) */
             periodStartDate: string;
             /** @description 급여 기간 종료일(YYYY-MM-DD) */
@@ -7554,6 +7572,8 @@ export interface components {
             staffName: string;
             storeId: number;
             storeName: string;
+            /** @description 본사 점포(stores.is_hq) — 화면은 「[본사] 상호」로 보인다 */
+            storeIsHq: boolean;
             /** @description 급여 기간에 걸친 서명 완료 근로계약 중 가장 늦게 시작한 것. 없으면 null — 초안을 만들 수 없다 */
             contractId: number | null;
             /** @description 이 달 명세서가 이미 있으면 그 ID — 새로 만들지 않는다 */
@@ -7721,6 +7741,8 @@ export interface components {
             staffName: string;
             storeId: number;
             storeName: string;
+            /** @description 본사 점포(stores.is_hq) — 화면은 「[본사] 상호」로 보인다 */
+            storeIsHq: boolean;
             contractId: number;
             /** @description YYYY-MM-DD */
             periodStartDate: string;
@@ -7956,6 +7978,8 @@ export interface components {
             storeId: number;
             /** @description 점포가 지워졌어도 이름은 보인다 */
             storeName: string | null;
+            /** @description 본사 점포(stores.is_hq) — 화면은 「[본사] 상호」로 보인다(WHALEERP-726 · 750). 점포 행이 없으면 false */
+            storeIsHq: boolean;
             /** @description 직원이 퇴직했는가(재직 상태 퇴직) — 상태 칸에 「퇴직」을 붙인다. 퇴직 예정(퇴직일 전)은 false */
             staffRetired: boolean;
         };
@@ -8268,6 +8292,8 @@ export interface components {
             phone: string;
             jobTitle: string;
             storeId: number;
+            /** @description 본사 점포(stores.is_hq) — 화면은 「[본사] 상호」로 보인다(WHALEERP-726 · 750). 점포 행이 없으면 false */
+            storeIsHq: boolean;
             /** @description 외국인 여부 — 체크하지 않았으면 false */
             isForeigner: boolean;
             /**
@@ -10039,6 +10065,8 @@ export interface components {
             storeId: number;
             /** @description 점포가 지워졌어도 이름은 보인다 */
             storeName: string | null;
+            /** @description 본사 점포(stores.is_hq) — 화면은 「[본사] 상호」로 보인다. 점포 행이 없으면 false */
+            storeIsHq: boolean;
             title: string;
             isUrgent: boolean;
             /** @description 이 줄에 묶인 행 수 */
@@ -10120,8 +10148,17 @@ export interface components {
             completedAt: string | null;
             performer: components["schemas"]["TodoStaffDto"] | null;
             createdByName: string | null;
+            /**
+             * Format: date-time
+             * @description 최종수정 일시 — 관리자 [수정] 때만. 고친 적이 없으면 null(상세에 줄이 없다). 상태 변경은 바꾸지 않는다 (WHALEERP-698)
+             */
+            modifiedAt: string | null;
+            /** @description 최종수정 관리자 이름 — createdByName 과 같은 규칙 */
+            modifiedByName: string | null;
             todoId: number;
             storeId: number;
+            /** @description 본사 점포(stores.is_hq) — 화면은 「[본사] 상호」로 보인다. 점포 행이 없으면 false */
+            storeIsHq: boolean;
             title: string;
             isUrgent: boolean;
             createdBy: number;
@@ -10193,6 +10230,8 @@ export interface components {
             performer: components["schemas"]["TodoStaffDto"] | null;
             todoId: number;
             storeId: number;
+            /** @description 본사 점포(stores.is_hq) — 화면은 「[본사] 상호」로 보인다. 점포 행이 없으면 false */
+            storeIsHq: boolean;
             title: string;
             isUrgent: boolean;
         };
@@ -10611,6 +10650,8 @@ export interface components {
             phone: string;
             storeId: number;
             storeName: string;
+            /** @description 본사 점포(stores.is_hq) — 관리자 화면은 「[본사] 상호」로 보인다. 점포 행이 없으면 false */
+            storeIsHq: boolean;
             schedules: components["schemas"]["AttendanceScheduleDto"][];
             /** @description 출근순 */
             pairs: components["schemas"]["AttendancePairDto"][];
@@ -10651,6 +10692,8 @@ export interface components {
             phone: string;
             storeId: number;
             storeName: string;
+            /** @description 본사 점포(stores.is_hq) — 관리자 화면은 「[본사] 상호」로 보인다. 점포 행이 없으면 false */
+            storeIsHq: boolean;
             schedules: components["schemas"]["AttendanceScheduleDto"][];
             /** @description 출근순 */
             pairs: components["schemas"]["AttendancePairDto"][];
@@ -10679,6 +10722,8 @@ export interface components {
             phone: string;
             storeId: number;
             storeName: string;
+            /** @description 본사 점포(stores.is_hq) — 관리자 화면은 「[본사] 상호」로 보인다. 점포 행이 없으면 false */
+            storeIsHq: boolean;
             schedules: components["schemas"]["AttendanceScheduleDto"][];
             /** @description 출근순 */
             pairs: components["schemas"]["AttendancePairDto"][];
@@ -10743,6 +10788,8 @@ export interface components {
             name: string;
             storeId: number;
             storeName: string;
+            /** @description 본사 점포(stores.is_hq) — 관리자 화면은 「[본사] 상호」로 보인다. 점포 행이 없으면 false */
+            storeIsHq: boolean;
             /** @description 대신 등록(위치정보 동의 없음 · 일시 중지). false 면 위치정보에 동의한 직원 — 기록 없는 날만 출근 · 퇴근을 함께 넣어 보정한다 */
             isProxy: boolean;
             /** @description 그 날짜가 확정 · 발송된 급여명세서 기간 안이다 — 등록하기 전에 경고한다(218) */
@@ -10924,6 +10971,11 @@ export interface components {
         };
         MyTaxProfileResponseDto: {
             staffMemberId: number;
+            /**
+             * @description 고칠 수 있는지 — 퇴직한 소속(퇴직일이 지남, 퇴직 배치 전 포함)이면 false 이고 조회만 된다(WHALEERP-765).
+             *     false 면 고치기 · 처음 넣기(`PUT`)가 409 STAFF_RETIRED 다.
+             */
+            editable: boolean;
             /** @description 이 소속에 낸 신고 정보. 아직 내지 않았으면 null */
             taxProfile: components["schemas"]["MyTaxProfileDto"] | null;
         };
@@ -18462,7 +18514,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(같은 점포 진행 중 계약 — contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP(다른 점포 근무 시간 겹침, 초안 저장만) · 대체할 계약을 다른 요청이 먼저 고침 · SEND_PHONE_NOT_MOBILE(가입 초대인데 휴대폰 번호가 아님) · STORE_NOT_OPERATING(근무지 점포가 운영 중이 아니라 — 미운영 · 폐점 · 사업주 정보 없음 — 보내지 않음 — 저장하지 않음) */
+            /** @description 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(같은 점포 진행 중 계약 — contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP(다른 점포 근무 시간 겹침, 초안 저장만 — overlaps: weekday · startTime · endTime, 내 근무와 겹친 구간만 · 점포는 싣지 않는다) · 대체할 계약을 다른 요청이 먼저 고침 · SEND_PHONE_NOT_MOBILE(가입 초대인데 휴대폰 번호가 아님) · STORE_NOT_OPERATING(근무지 점포가 운영 중이 아니라 — 미운영 · 폐점 · 사업주 정보 없음 — 보내지 않음 — 저장하지 않음) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -18590,7 +18642,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 대체할 계약을 다른 요청이 먼저 고침 · SIGNED_CONTRACT_OVERLAP(종이 계약 — 기간이 겹치는 서명 완료 계약, contracts 목록. 잘못 올린 계약이면 correctSignedContracts 와 그 id 를 모두 replaceContractIds 로) · RENEWAL_SIGNED_OVERLAP(종이 재계약이 직전 계약이 아닌 서명 완료와 겹침 — 바로잡기 없이 막음) */
+            /** @description 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP(overlaps — 겹친 요일 · 시간) · 대체할 계약을 다른 요청이 먼저 고침 · SIGNED_CONTRACT_OVERLAP(종이 계약 — 기간이 겹치는 서명 완료 계약, contracts 목록. 잘못 올린 계약이면 correctSignedContracts 와 그 id 를 모두 replaceContractIds 로) · RENEWAL_SIGNED_OVERLAP(종이 재계약이 직전 계약이 아닌 서명 완료와 겹침 — 바로잡기 없이 막음) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -18734,7 +18786,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 작성 중 · 직원 수정 요청이 아님 · 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 다른 요청이 먼저 고침 · SEND_PHONE_NOT_MOBILE(가입 초대인데 휴대폰 번호가 아님) · STORE_NOT_OPERATING(근무지 점포가 운영 중이 아니라 — 미운영 · 폐점 · 사업주 정보 없음 — 보내지 않음 — 저장하지 않음) */
+            /** @description 작성 중 · 직원 수정 요청이 아님 · 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP(overlaps — 겹친 요일 · 시간) · 다른 요청이 먼저 고침 · SEND_PHONE_NOT_MOBILE(가입 초대인데 휴대폰 번호가 아님) · STORE_NOT_OPERATING(근무지 점포가 운영 중이 아니라 — 미운영 · 폐점 · 사업주 정보 없음 — 보내지 않음 — 저장하지 않음) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -18855,7 +18907,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description CONTRACT_STATUS_CONFLICT(서명 요청 전 · 직원 서명 대기 · 직원 수정 요청이 아님) · 새 번호로 이 점포에 재직 중 · CONTRACT_IN_PROGRESS(새 번호의 같은 점포 진행 중 계약 — replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 다른 요청이 먼저 고침 · SEND_PHONE_NOT_MOBILE(가입 초대인데 휴대폰 번호가 아님) · STORE_NOT_OPERATING(근무지 점포가 운영 중이 아니라 — 미운영 · 폐점 · 사업주 정보 없음 — 보내지 않음 — 저장하지 않음) */
+            /** @description CONTRACT_STATUS_CONFLICT(서명 요청 전 · 직원 서명 대기 · 직원 수정 요청이 아님) · 새 번호로 이 점포에 재직 중 · CONTRACT_IN_PROGRESS(새 번호의 같은 점포 진행 중 계약 — replaceContractIds 로 대체) · WORK_TIME_OVERLAP(overlaps — 겹친 요일 · 시간) · 다른 요청이 먼저 고침 · SEND_PHONE_NOT_MOBILE(가입 초대인데 휴대폰 번호가 아님) · STORE_NOT_OPERATING(근무지 점포가 운영 중이 아니라 — 미운영 · 폐점 · 사업주 정보 없음 — 보내지 않음 — 저장하지 않음) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -18938,7 +18990,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 작성 중이 아님 · 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP · 다른 요청이 먼저 고침 · SIGNED_CONTRACT_OVERLAP(종이 계약 — 기간이 겹치는 서명 완료 계약, contracts 목록. 잘못 올린 계약이면 correctSignedContracts 와 그 id 를 모두 replaceContractIds 로) · RENEWAL_SIGNED_OVERLAP(종이 재계약이 직전 계약이 아닌 서명 완료와 겹침 — 바로잡기 없이 막음) */
+            /** @description 작성 중이 아님 · 이 점포에 같은 번호로 재직 중 · CONTRACT_IN_PROGRESS(contracts 목록: contractId · status · name · startDate · endDate, replaceContractIds 로 대체) · WORK_TIME_OVERLAP(overlaps — 겹친 요일 · 시간) · 다른 요청이 먼저 고침 · SIGNED_CONTRACT_OVERLAP(종이 계약 — 기간이 겹치는 서명 완료 계약, contracts 목록. 잘못 올린 계약이면 correctSignedContracts 와 그 id 를 모두 replaceContractIds 로) · RENEWAL_SIGNED_OVERLAP(종이 재계약이 직전 계약이 아닌 서명 완료와 겹침 — 바로잡기 없이 막음) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -19055,7 +19107,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description CONTRACT_STATUS_CONFLICT(서명 요청 전 · 직원 서명 대기 · 서명 거절 · 계약 기간 만료가 아님, 또는 본문 expectedStatus · expectedSentAt 이 지금 계약과 다름 — 그사이 서명을 거절했거나 서명 기한이 지나 만료되었거나 다른 탭에서 먼저 보냄) · REOPEN_BLOCKED(서명 거절 · 계약 기간 만료를 되살릴 수 없음 — 퇴직 · 퇴직일 있음, 폐점 · 삭제 점포, 같은 점포 · 번호의 다른 진행 중 계약, 계약 종료일이 지남, 기간이 겹치거나 더 늦게 시작한 다른 서명 완료, 같은 직전 계약의 다른 재계약. message 에 까닭) · WORK_TIME_OVERLAP(서명 거절 · 계약 기간 만료를 되살리면 다른 점포 근무 시간과 겹침) · SEND_PHONE_NOT_MOBILE(휴대폰 번호가 아님) · 코드 없음 「이 점포에 이미 재직 중인 직원입니다.」(가입 전 레코드인데 그 번호의 계정이 이 점포에 재직 중) · 다른 요청이 먼저 고침 · STORE_NOT_OPERATING(근무지 점포가 운영 중이 아니라 — 미운영 · 폐점 · 사업주 정보 없음 — 보내지 않음) */
+            /** @description CONTRACT_STATUS_CONFLICT(서명 요청 전 · 직원 서명 대기 · 서명 거절 · 계약 기간 만료가 아님, 또는 본문 expectedStatus · expectedSentAt 이 지금 계약과 다름 — 그사이 서명을 거절했거나 서명 기한이 지나 만료되었거나 다른 탭에서 먼저 보냄) · REOPEN_BLOCKED(서명 거절 · 계약 기간 만료를 되살릴 수 없음 — 퇴직 · 퇴직일 있음, 폐점 · 삭제 점포, 같은 점포 · 번호의 다른 진행 중 계약, 계약 종료일이 지남, 기간이 겹치거나 더 늦게 시작한 다른 서명 완료, 같은 직전 계약의 다른 재계약. message 에 까닭) · WORK_TIME_OVERLAP(서명 거절 · 계약 기간 만료를 되살리면 다른 점포 근무 시간과 겹침 — overlaps: 겹친 요일 · 시간) · SEND_PHONE_NOT_MOBILE(휴대폰 번호가 아님) · 코드 없음 「이 점포에 이미 재직 중인 직원입니다.」(가입 전 레코드인데 그 번호의 계정이 이 점포에 재직 중) · 다른 요청이 먼저 고침 · STORE_NOT_OPERATING(근무지 점포가 운영 중이 아니라 — 미운영 · 폐점 · 사업주 정보 없음 — 보내지 않음) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -19191,7 +19243,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description CONTRACT_STATUS_CONFLICT(직원 서명 대기가 아님 — 본문 status 에 지금 상태, 이미 처리했으면 그 결과) · SIGN_DEADLINE_PASSED(서명 기한이 지남) · STAFF_RETIRED(퇴직했거나 퇴직일이 지남) · IDENTITY_MISMATCH(mismatches: name · phone · birthDate · gender · isForeigner) · CONTRACT_RESENT(그사이 다시 발송됨) · STORE_NOT_OPERATING(보낸 뒤 근무지가 운영 중이 아니게 됨 — 미운영 · 폐점 · 사업주 정보 없음. 빈 사용자 칸을 고정하지 않는다) */
+            /** @description CONTRACT_STATUS_CONFLICT(직원 서명 대기가 아님 — 본문 status 에 지금 상태, 이미 처리했으면 그 결과) · SIGN_DEADLINE_PASSED(서명 기한이 지남) · STAFF_RETIRED(퇴직했거나 퇴직일이 지남) · IDENTITY_MISMATCH(mismatches: name · phone · birthDate · gender · isForeigner) · CONTRACT_RESENT(그사이 다시 발송됨) · STORE_NOT_OPERATING(보낸 뒤 근무지가 운영 중이 아니게 됨 — 미운영 · 폐점 · 사업주 정보 없음. 빈 사업주 칸을 고정하지 않는다) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -23559,7 +23611,7 @@ export interface operations {
                     "application/json": components["schemas"]["WorkScheduleDto"];
                 };
             };
-            /** @description 입력 오류 · 24시간짜리 · 휴게가 근무시간 이상 · WORK_SCHEDULE_NO_CONTRACT(근무일에 서명 완료 계약 없음) · WORK_SCHEDULE_AFTER_RETIREMENT(퇴직일 뒤) · WORK_SCHEDULE_NOT_JOINED(가입 전) · WORK_SCHEDULE_HIDDEN(본사에게 가려지는 가맹 직원) · WORK_SCHEDULE_STORE_CLOSED(폐점 점포 — 등록만, 수정은 받는다) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            /** @description 입력 오류 · 24시간짜리 · 휴게가 근무시간 이상 · WORK_SCHEDULE_NO_CONTRACT(근무일에 서명 완료 계약 없음) · WORK_SCHEDULE_AFTER_RETIREMENT(퇴직일 뒤) · WORK_SCHEDULE_NOT_JOINED(가입 전) · WORK_SCHEDULE_HIDDEN(본사에게 가려지는 가맹 직원) · WORK_SCHEDULE_STORE_CLOSED(폐점 점포) · WORK_SCHEDULE_STORE_NOT_OPERATING(미운영 점포) — 등록만, 수정은 받는다 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -23718,7 +23770,7 @@ export interface operations {
                     "application/json": components["schemas"]["WorkScheduleDefaultsDto"];
                 };
             };
-            /** @description 입력 오류 · 24시간짜리 · 휴게가 근무시간 이상 · WORK_SCHEDULE_NO_CONTRACT(근무일에 서명 완료 계약 없음) · WORK_SCHEDULE_AFTER_RETIREMENT(퇴직일 뒤) · WORK_SCHEDULE_NOT_JOINED(가입 전) · WORK_SCHEDULE_HIDDEN(본사에게 가려지는 가맹 직원) · WORK_SCHEDULE_STORE_CLOSED(폐점 점포 — 등록만, 수정은 받는다) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            /** @description 입력 오류 · 24시간짜리 · 휴게가 근무시간 이상 · WORK_SCHEDULE_NO_CONTRACT(근무일에 서명 완료 계약 없음) · WORK_SCHEDULE_AFTER_RETIREMENT(퇴직일 뒤) · WORK_SCHEDULE_NOT_JOINED(가입 전) · WORK_SCHEDULE_HIDDEN(본사에게 가려지는 가맹 직원) · WORK_SCHEDULE_STORE_CLOSED(폐점 점포) · WORK_SCHEDULE_STORE_NOT_OPERATING(미운영 점포) — 등록만, 수정은 받는다 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -23860,7 +23912,7 @@ export interface operations {
                     "application/json": components["schemas"]["CopyLastWeekResponseDto"];
                 };
             };
-            /** @description 쿼리 형식 오류 · weekStart 가 월요일이 아님 · WORK_SCHEDULE_STORE_CLOSED(폐점 점포) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            /** @description 쿼리 형식 오류 · weekStart 가 월요일이 아님 · WORK_SCHEDULE_STORE_CLOSED(폐점 점포) · WORK_SCHEDULE_STORE_NOT_OPERATING(미운영 점포) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -23914,7 +23966,7 @@ export interface operations {
                     "application/json": components["schemas"]["CopyLastWeekResponseDto"];
                 };
             };
-            /** @description 요청 형식 오류 · weekStart 가 월요일이 아님 · WORK_SCHEDULE_STORE_CLOSED(폐점 점포) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            /** @description 요청 형식 오류 · weekStart 가 월요일이 아님 · WORK_SCHEDULE_STORE_CLOSED(폐점 점포) · WORK_SCHEDULE_STORE_NOT_OPERATING(미운영 점포) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -24015,7 +24067,7 @@ export interface operations {
                     "application/json": components["schemas"]["WorkScheduleDto"];
                 };
             };
-            /** @description 입력 오류 · 24시간짜리 · 휴게가 근무시간 이상 · WORK_SCHEDULE_NO_CONTRACT(근무일에 서명 완료 계약 없음) · WORK_SCHEDULE_AFTER_RETIREMENT(퇴직일 뒤) · WORK_SCHEDULE_NOT_JOINED(가입 전) · WORK_SCHEDULE_HIDDEN(본사에게 가려지는 가맹 직원) · WORK_SCHEDULE_STORE_CLOSED(폐점 점포 — 등록만, 수정은 받는다) · 플랫폼 계정의 X-Bp-Code-Id 누락 */
+            /** @description 입력 오류 · 24시간짜리 · 휴게가 근무시간 이상 · WORK_SCHEDULE_NO_CONTRACT(근무일에 서명 완료 계약 없음) · WORK_SCHEDULE_AFTER_RETIREMENT(퇴직일 뒤) · WORK_SCHEDULE_NOT_JOINED(가입 전) · WORK_SCHEDULE_HIDDEN(본사에게 가려지는 가맹 직원) · WORK_SCHEDULE_STORE_CLOSED(폐점 점포) · WORK_SCHEDULE_STORE_NOT_OPERATING(미운영 점포) — 등록만, 수정은 받는다 · 플랫폼 계정의 X-Bp-Code-Id 누락 */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -25089,7 +25141,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 내 소속이 아님 — 없는 id · 범위 밖 id, 남의 레코드, 퇴직했거나 서명 완료 근로계약이 없는 내 레코드. 모두 같은 본문 */
+            /** @description 내 소속이 아님 — 없는 id · 범위 밖 id, 남의 레코드, 서명 완료 근로계약이 없거나 가입 전인 내 레코드. 모두 같은 본문 */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -25158,6 +25210,13 @@ export interface operations {
             };
             /** @description 내 소속이 아님 — 조회와 같은 본문 */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description STAFF_RETIRED — 퇴직한 소속(조회의 editable: false)이라 고치기 · 처음 넣기 모두 막힘. 「퇴직한 근무지의 신고 정보는 조회만 할 수 있습니다.」 내 소속 확인 뒤 · 비밀번호 전에 본다 */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
