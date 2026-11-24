@@ -62,6 +62,11 @@ export function TopBar({
   if (!title)
     return (
       <header className="flex w-full items-center gap-[10px]">
+        {/* 홈에만 작은 고래 로고 — 첫 화면에서 앱을 알린다. 탭 화면은 제목 중심이라 두지 않는다(2026-11-24 사용자 지정) */}
+        <span aria-hidden className="relative size-[36px] shrink-0">
+          <Image src="/icons/logo-whale-small.svg" alt="" width={36.193} height={27.446} className="absolute top-[8.75px] left-0" />
+          <Image src="/icons/logo-stars-small.svg" alt="" width={17.494} height={12.668} className="absolute top-0 left-[5.43px]" />
+        </span>
         <div className="min-w-0 flex-1">{storeButton}</div>
         {bell}
       </header>
