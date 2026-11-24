@@ -311,7 +311,7 @@ function PeriodView({
                       </span>
                       <span className="text-[12px] text-staff-text-sub tabular-nums">{w.range}</span>
                     </span>
-                    {/* 시간을 굵게 먼저, 지각 · 미기록은 0 이 아닐 때만 꼬리표 — 0 까지 모두 적으니 주마다 같아 보였다 */}
+                    {/* 시간을 먼저(먹색 보통 굵기 — 주 이름 굵은 글자와 부딪혀 한 단계 낮췄다), 지각 · 미기록은 0 이 아닐 때만 꼬리표 — 0 까지 모두 적으니 주마다 같아 보였다 */}
                     <span className="flex flex-wrap items-center gap-x-[6px] gap-y-[4px] text-[12px] text-staff-text-sub">
                       {w.upcoming ? (
                         "근무 예정"
@@ -319,15 +319,17 @@ function PeriodView({
                         "기록 없음"
                       ) : (
                         <>
-                          <b className="text-[13px] text-staff-text">{durationLabel(w.workedMinutes)}</b>· 근무 {w.workedDays}일
+                          <span className="font-medium text-staff-text">{durationLabel(w.workedMinutes)}</span>
+                          <span aria-hidden>·</span>
+                          <span>근무 {w.workedDays}일</span>
                           {w.late > 0 && <StatusChip tone="warning">지각 {w.late}</StatusChip>}
                           {w.absent > 0 && <StatusChip tone="warning">미기록 {w.absent}</StatusChip>}
                         </>
                       )}
                     </span>
                   </span>
-                  {/* chevron-down.svg 는 위를 보게 그려져 있어 닫힘에서 뒤집는다. 기록 없는 주는 펼치지 않아 꺾쇠도 없다 */}
-                  <span hidden={w.empty} aria-hidden className={`flex text-staff-text-sub transition-transform duration-150 ${EASE_OUT} ${open ? "" : "rotate-180"}`}>
+                  {/* chevron-down.svg 는 위를 보게 그려져 있어 닫힘에서 뒤집는다. 기록 없는 주는 펼치지 않아 꺾쇠를 감추되 자리는 남겨 오른쪽 날짜 줄이 틀어지지 않게(2026-11-24 사용자 지정) */}
+                  <span aria-hidden className={`flex text-staff-text-sub ${w.empty ? "invisible" : ""} transition-transform duration-150 ${EASE_OUT} ${open ? "" : "rotate-180"}`}>
                     <MaskIcon src="/icons/chevron-down.svg" size={16} />
                   </span>
                 </button>
