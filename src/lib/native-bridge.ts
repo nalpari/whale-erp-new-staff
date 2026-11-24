@@ -75,20 +75,21 @@ function isBridge(value: unknown): value is Bridge {
 /** 준비 이벤트를 받은 브리지. 이벤트는 한 번만 오므로 기억해 두고, 다음 대기에서도 준비된 것으로 본다. */
 const readyByEvent = new WeakSet<object>();
 
-/** 루트 레이아웃 `<head>` 의 인라인 스크립트(`BRIDGE_READY_TRACKER_SCRIPT`)가 준비 이벤트를 받으면 세우는 표시. */
+/** 루트 레이아웃 `<head>` 의 인라인 스크립트(`BRIDGE_READY_TRACKER_SCRIPT`)가 준비 이벤트를 받을 때의 브리지 객체를 담는 곳. */
 export const BRIDGE_READY_FLAG = "__whaleBridgeReady";
 
 /**
  * 페이지 맨 앞에서 준비 이벤트를 받아 두는 스크립트. 이 모듈은 출퇴근 화면을 열 때에야 불러와져, 그 전에 이미 지나간 준비 이벤트를
  * 받지 못한다(이벤트는 한 번만 온다). 레이아웃 `<head>` 에 넣어 문서를 읽는 즉시 듣게 한다.
  */
-export const BRIDGE_READY_TRACKER_SCRIPT = `window.addEventListener(${JSON.stringify(BRIDGE_READY_EVENT)},function(){window.${BRIDGE_READY_FLAG}=true},{once:true});`;
+export const BRIDGE_READY_TRACKER_SCRIPT = `window.addEventListener(${JSON.stringify(BRIDGE_READY_EVENT)},function(){window.${BRIDGE_READY_FLAG}=window.flutter_inappwebview},{once:true});`;
 
 function isReadyBridge(value: unknown, userAgent: string): value is Bridge {
   if (!isBridge(value)) return false;
   if (!/\bAndroid\b/.test(userAgent)) return true;
   if (readyByEvent.has(value)) return true;
-  if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>)[BRIDGE_READY_FLAG] === true) return true;
+  // 이벤트를 받았을 때의 그 브리지일 때만(브리지가 바뀌었으면 새 것은 다시 준비를 확인한다).
+  if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>)[BRIDGE_READY_FLAG] === value) return true;
   return "_platformReady" in value && value._platformReady === true;
 }
 

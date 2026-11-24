@@ -375,10 +375,14 @@ test("모듈이 불러와지기 전에 지나간 준비 이벤트도 레이아�
   assert.match(BRIDGE_READY_TRACKER_SCRIPT, new RegExp(BRIDGE_READY_EVENT));
   assert.match(BRIDGE_READY_TRACKER_SCRIPT, new RegExp(BRIDGE_READY_FLAG));
   const globals = globalThis as unknown as Record<string, unknown>;
-  globals.window = { [BRIDGE_READY_FLAG]: true };
-  t.after(() => { delete globals.window; });
   const bridge = bridgeAnswering(null);
+  globals.window = { [BRIDGE_READY_FLAG]: bridge };
+  t.after(() => { delete globals.window; });
   const { win, listeners } = fakeWindow(bridge);
   assert.equal(await waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), bridge);
   assert.equal(listeners.size, 0);
+  // 이벤트 뒤에 브리지가 바뀌었으면 새 브리지는 준비된 것으로 보지 않는다.
+  t.mock.method(console, "error", () => {});
+  const replaced = fakeWindow(bridgeAnswering(null));
+  assert.equal(await waitForBridge(replaced.win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), null);
 });
