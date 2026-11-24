@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-24
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — `api-types.d.ts` 다시 생성(api PR #317 리뷰 — 급여명세서 수정 DTO `workMinutes` 설명 · multipleOf 뺌, 화면 변화 없음).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 급여명세서 지급 표에 줄마다 계산식(WHALEERP-755): 비과세 · 원천징수 안내가 없는 줄은 api `calculationText` 를 항목 이름 아래 12px 흐린 글자로(목업 PAY-3 자리, 관리자 상세 · PDF 와 같은 글자). 식이 없는 줄(전 명세서)은 그대로. `api-types.d.ts` 다시 생성.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 회원 탈퇴 화면 `/me/withdrawal` 을 더하고(재직 중이면 퇴직 처리 요청 안내, 현재 비밀번호 확인 뒤 탈퇴, 성공하면 `/login?withdrawn=1`) 내 정보에 「회원 탈퇴」 링크를 두었다(WHALEERP-770). 탈퇴 성공 때 아이디 저장 쿠키도 지운다(1차 리뷰). [탈퇴] 는 확인 시트를 거쳐 제출한다(노영주 결정).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 머리줄 통일(`StoreHeader` · `TitleHeader`, 근무 화면 근무지 카드 삭제, 출퇴근 화면 근무지는 보이기만), 근무지 고르기 시트 줄 모양, 출퇴근 현황 기간별(범위 달력 · 기간 요약 · 주 줄 펼침 · 미출근/미기록 · 예정 없음), 홈 「근로 · 휴게」 · 예정 없는 날 카드, 알림에서 연 화면의 뒤로 가기(`from=notifications`).
