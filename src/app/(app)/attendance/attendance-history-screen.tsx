@@ -257,12 +257,13 @@ function PeriodView({
     <>
       <PeriodPicker from={records.from} to={records.to} fromHome={fromHome} today={today} />
       {/* 조회 기간 요약 — 위층 「얼마나 일했나」(근무일 → 근로시간 큰 숫자 — 휴게를 뺀 시간이라 「근로시간」(근로기준법 제50조, DESIGN.md 용어), 2026-11-24 사용자 지정), 아래층 「어떻게 일했나」(정상 · 지각 · 미기록 한 줄).
-          지각 · 미기록은 0 이 아니면 호박색 꼬리표, 0 이면 회색 글자. 문의 안내 줄은 뺐다(2026-11-24 사용자 지정) */}
-      <section className="rounded-[18px] border border-staff-border-light bg-white p-[20px]">
-        <dl className="grid grid-cols-2 divide-x divide-staff-border-light [&>div:last-child]:pl-[16px]">
+          세 칸 모두 옅은 회색 칸(둥근 10px — 상자 18px 안쪽 8px 에 맞춘 값)이고 간격은 한 값 — 상자 테두리 바깥에서 칸까지 · 칸 사이 가로 · 세로 모두 8px(안쪽 7px + 테두리 1px), 숫자 20px 로 줄였다(위아래 양옆 간격이 달라 보였다).
+          숫자는 먹색 한 가지(호박색 · 꼬리표는 튀었다). 문의 안내 줄은 뺐다(2026-11-24 사용자 지정) */}
+      <section className="flex flex-col gap-[8px] rounded-[18px] border border-staff-border-light bg-white p-[7px]">
+        <dl className="grid grid-cols-2 gap-[8px] [&>div]:rounded-[10px] [&>div]:bg-staff-bg [&>div]:px-[14px] [&>div]:py-[12px]">
           <div>
             <dt className="text-[13px] font-semibold text-staff-text-sub">근무일</dt>
-            <dd className="pt-[2px] text-[24px] font-bold tabular-nums [&_span]:text-[15px]">
+            <dd className="text-[20px] font-bold tabular-nums [&_span]:text-[14px]">
               {totals.workedDays}
               <span>일</span>
             </dd>
@@ -272,7 +273,7 @@ function PeriodView({
               근로시간
               <span className="text-[12px] font-normal text-staff-text-muted">휴게시간 제외</span>
             </dt>
-            <dd className="pt-[2px] text-[24px] font-bold tabular-nums [&_span]:text-[15px]">
+            <dd className="text-[20px] font-bold tabular-nums [&_span]:text-[14px]">
               {Math.floor(totals.workedMinutes / 60)}
               <span>시간</span> {String(totals.workedMinutes % 60).padStart(2, "0")}
               <span>분</span>
@@ -280,8 +281,8 @@ function PeriodView({
             {totals.overtimeMinutes > 0 && <dd className="text-[12px] text-staff-text-sub">연장 {durationLabel(totals.overtimeMinutes)}</dd>}
           </div>
         </dl>
-        {/* 아래층은 세 칸 같은 폭 · 가운데, 칸 사이 옅은 세로선. 숫자는 모두 먹색 한 가지(호박색 · 꼬리표는 튀었다, 2026-11-24 사용자 지정) */}
-        <dl className="mt-[16px] grid grid-cols-3 divide-x divide-staff-border-light border-t border-staff-border-light pt-[14px] text-center text-[13px]">
+        {/* 아래층은 한 칸에 셋을 같은 폭 · 가운데로 */}
+        <dl className="grid grid-cols-3 rounded-[10px] bg-staff-bg px-[8px] py-[10px] text-center text-[13px]">
           {(
             [
               ["정상", totals.normal, "일"],
