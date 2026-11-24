@@ -8,7 +8,7 @@ export function PayFrame({ header, children, nav = true, current = "/pay" }: { h
   return (
     <div className="flex flex-1 flex-col leading-[1.5]">
       {header}
-      <div className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[20px] pb-[14px]">{children}</div>
+      <div className="flex flex-1 flex-col gap-[12px] px-[22px] pt-[12px] pb-[14px]">{children}</div>
       {nav && (
         <div className="sticky bottom-0 mt-auto">
           <BottomNav current={current} />

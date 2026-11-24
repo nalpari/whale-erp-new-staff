@@ -35,14 +35,14 @@ export async function MyWorkInfo({ staffMemberId }: { staffMemberId?: number }) 
       <SectionTitle title="근무 정보" />
       <InfoRow
         href="/pay"
-        icon={<IconTile src="/icons/payslip-line.svg" size={33} />}
+        icon={<IconTile src="/icons/payslip-line.svg" size={33} tone="soft" />}
         title="급여명세서"
         description={payMonth === undefined ? undefined : payMonth === null ? "받은 급여명세서가 없습니다" : `${payMonth} 받음`}
       />
       {staffMemberId && (
         <InfoRow
           href="/work"
-          icon="/icons/menu-schedule.svg"
+          icon={<IconTile src="/icons/nav-work.svg" size={33} tone="soft" />}
           title="근무스케줄"
           description={schedules ? `이번 달 근무 ${new Set(schedules.items.map((i) => i.workDate)).size}일` : undefined}
         />
@@ -50,7 +50,7 @@ export async function MyWorkInfo({ staffMemberId }: { staffMemberId?: number }) 
       {staffMemberId && (
         <InfoRow
           href="/attendance?back=home"
-          icon="/icons/menu-attendance.svg"
+          icon={<IconTile src="/icons/nav-attendance.svg" size={33} tone="soft" />}
           title="출퇴근 현황"
           description={records ? monthAttendanceLabel(records, today) : undefined}
         />

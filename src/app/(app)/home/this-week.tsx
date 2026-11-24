@@ -16,9 +16,10 @@ export function ThisWeek({ week, today, items, children }: { week: string[]; tod
     return { key: date, weekday: WEEKDAYS[i], date: Number(date.slice(8, 10)), work: workCount > 0, workCount, muted: workCount === 0 };
   });
   return (
-    <div className="flex flex-col gap-[13px] rounded-[18px] border border-staff-border-light bg-white px-[12px] pt-[16px] pb-[12px]">
+    // 상자 바깥에서 칸까지 · 칸 사이 모두 8px(안쪽 7px + 테두리 1px) — 출퇴근 기간 요약과 같은 짜임(2026-11-24 사용자 지정)
+    <div className="flex flex-col gap-[8px] rounded-[18px] border border-staff-border-light bg-white p-[7px]">
       <WeekSelector days={days} selected={today} onSelect={(date) => router.push(`/work?month=${date.slice(0, 7)}&day=${date}`)} />
-      {children && <p className="border-t border-staff-border-light pt-[12px] text-[12px] leading-[1.5] text-staff-text-sub">{children}</p>}
+      {children && <p className="border-t border-staff-border-light px-[5px] pt-[8px] pb-[1px] text-[12px] leading-[1.5] text-staff-text-sub">{children}</p>}
     </div>
   );
 }

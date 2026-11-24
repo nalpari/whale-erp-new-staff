@@ -12,3 +12,9 @@ export const getCurrentMembership = cache(async () => {
   if (!memberships) return null;
   return { items: memberships.items, current: pickCurrentMembership(memberships.items, (await cookies()).get(CURRENT_STAFF_MEMBER_COOKIE)?.value) };
 });
+
+/**
+ * 퇴직한 소속이 있는지 — 「근무 종료」 안내를 가를 때 머리줄(StoreHeader)과 본문이 같은 값을 쓰게 한 요청에 한 번만 받는다.
+ * 퇴직 포함 목록을 못 받으면 false(중립 안내).
+ */
+export const hasRetiredMembership = cache(async () => (await getMyMemberships(true))?.items.some((m) => m.retiredDate !== null) ?? false);

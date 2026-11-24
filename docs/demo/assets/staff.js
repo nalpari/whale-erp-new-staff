@@ -348,7 +348,9 @@
     const box = e.target;
     const label = box.closest("label[data-check]");
     if (label) {
-      swap(label, box.checked, "bg-staff-primary", "bg-staff-primary-inactive");
+      // TO-DO 체크칸은 흰 칸 · 남색 채움(2026-11-24), 그 밖 체크칸(CheckBox)은 남보라
+      if (label.dataset.check === "todo") swap(label, box.checked, "border-staff-navy bg-staff-navy", "border-staff-border bg-white");
+      else swap(label, box.checked, "bg-staff-primary", "bg-staff-primary-inactive");
       const mark = label.querySelector("img");
       mark.src = mark.src.replace(/todo-check-(on|off)/, box.checked ? "todo-check-on" : "todo-check-off");
       const title = label.parentElement.querySelector("[data-check-title]");

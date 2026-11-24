@@ -2,6 +2,9 @@
 
 ## 2026-11-24
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 급여명세서 상세의 4대보험 공제 줄을 근로계약서 가입 체크대로만 보인다(WHALEERP-756, 2026-11-20 김지영): `isItemShown` 이 api 상세 `isHealthPensionInsured` · `isEmploymentInjuryInsured` 를 받아 국민연금 · 건강보험 · 장기요양보험 / 고용보험을 가린다(관리자 화면 · api PDF 와 같은 규칙) — 미가입이어도 0 아닌 금액이 든 줄은 보인다(2026-11-24 사용자 결정). `api-types.d.ts` 를 다시 만들었고, 그사이 api 에서 필수가 된 `storeIsHq` 를 시험 고정값 둘(출퇴근 · TO-DO)에 넣었다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 회원 탈퇴 화면 `/me/withdrawal` 을 더하고(재직 중이면 퇴직 처리 요청 안내, 현재 비밀번호 확인 뒤 탈퇴, 성공하면 `/login?withdrawn=1`) 내 정보에 「회원 탈퇴」 링크를 두었다(WHALEERP-770). 탈퇴 성공 때 아이디 저장 쿠키도 지운다(1차 리뷰). [탈퇴] 는 확인 시트를 거쳐 제출한다(노영주 결정).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 머리줄 통일(`StoreHeader` · `TitleHeader`, 근무 화면 근무지 카드 삭제, 출퇴근 화면 근무지는 보이기만), 근무지 고르기 시트 줄 모양, 출퇴근 현황 기간별(범위 달력 · 기간 요약 · 주 줄 펼침 · 미출근/미기록 · 예정 없음), 홈 「근로 · 휴게」 · 예정 없는 날 카드, 알림에서 연 화면의 뒤로 가기(`from=notifications`).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 내 근무지의 퇴직한 근무지 카드에도 신고정보 · 계좌 · 근로계약서 · 급여명세서 세 칸(재직 카드와 같은 링크, 「미입력」 꼬리표 없음)을 두고, 퇴직한 근무지의 신고 정보는 조회만(api `editable: false` · PUT 409 `STAFF_RETIRED`) — `editable === false` 일 때만(옛 api 와 섞여도 재직 근무지는 막지 않는다), 고치기 · 입력 버튼 없이 「퇴직한 근무지라 신고 정보는 조회만 할 수 있습니다.」(WHALEERP-765). `edit` · `new` 는 보기 화면으로 돌려보내고 서버 액션도 PUT 하지 않는다. `api-types.d.ts` 를 다시 만들어 먼저 들어간 api 의 `storeIsHq` 등도 함께 들어왔다(시험 고정값 두 곳에 `storeIsHq: false`).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 루트 레이아웃 `<head>` 에 브리지 준비 이벤트를 듣는 인라인 스크립트를 넣어, 출퇴근 화면 코드가 불러와지기 전에 지나간 이벤트도 준비로 본다(PR #91 pr-agent 재리뷰).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 준비 이벤트를 받은 브리지를 기억해, 다시 시도로 연결된 직후 출퇴근 버튼이 다시 not-ready 가 되지 않게 했다(PR #91 pr-agent 재리뷰).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #91 pr-agent 리뷰 반영: 출퇴근 위치 읽기도 준비된 브리지만 쓰고(strict 두 번, 아니면 다시 시도), 위치를 보지 않는 출퇴근은 다시 시도로 가리지 않으며, 약속 어긋남 기록 실패 때 예외 메시지 대신 고정 표식만 남긴다.

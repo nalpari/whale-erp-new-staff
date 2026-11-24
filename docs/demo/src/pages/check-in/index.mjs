@@ -9,7 +9,7 @@
 // 동의 문구는 법무 검토 중이라(ATT-8) 시트에 그대로 적었다.
 // 모양: 매장 안(ready)은 Figma 04.출퇴근(node 12:756)을 따른다. 나머지 상태와 시트는 Figma 없음 — DESIGN.md 기준 초안.
 // 목업과 다른 점: 퇴근하기는 목업의 테두리 버튼 대신 DESIGN.md 의 주 버튼이다. 하단 메뉴 「출퇴근」 칸 화면이다(2026-10-08 다섯 칸).
-import { alert, body, bottomNav, bottomSheet, button, dock, img, maskIcon, page, pageHeader, state, sunken, values, workTimeBar } from "../../ui.mjs";
+import { STORES, alert, body, bottomNav, bottomSheet, button, dock, img, maskIcon, page, pillLink, state, storeSheet, sunken, tabHeader, topBar, values, workTimeBar } from "../../ui.mjs";
 
 // 목업 오른쪽 목록 순서 그대로. 뒤 아홉은 목업의 「시트 열기」라 SHEET_BASE 의 화면 위에 시트를 띄운다.
 const STATES = [
@@ -80,9 +80,13 @@ const geoBlank = (iconClass, text) =>
     true,
   )}</span><p class="text-[12px] text-staff-text-muted">${text}</p></div>`;
 
-// 근무지 카드(Figma node 12:957): 연한 남보라. 근무 중 카드도 같은 판 — 남보라는 「지금 근무 중」이다.
+// 안내 카드(Figma node 12:957) — 흰 바탕 · 옅은 테두리 · 먹색 아이콘(연보라 판은 튀었다, 2026-11-24)
 const siteCard = (title, sub, action = "") =>
-  `<section class="flex items-center gap-[8px] rounded-[18px] border border-[#dce4ff] bg-[#eef2ff] p-[20px]"><span class="flex text-staff-primary">${maskIcon("store-line.svg", 18)}</span><div class="flex min-w-0 flex-1 flex-col gap-[2px]"><p class="truncate text-[16px] font-bold">${title}</p><p class="text-[12px] text-staff-primary">${sub}</p></div>${action}</section>`;
+  `<section class="flex items-center gap-[8px] rounded-[18px] border border-staff-border-light bg-white p-[20px]"><span class="flex text-staff-text">${maskIcon("store-line.svg", 18)}</span><div class="flex min-w-0 flex-1 flex-col gap-[2px]"><p class="truncate text-[16px] font-bold">${title}</p><p class="text-[12px] text-staff-text-sub">${sub}</p></div>${action}</section>`;
+
+// 근무 중 상자 — 흰 바탕 · 옅은 테두리, 출근 시각(24px)을 크게, 근무 중 점은 초록. 근무지 이름은 머리줄에 있어 뺐다(2026-11-24)
+const workingCard = (time) =>
+  `<section class="flex items-center gap-[12px] rounded-[18px] border border-staff-border-light bg-white px-[20px] py-[16px]"><div class="flex min-w-0 flex-1 flex-col"><p class="flex items-baseline gap-[4px] text-staff-text"><span class="text-[24px] leading-[1.25] font-bold tabular-nums">${time}</span><span class="text-[14px] font-semibold">출근</span><span class="ml-[12px] text-[13px] font-semibold"><span aria-hidden="true" class="mr-[6px] inline-block size-[7px] rounded-full bg-staff-success align-[1px] shadow-[0_0_0_3px_rgba(34,197,94,0.18)]"></span>근무 중</span></p></div></section>`;
 
 // 시각 블록: 라벨 13px semibold · 42px bold. dim 은 출근할 수 없는 상태라 흐린 글자.
 const clock = (label, time, { note, dim = false } = {}) =>
@@ -108,25 +112,25 @@ const VIEWS = {
     body(
       // 위치는 출근하기를 누를 때만 읽는다 — 화면을 열 때는 읽지 않는다(운영 정책 ATT-22, 2026-10-26)
       geoBlank("text-staff-placeholder", "출근하기를 누르면 위치를 확인합니다") +
-        siteCard("웨일카페 강남역점", "출근하기를 누를 때 매장 안인지 확인합니다") +
+
         // 오늘 근무(Figma node 12:957 아래 카드)
         `<section class="flex flex-col gap-[7px] rounded-[18px] border border-staff-border-light bg-white p-[20px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">오늘 근무</h2><div class="flex items-center gap-[8px]"><p class="min-w-0 flex-1 text-[20px] font-bold tracking-[-0.42px]">09:00 – 18:00</p><span class="rounded-[8px] bg-staff-info-bg px-[10px] py-[4px] text-[12px] font-semibold text-staff-text-sub">휴게 60분</span></div></section>` +
         clock("현재 시각", "08:52"),
-      { variant: "detail" },
+      { variant: "tab24" },
     ) +
     // 출근은 확인 없이 바로 기록한다(ATT-9 · 운영 정책 ATT-13).
     dock(button(`출근하기${arrow()}`, go("working", "출근을 등록했습니다")) + ghost("이미 출근한 상태로 눌러 보기", { "data-open": "dup" }), 30),
 
   working: () =>
     body(
-      siteCard("근무 중", "09:02에 출근했습니다") +
+      workingCard("09:02") +
         `<section class="flex flex-col gap-[9px] rounded-[18px] border border-staff-border-light bg-white p-[20px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">오늘</h2>${workTimeBar({
           schedule: { start: "09:00", end: "18:00" },
           worked: { start: "09:02", end: "15:43" },
           ongoing: true,
         })}<p class="text-[12px] text-staff-text-muted">점선은 예정, 채운 막대는 실제 근무입니다</p></section>` +
         elapsed(),
-      { variant: "detail" },
+      { variant: "tab24" },
     ) + dock(button("퇴근하기", { "data-open": "bye" }), 30),
 
   done: () =>
@@ -152,31 +156,31 @@ const VIEWS = {
         ) +
         `<section class="flex flex-col rounded-[18px] border border-staff-border-light bg-white p-[20px]"><h2 class="text-[13px] font-semibold text-staff-text-sub">근무지</h2><p class="pt-[6px] text-[16px] font-bold">웨일카페 강남역점</p><p class="pt-[3px] text-[12px] text-staff-text-muted">서울 강남구 테헤란로 1길</p></section>` +
         clock("현재 시각", "08:47", { dim: true }),
-      { variant: "detail" },
+      { variant: "tab24" },
     // 「위치 다시 확인」은 두지 않는다 — 위치는 출근·퇴근 버튼을 누를 때만 읽는다(운영 정책 ATT-22, 2026-10-23 재영).
     ) + dock(button("출근하기", { "data-open": "hifar" }), 30),
 
   "far-out": () =>
     body(
       geoMap("out", "매장까지 240m") +
-        siteCard("근무 중", "09:02에 출근했습니다") +
+        workingCard("09:02") +
         alert("warning", "<strong>매장 범위 밖입니다.</strong><br>여기서 퇴근하면 <strong>관리자 확인이 필요한 기록</strong>으로 남습니다.") +
         elapsed(),
-      { variant: "detail" },
+      { variant: "tab24" },
     ) + dock(button("퇴근하기", { "data-open": "byefar" }), 30),
 
   denied: () =>
     body(
       geoBlank("text-staff-placeholder", "위치를 확인할 수 없습니다") +
         alert("danger", "<strong>위치 권한이 꺼져 있습니다.</strong><br>출퇴근하려면 설정에서 위치 접근을 허용해 주세요."),
-      { variant: "detail" },
+      { variant: "tab24" },
     ) + dock(button("설정 열기", go("ready", "위치 권한을 켰습니다")), 30),
 
   spoof: () =>
     body(
       geoBlank("text-staff-error", "출근할 수 없습니다") +
         alert("danger", "<strong>모의 위치가 켜져 있습니다.</strong><br>모의 위치 설정이나 가상 위치 앱을 끄고 다시 시도해 주세요."),
-      { variant: "detail" },
+      { variant: "tab24" },
     ) +
     // 모의 위치를 끈 뒤 누르는 확인 버튼은 두지 않는다 — 위치는 출근하기를 누를 때만 읽으므로, 모의 위치를 끄고 출근하기를 다시 누르면 된다(운영 정책 ATT-22, 2026-10-26).
     dock(button(`출근하기${arrow()}`, go("working", "출근을 등록했습니다")), 30),
@@ -184,10 +188,10 @@ const VIEWS = {
   "spoof-out": () =>
     body(
       geoBlank("text-staff-warning", "모의 위치가 감지되었습니다") +
-        siteCard("근무 중", "09:02에 출근했습니다") +
+        workingCard("09:02") +
         alert("warning", "<strong>퇴근은 등록할 수 있습니다.</strong><br>다만 관리자 확인이 필요한 기록으로 남습니다.") +
         elapsed(),
-      { variant: "detail" },
+      { variant: "tab24" },
     ) + dock(button("퇴근하기", { "data-open": "byespoof" }), 30),
 
   paused: () =>
@@ -198,7 +202,7 @@ const VIEWS = {
           prose: true,
           label: "다시 켜면 바로 등록할 수 있습니다",
         }),
-      { variant: "detail" },
+      { variant: "tab24" },
     ) +
     // 목업 본문의 「내 정보에서도 켤 수 있습니다」를 눌러 가는 길. 위치정보 동의 관리는 내 정보(4장)에 있다.
     dock(button("다시 켜기", go("ready", "위치 수집을 다시 켰습니다")) + ghost("내 정보에서 관리", { href: page("me") }), 30),
@@ -211,7 +215,7 @@ const VIEWS = {
           "pencil.svg",
           14,
         )}</span><p class="min-w-0 flex-1">관리자가 <b>대신 등록</b>한 기록은 출퇴근 현황에 연필 표시로 보입니다.</p></div></section>`,
-      { variant: "detail" },
+      { variant: "tab24" },
     ),
 
 
@@ -335,10 +339,15 @@ const view = (id) => {
   const header =
     v === "done"
       ? ""
-      : pageHeader("출퇴근", {
-          action: `<a href="${page("attendance")}" aria-label="출퇴근 현황" class="m-[-10px] flex size-[44px] shrink-0 items-center justify-center">${img("history.svg", 21, 21, "-scale-y-100")}</a>`,
-        });
-  return `<main class="flex flex-1 flex-col leading-[1.5]">${header}${VIEWS[v]()}</main><div class="sticky bottom-0 mt-auto">${bottomNav("check-in")}</div>${sheets}`;
+      : tabHeader(
+          topBar({
+            title: "출퇴근",
+            alarmHref: page("notify"),
+            ...(v === "nosite" ? { store: "근무 종료", chevron: false } : { store: STORES[0], storeAttrs: { "data-open": "store" } }),
+            action: pillLink(page("attendance"), "출퇴근 현황", img("history.svg", 16, 16, "-scale-y-100")),
+          }),
+        );
+  return `<main class="flex flex-1 flex-col leading-[1.5]">${header}${VIEWS[v]()}</main><div class="sticky bottom-0 mt-auto">${bottomNav("check-in")}</div>${sheets}${v === "nosite" || v === "done" ? "" : storeSheet()}`;
 };
 
 export default () => ({

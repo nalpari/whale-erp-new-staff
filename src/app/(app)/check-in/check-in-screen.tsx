@@ -285,7 +285,7 @@ export function CheckInScreen({
 
   const schedule = data.todaySchedules[0];
   const elapsed = working ? elapsedOf(new Date(working.recordedAt), now) : null;
-  const distanceText = geo.status === "ok" ? `매장까지 ${Math.round(geo.distance).toLocaleString("ko-KR")}m` : "";
+  const distanceText = geo.status === "ok" ? `매장까지 ${distanceLabel(geo.distance)}` : "";
   const outOfRange = `${distanceText} · 출퇴근 범위 ${store.radiusMeters.toLocaleString("ko-KR")}m`;
   const workSummary = working && elapsed && (
     <Sunken>
@@ -409,7 +409,7 @@ export function CheckInScreen({
           ? "위치를 확인하는 중입니다. 권한 창이 떠 있으면 골라 주세요"
           : "위치를 확인하는 중입니다"
         : seen
-          ? `매장까지 ${Math.round(seen.distance).toLocaleString("ko-KR")}m`
+          ? `매장까지 ${distanceLabel(seen.distance)}`
           : `${working ? "퇴근하기" : "출근하기"}를 누르면 위치를 확인합니다`;
     // 위치 블록: 위치를 보지 않는 근무지는 지도 없이 시각만 보인다
     const geoBlock = !located ? null : !target ? (
@@ -498,19 +498,14 @@ export function CheckInScreen({
       body = (
         <>
           {geoBlock}
-          {/* 정돈 시안 ⑯(2026-11-20 사용자 지정): 근무지명 위 · 출근 시각(24px)을 크게, 「근무 중」은 점 + 글자로 출근 줄에 */}
-          {/* #dcdcf7 — 연보라 바탕(staff-primary-inactive) 위 한 단계 진한 테두리, 출근 화면 근무지 카드와 같은 값 */}
-          <section className="flex items-center gap-[12px] rounded-[18px] border border-[#dcdcf7] bg-staff-primary-inactive px-[20px] py-[16px]">
-            <span aria-hidden className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-white text-staff-primary">
-              <MaskIcon src="/icons/store-line.svg" size={18} />
-            </span>
-            <div className="flex min-w-0 flex-1 flex-col gap-[6px]">
-              <p className="truncate text-[14px] leading-[1.4] font-semibold text-staff-text-sub">{store.name}</p>
-              <p className="flex items-baseline gap-[4px] text-staff-primary">
+          {/* 근무 중 상자 — 흰 바탕 · 옅은 테두리(연보라 판은 튀었다), 근무지 이름은 머리줄에 있어 뺐다. 근무 중 점은 초록(2026-11-24 사용자 지정) */}
+          <section className="flex items-center gap-[12px] rounded-[18px] border border-staff-border-light bg-white px-[20px] py-[16px]">
+            <div className="flex min-w-0 flex-1 flex-col">
+              <p className="flex items-baseline gap-[4px] text-staff-text">
                 <span className="text-[24px] leading-[1.25] font-bold tabular-nums">{kstTime(new Date(working.recordedAt))}</span>
                 <span className="text-[14px] font-semibold">출근</span>
                 <span className="ml-[12px] text-[13px] font-semibold">
-                  <span aria-hidden className="mr-[6px] inline-block size-[7px] rounded-full bg-staff-primary align-[1px] shadow-[0_0_0_3px_rgba(76,77,220,0.18)]" />
+                  <span aria-hidden className="mr-[6px] inline-block size-[7px] rounded-full bg-staff-success align-[1px] shadow-[0_0_0_3px_rgba(34,197,94,0.18)]" />
                   근무 중
                 </span>
               </p>
@@ -586,17 +581,21 @@ export function CheckInScreen({
               </section>
             </>
           ) : (
-            <SiteCard title={store.name} sub={
+            // 근무지 이름 상자 대신 지도 바로 아래 위치 상태 한 줄 — 근무지는 머리줄에 있고, 연보라 상자는 튀었다(2026-11-24 사용자 지정)
+            <LocationNote
+              ok={located && geo.status === "ok"}
+              text={
                 !located
                   ? "위치를 확인하지 않는 근무지입니다"
                   : geo.status === "ok"
                     ? "출퇴근할 수 있는 위치입니다"
-                    : // 읽는 중 · 누르기 전 안내는 바로 위 지도 안내와 같은 말이라 카드에는 두지 않는다. 다만 탭에서 미리 읽은 거리가
-                      // 지도 위에 보이면(「매장까지 Nm」) 누를 때 다시 확인한다는 말이 화면에 없어 카드에 둔다
+                    : // 읽는 중 · 누르기 전 안내는 바로 위 지도 안내와 같은 말이라 두지 않는다. 다만 탭에서 미리 읽은 거리가
+                      // 지도 위에 보이면(「매장까지 N」) 누를 때 다시 확인한다는 말이 화면에 없어 둔다
                       geo.status !== "loading" && seen
                       ? "출근하기를 누르면 위치를 확인합니다"
                       : undefined
-              } />
+              }
+            />
           )}
           {schedule && (
             <section className="flex flex-col gap-[7px] rounded-[18px] border border-staff-border-light bg-white p-[20px]">
@@ -645,7 +644,7 @@ export function CheckInScreen({
     <>
       <div className={`flex flex-1 flex-col ${whitePage ? "bg-white" : ""}`}>
         {!done && header}
-        <main className="flex flex-1 flex-col gap-[20px] px-[24px] pt-[20px] pb-[8px] leading-[1.5]">
+        <main className="flex flex-1 flex-col gap-[12px] px-[24px] pt-[12px] pb-[8px] leading-[1.5]">
           {error && <Alert tone="danger">{error}</Alert>}
           {body}
         </main>
@@ -824,5 +823,23 @@ export function CheckInScreen({
 
       {toast && <Toast key={toast.key}>{toast.text}</Toast>}
     </>
+  );
+}
+
+/** 「850m」 · 「23.7km」 — 1km 가 넘으면 km 로 줄인다(2026-11-24 사용자 지정: 「23,723m」은 읽기 어려웠다) */
+function distanceLabel(meters: number): string {
+  return meters < 1000 ? `${Math.round(meters).toLocaleString("ko-KR")}m` : `${(meters / 1000).toFixed(1)}km`;
+}
+
+/** 지도 아래 위치 상태 한 줄 — 확인됨은 초록 체크, 그 밖은 회색 안내 아이콘. 문구가 없으면 그리지 않는다 */
+function LocationNote({ ok, text }: { ok: boolean; text?: string }) {
+  if (!text) return null;
+  return (
+    <p className={`flex items-center gap-[6px] px-[4px] text-[13px] ${ok ? "text-[#13785e]" : "text-staff-text-sub"}`}>
+      <span aria-hidden className="flex shrink-0">
+        <MaskIcon src={ok ? "/icons/check.svg" : "/icons/pin.svg"} size={14} />
+      </span>
+      {text}
+    </p>
   );
 }

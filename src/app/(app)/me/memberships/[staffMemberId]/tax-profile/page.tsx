@@ -7,7 +7,7 @@ import { getCodesOrEmpty } from "@/lib/codes";
 import { labelOf } from "@/lib/enums";
 import { getMyMemberships, getMyTaxProfile } from "@/lib/my-profile";
 import { kstDateTimeLabel } from "@/lib/profile";
-import { parseStaffMemberId, purposeItems, taxViewAfterChange } from "@/lib/tax-profile";
+import { TAX_PROFILE_READ_ONLY, parseStaffMemberId, purposeItems, taxViewAfterChange } from "@/lib/tax-profile";
 import { TAX_KEEP_TEXT } from "@/app/_components/tax-profile-parts";
 import { WorkplaceBox } from "@/app/_components/workplace-box";
 import { ChangedToast } from "../../../changed-toast";
@@ -111,7 +111,9 @@ function GuardItem({ icon, title, children }: { icon: ReactNode; title: string; 
 // 이용 목적은 점 목록, 수집 근거는 개인정보 보호법 조문(법무 확인 필요 · 3팀 확인), 보관 · 확인 범위 문구는 운영 정책 TAX-08 을 다듬은 것(3팀 확인).
 // 「새로 넣기」(데모 form)는 이미 낸 신고 정보가 있을 때만 보이고 `./edit` 로 간다(WHALEERP-333). 아직 없으면 날인 뒤 흐름의
 // 처음 넣기(`./new`, WHALEERP-150)로 가는 「넣기」를 둔다 — 날인 뒤 흐름을 중간에 닫은 직원이 다시 넣는 길이다.
-// 고치고 돌아오면 `?changed=1` 로 와 알림을 띄우고 주소에서 지운다 — 다시 조회가 실패해도 지우고, 안내에 저장은 됐다고 덧붙인다(PR #26 참고). 내 소속이 아니면(퇴직 · 남의 id) 404 다.
+// 고치고 돌아오면 `?changed=1` 로 와 알림을 띄우고 주소에서 지운다 — 다시 조회가 실패해도 지우고, 안내에 저장은 됐다고 덧붙인다(PR #26 참고). 내 소속이 아니면(남의 id) 404 다.
+// 퇴직한 근무지(api `editable: false`)는 조회만 된다(WHALEERP-765 — 그곳에 쓴 급여 계좌를 다시 본다): 「다시 입력하기」 · 「입력하기」 없이 조회만 안내하고,
+// 고치는 법을 말하는 안내 문구는 뺀다. 보관 기간(퇴직 후 3년)이 지나면 api 가 지워 빈 상태로 보인다.
 const EMPTY_GUIDE: readonly [string, string][] = [
   ["왜 필요한가요?", "근무지가 급여 세금(원천징수)을 신고하고, 급여를 이체하는 데 사용합니다."],
   ["언제 입력하나요?", "근로계약서에 서명한 직후 입력합니다."],
@@ -130,9 +132,12 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
     if (error instanceof ApiError && error.status === 404) notFound();
     throw error;
   }
-  const [memberships, banks] = await Promise.all([getMyMemberships(), getCodesOrEmpty("BANK")]);
+  // 퇴직한 근무지 이름도 찾게 퇴직 포함으로 받는다
+  const [memberships, banks] = await Promise.all([getMyMemberships(true), getCodesOrEmpty("BANK")]);
   const storeName = memberships?.items.find((m) => m.staffMemberId === staffMemberId)?.store.storeName ?? "근무지";
   const profile = tax?.taxProfile;
+  // 칸이 없는 옛 api 와 섞여 배포돼도 재직 근무지를 막지 않게 false 일 때만 조회 전용이다
+  const readOnly = tax?.editable === false;
   const after = taxViewAfterChange(changed, tax);
 
   return (
@@ -151,48 +156,61 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
             </span>
             <p className="text-[17px] font-bold">입력한 신고 정보가 없습니다</p>
             <p className="text-[14px] text-staff-text-sub">{storeName}</p>
-            <p className="pt-[8px] text-[14px] text-staff-text-sub">
-              근로계약서에 서명했다면
-              <br />
-              지금 입력해 주세요.
-            </p>
-            {/* 왜 · 언제 · 안 하면 — 신고 정보 정책 TAX-02 · 04 · 08. 앱 사용은 막지 않으므로 「늦어질 수 있습니다」까지만 말한다(2026-11-23 사용자 지정) */}
-            <dl className="mt-[17px] flex w-full flex-col gap-[12px] rounded-[16px] bg-staff-bg px-[18px] py-[16px] text-left text-[13px] leading-[1.6]">
-              {EMPTY_GUIDE.map(([q, a]) => (
-                <div key={q}>
-                  <dt className="font-semibold text-staff-text">
-                    <span className="mr-[4px] text-staff-primary/50">Q.</span>
-                    {q}
-                  </dt>
-                  <dd className="text-staff-text-sub">{a}</dd>
+            {readOnly ? (
+              <div className="mt-[17px] w-full text-left">
+                <Notice>{TAX_PROFILE_READ_ONLY}.</Notice>
+              </div>
+            ) : (
+              <>
+                <p className="pt-[8px] text-[14px] text-staff-text-sub">
+                  근로계약서에 서명했다면
+                  <br />
+                  지금 입력해 주세요.
+                </p>
+                {/* 왜 · 언제 · 안 하면 — 신고 정보 정책 TAX-02 · 04 · 08. 앱 사용은 막지 않으므로 「늦어질 수 있습니다」까지만 말한다(2026-11-23 사용자 지정) */}
+                <dl className="mt-[17px] flex w-full flex-col gap-[12px] rounded-[16px] bg-staff-bg px-[18px] py-[16px] text-left text-[13px] leading-[1.6]">
+                  {EMPTY_GUIDE.map(([q, a]) => (
+                    <div key={q}>
+                      <dt className="font-semibold text-staff-text">
+                        <span className="mr-[4px] text-staff-primary/50">Q.</span>
+                        {q}
+                      </dt>
+                      <dd className="text-staff-text-sub">{a}</dd>
+                    </div>
+                  ))}
+                </dl>
+                {/* 입력 버튼은 화면 맨 아래 대신 안내 바로 아래에 — 빈 화면에서 멀리 떨어져 있었다(2026-11-23 사용자 지정) */}
+                <div className="mt-[20px] w-full">
+                  <Button href={`/me/memberships/${staffMemberId}/tax-profile/new`} transitionTypes={["nav-forward"]}>
+                    신고 정보 입력하기
+                  </Button>
                 </div>
-              ))}
-            </dl>
-            {/* 입력 버튼은 화면 맨 아래 대신 안내 바로 아래에 — 빈 화면에서 멀리 떨어져 있었다(2026-11-23 사용자 지정) */}
-            <div className="mt-[20px] w-full">
-              <Button href={`/me/memberships/${staffMemberId}/tax-profile/new`} transitionTypes={["nav-forward"]}>
-                신고 정보 입력하기
-              </Button>
-            </div>
+              </>
+            )}
           </div>
         ) : (
           <>
             <WorkplaceBox name={storeName} />
+            {readOnly && <Notice>{TAX_PROFILE_READ_ONLY}.</Notice>}
             <ValueBox
               label="주민등록번호"
               value={profile.rrnMasked}
               help={
-                <>
-                  개인정보 보호를 위해 뒷자리는 표시하지 않습니다.
-                  <br />
-                  변경하려면 다시 입력해 주세요.
-                </>
+                readOnly ? (
+                  "개인정보 보호를 위해 뒷자리는 표시하지 않습니다."
+                ) : (
+                  <>
+                    개인정보 보호를 위해 뒷자리는 표시하지 않습니다.
+                    <br />
+                    변경하려면 다시 입력해 주세요.
+                  </>
+                )
               }
             />
             <ValueBox
               label="급여 계좌"
               value={`${labelOf(banks, profile.bankCode)} ${profile.payrollAccountNumberMasked}`}
-              help="변경된 계좌는 다음 급여부터 적용됩니다."
+              help={readOnly ? "이 근무지에 낸 급여 계좌입니다." : "변경된 계좌는 다음 급여부터 적용됩니다."}
             />
             <dl className={`${BOX} overflow-hidden`}>
               <InfoRow label="등록 일시">{kstDateTimeLabel(profile.collectedAt)}</InfoRow>
@@ -220,7 +238,7 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
           </>
         )}
       </div>
-      {profile ? (
+      {profile && !readOnly ? (
         <Dock>
           <Button href={`/me/memberships/${staffMemberId}/tax-profile/edit`}>다시 입력하기</Button>
         </Dock>
