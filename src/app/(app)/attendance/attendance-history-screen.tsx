@@ -47,7 +47,7 @@ export function AttendanceHistoryScreen({ tab, records, today, weekStart, now, f
   const close = () => setSheet(null);
 
   return (
-    <main className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[20px] pb-[24px] leading-[1.5]">
+    <main className="flex flex-1 flex-col gap-[12px] px-[22px] pt-[20px] pb-[24px] leading-[1.5]">
       <SegmentedControl
         label="기간"
         panelId={PANEL}
@@ -60,7 +60,7 @@ export function AttendanceHistoryScreen({ tab, records, today, weekStart, now, f
           if (next !== tab) router.push(`/attendance${next === "period" ? "?tab=period" : ""}${fromHome ? (next === "period" ? "&" : "?") + "back=home" : ""}`);
         }}
       />
-      <div id={PANEL} role="tabpanel" aria-labelledby={segmentTabId(PANEL, tab)} className="flex flex-1 flex-col gap-[20px]">
+      <div id={PANEL} role="tabpanel" aria-labelledby={segmentTabId(PANEL, tab)} className="flex flex-1 flex-col gap-[12px]">
         {tab === "week" ? (
           <WeekView records={records} today={today} weekStart={weekStart} now={now} onOpen={setSheet} />
         ) : (
@@ -91,7 +91,7 @@ function WeekView({ records, today, weekStart, now, onOpen }: { records: MyAtten
           </p>
         </div>
       )}
-      <div className="flex flex-col gap-[8px]">
+      <div className="flex flex-col gap-[12px]">
         {weekDays(weekStart, records.items).map(({ date, day }) =>
           day ? (
             <DayCard key={date} day={day} today={today} now={now} range={range} onOpen={onOpen} />
