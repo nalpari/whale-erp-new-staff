@@ -40,9 +40,9 @@ export function TopBar({
       aria-label={`근무지 바꾸기, 지금 ${store}`}
       className={`flex min-h-[44px] max-w-full min-w-0 items-center gap-[6px] font-bold text-staff-text ${title ? "text-[15px]" : "text-[17px]"}`}
     >
-      {/* 근무지임을 알리는 작은 점포 아이콘(2026-11-24 사용자 지정) */}
-      <span className="flex shrink-0 text-staff-text">
-        <MaskIcon src="/icons/store-line.svg" size={title ? 16 : 18} />
+      {/* 근무지임을 알리는 점포 아이콘 — 흰 바탕 · 1px 테두리 동그라미, 아이콘은 글자와 같은 먹색(2026-11-24 사용자 지정) */}
+      <span className="flex size-[28px] shrink-0 items-center justify-center rounded-full border border-staff-border bg-white text-staff-text">
+        <MaskIcon src="/icons/store-line.svg" size={15} />
       </span>
       <span className="truncate">{store}</span>
       {onStoreClick && <Image src="/icons/chevron-down.svg" alt="" width={13} height={13} className="shrink-0 -scale-y-100" />}
