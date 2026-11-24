@@ -1,4 +1,4 @@
-import type { PayslipItem, PayslipLog } from "./payslips";
+import type { PayslipDetail, PayslipItem, PayslipLog } from "./payslips";
 
 // 급여명세서 화면 규칙과 문구. 상태 없는 순수 함수만 둔다 — 가져오기는 payslips.ts 다.
 // 합계 · 실지급액은 다시 더하지 않고 api 가 저장한 값(grossPayAmount · totalDeductionAmount · netPayAmount)을 보인다.
@@ -16,13 +16,32 @@ export const isEarning = (item: PayslipItem) => item.itemCategory === "EARNING";
 /** 3.3% 원천징수를 켜면 소득세 · 지방소득세가 빠진다 — 3.3% 가 사업소득세 3% + 지방소득세 0.3% 라서다(PAY-03). */
 const REPLACED_BY_WITHHOLDING = new Set(["INCOME_TAX", "LOCAL_INCOME_TAX"]);
 
+/** 건강보험 · 국민연금 가입이면 보이는 기본 공제 — 장기요양보험은 건강보험료에 붙어 같이 간다(WHALEERP-756) */
+const HEALTH_PENSION_ITEM_CODES = new Set(["NATIONAL_PENSION", "HEALTH_INSURANCE", "LONG_TERM_CARE_INSURANCE"]);
+/** 고용보험 · 산재보험 가입이면 보이는 기본 공제 — 산재보험은 사업주만 내 명세서 줄이 없다(WHALEERP-756) */
+const EMPLOYMENT_INJURY_ITEM_CODES = new Set(["EMPLOYMENT_INSURANCE"]);
+
+/** 명세서의 4대보험 가입 여부 — api 가 급여 기간에 효력이 있던 근로계약 중 하나라도 체크했으면 true 로 준다(WHALEERP-756) */
+export type PayslipInsurance = Pick<PayslipDetail, "isHealthPensionInsured" | "isEmploymentInjuryInsured">;
+
 /**
- * 이 명세서에 보이는 줄. 관리자 화면(whale-erp-front src/lib/payslips.ts 의 isItemShown)과 같은 규칙이다 — api 는 저장된 줄을
- * 모두 준다. 원천징수 둘은 3.3% 를 켰을 때만, 그때 기본 공제의 소득세 · 지방소득세는 뺀다.
+ * 이 명세서에 보이는 줄. 관리자 화면(whale-erp-front src/lib/payslips.ts 의 isItemShown) · api PDF 와 같은 규칙이다 — api 는 저장된 줄을
+ * 모두 준다. 원천징수 둘은 3.3% 를 켰을 때만, 그때 기본 공제의 소득세 · 지방소득세는 뺀다. 4대보험은 근로계약에서 가입했으면 보인다 —
+ * 건강보험 · 국민연금이면 국민연금 · 건강보험 · 장기요양보험, 고용보험 · 산재보험이면 고용보험(WHALEERP-756, 2026-11-20 김지영). 미가입이면
+ * 금액이 비었거나(미입력) 0 원일 때만 숨는다 — 0 아닌 금액이 든 줄은 보여 합계와 맞는다(2026-11-24 사용자 결정).
  */
-export function isItemShown(item: PayslipItem, isWithholdingApplied: boolean): boolean {
+export function isItemShown(
+  item: Pick<PayslipItem, "itemCategory" | "itemCode" | "isEntered" | "adjustedAmount" | "calculatedAmount">,
+  isWithholdingApplied: boolean,
+  insurance: PayslipInsurance,
+): boolean {
   if (item.itemCategory === "WITHHOLDING") return isWithholdingApplied;
-  if (item.itemCategory === "BASIC") return !(isWithholdingApplied && REPLACED_BY_WITHHOLDING.has(item.itemCode));
+  if (item.itemCategory !== "BASIC") return true;
+  if (REPLACED_BY_WITHHOLDING.has(item.itemCode)) return !isWithholdingApplied;
+  const filled = item.isEntered && (item.adjustedAmount ?? item.calculatedAmount ?? 0) !== 0;
+  // 가입 여부 칸이 없는 응답(api 를 앞 버전으로 되돌린 경우)은 숨기지 않는다 — 명시적으로 false 일 때만 미가입(PR pr-agent)
+  if (HEALTH_PENSION_ITEM_CODES.has(item.itemCode)) return insurance.isHealthPensionInsured !== false || filled;
+  if (EMPLOYMENT_INJURY_ITEM_CODES.has(item.itemCode)) return insurance.isEmploymentInjuryInsured !== false || filled;
   return true;
 }
 
