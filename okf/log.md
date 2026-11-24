@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-24
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 루트 레이아웃 `<head>` 에 브리지 준비 이벤트를 듣는 인라인 스크립트를 넣어, 출퇴근 화면 코드가 불러와지기 전에 지나간 이벤트도 준비로 본다(PR #91 pr-agent 재리뷰).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 준비 이벤트를 받은 브리지를 기억해, 다시 시도로 연결된 직후 출퇴근 버튼이 다시 not-ready 가 되지 않게 했다(PR #91 pr-agent 재리뷰).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #91 pr-agent 리뷰 반영: 출퇴근 위치 읽기도 준비된 브리지만 쓰고(strict 두 번, 아니면 다시 시도), 위치를 보지 않는 출퇴근은 다시 시도로 가리지 않으며, 약속 어긋남 기록 실패 때 예외 메시지 대신 고정 표식만 남긴다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 「다시 시도」가 strict 로 기다리는지와 약속 어긋남 기록이 실패해도 원본(좌표)을 남기지 않는지를 테스트로 고정했다. strict 로 떨어진 브리지는 「브리지 없음」이 아니라 「준비 표시 없음」으로 남긴다(PR 전 코드리뷰 2라운드).

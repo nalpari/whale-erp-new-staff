@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { pretendard } from "./fonts";
 import "./globals.css";
+import { BRIDGE_READY_TRACKER_SCRIPT } from "@/lib/native-bridge";
 
 export const metadata: Metadata = {
   title: "Whale ERP 직원 근무 앱",
@@ -22,6 +23,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ko" className={`${pretendard.variable} h-full antialiased`}>
+      <head>
+        {/* 설치형 앱의 브리지 준비 이벤트는 한 번만 온다. 출퇴근 화면 코드가 불러와지기 전에 지나가도 놓치지 않게 문서 맨 앞에서 듣는다. */}
+        <script dangerouslySetInnerHTML={{ __html: BRIDGE_READY_TRACKER_SCRIPT }} />
+      </head>
       <body className="min-h-full">{children}</body>
     </html>
   );

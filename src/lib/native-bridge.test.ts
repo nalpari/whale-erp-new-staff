@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   BRIDGE_READY_EVENT,
+  BRIDGE_READY_FLAG,
+  BRIDGE_READY_TRACKER_SCRIPT,
   appVersionOf,
   callNative,
   getAppInfo,
@@ -367,4 +369,16 @@ test("준비 이벤트를 받은 브리지는 준비 표시가 없어도 다음 
   ready(bridge);
   assert.equal(await first, bridge);
   assert.equal(await waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), bridge);
+});
+
+test("모듈이 불러와지기 전에 지나간 준비 이벤트도 레이아웃 스크립트가 남긴 표시로 준비된 것으로 본다", async (t) => {
+  assert.match(BRIDGE_READY_TRACKER_SCRIPT, new RegExp(BRIDGE_READY_EVENT));
+  assert.match(BRIDGE_READY_TRACKER_SCRIPT, new RegExp(BRIDGE_READY_FLAG));
+  const globals = globalThis as unknown as Record<string, unknown>;
+  globals.window = { [BRIDGE_READY_FLAG]: true };
+  t.after(() => { delete globals.window; });
+  const bridge = bridgeAnswering(null);
+  const { win, listeners } = fakeWindow(bridge);
+  assert.equal(await waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), bridge);
+  assert.equal(listeners.size, 0);
 });
