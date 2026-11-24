@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   BRIDGE_READY_EVENT,
+  BRIDGE_READY_FLAG,
+  BRIDGE_READY_TRACKER_SCRIPT,
   appVersionOf,
   callNative,
   getAppInfo,
@@ -14,6 +16,7 @@ import {
   MEASURE_LOCATION_TIMEOUT_MS,
   isAppLocation,
   measureLocation,
+  appLocationProblems,
 } from "./native-bridge.ts";
 
 const ANDROID_APP =
@@ -272,4 +275,116 @@ test("measureLocation 은 75초를 기다리고 약속에 맞는 답만 받는�
   assert.equal(isAppLocation({ ...ok, latitude: 90, longitude: -180 }), true);
   assert.equal(isAppLocation({ ...ok, ageSeconds: -1 }), false);
   assert.equal(isAppLocation({ status: "ok" }), false);
+});
+
+test("measureLocation 의 약속과 다른 답은 좌표 없이 어긋난 칸 이름만 콘솔에 남긴다(ATT-05)", async (t) => {
+  const logged: unknown[][] = [];
+  const everything: unknown[][] = [];
+  t.mock.method(console, "error", (...args: unknown[]) => { logged.push(args); everything.push(args); });
+  for (const level of ["warn", "log", "info", "debug"] as const) {
+    t.mock.method(console, level, (...args: unknown[]) => { everything.push(args); });
+  }
+  const raw = { ok: true, data: { status: "ok", latitude: 37.5665, longitude: 126.978, accuracyMeters: 5, ageSeconds: "x", mocked: true, precise: true, "37.5665,126.978": 1 } };
+  assert.deepEqual(await measureLocation({ callHandler: async () => raw }), { ok: false, error: "malformed" });
+  const ours = logged.filter((args) => String(args[0]).startsWith("[native-bridge]"));
+  assert.equal(ours.length, 1);
+  assert.deepEqual(ours[0][1], { code: "measureLocation-malformed", fields: ["ageSeconds"] });
+  // 접두어와 상관없이, 어떤 수준의 콘솔 출력에도 좌표가 없어야 한다
+  const text = JSON.stringify(everything);
+  assert.equal(text.includes("37.5665"), false);
+  assert.equal(text.includes("126.978"), false);
+});
+
+test("약속과 다른 답의 기록을 만들다 예외가 나도 결과는 malformed 로 돌려주고 원본(좌표)은 남기지 않는다", async (t) => {
+  const everything: unknown[][] = [];
+  for (const level of ["error", "warn", "log", "info", "debug"] as const) {
+    t.mock.method(console, level, (...args: unknown[]) => { everything.push(args); });
+  }
+  const result = await callNative(
+    "x",
+    [],
+    (data: unknown): data is string => typeof data === "string",
+    bridgeAnswering({ ok: true, data: { latitude: 37.5665, longitude: 126.978 } }),
+    // 예외 메시지에도 좌표가 담길 수 있다.
+    { describeMalformed: () => { throw new Error("기록 실패 37.5665,126.978"); } },
+  );
+  assert.deepEqual(result, { ok: false, error: "malformed" });
+  const ours = everything.filter((args) => String(args[0]).startsWith("[native-bridge]"));
+  assert.equal(ours.length, 1);
+  assert.deepEqual(ours[0][1], { describeFailed: true });
+  const text = JSON.stringify(everything);
+  assert.equal(text.includes("37.5665"), false);
+  assert.equal(text.includes("126.978"), false);
+});
+
+test("strict 면 시간이 다 됐을 때 준비 표시 없는 Android 브리지는 null(다시 시도가 연결됨으로 잘못 알리지 않게)", async (t) => {
+  t.mock.method(console, "error", () => {});
+  const early = bridgeAnswering(null);
+  const { win } = fakeWindow(early);
+  assert.equal(await waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), null);
+  const readyBridge = { ...bridgeAnswering(null), _platformReady: true };
+  assert.equal(await waitForBridge(fakeWindow(readyBridge).win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), readyBridge);
+});
+
+test("strict 로 기다리는 사이 준비 표시만 붙고 이벤트가 없으면 시간이 다 된 뒤 그 브리지를 쓴다", async () => {
+  const late: { callHandler: Bridge["callHandler"]; _platformReady?: boolean } = { ...bridgeAnswering(null) };
+  const { win } = fakeWindow(late);
+  const waiting = waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 20, strict: true });
+  late._platformReady = true;
+  assert.equal(await waiting, late);
+});
+
+test("strict 로 떨어진 것은 「브리지가 없다」가 아니라 준비 표시 없음으로 남긴다", async (t) => {
+  const error = t.mock.method(console, "error", () => {});
+  const { win } = fakeWindow(bridgeAnswering(null));
+  assert.equal(await waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), null);
+  const messages = error.mock.calls.map((call) => String(call.arguments[0]));
+  assert.equal(messages.some((m) => m.includes("준비 표시가 없음(strict)")), true);
+  assert.equal(messages.some((m) => m.includes("브리지가 없다")), false);
+});
+
+test("strict 여도 준비 이벤트가 오면 그 브리지를 쓴다", async () => {
+  const early = bridgeAnswering(null);
+  const { win, ready } = fakeWindow(early);
+  const waiting = waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 1000, strict: true });
+  ready(early);
+  assert.equal(await waiting, early);
+});
+
+test("appLocationProblems 는 약속 문서의 칸만, 모양이 틀린 것만 고른다", () => {
+  assert.deepEqual(appLocationProblems("x"), { code: "measureLocation-malformed", fields: ["(답 모양)"] });
+  assert.deepEqual(appLocationProblems({ ok: true }), { code: "measureLocation-malformed", fields: ["data"] });
+  assert.deepEqual(appLocationProblems({ ok: true, data: { status: "ok", latitude: 200, longitude: 1, accuracyMeters: null, ageSeconds: 0, mocked: false, precise: null } }), {
+    code: "measureLocation-malformed",
+    fields: ["latitude"],
+  });
+  assert.deepEqual(appLocationProblems({ ok: true, data: { status: "unavailable", reason: "boom" } }), { code: "measureLocation-malformed", fields: ["reason"] });
+  assert.deepEqual(appLocationProblems({ ok: true, data: { status: "weird" } }), { code: "measureLocation-malformed", fields: ["status"] });
+});
+
+test("준비 이벤트를 받은 브리지는 준비 표시가 없어도 다음 strict 대기에서 바로 준비된 것으로 본다(다시 시도 뒤 출퇴근)", async () => {
+  const bridge = bridgeAnswering(null);
+  const { win, ready } = fakeWindow(bridge);
+  const first = waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 1000, strict: true });
+  ready(bridge);
+  assert.equal(await first, bridge);
+  assert.equal(await waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), bridge);
+});
+
+test("모듈이 불러와지기 전에 지나간 준비 이벤트도 레이아웃 스크립트가 남긴 표시로 준비된 것으로 본다", async (t) => {
+  assert.match(BRIDGE_READY_TRACKER_SCRIPT, new RegExp(BRIDGE_READY_EVENT));
+  assert.match(BRIDGE_READY_TRACKER_SCRIPT, new RegExp(BRIDGE_READY_FLAG));
+  // 브리지가 바뀌어 준비 이벤트가 다시 와도 기록하도록 한 번만 듣지 않는다.
+  assert.equal(BRIDGE_READY_TRACKER_SCRIPT.includes("once"), false);
+  const globals = globalThis as unknown as Record<string, unknown>;
+  const bridge = bridgeAnswering(null);
+  globals.window = { [BRIDGE_READY_FLAG]: bridge };
+  t.after(() => { delete globals.window; });
+  const { win, listeners } = fakeWindow(bridge);
+  assert.equal(await waitForBridge(win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), bridge);
+  assert.equal(listeners.size, 0);
+  // 이벤트 뒤에 브리지가 바뀌었으면 새 브리지는 준비된 것으로 보지 않는다.
+  t.mock.method(console, "error", () => {});
+  const replaced = fakeWindow(bridgeAnswering(null));
+  assert.equal(await waitForBridge(replaced.win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), null);
 });

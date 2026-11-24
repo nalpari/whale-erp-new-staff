@@ -18,7 +18,7 @@ import {
   type ReviewReason,
 } from "@/lib/attendance-rules";
 import { kstToday, stampLabel } from "@/lib/attendance-history";
-import { browserLocation, readDeviceLocation } from "@/lib/device-location";
+import { browserLocation, checkAppConnection, readDeviceLocation, type AppProblem } from "@/lib/device-location";
 import { isInApp } from "@/lib/native-bridge";
 import type { AttendanceRecordResult, MyAttendance } from "@/lib/my-attendance";
 import { nocontractHref, type CheckInSignWaiting } from "@/lib/sign-request";
@@ -39,7 +39,7 @@ type Geo =
   | { status: "loading" }
   | { status: "denied" }
   | { status: "unavailable" }
-  | { status: "broken" }
+  | { status: "broken"; reason: AppProblem }
   | { status: "ok"; distance: number; inRange: boolean; mocked: boolean; position: { latitude: number; longitude: number } };
 
 /** 위치 읽음(확인자료)을 남기는 서버 요청이 예외로 끝났을 때(네트워크 끊김 등). 위치는 아직 읽지 않았다. */
@@ -52,6 +52,17 @@ const blockSheet = { STORE_CLOSED: "closed", CONTRACT_PENDING_SIGNATURE: "nocont
   NonNullable<MyAttendance["checkInBlock"]>["reason"],
   Sheet
 >;
+
+/**
+ * 앱 안인데 앱 위치를 받지 못했을 때의 안내(2026-11-23 창수 결정, 재영 #90 리뷰). 일시 장애(not-ready)는 출근 · 퇴근 버튼 대신
+ * 「다시 시도」 버튼을 보이고, 계속되면 근무지 관리자가 관리자 웹에서 출퇴근을 대신 등록할 수 있게 문의로 잇는다.
+ * 「업데이트」 안내는 실제로 앱과 약속이 어긋날 때만 보인다.
+ */
+const appProblemText: Record<AppProblem, string> = {
+  "not-ready": "앱 연결이 잠깐 안 됐습니다. 다시 시도를 눌러 주세요. 계속되면 근무지 관리자에게 출퇴근 등록을 요청해 주세요.",
+  forbidden: "지금 주소에서는 앱으로 위치를 확인할 수 없습니다. 근무지 관리자에게 출퇴근 등록을 요청해 주세요.",
+  mismatch: "앱에서 위치를 받지 못했습니다. 앱을 최신 버전으로 업데이트하고, 계속되면 근무지 관리자에게 문의해 주세요.",
+};
 
 const GEO_OPTIONS: PositionOptions = { enableHighAccuracy: true, timeout: 15_000, maximumAge: 0 };
 
@@ -115,7 +126,7 @@ export function CheckInScreen({
     async (): Promise<Geo> => {
       if (latitude === null || longitude === null) return { status: "unavailable" };
       const read = await readDeviceLocation({ fromBrowser: () => browserLocation(GEO_OPTIONS) });
-      if (read.status !== "ok") return { status: read.status };
+      if (read.status !== "ok") return read;
       const position = { latitude: read.latitude, longitude: read.longitude };
       const distance = distanceMeters(position, { latitude, longitude });
       return { status: "ok", distance, inRange: distance <= radiusMeters, mocked: read.mocked, position };
@@ -143,6 +154,22 @@ export function CheckInScreen({
   }, [previewable, data.staffMemberId, locate]);
 
   const show = (text: string) => setToast({ key: Date.now(), text });
+
+  // 앱 연결이 잠깐 안 됐을 때(not-ready) 출근 · 퇴근 버튼 대신 보이는 「다시 시도」(2026-11-24 창수). 앱 연결(브리지)만 다시 확인하고
+  // 위치는 읽지 않는다 — 위치는 출근 · 퇴근 버튼이 위치 읽음을 남긴 뒤에만 읽는다(ATT-22). 연결되면 원래 버튼으로 돌아가 다시 누르게 하고,
+  // 이번에도 안 되면 안내를 그대로 둔다(관리자 대신 등록 안내 포함)
+  const disconnected = geo.status === "broken" && geo.reason === "not-ready";
+  const retryConnection = () =>
+    startTransition(async () => {
+      if (!(await checkAppConnection())) return show("아직 앱과 연결되지 않았습니다");
+      setGeo({ status: "idle" });
+      show(`앱과 다시 연결됐습니다. ${working ? "퇴근하기" : "출근하기"}를 눌러 주세요`);
+    });
+  const retryButton = (
+    <Button disabled={pending || !canLocate} onClick={retryConnection}>
+      다시 시도
+    </Button>
+  );
 
   const judged = located ? (geo.status === "ok" ? geo : null) : { inRange: true, mocked: false };
   const reasonFor = (kind: AttendanceKind) => (judged ? reviewReasonOf(kind, judged) : null);
@@ -414,9 +441,7 @@ export function CheckInScreen({
     ) : geo.status === "broken" ? (
       <>
         <GeoBlank tone="muted" text="위치를 확인할 수 없습니다" />
-        <Alert tone="warning">
-          앱에서 위치를 받지 못했습니다. 앱을 최신 버전으로 업데이트하고, 계속되면 근무지 관리자에게 문의해 주세요.
-        </Alert>
+        <Alert tone="warning">{appProblemText[geo.reason]}</Alert>
       </>
     ) : geo.status === "unavailable" ? (
       <>
@@ -526,9 +551,14 @@ export function CheckInScreen({
       );
       dock = (
         <>
-          <Button disabled={pending || !(usable || !target)} onClick={pressCheckOut}>
-            퇴근하기
-          </Button>
+          {/* 위치를 보지 않거나 근무지 좌표가 없는 퇴근은 앱 연결 없이도 되므로 다시 시도로 가리지 않는다(ATT-36) */}
+          {disconnected && located && target ? (
+            retryButton
+          ) : (
+            <Button disabled={pending || !(usable || !target)} onClick={pressCheckOut}>
+              퇴근하기
+            </Button>
+          )}
         </>
       );
     } else {
@@ -594,6 +624,8 @@ export function CheckInScreen({
             <Button disabled={pending} onClick={openConsent}>
               위치정보 동의하기
             </Button>
+          ) : disconnected && located ? (
+            retryButton
           ) : (
             <Button disabled={pending || !usable} onClick={pressCheckIn}>
               출근하기
