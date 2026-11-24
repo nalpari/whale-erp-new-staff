@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-24
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 급여명세서 PDF 받기가 실패하면 글자 응답 대신 명세서 상세로 돌려보내 안내를 띄운다(계약서 파일 받기와 같다). 받기 링크에서 `download` 속성을 뺐다. `native-bridge.ts` 실패 종류 주석을 strict 대기에 맞췄다(재영 #91 머지 댓글).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 회원 탈퇴 화면 `/me/withdrawal` 을 더하고(재직 중이면 퇴직 처리 요청 안내, 현재 비밀번호 확인 뒤 탈퇴, 성공하면 `/login?withdrawn=1`) 내 정보에 「회원 탈퇴」 링크를 두었다(WHALEERP-770). 탈퇴 성공 때 아이디 저장 쿠키도 지운다(1차 리뷰). [탈퇴] 는 확인 시트를 거쳐 제출한다(노영주 결정).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 머리줄 통일(`StoreHeader` · `TitleHeader`, 근무 화면 근무지 카드 삭제, 출퇴근 화면 근무지는 보이기만), 근무지 고르기 시트 줄 모양, 출퇴근 현황 기간별(범위 달력 · 기간 요약 · 주 줄 펼침 · 미출근/미기록 · 예정 없음), 홈 「근로 · 휴게」 · 예정 없는 날 카드, 알림에서 연 화면의 뒤로 가기(`from=notifications`).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 내 근무지의 퇴직한 근무지 카드에도 신고정보 · 계좌 · 근로계약서 · 급여명세서 세 칸(재직 카드와 같은 링크, 「미입력」 꼬리표 없음)을 두고, 퇴직한 근무지의 신고 정보는 조회만(api `editable: false` · PUT 409 `STAFF_RETIRED`) — `editable === false` 일 때만(옛 api 와 섞여도 재직 근무지는 막지 않는다), 고치기 · 입력 버튼 없이 「퇴직한 근무지라 신고 정보는 조회만 할 수 있습니다.」(WHALEERP-765). `edit` · `new` 는 보기 화면으로 돌려보내고 서버 액션도 PUT 하지 않는다. `api-types.d.ts` 를 다시 만들어 먼저 들어간 api 의 `storeIsHq` 등도 함께 들어왔다(시험 고정값 두 곳에 `storeIsHq: false`).

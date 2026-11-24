@@ -1,11 +1,22 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Badge, Card, HeroCard, Notice, PageHeader } from "@/components/common";
+import { Alert, Badge, Card, HeroCard, Notice, PageHeader } from "@/components/common";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
-import { formatWon, historyEntries, isEarning, isItemShown, parsePayslipId, periodLabel, sentDateLabel } from "@/lib/payslip-rules";
+import {
+  formatWon,
+  historyEntries,
+  isEarning,
+  isItemShown,
+  parsePayslipId,
+  payslipDownloadAlert,
+  payslipKeepQuery,
+  periodLabel,
+  sentDateLabel,
+} from "@/lib/payslip-rules";
 import { getPayslip } from "@/lib/payslips";
 import { requireSession } from "@/lib/session";
+import { ChangedToast } from "../../me/changed-toast";
 import { CorrectingBadge } from "../_components/correcting-badge";
 import { ExportButton } from "../_components/export-button";
 import { PayFrame } from "../_components/pay-frame";
@@ -38,12 +49,23 @@ export default async function PayslipPage({ params, searchParams }: PageProps<"/
   const items = payslip.items.filter((i) => isItemShown(i, payslip.isWithholdingApplied));
   const earnings = items.filter(isEarning);
   const deductions = items.filter((i) => !isEarning(i));
+  // PDF 받기가 실패해 돌아왔다(pdf/route.ts). 안내를 띄운 뒤 주소의 `?download=` 는 지운다 — 새로 고칠 때마다 다시 뜨지 않게.
+  const keepQuery = payslipKeepQuery((name) => (typeof raw[name] === "string" ? raw[name] : null));
+  const downloadAlert = payslipDownloadAlert(raw.download);
   const meta = [payslip.storeName, labelOf(employmentTypes, payslip.employmentType), sentAt ? `${sentDateLabel(sentAt)} 받음` : null]
     .filter(Boolean)
     .join(" · ");
 
   return (
     <PayFrame nav={false} header={<PageHeader title="급여명세서" backHref={backHref} />}>
+      {downloadAlert && (
+        <>
+          <Alert tone="warning">
+            <p>{downloadAlert}</p>
+          </Alert>
+          <ChangedToast path={`/pay/${payslip.payslipId}${keepQuery}`} />
+        </>
+      )}
       {/* 목업 card--sunken: 안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14. */}
       <section className="flex flex-col gap-[8px] rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px]">
         <div className="flex items-start justify-between gap-[12px]">
@@ -94,7 +116,7 @@ export default async function PayslipPage({ params, searchParams }: PageProps<"/
         </ul>
       </Card>
 
-      {!correcting && <ExportButton payslipId={payslip.payslipId} />}
+      {!correcting && <ExportButton payslipId={payslip.payslipId} keepQuery={keepQuery} />}
     </PayFrame>
   );
 }

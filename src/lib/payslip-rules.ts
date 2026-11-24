@@ -120,3 +120,44 @@ export function parsePayslipId(raw: string): number | null {
   const id = Number(raw);
   return id <= MAX_ID ? id : null;
 }
+
+/**
+ * 급여명세서 PDF 받기(`/pay/[payslipId]/pdf`)가 실패해 상세로 돌려보낼 때 다는 `?download=` 값. 받기는 같은 탭에서 여는 링크라,
+ * 실패를 글자 응답으로 주면 화면이 그 글자로 덮인다(앱 밖 브라우저). 계약서 파일 받기와 같은 방식이다.
+ * notfound: 명세서가 없음(api 404), reviewing: 관리자가 다시 검토하는 중(api 409), failed: 그 밖의 실패.
+ */
+export type PayslipDownloadFailure = "notfound" | "reviewing" | "failed";
+
+/** api 응답 상태로 받기 실패 까닭을 고른다. 성공(2xx)이나 다시 로그인(401)은 부른 쪽이 먼저 처리한다. */
+export function payslipDownloadFailure(status: number): PayslipDownloadFailure {
+  if (status === 404) return "notfound";
+  if (status === 409) return "reviewing";
+  return "failed";
+}
+
+/** 상세가 보일 받기 실패 안내. 주소에서 오는 값이라 정한 키만 받는다(프로토타입 이름 막기). */
+export const PAYSLIP_DOWNLOAD_ALERT: Record<PayslipDownloadFailure, string> = {
+  notfound: "급여명세서를 찾을 수 없습니다. 화면을 새로 고친 뒤 다시 받아 주세요.",
+  reviewing: "관리자가 명세서를 다시 검토하고 있습니다. 다시 받은 뒤에 내려받을 수 있습니다.",
+  failed: "명세서를 내려받지 못했습니다. 잠시 뒤 다시 시도해 주세요.",
+};
+
+export function payslipDownloadAlert(value: unknown): string | null {
+  return typeof value === "string" && Object.hasOwn(PAYSLIP_DOWNLOAD_ALERT, value) ? PAYSLIP_DOWNLOAD_ALERT[value as PayslipDownloadFailure] : null;
+}
+
+/**
+ * 명세서 상세로 돌아갈 때 이어 줄 주소 값(어디서 왔는지). 상세의 뒤로 가기가 알림 목록 · 소속 근무지 목록으로 가는 데 쓴다.
+ * 정한 값만 남긴다 — from=notifications, 또는 from=sites 와 숫자 store.
+ */
+export function payslipKeepQuery(get: (name: string) => string | null | undefined): string {
+  const keep = new URLSearchParams();
+  const from = get("from");
+  const store = get("store");
+  if (from === "notifications") keep.set("from", "notifications");
+  else if (from === "sites" && typeof store === "string" && /^\d{1,10}$/.test(store)) {
+    keep.set("from", "sites");
+    keep.set("store", store);
+  }
+  return keep.size > 0 ? `?${keep}` : "";
+}

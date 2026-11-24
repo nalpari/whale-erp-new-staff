@@ -1,7 +1,19 @@
 // node --test src/lib/payslip-rules.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { filterYears, historyEntries, isItemShown, itemAmount, parsePayFilter, parsePayslipId, receivedMonthLabel, receivedYears } from "./payslip-rules.ts";
+import {
+  filterYears,
+  historyEntries,
+  isItemShown,
+  itemAmount,
+  parsePayFilter,
+  parsePayslipId,
+  payslipDownloadAlert,
+  payslipDownloadFailure,
+  payslipKeepQuery,
+  receivedMonthLabel,
+  receivedYears,
+} from "./payslip-rules.ts";
 import type { PayslipItem, PayslipLog } from "./payslips.ts";
 
 const log = (payslipLogId: number, logType: PayslipLog["logType"], changedAt: string): PayslipLog => ({ payslipLogId, logType, changedAt });
@@ -69,4 +81,28 @@ test("받은 해만 고른다 — 보관 범위 안, 최신순, 없으면 올해
   assert.deepEqual(receivedYears(["2026-11-01", "2026-10-01"], allowed), [2026]);
   assert.deepEqual(receivedYears(["2024-12-01", "2026-01-01", "2022-05-01"], allowed), [2026, 2024, 2022]);
   assert.deepEqual(receivedYears([], allowed), [2026]);
+});
+
+test("PDF 받기 실패 까닭: 404 는 notfound, 409 는 reviewing, 그 밖은 failed", () => {
+  assert.equal(payslipDownloadFailure(404), "notfound");
+  assert.equal(payslipDownloadFailure(409), "reviewing");
+  assert.equal(payslipDownloadFailure(500), "failed");
+  assert.equal(payslipDownloadFailure(502), "failed");
+});
+
+test("PDF 받기 실패 안내는 정한 값만 받는다(프로토타입 이름 · 배열 막기)", () => {
+  assert.match(payslipDownloadAlert("failed") ?? "", /내려받지 못했습니다/);
+  assert.match(payslipDownloadAlert("reviewing") ?? "", /다시 검토/);
+  assert.equal(payslipDownloadAlert("toString"), null);
+  assert.equal(payslipDownloadAlert(["failed"]), null);
+  assert.equal(payslipDownloadAlert(undefined), null);
+});
+
+test("상세로 돌아갈 때 이어 줄 주소 값은 from=notifications 또는 from=sites 와 숫자 store 만", () => {
+  const get = (q: Record<string, string>) => (name: string) => q[name] ?? null;
+  assert.equal(payslipKeepQuery(get({ from: "notifications" })), "?from=notifications");
+  assert.equal(payslipKeepQuery(get({ from: "sites", store: "12" })), "?from=sites&store=12");
+  assert.equal(payslipKeepQuery(get({ from: "sites", store: "x" })), "");
+  assert.equal(payslipKeepQuery(get({ from: "evil", store: "12" })), "");
+  assert.equal(payslipKeepQuery(get({})), "");
 });
