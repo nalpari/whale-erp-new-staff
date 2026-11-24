@@ -96,7 +96,7 @@ function WeekView({ records, today, weekStart, now, onOpen }: { records: MyAtten
           day ? (
             <DayCard key={date} day={day} today={today} now={now} range={range} onOpen={onOpen} />
           ) : (
-            <DayOffRow key={date} label={`${dayLabel(date)} · 휴무`} />
+            <DayOffRow key={date} label={`${dayLabel(date)} · 예정 없음`} />
           ),
         )}
       </div>
@@ -386,7 +386,7 @@ function PeriodView({
 function DayLine({ date, day, today, onOpen }: { date: string; day: MyAttendanceDay | null; today: string; onOpen: (s: Sheet) => void }) {
   // 시각만 쌍마다 한 줄(「15:58 – 18:14」) — 사유까지 붙이면 줄 중간에서 꺾였다. 사유는 확인 필요 칩 줄을 눌러 시트에서 본다
   const lines = !day
-    ? ["휴무"]
+    ? ["예정 없음"]
     : day.pairs.length === 0
       ? [summaryOf(day, today)]
       : day.pairs.map((p) => `${p.checkIn?.time ?? "기록 없음"} – ${p.checkOut?.time ?? (date === today ? "근무 중" : "퇴근 기록 없음")}`);

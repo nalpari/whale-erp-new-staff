@@ -82,7 +82,7 @@ function TodayCard({ items, next, action }: { items: MyWorkSchedule[]; next?: My
             <MaskIcon src="/icons/calendar-line.svg" size={20} />
           </span>
           <div className="flex min-w-0 flex-col">
-            <p className="text-[15px] font-bold text-staff-primary">오늘은 휴무입니다</p>
+            <p className="text-[15px] font-bold text-staff-primary">오늘 예정된 근무가 없습니다</p>
             {next && (
               <p className="text-[12px] text-staff-text-sub">
                 다음 근무 · {dayTitle(next.workDate)} {next.startTime} – {next.endTime}
