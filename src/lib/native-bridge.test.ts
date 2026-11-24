@@ -374,6 +374,8 @@ test("준비 이벤트를 받은 브리지는 준비 표시가 없어도 다음 
 test("모듈이 불러와지기 전에 지나간 준비 이벤트도 레이아웃 스크립트가 남긴 표시로 준비된 것으로 본다", async (t) => {
   assert.match(BRIDGE_READY_TRACKER_SCRIPT, new RegExp(BRIDGE_READY_EVENT));
   assert.match(BRIDGE_READY_TRACKER_SCRIPT, new RegExp(BRIDGE_READY_FLAG));
+  // 브리지가 바뀌어 준비 이벤트가 다시 와도 기록하도록 한 번만 듣지 않는다.
+  assert.equal(BRIDGE_READY_TRACKER_SCRIPT.includes("once"), false);
   const globals = globalThis as unknown as Record<string, unknown>;
   const bridge = bridgeAnswering(null);
   globals.window = { [BRIDGE_READY_FLAG]: bridge };
