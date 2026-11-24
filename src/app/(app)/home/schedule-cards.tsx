@@ -119,7 +119,8 @@ function TodayCard({ items, next, action }: { items: MyWorkSchedule[]; next?: My
           </p>
         ))}
         <p className="flex items-center gap-[6px] text-[12px] text-[#dbe5ff]">
-          총 {durationLabel(total)} 근무 <span className="text-[11px]">·</span> 휴게 {breakMinutes}분
+          {/* 휴게를 뺀 시간이라 「근로」(근로기준법 제50조 · 출퇴근 현황 「근로시간」과 같은 말, 2026-11-24 사용자 지정) */}
+          근로 {durationLabel(total)} <span className="text-[11px]">·</span> 휴게 {breakMinutes}분
         </p>
       </div>
       {action && (
