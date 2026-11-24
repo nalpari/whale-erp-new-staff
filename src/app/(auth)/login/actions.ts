@@ -30,13 +30,14 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
   if (!password) return { email, error: "비밀번호를 입력해 주세요", field: "password" };
 
   // 설치형 앱 안이면 앱이 준 기기 식별자를 쓰고 쿠키에도 남긴다(계획 결정 9) — 앱을 다시 깔아도 같은 기기로 보여, 다시 로그인하면
-  // 그 기기의 이전 접속이 끊긴다. 가입 등 다른 곳도 쿠키를 읽어 같은 값을 쓴다. 앱 밖이면 지금처럼 쿠키 UUID.
+  // 그 기기의 이전 접속이 끊긴다. 가입은 쿠키만 읽으므로 앱 안에서 로그인한 뒤에야 같은 값을 쓴다(그 전 가입은 쿠키 UUID).
+  // 앱 밖 · 옛 앱 · 값을 받기 전 제출이면 지금처럼 쿠키 UUID.
   if (appDeviceId) await saveDeviceId(appDeviceId);
 
   let result;
   try {
     // 자동 로그인 = rememberMe. 켜면 세션이 마지막 사용 후 30일, 끄면 7일이고 갱신도 그 길이로만 민다(api, 2026-10-20 노영주).
-    result = await login({ email, password, deviceIdentifier: await getDeviceId(), rememberMe: autoLogin }, clientIpFrom(await headers()));
+    result = await login({ email, password, deviceIdentifier: appDeviceId ?? (await getDeviceId()), rememberMe: autoLogin }, clientIpFrom(await headers()));
   } catch (error) {
     if (error instanceof ApiError) {
       if (error.status === 429) {

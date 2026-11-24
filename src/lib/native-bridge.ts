@@ -21,8 +21,9 @@ export const BRIDGE_READY_EVENT = "flutterInAppWebViewPlatformReady";
  * - failed: 앱 기능이 실패했거나, 호출이 예외로 끝났거나, 앱이 제때 답하지 않았다. 앱 기능 실패는 앱 로그에,
  *   예외 · 시간 초과는 웹 콘솔에 남는다.
  * - unavailable: 앱 안이 아니거나, 기다려도 `callHandler` 가 없거나, 앱에 없는 기능이다(앱 버전이 낮을 때 등).
- *   기본 대기(waitForBridge)는 Android 에서 준비 이벤트가 제때 안 와도 `callHandler` 가 보이면 그것으로 불러 본다. 엄격 대기(strict —
- *   출퇴근 위치 · 「다시 시도」)는 준비 표시까지 있어야 부르고, 없으면 부르지 않는다(device-location.ts).
+ *   기본 대기(waitForBridge)는 Android 에서 준비 이벤트가 제때 안 와도 `callHandler` 가 보이면 그것으로 불러 본다.
+ *   엄격 대기(strict — 출퇴근 위치 · 「다시 시도」)는 시간이 다 됐을 때 준비 표시까지 있어야 부르고, 없으면 부르지 않는다.
+ *   이때는 unavailable 이 아니라 device-location.ts 의 not-ready 다.
  * - malformed: 앱이 약속과 다른 모양으로 답했다.
  */
 export type BridgeError = "forbidden" | "failed" | "unavailable" | "malformed";
@@ -220,7 +221,17 @@ export function isAppDeviceId(data: unknown): data is AppDeviceId {
  * 대체로 그대로다. 기기 고유값은 앱이 해시해 넘겨 원래 값은 모른다. 옛 앱(기능 없음)이나 앱 밖이면 unavailable.
  */
 export function getAppDeviceId(bridge?: Bridge | null): Promise<BridgeResult<AppDeviceId>> {
-  return callNative("deviceId", [], isAppDeviceId, bridge);
+  // 약속과 다른 답은 원본 대신 모양만 남긴다 — 다른 버전 앱이 기기 고유값을 그대로 넘겨도 콘솔에 남지 않게.
+  return callNative("deviceId", [], isAppDeviceId, bridge, { describeMalformed: deviceIdShape });
+}
+
+/** 약속과 다른 deviceId 답(앱 답 전체)의 모양. 값은 남기지 않고 칸 이름과 deviceId 의 종류 · 길이만. */
+function deviceIdShape(raw: unknown): unknown {
+  if (typeof raw !== "object" || raw === null) return typeof raw;
+  const data = (raw as { data?: unknown }).data;
+  if (typeof data !== "object" || data === null) return { keys: Object.keys(raw), data: typeof data };
+  const value = (data as { deviceId?: unknown }).deviceId;
+  return { keys: Object.keys(raw), dataKeys: Object.keys(data), deviceId: typeof value === "string" ? `string(${value.length})` : typeof value };
 }
 
 /**
