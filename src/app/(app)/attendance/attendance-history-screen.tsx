@@ -257,7 +257,7 @@ function PeriodView({
     <>
       <PeriodPicker from={records.from} to={records.to} fromHome={fromHome} today={today} />
       {/* 조회 기간 요약 — 위층 「얼마나 일했나」(근무시간 · 근무일 큰 숫자), 아래층 「어떻게 일했나」(정상 · 지각 · 미기록 한 줄).
-          지각 · 미기록은 0 이 아니면 호박색 꼬리표, 0 이면 회색 글자(2026-11-24 사용자 지정) */}
+          지각 · 미기록은 0 이 아니면 호박색 꼬리표, 0 이면 회색 글자. 문의 안내 줄은 뺐다(2026-11-24 사용자 지정) */}
       <section className="rounded-[18px] border border-staff-border-light bg-white p-[20px]">
         <dl className="grid grid-cols-2 gap-[12px]">
           <div>
@@ -284,7 +284,6 @@ function PeriodView({
           {totals.late > 0 ? <StatusChip tone="warning">지각 {totals.late}회</StatusChip> : <span>지각 0회</span>}
           {totals.absent > 0 ? <StatusChip tone="warning">미기록 {totals.absent}회</StatusChip> : <span>미기록 0회</span>}
         </p>
-        {(totals.late > 0 || totals.absent > 0) && <p className="pt-[10px] text-[12px] text-staff-text-muted">기록이 다르면 근무지 관리자에게 문의해 주세요.</p>}
       </section>
       {records.items.length === 0 ? (
         <EmptyRecords />
