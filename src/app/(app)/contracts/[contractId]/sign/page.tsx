@@ -56,7 +56,7 @@ export default async function SignContractPage({ params, searchParams }: PagePro
   const employmentType = c.employmentType && labelOf(await getEnumOrEmpty("EmploymentType"), c.employmentType);
   return (
     <SignForm
-      action={signContractAction.bind(null, c.contractId, storeId, seen)}
+      action={signContractAction.bind(null, c.contractId, storeId, seen, query.from === "notifications")}
       header={header}
       title={[c.employer.storeName, employmentType].filter(Boolean).join(" · ")}
       signerName={c.account.name}

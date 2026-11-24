@@ -28,6 +28,8 @@ const storePart = (rawStoreId: number | null) => {
   const storeId = rawStoreId === null ? null : parseId(String(rawStoreId));
   return storeId === null ? "" : `store=${storeId}&`;
 };
+/** 알림에서 연 계약이면(?from=notifications) 서명 · 거절 · 수정 요청 뒤 화면에도 이어 뒤로 가기가 알림 목록으로 가게 한다. 바인딩 값이라 true 만 받는다 */
+const fromPart = (fromNotifications: boolean) => (fromNotifications === true ? "from=notifications&" : "");
 // 실패를 화면 상태로 바꾸는 것은 lib/contract-actions.ts. 서명 이미지는 api 로만 보내고 상태 · 로그에 싣지 않는다.
 
 /** 날인 — 화면이 그린 서명 PNG(`signature`)와 상세가 그릴 때 받은 발송 일시(bind)를 multipart 로 넘긴다. */
@@ -35,6 +37,7 @@ export async function signContractAction(
   rawContractId: number,
   rawStoreId: number | null,
   sentAt: string,
+  fromNotifications: boolean,
   _previous: ContractActionState,
   formData: FormData,
 ): Promise<ContractActionState> {
@@ -50,14 +53,14 @@ export async function signContractAction(
   form.set("signature", signature, "signature.png");
   form.set("sentAt", sentAt);
   // 저장소에 서명을 올린 뒤 커밋까지 기다린다 — 기본 10초보다 길게
-  return run("sign", `/me/contracts/${contractId}/sign`, { form, timeoutMs: 30_000 }, `/contracts/${contractId}/done?${storePart(rawStoreId)}done=signed`);
+  return run("sign", `/me/contracts/${contractId}/sign`, { form, timeoutMs: 30_000 }, `/contracts/${contractId}/done?${storePart(rawStoreId)}${fromPart(fromNotifications)}done=signed`);
 }
 
 /** 거절 — 받는 내용은 없다(WHALEERP-635, 본문은 `REJECT_BODY`). 확인 시트에서 한 번 더 묻는다. */
-export async function rejectContractAction(rawContractId: number, rawStoreId: number | null): Promise<ContractActionState> {
+export async function rejectContractAction(rawContractId: number, rawStoreId: number | null, fromNotifications: boolean): Promise<ContractActionState> {
   const contractId = parseId(String(rawContractId));
   if (contractId === null) notFound();
-  return run("reject", `/me/contracts/${contractId}/reject`, { json: REJECT_BODY }, `/contracts/${contractId}/done?${storePart(rawStoreId)}done=rejected`);
+  return run("reject", `/me/contracts/${contractId}/reject`, { json: REJECT_BODY }, `/contracts/${contractId}/done?${storePart(rawStoreId)}${fromPart(fromNotifications)}done=rejected`);
 }
 
 /**
@@ -76,7 +79,7 @@ export async function requestContractCorrectionAction(
   if (contractId === null) notFound();
   const read = readCorrectionReason(formData.get("reason"));
   if ("error" in read) return { field: "reason", message: read.error };
-  return run("correction", `/me/contracts/${contractId}/correction-request`, { json: read }, `/contracts/${contractId}?${storePart(rawStoreId)}${fromNotifications === true ? "from=notifications&" : ""}done=correction`);
+  return run("correction", `/me/contracts/${contractId}/correction-request`, { json: read }, `/contracts/${contractId}?${storePart(rawStoreId)}${fromPart(fromNotifications)}done=correction`);
 }
 
 /**

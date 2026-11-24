@@ -167,15 +167,17 @@ export function barOf(d: MyAttendanceDay, now: Date = new Date()) {
   const end = ongoing ? new Date(now.getTime() + KST_MS).toISOString().slice(11, 16) : lastOut;
   // 끝이 시작보다 이르면 자정을 넘긴 것이라 24시간을 더한 시각(「26:00」)으로 그린다(근무 탭 barOf 와 같다).
   // 같으면 근무스케줄은 24시간 근무, 실제 근무는 방금 출근했거나 같은 분에 퇴근한 것이라 0분이다 — 24시간 막대가 그 주 눈금을 늘렸다(리뷰)
-  const span = (start: string, stop: string, sameIsFullDay: boolean) => {
+  // 근무 중(ongoing)이면 끝은 이 서버의 지금이다 — api 서버와 시계가 조금 어긋나 출근보다 1분 이르게 잡혀도 자정을 넘긴 것으로 보지 않고 출근 시각에 맞춘다(리뷰)
+  const span = (start: string, stop: string, sameIsFullDay: boolean, clampEarly = false) => {
     const a = minutesOf(start);
     let b = minutesOf(stop);
-    if (b < a || (sameIsFullDay && b === a)) b += 24 * 60;
+    if (clampEarly && b < a) b = a;
+    else if (b < a || (sameIsFullDay && b === a)) b += 24 * 60;
     return { start, end: hhmmOf(b), from: a, to: b };
   };
   const schedule = s ? span(s.startTime, s.endTime, true) : undefined;
   // 퇴근이 없는 지난 날은 실제 막대를 그리지 않는다(목업 「퇴근 기록 없음」 카드는 예정만)
-  const worked = firstIn && end ? span(firstIn, end, false) : undefined;
+  const worked = firstIn && end ? span(firstIn, end, false, ongoing) : undefined;
   // 막대 범위는 기본 08~20시이고, 예정 · 실제 근무가 넘으면 4시간 눈금에 맞춰 넓힌다 — 새벽 근무(04:30)나 저녁 퇴근(21:27)이
   // 끝에 붙어 잘려 보였다(근무 탭 막대와 같은 규칙, 2026-11-24 사용자 지정)
   const starts = [schedule?.from, worked?.from].filter((m): m is number => m !== undefined);

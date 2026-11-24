@@ -316,7 +316,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
         <ContractDecision
           signHref={`/contracts/${c.contractId}/sign?${keepParams.size > 0 ? `${keepParams}&` : ""}sentAt=${encodeURIComponent(c.sentAt)}`}
           signable={c.signable}
-          rejectAction={rejectContractAction.bind(null, c.contractId, storeId)}
+          rejectAction={rejectContractAction.bind(null, c.contractId, storeId, fromNotifications)}
           correctionAction={requestContractCorrectionAction.bind(null, c.contractId, storeId, fromNotifications)}
         />
       )}

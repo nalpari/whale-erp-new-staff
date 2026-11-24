@@ -181,3 +181,10 @@ test("방금 출근 · 같은 분 퇴근은 24시간 막대가 아니다(리뷰)
   const fullDay = barOf(day("2026-10-22", { schedules: [{ startTime: "09:00", endTime: "09:00", breakMinutes: 60 }], pairs: [] }), now);
   assert.deepEqual(fullDay.schedule, { start: "09:00", end: "33:00" });
 });
+
+test("근무 중인데 서버 시계가 출근보다 1분 이르면 출근 시각에 맞춘다(리뷰)", () => {
+  const now = new Date("2026-10-23T00:01:30Z"); // KST 09:01 — api 가 09:02 출근으로 기록
+  const early = barOf(day(TODAY, { pairs: [{ checkIn: punch(TODAY, "09:02"), checkOut: null }] }), now);
+  assert.deepEqual(early.worked, { start: "09:02", end: "09:02" });
+  assert.equal(early.to, 20);
+});
