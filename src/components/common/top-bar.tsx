@@ -41,7 +41,7 @@ export function TopBar({
       className={`flex min-h-[44px] max-w-full min-w-0 items-center gap-[6px] font-bold text-staff-text ${title ? "text-[15px]" : "text-[17px]"}`}
     >
       {/* 근무지임을 알리는 작은 점포 아이콘(2026-11-24 사용자 지정) */}
-      <span className="flex shrink-0 text-staff-primary">
+      <span className="flex shrink-0 text-staff-text">
         <MaskIcon src="/icons/store-line.svg" size={title ? 16 : 18} />
       </span>
       <span className="truncate">{store}</span>
