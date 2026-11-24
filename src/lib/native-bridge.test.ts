@@ -17,6 +17,8 @@ import {
   isAppLocation,
   measureLocation,
   appLocationProblems,
+  isAppDeviceId,
+  getAppDeviceId,
 } from "./native-bridge.ts";
 
 const ANDROID_APP =
@@ -387,4 +389,26 @@ test("모듈이 불러와지기 전에 지나간 준비 이벤트도 레이아�
   t.mock.method(console, "error", () => {});
   const replaced = fakeWindow(bridgeAnswering(null));
   assert.equal(await waitForBridge(replaced.win, { userAgent: ANDROID_APP, timeoutMs: 10, strict: true }), null);
+});
+
+test("deviceId 답은 64자 소문자 16진수 deviceId 만 받는다", () => {
+  const hex = "0".repeat(64);
+  assert.equal(isAppDeviceId({ deviceId: hex }), true);
+  assert.equal(isAppDeviceId({ deviceId: "F".repeat(64) }), false);
+  assert.equal(isAppDeviceId({ deviceId: "9774d56d682e549c" }), false);
+  assert.equal(isAppDeviceId({ deviceId: 1 }), false);
+  assert.equal(isAppDeviceId(null), false);
+});
+
+test("deviceId 답이 약속과 다르면 malformed 이고 콘솔에는 값 대신 모양만 남긴다", async (t) => {
+  const everything: unknown[][] = [];
+  for (const level of ["error", "warn", "log", "info", "debug"] as const) {
+    t.mock.method(console, level, (...args: unknown[]) => { everything.push(args); });
+  }
+  const raw = "9774d56d682e549c";
+  assert.deepEqual(await getAppDeviceId(bridgeAnswering({ ok: true, data: { deviceId: raw } })), { ok: false, error: "malformed" });
+  const ours = everything.filter((args) => String(args[0]).startsWith("[native-bridge]"));
+  assert.equal(ours.length, 1);
+  assert.deepEqual(ours[0][1], { keys: ["ok", "data"], dataKeys: ["deviceId"], deviceId: "string(16)" });
+  assert.equal(JSON.stringify(everything).includes(raw), false);
 });
