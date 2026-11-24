@@ -20,6 +20,7 @@ const todo = (over: Partial<MyTodo>): MyTodo => ({
   todoId: 1,
   storeId: 10,
   storeName: "강남점",
+  storeIsHq: false,
   title: "마감 청소",
   body: null,
   assigneeType: "INDIVIDUAL",
