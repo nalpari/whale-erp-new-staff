@@ -119,7 +119,14 @@ export async function callNative<T>(
   args: unknown[],
   isData: (data: unknown) => data is T,
   bridge?: Bridge | null,
-  { timeoutMs = 10_000 }: { timeoutMs?: number } = {},
+  {
+    timeoutMs = 10_000,
+    describeMalformed = (raw) => raw,
+  }: {
+    timeoutMs?: number;
+    /** 약속과 다른 답을 콘솔에 남길 모양. 기본은 답 원본. 개인정보(좌표 등)가 담기는 기능은 원본 대신 어긋난 칸 이름만 넘긴다. */
+    describeMalformed?: (raw: unknown) => unknown;
+  } = {},
 ): Promise<BridgeResult<T>> {
   const target = bridge === undefined ? await waitForBridge() : bridge;
   if (target === null) return { ok: false, error: "unavailable" };
@@ -144,7 +151,7 @@ export async function callNative<T>(
     return { ok: false, error: "failed" };
   }
   const result = readBridgeResult(raw, isData);
-  if (!result.ok && result.error === "malformed") console.error(`[native-bridge] ${name} 의 답이 약속과 다르다`, raw);
+  if (!result.ok && result.error === "malformed") console.error(`[native-bridge] ${name} 의 답이 약속과 다르다`, describeMalformed(raw));
   return result;
 }
 
@@ -218,10 +225,39 @@ export function isAppLocation(data: unknown): data is AppLocation {
   );
 }
 
+const APP_LOCATION_FIELDS = ["status", "latitude", "longitude", "accuracyMeters", "ageSeconds", "mocked", "precise", "reason"] as const;
+
+/**
+ * `measureLocation` 답이 약속과 다를 때 콘솔에 남길 것. 답에는 위도 · 경도가 있어 원본도 값도 남기지 않는다 — 오류 수집 서비스를
+ * 붙이면 좌표가 서버로 가기 때문이다(ATT-05, 2026-11-23 재영 #90 리뷰). 고정 오류 코드와, 약속 문서에 있는 칸 가운데 모양이
+ * 틀린 칸 이름만 남긴다. 약속에 없는 칸은 이름도 남기지 않는다(이름에 값이 들어 있을 수 있다).
+ */
+export function appLocationProblems(raw: unknown): { code: "measureLocation-malformed"; fields: string[] } {
+  const code = "measureLocation-malformed" as const;
+  if (typeof raw !== "object" || raw === null || !("ok" in raw)) return { code, fields: ["(답 모양)"] };
+  if (raw.ok !== true) return { code, fields: ["ok", "error"] };
+  if (!("data" in raw) || typeof raw.data !== "object" || raw.data === null) return { code, fields: ["data"] };
+  const d = raw.data as Record<string, unknown>;
+  const checks: Record<(typeof APP_LOCATION_FIELDS)[number], boolean> = {
+    status: d.status === "ok" || d.status === "denied" || d.status === "unavailable",
+    latitude: d.status !== "ok" || (isFiniteNumber(d.latitude) && d.latitude >= -90 && d.latitude <= 90),
+    longitude: d.status !== "ok" || (isFiniteNumber(d.longitude) && d.longitude >= -180 && d.longitude <= 180),
+    accuracyMeters: d.status !== "ok" || d.accuracyMeters === null || isFiniteNumber(d.accuracyMeters),
+    ageSeconds: d.status !== "ok" || (isFiniteNumber(d.ageSeconds) && d.ageSeconds >= 0),
+    mocked: d.status !== "ok" || typeof d.mocked === "boolean",
+    precise: d.status !== "ok" || d.precise === null || typeof d.precise === "boolean",
+    reason: d.status !== "unavailable" || LOCATION_UNAVAILABLE_REASONS.includes(d.reason as string),
+  };
+  return { code, fields: APP_LOCATION_FIELDS.filter((field) => !checks[field]) };
+}
+
 /**
  * 앱이 위치를 새로 한 번 재어 좌표와 모의 위치 여부를 같은 측정값에서 함께 돌려준다(계획 결정 8). 권한 창 · 안내는 앱이 띄운다.
- * 부작용이 없어 다시 불러도 된다(위치를 한 번 더 잴 뿐).
+ * 부작용이 없어 다시 불러도 된다(위치를 한 번 더 잴 뿐). 약속과 다른 답은 좌표 없이 어긋난 칸 이름만 남긴다(appLocationProblems).
  */
 export function measureLocation(bridge?: Bridge | null): Promise<BridgeResult<AppLocation>> {
-  return callNative("measureLocation", [], isAppLocation, bridge, { timeoutMs: MEASURE_LOCATION_TIMEOUT_MS });
+  return callNative("measureLocation", [], isAppLocation, bridge, {
+    timeoutMs: MEASURE_LOCATION_TIMEOUT_MS,
+    describeMalformed: appLocationProblems,
+  });
 }

@@ -14,6 +14,7 @@ import {
   MEASURE_LOCATION_TIMEOUT_MS,
   isAppLocation,
   measureLocation,
+  appLocationProblems,
 } from "./native-bridge.ts";
 
 const ANDROID_APP =
@@ -272,4 +273,28 @@ test("measureLocation 은 75초를 기다리고 약속에 맞는 답만 받는�
   assert.equal(isAppLocation({ ...ok, latitude: 90, longitude: -180 }), true);
   assert.equal(isAppLocation({ ...ok, ageSeconds: -1 }), false);
   assert.equal(isAppLocation({ status: "ok" }), false);
+});
+
+test("measureLocation 의 약속과 다른 답은 좌표 없이 어긋난 칸 이름만 콘솔에 남긴다(ATT-05)", async (t) => {
+  const logged: unknown[][] = [];
+  t.mock.method(console, "error", (...args: unknown[]) => { logged.push(args); });
+  const raw = { ok: true, data: { status: "ok", latitude: 37.5665, longitude: 126.978, accuracyMeters: 5, ageSeconds: "x", mocked: true, precise: true, "37.5665,126.978": 1 } };
+  assert.deepEqual(await measureLocation({ callHandler: async () => raw }), { ok: false, error: "malformed" });
+  const ours = logged.filter((args) => String(args[0]).startsWith("[native-bridge]"));
+  assert.equal(ours.length, 1);
+  assert.deepEqual(ours[0][1], { code: "measureLocation-malformed", fields: ["ageSeconds"] });
+  const text = JSON.stringify(ours);
+  assert.equal(text.includes("37.5665"), false);
+  assert.equal(text.includes("126.978"), false);
+});
+
+test("appLocationProblems 는 약속 문서의 칸만, 모양이 틀린 것만 고른다", () => {
+  assert.deepEqual(appLocationProblems("x"), { code: "measureLocation-malformed", fields: ["(답 모양)"] });
+  assert.deepEqual(appLocationProblems({ ok: true }), { code: "measureLocation-malformed", fields: ["data"] });
+  assert.deepEqual(appLocationProblems({ ok: true, data: { status: "ok", latitude: 200, longitude: 1, accuracyMeters: null, ageSeconds: 0, mocked: false, precise: null } }), {
+    code: "measureLocation-malformed",
+    fields: ["latitude"],
+  });
+  assert.deepEqual(appLocationProblems({ ok: true, data: { status: "unavailable", reason: "boom" } }), { code: "measureLocation-malformed", fields: ["reason"] });
+  assert.deepEqual(appLocationProblems({ ok: true, data: { status: "weird" } }), { code: "measureLocation-malformed", fields: ["status"] });
 });
