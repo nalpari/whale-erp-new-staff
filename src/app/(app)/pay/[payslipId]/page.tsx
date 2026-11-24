@@ -34,7 +34,8 @@ export default async function PayslipPage({ params, searchParams }: PageProps<"/
   const sentAt = payslip.sentAt;
   const { grossPayAmount, totalDeductionAmount, netPayAmount } = payslip;
   const correcting = payslip.correcting || grossPayAmount === null || totalDeductionAmount === null || netPayAmount === null;
-  const items = payslip.items.filter((i) => isItemShown(i, payslip.isWithholdingApplied));
+  // 4대보험 줄은 근로계약의 가입 체크대로만(api 가 준 가입 여부, WHALEERP-756)
+  const items = payslip.items.filter((i) => isItemShown(i, payslip.isWithholdingApplied, payslip));
   const earnings = items.filter(isEarning);
   const deductions = items.filter((i) => !isEarning(i));
   const meta = [payslip.storeName, labelOf(employmentTypes, payslip.employmentType), sentAt ? `${sentDateLabel(sentAt)} 받음` : null]

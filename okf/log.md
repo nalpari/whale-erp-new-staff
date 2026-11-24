@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-24
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 급여명세서 상세의 4대보험 공제 줄을 근로계약서 가입 체크대로만 보인다(WHALEERP-756, 2026-11-20 김지영): `isItemShown` 이 api 상세 `isHealthPensionInsured` · `isEmploymentInjuryInsured` 를 받아 국민연금 · 건강보험 · 장기요양보험 / 고용보험을 가린다(관리자 화면 · api PDF 와 같은 규칙) — 미가입이어도 0 아닌 금액이 든 줄은 보인다(2026-11-24 사용자 결정). `api-types.d.ts` 를 다시 만들었고, 그사이 api 에서 필수가 된 `storeIsHq` 를 시험 고정값 둘(출퇴근 · TO-DO)에 넣었다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 루트 레이아웃 `<head>` 에 브리지 준비 이벤트를 듣는 인라인 스크립트를 넣어, 출퇴근 화면 코드가 불러와지기 전에 지나간 이벤트도 준비로 본다(PR #91 pr-agent 재리뷰).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 준비 이벤트를 받은 브리지를 기억해, 다시 시도로 연결된 직후 출퇴근 버튼이 다시 not-ready 가 되지 않게 했다(PR #91 pr-agent 재리뷰).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #91 pr-agent 리뷰 반영: 출퇴근 위치 읽기도 준비된 브리지만 쓰고(strict 두 번, 아니면 다시 시도), 위치를 보지 않는 출퇴근은 다시 시도로 가리지 않으며, 약속 어긋남 기록 실패 때 예외 메시지 대신 고정 표식만 남긴다.
