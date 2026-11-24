@@ -22,7 +22,7 @@ export const metadata: Metadata = { title: "내 근무지 · Whale ERP" };
 // (WHALEERP-604, 초대 코드 없이 여기서 수락) · 근무지 추가 확인 · 복귀 확인(WHALEERP-144, 홈 팝업을 닫아도 여기서 찾는다)을 한 칸에 섞는다.
 // 그 아래 지금 근무지, 그 뒤 퇴직한 근무지(ME-7, api includeRetired — 퇴직일 최근 순).
 // 근무지마다 신고 정보 · 근로계약서 · 급여명세서로 간다(2026-10-20 기획, api #79). 근로계약서 · 급여명세서는 그 근무지 것만 거른 목록으로 간다.
-// 퇴직한 근무지는 신고 정보도 볼 수 없어(api 404) 세 칸을 두지 않는다.
+// 퇴직한 근무지에도 같은 세 칸을 두고 그곳 자료를 본다(WHALEERP-765, 퇴직 후 3년) — 신고 정보는 조회만(api editable: false · 고치기 409).
 // 카드(2026-11-23 사용자 지정): 이름 · 배지, 라벨 없는 회색 두 줄(고용 형태 · 직무 / 근무 시작), [지도 보기] · [전화하기](근로계약서의 근무지 주소 · 전화),
 // 맨 아래 세 칸(선 아이콘 · 이름, 많이 쓰는 급여명세서가 오른쪽). 맨 위 상태 칩으로 거른다.
 
@@ -262,25 +262,26 @@ export default async function MembershipsPage({ searchParams }: PageProps<"/me/m
                         )}
                       </div>
                     </div>
-                    {/* 신고 정보 · 근로계약서 · 급여명세서 한 줄 세 칸 — 많이 쓰는 것을 오른쪽에(2026-11-23 사용자 지정, 처음 기획 2026-10-20). */}
-                    {!retired && (
-                      <div className="flex border-t border-staff-border-light">
-                        <ActionCell
-                          icon="/icons/id-card-line.svg"
-                          label="신고정보 · 계좌"
-                          href={`/me/memberships/${m.staffMemberId}/tax-profile`}
-                          badge={
+                    {/* 신고 정보 · 근로계약서 · 급여명세서 한 줄 세 칸 — 많이 쓰는 것을 오른쪽에(2026-11-23 사용자 지정, 처음 기획 2026-10-20).
+                        퇴직한 근무지도 같은 세 칸 · 같은 링크로 그곳 자료를 본다(WHALEERP-765). 「미입력」 꼬리표는 두지 않는다 — 이제 넣을 수 없다(조회만). */}
+                    <div className="flex border-t border-staff-border-light">
+                      <ActionCell
+                        icon="/icons/id-card-line.svg"
+                        label="신고정보 · 계좌"
+                        href={`/me/memberships/${m.staffMemberId}/tax-profile`}
+                        badge={
+                          retired ? undefined : (
                             <Suspense>
                               <TaxMissingBadge staffMemberId={m.staffMemberId} />
                             </Suspense>
-                          }
-                        />
-                        {/* 그 근무지 계약서만(ME-7 · TAX-8) — 앱 전역에서 고른 근무지와 관계없다 */}
-                        <ActionCell icon="/icons/doc-line.svg" label="근로계약서" href={`/contracts?store=${m.store.storeId}`} />
-                        {/* 그 근무지 급여명세서만 — 급여 화면의 점포 칩(?store=)으로 거른다(2026-11-23 사용자 지정, 전엔 api 가 없어 막힌 「준비 중」 칸) */}
-                        <ActionCell icon="/icons/payslip-line.svg" label="급여명세서" href={`/pay?from=sites&store=${m.store.storeId}`} />
-                      </div>
-                    )}
+                          )
+                        }
+                      />
+                      {/* 그 근무지 계약서만(ME-7 · TAX-8) — 앱 전역에서 고른 근무지와 관계없다 */}
+                      <ActionCell icon="/icons/doc-line.svg" label="근로계약서" href={`/contracts?store=${m.store.storeId}`} />
+                      {/* 그 근무지 급여명세서만 — 급여 화면의 점포 칩(?store=)으로 거른다(2026-11-23 사용자 지정, 전엔 api 가 없어 막힌 「준비 중」 칸) */}
+                      <ActionCell icon="/icons/payslip-line.svg" label="급여명세서" href={`/pay?from=sites&store=${m.store.storeId}`} />
+                    </div>
                   </li>
                 );
               })}

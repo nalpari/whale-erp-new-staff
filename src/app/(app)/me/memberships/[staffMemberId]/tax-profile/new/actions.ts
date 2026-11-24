@@ -8,6 +8,7 @@ import {
   TAX_PROFILE_ALREADY_SUBMITTED,
   parseStaffMemberId,
   readTaxProfileForm,
+  taxProfileCreateBlocked,
   taxProfileCreateFailure,
   validateTaxProfileCreate,
   type TaxProfileEditState,
@@ -28,7 +29,7 @@ async function savedMeanwhile(path: string): Promise<boolean> {
 /**
  * 날인 뒤 신고 정보 처음 넣기(WHALEERP-150, api `PUT /me/memberships/:staffMemberId/tax-profile`). 주민등록번호 · 급여 계좌를 함께
  * 보내고 지금 비밀번호는 보내지 않는다(api #138 — 처음 작성은 비교하지 않고, 빈 문자열은 형식 400). 이미 낸 신고 정보가 있으면
- * 보내지 않고 「이미 낸 신고 정보」 안내와 보기 링크를 보인다 — 응답이 끊긴 앞 제출이 저장된 뒤 다시 누른 경우도 여기로 온다. 조회와
+ * 보내지 않고 「이미 낸 신고 정보」 안내와 보기 링크를 보인다(퇴직한 근무지면 「조회만」 안내 — WHALEERP-765) — 응답이 끊긴 앞 제출이 저장된 뒤 다시 누른 경우도 여기로 온다. 조회와
  * 저장 사이에 다른 기기 · 탭의 제출이 먼저 저장되면 뒤쪽은 400 CURRENT_PASSWORD_MISMATCH 를 받는데, 다시 읽어 신고 정보가 있으면
  * 같은 안내를 보인다. 이번 값이 저장되지 않았을 수 있어 완료로 보내지 않는다(PR #42 리뷰).
  * staffMemberId 는 화면이 bind 로 붙인 값이지만 누구나 직접 부를 수 있어 다시 거른다. 주민등록번호 원문은 api 로만 보낸다.
@@ -44,8 +45,9 @@ export async function createTaxProfileAction(
   if (!("body" in checked)) return checked;
   const path = `/me/memberships/${staffMemberId}/tax-profile`;
   try {
-    if ((await authedRequest<Schemas["MyTaxProfileResponseDto"]>(path)).taxProfile)
-      return { problem: { field: "form", message: TAX_PROFILE_ALREADY_SUBMITTED } };
+    // 퇴직한 근무지(조회만, WHALEERP-765)거나 이미 냈으면 보내지 않는다
+    const blocked = taxProfileCreateBlocked(await authedRequest<Schemas["MyTaxProfileResponseDto"]>(path));
+    if (blocked) return blocked;
     await authedRequest<Schemas["MyTaxProfileResponseDto"]>(path, {
       method: "PUT",
       json: checked.body,

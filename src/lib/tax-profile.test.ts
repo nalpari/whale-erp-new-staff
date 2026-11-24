@@ -20,6 +20,9 @@ import {
   TAX_VIEW_UNAVAILABLE_AFTER_SAVE,
   taxViewAfterChange,
   taxProfileEditBlocked,
+  taxProfileCreateBlocked,
+  TAX_PROFILE_ALREADY_SUBMITTED,
+  TAX_PROFILE_READ_ONLY,
   parseStaffMemberId,
   readTaxProfileForm,
   rrnBirthMismatch,
@@ -118,10 +121,45 @@ test("taxProfileSaveFailure — 404 · 429 · 503 · 500 · 연결 실패", () =
 });
 
 test("taxProfileEditBlocked — 신고 정보가 없으면 고치지 않는다(첫 입력은 150)", () => {
-  assert.deepEqual(taxProfileEditBlocked({ taxProfile: null }), { problem: { field: "form", message: TAX_PROFILE_MISSING } });
-  assert.equal(taxProfileEditBlocked({ taxProfile: { rrnMasked: "900101-1******" } }), null);
+  assert.deepEqual(taxProfileEditBlocked({ taxProfile: null, editable: true }), { problem: { field: "form", message: TAX_PROFILE_MISSING } });
+  assert.equal(taxProfileEditBlocked({ taxProfile: { rrnMasked: "900101-1******" }, editable: true }), null);
   // 그사이 없어져 api 가 처음 작성으로 본 경우(TAX_PROFILE_INCOMPLETE)도 같은 문구다.
   assert.equal(taxProfileSaveFailure({ status: 400, message: "사유", code: "TAX_PROFILE_INCOMPLETE" }).state.problem?.message, TAX_PROFILE_MISSING);
+});
+
+// 퇴직한 근무지는 조회만(WHALEERP-765) — api 가 editable: false 를 주고 PUT 은 409 STAFF_RETIRED
+test("퇴직한 근무지(editable: false)는 고치기 · 처음 넣기 모두 PUT 하지 않는다", () => {
+  const readOnly = { problem: { field: "form", message: TAX_PROFILE_READ_ONLY } };
+  assert.deepEqual(taxProfileEditBlocked({ taxProfile: { rrnMasked: "900101-1******" }, editable: false }), readOnly);
+  assert.deepEqual(taxProfileEditBlocked({ taxProfile: null, editable: false }), readOnly);
+  assert.deepEqual(taxProfileCreateBlocked({ taxProfile: null, editable: false }), readOnly);
+  assert.deepEqual(taxProfileCreateBlocked({ taxProfile: { rrnMasked: "900101-1******" }, editable: false }), readOnly);
+});
+
+test("editable 이 없으면(옛 api) 막지 않는다 — false 일 때만 조회 전용", () => {
+  assert.equal(taxProfileEditBlocked({ taxProfile: { rrnMasked: "900101-1******" } }), null);
+  assert.equal(taxProfileCreateBlocked({ taxProfile: null }), null);
+  assert.deepEqual(taxProfileEditBlocked({ taxProfile: null }), { problem: { field: "form", message: TAX_PROFILE_MISSING } });
+  assert.deepEqual(taxProfileCreateBlocked({ taxProfile: { rrnMasked: "900101-1******" } }), {
+    problem: { field: "form", message: TAX_PROFILE_ALREADY_SUBMITTED },
+  });
+});
+
+test("taxProfileCreateBlocked — 이미 냈으면 처음 넣기를 보내지 않는다, 아니면 null", () => {
+  assert.deepEqual(taxProfileCreateBlocked({ taxProfile: { rrnMasked: "900101-1******" }, editable: true }), {
+    problem: { field: "form", message: TAX_PROFILE_ALREADY_SUBMITTED },
+  });
+  assert.equal(taxProfileCreateBlocked({ taxProfile: null, editable: true }), null);
+});
+
+test("저장 409 STAFF_RETIRED(그사이 퇴직) — 고치기 · 처음 넣기 모두 조회만 안내, 남기지 않는다", () => {
+  const conflict = { status: 409, message: "퇴직한 근무지의 신고 정보는 조회만 할 수 있습니다.", code: "STAFF_RETIRED" };
+  assert.deepEqual(taxProfileSaveFailure(conflict), { state: { problem: { field: "form", message: TAX_PROFILE_READ_ONLY } }, log: false });
+  assert.deepEqual(taxProfileCreateFailure(conflict), {
+    state: { problem: { field: "form", message: TAX_PROFILE_READ_ONLY } },
+    log: false,
+    alreadySaved: false,
+  });
 });
 
 test("validateTaxProfileEdit — 실패 상태에 넣은 숫자(원문)가 남지 않는다", () => {
