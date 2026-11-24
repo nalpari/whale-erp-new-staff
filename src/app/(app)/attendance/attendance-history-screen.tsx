@@ -346,7 +346,12 @@ function PeriodView({
           })}
         </ul>
       )}
-      <p className="text-[12px] text-staff-text-muted">출퇴근 기록은 보존 기간(3년) 동안 조회할 수 있습니다.</p>
+      {/* 보존 기준은 기록한 날로부터 3년(운영 정책 RET-03). 문의 안내를 여기 한 번 둔다(2026-11-24 사용자 지정) */}
+      <p className="px-[4px] text-[12px] text-staff-text-muted">
+        출퇴근 기록은 기록한 날로부터 3년 동안 조회할 수 있습니다.
+        <br />
+        기록이 실제와 다르면 근무지 관리자에게 문의해 주세요.
+      </p>
     </>
   );
 }

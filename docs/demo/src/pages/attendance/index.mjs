@@ -133,7 +133,7 @@ const periodView = () =>
     "9월 3주 · 9/14 – 9/20",
     "근무 예정",
     { upcoming: true },
-  )}${weekRow("9월 4주 · 9/21 – 9/27", "근무 예정", { upcoming: true })}</ul><p class="text-[12px] text-staff-text-muted">출퇴근 기록은 보존 기간(3년) 동안 조회할 수 있습니다.</p>`;
+  )}${weekRow("9월 4주 · 9/21 – 9/27", "근무 예정", { upcoming: true })}</ul><p class="px-[4px] text-[12px] text-staff-text-muted">출퇴근 기록은 기록한 날로부터 3년 동안 조회할 수 있습니다.<br>기록이 실제와 다르면 근무지 관리자에게 문의해 주세요.</p>`;
 
 // 경고 아이콘(목업 ph-warning). 저장소에 맞는 SVG 가 없어 여기서만 그린다. 20px 칸 가운데.
 const warningIcon = () =>
