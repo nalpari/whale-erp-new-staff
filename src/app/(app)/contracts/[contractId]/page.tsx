@@ -76,8 +76,8 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   // 소속 근무지에서 그 근무지 목록으로 왔으면 같은 목록으로 돌아간다
   const storeId = parseId(query.store);
   const storeQuery = storeId === null ? "" : `?store=${storeId}`;
-  // 알림에서 열었으면(?from=notifications) 알림 목록으로 돌아간다(2026-11-24 사용자 지정). 받기 · 서명 뒤 상세로 돌아와도 이어지게
-  // 상세로 돌아오는 주소(받기 실패 · 토스트 뒤 주소 정리)에는 store 와 함께 from 도 싣는다(리뷰)
+  // 알림에서 열었으면(?from=notifications) 알림 목록으로 돌아간다(2026-11-24 사용자 지정). 받기 실패 · 서명 화면에서 돌아오기 ·
+  // 수정 요청 뒤 상세로 돌아와도 이어지게, 상세로 돌아오는 주소에는 store 와 함께 from 도 싣는다(리뷰)
   const fromNotifications = query.from === "notifications";
   const backHref = fromNotifications ? "/notifications" : `/contracts${storeQuery}`;
   const keepParams = new URLSearchParams();
@@ -314,10 +314,10 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
       )}
       {canDecide && c.sentAt && (
         <ContractDecision
-          signHref={`/contracts/${c.contractId}/sign?${storeId === null ? "" : `store=${storeId}&`}sentAt=${encodeURIComponent(c.sentAt)}`}
+          signHref={`/contracts/${c.contractId}/sign?${keepParams.size > 0 ? `${keepParams}&` : ""}sentAt=${encodeURIComponent(c.sentAt)}`}
           signable={c.signable}
           rejectAction={rejectContractAction.bind(null, c.contractId, storeId)}
-          correctionAction={requestContractCorrectionAction.bind(null, c.contractId, storeId)}
+          correctionAction={requestContractCorrectionAction.bind(null, c.contractId, storeId, fromNotifications)}
         />
       )}
       {query.done !== undefined && (

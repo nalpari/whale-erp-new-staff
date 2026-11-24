@@ -67,6 +67,8 @@ export async function rejectContractAction(rawContractId: number, rawStoreId: nu
 export async function requestContractCorrectionAction(
   rawContractId: number,
   rawStoreId: number | null,
+  /** 알림에서 연 상세였다 — 돌아온 상세의 뒤로 가기가 알림 목록으로 가게 from 을 이어 준다 */
+  fromNotifications: boolean,
   _previous: ContractActionState,
   formData: FormData,
 ): Promise<ContractActionState> {
@@ -74,7 +76,7 @@ export async function requestContractCorrectionAction(
   if (contractId === null) notFound();
   const read = readCorrectionReason(formData.get("reason"));
   if ("error" in read) return { field: "reason", message: read.error };
-  return run("correction", `/me/contracts/${contractId}/correction-request`, { json: read }, `/contracts/${contractId}?${storePart(rawStoreId)}done=correction`);
+  return run("correction", `/me/contracts/${contractId}/correction-request`, { json: read }, `/contracts/${contractId}?${storePart(rawStoreId)}${fromNotifications === true ? "from=notifications&" : ""}done=correction`);
 }
 
 /**
