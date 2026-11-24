@@ -11,7 +11,7 @@ import {
   durationLabel,
   editRows,
   flagDescription,
-  flagLine,
+  flaggedPairLines,
   flagsOf,
   flagTitle,
   isEdited,
@@ -21,6 +21,7 @@ import {
   statusChipOf,
   summaryOf,
   weekDays,
+  weekBarRange,
   weekRows,
   type MyAttendanceDay,
 } from "@/lib/attendance-history";
@@ -75,6 +76,8 @@ export function AttendanceHistoryScreen({ tab, records, today, weekStart, now, f
 }
 
 function WeekView({ records, today, weekStart, now, onOpen }: { records: MyAttendanceRecords; today: string; weekStart: string; now: string; onOpen: (s: Sheet) => void }) {
+  // 한 주 카드는 같은 눈금을 쓴다 — 날마다 범위가 다르면 같은 시각이 카드마다 다른 자리에 보였다(2026-11-24 사용자 지정)
+  const range = weekBarRange(records.items.map((d) => barOf(d, new Date(now))));
   if (records.items.length === 0) return <EmptyRecords />;
   const flagCount = records.items.reduce((n, d) => n + flagsOf(d).length, 0);
   return (
@@ -93,15 +96,34 @@ function WeekView({ records, today, weekStart, now, onOpen }: { records: MyAtten
       )}
       <div className="flex flex-col gap-[8px]">
         {weekDays(weekStart, records.items).map(({ date, day }) =>
-          day ? <DayCard key={date} day={day} store={records.storeName} today={today} now={now} onOpen={onOpen} /> : <DayOffRow key={date} label={`${dayLabel(date)} · 휴무`} />,
+          day ? (
+            <DayCard key={date} day={day} store={records.storeName} today={today} now={now} range={range} onOpen={onOpen} />
+          ) : (
+            <DayOffRow key={date} label={`${dayLabel(date)} · 휴무`} />
+          ),
         )}
       </div>
     </>
   );
 }
 
-function DayCard({ day, store, today, now, onOpen }: { day: MyAttendanceDay; store: string; today: string; now: string; onOpen: (s: Sheet) => void }) {
-  const bar = barOf(day, new Date(now));
+function DayCard({
+  day,
+  store,
+  today,
+  now,
+  range,
+  onOpen,
+}: {
+  day: MyAttendanceDay;
+  store: string;
+  today: string;
+  now: string;
+  /** 한 주 카드가 같은 눈금을 쓰게 주 전체의 막대 범위(weekBarRange) */
+  range: { from: number; to: number };
+  onOpen: (s: Sheet) => void;
+}) {
+  const bar = { ...barOf(day, new Date(now)), ...range };
   const flags = flagsOf(day);
   // 확인 필요 꼬리표가 붙은 날 — 호박색 카드 전체가 사유 시트를 연다(데모 flaggedDayCard). 직원이 누를 처리 버튼은 없다(HIST-3).
   if (flags.length > 0)
@@ -117,7 +139,11 @@ function DayCard({ day, store, today, now, onOpen }: { day: MyAttendanceDay; sto
           <StatusChip tone="warning">확인 필요</StatusChip>
         </span>
         <WorkTimeBar {...bar} />
-        <span className="pt-[2px] text-[13px]">{flags.map(flagLine).join(" / ")}</span>
+        <span className="flex flex-col pt-[2px] text-[13px]">
+          {flaggedPairLines(day, today).map((line, i) => (
+            <span key={i}>{line}</span>
+          ))}
+        </span>
       </button>
     );
 

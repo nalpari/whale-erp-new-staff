@@ -42,7 +42,7 @@ export function AttendanceDayCard({
         {status && <StatusChip tone={status.tone}>{status.label}</StatusChip>}
       </div>
       <WorkTimeBar {...bar} />
-      <p className={`pt-[2px] text-[12px] ${sub}`}>{summary}</p>
+      <p className={`pt-[2px] text-[12px] whitespace-pre-line ${sub}`}>{summary}</p>
     </article>
   );
 }

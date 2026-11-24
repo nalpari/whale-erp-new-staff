@@ -76,7 +76,8 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   // 소속 근무지에서 그 근무지 목록으로 왔으면 같은 목록으로 돌아간다
   const storeId = parseId(query.store);
   const storeQuery = storeId === null ? "" : `?store=${storeId}`;
-  const backHref = `/contracts${storeQuery}`;
+  // 알림에서 열었으면(?from=notifications) 알림 목록으로 돌아간다(2026-11-24 사용자 지정)
+  const backHref = query.from === "notifications" ? "/notifications" : `/contracts${storeQuery}`;
   // 받기가 실패해 돌아왔다. 주소에서 오는 값이라 정한 키만 받고(프로토타입 이름 막기), 안내를 띄운 뒤 주소의 `?download=` 는 지운다.
   const downloadAlert =
     typeof query.download === "string" && Object.hasOwn(DOWNLOAD_ALERT, query.download) ? (

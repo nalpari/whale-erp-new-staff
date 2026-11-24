@@ -1,7 +1,7 @@
 // node --test src/lib/attendance-history.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { barOf, dayLabel, durationLabel, editRows, flagDescription, flagLine, flagsOf, flagTitle, rangeLabel, mondayOf, monthAttendanceLabel, parsePeriod, periodTotals, stampLabel, statusChipOf, summaryOf, weekDays, weekRows, type MyAttendanceDay } from "./attendance-history.ts";
+import { barOf, flaggedPairLines, dayLabel, durationLabel, editRows, flagDescription, flagLine, flagsOf, flagTitle, rangeLabel, mondayOf, monthAttendanceLabel, parsePeriod, periodTotals, stampLabel, statusChipOf, summaryOf, weekDays, weekRows, type MyAttendanceDay } from "./attendance-history.ts";
 
 const TODAY = "2026-10-23";
 const punch = (date: string, time: string, extra: object = {}) => ({
@@ -60,7 +60,21 @@ test("요약 줄과 근무 막대", () => {
   assert.equal(summaryOf(day("2026-10-24", { pairs: [], status: null }), TODAY), "예정 09:00 – 18:00");
   assert.equal(summaryOf(day(TODAY, { pairs: [{ checkIn: punch(TODAY, "09:02"), checkOut: null }] }), TODAY), "출근 09:02 · 퇴근 전");
   const bar = barOf(day(TODAY, { pairs: [{ checkIn: punch(TODAY, "09:02"), checkOut: null }] }), new Date("2026-10-23T05:00:00Z"));
-  assert.deepEqual(bar, { schedule: { start: "09:00", end: "18:00" }, worked: { start: "09:02", end: "14:00" }, ongoing: true });
+  assert.deepEqual(bar, { schedule: { start: "09:00", end: "18:00" }, worked: { start: "09:02", end: "14:00" }, ongoing: true, from: 8, to: 20 });
+  // 새벽 예정(04:30~09:00)과 저녁 퇴근(21:27)이면 4시간 눈금에 맞춰 04~24시로 넓힌다
+  const wide = barOf(
+    day("2026-10-22", {
+      schedules: [{ ...day("2026-10-22").schedules[0], startTime: "04:30", endTime: "09:00" }],
+      pairs: [{ checkIn: punch("2026-10-22", "15:58"), checkOut: punch("2026-10-22", "21:27") }],
+    }),
+    new Date("2026-10-23T05:00:00Z"),
+  );
+  assert.equal(wide.from, 4);
+  assert.equal(wide.to, 24);
+  // 자정을 넘기는 예정은 끝을 24시간 더해 그린다
+  const night = barOf(day("2026-10-22", { schedules: [{ ...day("2026-10-22").schedules[0], startTime: "22:00", endTime: "02:00" }], pairs: [] }), new Date("2026-10-23T05:00:00Z"));
+  assert.deepEqual(night.schedule, { start: "22:00", end: "26:00" });
+  assert.equal(night.to, 28);
 });
 
 test("이번 주 7일 · 날 라벨 · 주별 줄 · 누계", () => {
@@ -121,4 +135,15 @@ test("연필 시트 줄 — 보정은 바뀐 쪽만, 대신 등록은 시각만(
   ]);
   const past = barOf(day("2026-10-22", { status: "MISSING_CHECK_OUT", pairs: [{ checkIn: punch("2026-10-22", "09:14"), checkOut: null }] }), new Date("2026-10-23T05:00:00Z"));
   assert.equal(past.worked, undefined);
+});
+
+test("하루 기록은 출근 · 퇴근 한 쌍을 한 줄씩", () => {
+  const two = day("2026-10-22", {
+    pairs: [
+      { checkIn: punch("2026-10-22", "15:58", { reviewReason: "OUT_OF_RADIUS" }), checkOut: punch("2026-10-22", "18:14", { reviewReason: "OUT_OF_RADIUS" }) },
+      { checkIn: punch("2026-10-22", "18:15"), checkOut: punch("2026-10-22", "21:27", { reviewReason: "OUT_OF_RADIUS" }) },
+    ],
+  });
+  assert.equal(summaryOf(two, TODAY), "출근 15:58 · 퇴근 18:14\n출근 18:15 · 퇴근 21:27");
+  assert.deepEqual(flaggedPairLines(two, TODAY), ["출근 15:58(반경 밖) · 퇴근 18:14(반경 밖)", "출근 18:15 · 퇴근 21:27(반경 밖)"]);
 });

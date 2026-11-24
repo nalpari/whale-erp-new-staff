@@ -129,7 +129,27 @@ export function summaryOf(d: MyAttendanceDay, today: string): string {
       const out = p.checkOut ? `퇴근 ${p.checkOut.time}` : d.date === today ? "퇴근 전" : "퇴근 기록 없음";
       return `출근 ${p.checkIn?.time ?? "기록 없음"} · ${out}`;
     })
-    .join(" / ");
+    // 출근 · 퇴근 한 쌍을 한 줄씩 — 「/」로 이어 쓰면 쌍이 여럿일 때 읽기 어려웠다(2026-11-24 사용자 지정). 보이는 곳은 whitespace-pre-line
+    .join("\n");
+}
+
+/** 한 주 카드가 함께 쓸 막대 범위 — 날마다 넓힌 범위 가운데 가장 넓은 것(기본 08~20시) */
+export function weekBarRange(bars: readonly { from: number; to: number }[]): { from: number; to: number } {
+  return { from: Math.min(8, ...bars.map((b) => b.from)), to: Math.max(20, ...bars.map((b) => b.to)) };
+}
+
+/** 확인 필요 사유를 짧게 — 쌍 줄 괄호에 붙인다. 출근 · 퇴근은 줄 앞에 있어 되풀이하지 않는다 */
+const shortReason = (reason: string) =>
+  reason === "ACCURACY_EXCEEDED" ? "위치 확인 실패" : reason === "MOCK_LOCATION" ? "위치 조작 감지" : reason === "LONG_SHIFT" ? "12시간 초과" : "반경 밖";
+
+/**
+ * 확인 필요 카드의 줄 — 출근 · 퇴근 한 쌍을 한 줄씩, 사유는 그 시각 뒤 괄호(「출근 15:58(반경 밖 출근) · 퇴근 18:14(반경 밖 퇴근)」).
+ * 사유 없는 쌍도 같은 꼴로 둬 하루 기록을 다 보인다(2026-11-24 사용자 지정)
+ */
+export function flaggedPairLines(d: MyAttendanceDay, today: string): string[] {
+  const side = (kind: "출근" | "퇴근", p: { time: string; reviewReason?: string | null } | null | undefined, missing: string) =>
+    p ? `${kind} ${p.time}${p.reviewReason ? `(${shortReason(p.reviewReason)})` : ""}` : `${kind} ${missing}`;
+  return d.pairs.map((p) => `${side("출근", p.checkIn, "기록 없음")} · ${side("퇴근", p.checkOut, d.date === today ? "전" : "기록 없음")}`);
 }
 
 /** 근무 막대 — 첫 근무스케줄과, 첫 출근 ~ 마지막 퇴근(오늘 근무 중이면 지금까지) */
@@ -139,13 +159,32 @@ export function barOf(d: MyAttendanceDay, now: Date = new Date()) {
   const lastOut = [...d.pairs].reverse().find((p) => p.checkOut)?.checkOut?.time;
   const ongoing = d.pairs.some((p) => p.checkIn && !p.checkOut) && d.date === kstToday(now);
   const end = ongoing ? new Date(now.getTime() + KST_MS).toISOString().slice(11, 16) : lastOut;
+  // 끝이 시작보다 이르거나 같으면 자정을 넘긴 것이라 24시간을 더한 시각(「26:00」)으로 그린다(근무 탭 barOf 와 같다)
+  const span = (start: string, stop: string) => {
+    const a = minutesOf(start);
+    let b = minutesOf(stop);
+    if (b <= a) b += 24 * 60;
+    return { start, end: hhmmOf(b), from: a, to: b };
+  };
+  const schedule = s ? span(s.startTime, s.endTime) : undefined;
+  // 퇴근이 없는 지난 날은 실제 막대를 그리지 않는다(목업 「퇴근 기록 없음」 카드는 예정만)
+  const worked = firstIn && end ? span(firstIn, end) : undefined;
+  // 막대 범위는 기본 08~20시이고, 예정 · 실제 근무가 넘으면 4시간 눈금에 맞춰 넓힌다 — 새벽 근무(04:30)나 저녁 퇴근(21:27)이
+  // 끝에 붙어 잘려 보였다(근무 탭 막대와 같은 규칙, 2026-11-24 사용자 지정)
+  const starts = [schedule?.from, worked?.from].filter((m): m is number => m !== undefined);
+  const ends = [schedule?.to, worked?.to].filter((m): m is number => m !== undefined);
+  const from = Math.min(8, ...starts.map((m) => Math.floor(m / 60 / 4) * 4));
+  const reach = Math.max(20, ...ends.map((m) => Math.ceil(m / 60)));
   return {
-    schedule: s ? { start: s.startTime, end: s.endTime } : undefined,
-    // 퇴근이 없는 지난 날은 실제 막대를 그리지 않는다(목업 「퇴근 기록 없음」 카드는 예정만)
-    worked: firstIn && end ? { start: firstIn, end } : undefined,
+    schedule: schedule && { start: schedule.start, end: schedule.end },
+    worked: worked && { start: worked.start, end: worked.end },
     ongoing,
+    from,
+    to: from + Math.ceil((reach - from) / 4) * 4,
   };
 }
+
+const hhmmOf = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
 
 export interface PeriodTotals {
   workedMinutes: number;
