@@ -25,7 +25,6 @@ import {
 import type { MyAttendanceRecords } from "@/lib/my-attendance";
 import { Sunken, Values } from "../check-in/check-in-parts";
 import { PeriodPicker } from "./period-picker";
-import { WorkplaceBox } from "@/app/_components/workplace-box";
 
 type Tab = "week" | "period";
 type Sheet = { kind: "edits" | "flag" | "missing-out"; day: MyAttendanceDay } | null;
@@ -49,8 +48,6 @@ export function AttendanceHistoryScreen({ tab, records, today, weekStart, now, f
 
   return (
     <main className="flex flex-1 flex-col gap-[20px] px-[22px] pt-[20px] pb-[24px] leading-[1.5]">
-      {/* 근무지는 탭 위에 한 번 — 이번 주 · 기간별 어디서나 같은 자리 · 같은 모양(내 근무지 화면과 같은 근무지 상자). 날짜 카드마다 되풀이하던 점포명은 뺐다(2026-11-24 사용자 지정) */}
-      <WorkplaceBox name={records.storeName} />
       <SegmentedControl
         label="기간"
         panelId={PANEL}
@@ -129,7 +126,7 @@ function DayCard({
       <button
         type="button"
         onClick={() => onOpen({ kind: "flag", day })}
-        className={`flex w-full flex-col gap-[3px] rounded-[18px] border border-[#f6e3bd] bg-[#fffbf2] px-[20px] pt-[20px] pb-[32px] text-left text-[#6f4608] transition-[background-color] duration-150 ${EASE_OUT} active:bg-[#fff3dc]`}
+        className={`flex w-full flex-col gap-[3px] rounded-[18px] border border-[#f6e3bd] bg-[#fffbf2] px-[20px] py-[20px] text-left text-[#6f4608] transition-[background-color] duration-150 ${EASE_OUT} active:bg-[#fff3dc]`}
       >
         <span className="flex w-full items-center gap-[8px] pb-[5px]">
           <span className="min-w-0 flex-1 text-[13px] font-bold">{dayLabel(day.date)}</span>

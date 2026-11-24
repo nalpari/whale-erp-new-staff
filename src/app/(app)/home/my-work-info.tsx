@@ -42,7 +42,7 @@ export async function MyWorkInfo({ staffMemberId }: { staffMemberId?: number }) 
       {staffMemberId && (
         <InfoRow
           href="/work"
-          icon="/icons/menu-schedule.svg"
+          icon={<IconTile src="/icons/nav-work.svg" size={33} />}
           title="근무스케줄"
           description={schedules ? `이번 달 근무 ${new Set(schedules.items.map((i) => i.workDate)).size}일` : undefined}
         />
@@ -50,7 +50,7 @@ export async function MyWorkInfo({ staffMemberId }: { staffMemberId?: number }) 
       {staffMemberId && (
         <InfoRow
           href="/attendance?back=home"
-          icon="/icons/menu-attendance.svg"
+          icon={<IconTile src="/icons/nav-attendance.svg" size={33} />}
           title="출퇴근 현황"
           description={records ? monthAttendanceLabel(records, today) : undefined}
         />

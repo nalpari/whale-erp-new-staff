@@ -3,7 +3,7 @@ import type { ComponentProps } from "react";
 import { StatusChip, type StatusChipTone } from "./status-chip";
 import { WorkTimeBar } from "./work-time-bar";
 
-// Figma 05.출퇴근 현황 하루 카드(node 12:1355). radius 18 · 위 20 좌우 20 아래 32 · 사이 3.
+// Figma 05.출퇴근 현황 하루 카드(node 12:1355). radius 18 · 사방 20(아래 32 는 위아래가 달라 보였다, 2026-11-24 사용자 지정) · 사이 3.
 //   done — 흰 바탕 · 기본 글자
 //   today — 연한 남보라(#EEF2FF · #DCE4FF 테두리) · 글자 남보라
 //   upcoming — #F9FBFD 바탕 · 보조 글자 · 상태 칩 없음
@@ -35,7 +35,7 @@ export function AttendanceDayCard({
 } & ComponentProps<typeof WorkTimeBar>) {
   const sub = state === "done" ? "text-staff-text-sub" : "";
   return (
-    <article className={`flex flex-col gap-[3px] rounded-[18px] border px-[20px] pt-[20px] pb-[32px] leading-[1.5] ${CARD[state]}`}>
+    <article className={`flex flex-col gap-[3px] rounded-[18px] border px-[20px] py-[20px] leading-[1.5] ${CARD[state]}`}>
       <div className="flex items-center gap-[8px] pb-[5px]">
         <h3 className="min-w-0 flex-1 text-[13px] font-bold">{day}</h3>
         {store && <span className={`truncate text-[12px] ${sub}`}>{store}</span>}

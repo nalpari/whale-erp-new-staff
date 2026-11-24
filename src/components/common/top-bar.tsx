@@ -9,6 +9,15 @@ import { MaskIcon } from "./icon";
 // onStoreClick 이 없으면(근무지가 하나 · 없음) 꺾쇠를 그리지 않는다(#314, 2026-10-23 재영).
 // 알림 종은 테두리 상자 없이 아이콘만(누르는 칸 44px), 새 알림이 있으면 오른쪽 위 8px 빨간 점(#C24242 — 이 점에만 나와 토큰으로 두지 않는다).
 // 아이콘은 Figma 가 뒤집어 내보내 -scale-y-100 으로 세운다.
+/** 근무지 줄의 점포 표시 — 흰 바탕 · 1px 테두리 동그라미(28px) 안 먹색 점포 아이콘(머리줄 · 출퇴근 현황이 같이 쓴다) */
+export function StoreMark() {
+  return (
+    <span aria-hidden className="flex size-[28px] shrink-0 items-center justify-center rounded-full border border-staff-border bg-white text-staff-text">
+      <MaskIcon src="/icons/store-line.svg" size={15} />
+    </span>
+  );
+}
+
 export function TopBar({
   store,
   onStoreClick,
@@ -41,9 +50,7 @@ export function TopBar({
       className={`flex min-h-[44px] max-w-full min-w-0 items-center gap-[6px] font-bold text-staff-text ${title ? "text-[15px]" : "text-[17px]"}`}
     >
       {/* 근무지임을 알리는 점포 아이콘 — 흰 바탕 · 1px 테두리 동그라미, 아이콘은 글자와 같은 먹색(2026-11-24 사용자 지정) */}
-      <span className="flex size-[28px] shrink-0 items-center justify-center rounded-full border border-staff-border bg-white text-staff-text">
-        <MaskIcon src="/icons/store-line.svg" size={15} />
-      </span>
+      <StoreMark />
       <span className="truncate">{store}</span>
       {onStoreClick && <Image src="/icons/chevron-down.svg" alt="" width={13} height={13} className="shrink-0 -scale-y-100" />}
     </button>
