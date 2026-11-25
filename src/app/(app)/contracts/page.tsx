@@ -27,7 +27,8 @@ export default async function ContractsPage({ searchParams }: PageProps<"/contra
   const now = new Date();
   const { open, finished } = groupContracts(items, now);
   // 내 근무지에서 왔으면 그리로 돌아간다. 데모 목록의 뒤로 가기는 홈이다.
-  const backHref = storeId === null ? "/home" : "/me/memberships";
+  // 근무지별 목록에서 돌아가면 내 근무지 「전체」로 — 기본 「근무 중」이면 퇴직한 근무지가 안 보인다(2026-11-25 리뷰)
+  const backHref = storeId === null ? "/home" : "/me/memberships?status=all";
   const query = storeId === null ? "" : `?store=${storeId}`;
   const row = (c: ContractListItem) => (
     <ContractRow key={c.contractId} c={c} now={now} query={query} inStore={storeId !== null} statuses={statuses} />

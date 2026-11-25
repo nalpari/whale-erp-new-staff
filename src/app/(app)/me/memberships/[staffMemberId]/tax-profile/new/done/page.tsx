@@ -8,6 +8,7 @@ import { HOME_PATH } from "@/lib/login-return";
 import { getMyTaxProfile } from "@/lib/my-profile";
 import { kstDateTimeLabel } from "@/lib/profile";
 import { parseStaffMemberId } from "@/lib/tax-profile";
+import { GrayBox } from "@/app/_components/gray-box";
 import { Values } from "@/app/_components/tax-profile-parts";
 
 export const metadata: Metadata = { title: "신고 정보 등록 완료 · Whale ERP" };
@@ -38,7 +39,7 @@ export default async function NewTaxProfileDonePage({ params }: PageProps<"/me/m
           {profile && <p className="text-[14px] text-staff-text-sub">이제 근무를 시작할 수 있습니다.</p>}
         </div>
         {profile ? (
-          <section className="rounded-[16px] bg-staff-bg px-[18px] py-[15px]">
+          <GrayBox flush>
             <Values
               flush
               rows={[
@@ -48,7 +49,7 @@ export default async function NewTaxProfileDonePage({ params }: PageProps<"/me/m
                 ["등록 일시", kstDateTimeLabel(profile.collectedAt)],
               ]}
             />
-          </section>
+          </GrayBox>
         ) : (
           <Alert tone="warning">
             <p>등록됐는지 지금 확인할 수 없습니다. 잠시 뒤 신고 정보에서 확인하고, 없으면 다시 입력해 주세요.</p>

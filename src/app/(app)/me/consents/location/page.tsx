@@ -5,7 +5,7 @@ import { LocationConsentCard } from "../../consent-cards";
 
 export const metadata: Metadata = { title: "출퇴근 위치정보 이용 동의 · Whale ERP" };
 
-// 내 정보 › 출퇴근 위치정보 이용 동의 상세(2026-11-25 사용자 지정). 내 정보에는 상태 배지 · 일시 한 줄만 두고, 내용 보기 · 일시 중지 ·
+// 내 정보 › 출퇴근 위치정보 이용 동의 상세(2026-11-25 사용자 지정). 내 정보에는 이름 · 상태 배지 한 줄만 두고, 내용 보기 · 일시 중지 ·
 // 다시 켜기 · 동의 철회 · 다시 동의하기는 여기서 한다 — 동작 규칙(확인 시트 · 약관 시트)은 내 정보에 있던 카드 그대로다.
 export default async function LocationConsentPage() {
   const [profile, terms] = await Promise.all([getMyProfile(), getCurrentTerms("LOCATION")]);

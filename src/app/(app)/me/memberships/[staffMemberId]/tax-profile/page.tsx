@@ -144,7 +144,7 @@ export default async function TaxProfilePage({ params, searchParams }: PageProps
 
   return (
     <div className="flex flex-1 flex-col bg-white">
-      <PageHeader title="신고 정보" backHref="/me/memberships" />
+      <PageHeader title="신고 정보" backHref="/me/memberships?status=all" />
       <div className="flex flex-1 flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5] break-keep">
         {tax === null ? (
           <Alert tone="warning">

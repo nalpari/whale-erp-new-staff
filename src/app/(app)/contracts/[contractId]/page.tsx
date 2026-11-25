@@ -190,7 +190,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
             // 파일을 읽어 올 수 없어 쓰지 않는다.
             action={
               signedCopy && (
-                <DownloadPill href={`/contracts/${c.contractId}/documents/${signedCopy.contractDocumentId}${keepQuery}`} />
+                <DownloadPill href={`/contracts/${c.contractId}/documents/${signedCopy.contractDocumentId}${keepQuery}`} label="근로계약서 PDF 다운로드" />
               )
             }
           />
@@ -265,7 +265,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           null
         )}
 
-        {/* 머리 요약 — 근무지명 · 상태, 받은 날 · 서명(기한이면 남은 날 꺾은선), 그 밖 단계는 한 줄 안내(2026-11-20 사용자 지정) */}
+        {/* 머리 요약 — 근무지명 · 상태, 고용 형태 · 계약 기간 · 받은 날 · 서명(기한이면 남은 날 꺾은선), 그 밖 단계는 한 줄 안내(2026-11-20 · 11-25 사용자 지정) */}
         <ContractSummary
           storeName={c.employer.storeName}
           badge={<Badge tone={statusTone(phase)}>{status}</Badge>}

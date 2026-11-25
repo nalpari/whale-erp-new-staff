@@ -26,11 +26,6 @@ export function Sunken({ label, children }: { label?: string; children: ReactNod
 }
 
 /** 데모 values: 이름 · 값 줄. 13px, 이름은 보조 글자 · 값은 기본 글자 오른쪽, 위아래 9 · 줄 사이 옅은 선. 값이 없는 줄은 뺀다. */
-/** 회색 정보 상자 — 신고 정보 확인 화면의 값 상자와 같은 옅은 회색 바탕 · 둥근 16 · 테두리 없음(처리 완료 화면, 2026-11-25 사용자 지정) */
-export function GrayBox({ children }: { children: ReactNode }) {
-  return <section className="rounded-[16px] bg-staff-bg px-[18px] py-[6px]">{children}</section>;
-}
-
 export function Values({ rows }: { rows: [string, ReactNode | null | undefined][] }) {
   return (
     <dl className="flex flex-col divide-y divide-staff-border-light text-[13px]">

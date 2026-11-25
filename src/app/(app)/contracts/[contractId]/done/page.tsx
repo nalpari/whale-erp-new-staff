@@ -9,7 +9,8 @@ import { getMyMemberships, getMyTaxProfile } from "@/lib/my-profile";
 import { kstDateLabel, kstDateTimeLabel } from "@/lib/profile";
 import { requireSession } from "@/lib/session";
 import { ChangedToast } from "../../../me/changed-toast";
-import { ContractFrame, GrayBox, Tiny, Values } from "../../_components/parts";
+import { GrayBox } from "@/app/_components/gray-box";
+import { ContractFrame, Tiny, Values } from "../../_components/parts";
 
 export const metadata: Metadata = { title: "근로계약서 처리 완료 · Whale ERP" };
 

@@ -4,7 +4,13 @@
 /** brand 면 꼬리 끝 점선 · WHALE ERP 를 붙인 넓은 로고(로그인), 아니면 고래만(내 정보 프로필 등) */
 function StaffWhale({ brand, width, height }: { brand: boolean; width: number; height: number }) {
   return (
-    <svg aria-hidden width={width} height={height} viewBox={brand ? "-90 -4 304 100" : "4 -4 116 100"}>
+    // 로그인 로고는 「WHALE ERP」 글자가 그림 안에 있어 그림 전체를 이름으로 읽힌다. 고래만 그린 것(프로필)은 꾸밈이라 숨긴다
+    <svg
+      width={width}
+      height={height}
+      viewBox={brand ? "-90 -4 304 100" : "4 -4 116 100"}
+      {...(brand ? { role: "img", "aria-label": "WHALE ERP" } : { "aria-hidden": true })}
+    >
       {/* 물줄기 — 머리 위로 세 갈래, 끝에 물방울(하늘색 #B3D0F4) */}
       <path d="M54 20 C51 12 46 10 42 11 M56 19 C56 10 58 6 62 5 M58 20 C62 13 67 12 71 14" stroke="#b3d0f4" strokeWidth="3" strokeLinecap="round" fill="none" />
       <circle cx="41" cy="11" r="2.4" fill="#b3d0f4" />
@@ -21,7 +27,7 @@ function StaffWhale({ brand, width, height }: { brand: boolean; width: number; h
           <text x="140" y="30" fontSize="11.5" fontWeight="700" fill="#55617a" letterSpacing="0.3">
             WHALE ERP
           </text>
-            </>
+        </>
       )}
       <path d="M18 96 C8 60 24 24 56 24 C88 24 104 60 94 96 Z" fill="#6b8fc7" />
       <path d="M32 96 C30 74 42 62 56 62 C70 62 82 74 80 96 Z" fill="#f3ead8" />

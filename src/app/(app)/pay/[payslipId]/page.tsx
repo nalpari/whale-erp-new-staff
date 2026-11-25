@@ -73,14 +73,17 @@ export default async function PayslipPage({ params, searchParams }: PageProps<"/
   ];
 
   return (
-    <PayFrame nav={false} header={
+    <PayFrame
+      nav={false}
+      header={
         <PageHeader
           title="급여명세서"
           backHref={backHref}
           // PDF 다운로드는 머리줄 오른쪽 끝(2026-11-25 사용자 지정, 전엔 화면 맨 아래 큰 버튼)
           action={correcting ? undefined : <ExportButton payslipId={payslip.payslipId} keepQuery={keepQuery} />}
         />
-      }>
+      }
+    >
       {downloadAlert && (
         <>
           <Alert tone="warning">

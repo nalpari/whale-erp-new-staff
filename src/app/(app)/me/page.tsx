@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { Alert, Badge, BottomNav, StaffWhaleMark } from "@/components/common";
 import { PRESS } from "@/components/common/theme";
 import { getMyInvitations } from "@/lib/my-invitations";
-import { getCurrentTerms, getMyAffiliationRequests, getMyMemberships, getMyProfile } from "@/lib/my-profile";
+import { getMyAffiliationRequests, getMyMemberships, getMyProfile } from "@/lib/my-profile";
 import {
   PASSWORD_STALE_MONTHS,
   dateLabel,
@@ -38,9 +38,10 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
   const { changed } = await searchParams;
   // 주소에서 오는 값이라 정한 키만 받는다(`?changed=toString` 같은 프로토타입 이름이 함수를 꺼내지 않게).
   const toast = typeof changed === "string" && Object.hasOwn(CHANGED_TOAST, changed) ? CHANGED_TOAST[changed] : undefined;
-  const [profile, memberships, locationTerms] = await Promise.all([getMyProfile(), getMyMemberships(), getCurrentTerms("LOCATION")]);
+  const [profile, memberships] = await Promise.all([getMyProfile(), getMyMemberships()]);
   const items = memberships?.items ?? [];
-  const location = locationConsentView(profile.locationConsent, locationTerms.status === "ok" ? locationTerms.terms.effectiveDate : null);
+  // 줄에는 배지만 보여 약관 시행일은 받지 않는다(배지는 상태 · 다시 동의 필요로만 정해진다) — 일시 줄은 상세가 약관을 받아 그린다
+  const location = locationConsentView(profile.locationConsent, null);
   const hqSharing = hqSharingView(profile.hqSharingConsent);
   const first = items.at(0);
 
