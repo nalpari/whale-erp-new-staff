@@ -10,8 +10,8 @@ const HERO = {
   navy: "bg-staff-navy", // 급여
 };
 
-// 홈 맨 위의 진한 카드(Figma Work Status Card · Salary Card): radius 20 · 안쪽 20 · 흰 글자.
+// 진한 카드(Figma Work Status Card · Salary Card): radius 20 · 좌우 20 · 위아래 16(2026-11-25 높이를 줄였다) · 흰 글자.
 // 안에 놓는 보조 글자는 흰색에 투명도(opacity-60~80)로 낮춘다.
 export function HeroCard({ tone, children }: { tone: keyof typeof HERO; children: ReactNode }) {
-  return <div className={`w-full rounded-[20px] p-[20px] text-white ${HERO[tone]}`}>{children}</div>;
+  return <div className={`w-full rounded-[20px] px-[20px] py-[16px] text-white ${HERO[tone]}`}>{children}</div>;
 }

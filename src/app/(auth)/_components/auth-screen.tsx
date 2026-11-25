@@ -16,6 +16,7 @@ export function AuthScreen({
   dock,
   titleRef,
   titleHidden = false,
+  dockOnPage = false,
 }: {
   top?: ReactNode;
   /** 제목 바로 위의 작은 줄(가입의 단계 막대). */
@@ -31,11 +32,15 @@ export function AuthScreen({
   description?: ReactNode;
   children?: ReactNode;
   dock: ReactNode;
+  /** 버튼 줄을 흰 띠 없이 화면 바탕 그대로 둔다(로그인, 2026-11-25 사용자 지정) */
+  dockOnPage?: boolean;
 }) {
   return (
     <>
-      <div className="flex flex-col gap-[16px] px-[30px] pt-[52px] pb-[24px] leading-[1.5]">
-        {top && <div className="pt-[10px] pb-[60px]">{top}</div>}
+      {/* 버튼 줄이 바탕 그대로면 띠 위 여백(14)만 남겨 입력 끝 ↔ 첫 버튼 간격을 버튼 사이 간격(22)과 맞춘다 */}
+      <div className={`flex flex-col gap-[16px] px-[30px] pt-[52px] leading-[1.5] ${dockOnPage ? "pb-[6px]" : "pb-[24px]"}`}>
+        {/* 로그인 로고 묶음 아래는 이메일 라벨까지 22px(2026-11-25 사용자 지정 — 간격을 22 로 맞췄다) */}
+        {top && <div className="pt-[10px] pb-[2px]">{top}</div>}
         {titleHidden && !eyebrow && !description ? (
           // 숨긴 제목만 있으면 제목 묶음(아래 여백)을 그리지 않는다 — 데모 login 은 제목이 없으면 그 자리가 없다
           <h1 ref={titleRef} tabIndex={titleRef ? -1 : undefined} className="sr-only outline-none">
@@ -58,7 +63,9 @@ export function AuthScreen({
         )}
         {children}
       </div>
-      <Dock inset={30}>{dock}</Dock>
+      <Dock inset={30} onPage={dockOnPage}>
+        {dock}
+      </Dock>
     </>
   );
 }

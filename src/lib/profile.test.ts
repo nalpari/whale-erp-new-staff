@@ -5,6 +5,7 @@ import { HQ_SHARING_TERMS_VERSION, hqNotRecordedParams, hqSharingConsentBody, hq
 import {
   consentRequestBody,
   hqReconsentOf,
+  locationConsentView,
   locationNeedsReconsent,
   CONSENT_CHANGES,
   addressSaveFailure,
@@ -194,6 +195,27 @@ test("locationNeedsReconsent 는 동의 · 일시 중지에서 약관이 바뀌�
   assert.equal(locationNeedsReconsent({ state: "PAUSED", needsReconsent: true }), true);
   assert.equal(locationNeedsReconsent({ state: "AGREED", needsReconsent: false }), false);
   assert.equal(locationNeedsReconsent({ state: "WITHDRAWN", needsReconsent: true }), false);
+});
+
+test("locationConsentView 는 상태마다 배지와 일시 줄을 정한다 — 다시 동의 필요가 먼저, 시행일을 모르면 날짜 없이", () => {
+  const base = { needsReconsent: false, agreedAt: null, pausedAt: null, withdrawnAt: null, consentVersion: null } as const;
+  const agreed = locationConsentView({ ...base, state: "AGREED", agreedAt: "2026-11-23T01:09:00Z", consentVersion: "v1.1" }, null);
+  assert.deepEqual(agreed.badge, { tone: "success", text: "동의함" });
+  assert.equal(agreed.line, "2026년 11월 23일 10:09 동의 · 약관 v1.1");
+  assert.equal(agreed.reconsent, false);
+  const paused = locationConsentView({ ...base, state: "PAUSED", pausedAt: "2026-11-24T00:00:00Z" }, null);
+  assert.deepEqual(paused.badge, { tone: "warning", text: "일시 중지" });
+  assert.equal(paused.line, "2026년 11월 24일 09:00 일시 중지");
+  const withdrawn = locationConsentView({ ...base, state: "WITHDRAWN", withdrawnAt: "2026-11-24T00:00:00Z" }, null);
+  assert.deepEqual(withdrawn.badge, { tone: "plain", text: "동의하지 않음" });
+  assert.equal(withdrawn.line, "2026년 11월 24일 09:00 동의 철회");
+  const never = locationConsentView({ ...base, state: "NOT_AGREED" }, null);
+  assert.deepEqual(never.badge, { tone: "plain", text: "동의하지 않음" });
+  assert.equal(never.line, "");
+  const reconsent = locationConsentView({ ...base, state: "AGREED", needsReconsent: true, agreedAt: "2026-11-23T01:09:00Z" }, "2026-12-01");
+  assert.deepEqual(reconsent.badge, { tone: "warning", text: "다시 동의 필요" });
+  assert.equal(reconsent.line, "약관 변경 · 2026년 12월 1일");
+  assert.equal(locationConsentView({ ...base, state: "PAUSED", needsReconsent: true }, null).line, "약관 변경");
 });
 
 test("consentRequestBody 는 위치정보 · 사업자 제공 동의에 화면이 보인 버전을 싣고 나머지는 본문이 없다", () => {

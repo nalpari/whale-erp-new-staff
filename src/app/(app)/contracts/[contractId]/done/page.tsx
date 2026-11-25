@@ -9,7 +9,8 @@ import { getMyMemberships, getMyTaxProfile } from "@/lib/my-profile";
 import { kstDateLabel, kstDateTimeLabel } from "@/lib/profile";
 import { requireSession } from "@/lib/session";
 import { ChangedToast } from "../../../me/changed-toast";
-import { ContractFrame, Sunken, Tiny, Values } from "../../_components/parts";
+import { GrayBox } from "@/app/_components/gray-box";
+import { ContractFrame, Tiny, Values } from "../../_components/parts";
 
 export const metadata: Metadata = { title: "근로계약서 처리 완료 · Whale ERP" };
 
@@ -65,7 +66,7 @@ export default async function ContractDonePage({ params, searchParams }: PagePro
   if (c.status === "REJECTED")
     return (
       <>
-        <ContractFrame header={header}>
+        <ContractFrame header={header} white>
           {c.processedAt && <Clock label="거절 시각" at={c.processedAt} />}
           <Tiny>
             근무지 관리자에게 거절 사실을 알렸습니다.
@@ -89,9 +90,10 @@ export default async function ContractDonePage({ params, searchParams }: PagePro
   const taxHref = staffMemberId === undefined ? null : `/me/memberships/${staffMemberId}/tax-profile`;
   return (
     <>
-      <ContractFrame header={header}>
+      {/* 처리 완료 화면은 흰 바탕 · 근무지 · 고용 형태 · 계약 기간은 회색 상자(2026-11-25 사용자 지정) */}
+      <ContractFrame header={header} white>
         {c.processedAt && <Clock label="서명 시각" at={c.processedAt} />}
-        <Sunken>
+        <GrayBox>
           <Values
             rows={[
               ["근무지", c.employer.storeName],
@@ -99,7 +101,7 @@ export default async function ContractDonePage({ params, searchParams }: PagePro
               ["계약 기간", periodText(c.startDate, c.endDate)],
             ]}
           />
-        </Sunken>
+        </GrayBox>
         {taxSubmitted ? (
           <Notice icon={<MaskIcon src="/icons/id-card-line.svg" size={14} />}>
             이 근무지의 <strong>신고 정보는 이미 냈습니다.</strong>

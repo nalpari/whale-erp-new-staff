@@ -1,13 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Alert, BottomNav } from "@/components/common";
+import { Alert, Badge, BottomNav, StaffWhaleMark } from "@/components/common";
+import { PRESS } from "@/components/common/theme";
 import { getMyInvitations } from "@/lib/my-invitations";
-import { getCurrentTerms, getMyAffiliationRequests, getMyMemberships, getMyProfile } from "@/lib/my-profile";
-import { PASSWORD_STALE_MONTHS, dateLabel, hasFranchiseMembership, hasHqSharingRecord, isPasswordStale, kstDateLabel } from "@/lib/profile";
+import { getMyAffiliationRequests, getMyMemberships, getMyProfile } from "@/lib/my-profile";
+import {
+  PASSWORD_STALE_MONTHS,
+  dateLabel,
+  hasFranchiseMembership,
+  hasHqSharingRecord,
+  hqSharingView,
+  isPasswordStale,
+  kstDateLabel,
+  locationConsentView,
+} from "@/lib/profile";
 import { AddressRow } from "./address-row";
 import { ChangedToast } from "./changed-toast";
-import { HqSharingConsentCard, LocationConsentCard } from "./consent-cards";
 import { LogoutSheet } from "./logout-sheet";
 import { TitleHeader } from "../title-header";
 import { LineIcon, LinkRow, RowBox, RowGroup, RowIcon } from "./me-rows";
@@ -29,8 +38,11 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
   const { changed } = await searchParams;
   // 주소에서 오는 값이라 정한 키만 받는다(`?changed=toString` 같은 프로토타입 이름이 함수를 꺼내지 않게).
   const toast = typeof changed === "string" && Object.hasOwn(CHANGED_TOAST, changed) ? CHANGED_TOAST[changed] : undefined;
-  const [profile, memberships, locationTerms] = await Promise.all([getMyProfile(), getMyMemberships(), getCurrentTerms("LOCATION")]);
+  const [profile, memberships] = await Promise.all([getMyProfile(), getMyMemberships()]);
   const items = memberships?.items ?? [];
+  // 줄에는 배지만 보여 약관 시행일은 받지 않는다(배지는 상태 · 다시 동의 필요로만 정해진다) — 일시 줄은 상세가 약관을 받아 그린다
+  const location = locationConsentView(profile.locationConsent, null);
+  const hqSharing = hqSharingView(profile.hqSharingConsent);
   const first = items.at(0);
 
   return (
@@ -41,8 +53,9 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
         <div className="flex flex-col gap-[12px]">
           {/* 프로필 카드 — 이름 · 생년월일 · 휴대전화. 직원이 고칠 수 없는 값이라 보이기만 하고 아래 한 줄로 알린다. */}
           <div className="flex flex-col items-center gap-[14px] rounded-[20px] border border-staff-border bg-white px-[20px] pt-[24px] pb-[18px]">
-            <span aria-hidden className="flex size-[64px] items-center justify-center rounded-full bg-staff-primary-inactive text-staff-primary">
-              <LineIcon name="user" size={30} />
+            {/* 사람 아이콘 대신 로그인 로고의 직원 고래(2026-11-25 사용자 지정) — 옅은 회청 동그라미, 아래 끝은 동그라미 테두리에 맞춰 자른다 */}
+            <span aria-hidden className="flex size-[72px] items-end justify-center overflow-hidden rounded-full bg-staff-info-bg pl-[4px]">
+              <StaffWhaleMark size={64} />
             </span>
             <p className="text-[20px] font-bold">
               {profile.realName}
@@ -100,18 +113,40 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
           )}
         </RowGroup>
 
-        <LocationConsentCard consent={profile.locationConsent} terms={locationTerms} />
-        {/* 가맹 점포 소속이 있을 때만(ATT-30). 소속을 못 받았으면 판단할 수 없어 감추되, 동의 기록이 있으면(동의 · 철회 — 가맹 소속이
-            있던 계정) 보인다 — 다시 동의할 곳이 이 카드뿐이고(staff #53 code-review), 다시 동의 · 철회에 성공해도 카드 · 토스트가
-            사라지지 않게(staff #53 리뷰) */}
-        {(memberships ? hasFranchiseMembership(items) : hasHqSharingRecord(profile.hqSharingConsent)) && <HqSharingConsentCard consent={profile.hqSharingConsent} />}
+        {/* 동의 — 내 근무지처럼 줄 상자에 한 줄씩(이름 · 상태 배지 — 일시는 상세에서 본다), 내용 보기 · 일시 중지 · 동의 철회는 상세에서(2026-11-25 사용자 지정).
+            근무정보 제공 동의는 가맹 점포 소속이 있을 때만(ATT-30). 소속을 못 받았으면 판단할 수 없어 감추되, 동의 기록이 있으면(동의 · 철회 — 가맹 소속이
+            있던 계정) 보인다 — 다시 동의할 곳(상세)으로 가는 줄이 이것뿐이고(staff #53 code-review), 상세도 같은 조건으로 연다 */}
+        <RowGroup title="동의">
+          <RowBox>
+            <LinkRow
+              href="/me/consents/location"
+              icon={<RowIcon name="pin" />}
+              name="출퇴근 위치정보 이용 동의"
+              trailing={<Badge tone={location.badge.tone}>{location.badge.text}</Badge>}
+            />
+            {(memberships ? hasFranchiseMembership(items) : hasHqSharingRecord(profile.hqSharingConsent)) && (
+              <LinkRow
+                href="/me/consents/hq-sharing"
+                icon={<RowIcon name="store" />}
+                name="근무정보 제공 동의"
+                trailing={<Badge tone={hqSharing.badge.tone}>{hqSharing.badge.text}</Badge>}
+              />
+            )}
+          </RowBox>
+        </RowGroup>
 
         {/* 로그아웃은 맨 아래(S-PHHICH 확정). 자주 누를 것이 아니고 실수로 눌리면 곤란해서다. */}
-        <LogoutSheet />
-        {/* 회원 탈퇴(WHALEERP-770) — 로그아웃 아래 작은 글자 링크. 실수로 눌리지 않게 눈에 덜 띄게 둔다. */}
-        <Link href="/me/withdrawal" className="self-center text-[13px] text-staff-text-muted underline underline-offset-2">
-          회원 탈퇴
-        </Link>
+        {/* 회원 탈퇴(WHALEERP-770) — 로그아웃 아래 작은 글자 링크. 실수로 눌리지 않게 눈에 덜 띄게 둔다. 로그인 화면처럼 테두리 버튼 · 밑줄
+            글자 링크이고, 위 묶음 · 버튼 · 링크 글자 사이를 22px 로 맞춘다(2026-11-25 사용자 지정). 링크는 누르는 칸 44px 가운데에 글자가 온다 */}
+        <div className="mt-[10px] flex flex-col gap-[8px]">
+          <LogoutSheet />
+          <Link
+            href="/me/withdrawal"
+            className={`flex h-[44px] items-center justify-center self-center px-[12px] text-[13px] text-staff-text-muted underline underline-offset-4 ${PRESS}`}
+          >
+            회원 탈퇴
+          </Link>
+        </div>
       </div>
       {toast && <ChangedToast>{toast}</ChangedToast>}
       <div className="sticky bottom-0 mt-auto">

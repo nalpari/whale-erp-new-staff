@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 import { Alert, BrandLogo, Button, CheckBox, Notice, TextField } from "@/components/common";
+import { PRESS } from "@/components/common/theme";
 import { useNow } from "@/app/_components/countdown";
 import { forgetAffiliationPopup } from "@/lib/affiliation-popup-memory";
 import { forgetSignRequestPopup } from "@/lib/sign-request-popup-memory";
@@ -92,6 +94,7 @@ export function LoginForm({
         // 기본 화면은 데모 login 처럼 로고 아래 제목 · 설명이 없다(제목은 화면 낭독기에만). 만료 안내는 실제 상황이라 둔다
         title={expired ? "로그인이 만료되었습니다" : "로그인"}
         titleHidden={!expired}
+        dockOnPage
         description={
           expired ? "접속이 끝나 다시 로그인해야 합니다. 오래 쓰지 않았거나 다른 곳에서 비밀번호를 바꾼 경우입니다." : undefined
         }
@@ -101,17 +104,23 @@ export function LoginForm({
               로그인
               <Image src="/icons/arrow-right.svg" alt="" width={14} height={12} />
             </Button>
-            <Button variant="ghost" href="/password-reset" transitionTypes={["nav-forward"]}>
+            {/* 비밀번호 찾기는 글자 링크, 가입은 테두리 버튼 — 두 동작이 같은 모양이라 갈리지 않았다(2026-11-25 사용자 지정).
+                링크 줄 높이 44 의 가운데에 글자가 와서 위 [로그인] · 아래 [초대 코드로 가입]과의 간격이 같다 */}
+            <Link
+              href="/password-reset"
+              transitionTypes={["nav-forward"]}
+              className={`flex h-[44px] items-center justify-center self-center px-[12px] text-[14px] font-medium text-staff-text-sub underline underline-offset-4 ${PRESS}`}
+            >
               비밀번호를 잊으셨나요
-            </Button>
+            </Link>
             {/* 앱을 직접 연 직원의 가입 시작(WHALEERP-141, 가이드 ①). 초대 링크로 오면 이 화면을 거치지 않는다. */}
-            <Button variant="ghost" href="/join" transitionTypes={["nav-forward"]}>
+            <Button variant="outline" href="/join" transitionTypes={["nav-forward"]}>
               초대 코드로 가입
             </Button>
           </>
         }
       >
-        <div className="flex flex-col gap-[16px]">
+        <div className="flex flex-col gap-[20px]">
           <TextField
             label="이메일"
             name="email"
@@ -133,7 +142,7 @@ export function LoginForm({
             placeholder="비밀번호를 입력해 주세요"
             error={fields.messageOf("password", state.field === "password" ? state.error : undefined)}
           />
-          <div className="-my-[8px] flex flex-wrap gap-x-[20px]">
+          <div className="-my-[6px] flex flex-wrap gap-x-[20px]">
             <CheckBox name="saveEmail" checked={saveEmail} onChange={setSaveEmail}>
               아이디 저장하기
             </CheckBox>

@@ -3,10 +3,13 @@ import { MaskIcon, SubLine } from "@/components/common";
 
 // 근로계약서 화면 조각. 데모 조각(docs/demo/src/ui.mjs)의 body detail · sunken · values · tiny 를 DESIGN.md 토큰으로 옮겼다.
 
-/** 화면 틀: 머리줄 · 본문(데모 body detail — 좌우 22 · 위 22 · 사이 20). 데모 근로계약 화면에는 하단 메뉴가 없다. */
-export function ContractFrame({ header, children }: { header: ReactNode; children: ReactNode }) {
+/**
+ * 화면 틀: 머리줄 · 본문(데모 body detail — 좌우 22 · 위 22 · 사이 20). 데모 근로계약 화면에는 하단 메뉴가 없다.
+ * white 면 처리 완료 화면처럼 본문 바탕도 흰색 — 출퇴근 근무 중 · 퇴근 완료 화면과 같다(2026-11-25 사용자 지정).
+ */
+export function ContractFrame({ header, children, white = false }: { header: ReactNode; children: ReactNode; white?: boolean }) {
   return (
-    <div className="flex flex-1 flex-col leading-[1.5]">
+    <div className={`flex flex-1 flex-col leading-[1.5] ${white ? "bg-white" : ""}`}>
       {header}
       {/* 근로계약서 화면은 머리줄 아래 · 묶음 사이를 모두 12 로 좁혀 같게 둔다(2026-11-20 사용자 지정 — 20 은 흰 바탕에서 띄엄띄엄 보였다) */}
       <div className="flex flex-1 flex-col gap-[12px] px-[22px] pt-[12px] pb-[24px]">{children}</div>

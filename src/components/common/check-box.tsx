@@ -41,7 +41,8 @@ export function CheckBox({
       <span
         aria-hidden
         className={`flex size-[28px] shrink-0 items-center justify-center rounded-[2px] transition-colors duration-150 ${EASE_OUT} peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-staff-primary ${
-          checked ? "bg-staff-primary" : "bg-staff-primary-inactive"
+          // 끈 칸은 흰 바탕 · 테두리(연보라 칸은 튀었다, 2026-11-25 사용자 지정). 켠 칸도 같은 1px 테두리를 같은 색으로 깔아 크기가 변하지 않는다
+          checked ? "border border-staff-primary bg-staff-primary" : "border border-staff-border bg-white"
         }`}
       >
         <Image src={checked ? "/icons/todo-check-on.svg" : "/icons/todo-check-off.svg"} alt="" width={12} height={9} />

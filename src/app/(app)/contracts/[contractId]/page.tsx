@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Alert, Badge, Dock, MaskIcon, Notice, PageHeader, buttonClass } from "@/components/common";
+import { Alert, Badge, DownloadPill, MaskIcon, Notice, PageHeader } from "@/components/common";
 import {
   bodyMissing,
   contractSubText,
@@ -102,8 +102,9 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const employmentType = c.employmentType && labelOf(employmentTypes, c.employmentType);
   const deadline = deadlineOf(c, now);
   const paper = c.contractMethod === "PAPER";
-  // 화면 제목은 목록에서 누른 상자 제목과 같다 — 「파트타이머 근로계약서」(고용 형태가 없으면 「근로계약서」, 2026-11-20 사용자 지정)
-  const header = <PageHeader title={employmentType ? `${employmentType} 근로계약서` : "근로계약서"} backHref={backHref} />;
+  // 화면 제목은 「근로계약서」 — 고용 형태는 요약 첫 줄(전자 · 종이 모두)과 본문 제목(「근로계약서 · 정직원용」, 조항이 있을 때)에 있어 제목에서 뺐다(2026-11-25 사용자 지정, 전엔 「파트타이머 근로계약서」)
+  const title = "근로계약서";
+  const header = <PageHeader title={title} backHref={backHref} />;
 
   if (paper) {
     const files = paperDocuments(c.documents);
@@ -143,7 +144,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
                     <span className="text-[14px] font-semibold">{labelOf(documentKinds, d.kind)}</span>
                     <span className="text-[12px] break-all text-staff-text-muted">{d.fileName}</span>
                   </span>
-                  {/* 받기 · 내보내기 링크의 근거(아래 「근로계약서 PDF 다운로드」도 이것을 따른다). 이 앱의 라우트가 로그인 토큰으로 api 의 서명
+                  {/* 받기 · 내보내기 링크의 근거(전자 계약 상세 머리줄의 PDF 알약 `DownloadPill` 도 이것을 따른다). 이 앱의 라우트가 로그인 토큰으로 api 의 서명
                       주소를 받아 보낸다(documents/[contractDocumentId]/route.ts). 라우트
                       핸들러라 Link 의 미리 받기를 쓰지 않는다. 같은 탭에서 연다 — 성공하면 저장소가 attachment 로 내려줘 화면은 그대로
                       남고, 실패하면 라우트가 이 상세로 돌려보내 안내한다. target="_blank" 는 홈 화면에 둔 앱(PWA 단독 모드)에서 앱 밖
@@ -177,7 +178,24 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const canDecide = canDecideOf(c.awaitingSignature, noBody, signBlock);
   return (
     <>
-      <ContractFrame header={header}>
+      <ContractFrame
+        header={
+          <PageHeader
+            title={title}
+            backHref={backHref}
+            // 체결이 끝난 계약의 처리 완료본 내보내기(WHALEERP-149) — 머리줄 오른쪽 끝 남색 알약(급여명세서 상세와 같다, 2026-11-25 사용자 지정,
+            // 전엔 화면 맨 아래 큰 버튼). 서명 대기에서는 내보내지 않는다 — 처리 완료본은 체결 뒤 파일 생성(WHALEERP-131)이 만들어
+            // documents 에 SIGNED_COPY 로 실린다. 아직 없으면 알약도 없다. 종이 계약 「받기」와 같은 보통 링크다(근거는 그 주석). Plane 의
+            // 「공유 시트」는 휴대전화 브라우저가 받은 PDF 에 띄우는 저장 · 공유로 갈음한다 — Web Share API 는 서명 주소가 다른 출처라
+            // 파일을 읽어 올 수 없어 쓰지 않는다.
+            action={
+              signedCopy && (
+                <DownloadPill href={`/contracts/${c.contractId}/documents/${signedCopy.contractDocumentId}${keepQuery}`} label="근로계약서 PDF 다운로드" />
+              )
+            }
+          />
+        }
+      >
         {downloadAlert}
         {phase === "EXPIRED" ? (
           // 데모 expired. 하루 배치가 만료로 바꾸기 전이라 서명 대기로 남아 있어도 api 가 날인할 수 없다고 하고 기한이 지났으면 같은 안내다.
@@ -247,11 +265,14 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           null
         )}
 
-        {/* 머리 요약 — 근무지명 · 상태, 받은 날 · 서명(기한이면 남은 날 꺾은선), 그 밖 단계는 한 줄 안내(2026-11-20 사용자 지정) */}
+        {/* 머리 요약 — 근무지명 · 상태, 고용 형태 · 계약 기간 · 받은 날 · 서명(기한이면 남은 날 꺾은선), 그 밖 단계는 한 줄 안내(2026-11-20 · 11-25 사용자 지정) */}
         <ContractSummary
           storeName={c.employer.storeName}
           badge={<Badge tone={statusTone(phase)}>{status}</Badge>}
           rows={[
+            // 제목에서 고용 형태를 뺐으니 요약 첫 줄에 고용 형태 · 계약 기간을 둔다 — 종이 계약 요약과 같다(2026-11-25 사용자 지정)
+            ["고용 형태", employmentType],
+            ["계약 기간", periodText(c.startDate, c.endDate)],
             ["받은 날", c.sentAt && kstDateLabel(c.sentAt)],
             deadline
               ? ["서명 기한", deadline.dateTime]
@@ -300,18 +321,6 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
         {/* api 가 지금 날인할 수 있다고 할 때만(서명 대기 · 기한 안 · 재직 중) — 아래 버튼 줄과 같은 판정 */}
         {canDecide && <Tiny>서명하거나 거절하면 근무지 관리자에게 알림이 전달됩니다.</Tiny>}
       </ContractFrame>
-      {signedCopy && (
-        // 체결이 끝난 계약의 처리 완료본 내보내기(WHALEERP-149). 서명 대기에서는 내보내지 않는다 — 처리 완료본은 체결 뒤 파일 생성
-        // (WHALEERP-131)이 만들어 documents 에 SIGNED_COPY 로 실린다. 아직 없으면 버튼도 없다.
-        <Dock inset={30}>
-          {/* 종이 계약 「받기」와 같은 <a>(근거는 그 주석). 모양만 공통 Button 의 outline(급여명세서 「급여명세서 PDF 다운로드」와 같음).
-              Plane 의 「공유 시트」는 휴대전화 브라우저가 받은 PDF 에 띄우는 저장 · 공유로 갈음한다 — Web Share API 는 서명 주소가
-              다른 출처라 파일을 읽어 올 수 없어 쓰지 않는다. */}
-          <a href={`/contracts/${c.contractId}/documents/${signedCopy.contractDocumentId}${keepQuery}`} className={buttonClass("outline")}>
-            근로계약서 PDF 다운로드
-          </a>
-        </Dock>
-      )}
       {canDecide && c.sentAt && (
         <ContractDecision
           signHref={`/contracts/${c.contractId}/sign?${keepParams.size > 0 ? `${keepParams}&` : ""}sentAt=${encodeURIComponent(c.sentAt)}`}

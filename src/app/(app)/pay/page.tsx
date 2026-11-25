@@ -45,7 +45,7 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
         "");
   if (site !== null)
     return (
-      <PayFrame current="/me" header={<TitleHeader title="급여명세서" backHref="/me/memberships" />}>
+      <PayFrame current="/me" header={<TitleHeader title="급여명세서" backHref="/me/memberships?status=all" />}>
         {siteName && <WorkplaceBox name={siteName} />}
         {/* 상자는 화면 남는 높이를 채운다 — 비었을 때 아래가 휑했다(2026-11-23 사용자 지정) */}
         <section className="flex flex-1 flex-col rounded-[20px] border border-staff-border-light bg-white p-[20px]">
@@ -76,22 +76,25 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
     <PayFrame header={<TitleHeader title="급여명세서" titleAfter={<AboutSheet />} />}>
       {stores.length > 0 ? (
         <>
-          {/* 이번 달 실지급액 합계(Figma node 17:1003): 짙은 남색 · radius 24 · 안쪽 25. 남색 위 흐린 글자 #BAC7DE·#D1DAEB 는 이 카드에만 쓴다. */}
-          <section aria-label="이번 달에 받은 급여명세서" className="flex flex-col rounded-[24px] bg-staff-navy p-[25px] text-white">
-            <p className="text-[13px] text-[#bac7de]">{receivedMonthLabel(thisMonth.month)} 실지급액 합계</p>
+          {/* 이번 달 실지급액 합계(Figma node 17:1003): 짙은 남색. 남색 위 흐린 글자 #BAC7DE·#D1DAEB 는 이 카드에만 쓴다.
+              높이를 상세의 실지급액 카드와 같게 줄였다 — radius 20 · 위아래 16 · 금액 26px(2026-11-25 사용자 지정, 전엔 radius 24 · 안쪽 25 · 32px) */}
+          <section aria-label="이번 달에 받은 급여명세서" className="flex flex-col rounded-[20px] bg-staff-navy px-[20px] py-[16px] text-white">
+            {/* 「11월」은 급여 기간이 아니라 받은 달이라 「받은」을 넣는다 — 10월 급여를 11월에 받으면 11월 합계에 든다. 공제 뒤 금액이라 「실지급액」을 둔다(2026-11-25 사용자 지정, 전엔 「11월 실지급액 합계」) */}
+            <p className="text-[13px] text-[#bac7de]">{receivedMonthLabel(thisMonth.month)}에 받은 실지급액 합계</p>
             {thisMonth.count > 0 ? (
               <>
-                <p className="pt-[14px] pb-[16px] font-bold">
-                  <span className="text-[32px]">{formatWon(thisMonth.totalNetPayAmount)}</span>
+                <p className="pt-[2px] font-bold">
+                  <span className="text-[26px]">{formatWon(thisMonth.totalNetPayAmount)}</span>
                   <span className="text-[17px]"> 원</span>
                 </p>
-                <p className="border-t border-white/13 pt-[15px] text-[12px] text-[#d1daeb]">
-                  급여명세서 {thisMonth.count}건 · {thisMonth.storeNames.join(", ")}
+                <p className="mt-[8px] border-t border-white/13 pt-[10px] text-[12px] text-[#d1daeb]">
+                  {/* 근무지 이름은 두지 않는다 — 여러 곳이면 길어지고 아래 목록 줄마다 근무지가 있다(2026-11-25 사용자 지정) */}
+                  급여명세서 {thisMonth.count}건
                 </p>
               </>
             ) : (
               // 0원이 아니라 받은 것이 없다고 적는다(PAY-9)
-              <p className="pt-[14px] text-[17px] font-bold">이번 달에 받은 명세서가 없습니다</p>
+              <p className="pt-[6px] text-[17px] font-bold">이번 달에 받은 명세서가 없습니다</p>
             )}
           </section>
 
@@ -161,7 +164,7 @@ function PayslipRows({ items, site }: { items: Awaited<ReturnType<typeof getPays
             className="flex min-h-[44px] w-full items-center gap-[12px] py-[12px] text-left transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-staff-primary-inactive"
           >
             <span className="flex min-w-0 flex-1 flex-col">
-              <span className="truncate text-[15px] font-semibold">{monthLabel(p.periodStartDate)}</span>
+              <span className="truncate text-[15px] font-semibold">{monthLabel(p.periodStartDate)} 급여</span>
               <span className="truncate pt-[2px] text-[12px] text-staff-text-sub">{rowLabel(p.storeName, p.sentAt)}</span>
             </span>
             {p.correcting || p.netPayAmount === null ? (

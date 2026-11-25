@@ -1,19 +1,8 @@
 import type { ReactNode } from "react";
 import { Notice } from "@/components/common";
-import { CardLabel } from "./read-only-field";
 
-// 신고 정보(TAX-8) 화면들이 같이 쓰는 보기 조각 — 데모 docs/demo/tax 의 sunken · values · basis 와 받은 근거 · 사업주 안내 문구.
+// 신고 정보(TAX-8) 화면들이 같이 쓰는 보기 조각 — 데모 docs/demo/tax 의 values · basis 와 받은 근거 · 사업주 안내 문구.
 // 등록된 신고 정보(보기) · 고치기(WHALEERP-333) · 날인 뒤 처음 넣기(150)가 같은 문장을 쓴다. 입력 칸은 tax-profile-fields.tsx.
-
-/** 안내 판(데모 sunken) — 안내 바탕 · 옅은 테두리 · radius 12 · 안쪽 14, 머리 이름 13px semibold(없어도 된다). */
-export function Sunken({ label, children }: { label?: string; children: ReactNode }) {
-  return (
-    <div className="w-full rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px]">
-      {label && <CardLabel>{label}</CardLabel>}
-      {children}
-    </div>
-  );
-}
 
 /** 이름 · 값 줄(데모 values) — 13px, 이름은 보조 글자 · 값은 오른쪽, 위아래 9 · 줄 사이 옅은 선. */
 export function Values({ rows, flush = false }: { rows: [string, string][]; flush?: boolean }) {

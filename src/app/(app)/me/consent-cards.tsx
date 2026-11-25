@@ -14,10 +14,8 @@ import {
   LOCATION_REAGREED,
   dateLabel,
   hqSharingView,
-  kstDateTimeLabel,
-  locationNeedsReconsent,
+  locationConsentView,
   type ConsentChange,
-  type LocationConsentState,
 } from "@/lib/profile";
 import { changeConsentAction } from "./actions";
 import { RowBox, RowGroup, RowIcon, type LineIconName } from "./me-rows";
@@ -58,11 +56,12 @@ function useConsentChange(onDone: () => void) {
 }
 
 /**
- * 동의 묶음(정돈 시안 ⑬) — 제목(14 semibold 보조) 아래 흰 상자: 윗줄은 32px 원 아이콘 · 상태 배지 · 13px 일시 줄, 아랫줄은 구분선
+ * 동의 묶음(정돈 시안 ⑬) — 제목(14 semibold 보조, 상세 화면은 머리줄이 같은 말이라 heading=false 로 뺀다) 아래 흰 상자: 윗줄은 32px 원 아이콘 · 상태 배지 · 13px 일시 줄, 아랫줄은 구분선
  * 위 가로 글자 버튼들(높이 44, 사이 1×14 세로선). 실패 문구는 상자 아래, 안내는 묶음 밖 12px 흐린 글자다.
  */
 function ConsentCard({
   title,
+  heading,
   icon,
   badge,
   line,
@@ -71,6 +70,8 @@ function ConsentCard({
   error,
 }: {
   title: string;
+  /** false 면 묶음 제목을 두지 않는다 — 상세 화면은 머리줄 제목이 같은 말이다 */
+  heading: boolean;
   icon: LineIconName;
   badge: { tone: BadgeTone; text: string };
   /** 비면 두지 않는다(처음 · 동의하지 않음) */
@@ -81,7 +82,7 @@ function ConsentCard({
   error?: string;
 }) {
   return (
-    <RowGroup title={title} note={note || undefined}>
+    <RowGroup title={heading ? title : undefined} note={note || undefined}>
       <RowBox>
         <div className="flex min-h-[56px] items-center gap-[12px] py-[10px] pr-[16px] pl-[14px]">
           <RowIcon name={icon} />
@@ -120,44 +121,31 @@ function Sunken({ children }: { children: ReactNode }) {
   return <div className="rounded-[12px] border border-staff-border-light bg-staff-info-bg p-[14px] text-[14px] text-staff-text-sub">{children}</div>;
 }
 
-// 배지 글자는 데모 문구다 — 미동의와 철회를 같은 「동의하지 않음」으로 묶는다. LocationConsentState 의 enum label
-// (미동의 · 동의 · 일시 중지 · 철회)과 다르다.
-const LOCATION_BADGE: Record<LocationConsentState, { tone: BadgeTone; text: string }> = {
-  NOT_AGREED: { tone: "plain", text: "동의하지 않음" },
-  AGREED: { tone: "success", text: "동의함" },
-  PAUSED: { tone: "warning", text: "일시 중지" },
-  WITHDRAWN: { tone: "plain", text: "동의하지 않음" },
-};
-
 type LocationSheet = "terms" | "pause" | "withdraw";
 
 /**
  * 출퇴근 위치정보 이용 동의 묶음(ATT-23 · ATT-26, 정돈 시안 ⑬ 상태별). 동의 중이면 내용 보기 · 일시 중지 · 동의 철회, 일시 중지면
- * 내용 보기 · 다시 켜기(새 동의 없음) · 동의 철회, 미동의면 내용 보기 · 동의하기(ME-5 — 내 정보에서도 동의한다, 2026-10-20 노영주),
+ * 내용 보기 · 다시 켜기(새 동의 없음) · 동의 철회, 미동의면 내용 보기 · 동의하기(ME-5 — 내 정보 › 동의 상세에서도 동의한다, 2026-10-20 노영주),
  * 철회 뒤면 내용 보기 · 다시 동의하기다. 그 상태의 주 동작(동의하기 · 다시 켜기 · 다시 동의하기)만 남보라 글자다. 일시 중지 · 철회는 확인 시트를,
  * 동의하기 · 다시 동의는 약관 시트를 거친다 — 약관을 보이고 그 안의 「동의합니다」로만 기록한다(2026-10-20 노영주). 약관을 못 받으면 동의할 수 없다.
  * 동의한 약관 버전이 바뀌어 다시 동의해야 하면(needsReconsent — 동의 · 일시 중지일 때) 「다시 동의 필요」 배지와 내용 보기 · 다시 동의하기
  * (약관 시트의 「동의합니다」) · 동의 철회를 둔다 — 옛 동의로는 수집하지 않아 일시 중지가 뜻이 없고, 새 약관에 동의하지 않으려는 직원도
  * 거둘 수 있게(ATT-30 v252, 2026-10-29 재영 — 시안의 ⑤에는 동의 철회가 없지만 이 결정이라 남겼다). 출근 화면의 다시 동의 시트는 그대로다.
  */
-export function LocationConsentCard({ consent, terms: current }: { consent: Schemas["MyLocationConsentDto"]; terms: CurrentTerms }) {
+export function LocationConsentCard({
+  consent,
+  terms: current,
+  heading = true,
+}: {
+  consent: Schemas["MyLocationConsentDto"];
+  terms: CurrentTerms;
+  heading?: boolean;
+}) {
   const terms = current.status === "ok" ? current.terms : null;
   const [sheet, setSheet] = useState<LocationSheet>();
   const { pending, error, toast, change } = useConsentChange(() => setSheet(undefined));
-  const { state, agreedAt, pausedAt, withdrawnAt, consentVersion } = consent;
-  const reconsent = locationNeedsReconsent(consent);
-  const version = consentVersion ? ` · 약관 ${consentVersion}` : "";
-
-  // 일시 줄 — 시 · 분과 동의한 약관 버전. 다시 동의가 필요하면 지금 약관의 시행일(받지 못했으면 날짜 없이)이다.
-  const line = reconsent
-    ? `약관 변경${terms ? ` · ${dateLabel(terms.effectiveDate)}` : ""}`
-    : state === "AGREED" && agreedAt
-      ? `${kstDateTimeLabel(agreedAt)} 동의${version}`
-      : state === "PAUSED" && pausedAt
-        ? `${kstDateTimeLabel(pausedAt)} 일시 중지`
-        : state === "WITHDRAWN" && withdrawnAt
-          ? `${kstDateTimeLabel(withdrawnAt)} 동의 철회`
-          : "";
+  const { state } = consent;
+  const { badge, line, reconsent } = locationConsentView(consent, terms?.effectiveDate ?? null);
   const termsButton = <TextAction onClick={() => setSheet("terms")}>내용 보기</TextAction>;
   const withdrawButton = <TextAction onClick={() => setSheet("withdraw")}>동의 철회</TextAction>;
 
@@ -165,8 +153,9 @@ export function LocationConsentCard({ consent, terms: current }: { consent: Sche
     <>
       <ConsentCard
         title="출퇴근 위치정보 이용 동의"
+        heading={heading}
         icon="pin"
-        badge={reconsent ? { tone: "warning", text: "다시 동의 필요" } : LOCATION_BADGE[state]}
+        badge={badge}
         line={line}
         error={error}
         actions={
@@ -302,7 +291,7 @@ type HqSheet = "content" | "withdraw";
  * 같이 적용된다. 동의 중이면 내용 보기 · 동의 철회(확인 시트), 아니면 내용 보기 · 다시 동의하기(내용 시트 안의 「동의합니다」로 기록).
  * 옛 문구 버전에 동의해 다시 동의해야 하면(needsReconsent, api #183) 「다시 동의 필요」 · 다시 동의하기다 — 표시는 hqSharingView.
  */
-export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharingConsentDto"] }) {
+export function HqSharingConsentCard({ consent, heading = true }: { consent: Schemas["MyHqSharingConsentDto"]; heading?: boolean }) {
   const [sheet, setSheet] = useState<HqSheet>();
   const { pending, error, toast, change } = useConsentChange(() => setSheet(undefined));
   const view = hqSharingView(consent);
@@ -313,6 +302,7 @@ export function HqSharingConsentCard({ consent }: { consent: Schemas["MyHqSharin
       <ConsentCard
         // 화면 이름은 「근무정보 제공 동의」(정돈 시안 ⑬, 2026-11-20 사용자 확정 — 전엔 「사업자 제공 동의」). 버전에 묶인 동의 본문(HqSharingTermsBody)은 그대로다.
         title="근무정보 제공 동의"
+        heading={heading}
         icon="store"
         badge={view.badge}
         line={view.line}

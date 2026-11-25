@@ -22,15 +22,16 @@ export const metadata: Metadata = { title: "근로계약 · Whale ERP" };
 export default async function ContractsPage({ searchParams }: PageProps<"/contracts">) {
   await requireSession();
   const storeId = parseId((await searchParams).store);
-  const [all, statuses, employmentTypes] = await Promise.all([getContracts(), getEnumOrEmpty("ContractStatus"), getEnumOrEmpty("EmploymentType")]);
+  const [all, statuses] = await Promise.all([getContracts(), getEnumOrEmpty("ContractStatus")]);
   const items = storeId === null ? all : all.filter((c) => c.storeId === storeId);
   const now = new Date();
   const { open, finished } = groupContracts(items, now);
   // 내 근무지에서 왔으면 그리로 돌아간다. 데모 목록의 뒤로 가기는 홈이다.
-  const backHref = storeId === null ? "/home" : "/me/memberships";
+  // 근무지별 목록에서 돌아가면 내 근무지 「전체」로 — 기본 「근무 중」이면 퇴직한 근무지가 안 보인다(2026-11-25 리뷰)
+  const backHref = storeId === null ? "/home" : "/me/memberships?status=all";
   const query = storeId === null ? "" : `?store=${storeId}`;
   const row = (c: ContractListItem) => (
-    <ContractRow key={c.contractId} c={c} now={now} query={query} inStore={storeId !== null} statuses={statuses} employmentTypes={employmentTypes} />
+    <ContractRow key={c.contractId} c={c} now={now} query={query} inStore={storeId !== null} statuses={statuses} />
   );
 
   return (
@@ -97,7 +98,6 @@ function ContractRow({
   query,
   inStore,
   statuses,
-  employmentTypes,
 }: {
   c: ContractListItem;
   now: Date;
@@ -105,15 +105,15 @@ function ContractRow({
   /** 내 근무지에서 들어와 근무지가 맨 위에 보이면 제목에 근무지명을 되풀이하지 않는다 */
   inStore: boolean;
   statuses: EnumValue[];
-  employmentTypes: EnumValue[];
 }) {
   // 날인할 수 없는 서명 대기는 만료 · 서명 불가로 보인다(상세와 같다). 강조는 api 가 날인할 수 있다고 할 때만(deadlineOf).
   const phase = phaseOf(c, now);
   const status = phaseLabel(phase, labelOf(statuses, phase));
   const deadline = deadlineOf(c, now);
-  const employment = c.employmentType ? labelOf(employmentTypes, c.employmentType) : null;
-  // 상자 제목은 누르면 열리는 상세의 화면 제목과 같다 — 「파트타이머 근로계약서」(2026-11-20 사용자 지정)
-  const title = inStore ? `${employment ? `${employment} ` : ""}근로계약서` : [c.storeName, employment].filter(Boolean).join(" · ");
+  // 상자 제목은 내 근무지에서 들어오면 상세와 같은 「근로계약서」, 전체 목록이면 근무지명(전엔 「파트타이머 근로계약서」).
+  // 줄은 계약 기간 줄과 상태 날짜 줄(서명 기한 / 서명일 · 등록일 / 수정 요청일 · 거절일), 날짜로 말할 수 없는 단계는 안내 한 줄 —
+  // 고용 형태 · 받은 날은 상세 요약에서 본다(2026-11-25 사용자 지정)
+  const title = inStore ? "근로계약서" : c.storeName;
   const open = !isFinishedPhase(phase);
   // 서명 기한 · 서명일로 말할 수 없는 단계(거절 · 만료 · 서명 불가 · 수정 요청)는 목록 한 줄 안내를 그대로 둔다
   // 수정 요청 · 거절은 그날을 이름 · 값 줄로(다른 줄과 시작선이 맞게, 2026-11-20 사용자 지정)

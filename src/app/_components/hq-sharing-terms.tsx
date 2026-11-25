@@ -6,7 +6,7 @@ import { HQ_SHARING_TERMS } from "@/lib/hq-sharing-terms";
 
 /**
  * 사업자(본사) 제공 동의 전문 — 받는 자 · 항목 · 목적 · 보유 기간 줄과 거부할 권리(선택 동의 · 철회해도 그대로) 안내(ATT-30 · ATT-8).
- * 내 정보 카드의 내용 시트와 가입 · 근무지 추가 · 소속 추가 수락의 「내용 보기」가 같은 글을 보인다 — 남기는 버전(HQ_SHARING_TERMS_VERSION)이
+ * 내 정보 › 동의 상세 카드의 내용 시트와 가입 · 근무지 추가 · 소속 추가 수락의 「내용 보기」가 같은 글을 보인다 — 남기는 버전(HQ_SHARING_TERMS_VERSION)이
  * 실제로 본 문구여야 해서다(ATT-30 · ATT-8 v257, 2026-10-30 재영).
  */
 export function HqSharingTermsBody() {
