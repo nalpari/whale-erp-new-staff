@@ -22,7 +22,7 @@ export const metadata: Metadata = { title: "근로계약 · Whale ERP" };
 export default async function ContractsPage({ searchParams }: PageProps<"/contracts">) {
   await requireSession();
   const storeId = parseId((await searchParams).store);
-  const [all, statuses, employmentTypes] = await Promise.all([getContracts(), getEnumOrEmpty("ContractStatus"), getEnumOrEmpty("EmploymentType")]);
+  const [all, statuses] = await Promise.all([getContracts(), getEnumOrEmpty("ContractStatus")]);
   const items = storeId === null ? all : all.filter((c) => c.storeId === storeId);
   const now = new Date();
   const { open, finished } = groupContracts(items, now);
@@ -30,7 +30,7 @@ export default async function ContractsPage({ searchParams }: PageProps<"/contra
   const backHref = storeId === null ? "/home" : "/me/memberships";
   const query = storeId === null ? "" : `?store=${storeId}`;
   const row = (c: ContractListItem) => (
-    <ContractRow key={c.contractId} c={c} now={now} query={query} inStore={storeId !== null} statuses={statuses} employmentTypes={employmentTypes} />
+    <ContractRow key={c.contractId} c={c} now={now} query={query} inStore={storeId !== null} statuses={statuses} />
   );
 
   return (
@@ -97,7 +97,6 @@ function ContractRow({
   query,
   inStore,
   statuses,
-  employmentTypes,
 }: {
   c: ContractListItem;
   now: Date;
@@ -105,15 +104,13 @@ function ContractRow({
   /** 내 근무지에서 들어와 근무지가 맨 위에 보이면 제목에 근무지명을 되풀이하지 않는다 */
   inStore: boolean;
   statuses: EnumValue[];
-  employmentTypes: EnumValue[];
 }) {
   // 날인할 수 없는 서명 대기는 만료 · 서명 불가로 보인다(상세와 같다). 강조는 api 가 날인할 수 있다고 할 때만(deadlineOf).
   const phase = phaseOf(c, now);
   const status = phaseLabel(phase, labelOf(statuses, phase));
   const deadline = deadlineOf(c, now);
-  const employment = c.employmentType ? labelOf(employmentTypes, c.employmentType) : null;
-  // 상자 제목은 상세와 같다 — 내 근무지에서 들어오면 「근로계약서」, 전체 목록이면 근무지명. 고용 형태는 제목에서 빼고 아래 첫 줄에
-  // 둔다(상세 요약과 같은 줄 순서: 고용 형태 · 계약 기간 · 받은 날 · 서명 기한/서명일, 2026-11-25 사용자 지정 — 전엔 「파트타이머 근로계약서」)
+  // 상자 제목은 상세와 같다 — 내 근무지에서 들어오면 「근로계약서」, 전체 목록이면 근무지명(전엔 「파트타이머 근로계약서」).
+  // 줄은 계약 기간 · 상태 날짜 한 줄(서명 기한 / 서명일 / 수정 요청일 · 거절일)뿐 — 고용 형태 · 받은 날은 상세 요약에서 본다(2026-11-25 사용자 지정)
   const title = inStore ? "근로계약서" : c.storeName;
   const open = !isFinishedPhase(phase);
   // 서명 기한 · 서명일로 말할 수 없는 단계(거절 · 만료 · 서명 불가 · 수정 요청)는 목록 한 줄 안내를 그대로 둔다
@@ -139,9 +136,7 @@ function ContractRow({
           </span>
         </span>
         <span className="flex flex-col gap-[6px]">
-          {employment && <Row label="고용 형태">{employment}</Row>}
           {c.startDate && <Row label="계약 기간">{periodText(c.startDate, c.endDate)}</Row>}
-          {c.sentAt && <Row label="받은 날">{kstDateLabel(c.sentAt)}</Row>}
           {deadline && (
             <span className="flex flex-col gap-[2px]">
               <Row label="서명 기한">{deadline.dateTime}</Row>
