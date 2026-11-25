@@ -1,7 +1,7 @@
 # Bundle history
 
 ## 2026-11-25
-* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 통합테스트 다듬기: 로그인 키 메시지 · 엄마 아기 고래 · 버튼 줄 바탕 · 간격 22, 체크 칸 흰 바탕, 내 정보 동의 목록 줄 + 상세 화면(`/me/consents/*`), 로그아웃 · 회원 탈퇴 모양, 내 근무지 기본 「근무 중」, 급여명세서 PDF 다운로드 머리줄로, 처리 완료 화면 흰 바탕 · 회색 상자, 위치 안내 핀 아이콘.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 통합테스트 다듬기: 로그인 직원 고래 로고 · 키 메시지 「근무지와 나를 잇는 근무 앱」 · 버튼 줄 바탕 · 간격 22, 체크 칸 흰 바탕, 내 정보 동의 목록 줄 + 상세 화면(`/me/consents/*`), 로그아웃 · 회원 탈퇴 모양, 내 근무지 기본 「근무 중」, 급여명세서 PDF 다운로드 머리줄로, 처리 완료 화면 흰 바탕 · 회색 상자, 위치 안내 핀 아이콘.
 
 ## 2026-11-24
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — `api-types.d.ts` 다시 생성(api 확정 422 설명에 `WORK_HOURS_MISSING`, WHALEERP-755 — 화면 변화 없음).

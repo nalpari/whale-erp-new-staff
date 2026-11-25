@@ -16,7 +16,6 @@ import { useFieldCheck } from "@/app/_components/use-field-check";
 import { AuthScreen } from "../_components/auth-screen";
 import { useFocusedTitle } from "../_components/use-focused-title";
 import { loginAction, type LoginState } from "./actions";
-import { LoginWhales } from "./login-whales";
 
 // 기준: 데모 docs/demo/src/pages/login 의 login · fail · locked · expired.
 // 잠긴 화면은 api 429 의 해제 시각(lockExpiresAt)까지 남은 시간을 보인다. 남은 횟수는 api 가 주지 않아 보이지 않는다.
@@ -122,8 +121,6 @@ export function LoginForm({
         }
       >
         <div className="flex flex-col gap-[20px]">
-          {/* 이메일 칸 위 테두리에 엄마 · 아기 고래가 고개를 내민다(2026-11-25 사용자 지정). 라벨 줄(19) + 간격(8) = 27 이 칸 위 끝이다 */}
-          <div className="relative">
           <TextField
             label="이메일"
             name="email"
@@ -135,8 +132,6 @@ export function LoginForm({
             defaultValue={state.email}
             error={fields.messageOf("email", state.field === "email" ? state.error : undefined)}
           />
-          <LoginWhales lineTop={27} />
-          </div>
           <TextField
             label="비밀번호"
             name="password"

@@ -1,20 +1,51 @@
-import Image from "next/image";
+// 로그인 로고 — 앞치마 · 이름표를 단 직원 고래(2026-11-25 사용자 지정 — 고래가 직원인 느낌, 전엔 Figma Logo 의 남색 고래 · 별 그림).
+// 아래에 WHALE ERP(16px bold 보조 글자) · 키 메시지(20px bold) · 보조 문구(13px 흐림). 색은 이 그림에만 나와 토큰으로 두지 않는다 —
+// 몸 · 꼬리 #6B8FC7, 물줄기 #B3D0F4, 배 #F3EAD8, 앞치마 황토 #C99A5B(끈 #B9833F · 주머니 선 #E8CC9F), 눈 #1B2335, 볼 #F2A7B0.
+function StaffWhale() {
+  return (
+    <svg aria-hidden width="108" height="93" viewBox="4 -4 116 100">
+      {/* 물줄기 — 머리 위로 세 갈래, 끝에 물방울(하늘색 #B3D0F4) */}
+      <path d="M54 20 C51 12 46 10 42 11 M56 19 C56 10 58 6 62 5 M58 20 C62 13 67 12 71 14" stroke="#b3d0f4" strokeWidth="3" strokeLinecap="round" fill="none" />
+      <circle cx="41" cy="11" r="2.4" fill="#b3d0f4" />
+      <circle cx="62" cy="4.8" r="2.4" fill="#b3d0f4" />
+      <circle cx="72" cy="14.5" r="2.4" fill="#b3d0f4" />
+      {/* 꼬리 — 몸 뒤 오른쪽 위로 두 갈래 지느러미(몸이 밑동을 덮는다) */}
+      <path
+        d="M80 44 C88 38 94 32 97 25 C91 24 85 20 82 14 C90 13 97 16 100 21 C102 14 108 10 116 10 C114 18 108 23 101 26 C99 34 93 42 86 50 Z"
+        fill="#6b8fc7"
+      />
+      <path d="M18 96 C8 60 24 24 56 24 C88 24 104 60 94 96 Z" fill="#6b8fc7" />
+      <path d="M32 96 C30 74 42 62 56 62 C70 62 82 74 80 96 Z" fill="#f3ead8" />
+      <circle cx="44" cy="50" r="4.6" fill="#1b2335" />
+      <circle cx="45.5" cy="48.5" r="1.5" fill="#fff" />
+      <circle cx="68" cy="50" r="4.6" fill="#1b2335" />
+      <circle cx="69.5" cy="48.5" r="1.5" fill="#fff" />
+      <ellipse cx="36" cy="59" rx="4.6" ry="2.7" fill="#f2a7b0" opacity=".85" />
+      <ellipse cx="76" cy="59" rx="4.6" ry="2.7" fill="#f2a7b0" opacity=".85" />
+      <path d="M51 59 Q56 64 61 59" stroke="#1b2335" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+      {/* 앞치마 · 끈 · 주머니 */}
+      <path d="M40 59 L42 68 M72 59 L70 68" stroke="#b9833f" strokeWidth="2.4" strokeLinecap="round" />
+      <path d="M34 68 H78 V92 Q78 96 74 96 H38 Q34 96 34 92 Z" fill="#c99a5b" />
+      <rect x="59" y="83" width="13" height="8.5" rx="2" fill="none" stroke="#e8cc9f" strokeWidth="1.6" />
+      {/* 명찰 「웨일」 */}
+      <rect x="38" y="71.5" width="23" height="10" rx="1.8" fill="#fff" />
+      <text x="49.5" y="79.1" textAnchor="middle" fontSize="7" fontWeight="700" fill="#1b2335">
+        웨일
+      </text>
+      <ellipse cx="20" cy="76" rx="9" ry="5.5" fill="#6b8fc7" transform="rotate(-35 20 76)" />
+      <ellipse cx="92" cy="76" rx="9" ry="5.5" fill="#6b8fc7" transform="rotate(35 92 76)" />
+    </svg>
+  );
+}
 
-// Figma Logo(node 9:279): 60px 칸에 고래(아래)와 별(왼쪽 위)을 겹치고, 아래에 WHALE ERP 를 둔다. 사이 간격 8px.
-// WHALE ERP 는 키 메시지보다 덜 띄게 16px bold 보조 글자색(2026-11-25 사용자 지정, Figma 는 28px).
-// 그 아래 로그인 화면 키 메시지(20px bold 먹색) · 보조 문구(13px 흐림) — 직원 입장에서 사장님과 나를 잇는 앱이라고 말한다
-// (2026-11-25 사용자 지정, 전엔 사장님 쪽 말인 「FOR RESTAURANT&CAFE」).
 export function BrandLogo() {
   return (
     <div className="flex flex-col items-center gap-[8px]">
-      <div className="relative size-[60px]">
-        <Image src="/icons/logo-whale.svg" alt="" width={60.322} height={45.744} className="absolute top-[14.58px] left-0" />
-        <Image src="/icons/logo-stars.svg" alt="" width={29.156} height={21.113} className="absolute top-0 left-[9.05px]" />
-      </div>
+      <StaffWhale />
       <p className="text-center text-[16px] leading-[1.5] font-bold text-staff-text-sub">WHALE ERP</p>
       <div className="flex flex-col items-center gap-[4px] pt-[4px] text-center leading-[1.5] break-keep">
-        <p className="text-[20px] font-bold text-staff-text">사장님과 나를 잇는 근무 앱</p>
-        <p className="text-[13px] text-staff-text-muted">근로계약 · 근무스케줄 · 급여명세서를 앱으로 받아 보세요</p>
+        <p className="text-[20px] font-bold text-staff-text">근무지와 나를 잇는 근무 앱</p>
+        <p className="text-[13px] text-staff-text-muted">근로계약, 근무 일정, 급여명세서를 앱에서 확인하세요.</p>
       </div>
     </div>
   );
