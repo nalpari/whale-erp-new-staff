@@ -42,8 +42,6 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
   const items = memberships?.items ?? [];
   const location = locationConsentView(profile.locationConsent, locationTerms.status === "ok" ? locationTerms.terms.effectiveDate : null);
   const hqSharing = hqSharingView(profile.hqSharingConsent);
-  // 목록 줄은 한 줄에 들어가게 동의한 약관 · 내용 버전을 뺀다 — 버전은 상세에서 본다
-  const withoutVersion = (line: string) => line.replace(/ · (약관|내용) \S+$/, "") || undefined;
   const first = items.at(0);
 
   return (
@@ -113,7 +111,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
           )}
         </RowGroup>
 
-        {/* 동의 — 내 근무지처럼 줄 상자에 한 줄씩(상태 배지 · 일시), 내용 보기 · 일시 중지 · 동의 철회는 상세에서(2026-11-25 사용자 지정).
+        {/* 동의 — 내 근무지처럼 줄 상자에 한 줄씩(이름 · 상태 배지 — 일시는 상세에서 본다), 내용 보기 · 일시 중지 · 동의 철회는 상세에서(2026-11-25 사용자 지정).
             근무정보 제공 동의는 가맹 점포 소속이 있을 때만(ATT-30). 소속을 못 받았으면 판단할 수 없어 감추되, 동의 기록이 있으면(동의 · 철회 — 가맹 소속이
             있던 계정) 보인다 — 다시 동의할 곳이 이 카드뿐이고(staff #53 code-review), 다시 동의 · 철회에 성공해도 카드 · 토스트가
             사라지지 않게(staff #53 리뷰) */}
@@ -123,7 +121,6 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
               href="/me/consents/location"
               icon={<RowIcon name="pin" />}
               name="출퇴근 위치정보 이용 동의"
-              value={withoutVersion(location.line)}
               trailing={<Badge tone={location.badge.tone}>{location.badge.text}</Badge>}
             />
             {(memberships ? hasFranchiseMembership(items) : hasHqSharingRecord(profile.hqSharingConsent)) && (
@@ -131,7 +128,6 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
                 href="/me/consents/hq-sharing"
                 icon={<RowIcon name="store" />}
                 name="근무정보 제공 동의"
-                value={withoutVersion(hqSharing.line)}
                 trailing={<Badge tone={hqSharing.badge.tone}>{hqSharing.badge.text}</Badge>}
               />
             )}
