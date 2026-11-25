@@ -1,6 +1,6 @@
 // 로그인 로고 — 앞치마 · 이름표를 단 직원 고래(2026-11-25 사용자 지정 — 고래가 직원인 느낌, 전엔 Figma Logo 의 남색 고래 · 별 그림).
 // 꼬리 오른쪽에 점선으로 이은 WHALE ERP, 아래에 키 메시지(20px bold) · 보조 문구(13px 흐림). 색은 이 그림에만 나와 토큰으로 두지 않는다 —
-// 몸 · 꼬리 #6B8FC7, 물줄기 #B3D0F4, 배 #F3EAD8, 앞치마 황토 #C99A5B(끈 #B9833F · 주름 선 · 단추 #E8CC9F, 하트 주머니는 볼과 같은 #F2A7B0), 눈 #1B2335, 볼 #F2A7B0.
+// 몸 · 꼬리 #6B8FC7, 물줄기 #B3D0F4, 배 #F3EAD8, 앞치마 황토 #C99A5B(끈 #B9833F, 하트 주머니는 볼과 같은 #F2A7B0), 눈 #1B2335, 볼 #F2A7B0.
 function StaffWhale() {
   return (
     <svg aria-hidden width="283" height="93" viewBox="-90 -4 304 100">
@@ -29,12 +29,9 @@ function StaffWhale() {
       <path d="M51 59 Q56 64 61 59" stroke="#1b2335" strokeWidth="2.2" strokeLinecap="round" fill="none" />
       {/* 앞치마 · 끈 · 주머니 */}
       <path d="M40 59 L42 68 M72 59 L70 68" stroke="#b9833f" strokeWidth="2.4" strokeLinecap="round" />
-      {/* 둥근 모서리 · 아래 물결 주름 · 하트 주머니 · 끈 단추(귀엽게, 2026-11-25 사용자 지정) */}
-      <path d="M34 72 Q34 67 39 67 H73 Q78 67 78 72 V91 Q75.25 95 72.5 91 Q69.75 95 67 91 Q64.25 95 61.5 91 Q58.75 95 56 91 Q53.25 95 50.5 91 Q47.75 95 45 91 Q42.25 95 39.5 91 Q36.75 95 34 91 Z" fill="#c99a5b" />
-      <path d="M34 89 Q36.75 93 39.5 89 Q42.25 93 45 89 Q47.75 93 50.5 89 Q53.25 93 56 89 Q58.75 93 61.5 89 Q64.25 93 67 89 Q69.75 93 72.5 89 Q75.25 93 78 89" stroke="#e8cc9f" strokeWidth="1.2" fill="none" />
+      {/* 둥근 모서리 한 판 · 하트 주머니(물결 주름 · 단추는 조잡해 뺐다, 2026-11-25 사용자 지정) */}
+      <path d="M34 72 Q34 67 39 67 H73 Q78 67 78 72 V96 H34 Z" fill="#c99a5b" />
       <path d="M67 77.5 c-1.6-2.6-5.4-2.2-5.4 0.8 c0 2.6 5.4 5.4 5.4 6.6 c0-1.2 5.4-4 5.4-6.6 c0-3-3.8-3.4-5.4-0.8z" fill="#f2a7b0" />
-      <circle cx="41" cy="68.5" r="1.5" fill="#e8cc9f" />
-      <circle cx="71" cy="68.5" r="1.5" fill="#e8cc9f" />
       {/* 명찰 「웨일」 */}
       <rect x="37" y="73" width="23" height="10" rx="2.5" fill="#fff" />
       <text x="48.5" y="80.6" textAnchor="middle" fontSize="7" fontWeight="700" fill="#1b2335">
