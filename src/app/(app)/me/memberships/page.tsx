@@ -149,9 +149,10 @@ const EMPTY_TEXT: Record<Exclude<StatusFilter, "all">, string> = {
   retiring: "퇴직 예정인 근무지가 없습니다.",
   retired: "퇴직한 근무지가 없습니다.",
 };
+// 처음 열면 「근무 중」 — 지금 다니는 근무지를 먼저 본다(2026-11-25 사용자 지정). 전체는 ?status=all
 const statusFilterOf = (raw: string | string[] | undefined): StatusFilter => {
   const v = Array.isArray(raw) ? raw[0] : raw;
-  return v === "working" || v === "retiring" || v === "retired" ? v : "all";
+  return v === "all" || v === "retiring" || v === "retired" ? v : "working";
 };
 
 /**
@@ -166,7 +167,7 @@ function StatusChips({ counts, current }: { counts: Record<StatusFilter, number>
         return (
           <Link
             key={key}
-            href={key === "all" ? "/me/memberships" : `/me/memberships?status=${key}`}
+            href={key === "working" ? "/me/memberships" : `/me/memberships?status=${key}`}
             replace
             scroll={false}
             aria-current={on ? "true" : undefined}
