@@ -837,7 +837,8 @@ function LocationNote({ ok, text }: { ok: boolean; text?: string }) {
   return (
     <p className={`flex items-center gap-[6px] px-[4px] text-[13px] ${ok ? "text-[#13785e]" : "text-staff-text-sub"}`}>
       <span aria-hidden className="flex shrink-0">
-        <MaskIcon src={ok ? "/icons/check.svg" : "/icons/pin.svg"} size={14} />
+        {/* pin.svg 는 Figma 가 뒤집어 내보내 세운다(지도 위 핀과 같다) — 체크는 그대로 */}
+        <MaskIcon src={ok ? "/icons/check.svg" : "/icons/pin.svg"} size={14} flipY={!ok} />
       </span>
       {text}
     </p>
