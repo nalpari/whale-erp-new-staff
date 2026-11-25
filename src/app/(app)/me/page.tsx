@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Alert, Badge, BottomNav } from "@/components/common";
+import { Alert, Badge, BottomNav, StaffWhaleMark } from "@/components/common";
 import { PRESS } from "@/components/common/theme";
 import { getMyInvitations } from "@/lib/my-invitations";
 import { getCurrentTerms, getMyAffiliationRequests, getMyMemberships, getMyProfile } from "@/lib/my-profile";
@@ -52,8 +52,9 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
         <div className="flex flex-col gap-[12px]">
           {/* 프로필 카드 — 이름 · 생년월일 · 휴대전화. 직원이 고칠 수 없는 값이라 보이기만 하고 아래 한 줄로 알린다. */}
           <div className="flex flex-col items-center gap-[14px] rounded-[20px] border border-staff-border bg-white px-[20px] pt-[24px] pb-[18px]">
-            <span aria-hidden className="flex size-[64px] items-center justify-center rounded-full bg-staff-primary-inactive text-staff-primary">
-              <LineIcon name="user" size={30} />
+            {/* 사람 아이콘 대신 로그인 로고의 직원 고래(2026-11-25 사용자 지정) — 옅은 회청 동그라미, 아래 끝은 동그라미 테두리에 맞춰 자른다 */}
+            <span aria-hidden className="flex size-[72px] items-end justify-center overflow-hidden rounded-full bg-staff-info-bg pl-[4px]">
+              <StaffWhaleMark size={64} />
             </span>
             <p className="text-[20px] font-bold">
               {profile.realName}
