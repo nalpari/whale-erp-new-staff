@@ -88,7 +88,8 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
                   <span className="text-[17px]"> 원</span>
                 </p>
                 <p className="mt-[8px] border-t border-white/13 pt-[10px] text-[12px] text-[#d1daeb]">
-                  급여명세서 {thisMonth.count}건 · {thisMonth.storeNames.join(", ")}
+                  {/* 근무지 이름은 두지 않는다 — 여러 곳이면 길어지고 아래 목록 줄마다 근무지가 있다(2026-11-25 사용자 지정) */}
+                  급여명세서 {thisMonth.count}건
                 </p>
               </>
             ) : (
