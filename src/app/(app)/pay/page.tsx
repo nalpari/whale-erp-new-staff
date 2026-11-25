@@ -76,22 +76,23 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
     <PayFrame header={<TitleHeader title="급여명세서" titleAfter={<AboutSheet />} />}>
       {stores.length > 0 ? (
         <>
-          {/* 이번 달 실지급액 합계(Figma node 17:1003): 짙은 남색 · radius 24 · 안쪽 25. 남색 위 흐린 글자 #BAC7DE·#D1DAEB 는 이 카드에만 쓴다. */}
-          <section aria-label="이번 달에 받은 급여명세서" className="flex flex-col rounded-[24px] bg-staff-navy p-[25px] text-white">
+          {/* 이번 달 실지급액 합계(Figma node 17:1003): 짙은 남색. 남색 위 흐린 글자 #BAC7DE·#D1DAEB 는 이 카드에만 쓴다.
+              높이를 상세의 실지급액 카드와 같게 줄였다 — radius 20 · 위아래 16 · 금액 26px(2026-11-25 사용자 지정, 전엔 radius 24 · 안쪽 25 · 32px) */}
+          <section aria-label="이번 달에 받은 급여명세서" className="flex flex-col rounded-[20px] bg-staff-navy px-[20px] py-[16px] text-white">
             <p className="text-[13px] text-[#bac7de]">{receivedMonthLabel(thisMonth.month)} 실지급액 합계</p>
             {thisMonth.count > 0 ? (
               <>
-                <p className="pt-[14px] pb-[16px] font-bold">
-                  <span className="text-[32px]">{formatWon(thisMonth.totalNetPayAmount)}</span>
+                <p className="pt-[2px] font-bold">
+                  <span className="text-[26px]">{formatWon(thisMonth.totalNetPayAmount)}</span>
                   <span className="text-[17px]"> 원</span>
                 </p>
-                <p className="border-t border-white/13 pt-[15px] text-[12px] text-[#d1daeb]">
+                <p className="mt-[8px] border-t border-white/13 pt-[10px] text-[12px] text-[#d1daeb]">
                   급여명세서 {thisMonth.count}건 · {thisMonth.storeNames.join(", ")}
                 </p>
               </>
             ) : (
               // 0원이 아니라 받은 것이 없다고 적는다(PAY-9)
-              <p className="pt-[14px] text-[17px] font-bold">이번 달에 받은 명세서가 없습니다</p>
+              <p className="pt-[6px] text-[17px] font-bold">이번 달에 받은 명세서가 없습니다</p>
             )}
           </section>
 
