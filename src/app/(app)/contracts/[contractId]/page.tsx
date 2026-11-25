@@ -270,6 +270,8 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
           storeName={c.employer.storeName}
           badge={<Badge tone={statusTone(phase)}>{status}</Badge>}
           rows={[
+            // 제목에서 고용 형태를 뺐으니 요약 첫 줄에 둔다 — 종이 계약 요약과 같다(2026-11-25 사용자 지정)
+            ["고용 형태", employmentType],
             ["받은 날", c.sentAt && kstDateLabel(c.sentAt)],
             deadline
               ? ["서명 기한", deadline.dateTime]
