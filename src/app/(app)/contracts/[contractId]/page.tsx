@@ -102,8 +102,8 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const employmentType = c.employmentType && labelOf(employmentTypes, c.employmentType);
   const deadline = deadlineOf(c, now);
   const paper = c.contractMethod === "PAPER";
-  // 화면 제목은 목록에서 누른 상자 제목과 같다 — 「파트타이머 근로계약서」(고용 형태가 없으면 「근로계약서」, 2026-11-20 사용자 지정)
-  const title = employmentType ? `${employmentType} 근로계약서` : "근로계약서";
+  // 화면 제목은 「근로계약서」 — 고용 형태는 본문 제목(「근로계약서 · 정직원용」) · 종이 계약 요약에 있어 제목에서 뺐다(2026-11-25 사용자 지정, 전엔 「파트타이머 근로계약서」)
+  const title = "근로계약서";
   const header = <PageHeader title={title} backHref={backHref} />;
 
   if (paper) {
