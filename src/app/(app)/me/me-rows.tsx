@@ -124,12 +124,15 @@ export function LinkRow({
   icon,
   name,
   value,
+  trailing,
   highlight = false,
 }: {
   href: string;
   icon: ReactNode;
   name: ReactNode;
   value?: ReactNode;
+  /** 꺾쇠 앞에 두는 것(동의 상태 배지 등) */
+  trailing?: ReactNode;
   highlight?: boolean;
 }) {
   return (
@@ -141,6 +144,7 @@ export function LinkRow({
     >
       {icon}
       <RowText name={name} value={value} />
+      {trailing}
       <RowChevron />
     </Link>
   );

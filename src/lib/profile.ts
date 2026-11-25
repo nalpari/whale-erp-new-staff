@@ -222,6 +222,38 @@ export const hqReconsentOf = (
 export const locationNeedsReconsent = (consent: Pick<Schemas["MyLocationConsentDto"], "state" | "needsReconsent">) =>
   consent.needsReconsent && (consent.state === "AGREED" || consent.state === "PAUSED");
 
+// 배지 글자는 데모 문구다 — 미동의와 철회를 같은 「동의하지 않음」으로 묶는다. LocationConsentState 의 enum label
+// (미동의 · 동의 · 일시 중지 · 철회)과 다르다.
+const LOCATION_BADGE: Record<LocationConsentState, { tone: BadgeTone; text: string }> = {
+  NOT_AGREED: { tone: "plain", text: "동의하지 않음" },
+  AGREED: { tone: "success", text: "동의함" },
+  PAUSED: { tone: "warning", text: "일시 중지" },
+  WITHDRAWN: { tone: "plain", text: "동의하지 않음" },
+};
+
+/**
+ * 출퇴근 위치정보 이용 동의의 배지와 일시 줄 — 내 정보 목록 줄과 상세가 같이 쓴다. 일시 줄은 시 · 분과 동의한 약관 버전이고, 다시 동의가
+ * 필요하면 지금 약관의 시행일(받지 못했으면 날짜 없이)이다. 처음 · 동의하지 않음이면 비어 있다.
+ */
+export function locationConsentView(
+  consent: Pick<Schemas["MyLocationConsentDto"], "state" | "needsReconsent" | "agreedAt" | "pausedAt" | "withdrawnAt" | "consentVersion">,
+  termsEffectiveDate: string | null,
+): { badge: { tone: BadgeTone; text: string }; line: string; reconsent: boolean } {
+  const { state, agreedAt, pausedAt, withdrawnAt, consentVersion } = consent;
+  const reconsent = locationNeedsReconsent(consent);
+  const version = consentVersion ? ` · 약관 ${consentVersion}` : "";
+  const line = reconsent
+    ? `약관 변경${termsEffectiveDate ? ` · ${dateLabel(termsEffectiveDate)}` : ""}`
+    : state === "AGREED" && agreedAt
+      ? `${kstDateTimeLabel(agreedAt)} 동의${version}`
+      : state === "PAUSED" && pausedAt
+        ? `${kstDateTimeLabel(pausedAt)} 일시 중지`
+        : state === "WITHDRAWN" && withdrawnAt
+          ? `${kstDateTimeLabel(withdrawnAt)} 동의 철회`
+          : "";
+  return { badge: reconsent ? { tone: "warning", text: "다시 동의 필요" } : LOCATION_BADGE[state], line, reconsent };
+}
+
 /**
  * 동의 바꾸기 요청 본문. 위치정보 동의는 보인 약관이 없었어도(null) 늘 싣는다 — api 는 빠지면 400, null 이면 그사이 시행된 약관이 있을 때
  * 409 다(api #185). 사업자 제공 동의는 화면이 보인 문구 버전을 consentVersion 으로 싣는다(ATT-30 v252). 나머지는 본문이 없다.

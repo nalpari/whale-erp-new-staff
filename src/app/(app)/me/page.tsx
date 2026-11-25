@@ -1,13 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Alert, BottomNav } from "@/components/common";
+import { Alert, Badge, BottomNav } from "@/components/common";
+import { PRESS } from "@/components/common/theme";
 import { getMyInvitations } from "@/lib/my-invitations";
 import { getCurrentTerms, getMyAffiliationRequests, getMyMemberships, getMyProfile } from "@/lib/my-profile";
-import { PASSWORD_STALE_MONTHS, dateLabel, hasFranchiseMembership, hasHqSharingRecord, isPasswordStale, kstDateLabel } from "@/lib/profile";
+import {
+  PASSWORD_STALE_MONTHS,
+  dateLabel,
+  hasFranchiseMembership,
+  hasHqSharingRecord,
+  hqSharingView,
+  isPasswordStale,
+  kstDateLabel,
+  locationConsentView,
+} from "@/lib/profile";
 import { AddressRow } from "./address-row";
 import { ChangedToast } from "./changed-toast";
-import { HqSharingConsentCard, LocationConsentCard } from "./consent-cards";
 import { LogoutSheet } from "./logout-sheet";
 import { TitleHeader } from "../title-header";
 import { LineIcon, LinkRow, RowBox, RowGroup, RowIcon } from "./me-rows";
@@ -31,6 +40,10 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
   const toast = typeof changed === "string" && Object.hasOwn(CHANGED_TOAST, changed) ? CHANGED_TOAST[changed] : undefined;
   const [profile, memberships, locationTerms] = await Promise.all([getMyProfile(), getMyMemberships(), getCurrentTerms("LOCATION")]);
   const items = memberships?.items ?? [];
+  const location = locationConsentView(profile.locationConsent, locationTerms.status === "ok" ? locationTerms.terms.effectiveDate : null);
+  const hqSharing = hqSharingView(profile.hqSharingConsent);
+  // 목록 줄은 한 줄에 들어가게 동의한 약관 · 내용 버전을 뺀다 — 버전은 상세에서 본다
+  const withoutVersion = (line: string) => line.replace(/ · (약관|내용) \S+$/, "") || undefined;
   const first = items.at(0);
 
   return (
@@ -100,18 +113,43 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
           )}
         </RowGroup>
 
-        <LocationConsentCard consent={profile.locationConsent} terms={locationTerms} />
-        {/* 가맹 점포 소속이 있을 때만(ATT-30). 소속을 못 받았으면 판단할 수 없어 감추되, 동의 기록이 있으면(동의 · 철회 — 가맹 소속이
+        {/* 동의 — 내 근무지처럼 줄 상자에 한 줄씩(상태 배지 · 일시), 내용 보기 · 일시 중지 · 동의 철회는 상세에서(2026-11-25 사용자 지정).
+            근무정보 제공 동의는 가맹 점포 소속이 있을 때만(ATT-30). 소속을 못 받았으면 판단할 수 없어 감추되, 동의 기록이 있으면(동의 · 철회 — 가맹 소속이
             있던 계정) 보인다 — 다시 동의할 곳이 이 카드뿐이고(staff #53 code-review), 다시 동의 · 철회에 성공해도 카드 · 토스트가
             사라지지 않게(staff #53 리뷰) */}
-        {(memberships ? hasFranchiseMembership(items) : hasHqSharingRecord(profile.hqSharingConsent)) && <HqSharingConsentCard consent={profile.hqSharingConsent} />}
+        <RowGroup title="동의">
+          <RowBox>
+            <LinkRow
+              href="/me/consents/location"
+              icon={<RowIcon name="pin" />}
+              name="출퇴근 위치정보 이용 동의"
+              value={withoutVersion(location.line)}
+              trailing={<Badge tone={location.badge.tone}>{location.badge.text}</Badge>}
+            />
+            {(memberships ? hasFranchiseMembership(items) : hasHqSharingRecord(profile.hqSharingConsent)) && (
+              <LinkRow
+                href="/me/consents/hq-sharing"
+                icon={<RowIcon name="store" />}
+                name="근무정보 제공 동의"
+                value={withoutVersion(hqSharing.line)}
+                trailing={<Badge tone={hqSharing.badge.tone}>{hqSharing.badge.text}</Badge>}
+              />
+            )}
+          </RowBox>
+        </RowGroup>
 
         {/* 로그아웃은 맨 아래(S-PHHICH 확정). 자주 누를 것이 아니고 실수로 눌리면 곤란해서다. */}
-        <LogoutSheet />
-        {/* 회원 탈퇴(WHALEERP-770) — 로그아웃 아래 작은 글자 링크. 실수로 눌리지 않게 눈에 덜 띄게 둔다. */}
-        <Link href="/me/withdrawal" className="self-center text-[13px] text-staff-text-muted underline underline-offset-2">
-          회원 탈퇴
-        </Link>
+        {/* 회원 탈퇴(WHALEERP-770) — 로그아웃 아래 작은 글자 링크. 실수로 눌리지 않게 눈에 덜 띄게 둔다. 로그인 화면처럼 테두리 버튼 · 밑줄
+            글자 링크이고, 위 묶음 · 버튼 · 링크 글자 사이를 22px 로 맞춘다(2026-11-25 사용자 지정). 링크는 누르는 칸 44px 가운데에 글자가 온다 */}
+        <div className="mt-[10px] flex flex-col gap-[8px]">
+          <LogoutSheet />
+          <Link
+            href="/me/withdrawal"
+            className={`flex h-[44px] items-center justify-center self-center px-[12px] text-[13px] text-staff-text-muted underline underline-offset-4 ${PRESS}`}
+          >
+            회원 탈퇴
+          </Link>
+        </div>
       </div>
       {toast && <ChangedToast>{toast}</ChangedToast>}
       <div className="sticky bottom-0 mt-auto">

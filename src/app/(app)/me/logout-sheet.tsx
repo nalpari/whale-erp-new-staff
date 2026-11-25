@@ -10,8 +10,8 @@ export function LogoutSheet() {
   const [open, setOpen] = useState(false);
   return (
     <>
-      {/* 정돈 시안 ⑬ — 나가기 아이콘(16px) + 글자의 ghost 버튼 */}
-      <Button variant="ghost" onClick={() => setOpen(true)}>
+      {/* 나가기 아이콘(16px) + 글자의 테두리 버튼 — 로그인 화면 [초대 코드로 가입]과 같은 모양(2026-11-25 사용자 지정, 전엔 ghost) */}
+      <Button variant="outline" onClick={() => setOpen(true)}>
         <LineIcon name="logout" size={16} />
         로그아웃
       </Button>
