@@ -66,10 +66,10 @@ export default async function PayslipPage({ params, searchParams }: PageProps<"/
   // PDF 받기가 실패해 돌아왔다(pdf/route.ts). 안내를 띄운 뒤 주소의 `?download=` 는 지운다 — 새로 고칠 때마다 다시 뜨지 않게.
   const keepQuery = payslipKeepQuery((name) => (typeof raw[name] === "string" ? raw[name] : null));
   const downloadAlert = payslipDownloadAlert(raw.download);
-  // 맨 위 상자의 이름 · 값 줄(급여기간 · 발송일, 2026-11-25 사용자 지정) — 발송 전 재검토면 발송일 줄을 두지 않는다
+  // 맨 위 상자의 이름 · 값 줄(급여기간 · 받은 날 — 목록 「받음」 · 근로계약서와 같은 말, 2026-11-25 사용자 지정) — 발송 전 재검토면 받은 날 줄을 두지 않는다
   const facts: [string, string][] = [
     ["급여기간", periodLabel(payslip.periodStartDate, payslip.periodEndDate)],
-    ...(sentAt ? [["발송일", kstDateLabel(sentAt)] as [string, string]] : []),
+    ...(sentAt ? [["받은 날", kstDateLabel(sentAt)] as [string, string]] : []),
   ];
 
   return (
@@ -90,7 +90,7 @@ export default async function PayslipPage({ params, searchParams }: PageProps<"/
         </>
       )}
       {/* 맨 위 상자(2026-11-25 사용자 지정 — 전엔 회색 상자에 「급여 기간」 · 기간 · 한 줄 회색 글자로 근무지 · 고용 형태 · 받은 날을 몰았다):
-          윗줄 근무지(점포 표시 · 이름) · 다시 검토 중이면 오른쪽 배지, 제목 「2026년 11월 급여명세서」, 아래 이름 · 값 줄(급여기간 · 발송일). */}
+          윗줄 근무지(점포 표시 · 이름) · 다시 검토 중이면 오른쪽 배지, 제목 「2026년 11월 급여명세서」, 아래 이름 · 값 줄(급여기간 · 받은 날). */}
       <section className="flex flex-col rounded-[16px] border border-staff-border bg-white px-[18px] pt-[16px] pb-[6px]">
         <div className="flex items-center gap-[8px]">
           <StoreMark />
