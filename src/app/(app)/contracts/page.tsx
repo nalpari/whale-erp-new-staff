@@ -112,8 +112,9 @@ function ContractRow({
   const status = phaseLabel(phase, labelOf(statuses, phase));
   const deadline = deadlineOf(c, now);
   const employment = c.employmentType ? labelOf(employmentTypes, c.employmentType) : null;
-  // 상자 제목은 누르면 열리는 상세의 화면 제목과 같다 — 「파트타이머 근로계약서」(2026-11-20 사용자 지정)
-  const title = inStore ? `${employment ? `${employment} ` : ""}근로계약서` : [c.storeName, employment].filter(Boolean).join(" · ");
+  // 상자 제목은 상세와 같다 — 내 근무지에서 들어오면 「근로계약서」, 전체 목록이면 근무지명. 고용 형태는 제목에서 빼고 아래 첫 줄에
+  // 둔다(상세 요약과 같은 줄 순서: 고용 형태 · 계약 기간 · 받은 날 · 서명 기한/서명일, 2026-11-25 사용자 지정 — 전엔 「파트타이머 근로계약서」)
+  const title = inStore ? "근로계약서" : c.storeName;
   const open = !isFinishedPhase(phase);
   // 서명 기한 · 서명일로 말할 수 없는 단계(거절 · 만료 · 서명 불가 · 수정 요청)는 목록 한 줄 안내를 그대로 둔다
   // 수정 요청 · 거절은 그날을 이름 · 값 줄로(다른 줄과 시작선이 맞게, 2026-11-20 사용자 지정)
@@ -138,7 +139,9 @@ function ContractRow({
           </span>
         </span>
         <span className="flex flex-col gap-[6px]">
+          {employment && <Row label="고용 형태">{employment}</Row>}
           {c.startDate && <Row label="계약 기간">{periodText(c.startDate, c.endDate)}</Row>}
+          {c.sentAt && <Row label="받은 날">{kstDateLabel(c.sentAt)}</Row>}
           {deadline && (
             <span className="flex flex-col gap-[2px]">
               <Row label="서명 기한">{deadline.dateTime}</Row>
