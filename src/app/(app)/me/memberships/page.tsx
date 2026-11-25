@@ -167,7 +167,7 @@ function StatusChips({ counts, current }: { counts: Record<StatusFilter, number>
         return (
           <Link
             key={key}
-            href={key === "working" ? "/me/memberships" : `/me/memberships?status=${key}`}
+            href={`/me/memberships?status=${key}`}
             replace
             scroll={false}
             aria-current={on ? "true" : undefined}
@@ -184,11 +184,15 @@ function StatusChips({ counts, current }: { counts: Record<StatusFilter, number>
 }
 
 export default async function MembershipsPage({ searchParams }: PageProps<"/me/memberships">) {
-  const filter = statusFilterOf((await searchParams).status);
+  const requested = (await searchParams).status;
   // 연락처(계약 목록 + 근무지 수만큼 상세)는 기다리지 않는다 — 카드마다 Suspense 로 받아 근무지 목록이 먼저 뜬다
   const storeContacts = getStoreContacts();
   const [memberships, employmentTypes] = await Promise.all([getMyMemberships(true), getEnumOrEmpty("EmploymentType")]);
   const today = kstToday();
+  // 처음 열면 「근무 중」. 다만 근무 중인 근무지가 없으면(퇴직 예정 · 퇴직만) 빈 목록 대신 「전체」로 연다 — 퇴직 예정 근무지도 아직
+  // 출근하는 곳이라 「근무 중인 근무지가 없습니다」만 보이면 안 된다(2026-11-25 리뷰). 칩을 눌러 고른 값(?status=)은 그대로 따른다
+  const noneWorking = memberships !== null && !memberships.items.some((m) => membershipStatusOf(m.retiredDate, today) === "working");
+  const filter = requested === undefined && noneWorking ? "all" : statusFilterOf(requested);
 
   return (
     <div className="flex flex-1 flex-col">

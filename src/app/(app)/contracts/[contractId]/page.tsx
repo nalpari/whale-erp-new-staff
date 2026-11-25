@@ -102,7 +102,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
   const employmentType = c.employmentType && labelOf(employmentTypes, c.employmentType);
   const deadline = deadlineOf(c, now);
   const paper = c.contractMethod === "PAPER";
-  // 화면 제목은 「근로계약서」 — 고용 형태는 본문 제목(「근로계약서 · 정직원용」) · 종이 계약 요약에 있어 제목에서 뺐다(2026-11-25 사용자 지정, 전엔 「파트타이머 근로계약서」)
+  // 화면 제목은 「근로계약서」 — 고용 형태는 요약 첫 줄(전자 · 종이 모두)과 본문 제목(「근로계약서 · 정직원용」, 조항이 있을 때)에 있어 제목에서 뺐다(2026-11-25 사용자 지정, 전엔 「파트타이머 근로계약서」)
   const title = "근로계약서";
   const header = <PageHeader title={title} backHref={backHref} />;
 
@@ -144,7 +144,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
                     <span className="text-[14px] font-semibold">{labelOf(documentKinds, d.kind)}</span>
                     <span className="text-[12px] break-all text-staff-text-muted">{d.fileName}</span>
                   </span>
-                  {/* 받기 · 내보내기 링크의 근거(아래 「근로계약서 PDF 다운로드」도 이것을 따른다). 이 앱의 라우트가 로그인 토큰으로 api 의 서명
+                  {/* 받기 · 내보내기 링크의 근거(전자 계약 상세 머리줄의 PDF 알약 `DownloadPill` 도 이것을 따른다). 이 앱의 라우트가 로그인 토큰으로 api 의 서명
                       주소를 받아 보낸다(documents/[contractDocumentId]/route.ts). 라우트
                       핸들러라 Link 의 미리 받기를 쓰지 않는다. 같은 탭에서 연다 — 성공하면 저장소가 attachment 로 내려줘 화면은 그대로
                       남고, 실패하면 라우트가 이 상세로 돌려보내 안내한다. target="_blank" 는 홈 화면에 둔 앱(PWA 단독 모드)에서 앱 밖

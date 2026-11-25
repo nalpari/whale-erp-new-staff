@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-25
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — pr-review-toolkit 반영: 내 근무지는 근무 중인 근무지가 없으면 「전체」로 열고, 출근 화면 [내 정보에서 관리]는 동의 상세로, 근무정보 제공 동의 상세는 근무지를 못 받으면 안내. 본문 옛 서술(급여 「발송 완료」 · PDF 받기 · 내 정보 아이콘 · 근로계약 뒤로 가기 · 「내 정보 카드」)을 바뀐 화면에 맞춤.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR 전 리뷰 반영: DESIGN.md 를 바뀐 로그인 · 내 정보 · CheckBox · HeroCard 에 맞춤, 내 정보는 쓰지 않는 약관 조회를 뺌, 근무지별 근로계약 · 급여 · 신고 정보에서 돌아가면 내 근무지 「전체」(`?status=all`), 회색 상자는 공통 `GrayBox`, PDF 알약 · 로그인 로고 화면 낭독기 이름, 근무정보 제공 동의 상세는 줄과 같은 조건에서만, `locationConsentView` 테스트.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 통합테스트 다듬기: 로그인 직원 고래 로고 · 키 메시지 「근무지와 나를 잇는 근무 앱」 · 버튼 줄 바탕 · 간격 22, 체크 칸 흰 바탕, 내 정보 동의 목록 줄 + 상세 화면(`/me/consents/*`), 로그아웃 · 회원 탈퇴 모양, 내 근무지 기본 「근무 중」, 급여명세서 PDF 다운로드 머리줄로, 처리 완료 화면 흰 바탕 · 회색 상자, 위치 안내 핀 아이콘.
 

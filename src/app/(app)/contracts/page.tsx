@@ -110,8 +110,9 @@ function ContractRow({
   const phase = phaseOf(c, now);
   const status = phaseLabel(phase, labelOf(statuses, phase));
   const deadline = deadlineOf(c, now);
-  // 상자 제목은 상세와 같다 — 내 근무지에서 들어오면 「근로계약서」, 전체 목록이면 근무지명(전엔 「파트타이머 근로계약서」).
-  // 줄은 계약 기간 · 상태 날짜 한 줄(서명 기한 / 서명일 / 수정 요청일 · 거절일)뿐 — 고용 형태 · 받은 날은 상세 요약에서 본다(2026-11-25 사용자 지정)
+  // 상자 제목은 내 근무지에서 들어오면 상세와 같은 「근로계약서」, 전체 목록이면 근무지명(전엔 「파트타이머 근로계약서」).
+  // 줄은 계약 기간 줄과 상태 날짜 줄(서명 기한 / 서명일 · 등록일 / 수정 요청일 · 거절일), 날짜로 말할 수 없는 단계는 안내 한 줄 —
+  // 고용 형태 · 받은 날은 상세 요약에서 본다(2026-11-25 사용자 지정)
   const title = inStore ? "근로계약서" : c.storeName;
   const open = !isFinishedPhase(phase);
   // 서명 기한 · 서명일로 말할 수 없는 단계(거절 · 만료 · 서명 불가 · 수정 요청)는 목록 한 줄 안내를 그대로 둔다

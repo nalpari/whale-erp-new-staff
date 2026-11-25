@@ -372,7 +372,7 @@ export function CheckInScreen({
         <Button disabled={pending} onClick={() => consentChange("location-resume", "위치 수집을 다시 켰습니다")}>
           다시 켜기
         </Button>
-        <Button variant="ghost" href="/me">
+        <Button variant="ghost" href="/me/consents/location">
           내 정보에서 관리
         </Button>
       </>
@@ -393,10 +393,10 @@ export function CheckInScreen({
         </Sunken>
       </>
     );
-    // 다시 동의는 내 정보에서 한다(안내 문구가 가리키는 이름은 내 정보 카드의 버튼과 같다 — 처음이면 「동의하기」). 일시 중지 화면처럼
+    // 다시 동의는 내 정보 › 출퇴근 위치정보 이용 동의 상세에서 한다(안내 문구가 가리키는 이름은 그 카드의 버튼과 같다 — 처음이면 「동의하기」). 일시 중지 화면처럼
     // 내 정보로 가는 버튼을 둔다 — 안내만 있고 갈 길이 없으면 막힌 화면이 된다(재영 리뷰 #77)
     dock = (
-      <Button variant="ghost" href="/me">
+      <Button variant="ghost" href="/me/consents/location">
         내 정보에서 관리
       </Button>
     );
