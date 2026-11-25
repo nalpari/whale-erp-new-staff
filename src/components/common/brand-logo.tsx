@@ -48,7 +48,7 @@ export function BrandLogo() {
       <StaffWhale />
       <div className="flex flex-col items-center gap-[4px] pt-[6px] text-center leading-[1.5] break-keep">
         <p className="text-[20px] font-bold text-staff-text">근무지와 나를 잇는 근무 앱</p>
-        <p className="text-[13px] text-staff-text-muted">근로계약, 근무 일정, 급여명세서를 앱에서 확인하세요.</p>
+        <p className="text-[13px] text-staff-text-muted">근로계약, 근무스케줄, 급여명세서를 앱에서 확인하세요.</p>
       </div>
     </div>
   );
