@@ -162,7 +162,7 @@ function PayslipRows({ items, site }: { items: Awaited<ReturnType<typeof getPays
             className="flex min-h-[44px] w-full items-center gap-[12px] py-[12px] text-left transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-staff-primary-inactive"
           >
             <span className="flex min-w-0 flex-1 flex-col">
-              <span className="truncate text-[15px] font-semibold">{monthLabel(p.periodStartDate)}</span>
+              <span className="truncate text-[15px] font-semibold">{monthLabel(p.periodStartDate)} 급여</span>
               <span className="truncate pt-[2px] text-[12px] text-staff-text-sub">{rowLabel(p.storeName, p.sentAt)}</span>
             </span>
             {p.correcting || p.netPayAmount === null ? (
