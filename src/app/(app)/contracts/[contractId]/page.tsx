@@ -187,10 +187,10 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
             // 전엔 화면 맨 아래 큰 버튼). 서명 대기에서는 내보내지 않는다 — 처리 완료본은 체결 뒤 파일 생성(WHALEERP-131)이 만들어
             // documents 에 SIGNED_COPY 로 실린다. 아직 없으면 알약도 없다. 종이 계약 「받기」와 같은 보통 링크다(근거는 그 주석). Plane 의
             // 「공유 시트」는 휴대전화 브라우저가 받은 PDF 에 띄우는 저장 · 공유로 갈음한다 — Web Share API 는 서명 주소가 다른 출처라
-            // 파일을 읽어 올 수 없어 쓰지 않는다. 제목(「파트타이머 근로계약서」)이 잘리지 않게 글자는 「PDF」만 둔다.
+            // 파일을 읽어 올 수 없어 쓰지 않는다.
             action={
               signedCopy && (
-                <DownloadPill href={`/contracts/${c.contractId}/documents/${signedCopy.contractDocumentId}${keepQuery}`}>PDF</DownloadPill>
+                <DownloadPill href={`/contracts/${c.contractId}/documents/${signedCopy.contractDocumentId}${keepQuery}`} />
               )
             }
           />
