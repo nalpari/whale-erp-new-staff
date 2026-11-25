@@ -79,8 +79,8 @@ export default async function PayPage({ searchParams }: PageProps<"/pay">) {
           {/* 이번 달 실지급액 합계(Figma node 17:1003): 짙은 남색. 남색 위 흐린 글자 #BAC7DE·#D1DAEB 는 이 카드에만 쓴다.
               높이를 상세의 실지급액 카드와 같게 줄였다 — radius 20 · 위아래 16 · 금액 26px(2026-11-25 사용자 지정, 전엔 radius 24 · 안쪽 25 · 32px) */}
           <section aria-label="이번 달에 받은 급여명세서" className="flex flex-col rounded-[20px] bg-staff-navy px-[20px] py-[16px] text-white">
-            {/* 「11월」은 급여 기간이 아니라 받은 달이라 「받은」을 넣는다 — 10월 급여를 11월에 받으면 11월 합계에 든다(2026-11-25 사용자 지정, 전엔 「11월 실지급액 합계」) */}
-            <p className="text-[13px] text-[#bac7de]">{receivedMonthLabel(thisMonth.month)}에 받은 급여 합계</p>
+            {/* 「11월」은 급여 기간이 아니라 받은 달이라 「받은」을 넣는다 — 10월 급여를 11월에 받으면 11월 합계에 든다— 공제 뒤 금액이라 「실지급액」을 둔다(2026-11-25 사용자 지정, 전엔 「11월 실지급액 합계」) */}
+            <p className="text-[13px] text-[#bac7de]">{receivedMonthLabel(thisMonth.month)}에 받은 실지급액 합계</p>
             {thisMonth.count > 0 ? (
               <>
                 <p className="pt-[2px] font-bold">
