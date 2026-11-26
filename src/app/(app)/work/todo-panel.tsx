@@ -2,7 +2,7 @@
 
 import { unstable_rethrow } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Alert, BottomSheet, Notice, SegmentedControl, StatusChip, Toast, TodoItem, TodoList } from "@/components/common";
+import { Alert, BottomSheet, Notice, SHEET_CLOSE_MS, SegmentedControl, StatusChip, Toast, TodoItem, TodoList } from "@/components/common";
 import {
   TODO_STATUS,
   TODO_STATUSES,
@@ -52,8 +52,12 @@ function useStatusChange() {
       // 성공한 뒤의 처리는 위 catch 밖에 둔다 — 여기서 난 오류를 연결 실패로 잘못 보이지 않게.
       setError(failed);
       if (failed) return;
-      setDone({ key: Date.now(), text: CHANGED_TEXT[status] });
-      onDone?.();
+      const text = CHANGED_TEXT[status];
+      if (!onDone) return setDone({ key: Date.now(), text });
+      // 상세 시트에서 바꿨으면 시트가 다 내려가 close() 된 뒤에 알린다 — 모달이 열려 있는 동안은 바깥(알림)이
+      // 접근성 트리에서 빠져 화면 낭독기가 안내를 놓칠 수 있다.
+      onDone();
+      setTimeout(() => setDone({ key: Date.now(), text }), SHEET_CLOSE_MS + 50);
     });
   return { pending, error, done, change, clearError: () => setError(undefined) };
 }

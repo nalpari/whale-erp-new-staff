@@ -42,7 +42,7 @@ export function BottomSheet({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  // 내려가는 중인 애니메이션 — 그사이 다시 열면 멈추고 아래에서 다시 올린다.
+  // 내려가는 중인 애니메이션 — 그사이 다시 열면 멈추고 그때 그려진 위치에서 다시 올린다.
   const closing = useRef<Animation[]>([]);
   // 올라오는 중인 애니메이션 — 그사이 닫으면 지금 그려진 위치에서 내려가게 한다.
   const opening = useRef<Animation[]>([]);
@@ -53,6 +53,10 @@ export function BottomSheet({
     const still = reducedMotion();
     if (open) {
       const wasClosing = closing.current.length > 0;
+      // 내려가던 중이면 취소하기 전에 지금 위치 · 배경 투명도를 읽어 둔다(맨 아래로 사라졌다 다시 오르지 않게).
+      const from = wasClosing
+        ? { translate: currentTranslate(dialog, "0 100%"), opacity: currentBackdropOpacity(closing.current, 0) }
+        : undefined;
       closing.current.forEach((a) => a.cancel());
       closing.current = [];
       dialog.inert = false;
@@ -67,7 +71,7 @@ export function BottomSheet({
       }
       if (!still) {
         try {
-          opening.current = slide(dialog, "up");
+          opening.current = slide(dialog, "up", from);
         } catch (error) {
           // 움직이지 못해도 시트는 열려 있다.
           console.error("[bottom-sheet] 열림 애니메이션 실패", error);
@@ -77,7 +81,7 @@ export function BottomSheet({
     }
     if (!dialog.open || closing.current.length > 0) return;
     // 올라오던 중이면 지금 그려진 위치를 읽어 거기서부터 내린다(완전히 열린 자리로 튀었다가 내려가지 않게).
-    const from = { translate: currentTranslate(dialog), opacity: currentBackdropOpacity(opening.current) };
+    const from = { translate: currentTranslate(dialog, "0 0"), opacity: currentBackdropOpacity(opening.current, 1) };
     opening.current.forEach((a) => a.cancel());
     opening.current = [];
     if (still) return dialog.close();
@@ -167,20 +171,21 @@ function reducedMotion(): boolean {
  * 시트를 아래에서 올리거나(up, 260ms) 아래로 내린다(down, SHEET_CLOSE_MS). 뒤 화면(::backdrop)도 함께 흐려지고 걷힌다.
  * 내릴 때는 끝 모습을 붙잡아(fill) 두어, close() 하기 전 한 순간 제자리로 튀어 오르지 않게 한다.
  * ::backdrop 지정이 거부되거나(예외) 옵션을 모르는 브라우저(effect.pseudoElement 가 비어 있음)에서는 시트만 움직인다.
- * 내릴 때는 [from](올라오던 중이면 그때 그려진 위치 · 배경 투명도)에서 시작한다.
+ * [from] 이 있으면(반대로 움직이던 중) 그때 그려진 위치 · 배경 투명도에서 시작한다.
  */
 function slide(
   dialog: HTMLDialogElement,
   to: "up" | "down",
-  from: { translate: string; opacity: number } = { translate: "0 0", opacity: 1 },
+  from?: { translate: string; opacity: number },
 ): Animation[] {
   const up = to === "up";
+  const start = from ?? (up ? { translate: "0 100%", opacity: 0 } : { translate: "0 0", opacity: 1 });
   const timing: KeyframeAnimationOptions = up
     ? { duration: 260, easing: "cubic-bezier(0.23, 1, 0.32, 1)" }
     : { duration: SHEET_CLOSE_MS, easing: "ease-in", fill: "forwards" };
-  const moves = [dialog.animate({ translate: up ? ["0 100%", "0 0"] : [from.translate, "0 100%"] }, timing)];
+  const moves = [dialog.animate({ translate: up ? [start.translate, "0 0"] : [start.translate, "0 100%"] }, timing)];
   try {
-    const backdrop = dialog.animate({ opacity: up ? [0, 1] : [from.opacity, 0] }, { ...timing, pseudoElement: "::backdrop" });
+    const backdrop = dialog.animate({ opacity: up ? [start.opacity, 1] : [start.opacity, 0] }, { ...timing, pseudoElement: "::backdrop" });
     // pseudoElement 옵션을 모르는 브라우저는 예외 없이 시트 본체에 투명도를 건다 — 그때는 지우고 시트만 움직인다.
     if ((backdrop.effect as KeyframeEffect | null)?.pseudoElement === "::backdrop") moves.push(backdrop);
     else backdrop.cancel();
@@ -190,21 +195,26 @@ function slide(
   return moves;
 }
 
-/** 올라오던 배경 애니메이션의 지금 투명도(easing 반영). 끝났거나 없으면 다 어두운 1. */
-function currentBackdropOpacity(opening: Animation[]): number {
-  for (const a of opening) {
+/** 움직이던 배경 애니메이션의 지금 투명도(시작 · 끝 키프레임 사이를 easing 반영 진행값으로). 끝났거나 없으면 [fallback]. */
+function currentBackdropOpacity(moving: Animation[], fallback: number): number {
+  for (const a of moving) {
     const effect = a.effect as KeyframeEffect | null;
     if (effect?.pseudoElement !== "::backdrop") continue;
     const progress = effect.getComputedTiming().progress;
-    if (typeof progress === "number") return Math.min(1, Math.max(0, progress));
+    const frames = effect.getKeyframes();
+    const first = Number(frames[0]?.opacity);
+    const last = Number(frames[frames.length - 1]?.opacity);
+    if (typeof progress !== "number" || !Number.isFinite(first) || !Number.isFinite(last)) continue;
+    return Math.min(1, Math.max(0, first + (last - first) * progress));
   }
-  return 1;
+  return fallback;
 }
 
-/** 지금 화면에 그려진 시트의 translate(애니메이션 중간값 포함). 읽지 못하거나 없으면 제자리("0 0"). */
-function currentTranslate(dialog: HTMLDialogElement): string {
+/** 지금 화면에 그려진 시트의 translate(애니메이션 중간값 포함). 읽지 못하면 [fallback], 움직임이 없으면 제자리("0 0"). */
+function currentTranslate(dialog: HTMLDialogElement, fallback: string): string {
   const value = getComputedStyle(dialog).translate;
-  return value && value !== "none" ? value : "0 0";
+  if (!value) return fallback;
+  return value === "none" ? "0 0" : value;
 }
 
 // 시트 안의 고르기 버튼(Figma node 12:677): 52px · radius 12 · 안 고른 줄 #E4E8EF 테두리 · 15px semibold 보조 글자.
