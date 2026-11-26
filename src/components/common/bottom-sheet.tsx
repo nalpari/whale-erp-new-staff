@@ -42,6 +42,8 @@ export function BottomSheet({
   const closeRef = useRef<HTMLButtonElement>(null);
   // 내려가는 중인 애니메이션 — 그사이 다시 열면 멈추고 아래에서 다시 올린다.
   const closing = useRef<Animation[]>([]);
+  // 올라오는 중인 애니메이션 — 그사이 닫으면 지금 그려진 위치에서 내려가게 한다.
+  const opening = useRef<Animation[]>([]);
 
   useEffect(() => {
     const dialog = ref.current;
@@ -59,7 +61,7 @@ export function BottomSheet({
       }
       if (!still) {
         try {
-          slide(dialog, "up");
+          opening.current = slide(dialog, "up");
         } catch (error) {
           // 움직이지 못해도 시트는 열려 있다.
           console.error("[bottom-sheet] 열림 애니메이션 실패", error);
@@ -68,10 +70,14 @@ export function BottomSheet({
       return;
     }
     if (!dialog.open || closing.current.length > 0) return;
+    // 올라오던 중이면 지금 그려진 위치를 읽어 거기서부터 내린다(완전히 열린 자리로 튀었다가 내려가지 않게).
+    const from = currentTranslate(dialog);
+    opening.current.forEach((a) => a.cancel());
+    opening.current = [];
     if (still) return dialog.close();
     let running: Animation[];
     try {
-      running = slide(dialog, "down");
+      running = slide(dialog, "down", from);
     } catch (error) {
       console.error("[bottom-sheet] 닫힘 애니메이션 실패", error);
       return dialog.close();
@@ -110,6 +116,17 @@ export function BottomSheet({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
+      // 내려가는 중(open 이 false)에는 안쪽 누름 · 제출을 막는다. inert 를 지원하지 않는 Safari · 웹뷰에서도 두 번 고르지 않게.
+      onClickCapture={(e) => {
+        if (open) return;
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onSubmitCapture={(e) => {
+        if (open) return;
+        e.preventDefault();
+        e.stopPropagation();
+      }}
       className="m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-visible bg-transparent p-0 backdrop:bg-[rgba(23,37,61,0.38)] backdrop:backdrop-blur-[1.5px]"
     >
       <div className="flex max-h-[90dvh] flex-col overflow-y-auto rounded-t-[26px] bg-white px-[24px] pt-[12px] pb-[max(22px,env(safe-area-inset-bottom))] leading-[1.5] text-staff-text shadow-[0_-8px_28px_rgba(22,25,28,0.16)]">
@@ -143,20 +160,30 @@ function reducedMotion(): boolean {
 /**
  * 시트를 아래에서 올리거나(up, 260ms) 아래로 내린다(down, SHEET_CLOSE_MS). 뒤 화면(::backdrop)도 함께 흐려지고 걷힌다.
  * 내릴 때는 끝 모습을 붙잡아(fill) 두어, close() 하기 전 한 순간 제자리로 튀어 오르지 않게 한다.
- * ::backdrop 지정이 거부되면(예외) 시트만 움직인다. pseudoElement 옵션 자체를 모르는 브라우저는 예외 없이 시트가 함께 흐려질 수 있다.
+ * ::backdrop 지정이 거부되거나(예외) 옵션을 모르는 브라우저(effect.pseudoElement 가 비어 있음)에서는 시트만 움직인다.
+ * 내릴 때는 [from](올라오던 중이면 그때 그려진 위치)에서 시작한다.
  */
-function slide(dialog: HTMLDialogElement, to: "up" | "down"): Animation[] {
+function slide(dialog: HTMLDialogElement, to: "up" | "down", from = "0 0"): Animation[] {
   const up = to === "up";
   const timing: KeyframeAnimationOptions = up
     ? { duration: 260, easing: "cubic-bezier(0.23, 1, 0.32, 1)" }
     : { duration: SHEET_CLOSE_MS, easing: "ease-in", fill: "forwards" };
-  const moves = [dialog.animate({ translate: up ? ["0 100%", "0 0"] : ["0 0", "0 100%"] }, timing)];
+  const moves = [dialog.animate({ translate: up ? ["0 100%", "0 0"] : [from, "0 100%"] }, timing)];
   try {
-    moves.push(dialog.animate({ opacity: up ? [0, 1] : [1, 0] }, { ...timing, pseudoElement: "::backdrop" }));
+    const backdrop = dialog.animate({ opacity: up ? [0, 1] : [1, 0] }, { ...timing, pseudoElement: "::backdrop" });
+    // pseudoElement 옵션을 모르는 브라우저는 예외 없이 시트 본체에 투명도를 건다 — 그때는 지우고 시트만 움직인다.
+    if ((backdrop.effect as KeyframeEffect | null)?.pseudoElement === "::backdrop") moves.push(backdrop);
+    else backdrop.cancel();
   } catch {
     // ::backdrop 지정을 거부한 브라우저 — 시트만 움직인다.
   }
   return moves;
+}
+
+/** 지금 화면에 그려진 시트의 translate(애니메이션 중간값 포함). 읽지 못하거나 없으면 제자리("0 0"). */
+function currentTranslate(dialog: HTMLDialogElement): string {
+  const value = getComputedStyle(dialog).translate;
+  return value && value !== "none" ? value : "0 0";
 }
 
 // 시트 안의 고르기 버튼(Figma node 12:677): 52px · radius 12 · 안 고른 줄 #E4E8EF 테두리 · 15px semibold 보조 글자.
