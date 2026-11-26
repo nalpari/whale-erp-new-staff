@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode, type TouchEvent } from "react";
 
 // Figma 03.Sheet(node 12:670) 바텀시트. 네이티브 <dialog>(showModal)라 Esc·포커스 가두기·뒤 화면 막기를 브라우저가 맡는다.
 // 흰 바탕 · 위 모서리 26 · 위로 그림자, 맨 위 40×4 손잡이(#DCE1E9), 제목 20px bold · 설명 14px 보조 글자 · 좌우 24.
@@ -9,8 +9,15 @@ import { useEffect, useRef, type ReactNode } from "react";
 // 브라우저(Safari · 일부 웹뷰)가 있어 실기기에서 애니메이션이 없어 보였다(2026-11-26 실기기 확인). 닫을 때는 다 내려간 뒤에 close() 한다.
 // 「동작 줄이기」를 켠 사람에게는 움직이지 않고 바로 열고 닫는다.
 // 뒤 화면을 누르거나 Esc·닫기를 누르면 onClose 를 부른다. 열림 상태는 쓰는 쪽이 open 으로 들고 있다.
+// 손잡이 · 제목 쪽(머리)을 잡고 아래로 끌면 따라 내려오고, 충분히 끌면 닫는다(덜 끌면 제자리로). 시트가 열린 동안은 뒤 화면이
+// 스크롤되지 않게 문서 스크롤을 잠근다(2026-11-26 실기기 피드백 — 시트를 만지면 뒤 화면이 움직였다).
 /** 닫힐 때 내려가는 시간(ms, 아래 slide() 의 down). 시트를 차례로 띄우는 쪽이 앞 시트가 다 내려간 뒤 다음을 열 때 쓴다. */
 export const SHEET_CLOSE_MS = 200;
+
+/** 머리를 이만큼(px) 넘게 끌면 닫는다. 덜 끌었어도 빠르게 튕기듯 내리면(DRAG_FLICK) 닫는다. */
+const DRAG_CLOSE_PX = 80;
+/** 빠르게 내린 것으로 보는 속도(px/ms)와 그때 필요한 최소 거리(px). */
+const DRAG_FLICK = { speed: 0.5, minPx: 24 };
 
 const FOCUSABLE = '[autofocus], button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -46,6 +53,20 @@ export function BottomSheet({
   const closing = useRef<Animation[]>([]);
   // 올라오는 중인 애니메이션 — 그사이 닫으면 지금 그려진 위치에서 내려가게 한다.
   const opening = useRef<Animation[]>([]);
+  // 머리를 끄는 중 — 시작 y · 시각, 지금까지 내린 거리
+  const drag = useRef<{ startY: number; startAt: number; dy: number } | null>(null);
+  // 이 시트가 문서 스크롤을 잠갔는지 — 닫힘 · 사라짐이 겹쳐도 한 번만 푼다.
+  const locked = useRef(false);
+  const lockScroll = () => {
+    if (locked.current) return;
+    locked.current = true;
+    lockDocumentScroll();
+  };
+  const unlockScroll = () => {
+    if (!locked.current) return;
+    locked.current = false;
+    unlockDocumentScroll();
+  };
 
   useEffect(() => {
     const dialog = ref.current;
@@ -60,6 +81,9 @@ export function BottomSheet({
       closing.current.forEach((a) => a.cancel());
       closing.current = [];
       dialog.inert = false;
+      dialog.style.translate = "";
+      // 열려 있으면 늘 잠가 둔다(한 번만 잠그므로 여러 번 불러도 된다 — 개발 모드의 effect 재실행 뒤에도 풀린 채 남지 않게).
+      lockScroll();
       if (dialog.open && !wasClosing) return;
       if (!dialog.open) {
         dialog.showModal();
@@ -84,13 +108,19 @@ export function BottomSheet({
     const from = { translate: currentTranslate(dialog, "0 0"), opacity: currentBackdropOpacity(opening.current, 1) };
     opening.current.forEach((a) => a.cancel());
     opening.current = [];
-    if (still) return dialog.close();
+    if (still) {
+      dialog.style.translate = "";
+      dialog.close();
+      return unlockScroll();
+    }
     let running: Animation[];
     try {
       running = slide(dialog, "down", from);
     } catch (error) {
       console.error("[bottom-sheet] 닫힘 애니메이션 실패", error);
-      return dialog.close();
+      dialog.style.translate = "";
+      dialog.close();
+      return unlockScroll();
     }
     closing.current = running;
     // 내려가는 동안은 눌리지 않게 한다 — 내려가는 시트에서 근무지를 한 번 더 고르지 않게.
@@ -100,7 +130,9 @@ export function BottomSheet({
       if (closing.current !== running) return;
       closing.current = [];
       dialog.close();
+      unlockScroll();
       dialog.inert = false;
+      dialog.style.translate = "";
       running.forEach((a) => a.cancel());
     };
     // 다 내려간 뒤에 닫는다. 애니메이션이 다른 까닭으로 취소되거나 끝나지 않아도 닫아, 시트가 열린 채 남지 않게 한다.
@@ -112,6 +144,40 @@ export function BottomSheet({
       })
       .finally(() => clearTimeout(guard));
   }, [open, initialFocus]);
+
+  // 시트가 열린 채 화면이 사라지면(다른 화면으로 이동) 잠근 스크롤을 풀어 둔다.
+  useEffect(() => () => unlockScroll(), []);
+
+  // 머리 끌기. 아래로만 따라 내려가고(위로는 붙어 있음), 손을 떼면 닫거나 제자리로 돌아간다.
+  const dragStart = (e: TouchEvent) => {
+    const t = e.touches[0];
+    if (!open || e.touches.length !== 1 || !t) return;
+    drag.current = { startY: t.clientY, startAt: performance.now(), dy: 0 };
+  };
+  const dragMove = (e: TouchEvent) => {
+    const d = drag.current;
+    const t = e.touches[0];
+    const dialog = ref.current;
+    if (!d || !t || !dialog) return;
+    d.dy = Math.max(0, t.clientY - d.startY);
+    dialog.style.translate = `0 ${d.dy}px`;
+  };
+  const dragEnd = () => {
+    const d = drag.current;
+    const dialog = ref.current;
+    drag.current = null;
+    if (!d || !dialog || d.dy === 0) return;
+    const speed = d.dy / Math.max(1, performance.now() - d.startAt);
+    if (d.dy > DRAG_CLOSE_PX || (d.dy > DRAG_FLICK.minPx && speed > DRAG_FLICK.speed)) {
+      // 끈 자리에서 그대로 내려간다(닫힘 쪽이 지금 그려진 위치를 읽는다).
+      onClose();
+      return;
+    }
+    // 덜 끌었으면 제자리로 돌아간다.
+    const from = dialog.style.translate;
+    dialog.style.translate = "";
+    if (!reducedMotion()) dialog.animate({ translate: [from, "0 0"] }, { duration: 180, easing: "cubic-bezier(0.23, 1, 0.32, 1)" });
+  };
 
   return (
     <dialog
@@ -139,13 +205,17 @@ export function BottomSheet({
       }}
       className="m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-visible bg-transparent p-0 backdrop:bg-[rgba(23,37,61,0.38)] backdrop:backdrop-blur-[1.5px]"
     >
-      <div className="flex max-h-[90dvh] flex-col overflow-y-auto rounded-t-[26px] bg-white px-[24px] pt-[12px] pb-[max(22px,env(safe-area-inset-bottom))] leading-[1.5] text-staff-text shadow-[0_-8px_28px_rgba(22,25,28,0.16)]">
-        <span aria-hidden className="mx-auto h-[4px] w-[40px] shrink-0 rounded-[2px] bg-[#dce1e9]" />
-        {eyebrow && <p className="pt-[25px] text-[14px] font-semibold text-staff-text-sub">{eyebrow}</p>}
-        <h2 className={`${eyebrow ? "pt-[6px]" : "pt-[25px]"} text-[20px] font-bold break-keep`}>{heading ?? title}</h2>
-        {description && (
-          <p className="pt-[19px] text-[14px] whitespace-pre-line text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">{description}</p>
-        )}
+      {/* overscroll-contain — 시트 안을 끝까지 스크롤해도 뒤 화면으로 스크롤이 넘어가지 않게 */}
+      <div className="flex max-h-[90dvh] flex-col overflow-y-auto overscroll-contain rounded-t-[26px] bg-white px-[24px] pb-[max(22px,env(safe-area-inset-bottom))] leading-[1.5] text-staff-text shadow-[0_-8px_28px_rgba(22,25,28,0.16)]">
+        {/* 머리(손잡이 · 제목 · 설명) — 잡고 아래로 끌면 닫힌다. touch-none 으로 끄는 동안 브라우저가 스크롤하지 않게 한다 */}
+        <div className="-mx-[24px] flex touch-none flex-col px-[24px] pt-[12px]" onTouchStart={dragStart} onTouchMove={dragMove} onTouchEnd={dragEnd} onTouchCancel={dragEnd}>
+          <span aria-hidden className="mx-auto h-[4px] w-[40px] shrink-0 rounded-[2px] bg-[#dce1e9]" />
+          {eyebrow && <p className="pt-[25px] text-[14px] font-semibold text-staff-text-sub">{eyebrow}</p>}
+          <h2 className={`${eyebrow ? "pt-[6px]" : "pt-[25px]"} text-[20px] font-bold break-keep`}>{heading ?? title}</h2>
+          {description && (
+            <p className="pt-[19px] text-[14px] whitespace-pre-line text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">{description}</p>
+          )}
+        </div>
         <div className="flex flex-col gap-[13px] pt-[20px]">
           {children}
           <button
@@ -160,6 +230,27 @@ export function BottomSheet({
       </div>
     </dialog>
   );
+}
+
+/**
+ * 시트가 열린 동안 문서(뒤 화면) 스크롤을 잠근다. 시트가 여러 개 겹쳐 열릴 수 있어 센다 — 마지막 시트가 닫힐 때 원래대로 푼다.
+ * iOS Safari · 웹뷰는 <dialog> 가 모달이어도 뒤 문서가 손가락에 따라 스크롤되어 html · body 를 함께 막는다.
+ */
+let scrollLocks = 0;
+let savedOverflow: { html: string; body: string } | null = null;
+function lockDocumentScroll() {
+  if (scrollLocks++ > 0) return;
+  const { documentElement: html, body } = document;
+  savedOverflow = { html: html.style.overflow, body: body.style.overflow };
+  html.style.overflow = "hidden";
+  body.style.overflow = "hidden";
+}
+function unlockDocumentScroll() {
+  if (scrollLocks === 0 || --scrollLocks > 0) return;
+  const { documentElement: html, body } = document;
+  html.style.overflow = savedOverflow?.html ?? "";
+  body.style.overflow = savedOverflow?.body ?? "";
+  savedOverflow = null;
 }
 
 /** 「동작 줄이기」 설정. 브라우저 밖(서버 렌더)에서는 부르지 않는다. */

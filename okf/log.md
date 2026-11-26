@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-26
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백: 바텀시트가 열린 동안 뒤 화면이 스크롤되지 않게 문서 스크롤을 잠그고(시트 안 스크롤은 `overscroll-contain`), 손잡이 · 제목 쪽을 잡고 아래로 끌면 따라 내려와 80px 넘게(또는 빠르게) 내리면 닫힌다. 덜 끌면 제자리로 돌아간다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #100 재리뷰 반영: 내려가던 바텀시트를 다시 열면 그때 위치 · 배경 투명도에서 다시 올라오고, TO-DO 상세에서 상태를 바꾼 성공 알림은 시트가 다 닫힌 뒤에 띄운다(화면 낭독기가 놓치지 않게).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #100 재리뷰 반영: 내려가던 바텀시트를 다시 열면 포커스를 시트 안으로 되돌리고, 조회 기간 달력 위에서도 두 손가락 확대를 막지 않는다(`touch-action: pan-y pinch-zoom`).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #100 재리뷰 반영: 바텀시트를 올라오는 중에 닫으면 배경도 그때의 투명도에서 걷힌다(다 어두워졌다가 사라지지 않게).
