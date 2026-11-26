@@ -194,6 +194,8 @@ test("달력 밀기: 왼쪽은 다음 달, 오른쪽은 이전 달, 짧거나 �
   assert.equal(swipeStep(-80, 10), 1);
   assert.equal(swipeStep(80, -10), -1);
   assert.equal(swipeStep(-(SWIPE_MIN_PX - 1), 0), 0);
+  assert.equal(swipeStep(-SWIPE_MIN_PX, 0), 1);
+  assert.equal(swipeStep(SWIPE_MIN_PX, 0), -1);
   assert.equal(swipeStep(-60, 90), 0);
   assert.equal(swipeStep(60, 60), 0);
   assert.equal(swipeStep(0, 0), 0);

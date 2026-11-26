@@ -363,7 +363,7 @@ export const SWIPE_MIN_PX = 50;
 
 /**
  * 달력 위에서 손가락을 민 거리로 넘길 달 수를 정한다. 왼쪽으로 밀면 다음 달(+1), 오른쪽이면 이전 달(-1), 아니면 0.
- * 가로 이동이 [SWIPE_MIN_PX] 보다 짧거나 세로 이동이 더 크면(시트를 위아래로 스크롤) 넘기지 않는다.
+ * 가로 이동이 [SWIPE_MIN_PX] 보다 짧거나 세로 이동이 가로와 같거나 더 크면(시트를 위아래로 스크롤) 넘기지 않는다.
  */
 export function swipeStep(dx: number, dy: number): -1 | 0 | 1 {
   if (Math.abs(dx) < SWIPE_MIN_PX || Math.abs(dx) <= Math.abs(dy)) return 0;
