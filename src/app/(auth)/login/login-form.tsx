@@ -65,10 +65,8 @@ export function LoginForm({
       if (rememberedAuto) setAutoLogin(true);
     });
   }, [withdrawn]);
-  // 로그인을 보내면 자동로그인 기억을 지운다(성공하면 그대로 비어 다음 사람 화면은 끔). 실패해 이 화면에 남으면 다시 둔다.
-  useEffect(() => {
-    if (state.error) rememberAutoLoginChoice(autoLogin);
-  }, [state, autoLogin]);
+  // 로그인을 보내면 자동로그인 기억을 지운다(onSubmit). 실패해 이 화면에 남아도 저장소에는 다시 쓰지 않고 지금 폼 상태로만 들고 있는다 —
+  // 공용 기기에서 실패한 채 자리를 비우면 다음 사람이 새로 고쳐도 켜진 채 넘어가지 않게.
   const choose = (next: { saveEmail: boolean; autoLogin: boolean }) => {
     setSaveEmail(next.saveEmail);
     setAutoLogin(next.autoLogin);

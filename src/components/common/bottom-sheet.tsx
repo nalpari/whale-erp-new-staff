@@ -148,10 +148,22 @@ export function BottomSheet({
   // 시트가 열린 채 화면이 사라지면(다른 화면으로 이동) 잠근 스크롤을 풀어 둔다.
   useEffect(() => () => unlockScroll(), []);
 
+  // 터치가 취소되면(시스템 제스처 등) 손을 뗀 것이 아니므로 닫을지 판정하지 않고 제자리로 돌린다.
+  const dragCancel = () => {
+    const dialog = ref.current;
+    const moved = drag.current?.dy;
+    drag.current = null;
+    if (dialog && moved) snapBack(dialog);
+  };
   // 머리 끌기. 아래로만 따라 내려가고(위로는 붙어 있음), 손을 떼면 닫거나 제자리로 돌아간다.
   const dragStart = (e: TouchEvent) => {
+    // 끄는 중에 다른 손가락이 닿으면 끌기를 그만두고 제자리로 — 그 손가락을 뗄 때 첫 손가락의 거리로 닫지 않게.
+    if (e.touches.length > 1) {
+      dragCancel();
+      return;
+    }
     const t = e.touches[0];
-    if (!open || e.touches.length !== 1 || !t) return;
+    if (!open || !t) return;
     drag.current = { startY: t.clientY, startAt: performance.now(), dy: 0 };
   };
   const dragMove = (e: TouchEvent) => {
@@ -178,13 +190,6 @@ export function BottomSheet({
     }
     // 덜 끌었으면 제자리로 돌아간다.
     snapBack(dialog);
-  };
-  // 터치가 취소되면(시스템 제스처 등) 손을 뗀 것이 아니므로 닫을지 판정하지 않고 제자리로 돌린다.
-  const dragCancel = () => {
-    const dialog = ref.current;
-    const moved = drag.current?.dy;
-    drag.current = null;
-    if (dialog && moved) snapBack(dialog);
   };
 
   return (

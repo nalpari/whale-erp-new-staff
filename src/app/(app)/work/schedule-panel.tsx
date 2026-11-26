@@ -21,7 +21,7 @@ const WEEKDAY_HEADS = ["월", "화", "수", "목", "금", "토", "일"];
 const WEEKEND_TONE: Record<number, string> = { 5: "text-[#3c6fd8]", 6: "text-[#d04848]" };
 // 달을 넘긴 쪽(+1 다음 · -1 이전). 달이 바뀌면 주소가 바뀌어 패널이 새로 그려지므로(key) 컴포넌트 밖에 들고 있다가,
 // 새 패널이 그려질 때 새 달 칸을 그쪽에서 밀어 넣고 비운다(2026-11-26 실기기 피드백).
-let pendingSlide = 0;
+let pendingSlide: { month: string; delta: number } | null = null;
 
 // 근무스케줄 탭(WORK-1) — 월 달력(머리에 달 이동 ‹ 2026년 10월 [오늘] ›), 누른 날의 상세를 달력 아래에. 근무가 있는 날은 홈 이번 주 칸과 같은 바탕색(#EEF2FF)에
 // 근무 수만큼 점을 찍는다(2026-10-23 재영 — 시간 배지 대신). 시간은 아래 그날 상세에서 본다.
@@ -51,11 +51,12 @@ export function SchedulePanel({
   const pickedItems = byDay.get(picked) ?? [];
   const weeks = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    slideMonthIn(weeks.current, pendingSlide);
-    pendingSlide = 0;
-  }, []);
+    // 이 달로 넘긴 요청이 들어온 것일 때만 미끄러진다 — 넘기던 중 다른 탭으로 가 이동이 취소된 뒤 돌아왔을 때 엉뚱하게 움직이지 않게.
+    if (pendingSlide?.month === month) slideMonthIn(weeks.current, pendingSlide.delta);
+    pendingSlide = null;
+  }, [month]);
   const go = (delta: number) => {
-    pendingSlide = delta;
+    pendingSlide = { month: shiftMonth(month, delta), delta };
     router.replace(`/work?tab=schedule&month=${shiftMonth(month, delta)}${from}`, { scroll: false });
   };
   // 좌우로 밀어 달을 넘긴다(조회 기간 달력과 같은 규칙, 2026-11-26 실기기 피드백)
@@ -64,7 +65,7 @@ export function SchedulePanel({
   // 다른 달이면 주소가 바뀌어 패널이 새로 그려지므로, 옛 달 근무로 오늘 상세를 잠깐 그리지 않게 이번 달일 때만 바로 고른다.
   const goToday = () => {
     if (today.startsWith(month)) setPicked(today);
-    else pendingSlide = today.slice(0, 7) > month ? 1 : -1;
+    else pendingSlide = { month: today.slice(0, 7), delta: today.slice(0, 7) > month ? 1 : -1 };
     router.replace(`/work?tab=schedule&month=${today.slice(0, 7)}&day=${today}${from}`, { scroll: false });
   };
   const navButton =
