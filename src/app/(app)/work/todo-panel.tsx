@@ -19,11 +19,6 @@ import {
 } from "@/lib/todos";
 import { changeTodoStatusAction } from "./actions";
 
-/**
- * 상태 바꾸기 — 보내는 동안은 다시 누르지 못하게 하고, 실패 문구를 들고 있는다. 목록은 액션의 refresh 로 다시 온다.
- * 액션 호출 자체가 던지면(휴대전화가 서버에 닿지 못함 · 배포로 액션이 바뀜 「Failed to find Server Action」) 화면 전체를
- * error.tsx 로 보내지 않고 문구만 보인다. 401 의 만료 안내 redirect 같은 Next 내부 오류는 다시 던진다.
- */
 /** 상태를 바꾼 뒤 띄우는 알림(조사까지 맞춘 문장). */
 const CHANGED_TEXT: Record<TodoStatus, string> = {
   PENDING: "TO-DO 를 대기로 바꿨습니다",
@@ -31,6 +26,11 @@ const CHANGED_TEXT: Record<TodoStatus, string> = {
   DONE: "TO-DO 를 완료했습니다",
 };
 
+/**
+ * 상태 바꾸기 — 보내는 동안은 다시 누르지 못하게 하고, 실패 문구를 들고 있는다. 목록은 액션의 refresh 로 다시 온다.
+ * 액션 호출 자체가 던지면(휴대전화가 서버에 닿지 못함 · 배포로 액션이 바뀜 「Failed to find Server Action」) 화면 전체를
+ * error.tsx 로 보내지 않고 문구만 보인다. 401 의 만료 안내 redirect 같은 Next 내부 오류는 다시 던진다.
+ */
 function useStatusChange() {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
@@ -40,17 +40,20 @@ function useStatusChange() {
   const change = (todoId: number, status: TodoStatus, onDone?: () => void) =>
     startTransition(async () => {
       setError(undefined);
+      let failed: string | undefined;
       try {
-        const failed = (await changeTodoStatusAction(todoId, status)).error;
-        setError(failed);
-        if (failed) return;
-        setDone({ key: Date.now(), text: CHANGED_TEXT[status] });
-        onDone?.();
+        failed = (await changeTodoStatusAction(todoId, status)).error;
       } catch (thrown) {
         unstable_rethrow(thrown);
         console.error("[todo-status] 액션 호출 실패", thrown);
         setError("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요");
+        return;
       }
+      // 성공한 뒤의 처리는 위 catch 밖에 둔다 — 여기서 난 오류를 연결 실패로 잘못 보이지 않게.
+      setError(failed);
+      if (failed) return;
+      setDone({ key: Date.now(), text: CHANGED_TEXT[status] });
+      onDone?.();
     });
   return { pending, error, done, change, clearError: () => setError(undefined) };
 }
@@ -130,6 +133,8 @@ export function TodoChecklist({ todos, now, staffMemberId }: { todos: MyTodo[]; 
   const current = picked && todos.find((t) => t.todoId === picked.todoId);
   const open = sheetOpen && Boolean(current);
   const handleOpen = (todoId: number) => {
+    // 상태를 보내는 동안은 다른 상세를 열지 않는다 — 앞 요청이 성공하며 새로 연 시트를 닫지 않게.
+    if (status.pending) return;
     status.clearError();
     setPicked(todos.find((t) => t.todoId === todoId) ?? null);
     setSheetOpen(true);
@@ -221,6 +226,8 @@ export function TodoPanel({
   const current = picked && todos.find((t) => t.todoId === picked.todoId);
   const open = sheetOpen && Boolean(current);
   const handleOpen = (todoId: number) => {
+    // 상태를 보내는 동안은 다른 상세를 열지 않는다 — 앞 요청이 성공하며 새로 연 시트를 닫지 않게.
+    if (status.pending) return;
     // 시트를 열 때마다 실패 문구를 비운다(목록 · 시트가 한 상태를 쓴다) — 시트 안의 실패는 시트가 열려 있는 동안만 보인다.
     status.clearError();
     setPicked(todos.find((t) => t.todoId === todoId) ?? null);
