@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useTransition, type ReactNode } from "react";
-import { Alert, BottomSheet, Button, Dock, MaskIcon, Toast, WorkTimeBar } from "@/components/common";
+import { Alert, BottomSheet, Button, Dock, MaskIcon, Toast, WorkTimeBar, afterSheetsClose } from "@/components/common";
 import {
   distanceMeters,
   elapsedLabel,
@@ -153,7 +153,8 @@ export function CheckInScreen({
     })().catch((thrown: unknown) => console.error("[check-in-preview] 위치 미리보기 실패", thrown));
   }, [previewable, data.staffMemberId, locate]);
 
-  const show = (text: string) => setToast({ key: Date.now(), text });
+  // 알림은 시트가 실제로 닫힌 뒤에 띄운다 — 시트를 닫으면서 바로 띄우면 내려가는 동안(바깥 inert) 가려지고 화면 낭독기가 놓친다
+  const show = (text: string) => afterSheetsClose(() => setToast({ key: Date.now(), text }));
 
   // 앱 연결이 잠깐 안 됐을 때(not-ready) 출근 · 퇴근 버튼 대신 보이는 「다시 시도」(2026-11-24 창수). 앱 연결(브리지)만 다시 확인하고
   // 위치는 읽지 않는다 — 위치는 출근 · 퇴근 버튼이 위치 읽음을 남긴 뒤에만 읽는다(ATT-22). 연결되면 원래 버튼으로 돌아가 다시 누르게 하고,

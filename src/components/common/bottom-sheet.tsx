@@ -251,6 +251,21 @@ function unlockDocumentScroll() {
   html.style.overflow = savedOverflow?.html ?? "";
   body.style.overflow = savedOverflow?.body ?? "";
   savedOverflow = null;
+  // 마지막 시트가 실제로 close() 됐다 — 기다리던 알림을 띄운다
+  const waiting = afterClose.splice(0);
+  waiting.forEach((fn) => fn());
+}
+
+const afterClose: (() => void)[] = [];
+/**
+ * 열린(또는 내려가는 중인) 바텀시트가 모두 실제로 close() 된 뒤에 [fn] 을 부른다. 열린 시트가 없으면 바로 부른다.
+ * 시트를 닫으면서 띄우는 알림(토스트)은 이것으로 띄운다 — 모달 시트가 열려 있거나 내려가는 동안은 바깥이 inert 라 알림이 가려지고
+ * 화면 낭독기가 놓친다. 고정 시간으로 기다리면 그사이 다른 시트를 열었을 때 알림이 새 시트 뒤에 깔린다(PR #100 리뷰).
+ * 닫기(onClose → open=false)와 같은 틱에 불러도 된다 — 시트는 그다음 effect 에서야 닫히기 시작한다.
+ */
+export function afterSheetsClose(fn: () => void) {
+  if (scrollLocks === 0) return fn();
+  afterClose.push(fn);
 }
 
 /** 「동작 줄이기」 설정. 브라우저 밖(서버 렌더)에서는 부르지 않는다. */
