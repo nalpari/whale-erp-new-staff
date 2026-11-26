@@ -179,6 +179,13 @@ export function BottomSheet({
     // 덜 끌었으면 제자리로 돌아간다.
     snapBack(dialog);
   };
+  // 터치가 취소되면(시스템 제스처 등) 손을 뗀 것이 아니므로 닫을지 판정하지 않고 제자리로 돌린다.
+  const dragCancel = () => {
+    const dialog = ref.current;
+    const moved = drag.current?.dy;
+    drag.current = null;
+    if (dialog && moved) snapBack(dialog);
+  };
 
   return (
     <dialog
@@ -224,7 +231,7 @@ export function BottomSheet({
       {/* 시트는 머리(고정)와 몸통(스크롤) 둘로 나눈다 — 내용이 길어 스크롤해도 끌어 닫는 손잡이 · 제목은 그대로 위에 남는다(2026-11-26 실기기 피드백) */}
       <div className="flex max-h-[90dvh] flex-col rounded-t-[26px] bg-white leading-[1.5] text-staff-text shadow-[0_-8px_28px_rgba(22,25,28,0.16)]">
         {/* 머리(손잡이 · 머리말 · 제목) — 잡고 아래로 끌면 닫힌다. touch-none 으로 끄는 동안 브라우저가 스크롤하지 않게 한다 */}
-        <div className="flex shrink-0 touch-none flex-col px-[24px] pt-[12px]" onTouchStart={dragStart} onTouchMove={dragMove} onTouchEnd={dragEnd} onTouchCancel={dragEnd}>
+        <div className="flex shrink-0 touch-none flex-col px-[24px] pt-[12px]" onTouchStart={dragStart} onTouchMove={dragMove} onTouchEnd={dragEnd} onTouchCancel={dragCancel}>
           <span aria-hidden className="mx-auto h-[4px] w-[40px] shrink-0 rounded-[2px] bg-[#dce1e9]" />
           {eyebrow && <p className="pt-[25px] text-[14px] font-semibold text-staff-text-sub">{eyebrow}</p>}
           <h2 className={`${eyebrow ? "pt-[6px]" : "pt-[25px]"} text-[20px] font-bold break-keep`}>{heading ?? title}</h2>

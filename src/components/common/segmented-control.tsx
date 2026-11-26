@@ -38,18 +38,21 @@ export function SegmentedControl<T extends string>({
   return (
     <div role={panelId ? "tablist" : "group"} aria-label={label} className="flex w-full gap-[6px] rounded-[10px] bg-[#edf0f6] p-[3px]">
       {items.map((item, i) => {
+        // 색(on)은 누르자마자 바꾸되, 화면 낭독기에 알리는 선택 상태와 다시 누를 수 있는지는 실제로 그려진 탭(value)을 따른다 —
+        // 서버 응답 전에 새 탭이 골라졌다고 알리지 않고, 이동이 취소돼 value 가 그대로면 같은 탭을 다시 눌러 재시도할 수 있게.
         const on = item.value === shown;
+        const selected = item.value === value;
         return (
           <button
             key={item.value}
             type="button"
             {...(panelId
-              ? { role: "tab", id: segmentTabId(panelId, item.value), "aria-selected": on, "aria-controls": on ? panelId : undefined }
-              : { "aria-pressed": on })}
+              ? { role: "tab", id: segmentTabId(panelId, item.value), "aria-selected": selected, "aria-controls": selected ? panelId : undefined }
+              : { "aria-pressed": selected })}
             onClick={() => {
-              if (item.value === shown) return;
+              if (selected && on) return;
               // 탭 내용이 어느 쪽에서 들어올지 — 오른쪽 칸이면 오른쪽에서, 왼쪽 칸이면 왼쪽에서(globals.css .tab-panel-in)
-              const from = items.findIndex((it) => it.value === shown);
+              const from = items.findIndex((it) => it.value === value);
               document.documentElement.dataset.tabDir = i > from ? "next" : "prev";
               setShown(item.value);
               onChange(item.value);

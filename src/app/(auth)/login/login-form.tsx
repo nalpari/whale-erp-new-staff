@@ -12,7 +12,13 @@ import { forgetHqReconsentPopup } from "@/lib/hq-reconsent-popup-memory";
 import { type AttemptLock, lockCountdown } from "@/lib/attempt-lock";
 import { isEmailShape } from "@/lib/email-change";
 import { getAppDeviceId, isInApp } from "@/lib/native-bridge";
-import { forgetLoginChoices, readLoginChoices, rememberLoginChoices } from "@/lib/login-choices";
+import {
+  forgetLoginChoices,
+  readAutoLoginChoice,
+  readSaveEmailChoice,
+  rememberAutoLoginChoice,
+  rememberSaveEmailChoice,
+} from "@/lib/login-choices";
 import { useFieldCheck } from "@/app/_components/use-field-check";
 import { AuthScreen } from "../_components/auth-screen";
 import { useFocusedTitle } from "../_components/use-focused-title";
@@ -26,7 +32,7 @@ import { loginAction, type LoginState } from "./actions";
 // unavailable 은 proxy 의 갱신이 401 · 400 아닌 이유(연결 실패 · 시간 초과 · 429 · 5xx)로 실패한 경우다(접속이 끝났는지 모른다).
 // next 는 로그인한 뒤 돌아갈 화면이다(WHALEERP-166, 없으면 홈). 숨은 칸으로 액션에 넘긴다.
 // 아이디 저장 · 자동 로그인 체크 박스는 기본이 끔이다(2026-10-20 노영주). 저장된 이메일(savedEmail)이 있으면 칸을 채우고 아이디 저장을 켠다.
-// 고른 체크는 이 기기에 기억해, 로그인하기 전에 새로 고쳐도 그대로 남는다(lib/login-choices.ts, 2026-11-26 실기기 피드백). 탈퇴하면 잊는다.
+// 고른 체크는 로그인하기 전에 새로 고쳐도 그대로 남는다 — 아이디 저장은 이 기기, 자동로그인은 이 탭에서 보내기 전까지만(lib/login-choices.ts, 2026-11-26 실기기 피드백). 탈퇴하면 잊는다.
 export function LoginForm({
   expired,
   reset,
@@ -47,20 +53,27 @@ export function LoginForm({
   const [saveEmail, setSaveEmail] = useState(savedEmail !== null);
   const [autoLogin, setAutoLogin] = useState(false);
   // 기억한 체크는 그린 뒤에 읽는다(서버 렌더에는 저장소가 없다). 탈퇴하고 온 화면이면 잊고 기본(끔)으로 둔다.
+  // 자동로그인은 이 탭에서 로그인을 보내기 전에 켠 것만 되살린다(lib/login-choices.ts).
   useEffect(() => {
     if (withdrawn) return forgetLoginChoices();
-    const remembered = readLoginChoices();
-    if (!remembered) return;
+    const rememberedSave = readSaveEmailChoice();
+    const rememberedAuto = readAutoLoginChoice();
+    if (rememberedSave === null && !rememberedAuto) return;
     // effect 안에서 곧장 상태를 바꾸지 않고 바로 다음 차례에 맞춘다(collapse.tsx 와 같은 방식).
     queueMicrotask(() => {
-      setSaveEmail(remembered.saveEmail);
-      setAutoLogin(remembered.autoLogin);
+      if (rememberedSave !== null) setSaveEmail(rememberedSave);
+      if (rememberedAuto) setAutoLogin(true);
     });
   }, [withdrawn]);
+  // 로그인을 보내면 자동로그인 기억을 지운다(성공하면 그대로 비어 다음 사람 화면은 끔). 실패해 이 화면에 남으면 다시 둔다.
+  useEffect(() => {
+    if (state.error) rememberAutoLoginChoice(autoLogin);
+  }, [state, autoLogin]);
   const choose = (next: { saveEmail: boolean; autoLogin: boolean }) => {
     setSaveEmail(next.saveEmail);
     setAutoLogin(next.autoLogin);
-    rememberLoginChoices(next);
+    rememberSaveEmailChoice(next.saveEmail);
+    rememberAutoLoginChoice(next.autoLogin);
   };
   // 설치형 앱 안이면 앱이 주는 기기 식별자(해시)를 받아 숨은 칸으로 넘긴다(계획 결정 9). 못 받으면(옛 앱 · 앱 밖) 비워 두고
   // 서버가 쿠키 값(`device_id`)을 쓴다. 받기 전에 제출해도 같다.
@@ -99,6 +112,7 @@ export function LoginForm({
       onChange={fields.clear}
       onSubmit={(event) => {
         if (!fields.check(event)) return;
+        rememberAutoLoginChoice(false);
         forgetAffiliationPopup();
         forgetSignRequestPopup();
         forgetHqReconsentPopup();
