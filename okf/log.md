@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-11-26
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백: 조회 기간 달력을 좌우로 밀어 달을 넘기고(`swipeStep`), TO-DO 상세에서 상태를 바꾸면 시트를 닫고 알림을 띄우며, 바텀시트 열림 · 닫힘을 Web Animations 로 움직여 Safari · 웹뷰에서도 보이게 했다(닫힘은 다 내려간 뒤 close).
+
 ## 2026-11-25
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — pr-review-toolkit 반영: 내 근무지는 근무 중인 근무지가 없으면 「전체」로 열고, 출근 화면 [내 정보에서 관리]는 동의 상세로, 근무정보 제공 동의 상세는 근무지를 못 받으면 안내. 본문 옛 서술(급여 「발송 완료」 · PDF 받기 · 내 정보 아이콘 · 근로계약 뒤로 가기 · 「내 정보 카드」)을 바뀐 화면에 맞춤.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR 전 리뷰 반영: DESIGN.md 를 바뀐 로그인 · 내 정보 · CheckBox · HeroCard 에 맞춤, 내 정보는 쓰지 않는 약관 조회를 뺌, 근무지별 근로계약 · 급여 · 신고 정보에서 돌아가면 내 근무지 「전체」(`?status=all`), 회색 상자는 공통 `GrayBox`, PDF 알약 · 로그인 로고 화면 낭독기 이름, 근무정보 제공 동의 상세는 줄과 같은 조건에서만, `locationConsentView` 테스트.
