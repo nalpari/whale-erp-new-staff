@@ -5,6 +5,9 @@ import { useEffect, useRef, type ReactNode } from "react";
 // Figma 03.Sheet(node 12:670) 바텀시트. 네이티브 <dialog>(showModal)라 Esc·포커스 가두기·뒤 화면 막기를 브라우저가 맡는다.
 // 흰 바탕 · 위 모서리 26 · 위로 그림자, 맨 위 40×4 손잡이(#DCE1E9), 제목 20px bold · 설명 14px 보조 글자 · 좌우 24.
 // 뒤 화면은 #17253D 38% + 1.5px 흐림. 열 때 아래에서 올라오고(260ms) 닫을 때 더 빨리 내려간다(200ms).
+// 움직임은 Web Animations(element.animate)로 준다 — CSS 만으로는(@starting-style · overlay) 닫힐 때 <dialog> 가 바로 사라지는
+// 브라우저(Safari · 일부 웹뷰)가 있어 실기기에서 애니메이션이 없어 보였다(2026-11-26 실기기 확인). 닫을 때는 다 내려간 뒤에 close() 한다.
+// 「동작 줄이기」를 켠 사람에게는 움직이지 않고 바로 열고 닫는다.
 // 뒤 화면을 누르거나 Esc·닫기를 누르면 onClose 를 부른다. 열림 상태는 쓰는 쪽이 open 으로 들고 있다.
 /** 닫힐 때 내려가는 시간(ms, 아래 duration-200). 시트를 차례로 띄우는 쪽이 앞 시트가 다 내려간 뒤 다음을 열 때 쓴다. */
 export const SHEET_CLOSE_MS = 200;
@@ -37,15 +40,39 @@ export function BottomSheet({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  // 내려가는 중인 애니메이션 — 그사이 다시 열면 멈추고 그 자리에서 다시 올린다.
+  const closing = useRef<Animation[]>([]);
 
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    if (open && !dialog.open) {
-      dialog.showModal();
-      if (initialFocus === "close") closeRef.current?.focus();
+    const still = reducedMotion();
+    if (open) {
+      const wasClosing = closing.current.length > 0;
+      closing.current.forEach((a) => a.cancel());
+      closing.current = [];
+      if (dialog.open && !wasClosing) return;
+      if (!dialog.open) {
+        dialog.showModal();
+        if (initialFocus === "close") closeRef.current?.focus();
+      }
+      if (!still) slide(dialog, "up");
+      return;
     }
-    if (!open && dialog.open) dialog.close();
+    if (!dialog.open || closing.current.length > 0) return;
+    if (still) return dialog.close();
+    const running = slide(dialog, "down");
+    closing.current = running;
+    void Promise.all(running.map((a) => a.finished)).then(
+      () => {
+        // 다 내려간 뒤에만 닫는다. 그사이 다시 열었으면(cancel 로 finished 가 거부됨) 여기 오지 않는다.
+        if (closing.current !== running) return;
+        closing.current = [];
+        dialog.close();
+        running.forEach((a) => a.cancel());
+      },
+      () => {},
+    );
   }, [open, initialFocus]);
 
   return (
@@ -61,7 +88,7 @@ export function BottomSheet({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="m-0 mt-auto max-h-[90dvh] w-full max-w-none translate-y-full overflow-visible bg-transparent p-0 transition-[translate,overlay,display] transition-discrete duration-200 ease-in open:translate-y-0 open:duration-[260ms] open:ease-[cubic-bezier(0.23,1,0.32,1)] starting:open:translate-y-full backdrop:bg-[rgba(23,37,61,0.38)] backdrop:opacity-0 backdrop:backdrop-blur-[1.5px] backdrop:transition-[opacity,overlay,display] backdrop:transition-discrete backdrop:duration-200 open:backdrop:opacity-100 starting:open:backdrop:opacity-0 motion-reduce:transition-none motion-reduce:backdrop:transition-none"
+      className="m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-visible bg-transparent p-0 backdrop:bg-[rgba(23,37,61,0.38)] backdrop:backdrop-blur-[1.5px]"
     >
       <div className="flex max-h-[90dvh] flex-col overflow-y-auto rounded-t-[26px] bg-white px-[24px] pt-[12px] pb-[max(22px,env(safe-area-inset-bottom))] leading-[1.5] text-staff-text shadow-[0_-8px_28px_rgba(22,25,28,0.16)]">
         <span aria-hidden className="mx-auto h-[4px] w-[40px] shrink-0 rounded-[2px] bg-[#dce1e9]" />
@@ -84,6 +111,30 @@ export function BottomSheet({
       </div>
     </dialog>
   );
+}
+
+/** 「동작 줄이기」 설정. 브라우저 밖(서버 렌더)에서는 부르지 않는다. */
+function reducedMotion(): boolean {
+  return typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/**
+ * 시트를 아래에서 올리거나(up, 260ms) 아래로 내린다(down, SHEET_CLOSE_MS). 뒤 화면(::backdrop)도 함께 흐려지고 걷힌다.
+ * 내릴 때는 끝 모습을 붙잡아(fill) 두어, close() 하기 전 한 순간 제자리로 튀어 오르지 않게 한다.
+ * ::backdrop 애니메이션을 지원하지 않는 브라우저면 시트만 움직인다.
+ */
+function slide(dialog: HTMLDialogElement, to: "up" | "down"): Animation[] {
+  const up = to === "up";
+  const timing: KeyframeAnimationOptions = up
+    ? { duration: 260, easing: "cubic-bezier(0.23, 1, 0.32, 1)" }
+    : { duration: SHEET_CLOSE_MS, easing: "ease-in", fill: "forwards" };
+  const moves = [dialog.animate({ translate: up ? ["0 100%", "0 0"] : ["0 0", "0 100%"] }, timing)];
+  try {
+    moves.push(dialog.animate({ opacity: up ? [0, 1] : [1, 0] }, { ...timing, pseudoElement: "::backdrop" }));
+  } catch {
+    // ::backdrop 애니메이션을 못 하는 브라우저 — 시트만 움직인다.
+  }
+  return moves;
 }
 
 // 시트 안의 고르기 버튼(Figma node 12:677): 52px · radius 12 · 안 고른 줄 #E4E8EF 테두리 · 15px semibold 보조 글자.
