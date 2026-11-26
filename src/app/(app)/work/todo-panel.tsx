@@ -2,7 +2,7 @@
 
 import { unstable_rethrow } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Alert, BottomSheet, Notice, SegmentedControl, StatusChip, TodoItem, TodoList } from "@/components/common";
+import { Alert, BottomSheet, Notice, SHEET_CLOSE_MS, SegmentedControl, StatusChip, Toast, TodoItem, TodoList } from "@/components/common";
 import {
   TODO_STATUS,
   TODO_STATUSES,
@@ -19,6 +19,13 @@ import {
 } from "@/lib/todos";
 import { changeTodoStatusAction } from "./actions";
 
+/** 상태를 바꾼 뒤 띄우는 알림(조사까지 맞춘 문장). */
+const CHANGED_TEXT: Record<TodoStatus, string> = {
+  PENDING: "TO-DO 를 대기로 바꿨습니다",
+  IN_PROGRESS: "TO-DO 를 진행 중으로 바꿨습니다",
+  DONE: "TO-DO 를 완료했습니다",
+};
+
 /**
  * 상태 바꾸기 — 보내는 동안은 다시 누르지 못하게 하고, 실패 문구를 들고 있는다. 목록은 액션의 refresh 로 다시 온다.
  * 액션 호출 자체가 던지면(휴대전화가 서버에 닿지 못함 · 배포로 액션이 바뀜 「Failed to find Server Action」) 화면 전체를
@@ -27,18 +34,32 @@ import { changeTodoStatusAction } from "./actions";
 function useStatusChange() {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
-  const change = (todoId: number, status: TodoStatus) =>
+  // 바꾸기에 성공했을 때 띄우는 짧은 알림(key 로 같은 문구도 다시 띄운다)
+  const [done, setDone] = useState<{ key: number; text: string }>();
+  /** [onDone] 은 성공했을 때만 부른다 — 상세 시트는 이때 닫는다(2026-11-26 실기기 피드백). 실패하면 시트를 둔 채 문구를 보인다. */
+  const change = (todoId: number, status: TodoStatus, onDone?: () => void) =>
     startTransition(async () => {
       setError(undefined);
+      let failed: string | undefined;
       try {
-        setError((await changeTodoStatusAction(todoId, status)).error);
+        failed = (await changeTodoStatusAction(todoId, status)).error;
       } catch (thrown) {
         unstable_rethrow(thrown);
         console.error("[todo-status] 액션 호출 실패", thrown);
         setError("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요");
+        return;
       }
+      // 성공한 뒤의 처리는 위 catch 밖에 둔다 — 여기서 난 오류를 연결 실패로 잘못 보이지 않게.
+      setError(failed);
+      if (failed) return;
+      const text = CHANGED_TEXT[status];
+      if (!onDone) return setDone({ key: Date.now(), text });
+      // 상세 시트에서 바꿨으면 시트가 다 내려가 close() 된 뒤에 알린다 — 모달이 열려 있는 동안은 바깥(알림)이
+      // 접근성 트리에서 빠져 화면 낭독기가 안내를 놓칠 수 있다.
+      onDone();
+      setTimeout(() => setDone({ key: Date.now(), text }), SHEET_CLOSE_MS + 50);
     });
-  return { pending, error, change, clearError: () => setError(undefined) };
+  return { pending, error, done, change, clearError: () => setError(undefined) };
 }
 
 type StatusChange = ReturnType<typeof useStatusChange>;
@@ -116,6 +137,8 @@ export function TodoChecklist({ todos, now, staffMemberId }: { todos: MyTodo[]; 
   const current = picked && todos.find((t) => t.todoId === picked.todoId);
   const open = sheetOpen && Boolean(current);
   const handleOpen = (todoId: number) => {
+    // 상태를 보내는 동안은 다른 상세를 열지 않는다 — 앞 요청이 성공하며 새로 연 시트를 닫지 않게.
+    if (status.pending) return;
     status.clearError();
     setPicked(todos.find((t) => t.todoId === todoId) ?? null);
     setSheetOpen(true);
@@ -142,6 +165,7 @@ export function TodoChecklist({ todos, now, staffMemberId }: { todos: MyTodo[]; 
           onClose={() => setSheetOpen(false)}
         />
       )}
+      {status.done && <Toast key={status.done.key}>{status.done.text}</Toast>}
     </>
   );
 }
@@ -206,6 +230,8 @@ export function TodoPanel({
   const current = picked && todos.find((t) => t.todoId === picked.todoId);
   const open = sheetOpen && Boolean(current);
   const handleOpen = (todoId: number) => {
+    // 상태를 보내는 동안은 다른 상세를 열지 않는다 — 앞 요청이 성공하며 새로 연 시트를 닫지 않게.
+    if (status.pending) return;
     // 시트를 열 때마다 실패 문구를 비운다(목록 · 시트가 한 상태를 쓴다) — 시트 안의 실패는 시트가 열려 있는 동안만 보인다.
     status.clearError();
     setPicked(todos.find((t) => t.todoId === todoId) ?? null);
@@ -262,6 +288,7 @@ export function TodoPanel({
           onClose={() => setSheetOpen(false)}
         />
       )}
+      {status.done && <Toast key={status.done.key}>{status.done.text}</Toast>}
     </div>
   );
 }
@@ -341,7 +368,8 @@ function TodoSheet({
                 type="button"
                 aria-pressed={on}
                 disabled={pending}
-                onClick={() => change(todo.todoId, s)}
+                // 지금 상태를 다시 누르면 바꿀 것이 없어 시트만 닫는다. 다른 상태는 바꾼 뒤(성공했을 때만) 닫는다.
+                onClick={() => (on ? onClose() : change(todo.todoId, s, onClose))}
                 className={`flex min-h-[48px] items-center justify-center gap-[4px] rounded-[12px] border text-[14px] font-semibold disabled:opacity-60 ${
                   on ? "border-staff-primary bg-staff-primary-inactive text-staff-primary" : "border-staff-border bg-white text-staff-text"
                 }`}

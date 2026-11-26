@@ -1,7 +1,7 @@
 // node --test src/lib/attendance-history.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { barOf, flaggedPairLines, dayLabel, durationLabel, editRows, flagDescription, flagLine, flagsOf, flagTitle, rangeLabel, mondayOf, monthAttendanceLabel, parsePeriod, periodTotals, stampLabel, statusChipOf, summaryOf, weekDays, weekRows, type MyAttendanceDay } from "./attendance-history.ts";
+import { SWIPE_MIN_PX, swipeStep, barOf, flaggedPairLines, dayLabel, durationLabel, editRows, flagDescription, flagLine, flagsOf, flagTitle, rangeLabel, mondayOf, monthAttendanceLabel, parsePeriod, periodTotals, stampLabel, statusChipOf, summaryOf, weekDays, weekRows, type MyAttendanceDay } from "./attendance-history.ts";
 
 const TODAY = "2026-10-23";
 const punch = (date: string, time: string, extra: object = {}) => ({
@@ -188,4 +188,15 @@ test("근무 중인데 서버 시계가 출근보다 1분 이르면 출근 시�
   const early = barOf(day(TODAY, { pairs: [{ checkIn: punch(TODAY, "09:02"), checkOut: null }] }), now);
   assert.deepEqual(early.worked, { start: "09:02", end: "09:02" });
   assert.equal(early.to, 20);
+});
+
+test("달력 밀기: 왼쪽은 다음 달, 오른쪽은 이전 달, 짧거나 세로가 가로와 같거나 더 크면 넘기지 않는다", () => {
+  assert.equal(swipeStep(-80, 10), 1);
+  assert.equal(swipeStep(80, -10), -1);
+  assert.equal(swipeStep(-(SWIPE_MIN_PX - 1), 0), 0);
+  assert.equal(swipeStep(-SWIPE_MIN_PX, 0), 1);
+  assert.equal(swipeStep(SWIPE_MIN_PX, 0), -1);
+  assert.equal(swipeStep(-60, 90), 0);
+  assert.equal(swipeStep(60, 60), 0);
+  assert.equal(swipeStep(0, 0), 0);
 });

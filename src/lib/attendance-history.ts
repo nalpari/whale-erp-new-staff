@@ -357,3 +357,15 @@ export function editRows(e: Edit): [string, string][] {
       ];
   return [...diff, ["수정한 사람", e.by], ["수정 시각", stampLabel(e.at)], ["사유", e.reason]];
 }
+
+/** 달력을 넘긴다고 볼 최소 가로 이동(px). 날짜를 누르다 조금 밀린 것은 넘기지 않는다. */
+export const SWIPE_MIN_PX = 50;
+
+/**
+ * 달력 위에서 손가락을 민 거리로 넘길 달 수를 정한다. 왼쪽으로 밀면 다음 달(+1), 오른쪽이면 이전 달(-1), 아니면 0.
+ * 가로 이동이 [SWIPE_MIN_PX] 보다 짧거나 세로 이동이 가로와 같거나 더 크면(시트를 위아래로 스크롤) 넘기지 않는다.
+ */
+export function swipeStep(dx: number, dy: number): -1 | 0 | 1 {
+  if (Math.abs(dx) < SWIPE_MIN_PX || Math.abs(dx) <= Math.abs(dy)) return 0;
+  return dx < 0 ? 1 : -1;
+}

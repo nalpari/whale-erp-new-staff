@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { BottomSheet, Button, MaskIcon } from "@/components/common";
 import { EASE_OUT, FIELD } from "@/components/common/theme";
-import { MAX_PERIOD_DAYS, addDays } from "@/lib/attendance-history";
+import { MAX_PERIOD_DAYS, addDays, swipeStep } from "@/lib/attendance-history";
 
 // 기간별 조회 기간 — 시작일 · 종료일 두 칸(휴대폰 기본 날짜판 두 번) 대신 칸 하나를 눌러 달력 시트에서 시작일 → 종료일 순서로
 // 누른다(2026-11-24 사용자 지정). 사이 날은 연보라 띠, 양 끝은 남보라 동그라미. [적용]을 누르면 바로 조회한다.
@@ -49,6 +49,8 @@ export function PeriodPicker({
   // 시트 안에서 고르는 중인 값 — [적용] 전에는 칸 값을 바꾸지 않는다
   const [draft, setDraft] = useState<{ start: string; end: string | null }>({ start: from, end: to });
   const [month, setMonth] = useState(monthOf(to));
+  // 손가락으로 달력을 좌우로 밀어 달을 넘긴다(2026-11-26 실기기 피드백). 시작 지점만 들고 있다가 손을 뗄 때 판단한다.
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
 
   const handleOpen = () => {
     setDraft({ start: from, end: to });
@@ -107,7 +109,28 @@ export function PeriodPicker({
             ))}
           </div>
           {/* 화살표 키 이동이 없어 grid 대신 group — 날짜마다 버튼이다(리뷰) */}
-          <div role="group" aria-label={`${Number(month.slice(0, 4))}년 ${Number(month.slice(5, 7))}월`} className="grid grid-cols-7 gap-y-[4px]">
+          {/* 좌우로 밀면 달을 넘긴다 — 왼쪽으로 밀면 다음 달, 오른쪽이면 이전 달. 세로 움직임이 가로와 같거나 더 크면(시트 스크롤) 넘기지 않는다.
+              pan-y 로 가로 움직임은 브라우저가 쓰지 않게 해 손가락을 따라 화면이 흔들리지 않게 하고, pinch-zoom 으로 두 손가락 확대는 그대로 둔다. 버튼(화살표)은 그대로 둔다 */}
+          <div
+            role="group"
+            aria-label={`${Number(month.slice(0, 4))}년 ${Number(month.slice(5, 7))}월`}
+            className="grid touch-pan-y touch-pinch-zoom grid-cols-7 gap-y-[4px]"
+            onTouchStart={(e) => {
+              const t = e.touches[0];
+              swipeStart.current = e.touches.length === 1 && t ? { x: t.clientX, y: t.clientY } : null;
+            }}
+            onTouchEnd={(e) => {
+              const start = swipeStart.current;
+              const t = e.changedTouches[0];
+              swipeStart.current = null;
+              if (!start || !t) return;
+              const step = swipeStep(t.clientX - start.x, t.clientY - start.y);
+              if (step !== 0) setMonth((m) => shiftMonth(m, step));
+            }}
+            onTouchCancel={() => {
+              swipeStart.current = null;
+            }}
+          >
             {monthCells(month).map((day, i) => {
               if (!day) return <span key={`e${i}`} />;
               const end = draft.end ?? draft.start;
