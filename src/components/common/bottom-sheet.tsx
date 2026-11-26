@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode, type TouchEvent } from "react";
+import { createSheetLocks, shouldCloseOnDrag } from "@/lib/sheet-locks";
 
 // Figma 03.Sheet(node 12:670) 바텀시트. 네이티브 <dialog>(showModal)라 Esc·포커스 가두기·뒤 화면 막기를 브라우저가 맡는다.
 // 흰 바탕 · 위 모서리 26 · 위로 그림자, 맨 위 40×4 손잡이(#DCE1E9), 제목 20px bold · 설명 14px 보조 글자 · 좌우 24.
@@ -13,11 +14,6 @@ import { useEffect, useRef, type ReactNode, type TouchEvent } from "react";
 // 스크롤되지 않게 문서 스크롤을 잠근다(2026-11-26 실기기 피드백 — 시트를 만지면 뒤 화면이 움직였다).
 /** 닫힐 때 내려가는 시간(ms, 아래 slide() 의 down). 시트를 차례로 띄우는 쪽이 앞 시트가 다 내려간 뒤 다음을 열 때 쓴다. */
 export const SHEET_CLOSE_MS = 200;
-
-/** 머리를 이만큼(px) 넘게 끌면 닫는다. 덜 끌었어도 빠르게 튕기듯 내리면(DRAG_FLICK) 닫는다. */
-const DRAG_CLOSE_PX = 80;
-/** 빠르게 내린 것으로 보는 속도(px/ms)와 그때 필요한 최소 거리(px). */
-const DRAG_FLICK = { speed: 0.5, minPx: 24 };
 
 const FOCUSABLE = '[autofocus], button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -60,12 +56,12 @@ export function BottomSheet({
   const lockScroll = () => {
     if (locked.current) return;
     locked.current = true;
-    lockDocumentScroll();
+    sheetLocks.lock();
   };
   const unlockScroll = () => {
     if (!locked.current) return;
     locked.current = false;
-    unlockDocumentScroll();
+    sheetLocks.unlock();
   };
 
   useEffect(() => {
@@ -83,9 +79,9 @@ export function BottomSheet({
       dialog.inert = false;
       dialog.style.translate = "";
       // 열려 있으면 늘 잠가 둔다(한 번만 잠그므로 여러 번 불러도 된다 — 개발 모드의 effect 재실행 뒤에도 풀린 채 남지 않게).
-      lockScroll();
-      if (dialog.open && !wasClosing) return;
+      if (dialog.open && !wasClosing) return lockScroll();
       if (!dialog.open) {
+        // 연 다음에 잠근다 — showModal 이 던지면(오래된 웹뷰) 잠근 채 남지 않게.
         dialog.showModal();
         if (initialFocus === "close") closeRef.current?.focus();
       } else if (!dialog.contains(document.activeElement)) {
@@ -93,6 +89,7 @@ export function BottomSheet({
         const target = initialFocus === "close" ? closeRef.current : dialog.querySelector<HTMLElement>(FOCUSABLE);
         target?.focus();
       }
+      lockScroll();
       if (!still) {
         try {
           opening.current = slide(dialog, "up", from);
@@ -103,7 +100,9 @@ export function BottomSheet({
       }
       return;
     }
-    if (!dialog.open || closing.current.length > 0) return;
+    // 브라우저가 이미 닫았으면(아래 onClose) 잠금만 확실히 푼다.
+    if (!dialog.open) return unlockScroll();
+    if (closing.current.length > 0) return;
     // 올라오던 중이면 지금 그려진 위치를 읽어 거기서부터 내린다(완전히 열린 자리로 튀었다가 내려가지 않게).
     const from = { translate: currentTranslate(dialog, "0 0"), opacity: currentBackdropOpacity(opening.current, 1) };
     opening.current.forEach((a) => a.cancel());
@@ -130,10 +129,11 @@ export function BottomSheet({
       if (closing.current !== running) return;
       closing.current = [];
       dialog.close();
-      unlockScroll();
+      // 시트 정리를 먼저 한다 — 잠금을 풀며 부르는 알림이 던져도 붙잡아 둔 닫힘 모습이 다음 열림에 남지 않게.
       dialog.inert = false;
       dialog.style.translate = "";
       running.forEach((a) => a.cancel());
+      unlockScroll();
     };
     // 다 내려간 뒤에 닫는다. 애니메이션이 다른 까닭으로 취소되거나 끝나지 않아도 닫아, 시트가 열린 채 남지 않게 한다.
     const guard = setTimeout(finish, SHEET_CLOSE_MS + 150);
@@ -167,16 +167,17 @@ export function BottomSheet({
     const dialog = ref.current;
     drag.current = null;
     if (!d || !dialog || d.dy === 0) return;
-    const speed = d.dy / Math.max(1, performance.now() - d.startAt);
-    if (d.dy > DRAG_CLOSE_PX || (d.dy > DRAG_FLICK.minPx && speed > DRAG_FLICK.speed)) {
+    if (shouldCloseOnDrag(d.dy, performance.now() - d.startAt)) {
       // 끈 자리에서 그대로 내려간다(닫힘 쪽이 지금 그려진 위치를 읽는다).
       onClose();
+      // 쓰는 쪽이 닫지 않으면(보내는 중이라 닫기를 막음 등) 끈 자리에 멈춰 있지 않게 제자리로 돌린다.
+      setTimeout(() => {
+        if (closing.current.length === 0 && dialog.open && dialog.style.translate) snapBack(dialog);
+      }, 100);
       return;
     }
     // 덜 끌었으면 제자리로 돌아간다.
-    const from = dialog.style.translate;
-    dialog.style.translate = "";
-    if (!reducedMotion()) dialog.animate({ translate: [from, "0 0"] }, { duration: 180, easing: "cubic-bezier(0.23, 1, 0.32, 1)" });
+    snapBack(dialog);
   };
 
   return (
@@ -186,6 +187,20 @@ export function BottomSheet({
       // Esc 는 브라우저가 바로 닫지 않게 막고 onClose 로 넘겨, 열림 상태를 쓰는 쪽 한 곳에서만 바꾼다.
       onCancel={(e) => {
         e.preventDefault();
+        onClose();
+      }}
+      // 브라우저가 cancel 없이 직접 닫은 경우(사용자 조작 전의 뒤로 가기 · Esc 연타) — 잠금을 풀고 쓰는 쪽 열림 상태도 맞춘다.
+      // 우리가 닫을 때(open 이 이미 false)는 할 일이 없다.
+      onClose={() => {
+        const dialog = ref.current;
+        if (!open || !dialog) return;
+        closing.current.forEach((a) => a.cancel());
+        closing.current = [];
+        opening.current.forEach((a) => a.cancel());
+        opening.current = [];
+        dialog.inert = false;
+        dialog.style.translate = "";
+        unlockScroll();
         onClose();
       }}
       // 시트 안쪽은 아래 div 가 다 덮으므로, dialog 자신이 눌린 것은 뒤 화면(::backdrop)을 누른 것이다.
@@ -236,30 +251,26 @@ export function BottomSheet({
 }
 
 /**
- * 시트가 열린 동안 문서(뒤 화면) 스크롤을 잠근다. 시트가 여러 개 겹쳐 열릴 수 있어 센다 — 마지막 시트가 닫힐 때 원래대로 푼다.
+ * 시트가 열린 동안 문서(뒤 화면) 스크롤을 잠근다. 시트가 여러 개 겹쳐 열릴 수 있어 센다 — 마지막 시트가 닫힐 때 원래대로 풀고
+ * 기다리던 알림을 띄운다(센 값 · 기다리는 일은 lib/sheet-locks.ts 가 들고 테스트한다).
  * iOS Safari · 웹뷰는 <dialog> 가 모달이어도 뒤 문서가 손가락에 따라 스크롤되어 html · body 를 함께 막는다.
  */
-let scrollLocks = 0;
 let savedOverflow: { html: string; body: string } | null = null;
-function lockDocumentScroll() {
-  if (scrollLocks++ > 0) return;
-  const { documentElement: html, body } = document;
-  savedOverflow = { html: html.style.overflow, body: body.style.overflow };
-  html.style.overflow = "hidden";
-  body.style.overflow = "hidden";
-}
-function unlockDocumentScroll() {
-  if (scrollLocks === 0 || --scrollLocks > 0) return;
-  const { documentElement: html, body } = document;
-  html.style.overflow = savedOverflow?.html ?? "";
-  body.style.overflow = savedOverflow?.body ?? "";
-  savedOverflow = null;
-  // 마지막 시트가 실제로 close() 됐다 — 기다리던 알림을 띄운다
-  const waiting = afterClose.splice(0);
-  waiting.forEach((fn) => fn());
-}
+const sheetLocks = createSheetLocks({
+  apply() {
+    const { documentElement: html, body } = document;
+    savedOverflow = { html: html.style.overflow, body: body.style.overflow };
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+  },
+  restore() {
+    const { documentElement: html, body } = document;
+    html.style.overflow = savedOverflow?.html ?? "";
+    body.style.overflow = savedOverflow?.body ?? "";
+    savedOverflow = null;
+  },
+});
 
-const afterClose: (() => void)[] = [];
 /**
  * 열린(또는 내려가는 중인) 바텀시트가 모두 실제로 close() 된 뒤에 [fn] 을 부른다. 열린 시트가 없으면 바로 부른다.
  * 시트를 닫으면서 띄우는 알림(토스트)은 이것으로 띄운다 — 모달 시트가 열려 있거나 내려가는 동안은 바깥이 inert 라 알림이 가려지고
@@ -267,8 +278,19 @@ const afterClose: (() => void)[] = [];
  * 닫기(onClose → open=false)와 같은 틱에 불러도 된다 — 시트는 그다음 effect 에서야 닫히기 시작한다.
  */
 export function afterSheetsClose(fn: () => void) {
-  if (scrollLocks === 0) return fn();
-  afterClose.push(fn);
+  sheetLocks.afterAllClosed(fn);
+}
+
+/** 끌어 내린 시트를 제자리로 돌린다. */
+function snapBack(dialog: HTMLDialogElement) {
+  const from = dialog.style.translate;
+  dialog.style.translate = "";
+  if (!from || reducedMotion()) return;
+  try {
+    dialog.animate({ translate: [from, "0 0"] }, { duration: 180, easing: "cubic-bezier(0.23, 1, 0.32, 1)" });
+  } catch (error) {
+    console.error("[bottom-sheet] 제자리 애니메이션 실패", error);
+  }
 }
 
 /** 「동작 줄이기」 설정. 브라우저 밖(서버 렌더)에서는 부르지 않는다. */
@@ -298,8 +320,9 @@ function slide(
     // pseudoElement 옵션을 모르는 브라우저는 예외 없이 시트 본체에 투명도를 건다 — 그때는 지우고 시트만 움직인다.
     if ((backdrop.effect as KeyframeEffect | null)?.pseudoElement === "::backdrop") moves.push(backdrop);
     else backdrop.cancel();
-  } catch {
+  } catch (error) {
     // ::backdrop 지정을 거부한 브라우저 — 시트만 움직인다.
+    console.debug("[bottom-sheet] 배경 애니메이션을 건너뜀", error);
   }
   return moves;
 }
