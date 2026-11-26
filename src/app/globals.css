@@ -105,6 +105,18 @@ body {
     translate: 0;
   }
 }
+/* 탭 · 거르기를 바꿨을 때 새 내용이 살짝 떠오르며 나타난다(2026-11-26 실기기 피드백 — 탭 전환이 뚝 바뀌었다).
+   쓰는 곳: motion-safe:animate-[staff-panel-in_220ms_cubic-bezier(0.23,1,0.32,1)_both] 를 탭 내용 칸에, 바뀔 때마다 새로 그리게 key 를 준다 */
+@keyframes staff-panel-in {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
 /* 토스트(공통 Toast): 떠오르며 나타나 2초 머문 뒤 흐려져 사라진다. */
 @keyframes staff-toast {
   0% {

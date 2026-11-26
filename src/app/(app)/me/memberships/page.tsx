@@ -171,7 +171,7 @@ function StatusChips({ counts, current }: { counts: Record<StatusFilter, number>
             replace
             scroll={false}
             aria-current={on ? "true" : undefined}
-            className={`flex h-[36px] items-center gap-[4px] rounded-full border px-[14px] text-[13px] font-semibold ${
+            className={`flex h-[36px] items-center gap-[4px] rounded-full border px-[14px] text-[13px] font-semibold transition-colors duration-200 ease-out ${
               on ? "border-staff-primary bg-staff-primary-inactive text-staff-primary" : "border-staff-border bg-white text-staff-text-sub"
             }`}
           >
@@ -222,7 +222,8 @@ export default async function MembershipsPage({ searchParams }: PageProps<"/me/m
         ) : filter !== "all" && !memberships.items.some((m) => membershipStatusOf(m.retiredDate, today) === filter) ? (
           <Notice>{EMPTY_TEXT[filter]}</Notice>
         ) : (
-          <ul className="flex flex-col gap-[12px]">
+          // 상태 칩을 바꾸면 목록을 새로 그려 살짝 떠오르며 나타난다(staff-panel-in, 2026-11-26 실기기 피드백)
+          <ul key={filter} className="flex flex-col gap-[12px] motion-safe:animate-[staff-panel-in_220ms_cubic-bezier(0.23,1,0.32,1)_both]">
             {memberships.items
               .filter((m) => filter === "all" || membershipStatusOf(m.retiredDate, today) === filter)
               .map((m) => {

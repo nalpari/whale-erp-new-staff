@@ -60,7 +60,8 @@ export function AttendanceHistoryScreen({ tab, records, today, weekStart, now, f
           if (next !== tab) router.push(`/attendance${next === "period" ? "?tab=period" : ""}${fromHome ? (next === "period" ? "&" : "?") + "back=home" : ""}`);
         }}
       />
-      <div id={PANEL} role="tabpanel" aria-labelledby={segmentTabId(PANEL, tab)} className="flex flex-1 flex-col gap-[12px]">
+      {/* 탭이 바뀌면 새 내용이 살짝 떠오르며 나타난다(globals.css staff-panel-in, 2026-11-26 실기기 피드백) */}
+      <div key={tab} id={PANEL} role="tabpanel" aria-labelledby={segmentTabId(PANEL, tab)} className="flex flex-1 flex-col gap-[12px] motion-safe:animate-[staff-panel-in_220ms_cubic-bezier(0.23,1,0.32,1)_both]">
         {tab === "week" ? (
           <WeekView records={records} today={today} weekStart={weekStart} now={now} onOpen={setSheet} />
         ) : (
