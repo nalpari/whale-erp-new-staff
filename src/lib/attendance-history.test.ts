@@ -190,7 +190,7 @@ test("근무 중인데 서버 시계가 출근보다 1분 이르면 출근 시�
   assert.equal(early.to, 20);
 });
 
-test("달력 밀기: 왼쪽은 다음 달, 오른쪽은 이전 달, 짧거나 세로가 크면 넘기지 않는다", () => {
+test("달력 밀기: 왼쪽은 다음 달, 오른쪽은 이전 달, 짧거나 세로가 가로와 같거나 더 크면 넘기지 않는다", () => {
   assert.equal(swipeStep(-80, 10), 1);
   assert.equal(swipeStep(80, -10), -1);
   assert.equal(swipeStep(-(SWIPE_MIN_PX - 1), 0), 0);

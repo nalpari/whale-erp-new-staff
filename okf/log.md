@@ -2,7 +2,7 @@
 
 ## 2026-11-26
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR 전 코드리뷰 반영: 바텀시트는 내려가는 동안 눌리지 않게(inert) 하고, 닫힘 애니메이션이 취소되거나 끝나지 않아도 닫는다. TO-DO 상태를 보내는 동안은 다른 상세를 열지 않는다.
-* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백: 조회 기간 달력을 좌우로 밀어 달을 넘기고(`swipeStep`), TO-DO 상태를 바꾸면(목록 체크 · 상세 모두) 알림을 띄우고 상세에서 바꾸면 성공했을 때 시트를 닫으며(지금 상태를 다시 누르면 시트만 닫는다), 바텀시트 열림 · 닫힘을 Web Animations 로 움직여 Safari · 웹뷰에서도 보이게 했다(닫힘은 다 내려간 뒤 close).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백: 조회 기간 달력을 좌우로 밀어 달을 넘기고(`swipeStep`), TO-DO 상세에서 상태를 바꾸면 성공했을 때 알림을 띄우고 시트를 닫으며(지금 상태를 다시 누르면 시트만 닫는다), 바텀시트 열림 · 닫힘을 Web Animations 로 움직여 Safari · 웹뷰에서도 보이게 했다(닫힘은 다 내려간 뒤 close).
 
 ## 2026-11-25
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — pr-review-toolkit 반영: 내 근무지는 근무 중인 근무지가 없으면 「전체」로 열고, 출근 화면 [내 정보에서 관리]는 동의 상세로, 근무정보 제공 동의 상세는 근무지를 못 받으면 안내. 본문 옛 서술(급여 「발송 완료」 · PDF 받기 · 내 정보 아이콘 · 근로계약 뒤로 가기 · 「내 정보 카드」)을 바뀐 화면에 맞춤.

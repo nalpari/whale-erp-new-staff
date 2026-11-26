@@ -77,10 +77,10 @@ export function BottomSheet({
       return dialog.close();
     }
     closing.current = running;
-    // 내려가는 동안은 눌리지 않게 한다 — 근무지를 한 번 더 고르거나, 앱의 뒤로 가기가 내려가는 시트를 닫느라 한 번 사라지지 않게.
+    // 내려가는 동안은 눌리지 않게 한다 — 내려가는 시트에서 근무지를 한 번 더 고르지 않게.
     dialog.inert = true;
     const finish = () => {
-      // 그사이 다시 열었으면(cancel 로 바뀜) 닫지 않는다.
+      // 그사이 다시 열었으면(열림 쪽에서 closing 을 비워 running 과 달라짐) 닫지 않는다.
       if (closing.current !== running) return;
       closing.current = [];
       dialog.close();
