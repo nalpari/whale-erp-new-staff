@@ -9,7 +9,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 // 브라우저(Safari · 일부 웹뷰)가 있어 실기기에서 애니메이션이 없어 보였다(2026-11-26 실기기 확인). 닫을 때는 다 내려간 뒤에 close() 한다.
 // 「동작 줄이기」를 켠 사람에게는 움직이지 않고 바로 열고 닫는다.
 // 뒤 화면을 누르거나 Esc·닫기를 누르면 onClose 를 부른다. 열림 상태는 쓰는 쪽이 open 으로 들고 있다.
-/** 닫힐 때 내려가는 시간(ms, 아래 duration-200). 시트를 차례로 띄우는 쪽이 앞 시트가 다 내려간 뒤 다음을 열 때 쓴다. */
+/** 닫힐 때 내려가는 시간(ms, 아래 slide() 의 down). 시트를 차례로 띄우는 쪽이 앞 시트가 다 내려간 뒤 다음을 열 때 쓴다. */
 export const SHEET_CLOSE_MS = 200;
 
 export function BottomSheet({
@@ -40,7 +40,7 @@ export function BottomSheet({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  // 내려가는 중인 애니메이션 — 그사이 다시 열면 멈추고 그 자리에서 다시 올린다.
+  // 내려가는 중인 애니메이션 — 그사이 다시 열면 멈추고 아래에서 다시 올린다.
   const closing = useRef<Animation[]>([]);
 
   useEffect(() => {
@@ -51,28 +51,50 @@ export function BottomSheet({
       const wasClosing = closing.current.length > 0;
       closing.current.forEach((a) => a.cancel());
       closing.current = [];
+      dialog.inert = false;
       if (dialog.open && !wasClosing) return;
       if (!dialog.open) {
         dialog.showModal();
         if (initialFocus === "close") closeRef.current?.focus();
       }
-      if (!still) slide(dialog, "up");
+      if (!still) {
+        try {
+          slide(dialog, "up");
+        } catch (error) {
+          // 움직이지 못해도 시트는 열려 있다.
+          console.error("[bottom-sheet] 열림 애니메이션 실패", error);
+        }
+      }
       return;
     }
     if (!dialog.open || closing.current.length > 0) return;
     if (still) return dialog.close();
-    const running = slide(dialog, "down");
+    let running: Animation[];
+    try {
+      running = slide(dialog, "down");
+    } catch (error) {
+      console.error("[bottom-sheet] 닫힘 애니메이션 실패", error);
+      return dialog.close();
+    }
     closing.current = running;
-    void Promise.all(running.map((a) => a.finished)).then(
-      () => {
-        // 다 내려간 뒤에만 닫는다. 그사이 다시 열었으면(cancel 로 finished 가 거부됨) 여기 오지 않는다.
-        if (closing.current !== running) return;
-        closing.current = [];
-        dialog.close();
-        running.forEach((a) => a.cancel());
-      },
-      () => {},
-    );
+    // 내려가는 동안은 눌리지 않게 한다 — 근무지를 한 번 더 고르거나, 앱의 뒤로 가기가 내려가는 시트를 닫느라 한 번 사라지지 않게.
+    dialog.inert = true;
+    const finish = () => {
+      // 그사이 다시 열었으면(cancel 로 바뀜) 닫지 않는다.
+      if (closing.current !== running) return;
+      closing.current = [];
+      dialog.close();
+      dialog.inert = false;
+      running.forEach((a) => a.cancel());
+    };
+    // 다 내려간 뒤에 닫는다. 애니메이션이 다른 까닭으로 취소되거나 끝나지 않아도 닫아, 시트가 열린 채 남지 않게 한다.
+    const guard = setTimeout(finish, SHEET_CLOSE_MS + 150);
+    void Promise.all(running.map((a) => a.finished))
+      .then(finish, (error) => {
+        if (closing.current === running) console.warn("[bottom-sheet] 닫힘 애니메이션이 취소됨", error);
+        finish();
+      })
+      .finally(() => clearTimeout(guard));
   }, [open, initialFocus]);
 
   return (
@@ -121,7 +143,7 @@ function reducedMotion(): boolean {
 /**
  * 시트를 아래에서 올리거나(up, 260ms) 아래로 내린다(down, SHEET_CLOSE_MS). 뒤 화면(::backdrop)도 함께 흐려지고 걷힌다.
  * 내릴 때는 끝 모습을 붙잡아(fill) 두어, close() 하기 전 한 순간 제자리로 튀어 오르지 않게 한다.
- * ::backdrop 애니메이션을 지원하지 않는 브라우저면 시트만 움직인다.
+ * ::backdrop 지정이 거부되면(예외) 시트만 움직인다. pseudoElement 옵션 자체를 모르는 브라우저는 예외 없이 시트가 함께 흐려질 수 있다.
  */
 function slide(dialog: HTMLDialogElement, to: "up" | "down"): Animation[] {
   const up = to === "up";
@@ -132,7 +154,7 @@ function slide(dialog: HTMLDialogElement, to: "up" | "down"): Animation[] {
   try {
     moves.push(dialog.animate({ opacity: up ? [0, 1] : [1, 0] }, { ...timing, pseudoElement: "::backdrop" }));
   } catch {
-    // ::backdrop 애니메이션을 못 하는 브라우저 — 시트만 움직인다.
+    // ::backdrop 지정을 거부한 브라우저 — 시트만 움직인다.
   }
   return moves;
 }
