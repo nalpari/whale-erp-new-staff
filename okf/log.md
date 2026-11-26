@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-26
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — Jenkins 빌드 실패 수정: 시행 중인 약관 `getCurrentTerms` 도 맨 앞에서 `connection()` 을 불러, `API_BASE_URL` 없는 빌드 프리렌더에서 api 를 부르지 않는다(`/me/consents/location`).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #100 재리뷰 반영: 내려가던 바텀시트를 다시 열면 그때 위치 · 배경 투명도에서 다시 올라오고, TO-DO 상세에서 상태를 바꾼 성공 알림은 시트가 다 닫힌 뒤에 띄운다(화면 낭독기가 놓치지 않게).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #100 재리뷰 반영: 내려가던 바텀시트를 다시 열면 포커스를 시트 안으로 되돌리고, 조회 기간 달력 위에서도 두 손가락 확대를 막지 않는다(`touch-action: pan-y pinch-zoom`).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #100 재리뷰 반영: 바텀시트를 올라오는 중에 닫으면 배경도 그때의 투명도에서 걷힌다(다 어두워졌다가 사라지지 않게).
