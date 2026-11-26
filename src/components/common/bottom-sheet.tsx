@@ -12,6 +12,8 @@ import { useEffect, useRef, type ReactNode } from "react";
 /** 닫힐 때 내려가는 시간(ms, 아래 slide() 의 down). 시트를 차례로 띄우는 쪽이 앞 시트가 다 내려간 뒤 다음을 열 때 쓴다. */
 export const SHEET_CLOSE_MS = 200;
 
+const FOCUSABLE = '[autofocus], button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function BottomSheet({
   open,
   onClose,
@@ -58,6 +60,10 @@ export function BottomSheet({
       if (!dialog.open) {
         dialog.showModal();
         if (initialFocus === "close") closeRef.current?.focus();
+      } else if (!dialog.contains(document.activeElement)) {
+        // 내려가던 시트를 다시 열 때 — 닫히는 동안(inert) 빠진 포커스를 시트 안으로 되돌린다.
+        const target = initialFocus === "close" ? closeRef.current : dialog.querySelector<HTMLElement>(FOCUSABLE);
+        target?.focus();
       }
       if (!still) {
         try {

@@ -110,11 +110,11 @@ export function PeriodPicker({
           </div>
           {/* 화살표 키 이동이 없어 grid 대신 group — 날짜마다 버튼이다(리뷰) */}
           {/* 좌우로 밀면 달을 넘긴다 — 왼쪽으로 밀면 다음 달, 오른쪽이면 이전 달. 세로 움직임이 가로와 같거나 더 크면(시트 스크롤) 넘기지 않는다.
-              pan-y 로 가로 움직임은 브라우저가 쓰지 않게 해 손가락을 따라 화면이 흔들리지 않게 한다. 버튼(화살표)은 그대로 둔다 */}
+              pan-y 로 가로 움직임은 브라우저가 쓰지 않게 해 손가락을 따라 화면이 흔들리지 않게 하고, pinch-zoom 으로 두 손가락 확대는 그대로 둔다. 버튼(화살표)은 그대로 둔다 */}
           <div
             role="group"
             aria-label={`${Number(month.slice(0, 4))}년 ${Number(month.slice(5, 7))}월`}
-            className="grid touch-pan-y grid-cols-7 gap-y-[4px]"
+            className="grid touch-pan-y touch-pinch-zoom grid-cols-7 gap-y-[4px]"
             onTouchStart={(e) => {
               const t = e.touches[0];
               swipeStart.current = e.touches.length === 1 && t ? { x: t.clientX, y: t.clientY } : null;
