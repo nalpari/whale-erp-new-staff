@@ -26,6 +26,8 @@ export function Collapse({ open, id, className, children }: { open: boolean; id?
       return;
     }
     if (!el) return;
+    // 닫힘이 끝나는 순간 다시 열면 직접 쓴 hidden 이 남아 있을 수 있다 — 열 때는 먼저 보이게 한다.
+    if (open) el.hidden = false;
     // 움직이는 중이면 지금 높이에서 이어 간다.
     const from = running.current ? el.getBoundingClientRect().height : open ? 0 : el.scrollHeight;
     running.current?.cancel();
