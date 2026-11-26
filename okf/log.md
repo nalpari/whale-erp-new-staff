@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-26
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백: 로그인 화면의 「아이디 저장하기」 · 「자동로그인」 체크를 이 기기에 기억해 새로 고쳐도 남게 했다(탈퇴하고 온 화면에서는 잊는다).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR 전 코드리뷰 반영: 브라우저가 시트를 직접 닫아도(사용자 조작 전 뒤로 가기 등) 스크롤 잠금을 풀고 열림 상태를 맞춘다. 탭 · 거르기 애니메이션은 끝난 뒤 translate 를 남기지 않아(fill backwards) TO-DO 알림이 화면 아래에 뜬다. 잠금 카운터 · 기다리는 알림 · 끌어 닫기 판정을 `lib/sheet-locks.ts` 로 빼 테스트하고, 알림 하나가 던져도 나머지를 띄운다. 끌어 닫기가 막히면 제자리로, Collapse 를 닫히는 순간 다시 열어도 보인다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 사용자 지정: 탭 내용 미끄러짐이 무거워 60px · 320ms → 20px · 200ms(흐림 150ms).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 사용자 지정: `SegmentedControl` 은 미끄러지는 바탕을 빼고 색 바뀜(누르자마자)만, 근무 · 출퇴근 현황 탭 내용은 화면 이동처럼 고른 쪽에서 60px 미끄러져 들어온다(`.tab-panel-in`, html[data-tab-dir]). 레이아웃 main 에 overflow-x-clip.
