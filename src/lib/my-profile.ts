@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+
 import { requestsLoadFailure } from "./affiliation-requests";
 import { ApiError, NetworkError, failureOf, logFailure, logUnexpected, request, type Schemas } from "./api";
 import { authedRequest } from "./session";
@@ -79,6 +81,8 @@ export type CurrentTerms =
  * 캐시하지 않는다 — 시트에 보인 버전과 「동의합니다」 때 api 가 기록하는 시행본이 어긋나지 않게(고지 후 동의).
  */
 export async function getCurrentTerms(termsTypeCode: string): Promise<CurrentTerms> {
+  // 쿠키를 쓰지 않는 공개 조회라, 같은 화면이 쿠키를 읽어도 빌드 프리렌더에서 먼저 api 를 부른다(빌드에는 API_BASE_URL 이 없다).
+  await connection();
   try {
     const terms = await request<Schemas["TermsVersionDetailResponseDto"]>(`/public-terms-versions/${encodeURIComponent(termsTypeCode)}`);
     return { status: "ok", terms };
