@@ -117,6 +117,22 @@ body {
     translate: 0 0;
   }
 }
+/* 탭(SegmentedControl) 내용 — 화면 이동(nav-forward · nav-back)처럼 고른 쪽에서 60px 미끄러지며 나타난다(2026-11-26 사용자 지정).
+   방향은 탭을 누를 때 html[data-tab-dir] 에 남긴다(next 면 오른쪽에서, prev 면 왼쪽에서). 탭 내용 칸에 key 를 줘 바뀔 때 새로 그린다 */
+.tab-panel-in {
+  --slide-offset: 60px;
+  animation:
+    210ms ease-out both staff-fade,
+    320ms cubic-bezier(0.23, 1, 0.32, 1) both staff-slide;
+}
+html[data-tab-dir="prev"] .tab-panel-in {
+  --slide-offset: -60px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tab-panel-in {
+    animation: none;
+  }
+}
 /* 토스트(공통 Toast): 떠오르며 나타나 2초 머문 뒤 흐려져 사라진다. */
 @keyframes staff-toast {
   0% {

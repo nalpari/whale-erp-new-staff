@@ -26,8 +26,8 @@ export function WorkTabs({ tab, children }: { tab: WorkTab; children: ReactNode 
           { value: "todo", label: "TO-DO" },
         ]}
       />
-      {/* 탭이 바뀌면 key 로 새로 그려 새 내용이 살짝 떠오르며 나타난다(globals.css staff-panel-in, 2026-11-26 실기기 피드백) */}
-      <div key={tab} id={PANEL_ID} role="tabpanel" aria-labelledby={segmentTabId(PANEL_ID, tab)} className="flex flex-1 flex-col gap-[12px] motion-safe:animate-[staff-panel-in_220ms_cubic-bezier(0.23,1,0.32,1)_both]">
+      {/* 탭이 바뀌면 key 로 새로 그려 화면 이동처럼 고른 쪽에서 미끄러져 들어온다(globals.css .tab-panel-in, 2026-11-26 사용자 지정) */}
+      <div key={tab} id={PANEL_ID} role="tabpanel" aria-labelledby={segmentTabId(PANEL_ID, tab)} className="flex flex-1 flex-col gap-[12px] tab-panel-in">
         {children}
       </div>
     </>

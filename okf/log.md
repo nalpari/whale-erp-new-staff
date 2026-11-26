@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-26
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 사용자 지정: `SegmentedControl` 은 미끄러지는 바탕을 빼고 색 바뀜(누르자마자)만, 근무 · 출퇴근 현황 탭 내용은 화면 이동처럼 고른 쪽에서 60px 미끄러져 들어온다(`.tab-panel-in`, html[data-tab-dir]). 레이아웃 main 에 overflow-x-clip.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(탭 전환이 딱딱함): `SegmentedControl` 은 누르자마자 고른 칸 바탕이 미끄러져 옮겨 가고(서버 응답을 기다리지 않음), 근무 · 출퇴근 현황 탭 내용과 TO-DO · 내 근무지 거르기 목록은 바뀔 때 살짝 떠오르며 나타난다(`staff-panel-in`). 거르기 칩 색은 흐려지며 바뀐다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백: 바텀시트를 머리(손잡이 · 머리말 · 제목, 고정)와 몸통(설명 · 내용 · 닫기, 스크롤)으로 나눠 스크롤해도 끌어 닫는 머리가 위에 남는다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(홈으로 돌아올 때 깜빡임): 화면 이동에서 새 화면을 늦게 시작해 생기던 빈 장면을 없애고(옛 · 새 화면이 같이 시작), 홈 카드는 `SoftSuspense` 로 스켈레톤 → 내용이 겹쳐 흐려지며 바뀐다.
