@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-26
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(Safari 화면 기록 — 이동할 때 이전 화면이 남아 보임): 화면 이동에서 나가는 화면을 곧바로 감추고 들어오는 화면만 미끄러지거나 나타나게, 미끄러짐은 var() 대신 방향별 transform 키프레임.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #101 재영 리뷰 남은 3건: 아이디 저장하기 체크 기억을 이 탭(sessionStorage)으로 옮기고 보낼 때 지움, 자동로그인은 새로 고치면 꺼짐, 하단 메뉴 빈칸은 메뉴와 같은 틀로 그려 글자 크기를 따라 높아짐.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #101 재리뷰 반영: 자동로그인 기억은 빈 칸 검사 전에 지우고, 돌아가던 바텀시트를 짧게 탭해도 닫히지 않으며(이번 손짓의 움직임으로 판정), 브라우저가 직접 닫았는데 쓰는 쪽이 닫기를 거부하면 시트를 다시 연다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #101 재리뷰 반영: 로그인 체크는 각자 자기 값만 기억하고, 바텀시트가 제자리로 돌아가는 중 다시 끌면 그 자리에서 이어 끌며, 시트가 닫힌 뒤 띄우는 알림은 같은 렌더에서 새 시트가 열리면 그 시트가 닫힐 때까지 기다린다(`createSheetLocks` 의 `defer`).
