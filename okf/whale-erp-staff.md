@@ -11,7 +11,7 @@ sources:
   - { id: design-md, resource: ../DESIGN.md, title: Design system }
   - { id: withdrawal, resource: ../src/app/(app)/me/withdrawal/actions.ts, title: 회원 탈퇴 화면 · 서버 액션 }
   - { id: affiliation-done, resource: ../src/app/(app)/affiliations/done/page.tsx, title: 근무지 추가 확인 결과 화면 — 수락 완료의 「근로계약서 서명하기」 }
-generated: { by: claude-code/opus-5.5, at: 2026-11-26T06:43:08Z }
+generated: { by: claude-code/opus-5.5, at: 2026-11-26T06:46:58Z }
 ---
 
 # Stack

@@ -67,11 +67,14 @@ export function LoginForm({
   }, [withdrawn]);
   // 로그인을 보내면 자동로그인 기억을 지운다(onSubmit). 실패해 이 화면에 남아도 저장소에는 다시 쓰지 않고 지금 폼 상태로만 들고 있는다 —
   // 공용 기기에서 실패한 채 자리를 비우면 다음 사람이 새로 고쳐도 켜진 채 넘어가지 않게.
-  const choose = (next: { saveEmail: boolean; autoLogin: boolean }) => {
-    setSaveEmail(next.saveEmail);
-    setAutoLogin(next.autoLogin);
-    rememberSaveEmailChoice(next.saveEmail);
-    rememberAutoLoginChoice(next.autoLogin);
+  // 체크마다 자기 값만 기억한다 — 실패한 뒤 아이디 저장만 바꿨는데 화면에 남은 자동로그인까지 다시 저장되지 않게.
+  const chooseSaveEmail = (on: boolean) => {
+    setSaveEmail(on);
+    rememberSaveEmailChoice(on);
+  };
+  const chooseAutoLogin = (on: boolean) => {
+    setAutoLogin(on);
+    rememberAutoLoginChoice(on);
   };
   // 설치형 앱 안이면 앱이 주는 기기 식별자(해시)를 받아 숨은 칸으로 넘긴다(계획 결정 9). 못 받으면(옛 앱 · 앱 밖) 비워 두고
   // 서버가 쿠키 값(`device_id`)을 쓴다. 받기 전에 제출해도 같다.
@@ -173,10 +176,10 @@ export function LoginForm({
             error={fields.messageOf("password", state.field === "password" ? state.error : undefined)}
           />
           <div className="-my-[6px] flex flex-wrap gap-x-[20px]">
-            <CheckBox name="saveEmail" checked={saveEmail} onChange={(on) => choose({ saveEmail: on, autoLogin })}>
+            <CheckBox name="saveEmail" checked={saveEmail} onChange={chooseSaveEmail}>
               아이디 저장하기
             </CheckBox>
-            <CheckBox name="autoLogin" checked={autoLogin} onChange={(on) => choose({ saveEmail, autoLogin: on })}>
+            <CheckBox name="autoLogin" checked={autoLogin} onChange={chooseAutoLogin}>
               자동로그인
             </CheckBox>
           </div>

@@ -51,6 +51,8 @@ export function BottomSheet({
   const opening = useRef<Animation[]>([]);
   // 머리를 끄는 중 — 시작 y · 시각, 지금까지 내린 거리
   const drag = useRef<{ startY: number; startAt: number; dy: number } | null>(null);
+  // 덜 끌어 제자리로 돌아가는 중인 애니메이션 — 그사이 다시 끌면 멈추고 지금 그려진 자리에서 이어 끈다.
+  const snapping = useRef<Animation | null>(null);
   // 이 시트가 문서 스크롤을 잠갔는지 — 닫힘 · 사라짐이 겹쳐도 한 번만 푼다.
   const locked = useRef(false);
   const lockScroll = () => {
@@ -153,7 +155,7 @@ export function BottomSheet({
     const dialog = ref.current;
     const moved = drag.current?.dy;
     drag.current = null;
-    if (dialog && moved) snapBack(dialog);
+    if (dialog && moved) snapping.current = snapBack(dialog);
   };
   // 머리 끌기. 아래로만 따라 내려가고(위로는 붙어 있음), 손을 떼면 닫거나 제자리로 돌아간다.
   const dragStart = (e: TouchEvent) => {
@@ -164,7 +166,17 @@ export function BottomSheet({
     }
     const t = e.touches[0];
     if (!open || !t) return;
-    drag.current = { startY: t.clientY, startAt: performance.now(), dy: 0 };
+    // 제자리로 돌아가던 중이면 그때 그려진 높이를 읽고 멈춘다 — 안 멈추면 애니메이션이 손가락을 따라가는 인라인 값을 덮어
+    // 시트는 그대로인데 거리만 쌓여 닫힐 수 있다. 읽은 높이만큼 시작점을 올려 손가락 아래에서 이어 끈다.
+    const dialog = ref.current;
+    let offset = 0;
+    if (snapping.current && dialog) {
+      offset = translateY(dialog);
+      snapping.current.cancel();
+      snapping.current = null;
+      if (offset > 0) dialog.style.translate = `0 ${offset}px`;
+    }
+    drag.current = { startY: t.clientY - offset, startAt: performance.now(), dy: offset };
   };
   const dragMove = (e: TouchEvent) => {
     const d = drag.current;
@@ -184,12 +196,12 @@ export function BottomSheet({
       onClose();
       // 쓰는 쪽이 닫지 않으면(보내는 중이라 닫기를 막음 등) 끈 자리에 멈춰 있지 않게 제자리로 돌린다.
       setTimeout(() => {
-        if (!drag.current && closing.current.length === 0 && dialog.open && dialog.style.translate) snapBack(dialog);
+        if (!drag.current && closing.current.length === 0 && dialog.open && dialog.style.translate) snapping.current = snapBack(dialog);
       }, 100);
       return;
     }
     // 덜 끌었으면 제자리로 돌아간다.
-    snapBack(dialog);
+    snapping.current = snapBack(dialog);
   };
 
   return (
@@ -295,14 +307,22 @@ export function afterSheetsClose(fn: () => void) {
 }
 
 /** 끌어 내린 시트를 제자리로 돌린다. */
-function snapBack(dialog: HTMLDialogElement) {
+/** 지금 그려진 시트의 세로 translate(px). 읽지 못하면 0. */
+function translateY(dialog: HTMLDialogElement): number {
+  const value = getComputedStyle(dialog).translate;
+  const y = value && value !== "none" ? Number.parseFloat(value.split(" ")[1] ?? "0") : 0;
+  return Number.isFinite(y) ? Math.max(0, y) : 0;
+}
+
+function snapBack(dialog: HTMLDialogElement): Animation | null {
   const from = dialog.style.translate;
   dialog.style.translate = "";
-  if (!from || reducedMotion()) return;
+  if (!from || reducedMotion()) return null;
   try {
-    dialog.animate({ translate: [from, "0 0"] }, { duration: 180, easing: "cubic-bezier(0.23, 1, 0.32, 1)" });
+    return dialog.animate({ translate: [from, "0 0"] }, { duration: 180, easing: "cubic-bezier(0.23, 1, 0.32, 1)" });
   } catch (error) {
     console.error("[bottom-sheet] 제자리 애니메이션 실패", error);
+    return null;
   }
 }
 
