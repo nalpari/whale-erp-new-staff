@@ -205,27 +205,30 @@ export function BottomSheet({
       }}
       className="m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-visible bg-transparent p-0 backdrop:bg-[rgba(23,37,61,0.38)] backdrop:backdrop-blur-[1.5px]"
     >
-      {/* overscroll-contain — 시트 안을 끝까지 스크롤해도 뒤 화면으로 스크롤이 넘어가지 않게 */}
-      <div className="flex max-h-[90dvh] flex-col overflow-y-auto overscroll-contain rounded-t-[26px] bg-white px-[24px] pb-[max(22px,env(safe-area-inset-bottom))] leading-[1.5] text-staff-text shadow-[0_-8px_28px_rgba(22,25,28,0.16)]">
-        {/* 머리(손잡이 · 제목 · 설명) — 잡고 아래로 끌면 닫힌다. touch-none 으로 끄는 동안 브라우저가 스크롤하지 않게 한다 */}
-        <div className="-mx-[24px] flex touch-none flex-col px-[24px] pt-[12px]" onTouchStart={dragStart} onTouchMove={dragMove} onTouchEnd={dragEnd} onTouchCancel={dragEnd}>
+      {/* 시트는 머리(고정)와 몸통(스크롤) 둘로 나눈다 — 내용이 길어 스크롤해도 끌어 닫는 손잡이 · 제목은 그대로 위에 남는다(2026-11-26 실기기 피드백) */}
+      <div className="flex max-h-[90dvh] flex-col rounded-t-[26px] bg-white leading-[1.5] text-staff-text shadow-[0_-8px_28px_rgba(22,25,28,0.16)]">
+        {/* 머리(손잡이 · 머리말 · 제목) — 잡고 아래로 끌면 닫힌다. touch-none 으로 끄는 동안 브라우저가 스크롤하지 않게 한다 */}
+        <div className="flex shrink-0 touch-none flex-col px-[24px] pt-[12px]" onTouchStart={dragStart} onTouchMove={dragMove} onTouchEnd={dragEnd} onTouchCancel={dragEnd}>
           <span aria-hidden className="mx-auto h-[4px] w-[40px] shrink-0 rounded-[2px] bg-[#dce1e9]" />
           {eyebrow && <p className="pt-[25px] text-[14px] font-semibold text-staff-text-sub">{eyebrow}</p>}
           <h2 className={`${eyebrow ? "pt-[6px]" : "pt-[25px]"} text-[20px] font-bold break-keep`}>{heading ?? title}</h2>
+        </div>
+        {/* 몸통 — 설명 · 내용 · 닫기 버튼. overscroll-contain 으로 끝까지 스크롤해도 뒤 화면으로 넘어가지 않게 */}
+        <div className="flex min-h-0 flex-col overflow-y-auto overscroll-contain px-[24px] pb-[max(22px,env(safe-area-inset-bottom))]">
           {description && (
             <p className="pt-[19px] text-[14px] whitespace-pre-line text-staff-text-sub [&_strong]:font-bold [&_strong]:text-staff-text">{description}</p>
           )}
-        </div>
-        <div className="flex flex-col gap-[13px] pt-[20px]">
-          {children}
-          <button
-            ref={closeRef}
-            type="button"
-            onClick={onClose}
-            className="flex min-h-[52px] items-center justify-center rounded-[14px] text-[15px] font-semibold text-staff-text-sub transition-colors duration-150 ease-out active:bg-staff-primary-inactive"
-          >
-            {closeLabel}
-          </button>
+          <div className="flex flex-col gap-[13px] pt-[20px]">
+            {children}
+            <button
+              ref={closeRef}
+              type="button"
+              onClick={onClose}
+              className="flex min-h-[52px] items-center justify-center rounded-[14px] text-[15px] font-semibold text-staff-text-sub transition-colors duration-150 ease-out active:bg-staff-primary-inactive"
+            >
+              {closeLabel}
+            </button>
+          </div>
         </div>
       </div>
     </dialog>

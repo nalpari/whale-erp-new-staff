@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-26
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백: 바텀시트를 머리(손잡이 · 머리말 · 제목, 고정)와 몸통(설명 · 내용 · 닫기, 스크롤)으로 나눠 스크롤해도 끌어 닫는 머리가 위에 남는다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(홈으로 돌아올 때 깜빡임): 화면 이동에서 새 화면을 늦게 시작해 생기던 빈 장면을 없애고(옛 · 새 화면이 같이 시작), 홈 카드는 `SoftSuspense` 로 스켈레톤 → 내용이 겹쳐 흐려지며 바뀐다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(펼침이 뚝 열리고 닫힘): 공통 `Collapse`(높이 · 흐림을 Web Animations 로)를 두고 내 정보 주소 줄 · 출퇴근 현황 주 줄 펼침에 건다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(화면 전환이 딱딱함): 목업에만 걸려 있던 화면 이동 움직임을 실제 화면에 건다 — (app) · (auth) 레이아웃의 `PageSlide`(경로 key 의 ViewTransition). 링크의 nav-forward · nav-back 은 방향 슬라이드, 방향 없는 이동(뒤로 가기 · router.push)은 짧은 겹침 흐림(page-fade).
