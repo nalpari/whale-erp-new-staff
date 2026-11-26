@@ -25,6 +25,13 @@ body {
   background: var(--color-staff-bg);
 }
 
+/* 화면을 옆으로 밀어도 고무줄처럼 옆으로 튕기지 않게 — 직원앱은 가로로 넘치는 화면이 없다(2026-11-26 실기기 피드백 — 화면이 좌우로 흔들렸다).
+   세로 튕김은 두다 — 앱(iOS)의 당겨서 새로고침이 그 튕김으로 당겨진다. */
+html,
+body {
+  overscroll-behavior-x: none;
+}
+
 /*
   직원앱 화면 이동 슬라이드(design/(mockup)/page-slide.tsx 의 ViewTransition).
   나가는 화면은 빨리(150ms) 흐려지며 비키고, 들어오는 화면은 그 뒤에 나타나며 60px 를 미끄러진다(320ms).

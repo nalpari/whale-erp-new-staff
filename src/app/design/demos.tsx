@@ -45,7 +45,7 @@ export function NavDemo() {
         if (href) setCurrent(href);
       }}
     >
-      <BottomNav current={current} items={GUIDE_NAV} />
+      <BottomNav current={current} items={GUIDE_NAV} fixed={false} />
     </div>
   );
 }

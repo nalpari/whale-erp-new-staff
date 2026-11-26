@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-26
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(화면이 흔들리고 하단 메뉴가 같이 움직임): 하단 메뉴(`BottomNav`)를 sticky 대신 화면 맨 아래에 붙박고(fixed, 흐름에는 같은 높이 빈칸) 가로 고무줄 튕김을 막았다(`overscroll-behavior-x: none`). 세로 튕김은 앱(iOS) 당겨서 새로고침이 써서 둔다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #100 리뷰 남은 것: 동의 카드 · 출근 화면 · TO-DO 상세의 완료 알림을 시트가 실제로 close() 된 뒤에 띄운다(`afterSheetsClose`, TO-DO 의 고정 250ms 타이머 대신).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백: 조회 기간 · 근무스케줄 달력에서 달을 넘기면 새 달이 넘긴 쪽에서 미끄러져 들어오고, 근무스케줄 달력도 좌우로 밀어 달을 넘긴다(공통 `month-swipe.ts`).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백: 바텀시트가 열린 동안 뒤 화면이 스크롤되지 않게 문서 스크롤을 잠그고(시트 안 스크롤은 `overscroll-contain`), 손잡이 · 제목 쪽을 잡고 아래로 끌면 따라 내려와 80px 넘게(또는 빠르게) 내리면 닫힌다. 덜 끌면 제자리로 돌아간다.
