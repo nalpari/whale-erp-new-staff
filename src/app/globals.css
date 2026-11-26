@@ -126,7 +126,7 @@ body {
   }
 }
 /* 탭(SegmentedControl) 내용 — 화면 이동(nav-forward · nav-back)처럼 고른 쪽에서 미끄러지며 나타난다(2026-11-26 사용자 지정).
-   화면 이동(60px · 320ms)과 같게 했더니 무거워 20px · 200ms 로 가볍게 했다(2026-11-26 사용자 지정).
+   그때 화면 이동(60px · 320ms)과 같게 했더니 무거워 20px · 200ms 로 가볍게 했다(2026-11-26 사용자 지정).
    방향은 탭을 누를 때 html[data-tab-dir] 에 남긴다(next 면 오른쪽에서, prev 면 왼쪽에서). 탭 내용 칸에 key 를 줘 바뀔 때 새로 그린다 */
 /* fill 은 backwards — 끝난 뒤 translate 가 남으면 안의 fixed 알림(TO-DO Toast)이 화면이 아니라 이 칸을 기준으로 놓인다 */
 .tab-panel-in {

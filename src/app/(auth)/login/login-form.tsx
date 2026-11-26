@@ -29,7 +29,7 @@ import { loginAction, type LoginState } from "./actions";
 // 이메일 찾기(`/email-find`)는 이 화면에 버튼이 없고 비밀번호 재설정 화면의 이메일 칸 아래에서 들어간다(데모, 2026-10-20 재영).
 // unavailable 은 proxy 의 갱신이 401 · 400 아닌 이유(연결 실패 · 시간 초과 · 429 · 5xx)로 실패한 경우다(접속이 끝났는지 모른다).
 // next 는 로그인한 뒤 돌아갈 화면이다(WHALEERP-166, 없으면 홈). 숨은 칸으로 액션에 넘긴다.
-// 아이디 저장 · 자동 로그인 체크 박스는 기본이 끔이다(2026-10-20 노영주). 저장된 이메일(savedEmail)이 있으면 칸을 채우고 아이디 저장을 켠다.
+// 아이디 저장 · 자동 로그인 체크 박스는 기본이 끔이다(2026-10-20 노영주). 저장된 이메일(savedEmail)이 있으면 칸을 채우고 아이디 저장을 켠다(이 탭에 기억한 체크가 있으면 그 값을 따른다).
 // 아이디 저장 체크는 로그인하기 전에 새로 고쳐도 이 탭에서 남는다(보내면 지운다). 자동로그인은 새로 고치면 꺼진다(lib/login-choices.ts, PR #101 재영 리뷰). 탈퇴하면 잊는다.
 export function LoginForm({
   expired,
@@ -59,8 +59,8 @@ export function LoginForm({
     // effect 안에서 곧장 상태를 바꾸지 않고 바로 다음 차례에 맞춘다.
     queueMicrotask(() => setSaveEmail(rememberedSave));
   }, [withdrawn]);
-  // 로그인을 보내면 아이디 저장 기억을 지운다(onSubmit). 실패해 이 화면에 남아도 저장소에는 다시 쓰지 않고 지금 폼 상태로만 들고 있는다 —
-  // 공용 기기에서 실패한 채 자리를 비우면 다음 사람이 새로 고쳐도 켜진 채 넘어가지 않게.
+  // 로그인을 보내면 아이디 저장 기억을 지운다(onSubmit). 실패해 이 화면에 남으면 지금 폼 상태로만 들고 있는다 — 실패한 채 자리를 비우면
+  // 다음 사람이 새로 고쳐도 켜진 채 넘어가지 않게. 다만 그 뒤 체크를 다시 바꾸면 다시 기억한다.
   const chooseSaveEmail = (on: boolean) => {
     setSaveEmail(on);
     rememberSaveEmailChoice(on);

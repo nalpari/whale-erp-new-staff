@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-26
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR 전 코드리뷰 반영: 하단 메뉴 빈칸을 칸 수만큼 그려 글자가 두 줄로 접혀도 같이 높아진다. 아이디 저장 기억이 같은 탭에서는 남는 범위 · 화면 이동 값(DESIGN.md)을 지금 동작에 맞춰 적었다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(Safari 화면 기록 — 이동할 때 이전 화면이 남아 보임): 화면 이동에서 나가는 화면을 곧바로 감추고 들어오는 화면만 미끄러지거나 나타나게, 미끄러짐은 var() 대신 방향별 transform 키프레임.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #101 재영 리뷰 남은 3건: 아이디 저장하기 체크 기억을 이 탭(sessionStorage)으로 옮기고 보낼 때 지움, 자동로그인은 새로 고치면 꺼짐, 하단 메뉴 빈칸은 메뉴와 같은 틀로 그려 글자 크기를 따라 높아짐.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #101 재리뷰 반영: 자동로그인 기억은 빈 칸 검사 전에 지우고, 돌아가던 바텀시트를 짧게 탭해도 닫히지 않으며(이번 손짓의 움직임으로 판정), 브라우저가 직접 닫았는데 쓰는 쪽이 닫기를 거부하면 시트를 다시 연다.
