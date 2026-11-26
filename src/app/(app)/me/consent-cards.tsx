@@ -2,7 +2,7 @@
 
 import { unstable_rethrow } from "next/navigation";
 import { useState, useTransition, type ComponentProps, type ReactNode } from "react";
-import { Alert, Badge, BottomSheet, Button, Toast, type BadgeTone } from "@/components/common";
+import { Alert, Badge, BottomSheet, Button, Toast, afterSheetsClose, type BadgeTone } from "@/components/common";
 import { PRESS } from "@/components/common/theme";
 import type { Schemas } from "@/lib/api";
 // 지금 시행 중인 위치정보 약관 — 받음 · 없음(설정 문제) · 잠시 못 받음. 타입만 가져온다(서버 모듈).
@@ -38,7 +38,11 @@ function useConsentChange(onDone: () => void) {
       setError(undefined);
       try {
         const result = await changeConsentAction(kind, termsVersion);
-        if (result.ok) setToast({ key: Date.now(), text: done ?? CONSENT_CHANGES[kind].done });
+        // 확인 시트가 실제로 닫힌 뒤에 알린다(afterSheetsClose — 내려가는 동안 바깥이 inert 라 알림을 놓친다)
+        if (result.ok) {
+          const text = done ?? CONSENT_CHANGES[kind].done;
+          afterSheetsClose(() => setToast({ key: Date.now(), text }));
+        }
         else setError(result.error);
       } catch (thrown) {
         unstable_rethrow(thrown);

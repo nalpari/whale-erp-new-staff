@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { unstable_rethrow } from "next/navigation";
 import { Suspense, cache } from "react";
-import { BottomNav } from "@/components/common";
+import { BottomNav, SoftSuspense } from "@/components/common";
 import { popupSummary, requestsLoadFailure } from "@/lib/affiliation-requests";
 import { ApiError, failureOf, logFailure, logUnexpected } from "@/lib/api";
 import { getContracts } from "@/lib/contracts";
@@ -40,27 +40,28 @@ export default async function HomePage() {
           {/* 근무 · 출퇴근 탭과 같은 머리줄(store-header) */}
           <StoreHeader />
         </div>
-        {/* 오늘 · 이번 주 근무를 먼저(HOME-1). 카드마다 따로 받아 받는 동안 그 자리에 스켈레톤을 보인다. */}
+        {/* 오늘 · 이번 주 근무를 먼저(HOME-1). 카드마다 따로 받아 받는 동안 그 자리에 스켈레톤을 보인다.
+            받은 카드는 SoftSuspense 로 스켈레톤과 겹쳐 흐려지며 바뀐다(홈으로 돌아올 때 깜빡였다, 2026-11-26) */}
         {current && (
-          <Suspense fallback={<ScheduleCardsSkeleton />}>
+          <SoftSuspense fallback={<ScheduleCardsSkeleton />}>
             <ScheduleCards staffMemberId={current.staffMemberId} />
-          </Suspense>
+          </SoftSuspense>
         )}
         {/* 서명을 기다리는 근로계약서(146). 팝업과 같은 계약 목록을 한 번만 받는다. 근무지가 없으면(가입 직후) 「서명할 근로계약서」 묶음.
             서명할 계약이 없는 때가 대부분이라 받는 동안 자리를 잡아 두지 않는다(늦게 오면 아래 카드가 내려간다). */}
-        <Suspense>
+        <SoftSuspense>
           <SignWaitingCards contracts={contractsOrNull()} noSite={current === null} />
-        </Suspense>
+        </SoftSuspense>
         {/* 고른 근무지의 TO-DO 만. 소속 목록을 못 받았으면 모든 근무지, 근무지가 없으면 카드를 두지 않는다. */}
         {current !== null && (
-          <Suspense fallback={<TodoCardSkeleton />}>
+          <SoftSuspense fallback={<TodoCardSkeleton />}>
             <TodoCard storeId={current?.store.storeId} staffMemberId={current?.staffMemberId} />
-          </Suspense>
+          </SoftSuspense>
         )}
         {/* 나의 근무 정보 바로가기(데모). 급여명세서는 근무지가 없어도 보인다(HOME-5). 받는 동안은 비워 둔다. */}
-        <Suspense>
+        <SoftSuspense>
           <MyWorkInfo staffMemberId={current?.staffMemberId} />
-        </Suspense>
+        </SoftSuspense>
       </div>
       {/* 로그아웃이 내 정보로 옮겨 가 홈에서도 하단 메뉴로 내 정보에 간다. */}
       <div className="sticky bottom-0 mt-auto">

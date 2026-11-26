@@ -224,9 +224,9 @@ components:
 
 ## Motion
 
-화면을 옮길 때는 방향 있는 슬라이드를 쓴다(React `<ViewTransition>`, `design/(mockup)/page-slide.tsx`).
+화면을 옮길 때는 방향 있는 슬라이드를 쓴다(React `<ViewTransition>`). (app) · (auth) 레이아웃의 `PageSlide`(`components/common/page-slide.tsx`)가 건다.
 더 깊은 화면으로 가는 링크에는 `transitionTypes={["nav-forward"]}`, 돌아가는 링크에는 `["nav-back"]` 을 붙인다(`PageHeader` 의 뒤로 가기는 이미 붙어 있다).
-나가는 화면은 150ms 로 흐려지며 60px 비키고, 들어오는 화면은 100ms 뒤 나타나며 320ms 동안 60px 를 미끄러진다. 방향이 없는 이동(브라우저 뒤로 가기)과 움직임 줄이기 설정에서는 움직이지 않는다.
+나가는 화면은 150ms 로 흐려지며 60px 비키고, 들어오는 화면은 같이 시작해 320ms 동안 60px 를 미끄러진다. 방향이 없는 이동(뒤로 가기 · router.push)은 160ms 겹침 흐림(page-fade)이고, 움직임 줄이기 설정에서는 움직이지 않는다.
 하단 메뉴(`BottomNav`)로 칸을 옮길 때도 같은 슬라이드를 쓴다 — 오른쪽 칸은 nav-forward, 왼쪽 칸은 nav-back. 메뉴 자신은 `view-transition-name: bottom-nav` 로 떼어 제자리에 둔다.
 
 ## Elevation & Depth
@@ -285,7 +285,7 @@ radius 8 · 좌우 10 · 상하 4 · 12px semibold. 톤: `working` 근무 중, `
 - **PeriodNav:** 「‹ 이전 주 · 기간(16px bold) · 다음 주 ›」 줄. 버튼 15px semibold, 화살표 24px.
 
 ### Tabs & Nav — `SegmentedControl` · `BottomNav` · `WeekSelector`
-- **SegmentedControl:** #EDF0F6 판(radius 10, 안쪽 3, 사이 6) 안에서 고른 칸만 남보라·흰 글자. 칸은 44px · radius 10 · 13px bold, 나머지는 흐린 글자. 칸을 바꾸면 바탕·글자색이 제자리에서 흐려지며 바뀐다(200ms). 탭 내용은 화면 이동과 같은 슬라이드로 바꾼다 — `startTransition` 안에서 `addTransitionType`(오른쪽 탭 nav-forward · 왼쪽 탭 nav-back) 후 상태를 바꾸고, 내용을 `<PageSlide key={tab}>` 로 감싼다. 아래 내용을 바꾸는 탭이면 `panelId` 를 넘기고 내용 쪽에 `id={panelId}` · `role="tabpanel"` · `aria-labelledby={segmentTabId(panelId, tab)}` 를 붙인다. `panelId` 가 없으면 값만 고르는 눌림 버튼(`aria-pressed`) 묶음이다.
+- **SegmentedControl:** #EDF0F6 판(radius 10, 안쪽 3, 사이 6) 안에서 고른 칸만 남보라·흰 글자. 칸은 44px · radius 10 · 13px bold, 나머지는 흐린 글자. 칸을 바꾸면 바탕·글자색이 제자리에서 흐려지며 바뀐다(200ms). 칸 색은 누르자마자 바뀐다. 탭 내용은 내용 칸(tabpanel)에 `key={tab}` 과 `.tab-panel-in` 을 줘, 고른 쪽(`html[data-tab-dir]` next · prev)에서 20px · 200ms 로 미끄러져 들어오게 한다. 아래 내용을 바꾸는 탭이면 `panelId` 를 넘기고 내용 쪽에 `id={panelId}` · `role="tabpanel"` · `aria-labelledby={segmentTabId(panelId, tab)}` 를 붙인다. `panelId` 가 없으면 값만 고르는 눌림 버튼(`aria-pressed`) 묶음이다.
 - **BottomNav:** 홈 · 근무 · 출퇴근 · 급여 · 내 정보 다섯 칸(알림은 머리줄 알림 버튼이 맡는다). Figma 는 네 칸(출퇴근 없음)이고, 2026-10-08 재영 결정으로 목업처럼 출퇴근을 더해 다섯 칸이 됐다. 출퇴근 아이콘(`nav-attendance.svg`, 시계)은 Figma 에 없어 23px · 선 1.45 로 그렸다. 급여 아이콘은 Figma 근무지 시트의 급여명세서 아이콘(19px)을 23px 칸에 맞춰 쓴다. 아이콘 23px + 글자 11px(최소 높이 54), 지금 칸은 남보라 bold, 나머지는 보조 글자. 아이콘은 마스크라 글자색을 따르고, 홈·근무는 지금 칸일 때 채운 아이콘(`activeIcon`)으로 바뀐다. 화면 아래에 붙인다.
 - **WeekSelector:** 7칸(사이 8), 칸마다 82px · radius 12 · #DCE4FF 테두리. 요일 12px · 날짜 16px bold · 근무일 4px 점. 기본은 연한 남보라(#EEF2FF), `muted` 날은 흰 바탕·흐린 글자, 고른 날은 남보라. 근무 시간·휴무를 셋째 줄 10px 글자(`note`)로 쓰면 점 대신 그 글자가 선다.
 

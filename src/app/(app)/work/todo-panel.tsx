@@ -2,7 +2,7 @@
 
 import { unstable_rethrow } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Alert, BottomSheet, Notice, SHEET_CLOSE_MS, SegmentedControl, StatusChip, Toast, TodoItem, TodoList } from "@/components/common";
+import { Alert, BottomSheet, Notice, SegmentedControl, StatusChip, Toast, TodoItem, TodoList, afterSheetsClose } from "@/components/common";
 import {
   TODO_STATUS,
   TODO_STATUSES,
@@ -57,7 +57,7 @@ function useStatusChange() {
       // 상세 시트에서 바꿨으면 시트가 다 내려가 close() 된 뒤에 알린다 — 모달이 열려 있는 동안은 바깥(알림)이
       // 접근성 트리에서 빠져 화면 낭독기가 안내를 놓칠 수 있다.
       onDone();
-      setTimeout(() => setDone({ key: Date.now(), text }), SHEET_CLOSE_MS + 50);
+      afterSheetsClose(() => setDone({ key: Date.now(), text }));
     });
   return { pending, error, done, change, clearError: () => setError(undefined) };
 }
@@ -258,7 +258,7 @@ export function TodoPanel({
               type="button"
               aria-pressed={on}
               onClick={() => setStatusFilter(key)}
-              className={`flex h-[36px] items-center gap-[4px] rounded-full border px-[14px] text-[13px] font-semibold ${
+              className={`flex h-[36px] items-center gap-[4px] rounded-full border px-[14px] text-[13px] font-semibold transition-colors duration-200 ease-out ${
                 on ? "border-staff-primary bg-staff-primary-inactive text-staff-primary" : "border-staff-border bg-white text-staff-text-sub"
               }`}
             >
@@ -269,7 +269,8 @@ export function TodoPanel({
       </div>
       {status.error && !open && <Alert tone="warning">{status.error}</Alert>}
       {/* 목록은 흰 상자 안에, 상자는 화면 남는 높이를 채운다 — 회색 바탕에 줄만 있거나 비었을 때 아래가 휑했다(2026-11-23 사용자 지정) */}
-      <section className="flex flex-1 flex-col rounded-[20px] border border-staff-border-light bg-white px-[20px]">
+      {/* 근무지 · 상태 거르기를 바꾸면 목록을 새로 그려 살짝 떠오르며 나타난다(staff-panel-in, 2026-11-26 실기기 피드백) */}
+      <section key={`${store}:${statusFilter}`} className="flex flex-1 flex-col rounded-[20px] border border-staff-border-light bg-white px-[20px] motion-safe:animate-[staff-panel-in_220ms_cubic-bezier(0.23,1,0.32,1)_backwards]">
         {listed.length === 0 ? (
           <p className="flex flex-1 items-center justify-center py-[40px] text-center text-[14px] leading-[1.5] text-staff-text-sub">
             {EMPTY_TEXT[statusFilter]}

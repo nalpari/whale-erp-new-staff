@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { Collapse } from "@/components/common";
 import { PRESS } from "@/components/common/theme";
 import { AddressForm } from "./address-form";
 import { ROW_CLASS, RowChevron, RowIcon, RowText } from "./me-rows";
@@ -27,9 +28,12 @@ export function AddressRow({ zipCode, address, addressDetail }: { zipCode: strin
         <RowText name="주소" value={value} />
         <RowChevron open={open} />
       </button>
-      <div id={panelId} hidden={!open} className="px-[16px] pb-[16px]">
-        <AddressForm zipCode={zipCode} address={address} addressDetail={addressDetail} onCancel={() => setOpen(false)} />
-      </div>
+      {/* 펼침 · 접힘은 높이로 움직인다(Collapse). 여백은 안쪽 칸에 둬 다 접혔을 때 빈 줄이 남지 않게 */}
+      <Collapse id={panelId} open={open}>
+        <div className="px-[16px] pb-[16px]">
+          <AddressForm zipCode={zipCode} address={address} addressDetail={addressDetail} onCancel={() => setOpen(false)} />
+        </div>
+      </Collapse>
     </div>
   );
 }

@@ -1,6 +1,23 @@
 # Bundle history
 
 ## 2026-11-26
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #101 재리뷰 반영: 자동로그인 기억은 빈 칸 검사 전에 지우고, 돌아가던 바텀시트를 짧게 탭해도 닫히지 않으며(이번 손짓의 움직임으로 판정), 브라우저가 직접 닫았는데 쓰는 쪽이 닫기를 거부하면 시트를 다시 연다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #101 재리뷰 반영: 로그인 체크는 각자 자기 값만 기억하고, 바텀시트가 제자리로 돌아가는 중 다시 끌면 그 자리에서 이어 끌며, 시트가 닫힌 뒤 띄우는 알림은 같은 렌더에서 새 시트가 열리면 그 시트가 닫힐 때까지 기다린다(`createSheetLocks` 의 `defer`).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #101 재리뷰 반영: 로그인 실패 뒤에도 자동로그인 기억을 저장소에 다시 쓰지 않고, 바텀시트를 끄는 중 두 번째 손가락이 닿으면 끌기를 그만두며, 근무스케줄 달 넘김 방향은 그 달로 이동이 확정됐을 때만 쓴다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #101 pr-agent 리뷰 반영: 자동로그인 체크는 이 탭에서 로그인을 보내기 전까지만 기억해 공용 기기의 다음 사람에게 넘어가지 않고, 바텀시트는 터치가 취소되면 닫지 않고 제자리로 돌리며, 탭 칸은 색만 먼저 바꾸고 선택 상태(aria)와 다시 누르기는 실제 탭을 따른다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백: 로그인 화면의 「아이디 저장하기」 · 「자동로그인」 체크를 이 기기에 기억해 새로 고쳐도 남게 했다(탈퇴하고 온 화면에서는 잊는다).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR 전 코드리뷰 반영: 브라우저가 시트를 직접 닫아도(사용자 조작 전 뒤로 가기 등) 스크롤 잠금을 풀고 열림 상태를 맞춘다. 탭 · 거르기 애니메이션은 끝난 뒤 translate 를 남기지 않아(fill backwards) TO-DO 알림이 화면 아래에 뜬다. 잠금 카운터 · 기다리는 알림 · 끌어 닫기 판정을 `lib/sheet-locks.ts` 로 빼 테스트하고, 알림 하나가 던져도 나머지를 띄운다. 끌어 닫기가 막히면 제자리로, Collapse 를 닫히는 순간 다시 열어도 보인다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 사용자 지정: 탭 내용 미끄러짐이 무거워 60px · 320ms → 20px · 200ms(흐림 150ms).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 사용자 지정: `SegmentedControl` 은 미끄러지는 바탕을 빼고 색 바뀜(누르자마자)만, 근무 · 출퇴근 현황 탭 내용은 화면 이동처럼 고른 쪽에서 60px 미끄러져 들어온다(`.tab-panel-in`, html[data-tab-dir]). 레이아웃 main 에 overflow-x-clip.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(탭 전환이 딱딱함): `SegmentedControl` 은 누르자마자 고른 칸 바탕이 미끄러져 옮겨 가고(서버 응답을 기다리지 않음), 근무 · 출퇴근 현황 탭 내용과 TO-DO · 내 근무지 거르기 목록은 바뀔 때 살짝 떠오르며 나타난다(`staff-panel-in`). 거르기 칩 색은 흐려지며 바뀐다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백: 바텀시트를 머리(손잡이 · 머리말 · 제목, 고정)와 몸통(설명 · 내용 · 닫기, 스크롤)으로 나눠 스크롤해도 끌어 닫는 머리가 위에 남는다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(홈으로 돌아올 때 깜빡임): 화면 이동에서 새 화면을 늦게 시작해 생기던 빈 장면을 없애고(옛 · 새 화면이 같이 시작), 홈 카드는 `SoftSuspense` 로 스켈레톤 → 내용이 겹쳐 흐려지며 바뀐다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(펼침이 뚝 열리고 닫힘): 공통 `Collapse`(높이 · 흐림을 Web Animations 로)를 두고 내 정보 주소 줄 · 출퇴근 현황 주 줄 펼침에 건다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(화면 전환이 딱딱함): 목업에만 걸려 있던 화면 이동 움직임을 실제 화면에 건다 — (app) · (auth) 레이아웃의 `PageSlide`(경로 key 의 ViewTransition). 링크의 nav-forward · nav-back 은 방향 슬라이드, 방향 없는 이동(뒤로 가기 · router.push)은 짧은 겹침 흐림(page-fade).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(화면이 흔들리고 하단 메뉴가 같이 움직임): 하단 메뉴(`BottomNav`)를 sticky 대신 화면 맨 아래에 붙박고(fixed, 흐름에는 같은 높이 빈칸) 가로 고무줄 튕김을 막았다(`overscroll-behavior-x: none`). 세로 튕김은 앱(iOS) 당겨서 새로고침이 써서 둔다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #100 리뷰 남은 것: 동의 카드 · 출근 화면 · TO-DO 상세의 완료 알림을 시트가 실제로 close() 된 뒤에 띄운다(`afterSheetsClose`, TO-DO 의 고정 250ms 타이머 대신).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백: 조회 기간 · 근무스케줄 달력에서 달을 넘기면 새 달이 넘긴 쪽에서 미끄러져 들어오고, 근무스케줄 달력도 좌우로 밀어 달을 넘긴다(공통 `month-swipe.ts`).
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백: 바텀시트가 열린 동안 뒤 화면이 스크롤되지 않게 문서 스크롤을 잠그고(시트 안 스크롤은 `overscroll-contain`), 손잡이 · 제목 쪽을 잡고 아래로 끌면 따라 내려와 80px 넘게(또는 빠르게) 내리면 닫힌다. 덜 끌면 제자리로 돌아간다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — Jenkins 빌드 실패 수정: 시행 중인 약관 `getCurrentTerms` 도 맨 앞에서 `connection()` 을 불러, `API_BASE_URL` 없는 빌드 프리렌더에서 api 를 부르지 않는다(`/me/consents/location`).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #100 재리뷰 반영: 내려가던 바텀시트를 다시 열면 그때 위치 · 배경 투명도에서 다시 올라오고, TO-DO 상세에서 상태를 바꾼 성공 알림은 시트가 다 닫힌 뒤에 띄운다(화면 낭독기가 놓치지 않게).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #100 재리뷰 반영: 내려가던 바텀시트를 다시 열면 포커스를 시트 안으로 되돌리고, 조회 기간 달력 위에서도 두 손가락 확대를 막지 않는다(`touch-action: pan-y pinch-zoom`).

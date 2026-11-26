@@ -22,14 +22,18 @@ export const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
 // 메뉴 자신은 view-transition-name 으로 따로 떼어 움직이지 않게 한다 — 내용만 미끄러지고 메뉴는 기준점으로 남는다.
 // ready 표시는 앱의 메뉴(BOTTOM_NAV_ITEMS 그대로)에만 건다 — 목업 · 견본(MOCKUP_NAV · GUIDE_NAV)은 칸 경로를 자기 화면으로
 // 바꿔 쓰므로 앱의 화면 유무와 상관없다.
-export function BottomNav({ current, items = BOTTOM_NAV_ITEMS }: { current: string; items?: BottomNavItem[] }) {
+//
+// 화면 맨 아래에 붙박는다(fixed) — 문서 흐름 안(sticky)에 두면 화면 끝에서 더 당길 때(iOS · macOS 의 고무줄 튕김) 메뉴도 내용과 함께
+// 흔들렸다(2026-11-26 실기기 피드백). 세로 고무줄 튕김 자체는(가로 튕김은 globals.css 에서 막는다) 앱의 당겨서 새로고침(iOS 는 튕김을 써서 당긴다)이 쓰므로 막지 않고, 메뉴만
+// 뷰포트에 붙인다. 문서 흐름에는 같은 높이의 빈칸을 남겨 마지막 내용이 메뉴 밑에 가리지 않게 한다. 견본처럼 상자 안에 그릴 때는 fixed={false}.
+export function BottomNav({ current, items = BOTTOM_NAV_ITEMS, fixed = true }: { current: string; items?: BottomNavItem[]; fixed?: boolean }) {
   const here = items.findIndex((n) => n.href === current);
   const appMenu = items === BOTTOM_NAV_ITEMS;
-  return (
+  const nav = (
     <nav
       aria-label="주 메뉴"
       style={{ viewTransitionName: "bottom-nav" }}
-      className="flex w-full items-end border-t border-staff-border-light bg-white px-[12px] pt-[9px] pb-[max(9px,env(safe-area-inset-bottom))] shadow-[0_-5px_10px_rgba(35,55,82,0.01)]"
+      className={`${fixed ? "fixed inset-x-0 bottom-0 z-40" : ""} flex w-full items-end border-t border-staff-border-light bg-white px-[12px] pt-[9px] pb-[max(9px,env(safe-area-inset-bottom))] shadow-[0_-5px_10px_rgba(35,55,82,0.01)]`}
     >
       {items.map((item, i) => {
         const on = item.href === current;
@@ -66,5 +70,15 @@ export function BottomNav({ current, items = BOTTOM_NAV_ITEMS }: { current: stri
         );
       })}
     </nav>
+  );
+  if (!fixed) return nav;
+  return (
+    <>
+      {/* 메뉴 자리 빈칸 — 메뉴와 같은 위 선 · 안쪽 여백에 칸 높이 55(아이콘 23 + 사이 3.5 + 글자 16.5 + 위아래 6씩 12) */}
+      <div aria-hidden className="border-t border-transparent pt-[9px] pb-[max(9px,env(safe-area-inset-bottom))]">
+        <div className="h-[55px]" />
+      </div>
+      {nav}
+    </>
   );
 }

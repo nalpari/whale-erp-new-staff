@@ -26,7 +26,8 @@ export function WorkTabs({ tab, children }: { tab: WorkTab; children: ReactNode 
           { value: "todo", label: "TO-DO" },
         ]}
       />
-      <div id={PANEL_ID} role="tabpanel" aria-labelledby={segmentTabId(PANEL_ID, tab)} className="flex flex-1 flex-col gap-[12px]">
+      {/* 탭이 바뀌면 key 로 새로 그려 화면 이동처럼 고른 쪽에서 미끄러져 들어온다(globals.css .tab-panel-in, 2026-11-26 사용자 지정) */}
+      <div key={tab} id={PANEL_ID} role="tabpanel" aria-labelledby={segmentTabId(PANEL_ID, tab)} className="flex flex-1 flex-col gap-[12px] tab-panel-in">
         {children}
       </div>
     </>
