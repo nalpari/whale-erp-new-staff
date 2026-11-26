@@ -33,7 +33,7 @@ body {
 }
 
 /*
-  직원앱 화면 이동 슬라이드(design/(mockup)/page-slide.tsx 의 ViewTransition).
+  직원앱 화면 이동 슬라이드(components/common/page-slide.tsx(실제 화면) · design/(mockup)/page-slide.tsx(목업)의 ViewTransition).
   나가는 화면은 빨리(150ms) 흐려지며 비키고, 들어오는 화면은 같이 나타나며 60px 를 미끄러진다(320ms).
   들어오는 화면을 100ms 늦게 시작하던 것은 그사이 두 화면이 다 흐려 빈 장면이 생겨 깜빡여 보여 같이 시작한다(2026-11-26 실기기 피드백).
 */
@@ -106,7 +106,8 @@ body {
   }
 }
 /* 탭 · 거르기를 바꿨을 때 새 내용이 살짝 떠오르며 나타난다(2026-11-26 실기기 피드백 — 탭 전환이 뚝 바뀌었다).
-   쓰는 곳: motion-safe:animate-[staff-panel-in_220ms_cubic-bezier(0.23,1,0.32,1)_both] 를 탭 내용 칸에, 바뀔 때마다 새로 그리게 key 를 준다 */
+   쓰는 곳: motion-safe:animate-[staff-panel-in_220ms_cubic-bezier(0.23,1,0.32,1)_backwards] 를 거르기(TO-DO 근무지 · 상태, 내 근무지 상태)로
+   바뀌는 목록에, 바뀔 때마다 새로 그리게 key 를 준다. 탭 내용은 아래 .tab-panel-in. fill 은 backwards(끝난 뒤 translate 가 남지 않게) */
 @keyframes staff-panel-in {
   from {
     opacity: 0;
@@ -120,11 +121,12 @@ body {
 /* 탭(SegmentedControl) 내용 — 화면 이동(nav-forward · nav-back)처럼 고른 쪽에서 미끄러지며 나타난다(2026-11-26 사용자 지정).
    화면 이동(60px · 320ms)과 같게 했더니 무거워 20px · 200ms 로 가볍게 했다(2026-11-26 사용자 지정).
    방향은 탭을 누를 때 html[data-tab-dir] 에 남긴다(next 면 오른쪽에서, prev 면 왼쪽에서). 탭 내용 칸에 key 를 줘 바뀔 때 새로 그린다 */
+/* fill 은 backwards — 끝난 뒤 translate · opacity 가 남으면 안의 fixed 알림(TO-DO Toast)이 화면이 아니라 이 칸을 기준으로 놓인다 */
 .tab-panel-in {
   --slide-offset: 20px;
   animation:
-    150ms ease-out both staff-fade,
-    200ms cubic-bezier(0.23, 1, 0.32, 1) both staff-slide;
+    150ms ease-out backwards staff-fade,
+    200ms cubic-bezier(0.23, 1, 0.32, 1) backwards staff-slide;
 }
 html[data-tab-dir="prev"] .tab-panel-in {
   --slide-offset: -20px;

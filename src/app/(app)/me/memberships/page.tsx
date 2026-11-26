@@ -223,7 +223,7 @@ export default async function MembershipsPage({ searchParams }: PageProps<"/me/m
           <Notice>{EMPTY_TEXT[filter]}</Notice>
         ) : (
           // 상태 칩을 바꾸면 목록을 새로 그려 살짝 떠오르며 나타난다(staff-panel-in, 2026-11-26 실기기 피드백)
-          <ul key={filter} className="flex flex-col gap-[12px] motion-safe:animate-[staff-panel-in_220ms_cubic-bezier(0.23,1,0.32,1)_both]">
+          <ul key={filter} className="flex flex-col gap-[12px] motion-safe:animate-[staff-panel-in_220ms_cubic-bezier(0.23,1,0.32,1)_backwards]">
             {memberships.items
               .filter((m) => filter === "all" || membershipStatusOf(m.retiredDate, today) === filter)
               .map((m) => {
