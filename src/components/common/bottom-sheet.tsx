@@ -71,7 +71,7 @@ export function BottomSheet({
     }
     if (!dialog.open || closing.current.length > 0) return;
     // 올라오던 중이면 지금 그려진 위치를 읽어 거기서부터 내린다(완전히 열린 자리로 튀었다가 내려가지 않게).
-    const from = currentTranslate(dialog);
+    const from = { translate: currentTranslate(dialog), opacity: currentBackdropOpacity(opening.current) };
     opening.current.forEach((a) => a.cancel());
     opening.current = [];
     if (still) return dialog.close();
@@ -161,16 +161,20 @@ function reducedMotion(): boolean {
  * 시트를 아래에서 올리거나(up, 260ms) 아래로 내린다(down, SHEET_CLOSE_MS). 뒤 화면(::backdrop)도 함께 흐려지고 걷힌다.
  * 내릴 때는 끝 모습을 붙잡아(fill) 두어, close() 하기 전 한 순간 제자리로 튀어 오르지 않게 한다.
  * ::backdrop 지정이 거부되거나(예외) 옵션을 모르는 브라우저(effect.pseudoElement 가 비어 있음)에서는 시트만 움직인다.
- * 내릴 때는 [from](올라오던 중이면 그때 그려진 위치)에서 시작한다.
+ * 내릴 때는 [from](올라오던 중이면 그때 그려진 위치 · 배경 투명도)에서 시작한다.
  */
-function slide(dialog: HTMLDialogElement, to: "up" | "down", from = "0 0"): Animation[] {
+function slide(
+  dialog: HTMLDialogElement,
+  to: "up" | "down",
+  from: { translate: string; opacity: number } = { translate: "0 0", opacity: 1 },
+): Animation[] {
   const up = to === "up";
   const timing: KeyframeAnimationOptions = up
     ? { duration: 260, easing: "cubic-bezier(0.23, 1, 0.32, 1)" }
     : { duration: SHEET_CLOSE_MS, easing: "ease-in", fill: "forwards" };
-  const moves = [dialog.animate({ translate: up ? ["0 100%", "0 0"] : [from, "0 100%"] }, timing)];
+  const moves = [dialog.animate({ translate: up ? ["0 100%", "0 0"] : [from.translate, "0 100%"] }, timing)];
   try {
-    const backdrop = dialog.animate({ opacity: up ? [0, 1] : [1, 0] }, { ...timing, pseudoElement: "::backdrop" });
+    const backdrop = dialog.animate({ opacity: up ? [0, 1] : [from.opacity, 0] }, { ...timing, pseudoElement: "::backdrop" });
     // pseudoElement 옵션을 모르는 브라우저는 예외 없이 시트 본체에 투명도를 건다 — 그때는 지우고 시트만 움직인다.
     if ((backdrop.effect as KeyframeEffect | null)?.pseudoElement === "::backdrop") moves.push(backdrop);
     else backdrop.cancel();
@@ -178,6 +182,17 @@ function slide(dialog: HTMLDialogElement, to: "up" | "down", from = "0 0"): Anim
     // ::backdrop 지정을 거부한 브라우저 — 시트만 움직인다.
   }
   return moves;
+}
+
+/** 올라오던 배경 애니메이션의 지금 투명도(easing 반영). 끝났거나 없으면 다 어두운 1. */
+function currentBackdropOpacity(opening: Animation[]): number {
+  for (const a of opening) {
+    const effect = a.effect as KeyframeEffect | null;
+    if (effect?.pseudoElement !== "::backdrop") continue;
+    const progress = effect.getComputedTiming().progress;
+    if (typeof progress === "number") return Math.min(1, Math.max(0, progress));
+  }
+  return 1;
 }
 
 /** 지금 화면에 그려진 시트의 translate(애니메이션 중간값 포함). 읽지 못하거나 없으면 제자리("0 0"). */

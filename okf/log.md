@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-26
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #100 재리뷰 반영: 바텀시트를 올라오는 중에 닫으면 배경도 그때의 투명도에서 걷힌다(다 어두워졌다가 사라지지 않게).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #100 pr-agent 리뷰 반영: 바텀시트를 올라오는 중에 닫으면 그때 그려진 위치에서 내려가고, `::backdrop` 투명도를 지원하지 않는 웹뷰에서는 시트 본체가 흐려지지 않게 했다. 내려가는 중에는 inert 를 지원하지 않는 웹뷰에서도 안쪽 누름 · 제출을 막는다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR 전 코드리뷰 반영: 바텀시트는 내려가는 동안 눌리지 않게(inert) 하고, 닫힘 애니메이션이 취소되거나 끝나지 않아도 닫는다. TO-DO 상태를 보내는 동안은 다른 상세를 열지 않는다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백: 조회 기간 달력을 좌우로 밀어 달을 넘기고(`swipeStep`), TO-DO 상세에서 상태를 바꾸면 성공했을 때 알림을 띄우고 시트를 닫으며(지금 상태를 다시 누르면 시트만 닫는다), 바텀시트 열림 · 닫힘을 Web Animations 로 움직여 Safari · 웹뷰에서도 보이게 했다(닫힘은 다 내려간 뒤 close).
