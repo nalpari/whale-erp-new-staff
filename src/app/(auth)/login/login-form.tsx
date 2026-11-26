@@ -14,9 +14,7 @@ import { isEmailShape } from "@/lib/email-change";
 import { getAppDeviceId, isInApp } from "@/lib/native-bridge";
 import {
   forgetLoginChoices,
-  readAutoLoginChoice,
   readSaveEmailChoice,
-  rememberAutoLoginChoice,
   rememberSaveEmailChoice,
 } from "@/lib/login-choices";
 import { useFieldCheck } from "@/app/_components/use-field-check";
@@ -32,7 +30,7 @@ import { loginAction, type LoginState } from "./actions";
 // unavailable 은 proxy 의 갱신이 401 · 400 아닌 이유(연결 실패 · 시간 초과 · 429 · 5xx)로 실패한 경우다(접속이 끝났는지 모른다).
 // next 는 로그인한 뒤 돌아갈 화면이다(WHALEERP-166, 없으면 홈). 숨은 칸으로 액션에 넘긴다.
 // 아이디 저장 · 자동 로그인 체크 박스는 기본이 끔이다(2026-10-20 노영주). 저장된 이메일(savedEmail)이 있으면 칸을 채우고 아이디 저장을 켠다.
-// 고른 체크는 로그인하기 전에 새로 고쳐도 그대로 남는다 — 아이디 저장은 이 기기, 자동로그인은 이 탭에서 보내기 전까지만(lib/login-choices.ts, 2026-11-26 실기기 피드백). 탈퇴하면 잊는다.
+// 아이디 저장 체크는 로그인하기 전에 새로 고쳐도 이 탭에서 남는다(보내면 지운다). 자동로그인은 새로 고치면 꺼진다(lib/login-choices.ts, PR #101 재영 리뷰). 탈퇴하면 잊는다.
 export function LoginForm({
   expired,
   reset,
@@ -53,28 +51,19 @@ export function LoginForm({
   const [saveEmail, setSaveEmail] = useState(savedEmail !== null);
   const [autoLogin, setAutoLogin] = useState(false);
   // 기억한 체크는 그린 뒤에 읽는다(서버 렌더에는 저장소가 없다). 탈퇴하고 온 화면이면 잊고 기본(끔)으로 둔다.
-  // 자동로그인은 이 탭에서 로그인을 보내기 전에 켠 것만 되살린다(lib/login-choices.ts).
+  // 이 탭에서 로그인을 보내기 전에 고른 아이디 저장만 되살린다 — 자동로그인은 되살리지 않는다(lib/login-choices.ts).
   useEffect(() => {
     if (withdrawn) return forgetLoginChoices();
     const rememberedSave = readSaveEmailChoice();
-    const rememberedAuto = readAutoLoginChoice();
-    if (rememberedSave === null && !rememberedAuto) return;
-    // effect 안에서 곧장 상태를 바꾸지 않고 바로 다음 차례에 맞춘다(collapse.tsx 와 같은 방식).
-    queueMicrotask(() => {
-      if (rememberedSave !== null) setSaveEmail(rememberedSave);
-      if (rememberedAuto) setAutoLogin(true);
-    });
+    if (rememberedSave === null) return;
+    // effect 안에서 곧장 상태를 바꾸지 않고 바로 다음 차례에 맞춘다.
+    queueMicrotask(() => setSaveEmail(rememberedSave));
   }, [withdrawn]);
-  // 로그인을 보내면 자동로그인 기억을 지운다(onSubmit). 실패해 이 화면에 남아도 저장소에는 다시 쓰지 않고 지금 폼 상태로만 들고 있는다 —
+  // 로그인을 보내면 아이디 저장 기억을 지운다(onSubmit). 실패해 이 화면에 남아도 저장소에는 다시 쓰지 않고 지금 폼 상태로만 들고 있는다 —
   // 공용 기기에서 실패한 채 자리를 비우면 다음 사람이 새로 고쳐도 켜진 채 넘어가지 않게.
-  // 체크마다 자기 값만 기억한다 — 실패한 뒤 아이디 저장만 바꿨는데 화면에 남은 자동로그인까지 다시 저장되지 않게.
   const chooseSaveEmail = (on: boolean) => {
     setSaveEmail(on);
     rememberSaveEmailChoice(on);
-  };
-  const chooseAutoLogin = (on: boolean) => {
-    setAutoLogin(on);
-    rememberAutoLoginChoice(on);
   };
   // 설치형 앱 안이면 앱이 주는 기기 식별자(해시)를 받아 숨은 칸으로 넘긴다(계획 결정 9). 못 받으면(옛 앱 · 앱 밖) 비워 두고
   // 서버가 쿠키 값(`device_id`)을 쓴다. 받기 전에 제출해도 같다.
@@ -112,9 +101,9 @@ export function LoginForm({
       noValidate
       onChange={fields.clear}
       onSubmit={(event) => {
-        // 자동로그인 기억은 검사 결과와 관계없이 보내려 한 순간 지운다(빈 칸 검사에서 멈춰도 다음 사람에게 넘어가지 않게).
-        // 다시 시도할 값은 지금 폼 상태(autoLogin)에만 남는다.
-        rememberAutoLoginChoice(false);
+        // 아이디 저장 기억은 검사 결과와 관계없이 보내려 한 순간 지운다(빈 칸 검사에서 멈춰도 다음 사람에게 넘어가지 않게).
+        // 다시 시도할 값은 지금 폼 상태(saveEmail)에만 남는다.
+        forgetLoginChoices();
         if (!fields.check(event)) return;
         forgetAffiliationPopup();
         forgetSignRequestPopup();
@@ -181,7 +170,7 @@ export function LoginForm({
             <CheckBox name="saveEmail" checked={saveEmail} onChange={chooseSaveEmail}>
               아이디 저장하기
             </CheckBox>
-            <CheckBox name="autoLogin" checked={autoLogin} onChange={chooseAutoLogin}>
+            <CheckBox name="autoLogin" checked={autoLogin} onChange={setAutoLogin}>
               자동로그인
             </CheckBox>
           </div>

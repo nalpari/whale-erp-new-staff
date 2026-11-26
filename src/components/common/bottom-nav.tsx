@@ -74,9 +74,13 @@ export function BottomNav({ current, items = BOTTOM_NAV_ITEMS, fixed = true }: {
   if (!fixed) return nav;
   return (
     <>
-      {/* 메뉴 자리 빈칸 — 메뉴와 같은 위 선 · 안쪽 여백에 칸 높이 55(아이콘 23 + 사이 3.5 + 글자 16.5 + 위아래 6씩 12) */}
-      <div aria-hidden className="border-t border-transparent pt-[9px] pb-[max(9px,env(safe-area-inset-bottom))]">
-        <div className="h-[55px]" />
+      {/* 메뉴 자리 빈칸 — 높이를 숫자로 박지 않고 메뉴 칸과 같은 틀(위 선 · 안쪽 여백 · 아이콘 23 · 11px 글자 한 줄)을 보이지 않게 그려 잡는다.
+          휴대전화 글자 크기를 키워 메뉴가 높아지면 빈칸도 같이 높아져 화면 맨 아래 줄이 가리지 않는다(PR #101 재영 리뷰 2 — 전엔 55px 고정). */}
+      <div aria-hidden className="invisible flex border-t border-transparent px-[12px] pt-[9px] pb-[max(9px,env(safe-area-inset-bottom))]">
+        <span className="flex min-h-[54px] flex-1 flex-col items-center gap-[3.5px] py-[6px] text-[11px] leading-[1.5] font-bold">
+          <span className="size-[23px]" />
+          {items[0]?.label ?? "홈"}
+        </span>
       </div>
       {nav}
     </>
