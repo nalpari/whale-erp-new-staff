@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { AttendanceDayCard, BottomSheet, Button, DayOffRow, MaskIcon, Notice, SegmentedControl, StatusChip, SubLine, WorkTimeBar, segmentTabId } from "@/components/common";
+import { AttendanceDayCard, BottomSheet, Button, Collapse, DayOffRow, MaskIcon, Notice, SegmentedControl, StatusChip, SubLine, WorkTimeBar, segmentTabId } from "@/components/common";
 import { EASE_OUT } from "@/components/common/theme";
 import {
   barOf,
@@ -359,13 +359,19 @@ function PeriodView({
                   </span>
                 </button>
                 {/* 펼친 주는 날마다 한 줄(날짜 · 출근 · 퇴근 · 상태) — 막대 카드를 넣으니 무겁고 길었다(2026-11-24 사용자 지정) */}
-                {open && (
-                  // 펼친 날짜 줄은 옅은 회색 상자로 주 줄(흰 바탕)과 가른다. 줄 사이 선은 회색 바탕에서 보이게 한 단계 진한 선(2026-11-24 사용자 지정)
-                  <ul className="mb-[14px] flex flex-col divide-y divide-staff-border rounded-[12px] bg-staff-bg px-[12px]">
-                    {days.map(({ date, day }) => (
-                      <DayLine key={date} date={date} day={day} today={today} onOpen={onOpen} />
-                    ))}
-                  </ul>
+                {/* 펼침 · 접힘은 높이로 움직인다(Collapse, 2026-11-26 실기기 피드백). 기록 없는 주는 펼치지 않아 그리지 않는다 */}
+                {!w.empty && (
+                  <Collapse open={open}>
+                    {/* 펼친 날짜 줄은 옅은 회색 상자로 주 줄(흰 바탕)과 가른다. 줄 사이 선은 회색 바탕에서 보이게 한 단계 진한 선(2026-11-24 사용자 지정).
+                        아래 여백은 바깥 칸(pb)에 둬 다 접혔을 때 남지 않게 */}
+                    <div className="pb-[14px]">
+                      <ul className="flex flex-col divide-y divide-staff-border rounded-[12px] bg-staff-bg px-[12px]">
+                        {days.map(({ date, day }) => (
+                          <DayLine key={date} date={date} day={day} today={today} onOpen={onOpen} />
+                        ))}
+                      </ul>
+                    </div>
+                  </Collapse>
                 )}
               </li>
             );

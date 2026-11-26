@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-26
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(펼침이 뚝 열리고 닫힘): 공통 `Collapse`(높이 · 흐림을 Web Animations 로)를 두고 내 정보 주소 줄 · 출퇴근 현황 주 줄 펼침에 건다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(화면 전환이 딱딱함): 목업에만 걸려 있던 화면 이동 움직임을 실제 화면에 건다 — (app) · (auth) 레이아웃의 `PageSlide`(경로 key 의 ViewTransition). 링크의 nav-forward · nav-back 은 방향 슬라이드, 방향 없는 이동(뒤로 가기 · router.push)은 짧은 겹침 흐림(page-fade).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(화면이 흔들리고 하단 메뉴가 같이 움직임): 하단 메뉴(`BottomNav`)를 sticky 대신 화면 맨 아래에 붙박고(fixed, 흐름에는 같은 높이 빈칸) 가로 고무줄 튕김을 막았다(`overscroll-behavior-x: none`). 세로 튕김은 앱(iOS) 당겨서 새로고침이 써서 둔다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #100 리뷰 남은 것: 동의 카드 · 출근 화면 · TO-DO 상세의 완료 알림을 시트가 실제로 close() 된 뒤에 띄운다(`afterSheetsClose`, TO-DO 의 고정 250ms 타이머 대신).

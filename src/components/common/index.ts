@@ -30,3 +30,4 @@ export { DangerButton } from "./danger-button";
 export { DownloadPill } from "./download-pill";
 export { Toast } from "./toast";
 export { CheckBox } from "./check-box";
+export { Collapse } from "./collapse";
