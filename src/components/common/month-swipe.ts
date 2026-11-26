@@ -33,7 +33,7 @@ export function slideMonthIn(el: HTMLElement | null, step: number) {
 
 /**
  * 달력 칸에 붙일 터치 처리. 왼쪽으로 밀면 다음 달(+1), 오른쪽이면 이전 달(-1)로 [onStep] 을 부른다.
- * 세로로 더 많이 움직였으면(화면 스크롤) 넘기지 않는다(`swipeStep`). 붙이는 칸에는 `touch-pan-y touch-pinch-zoom` 을 함께 준다.
+ * 가로 움직임이 짧거나 세로가 가로와 같거나 더 크면(화면 스크롤) 넘기지 않는다(`swipeStep`). 붙이는 칸에는 `touch-pan-y touch-pinch-zoom` 을 함께 준다.
  */
 export function useMonthSwipe(onStep: (step: 1 | -1) => void) {
   const start = useRef<{ x: number; y: number } | null>(null);

@@ -24,7 +24,7 @@ export const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
 // 바꿔 쓰므로 앱의 화면 유무와 상관없다.
 //
 // 화면 맨 아래에 붙박는다(fixed) — 문서 흐름 안(sticky)에 두면 화면 끝에서 더 당길 때(iOS · macOS 의 고무줄 튕김) 메뉴도 내용과 함께
-// 흔들렸다(2026-11-26 실기기 피드백). 고무줄 튕김 자체는 앱의 당겨서 새로고침(iOS 는 튕김을 써서 당긴다)이 쓰므로 막지 않고, 메뉴만
+// 흔들렸다(2026-11-26 실기기 피드백). 세로 고무줄 튕김 자체는(가로 튕김은 globals.css 에서 막는다) 앱의 당겨서 새로고침(iOS 는 튕김을 써서 당긴다)이 쓰므로 막지 않고, 메뉴만
 // 뷰포트에 붙인다. 문서 흐름에는 같은 높이의 빈칸을 남겨 마지막 내용이 메뉴 밑에 가리지 않게 한다. 견본처럼 상자 안에 그릴 때는 fixed={false}.
 export function BottomNav({ current, items = BOTTOM_NAV_ITEMS, fixed = true }: { current: string; items?: BottomNavItem[]; fixed?: boolean }) {
   const here = items.findIndex((n) => n.href === current);
@@ -74,7 +74,7 @@ export function BottomNav({ current, items = BOTTOM_NAV_ITEMS, fixed = true }: {
   if (!fixed) return nav;
   return (
     <>
-      {/* 메뉴 자리 빈칸 — 메뉴와 같은 위 선 · 안쪽 여백에 칸 높이 55(아이콘 23 + 사이 3.5 + 글자 16.5 + 위아래 6) */}
+      {/* 메뉴 자리 빈칸 — 메뉴와 같은 위 선 · 안쪽 여백에 칸 높이 55(아이콘 23 + 사이 3.5 + 글자 16.5 + 위아래 6씩 12) */}
       <div aria-hidden className="border-t border-transparent pt-[9px] pb-[max(9px,env(safe-area-inset-bottom))]">
         <div className="h-[55px]" />
       </div>

@@ -364,7 +364,7 @@ function PeriodView({
                 {!w.empty && (
                   <Collapse open={open}>
                     {/* 펼친 날짜 줄은 옅은 회색 상자로 주 줄(흰 바탕)과 가른다. 줄 사이 선은 회색 바탕에서 보이게 한 단계 진한 선(2026-11-24 사용자 지정).
-                        아래 여백은 바깥 칸(pb)에 둬 다 접혔을 때 남지 않게 */}
+                        아래 여백은 Collapse 안쪽 칸(pb)에 둬 다 접혔을 때 남지 않게 */}
                     <div className="pb-[14px]">
                       <ul className="flex flex-col divide-y divide-staff-border rounded-[12px] bg-staff-bg px-[12px]">
                         {days.map(({ date, day }) => (
