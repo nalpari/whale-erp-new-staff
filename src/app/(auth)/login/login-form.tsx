@@ -112,8 +112,10 @@ export function LoginForm({
       noValidate
       onChange={fields.clear}
       onSubmit={(event) => {
-        if (!fields.check(event)) return;
+        // 자동로그인 기억은 검사 결과와 관계없이 보내려 한 순간 지운다(빈 칸 검사에서 멈춰도 다음 사람에게 넘어가지 않게).
+        // 다시 시도할 값은 지금 폼 상태(autoLogin)에만 남는다.
         rememberAutoLoginChoice(false);
+        if (!fields.check(event)) return;
         forgetAffiliationPopup();
         forgetSignRequestPopup();
         forgetHqReconsentPopup();

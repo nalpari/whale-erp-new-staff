@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode, type TouchEvent } from "react";
-import { createSheetLocks, shouldCloseOnDrag } from "@/lib/sheet-locks";
+import { DRAG_CLOSE_PX, createSheetLocks, shouldCloseOnDrag } from "@/lib/sheet-locks";
 
 // Figma 03.Sheet(node 12:670) 바텀시트. 네이티브 <dialog>(showModal)라 Esc·포커스 가두기·뒤 화면 막기를 브라우저가 맡는다.
 // 흰 바탕 · 위 모서리 26 · 위로 그림자, 맨 위 40×4 손잡이(#DCE1E9), 제목 20px bold · 설명 14px 보조 글자 · 좌우 24.
@@ -50,7 +50,13 @@ export function BottomSheet({
   // 올라오는 중인 애니메이션 — 그사이 닫으면 지금 그려진 위치에서 내려가게 한다.
   const opening = useRef<Animation[]>([]);
   // 머리를 끄는 중 — 시작 y · 시각, 지금까지 내린 거리
-  const drag = useRef<{ startY: number; startAt: number; dy: number } | null>(null);
+  // dy 는 화면에 그리는 내린 거리, base 는 제자리로 돌아가던 시트를 잡았을 때 이미 내려가 있던 거리(이번 손짓의 움직임이 아니다).
+  const drag = useRef<{ startY: number; startAt: number; dy: number; base: number } | null>(null);
+  // 쓰는 쪽의 지금 열림 값 — 브라우저가 직접 닫았는데 쓰는 쪽이 닫기를 거부했는지 알아보는 데 쓴다.
+  const openRef = useRef(open);
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
   // 덜 끌어 제자리로 돌아가는 중인 애니메이션 — 그사이 다시 끌면 멈추고 지금 그려진 자리에서 이어 끈다.
   const snapping = useRef<Animation | null>(null);
   // 이 시트가 문서 스크롤을 잠갔는지 — 닫힘 · 사라짐이 겹쳐도 한 번만 푼다.
@@ -176,7 +182,7 @@ export function BottomSheet({
       snapping.current = null;
       if (offset > 0) dialog.style.translate = `0 ${offset}px`;
     }
-    drag.current = { startY: t.clientY - offset, startAt: performance.now(), dy: offset };
+    drag.current = { startY: t.clientY - offset, startAt: performance.now(), dy: offset, base: offset };
   };
   const dragMove = (e: TouchEvent) => {
     const d = drag.current;
@@ -191,7 +197,10 @@ export function BottomSheet({
     const dialog = ref.current;
     drag.current = null;
     if (!d || !dialog || d.dy === 0) return;
-    if (shouldCloseOnDrag(d.dy, performance.now() - d.startAt)) {
+    // 닫을지는 이번 손짓으로 움직인 거리 · 속도로 본다 — 돌아가던 시트를 짧게 탭만 해도 남은 거리 때문에 닫히지 않게.
+    // 다만 다 합쳐 끈 거리가 기준을 넘으면 닫는다.
+    const moved = d.dy - d.base;
+    if (moved > 0 && (d.dy > DRAG_CLOSE_PX || shouldCloseOnDrag(moved, performance.now() - d.startAt))) {
       // 끈 자리에서 그대로 내려간다(닫힘 쪽이 지금 그려진 위치를 읽는다).
       onClose();
       // 쓰는 쪽이 닫지 않으면(보내는 중이라 닫기를 막음 등) 끈 자리에 멈춰 있지 않게 제자리로 돌린다.
@@ -227,6 +236,14 @@ export function BottomSheet({
         dialog.style.translate = "";
         unlockScroll();
         onClose();
+        // 쓰는 쪽이 닫기를 거부하면(보내는 중 등) open 이 그대로라 시트가 다시 열리지 않는다 — 다음 차례에 확인해 다시 연다.
+        setTimeout(() => {
+          const d = ref.current;
+          if (!openRef.current || !d || d.open) return;
+          d.showModal();
+          lockScroll();
+          if (initialFocus === "close") closeRef.current?.focus();
+        }, 0);
       }}
       // 시트 안쪽은 아래 div 가 다 덮으므로, dialog 자신이 눌린 것은 뒤 화면(::backdrop)을 누른 것이다.
       onClick={(e) => {
