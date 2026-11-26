@@ -9,7 +9,7 @@ import { createSheetLocks, shouldCloseOnDrag } from "@/lib/sheet-locks";
 // 움직임은 Web Animations(element.animate)로 준다 — CSS 만으로는(@starting-style · overlay) 닫힐 때 <dialog> 가 바로 사라지는
 // 브라우저(Safari · 일부 웹뷰)가 있어 실기기에서 애니메이션이 없어 보였다(2026-11-26 실기기 확인). 닫을 때는 다 내려간 뒤에 close() 한다.
 // 「동작 줄이기」를 켠 사람에게는 움직이지 않고 바로 열고 닫는다.
-// 뒤 화면을 누르거나 Esc·닫기를 누르면 onClose 를 부른다. 열림 상태는 쓰는 쪽이 open 으로 들고 있다.
+// 뒤 화면을 누르거나 Esc·닫기를 누를 때, 머리를 끌어 내릴 때, 브라우저가 직접 닫았을 때 onClose 를 부른다. 열림 상태는 쓰는 쪽이 open 으로 들고 있다.
 // 손잡이 · 제목 쪽(머리)을 잡고 아래로 끌면 따라 내려오고, 충분히 끌면 닫는다(덜 끌면 제자리로). 시트가 열린 동안은 뒤 화면이
 // 스크롤되지 않게 문서 스크롤을 잠근다(2026-11-26 실기기 피드백 — 시트를 만지면 뒤 화면이 움직였다).
 /** 닫힐 때 내려가는 시간(ms, 아래 slide() 의 down). 시트를 차례로 띄우는 쪽이 앞 시트가 다 내려간 뒤 다음을 열 때 쓴다. */
@@ -129,7 +129,7 @@ export function BottomSheet({
       if (closing.current !== running) return;
       closing.current = [];
       dialog.close();
-      // 시트 정리를 먼저 한다 — 잠금을 풀며 부르는 알림이 던져도 붙잡아 둔 닫힘 모습이 다음 열림에 남지 않게.
+      // 시트 정리를 먼저 한다 — 잠금 풀기(restore)가 던져도 붙잡아 둔 닫힘 모습(inert · translate · fill)이 다음 열림에 남지 않게.
       dialog.inert = false;
       dialog.style.translate = "";
       running.forEach((a) => a.cancel());
@@ -172,7 +172,7 @@ export function BottomSheet({
       onClose();
       // 쓰는 쪽이 닫지 않으면(보내는 중이라 닫기를 막음 등) 끈 자리에 멈춰 있지 않게 제자리로 돌린다.
       setTimeout(() => {
-        if (closing.current.length === 0 && dialog.open && dialog.style.translate) snapBack(dialog);
+        if (!drag.current && closing.current.length === 0 && dialog.open && dialog.style.translate) snapBack(dialog);
       }, 100);
       return;
     }
@@ -193,7 +193,8 @@ export function BottomSheet({
       // 우리가 닫을 때(open 이 이미 false)는 할 일이 없다.
       onClose={() => {
         const dialog = ref.current;
-        if (!open || !dialog) return;
+        // 늦게 온 이벤트(우리가 닫은 직후 같은 시트를 다시 연 경우)는 dialog 가 이미 다시 열려 있으니 넘긴다.
+        if (!open || !dialog || dialog.open) return;
         closing.current.forEach((a) => a.cancel());
         closing.current = [];
         opening.current.forEach((a) => a.cancel());
