@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { slideMonthIn, useMonthSwipe } from "@/components/common/month-swipe";
 import { WorkTimeBar } from "@/components/common";
 import {
   badgeOf,
@@ -18,6 +19,9 @@ import {
 const WEEKDAY_HEADS = ["월", "화", "수", "목", "금", "토", "일"];
 // 토요일 파랑 · 일요일 빨강(시안 A, 2026-10-23). 이 달력에만 나와 토큰으로 두지 않는다.
 const WEEKEND_TONE: Record<number, string> = { 5: "text-[#3c6fd8]", 6: "text-[#d04848]" };
+// 달을 넘긴 쪽(+1 다음 · -1 이전). 달이 바뀌면 주소가 바뀌어 패널이 새로 그려지므로(key) 컴포넌트 밖에 들고 있다가,
+// 새 패널이 그려질 때 새 달 칸을 그쪽에서 밀어 넣고 비운다(2026-11-26 실기기 피드백).
+let pendingSlide = 0;
 
 // 근무스케줄 탭(WORK-1) — 월 달력(머리에 달 이동 ‹ 2026년 10월 [오늘] ›), 누른 날의 상세를 달력 아래에. 근무가 있는 날은 홈 이번 주 칸과 같은 바탕색(#EEF2FF)에
 // 근무 수만큼 점을 찍는다(2026-10-23 재영 — 시간 배지 대신). 시간은 아래 그날 상세에서 본다.
@@ -45,11 +49,22 @@ export function SchedulePanel({
   const byDay = new Map<string, MyWorkSchedule[]>();
   for (const item of items) byDay.set(item.workDate, [...(byDay.get(item.workDate) ?? []), item]);
   const pickedItems = byDay.get(picked) ?? [];
-  const go = (delta: number) => router.replace(`/work?tab=schedule&month=${shiftMonth(month, delta)}${from}`, { scroll: false });
+  const weeks = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    slideMonthIn(weeks.current, pendingSlide);
+    pendingSlide = 0;
+  }, []);
+  const go = (delta: number) => {
+    pendingSlide = delta;
+    router.replace(`/work?tab=schedule&month=${shiftMonth(month, delta)}${from}`, { scroll: false });
+  };
+  // 좌우로 밀어 달을 넘긴다(조회 기간 달력과 같은 규칙, 2026-11-26 실기기 피드백)
+  const swipe = useMonthSwipe(go);
   // 「오늘」 — 이번 달로 돌아와 오늘을 고른다(2026-10-23 재영). 주소의 day 도 오늘로 맞춰 새로 고쳐도 오늘이 골라진다.
   // 다른 달이면 주소가 바뀌어 패널이 새로 그려지므로, 옛 달 근무로 오늘 상세를 잠깐 그리지 않게 이번 달일 때만 바로 고른다.
   const goToday = () => {
     if (today.startsWith(month)) setPicked(today);
+    else pendingSlide = today.slice(0, 7) > month ? 1 : -1;
     router.replace(`/work?tab=schedule&month=${today.slice(0, 7)}&day=${today}${from}`, { scroll: false });
   };
   const navButton =
@@ -57,7 +72,8 @@ export function SchedulePanel({
 
   return (
     <div className="flex flex-col gap-[12px]">
-      <div className="flex flex-col gap-[6px] rounded-[18px] border border-staff-border-light bg-white px-[8px] pt-[14px] pb-[10px]">
+      {/* overflow-hidden — 새 달이 옆에서 들어오는 동안 카드 밖으로 나가지 않게 */}
+      <div className="flex flex-col gap-[6px] overflow-hidden rounded-[18px] border border-staff-border-light bg-white px-[8px] pt-[14px] pb-[10px]">
         {/* 양쪽 화살표 칸을 같은 폭(36)으로 두어 가운데 칸(달 이름 · 「오늘」)이 한가운데에 온다(데모 work) */}
         <div className="grid grid-cols-[36px_1fr_36px] items-center gap-[8px] px-[6px] pb-[8px] leading-[1.5]">
           <button type="button" aria-label="이전 달" onClick={() => go(-1)} className={navButton}>
@@ -84,6 +100,8 @@ export function SchedulePanel({
             </span>
           ))}
         </div>
+        {/* 날짜 칸 — 좌우로 밀면 달을 넘긴다. pan-y 로 가로 움직임은 브라우저가 쓰지 않게 하고 두 손가락 확대는 둔다 */}
+        <div ref={weeks} className="flex touch-pan-y touch-pinch-zoom flex-col gap-[6px]" {...swipe}>
             {monthGrid(month).map((week) => (
               <div key={week[0].date} className="grid grid-cols-7 gap-[2px]">
                 {week.map((d, i) => {
@@ -127,6 +145,7 @@ export function SchedulePanel({
                 })}
               </div>
             ))}
+        </div>
             {/* 근무가 없는 달은 눌러도 볼 것이 없어 안내를 빼고 아래 빈 상태만 둔다 */}
             {items.length > 0 && (
               <p className="border-t border-staff-border-light px-[4px] pt-[10px] text-[12px] text-staff-text-muted">
