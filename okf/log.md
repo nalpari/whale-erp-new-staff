@@ -1,6 +1,7 @@
 # Bundle history
 
 ## 2026-11-26
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(화면 전환이 딱딱함): 목업에만 걸려 있던 화면 이동 움직임을 실제 화면에 건다 — (app) · (auth) 레이아웃의 `PageSlide`(경로 key 의 ViewTransition). 링크의 nav-forward · nav-back 은 방향 슬라이드, 방향 없는 이동(뒤로 가기 · router.push)은 짧은 겹침 흐림(page-fade).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(화면이 흔들리고 하단 메뉴가 같이 움직임): 하단 메뉴(`BottomNav`)를 sticky 대신 화면 맨 아래에 붙박고(fixed, 흐름에는 같은 높이 빈칸) 가로 고무줄 튕김을 막았다(`overscroll-behavior-x: none`). 세로 튕김은 앱(iOS) 당겨서 새로고침이 써서 둔다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR #100 리뷰 남은 것: 동의 카드 · 출근 화면 · TO-DO 상세의 완료 알림을 시트가 실제로 close() 된 뒤에 띄운다(`afterSheetsClose`, TO-DO 의 고정 250ms 타이머 대신).
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백: 조회 기간 · 근무스케줄 달력에서 달을 넘기면 새 달이 넘긴 쪽에서 미끄러져 들어오고, 근무스케줄 달력도 좌우로 밀어 달을 넘긴다(공통 `month-swipe.ts`).
