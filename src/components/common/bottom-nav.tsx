@@ -8,7 +8,8 @@ export type BottomNavItem = { href: string; label: string; icon: string; activeI
 // 직원앱 하단 메뉴 다섯 칸. Figma 는 네 칸(홈·근무·급여·내 정보)이지만 2026-10-08 재영 결정으로 목업처럼 출퇴근을 더했다.
 // 출퇴근 아이콘은 Figma 에 없어 DESIGN.md 규칙(23px · 선 1.45)으로 그렸다. 경로는 화면이 생기면 실제 라우트에 맞춘다.
 export const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
-  { href: "/", label: "홈", icon: "/icons/nav-home.svg", activeIcon: "/icons/nav-home-on.svg" },
+  // 홈은 /home 으로 바로 간다 — / 는 (app) 틀 밖에서 /home 으로 보내기만 하는 페이지라, 거쳐 가면 틀이 통째로 다시 그려져 깜빡이고 화면 이동 움직임이 빠졌다(2026-11-27)
+  { href: "/home", label: "홈", icon: "/icons/nav-home.svg", activeIcon: "/icons/nav-home-on.svg" },
   { href: "/work", label: "근무", icon: "/icons/nav-work.svg", activeIcon: "/icons/nav-work-on.svg" },
   { href: "/check-in", label: "출퇴근", icon: "/icons/nav-attendance.svg" },
   { href: "/pay", label: "급여", icon: "/icons/nav-pay.svg" },

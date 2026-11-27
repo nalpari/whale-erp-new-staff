@@ -1,5 +1,8 @@
 # Bundle history
 
+## 2026-11-27
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 하단 메뉴 「홈」을 `/` 대신 `/home` 으로(홈으로 돌아올 때만 깜빡이고 화면 이동 움직임이 빠지던 원인).
+
 ## 2026-11-26
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — PR 전 코드리뷰 반영: 하단 메뉴 빈칸을 칸 수만큼 그려 글자가 두 줄로 접혀도 같이 높아진다. 아이디 저장 기억이 같은 탭에서는 남는 범위 · 화면 이동 값(DESIGN.md)을 지금 동작에 맞춰 적었다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 실기기 피드백(Safari 화면 기록 — 이동할 때 이전 화면이 남아 보임): 화면 이동에서 나가는 화면을 곧바로 감추고 들어오는 화면만 미끄러지거나 나타나게, 미끄러짐은 var() 대신 방향별 transform 키프레임.
