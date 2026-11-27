@@ -2,6 +2,7 @@
 
 ## 2026-11-27
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — WHALEERP-775 후속: 신고 정보를 냈는지를 소속 목록의 `taxProfileSubmitted`(api)로 보고, 홈 · 가입 완료 · 근무지 추가 완료가 소속마다 신고 정보를 조회하지 않는다.
+* **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 약관 동의(WHALEERP-774, ACC-23, api #326): 계정 등록에 약관 동의 묶음(모두 동의 · 필수 둘 · 선택 마케팅 · [보기]), 가입 요청에 동의 세 값과 보인 약관 버전 셋, 약관 동의를 받기 전에 가입한 직원에게 홈에서 다른 팝업보다 먼저 닫을 수 없는 약관 동의 팝업(로그아웃 버튼), `BottomSheet` 의 `dismissible`.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — WHALEERP-775: 종이 계약과 소속을 근무지 대신 직원 레코드 id(`staffMemberId`, api #325)로 맞춰, 퇴직 뒤 재입사한 직원의 옛 종이 계약이 지금 소속에 신고 정보 안내를 띄우지 않는다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — WHALEERP-775: 종이 계약 소속에 신고 정보가 없으면 가입 완료 · 근무지 추가(복귀 확인) 완료가 [신고 정보 입력하기]로 잇고 홈에 신고 정보 카드를 둔다.
 * **Update**: [Whale ERP Staff](/whale-erp-staff.md) — 신고 정보 처음 넣기 입력 단계(`?step=form`) 맨 위에 근무지 이름(고치기 화면과 같은 줄, TAX-07 · WHALEERP-776).

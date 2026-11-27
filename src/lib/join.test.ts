@@ -62,6 +62,8 @@ test("invitationProblemOf 는 본문의 code 로 가른다", () => {
   assert.equal(of(409, "ACCOUNT_EMAIL_TAKEN"), "email-taken");
   assert.equal(of(400, "SIGNUP_UNDER_AGE"), "under-age");
   assert.equal(of(400, "BIRTH_DATE_IN_FUTURE"), "birth-date-in-future");
+  // 가입 화면을 연 사이 약관이 바뀌었다(ACC-23)
+  assert.equal(of(409, "TERMS_CHANGED"), "terms-changed");
   // 형식 검증 400 · 코드 없는 404 · 5xx 는 부른 쪽이 다룬다
   assert.equal(of(400), "unknown");
   assert.equal(of(404), "unknown");
@@ -87,6 +89,8 @@ test("signupFieldOf 는 가입 400 사유를 붙일 칸을 고른다", () => {
   assert.equal(signupFieldOf("이메일 형식으로 입력해 주세요"), "email");
   assert.equal(signupFieldOf("메일을 보낼 수 없는 형식의 이메일입니다"), "email");
   assert.equal(signupFieldOf("우편번호는 숫자 5자리입니다"), "form");
+  // 필수 약관을 빼고 보냈다(ACC-23) — 약관 묶음 아래
+  assert.equal(signupFieldOf("필수 약관에 동의해 주세요."), "terms");
   // api 가 여러 사유를 이어 붙이면(", ") 비밀번호 → 생년월일 → 이메일 순으로 먼저 걸리는 칸이다
   assert.equal(signupFieldOf("이메일 형식으로 입력해 주세요, 생년월일은 YYYY-MM-DD 형식의 날짜입니다"), "birthDate");
 });

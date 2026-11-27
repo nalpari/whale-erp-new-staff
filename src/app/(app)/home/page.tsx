@@ -7,7 +7,8 @@ import { ApiError, failureOf, logFailure, logUnexpected } from "@/lib/api";
 import { getContracts } from "@/lib/contracts";
 import { getCurrentMembership } from "@/lib/current-membership";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
-import { getMyAffiliationRequests, getMyProfile } from "@/lib/my-profile";
+import { getMyAffiliationRequests, getMyProfile, getStaffTerms } from "@/lib/my-profile";
+import { shownTermsVersionsOf } from "@/lib/staff-terms";
 import { hqReconsentOf } from "@/lib/profile";
 import { requireSession } from "@/lib/session";
 import { signRequestOf } from "@/lib/sign-request";
@@ -72,7 +73,7 @@ export default async function HomePage() {
       <div className="sticky bottom-0 mt-auto">
         <BottomNav current="/home" />
       </div>
-      {/* 서명 요청(WHALEERP-148) · 소속 추가 요청(WHALEERP-144) · 사업자 제공 다시 동의(ATT-30 v252)는 팝업으로만 알린다. 따로 받아 api 가 느려도 홈을 먼저 보인다. */}
+      {/* 약관 동의(ACC-23, WHALEERP-774) · 서명 요청(WHALEERP-148) · 소속 추가 요청(WHALEERP-144) · 사업자 제공 다시 동의(ATT-30 v252)는 팝업으로만 알린다. 따로 받아 api 가 느려도 홈을 먼저 보인다. */}
       <Suspense>
         <HomeRequests />
       </Suspense>
@@ -81,11 +82,12 @@ export default async function HomePage() {
 }
 
 /**
- * 홈 위 팝업 — 서명 요청(148), 소속 추가 요청(144), 사업자 제공 다시 동의(ATT-30 v252). 여럿이면 한 번에 하나만, 서명 요청 → 소속 추가
- * 요청 → 다시 동의 순으로 앞의 것을 닫으면 다음이 뜬다(home-popups.tsx, 다시 동의 순서는 2026-10-29 재영). 근거: 서명 대기 계약은 기한(발송 + 30일)이 지나면 만료되고 서명해야 근무가 시작되는(데모 sign-req 문구)
+ * 홈 위 팝업 — 약관 동의(ACC-23, WHALEERP-774), 서명 요청(148), 소속 추가 요청(144), 사업자 제공 다시 동의(ATT-30 v252). 여럿이면 한 번에
+ * 하나만, 약관 동의 → 서명 요청 → 소속 추가 요청 → 다시 동의 순으로 앞의 것을 닫으면 다음이 뜬다(home-popups.tsx, 다시 동의 순서는
+ * 2026-10-29 재영). 약관 동의는 닫을 수 없어 동의할 때까지 다른 팝업이 뜨지 않는다(홈에서 받는다 — 홈을 거치지 않는 화면은 막지 않는다, 일감 범위). 근거: 서명 대기 계약은 기한(발송 + 30일)이 지나면 만료되고 서명해야 근무가 시작되는(데모 sign-req 문구)
  * 지금 근무지의 일이고, 소속 추가 요청은 새 근무지를 더할지 묻는 것이며 수락해도 그 뒤 계약 서명이 따로 온다(가입 · 진입 가이드 JOIN-7 의
  * 흐름이 가입 → 서명 요청 팝업). 데모 · 기획 문서에 둘이 함께일 때의 순서는 없다.
- * 조회(계약 목록 · 소속 추가 요청 · 내 정보의 사업자 제공 동의)를 함께 기다린다 — 계약 목록이 느린 동안 다른 팝업도 기다리지만, 따로
+ * 조회(계약 목록 · 소속 추가 요청 · 내 정보의 사업자 제공 동의 · 약관 동의 필요와 그때의 약관 셋)를 함께 기다린다 — 계약 목록이 느린 동안 다른 팝업도 기다리지만, 따로
  * 띄우면 뒤 순서의 팝업이 먼저 떴다가 서명 요청이 그 뒤를 잇는 순서가 뒤집힌다. 조회는 api 실패를 null 로 돌려주므로(그 팝업만 없이 홈
  * 그대로) 여기까지 던져 오는 것은 코드 결함 · 만료 안내 redirect 뿐이라 홈 오류로 드러나게 둔다. 다시 동의의 가맹 소속은 홈 머리줄이 받은
  * 소속 목록(getCurrentMembership — 한 요청에 한 번, 못 받으면 null)을 같이 쓴다. 고용 형태 enum 은 계약 목록이 오면 바로(소속 추가 조회와 나란히) 받는다.
@@ -96,17 +98,25 @@ async function HomeRequests() {
   const employmentTypes = contracts.then((items) =>
     items && signRequestOf(items, now)?.contract.employmentType ? employmentTypesOrEmpty() : [],
   );
-  const [items, affiliationRequests, types, hqSharing, membership] = await Promise.all([
+  // 내 정보 — 사업자 제공 다시 동의와 약관 동의 필요(ACC-23, WHALEERP-774)를 함께 본다. 약관이 필요할 때만 약관 셋을 받는다
+  const profile = popupLoad("profile-home", getMyProfile);
+  const staffTerms = profile.then((me) => (me?.needsTermsAgreement ? popupLoad("staff-terms-home", getStaffTerms) : null));
+  const [items, affiliationRequests, types, me, terms, membership] = await Promise.all([
     contracts,
     getMyAffiliationRequests(),
     employmentTypes,
-    popupLoad("hq-reconsent-home", async () => (await getMyProfile()).hqSharingConsent),
+    profile,
+    staffTerms,
     // 다시 동의의 가맹 소속 — 홈 머리줄이 받은 목록(퇴직 근무지 제외)을 같이 쓴다(cache, 한 요청에 한 번). 못 받았으면 null
     getCurrentMembership(),
   ]);
   const sign = items && signRequestOf(items, now);
+  const hqSharing = me?.hqSharingConsent ?? null;
+  // 필수 약관을 받지 못했으면(설정 · 잠시 실패) 이번에는 띄우지 않는다 — 다음에 홈을 열 때 다시 묻는다
+  const versions = terms && shownTermsVersionsOf(terms);
   return (
     <HomePopups
+      terms={terms && versions ? { items: terms, versions } : null}
       sign={
         sign && {
           key: sign.key,

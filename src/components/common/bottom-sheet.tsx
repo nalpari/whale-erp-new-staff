@@ -26,6 +26,7 @@ export function BottomSheet({
   description,
   closeLabel = "닫기",
   initialFocus,
+  dismissible = true,
   children,
 }: {
   open: boolean;
@@ -41,6 +42,11 @@ export function BottomSheet({
   closeLabel?: string;
   /** "close" 면 열릴 때 첫 포커스를 닫기 버튼에 둔다 — 위험 동작 버튼이 먼저 포커스를 받아 엔터 한 번에 눌리는 것을 막는다(탈퇴 확인). 기본은 브라우저 동작. */
   initialFocus?: "close";
+  /**
+   * false 면 뒤 화면 누름 · Esc · 끌어 내리기로 닫히지 않는다 — 맨 아래 버튼(closeLabel)만 onClose 를 부른다. 답하기 전에는 넘어갈 수 없는
+   * 시트(홈 약관 동의 — 버튼은 「로그아웃」)가 쓴다.
+   */
+  dismissible?: boolean;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -171,7 +177,7 @@ export function BottomSheet({
       return;
     }
     const t = e.touches[0];
-    if (!open || !t) return;
+    if (!open || !t || !dismissible) return;
     // 제자리로 돌아가던 중이면 그때 그려진 높이를 읽고 멈춘다 — 안 멈추면 애니메이션이 손가락을 따라가는 인라인 값을 덮어
     // 시트는 그대로인데 거리만 쌓여 닫힐 수 있다. 읽은 높이만큼 시작점을 올려 손가락 아래에서 이어 끈다.
     const dialog = ref.current;
@@ -220,7 +226,7 @@ export function BottomSheet({
       // Esc 는 브라우저가 바로 닫지 않게 막고 onClose 로 넘겨, 열림 상태를 쓰는 쪽 한 곳에서만 바꾼다.
       onCancel={(e) => {
         e.preventDefault();
-        onClose();
+        if (dismissible) onClose();
       }}
       // 브라우저가 cancel 없이 직접 닫은 경우(사용자 조작 전의 뒤로 가기 · Esc 연타) — 잠금을 풀고 쓰는 쪽 열림 상태도 맞춘다.
       // 우리가 닫을 때(open 이 이미 false)는 할 일이 없다.
@@ -235,7 +241,8 @@ export function BottomSheet({
         dialog.inert = false;
         dialog.style.translate = "";
         unlockScroll();
-        onClose();
+        // 닫히지 않는 시트(dismissible false)는 알리지 않고 아래에서 다시 연다 — onClose 는 맨 아래 버튼의 동작(로그아웃)이다
+        if (dismissible) onClose();
         // 쓰는 쪽이 닫기를 거부하면(보내는 중 등) open 이 그대로라 시트가 다시 열리지 않는다 — 다음 차례에 확인해 다시 연다.
         setTimeout(() => {
           const d = ref.current;
@@ -247,7 +254,7 @@ export function BottomSheet({
       }}
       // 시트 안쪽은 아래 div 가 다 덮으므로, dialog 자신이 눌린 것은 뒤 화면(::backdrop)을 누른 것이다.
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (dismissible && e.target === e.currentTarget) onClose();
       }}
       // 내려가는 중(open 이 false)에는 안쪽 누름 · 제출을 막는다. inert 를 지원하지 않는 Safari · 웹뷰에서도 두 번 고르지 않게.
       onClickCapture={(e) => {
