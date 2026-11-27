@@ -1,7 +1,7 @@
 // node --test src/lib/paper-tax-profile.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { paperSignedMemberships, taxProfileNewHref } from "./paper-tax-profile.ts";
+import { paperSignedMemberships, taxProfileDueOf, taxProfileNewHref } from "./paper-tax-profile.ts";
 
 const TODAY = "2026-11-27";
 const member = (staffMemberId: number, storeId: number, retiredDate: string | null = null) => ({ staffMemberId, store: { storeId }, retiredDate });
@@ -34,6 +34,15 @@ test("다른 근무지의 종이 계약은 그 소속을 대상으로 만들지 
   const b = member(2, 20);
   const c = member(3, 30);
   assert.deepEqual(paperSignedMemberships([a, b, c], [contract(30, "PAPER"), contract(10, "PAPER"), contract(20, "ELECTRONIC")], TODAY), [a, c]);
+});
+
+test("신고 정보를 내지 않은 재직 소속만 안내하고 조회 실패는 keepUnknown 을 따른다", () => {
+  assert.equal(taxProfileDueOf({ taxProfile: null, editable: true }, false), true);
+  assert.equal(taxProfileDueOf({ taxProfile: null }, false), true);
+  assert.equal(taxProfileDueOf({ taxProfile: { bankCode: "004" }, editable: true }, true), false);
+  assert.equal(taxProfileDueOf({ taxProfile: null, editable: false }, true), false);
+  assert.equal(taxProfileDueOf(null, true), true);
+  assert.equal(taxProfileDueOf(null, false), false);
 });
 
 test("처음 넣기 화면 주소", () => {

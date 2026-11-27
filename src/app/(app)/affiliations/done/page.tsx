@@ -7,7 +7,7 @@ import { getContractsOrNull, type ContractListItem } from "@/lib/contracts";
 import { HOME_PATH } from "@/lib/login-return";
 import { HQ_NOT_RECORDED, HQ_NOT_RECORDED_NOTICE } from "@/lib/hq-sharing-terms";
 import { readAcceptedStore } from "@/lib/invitation-cookie";
-import { getMyMemberships, paperTaxProfileDue } from "@/lib/my-profile";
+import { getMyMembershipsForExtra, paperTaxProfileDue } from "@/lib/my-profile";
 import { taxProfileNewHref } from "@/lib/paper-tax-profile";
 import { Accent, ActionPill, BigTitle, BODY, InfoPill, Lead } from "../screen-parts";
 
@@ -54,18 +54,20 @@ async function contractsOf(contractIds: number[]): Promise<ContractListItem[]> {
 }
 
 /**
- * 수락 완료의 다음 할 일. 함께 온 계약이 모두 종이 계약이면 신고 정보 입력(내지 않은 소속이 있을 때만, 조회 실패면 둔다), 아니면 그 계약서.
- * 목록을 못 읽어 계약을 찾지 못하면 계약서로 보낸다(전과 같다 — 근무지 없이 그 계약서 · 목록).
+ * 수락 완료의 다음 할 일. 함께 온 계약을 모두 찾았고 모두 종이 계약이면(paper) 신고 정보 입력 — 내지 않은 소속이 있을 때만이고 조회
+ * 실패면 둔다. 아니면 그 계약서. 목록을 못 읽어 계약을 다 찾지 못하면 계약서로 보낸다(전과 같다 — 근무지 없이 그 계약서 · 목록).
  */
-async function nextOf(contractIds: number[]): Promise<{ kind: "contract" | "tax"; href: string } | null> {
+async function nextOf(contractIds: number[]): Promise<{ paper: boolean; next: { kind: "contract" | "tax"; href: string } | null }> {
   const contracts = await contractsOf(contractIds);
-  if (contracts.length > 0 && contracts.every((c) => c.contractMethod === "PAPER")) {
-    const memberships = await getMyMemberships();
+  const paper =
+    contracts.length > 0 && contracts.length === new Set(contractIds).size && contracts.every((c) => c.contractMethod === "PAPER");
+  if (paper) {
+    const memberships = await getMyMembershipsForExtra("affiliation-done:memberships");
     const due = memberships && (await paperTaxProfileDue(memberships.items, contracts, true))[0];
-    return due ? { kind: "tax", href: taxProfileNewHref(due.staffMemberId) } : null;
+    return { paper, next: due ? { kind: "tax", href: taxProfileNewHref(due.staffMemberId) } : null };
   }
   const href = contractHrefOf(contractIds, contracts[0]?.storeId ?? null);
-  return href ? { kind: "contract", href } : null;
+  return { paper, next: href ? { kind: "contract", href } : null };
 }
 
 export default async function AffiliationDonePage({ searchParams }: PageProps<"/affiliations/done">) {
@@ -82,8 +84,8 @@ export default async function AffiliationDonePage({ searchParams }: PageProps<"/
   );
 
   if (result.kind === "accepted") {
-    const next = await nextOf(result.contractIds);
-    const paper = result.contractIds.length > 0 && next?.kind !== "contract";
+    // 종이 계약인데 다음 할 일이 없으면(이미 냄 · 소속을 못 찾음) 「근로계약서가 도착하면」 안내도 두지 않는다 — 계약은 이미 맺었다
+    const { paper, next } = await nextOf(result.contractIds);
     return (
       <>
         <PageHeader title="근무지 추가 완료" backHref="/home" />

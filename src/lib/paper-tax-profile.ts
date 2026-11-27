@@ -17,5 +17,15 @@ export function paperSignedMemberships<M extends Membership>(memberships: readon
   return memberships.filter((m) => stores.has(m.store.storeId) && membershipStatusOf(m.retiredDate, today) !== "retired");
 }
 
+/**
+ * 신고 정보 조회 결과로 그 소속에 넣으라고 안내할지. 조회하지 못했으면(null) keepUnknown 그대로 — 완료 화면은 안내하고(입력 화면이 다시
+ * 가른다) 홈 카드는 뺀다. 퇴직한 근무지(`editable: false`)는 넣을 수 없어, 이미 냈으면(`taxProfile`) 넣을 것이 없어 안내하지 않는다.
+ * editable 은 false 일 때만 막는다(칸이 없는 옛 api — 처음 넣기 화면과 같다).
+ */
+export function taxProfileDueOf(tax: { taxProfile: unknown; editable?: boolean } | null, keepUnknown: boolean): boolean {
+  if (tax === null) return keepUnknown;
+  return tax.editable !== false && !tax.taxProfile;
+}
+
 /** 그 소속의 신고 정보 처음 넣기 화면. */
 export const taxProfileNewHref = (staffMemberId: number) => `/me/memberships/${staffMemberId}/tax-profile/new`;
