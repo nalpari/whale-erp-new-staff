@@ -152,4 +152,18 @@ export type StaffTermsItem = (typeof STAFF_TERMS)[number] & { current: CurrentTe
  * 「보기」로 보이고, 팝업은 보인 버전을 api 에 싣는다(WHALEERP-774). 캐시하지 않는 것은 getCurrentTerms 와 같다.
  */
 export const getStaffTerms = (): Promise<StaffTermsItem[]> =>
-  Promise.all(STAFF_TERMS.map(async (terms) => ({ ...terms, current: await getCurrentTerms(terms.code) })));
+  Promise.all(STAFF_TERMS.map(async (terms) => ({ ...terms, current: await currentTermsOrUnavailable(terms.code) })));
+
+/**
+ * getCurrentTerms 가 던지는 나머지 실패(429 · 403 · 응답 모양 결함)도 「잠시 못 받음」으로 바꾼다 — 가입 화면 · 홈 팝업이 약관 하나 때문에
+ * 화면 전체 오류가 되지 않게(api 계약이 어긋난 신호라 남긴다). 그 약관은 [보기] 에 안내가 뜨고, 가입은 보내지 않는다(termsLoadOf).
+ */
+async function currentTermsOrUnavailable(termsTypeCode: string): Promise<CurrentTerms> {
+  try {
+    return await getCurrentTerms(termsTypeCode);
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    logUnexpected(`terms:${termsTypeCode}`, error);
+    return { status: "unavailable" };
+  }
+}

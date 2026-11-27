@@ -95,3 +95,15 @@ export function shownTermsVersionsOf(items: readonly LoadedTerms[]): ShownTermsV
  */
 export const termsVersionKey = (items: readonly LoadedTerms[]) =>
   items.map((item) => `${item.key}:${item.current.status === "ok" ? item.current.terms.version : "-"}`).join("|");
+
+/**
+ * 가입 화면이 받은 약관 셋의 상태 — missing 은 필수 약관이 등록 · 시행되지 않음(설정 문제, 새로 고쳐도 같다), unavailable 은 필수나
+ * 마케팅을 잠시 받지 못함(새로 고치면 풀릴 수 있다). 시행 중인 마케팅이 없는 것(missing)은 정상 설정이라 ok 다. ok 가 아니면 가입
+ * 요청을 보내지 않는다 — 보낸 버전이 시행 중인 것과 어긋나 409 TERMS_CHANGED 가 되풀이되지 않게.
+ */
+export function termsLoadOf(items: readonly LoadedTerms[]): "ok" | "missing" | "unavailable" {
+  const required = items.filter((item) => item.key !== "marketing");
+  if (required.some((item) => item.current.status === "missing")) return "missing";
+  if (items.some((item) => item.current.status === "unavailable")) return "unavailable";
+  return "ok";
+}

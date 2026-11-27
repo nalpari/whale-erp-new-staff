@@ -11,6 +11,7 @@ import {
   requiredTermsAgreed,
   shownTermsVersionsOf,
   signupTermsBody,
+  termsLoadOf,
   termsVersionKey,
   termsAgreementBody,
   termsAgreementFailure,
@@ -136,3 +137,20 @@ test("termsVersionKey — 보인 버전이 하나라도 바뀌면 키가 바뀐�
     before,
   );
 });
+
+test("termsLoadOf — 필수 약관이 없으면 missing, 무엇이든 잠시 못 받으면 unavailable, 마케팅만 없으면 ok", () => {
+  const ok = { status: "ok" as const, terms: { version: "v1.0" } };
+  const of = (privacy: LoadedLike, marketing: LoadedLike) =>
+    termsLoadOf([
+      { key: "termsService", current: ok },
+      { key: "privacy", current: privacy },
+      { key: "marketing", current: marketing },
+    ]);
+  assert.equal(of(ok, ok), "ok");
+  assert.equal(of(ok, { status: "missing" }), "ok");
+  assert.equal(of(ok, { status: "unavailable" }), "unavailable");
+  assert.equal(of({ status: "unavailable" }, ok), "unavailable");
+  assert.equal(of({ status: "missing" }, { status: "unavailable" }), "missing");
+});
+
+type LoadedLike = { status: "ok"; terms: { version: string } } | { status: "missing" | "unavailable" };

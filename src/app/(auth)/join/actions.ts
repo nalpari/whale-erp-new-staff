@@ -110,6 +110,8 @@ export type SignupState =
 
 /** 필수 약관 본문을 받지 못한 가입 화면 — 보인 버전이 없어 동의를 보낼 수 없다. */
 const TERMS_NOT_LOADED = "약관을 불러오지 못했습니다. 화면을 새로 고친 뒤 다시 시도해 주세요";
+/** 필수 약관이 등록 · 시행되지 않은 설정 — 새로 고쳐도 같아 관리자에게 알리게 한다. */
+const TERMS_MISSING = "지금은 가입할 수 없습니다. 근무지 관리자에게 문의해 주세요";
 
 /** 가입 요청의 결과를 모른다(5xx · 연결 실패 · 시간 초과). 다시 누르면 api 가 지금 상태로 답한다. */
 const SIGNUP_UNKNOWN = "가입 결과를 확인하지 못했습니다. 잠시 뒤 「가입하기」를 다시 누르면 결과를 알려 드립니다";
@@ -149,8 +151,11 @@ export async function signupAction(_previous: SignupState, formData: FormData): 
   // 약관 동의(ACC-23, WHALEERP-774) — 필수 둘을 켜야 보낸다. api 도 다시 본다(필수가 true 가 아니면 400).
   const terms = signupTermsBody(formData);
   if (!terms.termsServiceAgreed || !terms.privacyAgreed) return input("terms", REQUIRED_TERMS_MISSING);
-  // 필수 약관을 받지 못한 화면(설정 · 잠시 실패)에서는 보인 버전이 없다 — api 에 보내지 않고 다시 열게 한다
-  if (!terms.termsServiceVersion || !terms.privacyVersion) return input("terms", TERMS_NOT_LOADED);
+  // 약관을 다 받지 못한 화면에서는 보인 버전이 시행 중인 것과 어긋난다 — api 에 보내지 않는다(409 가 되풀이되지 않게).
+  // 필수 약관이 없는 설정이면 관리자에게, 잠시 못 받았으면 다시 열게 한다
+  const termsLoad = text("termsLoad");
+  if (termsLoad === "missing") return input("terms", TERMS_MISSING);
+  if (termsLoad !== "ok" || !terms.termsServiceVersion || !terms.privacyVersion) return input("terms", TERMS_NOT_LOADED);
 
   let result;
   try {

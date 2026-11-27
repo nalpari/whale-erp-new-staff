@@ -24,7 +24,9 @@ export function TermsAgreementPopup({ open, terms, versions }: { open: boolean; 
     setCheckedTermsKey(termsKey);
     setChecks(NO_TERMS_CHECKED);
   }
-  const logout = () =>
+  const logout = () => {
+    // 동의를 보내는 중에는 로그아웃하지 않는다 — 동의 저장과 로그아웃이 겹쳐 결과를 모르는 채 나가지 않게
+    if (pending) return;
     startTransition(async () => {
       try {
         await logoutAction();
@@ -35,6 +37,7 @@ export function TermsAgreementPopup({ open, terms, versions }: { open: boolean; 
         setError("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요");
       }
     });
+  };
   const agree = () =>
     startTransition(async () => {
       setError(undefined);

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Alert, BottomSheet, CheckBox } from "@/components/common";
 import type { StaffTermsItem } from "@/lib/my-profile";
 import { dateLabel } from "@/lib/profile";
-import { allTermsChecked, checkAllTerms, type StaffTermsKey, type TermsChecks } from "@/lib/staff-terms";
+import { allTermsChecked, checkAllTerms, termsLoadOf, type StaffTermsKey, type TermsChecks } from "@/lib/staff-terms";
 import { TermsContent } from "@/app/(app)/me/terms-content";
 
 /**
@@ -36,6 +36,8 @@ export function TermsChecklist({
   return (
     <div className="flex flex-col gap-[4px]" data-field-anchor="terms">
       <input type="hidden" name="terms" value="" />
+      {/* 약관을 다 받았는지 — ok 가 아니면 가입 액션이 보내지 않고 알린다(termsLoadOf) */}
+      <input type="hidden" name="termsLoad" value={termsLoadOf(terms)} />
       {/* 보인 약관 버전 — 가입 폼이 api 에 싣는다(다르면 409 TERMS_CHANGED). 못 받은 약관은 빈 값이다 */}
       {terms.map((item) => (
         <input key={item.key} type="hidden" name={`${item.key}Version`} value={item.current.status === "ok" ? item.current.terms.version : ""} />
