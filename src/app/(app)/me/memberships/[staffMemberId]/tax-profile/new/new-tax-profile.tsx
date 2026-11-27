@@ -162,7 +162,7 @@ export function TaxProfileCreateForm({
     <form action={formAction} onSubmit={onSubmit} noValidate className="flex flex-1 flex-col bg-white" autoComplete="off">
       <div className="flex flex-col gap-[16px] px-[24px] pt-[20px] pb-[24px] leading-[1.5]">
         <div>
-          <p className="mb-[8px] text-[14px] font-semibold text-staff-primary">{storeName}</p>
+          <p className="mb-[8px] text-[14px] font-semibold break-keep text-staff-primary">{storeName}</p>
           <div className="flex flex-col gap-[6px]">
             <h2 className="text-[22px] font-bold">주민등록번호와 급여 계좌</h2>
             <p className="text-[14px] text-staff-text-sub">본인 명의의 주민등록번호와 계좌만 입력할 수 있습니다.</p>
