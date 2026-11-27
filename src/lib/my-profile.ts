@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 
 import { requestsLoadFailure } from "./affiliation-requests";
+import { STAFF_TERMS } from "./staff-terms";
 import { ApiError, NetworkError, failureOf, logFailure, logUnexpected, request, type Schemas } from "./api";
 import type { ContractListItem } from "./contracts";
 import { kstToday } from "./join";
@@ -134,10 +135,35 @@ export async function getCurrentTerms(termsTypeCode: string): Promise<CurrentTer
     return { status: "ok", terms };
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
-      logUnexpected(`terms:${termsTypeCode}`, error);
+      // 선택 약관(마케팅)은 운영자가 꺼 두는 것이 정상 설정이라 남기지 않는다 — 가입 · 홈 약관 동의가 그 줄을 빼고 그린다
+      if (termsTypeCode !== "MARKETING") logUnexpected(`terms:${termsTypeCode}`, error);
       return { status: "missing" };
     }
     if (error instanceof NetworkError || (error instanceof ApiError && error.status >= 500)) return { status: "unavailable" };
     throw error;
+  }
+}
+
+/** 직원 앱 약관 한 가지와 지금 시행 중인 본문(ACC-23). */
+export type StaffTermsItem = (typeof STAFF_TERMS)[number] & { current: CurrentTerms };
+
+/**
+ * 직원 앱 약관 셋(서비스 이용약관 · 개인정보 수집·이용 · 마케팅 정보 수신)의 지금 시행본 — 가입 화면의 체크 칸과 홈 약관 동의 팝업이
+ * 「보기」로 보이고, 팝업은 보인 버전을 api 에 싣는다(WHALEERP-774). 캐시하지 않는 것은 getCurrentTerms 와 같다.
+ */
+export const getStaffTerms = (): Promise<StaffTermsItem[]> =>
+  Promise.all(STAFF_TERMS.map(async (terms) => ({ ...terms, current: await currentTermsOrUnavailable(terms.code) })));
+
+/**
+ * getCurrentTerms 가 던지는 나머지 실패(429 · 403 · 응답 모양 결함)도 「잠시 못 받음」으로 바꾼다 — 가입 화면 · 홈 팝업이 약관 하나 때문에
+ * 화면 전체 오류가 되지 않게(api 계약이 어긋난 신호라 남긴다). 그 약관은 [보기] 에 안내가 뜨고, 가입은 보내지 않는다(termsLoadOf).
+ */
+async function currentTermsOrUnavailable(termsTypeCode: string): Promise<CurrentTerms> {
+  try {
+    return await getCurrentTerms(termsTypeCode);
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    logUnexpected(`terms:${termsTypeCode}`, error);
+    return { status: "unavailable" };
   }
 }

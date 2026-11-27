@@ -4400,6 +4400,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/terms-agreement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 약관 동의 — 약관 동의를 받기 전에 가입한 직원이 홈에서 한다(내 정보의 `needsTermsAgreement`, ACC-23). 필수 둘(서비스
+         *     이용약관 · 개인정보 수집·이용)에 동의하고 마케팅 정보 수신은 고른 대로다. 이력(경로 FIRST_LOGIN · 접속 IP)을 남긴다. 본문의
+         *     약관 버전 셋(동의 시트가 보인 것, 필수)이 시행 중인 것과 다르면 409(code TERMS_CHANGED) — 화면은 약관을 다시 받는다
+         */
+        post: operations["MyConsentController_agreeTerms"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/hq-sharing-consent/withdraw": {
         parameters: {
             query?: never;
@@ -4491,7 +4512,8 @@ export interface paths {
          *     수락으로 둔다. 가입을 기다리던 근로계약서는 서명 대기가 된다. 계정 번호는 초대의 번호다. 마치면 로그인 응답과 같은
          *     모양으로 접속 상태를 준다. 가입하는 날 만 19세 미만이면 계정을 만들지 않고 초대를 「가입 불가」로 둔 뒤 400 이다.
          *     본사 제공 동의에 실은 문구 버전(hqSharingConsentVersion)이 지금과 달라도 가입은 마치고 동의만 남기지 않는다 — 응답의
-         *     hqSharingConsentRecorded 가 false 다(ATT-30 v253).
+         *     hqSharingConsentRecorded 가 false 다(ATT-30 v253). 약관 동의(ACC-23)는 필수 둘이 true 여야 하고, 시행 중인 버전 셋에 동의
+         *     이력(account_terms_agreement_logs, 경로 SIGNUP · 접속 IP)을 남기고 계정의 약관 동의 일시를 채운다.
          */
         post: operations["StaffSignupController_signup"];
         delete?: never;
@@ -8507,8 +8529,8 @@ export interface components {
             processedAt: string | null;
             contractId: number;
             /**
-             * @description 이 계약의 직원 레코드(소속) — `GET /me/memberships` 의 staffMemberId 와 같다. 퇴직 뒤 다시 입사하면 레코드가 새로 생겨 같은
-             *     근무지라도 값이 다르다(직원 앱이 이 소속의 계약인지 가른다, WHALEERP-775)
+             * @description 이 계약의 직원 레코드(소속) — `GET /me/memberships` 의 staffMemberId 와 같다(퇴직한 레코드는 `includeRetired=true` 일 때만
+             *     그 목록에 있다). 퇴직 뒤 다시 입사하면 레코드가 새로 생겨 같은 근무지라도 값이 다르다(직원 앱이 이 소속의 계약인지 가른다, WHALEERP-775)
              */
             staffMemberId: number;
             /** @description 근무지(소속) — 점포가 지워졌어도 이름은 보인다 */
@@ -8651,6 +8673,8 @@ export interface components {
             /** @description 계약서 조항 열 가지 — 보낸 원본 · 처리 완료본 PDF 와 같은 템플릿(WHALEERP-131). 화면은 이 순서대로 그린다 */
             articles: components["schemas"]["ContractArticleDto"][];
             contractId: number;
+            /** @description 목록과 같다 — 이 계약의 직원 레코드(소속), `GET /me/memberships` 의 staffMemberId(퇴직한 레코드는 `includeRetired=true` 일 때) */
+            staffMemberId: number;
             storeId: number;
             /** @description 목록과 같다 — 서명 대기 · 기한 안 · 재직 중 */
             awaitingSignature: boolean;
@@ -10987,6 +11011,12 @@ export interface components {
             hqSharingConsent: components["schemas"]["MyHqSharingConsentDto"];
             locationConsent: components["schemas"]["MyLocationConsentDto"];
             /**
+             * @description 약관 동의가 필요한지(운영 정책 ACC-23, WHALEERP-774) — 필수 약관 둘(서비스 이용약관 · 개인정보 수집·이용)에 동의한 기록이
+             *     없으면 true 다. 약관 동의를 받기 전에 가입한 직원이 그렇다. 앱은 홈에서 다른 팝업보다 먼저 약관 동의 팝업을 띄우고
+             *     `POST /me/terms-agreement` 로 받는다.
+             */
+            needsTermsAgreement: boolean;
+            /**
              * Format: date-time
              * @description 비밀번호를 마지막으로 정한 시각 — 바꾼 적이 없으면 가입 시각. 오래되면 화면이 변경을 권한다(WHALEERP-194). 몇 달을
              *     「오래」로 볼지는 화면이 정한다
@@ -11107,6 +11137,19 @@ export interface components {
             /** @description 화면이 보여 준 본사 제공 동의 문구 버전 — 예: v1.0 */
             consentVersion: string;
         };
+        AgreeTermsDto: {
+            /** @description 보인 서비스 이용약관(STAFF_TERMS_SERVICE) 버전 — 예: v1.0 */
+            termsServiceVersion: string;
+            /** @description 보인 개인정보 수집·이용 동의(STAFF_PRIVACY) 버전 */
+            privacyVersion: string;
+            /**
+             * @description 보인 마케팅 정보 수신 동의(MARKETING) 버전 — 동의하지 않아도 싣는다(동의 안 함도 이력에 남는다). 선택 약관이라 시행 중인 것이
+             *     없을 수 있다 — 그래서 보인 마케팅 약관이 없었으면 null 이다(위치정보 동의의 termsVersion 과 같다). 빼면 400
+             */
+            marketingVersion: string | null;
+            /** @description [선택] 마케팅 정보 수신 동의 — 빼면 동의하지 않음 */
+            marketingAgreed?: boolean;
+        };
         EmployedStoreDto: {
             /** @description 근무지(점포) 이름 */
             storeName: string;
@@ -11175,6 +11218,14 @@ export interface components {
              */
             hqSharingConsentVersion?: string;
             /**
+             * @description 가입 화면이 보인 약관 버전 — 서비스 이용약관(STAFF_TERMS_SERVICE) · 개인정보 수집·이용(STAFF_PRIVACY) · 마케팅(MARKETING).
+             *     약관 칸을 실으면 셋 다 싣는다(마케팅은 보인 것이 없었으면 null). 시행 중인 버전과 다르면 409 TERMS_CHANGED — 화면을 연 사이
+             *     약관이 바뀌었으면 보지 않은 버전에 동의한 것으로 남기지 않는다(홈 약관 동의와 같다, api #326 code-review)
+             */
+            termsServiceVersion?: string;
+            privacyVersion?: string;
+            marketingVersion?: string | null;
+            /**
              * Format: email
              * @description 로그인 아이디. 소문자로 맞춰 저장한다(accounts_email_lower). 핀으로 확인하지 않는다
              */
@@ -11197,6 +11248,15 @@ export interface components {
              *     저장하지 않는다. 동의는 계정에 하나다(api #78). 동의하지 않아도 가입과 근무는 그대로다
              */
             hqSharingConsented?: boolean;
+            /**
+             * @description [필수] 직원 앱 서비스 이용약관 동의 — 실으면 true 만 받는다(ACC-23). 시행 중인 버전(STAFF_TERMS_SERVICE)에 동의한 것으로 남는다.
+             *     이 칸과 privacyAgreed 가 둘 다 빠지면(약관 칸이 없던 예전 앱) 가입은 마치고 동의를 남기지 않는다 — 앱이 홈에서 받는다
+             */
+            termsServiceAgreed?: boolean;
+            /** @description [필수] 개인정보 수집·이용 동의 — 실으면 true 만 받는다(ACC-23). 시행 중인 버전(STAFF_PRIVACY)에 동의한 것으로 남는다 */
+            privacyAgreed?: boolean;
+            /** @description [선택] 마케팅 정보 수신 동의(MARKETING) — 빼면 동의하지 않음. 동의하지 않아도 이력에 한 줄 남는다 */
+            marketingAgreed?: boolean;
             /** @description 이 기기 — 로그인과 같다. 같은 기기의 앞 접속을 끝낸다 */
             deviceIdentifier?: string;
             /** @description 초대 링크의 토큰(base64url 43자) */
@@ -25608,6 +25668,63 @@ export interface operations {
             };
         };
     };
+    MyConsentController_agreeTerms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgreeTermsDto"];
+            };
+        };
+        responses: {
+            /** @description 동의함 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 약관 버전(termsServiceVersion · privacyVersion · marketingVersion) 없음 · 빈 문자열 · 64자 초과 · marketingAgreed 가 참 · 거짓이 아님 · 모르는 칸 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 토큰 없음 · 접속 종료 · 탈퇴 계정 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 관리자 토큰 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 이미 동의함(TERMS_ALREADY_AGREED — 앱은 팝업을 내린다, 버전 비교보다 먼저) · 보인 약관 버전이 시행 중인 것과 다름(TERMS_CHANGED — 「그사이 약관이 바뀌었습니다. …」, 화면은 다시 받는다) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 필수 약관(STAFF_TERMS_SERVICE · STAFF_PRIVACY) 가운데 시행 중인 것이 없음(운영자가 끄거나 지움) — 「지금은 약관 동의를 받을 수 없습니다 …」 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     MyConsentController_withdrawHqSharing: {
         parameters: {
             query?: never;
@@ -25811,7 +25928,7 @@ export interface operations {
                     "application/json": components["schemas"]["StaffSignupResponseDto"];
                 };
             };
-            /** @description 형식 오류 · 비밀번호 규칙 · 만 19세 미만(SIGNUP_UNDER_AGE, 초대는 가입 불가가 됨) */
+            /** @description 형식 오류 · 비밀번호 규칙 · 필수 약관(termsServiceAgreed · privacyAgreed)이 true 가 아님 · 약관 칸을 실었는데 보인 약관 버전(termsServiceVersion · privacyVersion · marketingVersion)이 없음 · 만 19세 미만(SIGNUP_UNDER_AGE, 초대는 가입 불가가 됨) */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -25825,7 +25942,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description INVITATION_ALREADY_JOINED · ACCOUNT_EXISTS · 이미 쓰는 이메일(ACCOUNT_EMAIL_TAKEN) */
+            /** @description INVITATION_ALREADY_JOINED · ACCOUNT_EXISTS · 이미 쓰는 이메일(ACCOUNT_EMAIL_TAKEN) · 화면이 보인 약관 버전이 시행 중인 것과 다름(TERMS_CHANGED — 「그사이 약관이 바뀌었습니다. …」, 화면은 약관을 다시 받는다) */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -25834,6 +25951,13 @@ export interface operations {
             };
             /** @description 같은 번호로 번호 + 코드를 5번 틀려 30분 잠김(INVITATION_CODE_LOCKED, 본문 lockExpiresAt — 재발송하면 풀림) · 공개 경로 기본 요청 제한 */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 필수 약관(STAFF_TERMS_SERVICE · STAFF_PRIVACY) 가운데 시행 중인 것이 없음 — 「지금은 가입할 수 없습니다 …」(선택 약관 MARKETING 이 없으면 막지 않고 그 줄만 남기지 않는다) */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };

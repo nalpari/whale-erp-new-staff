@@ -11,6 +11,9 @@ import { isEmailShape } from "@/lib/email-change";
 import { normalizeBirthDate } from "@/lib/email-find";
 import { SIGNUP_NAME_MAX, formatPhone, kstToday, needsBirthDateCheck, type SignupField } from "@/lib/join";
 import { ADDRESS_DETAIL_MAX, dateLabel } from "@/lib/profile";
+import { TermsChecklist } from "@/app/_components/terms-checklist";
+import type { StaffTermsItem } from "@/lib/my-profile";
+import { NO_TERMS_CHECKED, REQUIRED_TERMS_MISSING, requiredTermsAgreed, termsVersionKey } from "@/lib/staff-terms";
 import { AuthScreen } from "../../_components/auth-screen";
 import { signupAction, type SignupState } from "../actions";
 import {
@@ -27,7 +30,7 @@ import {
 
 // 기준: 목업 join 의 signup · signup-link · minor (가이드 ③, 운영 정책 ACC-23 · JOIN-7).
 // 휴대전화번호는 초대의 번호를 읽기 전용으로 보인다 — api 는 가입 요청의 번호를 받지 않고 초대에서 가져온다.
-// 약관 동의 칸은 아직 없다. api 가 받지 않고, 1팀 공통 약관 등록이 생기면 더한다(2026-10-20).
+// 약관 동의(ACC-23, WHALEERP-774)는 본사 제공 동의 위에 둔다 — 필수 둘을 켜야 가입하기가 보내진다(안 켜면 묶음 아래 문구).
 // 칸은 상태로 든다 — React 19 폼 액션은 제출 뒤 칸을 비우는데, 실패하면 넣은 값을 그대로 두고 고치게 한다(비밀번호 확인 칸만 비운다).
 
 const FOREIGNER = [
@@ -41,6 +44,7 @@ export function SignupForm({
   phone,
   asksHqSharingConsent,
   genders,
+  terms,
 }: {
   via: JoinVia;
   storeName: string;
@@ -48,6 +52,8 @@ export function SignupForm({
   /** 본사 제공 동의를 물을지 — 직영이 아닌 점포이고 아직 동의하지 않았다(ATT-30). */
   asksHqSharingConsent: boolean;
   genders: { value: string; label: string }[];
+  /** 직원 앱 약관 셋과 지금 시행본 — 「보기」가 보인다 */
+  terms: StaffTermsItem[];
 }) {
   const [state, formAction, pending] = useActionState<SignupState, FormData>(signupAction, { step: "input" });
   const [name, setName] = useState("");
@@ -58,6 +64,14 @@ export function SignupForm({
   const [picked, setPicked] = useState({ zipCode: "", address: "" });
   const [detail, setDetail] = useState("");
   const [hqSharing, setHqSharing] = useState(false);
+  const [termsChecks, setTermsChecks] = useState(NO_TERMS_CHECKED);
+  // 그사이 약관이 바뀌어(409 TERMS_CHANGED) 새 약관을 받으면 체크를 처음으로 — 새 약관을 다시 보고 체크하게 한다
+  const termsKey = termsVersionKey(terms);
+  const [checkedTermsKey, setCheckedTermsKey] = useState(termsKey);
+  if (termsKey !== checkedTermsKey) {
+    setCheckedTermsKey(termsKey);
+    setTermsChecks(NO_TERMS_CHECKED);
+  }
   const [searching, setSearching] = useState(false);
   // 만 19세 미만으로 보이는 생년월일은 보내기 전에 한 번 더 확인받는다(needsBirthDateCheck). 확인한 값은 다시 묻지 않는다.
   const formRef = useRef<HTMLFormElement>(null);
@@ -75,6 +89,7 @@ export function SignupForm({
       newPassword: data.get("newPassword") ? undefined : "비밀번호를 입력해 주세요",
       newPasswordConfirmation: data.get("newPasswordConfirmation") ? undefined : "비밀번호 확인을 입력해 주세요",
       address: text("address") ? undefined : "주소를 검색해 선택해 주세요",
+      terms: requiredTermsAgreed(termsChecks) ? undefined : REQUIRED_TERMS_MISSING,
     };
   });
 
@@ -215,6 +230,17 @@ export function SignupForm({
           />
           {errorOf("address") && <p className="-mt-[8px] text-[12px] text-staff-error">{errorOf("address")}</p>}
         </div>
+
+        <SectionTitle title="약관 동의" />
+        <TermsChecklist
+          terms={terms}
+          checks={termsChecks}
+          onChange={(checks) => {
+            setTermsChecks(checks);
+            fields.dismiss("terms");
+          }}
+          error={errorOf("terms")}
+        />
 
         {asksHqSharingConsent && <HqSharingConsent checked={hqSharing} onChange={setHqSharing} flow="signup" />}
 
