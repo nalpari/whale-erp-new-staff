@@ -87,13 +87,14 @@ export const getMyTaxProfile = (staffMemberId: number) =>
 
 /**
  * 서명 완료 종이 계약이 있는 지금 소속 중 신고 정보를 아직 내지 않은 것(WHALEERP-775, paperSignedMemberships). 소속마다 신고 정보를
- * 나란히 조회한다(판정은 taxProfileDueOf). 조회하지 못한 소속(5xx · 연결 실패 · 404 등 — 4xx 는 남긴다)은 keepUnknown 이면 넣는다 — 완료 화면은 버튼을 그대로 두고 입력 화면이
- * 이미 낸 소속을 보기 화면으로 보낸다(전자계약 서명 완료 화면과 같다). 홈 카드는 빼서 이미 낸 직원에게 잘못 띄우지 않는다.
+ * 나란히 조회한다(판정은 taxProfileDueOf). 잠시 조회하지 못한 소속(5xx · 연결 실패)은 keepUnknown 이면 넣는다 — 완료 화면은 버튼을 그대로
+ * 두고 입력 화면이 이미 낸 소속을 보기 화면으로 보낸다(전자계약 서명 완료 화면과 같다). 홈 카드는 빼서 이미 낸 직원에게 잘못 띄우지 않는다.
+ * 4xx(그사이 퇴직해 404 등)는 남기고 뺀다 — 입력 화면도 같은 응답에 404 라 버튼이 없는 화면으로 간다.
  * 401 의 만료 안내 redirect 와 결함은 그대로 던진다.
  */
 export async function paperTaxProfileDue<M extends Schemas["MyMembershipDto"]>(
   memberships: readonly M[],
-  contracts: readonly Pick<ContractListItem, "storeId" | "status" | "contractMethod">[],
+  contracts: readonly Pick<ContractListItem, "storeId" | "status" | "contractMethod" | "awaitingSignature">[],
   keepUnknown: boolean,
 ): Promise<M[]> {
   const candidates = paperSignedMemberships(memberships, contracts, kstToday());
@@ -105,7 +106,7 @@ export async function paperTaxProfileDue<M extends Schemas["MyMembershipDto"]>(
         if (!(error instanceof ApiError)) throw error;
         // 5xx · 연결 실패는 getMyTaxProfile 이 null 로 바꿔 여기 오지 않는다 — 남는 것은 4xx 다
         logFailure("paper-tax-profile", { status: error.status, message: error.message });
-        return keepUnknown;
+        return false;
       }
     }),
   );

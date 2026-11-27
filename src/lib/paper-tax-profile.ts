@@ -6,15 +6,20 @@ import type { ContractListItem } from "./contracts";
 import { membershipStatusOf } from "./profile.ts";
 
 type Membership = { staffMemberId: number; store: { storeId: number }; retiredDate: string | null };
-type Contract = Pick<ContractListItem, "storeId" | "status" | "contractMethod">;
+type Contract = Pick<ContractListItem, "storeId" | "status" | "contractMethod" | "awaitingSignature">;
 
 /**
  * 서명 완료(종이 계약은 관리자 등록)된 종이 계약이 있는 지금 소속 — 소속 목록 순서 그대로. 퇴직한 소속(퇴직일이 오늘 앞)은 뺀다.
  * 소속 목록(GET /me/memberships)은 퇴직한 소속을 빼지만 퇴직 배치가 늦은 날 섞일 수 있어 다시 본다. today 는 한국 날짜 YYYY-MM-DD.
+ * 그 근무지에 서명을 기다리는 계약이 있으면 뺀다 — 퇴직 처리는 체결 완료 계약을 닫지 않아(api contract-duplicates) 복귀한 직원의 옛 종이
+ * 계약이 남아 있을 수 있고, 계약 목록에 직원 레코드 id 가 없어 근무지로만 맞춘다. 서명이 먼저다(서명 대기 카드 · 팝업이 안내한다).
  */
 export function paperSignedMemberships<M extends Membership>(memberships: readonly M[], contracts: readonly Contract[], today: string): M[] {
-  const stores = new Set(contracts.filter((c) => c.status === "SIGNED" && c.contractMethod === "PAPER").map((c) => c.storeId));
-  return memberships.filter((m) => stores.has(m.store.storeId) && membershipStatusOf(m.retiredDate, today) !== "retired");
+  const paper = new Set(contracts.filter((c) => c.status === "SIGNED" && c.contractMethod === "PAPER").map((c) => c.storeId));
+  const signing = new Set(contracts.filter((c) => c.awaitingSignature).map((c) => c.storeId));
+  return memberships.filter(
+    (m) => paper.has(m.store.storeId) && !signing.has(m.store.storeId) && membershipStatusOf(m.retiredDate, today) !== "retired",
+  );
 }
 
 /**
@@ -25,6 +30,16 @@ export function paperSignedMemberships<M extends Membership>(memberships: readon
 export function taxProfileDueOf(tax: { taxProfile: unknown; editable?: boolean } | null, keepUnknown: boolean): boolean {
   if (tax === null) return keepUnknown;
   return tax.editable !== false && !tax.taxProfile;
+}
+
+/**
+ * 근무지 추가 · 복귀 확인 수락에 함께 온 계약(contractIds)이 모두 종이 계약인지 — 그러면 날인할 것이 없어 신고 정보 입력으로 잇는다.
+ * found 는 내 계약 목록에서 찾은 그 계약들이다. 하나라도 찾지 못했으면(목록 실패 · 늦음) false — 못 찾은 것이 전자계약이면 서명 안내가 사라져서다.
+ * 겹친 id 는 하나로 본다.
+ */
+export function allPaper(contractIds: readonly number[], found: readonly Pick<ContractListItem, "contractId" | "contractMethod">[]): boolean {
+  const ids = new Set(contractIds);
+  return ids.size > 0 && ids.size === new Set(found.map((c) => c.contractId)).size && found.every((c) => c.contractMethod === "PAPER");
 }
 
 /** 그 소속의 신고 정보 처음 넣기 화면. */

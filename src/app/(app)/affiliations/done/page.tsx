@@ -8,7 +8,7 @@ import { HOME_PATH } from "@/lib/login-return";
 import { HQ_NOT_RECORDED, HQ_NOT_RECORDED_NOTICE } from "@/lib/hq-sharing-terms";
 import { readAcceptedStore } from "@/lib/invitation-cookie";
 import { getMyMembershipsForExtra, paperTaxProfileDue } from "@/lib/my-profile";
-import { taxProfileNewHref } from "@/lib/paper-tax-profile";
+import { allPaper, taxProfileNewHref } from "@/lib/paper-tax-profile";
 import { Accent, ActionPill, BigTitle, BODY, InfoPill, Lead } from "../screen-parts";
 
 // 근무지 추가 확인 요청에 답한 뒤의 화면(WHALEERP-144) — 근무지 추가 완료(데모 join 의 addsite-done) · 거절 · 더 답할 수 없는 요청.
@@ -59,8 +59,7 @@ async function contractsOf(contractIds: number[]): Promise<ContractListItem[]> {
  */
 async function nextOf(contractIds: number[]): Promise<{ paper: boolean; next: { kind: "contract" | "tax"; href: string } | null }> {
   const contracts = await contractsOf(contractIds);
-  const paper =
-    contracts.length > 0 && contracts.length === new Set(contractIds).size && contracts.every((c) => c.contractMethod === "PAPER");
+  const paper = allPaper(contractIds, contracts);
   if (paper) {
     const memberships = await getMyMembershipsForExtra("affiliation-done:memberships");
     const due = memberships && (await paperTaxProfileDue(memberships.items, contracts, true))[0];

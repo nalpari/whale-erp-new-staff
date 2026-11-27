@@ -1,7 +1,7 @@
 // node --test src/lib/paper-tax-profile.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { paperSignedMemberships, taxProfileDueOf, taxProfileNewHref } from "./paper-tax-profile.ts";
+import { allPaper, paperSignedMemberships, taxProfileDueOf, taxProfileNewHref } from "./paper-tax-profile.ts";
 
 const TODAY = "2026-11-27";
 const member = (staffMemberId: number, storeId: number, retiredDate: string | null = null) => ({ staffMemberId, store: { storeId }, retiredDate });
@@ -9,6 +9,7 @@ const contract = (storeId: number, contractMethod: "PAPER" | "ELECTRONIC" | null
   storeId,
   contractMethod,
   status,
+  awaitingSignature: status === "PENDING_SIGNATURE",
 });
 
 test("서명 완료된 종이 계약이 있는 소속은 대상이다", () => {
@@ -34,6 +35,20 @@ test("다른 근무지의 종이 계약은 그 소속을 대상으로 만들지 
   const b = member(2, 20);
   const c = member(3, 30);
   assert.deepEqual(paperSignedMemberships([a, b, c], [contract(30, "PAPER"), contract(10, "PAPER"), contract(20, "ELECTRONIC")], TODAY), [a, c]);
+});
+
+test("그 근무지에 서명을 기다리는 계약이 있으면 옛 종이 계약이 남아 있어도 대상이 아니다", () => {
+  assert.deepEqual(paperSignedMemberships([member(1, 10)], [contract(10, "PAPER"), contract(10, "ELECTRONIC", "PENDING_SIGNATURE")], TODAY), []);
+});
+
+test("함께 온 계약을 모두 찾았고 모두 종이 계약일 때만 allPaper", () => {
+  const paper = (contractId: number) => ({ contractId, contractMethod: "PAPER" as const });
+  const electronic = (contractId: number) => ({ contractId, contractMethod: "ELECTRONIC" as const });
+  assert.equal(allPaper([1, 2], [paper(1), paper(2)]), true);
+  assert.equal(allPaper([1, 1], [paper(1)]), true);
+  assert.equal(allPaper([1, 2], [paper(1), electronic(2)]), false);
+  assert.equal(allPaper([1, 2], [paper(1)]), false);
+  assert.equal(allPaper([], []), false);
 });
 
 test("신고 정보를 내지 않은 재직 소속만 안내하고 조회 실패는 keepUnknown 을 따른다", () => {
