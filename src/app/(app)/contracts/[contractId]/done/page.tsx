@@ -4,8 +4,7 @@ import { Button, Dock, MaskIcon, Notice, PageHeader } from "@/components/common"
 import { parseId, periodText } from "@/lib/contract-rules";
 import { getContract } from "@/lib/contracts";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
-import { ApiError } from "@/lib/api";
-import { getMyMemberships, getMyTaxProfile } from "@/lib/my-profile";
+import { getMyMemberships } from "@/lib/my-profile";
 import { kstDateLabel, kstDateTimeLabel } from "@/lib/profile";
 import { requireSession } from "@/lib/session";
 import { ChangedToast } from "../../../me/changed-toast";
@@ -15,17 +14,6 @@ import { ContractFrame, Tiny, Values } from "../../_components/parts";
 export const metadata: Metadata = { title: "근로계약서 처리 완료 · Whale ERP" };
 
 const TOAST = { signed: "서명을 완료했습니다", rejected: "계약서를 거절했습니다" } as const;
-
-/** 그 소속에 신고 정보를 이미 냈는가. 조회하지 못하면(5xx · 연결 실패 · 404 등) false — 입력 화면이 다시 가른다. */
-async function taxProfileSubmitted(staffMemberId: number): Promise<boolean> {
-  try {
-    return Boolean((await getMyTaxProfile(staffMemberId))?.taxProfile);
-  } catch (error) {
-    // 401 의 만료 안내 redirect 와 결함은 그대로 던진다
-    if (error instanceof ApiError) return false;
-    throw error;
-  }
-}
 
 /** 데모 clock: 라벨 13px semibold · 시각 42px bold, 아래 날짜. */
 function Clock({ label, at }: { label: string; at: string }) {
@@ -41,9 +29,10 @@ function Clock({ label, at }: { label: string; at: string }) {
 // 날인 · 거절을 마친 화면(WHALEERP-147, 데모 contract 의 signed · rejected). 액션이 `?done=signed|rejected` 로 보내 알림을 한 번
 // 띄우고 주소에서 지운다. 계약을 다시 읽어 지금 상태로 그린다 — 체결 완료면 날인 완료, 거부면 거절 완료, 그 밖이면 상세로.
 // 날인 뒤에는 그 근무지 소속의 신고 정보 처음 넣기(WHALEERP-150, `/me/memberships/[staffMemberId]/tax-profile/new`)로 잇는다 —
-// 계약 상세에 소속 id 가 없어 소속 목록에서 같은 점포를 찾는다(후속: api 계약 상세에 staffMemberId 를 실으면 그것을 쓴다). 찾지
-// 못하면(목록을 못 받음 등) 홈으로. 그 소속에 신고 정보를 이미 냈으면 입력 대신 「이미 냈습니다」와 보기 · 홈. 신고 정보 조회가
-// 실패하면 입력 버튼을 그대로 둔다 — 입력 화면이 이미 낸 소속을 보기 화면으로 보낸다.
+// 소속은 계약 상세의 직원 레코드 id(staffMemberId)로 소속 목록에서 찾는다 — 근무지로 찾으면 퇴직 뒤 재입사한 직원의 옛 레코드와
+// 헷갈린다. 찾지 못하면(목록을 못 받음 등) 홈으로. 신고 정보를 냈는지는 소속 목록의 taxProfileSubmitted(api)로 보아 따로 조회(복호화)하지
+// 않는다 — 냈으면 입력 대신 「이미 냈습니다」와 보기 · 홈. 그 칸이 없는 옛 api 면 입력 버튼을 그대로 둔다 — 입력 화면이 이미 낸 소속을
+// 보기 화면으로 보낸다.
 // 소속 근무지에서 왔으면(`?store=`) 뒤로 가기 · 알림 뒤 주소에 이어 준다.
 export default async function ContractDonePage({ params, searchParams }: PageProps<"/contracts/[contractId]/done">) {
   await requireSession();
@@ -85,8 +74,9 @@ export default async function ContractDonePage({ params, searchParams }: PagePro
   if (c.status !== "SIGNED" || c.contractMethod === "PAPER") redirect(detailHref, RedirectType.replace);
 
   const [employmentTypes, memberships] = await Promise.all([getEnumOrEmpty("EmploymentType"), getMyMemberships()]);
-  const staffMemberId = memberships?.items.find((m) => m.store.storeId === c.storeId)?.staffMemberId;
-  const taxSubmitted = staffMemberId !== undefined && (await taxProfileSubmitted(staffMemberId));
+  const membership = memberships?.items.find((m) => m.staffMemberId === c.staffMemberId);
+  const staffMemberId = membership?.staffMemberId;
+  const taxSubmitted = membership?.taxProfileSubmitted === true;
   const taxHref = staffMemberId === undefined ? null : `/me/memberships/${staffMemberId}/tax-profile`;
   return (
     <>
