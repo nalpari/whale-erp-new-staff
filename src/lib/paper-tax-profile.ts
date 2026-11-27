@@ -37,6 +37,18 @@ export function taxProfileDueMemberships<M extends Membership & { taxProfileSubm
 }
 
 /**
+ * 종이 계약 소속의 신고 정보를 냈다고 확인했는지 — 가입 완료가 「할 일 없음」을 확정할 때 쓴다. 냈다는 값(true)이 있어야만 참이고,
+ * 짝을 맞추지 못했거나(staffMemberId 없음) 냈는지 모르면(칸이 없는 옛 api) 거짓이라 지금 안내를 그대로 둔다.
+ */
+export function paperTaxProfileConfirmed<M extends Membership & { taxProfileSubmitted?: boolean }>(
+  memberships: readonly M[],
+  contracts: readonly Contract[],
+  today: string,
+): boolean {
+  return paperSignedMemberships(memberships, contracts, today).some((m) => m.taxProfileSubmitted === true);
+}
+
+/**
  * 근무지 추가 · 복귀 확인 수락에 함께 온 계약(contractIds)이 모두 종이 계약인지 — 그러면 날인할 것이 없어 신고 정보 입력으로 잇는다.
  * found 는 내 계약 목록에서 찾은 그 계약들이다. 하나라도 찾지 못했으면(목록 실패 · 늦음) false — 못 찾은 것이 전자계약이면 서명 안내가 사라져서다.
  * 겹친 id 는 하나로 본다.

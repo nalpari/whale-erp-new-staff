@@ -7,7 +7,7 @@ import { readJoinedStore } from "@/lib/invitation-cookie";
 import { HOME_PATH } from "@/lib/login-return";
 import { kstToday } from "@/lib/join";
 import { getMyMembershipsForExtra, getMyProfileForExtra } from "@/lib/my-profile";
-import { paperSignedMemberships, taxProfileDueMemberships, taxProfileNewHref } from "@/lib/paper-tax-profile";
+import { paperTaxProfileConfirmed, taxProfileDueMemberships, taxProfileNewHref } from "@/lib/paper-tax-profile";
 import { dateLabel } from "@/lib/profile";
 import { getSession } from "@/lib/session";
 import { AuthScreen } from "../../_components/auth-screen";
@@ -114,8 +114,7 @@ async function paperTaxDue() {
   const today = kstToday();
   const [taxDue] = taxProfileDueMemberships(memberships.items, contracts, today);
   const awaitingSign = contracts.some((c) => c.awaitingSignature);
-  // 신고 정보를 냈다고 확인한 종이 계약 소속이 있을 때만 할 일이 없다고 본다 — 짝을 맞추지 못하거나(staffMemberId 없음) 냈는지 모르면(옛 api) 지금 안내 그대로
-  const paperOnly =
-    !taxDue && !awaitingSign && paperSignedMemberships(memberships.items, contracts, today).some((m) => m.taxProfileSubmitted === true);
+  // 신고 정보를 냈다고 확인한 종이 계약 소속이 있을 때만 할 일이 없다 — 냈는지 모르면 지금 안내 그대로(paperTaxProfileConfirmed)
+  const paperOnly = !taxDue && !awaitingSign && paperTaxProfileConfirmed(memberships.items, contracts, today);
   return { taxDue: taxDue ?? null, awaitingSign, paperOnly };
 }

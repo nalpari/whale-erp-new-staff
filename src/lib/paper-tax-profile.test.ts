@@ -1,7 +1,7 @@
 // node --test src/lib/paper-tax-profile.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { allPaper, paperSignedMemberships, taxProfileDueMemberships, taxProfileNewHref } from "./paper-tax-profile.ts";
+import { allPaper, paperSignedMemberships, paperTaxProfileConfirmed, taxProfileDueMemberships, taxProfileNewHref } from "./paper-tax-profile.ts";
 
 const TODAY = "2026-11-27";
 const member = (staffMemberId: number, retiredDate: string | null = null) => ({ staffMemberId, retiredDate });
@@ -60,6 +60,19 @@ test("신고 정보를 내지 않은 종이 계약 소속만 — 냈거나 냈�
   const electronic = { ...member(4), taxProfileSubmitted: false };
   const contracts = [contract(1, "PAPER"), contract(2, "PAPER"), contract(3, "PAPER"), contract(4, "ELECTRONIC")];
   assert.deepEqual(taxProfileDueMemberships([due, submitted, unknown, electronic], contracts, TODAY), [due]);
+});
+
+test("신고 정보를 낼 소속이 여럿이면 소속 목록 순서 그대로", () => {
+  const [a, b] = [{ ...member(7), taxProfileSubmitted: false }, { ...member(3), taxProfileSubmitted: false }];
+  assert.deepEqual(taxProfileDueMemberships([a, b], [contract(3, "PAPER"), contract(7, "PAPER")], TODAY), [a, b]);
+});
+
+test("낸 것을 확인한 종이 계약 소속이 있을 때만 할 일 없음 — 냈는지 모르거나 짝을 못 맞추면 아니다", () => {
+  const contracts = [contract(1, "PAPER")];
+  assert.equal(paperTaxProfileConfirmed([{ ...member(1), taxProfileSubmitted: true }], contracts, TODAY), true);
+  assert.equal(paperTaxProfileConfirmed([{ ...member(1), taxProfileSubmitted: false }], contracts, TODAY), false);
+  assert.equal(paperTaxProfileConfirmed([member(1)], contracts, TODAY), false);
+  assert.equal(paperTaxProfileConfirmed([{ ...member(2), taxProfileSubmitted: true }], contracts, TODAY), false);
 });
 
 test("처음 넣기 화면 주소", () => {
