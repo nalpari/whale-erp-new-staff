@@ -7,8 +7,9 @@ import { getContractsOrNull, type ContractListItem } from "@/lib/contracts";
 import { HOME_PATH } from "@/lib/login-return";
 import { HQ_NOT_RECORDED, HQ_NOT_RECORDED_NOTICE } from "@/lib/hq-sharing-terms";
 import { readAcceptedStore } from "@/lib/invitation-cookie";
-import { getMyMembershipsForExtra, paperTaxProfileDue } from "@/lib/my-profile";
-import { allPaper, taxProfileNewHref } from "@/lib/paper-tax-profile";
+import { kstToday } from "@/lib/join";
+import { getMyMembershipsForExtra } from "@/lib/my-profile";
+import { allPaper, taxProfileDueMemberships, taxProfileNewHref } from "@/lib/paper-tax-profile";
 import { Accent, ActionPill, BigTitle, BODY, InfoPill, Lead } from "../screen-parts";
 
 // 근무지 추가 확인 요청에 답한 뒤의 화면(WHALEERP-144) — 근무지 추가 완료(데모 join 의 addsite-done) · 거절 · 더 답할 수 없는 요청.
@@ -58,8 +59,8 @@ async function contractsOf(contractIds: number[]): Promise<{ all: ContractListIt
 }
 
 /**
- * 수락 완료의 다음 할 일. 함께 온 계약을 모두 찾았고 모두 종이 계약이면(paper) 그 계약의 소속(직원 레코드)의 신고 정보 입력 — 내지 않은
- * 소속이 있을 때만이고 조회 실패면 둔다. 그 소속에 따로 서명을 기다리는 계약이 있으면 서명이 먼저라 두지 않는다(판정에 내 계약 전체를 넘긴다).
+ * 수락 완료의 다음 할 일. 함께 온 계약을 모두 찾았고 모두 종이 계약이면(paper) 그 계약의 소속(직원 레코드)의 신고 정보 입력 — 소속 목록이
+ * 신고 정보를 내지 않았다고 할 때만. 그 소속에 따로 서명을 기다리는 계약이 있으면 서명이 먼저라 두지 않는다(판정에 내 계약 전체를 넘긴다).
  * 아니면 그 계약서. 목록을 못 읽어 계약을 다 찾지 못하면 계약서로 보낸다(전과 같다 — 근무지 없이 그 계약서 · 목록).
  */
 async function nextOf(contractIds: number[]): Promise<{ paper: boolean; next: { kind: "contract" | "tax"; href: string } | null }> {
@@ -69,7 +70,7 @@ async function nextOf(contractIds: number[]): Promise<{ paper: boolean; next: { 
     const memberships = await getMyMembershipsForExtra("affiliation-done:memberships");
     const records = new Set(found.map((c) => c.staffMemberId));
     const mine = memberships?.items.filter((m) => records.has(m.staffMemberId)) ?? [];
-    const [due] = await paperTaxProfileDue(mine, all, true, "affiliation-done:tax-profile");
+    const [due] = taxProfileDueMemberships(mine, all, kstToday());
     return { paper, next: due ? { kind: "tax", href: taxProfileNewHref(due.staffMemberId) } : null };
   }
   const href = contractHrefOf(contractIds, found[0]?.storeId ?? null);

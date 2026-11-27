@@ -5,8 +5,9 @@ import { getContractsOrNull } from "@/lib/contracts";
 import { HQ_NOT_RECORDED, HQ_NOT_RECORDED_NOTICE, isHqNotRecorded } from "@/lib/hq-sharing-terms";
 import { readJoinedStore } from "@/lib/invitation-cookie";
 import { HOME_PATH } from "@/lib/login-return";
-import { getMyMembershipsForExtra, getMyProfileForExtra, paperTaxProfileDue } from "@/lib/my-profile";
-import { taxProfileNewHref } from "@/lib/paper-tax-profile";
+import { kstToday } from "@/lib/join";
+import { getMyMembershipsForExtra, getMyProfileForExtra } from "@/lib/my-profile";
+import { paperTaxProfileConfirmed, taxProfileDueMemberships, taxProfileNewHref } from "@/lib/paper-tax-profile";
 import { dateLabel } from "@/lib/profile";
 import { getSession } from "@/lib/session";
 import { AuthScreen } from "../../_components/auth-screen";
@@ -110,11 +111,10 @@ async function paperTaxDue() {
     getContractsOrNull("join-done:contracts"),
   ]);
   if (!memberships || !contracts) return { taxDue: null, awaitingSign: false, paperOnly: false };
-  const [taxDue] = await paperTaxProfileDue(memberships.items, contracts, true, "join-done:tax-profile");
+  const today = kstToday();
+  const [taxDue] = taxProfileDueMemberships(memberships.items, contracts, today);
   const awaitingSign = contracts.some((c) => c.awaitingSignature);
-  // 지금 소속(직원 레코드)과 짝을 맞춘 종이 계약이 있을 때만 할 일이 없다고 본다 — staffMemberId 가 없는 옛 api 응답이면 짝을 맞추지 못해 지금 안내 그대로
-  const records = new Set(memberships.items.map((m) => m.staffMemberId));
-  const paperOnly =
-    !taxDue && !awaitingSign && contracts.some((c) => c.status === "SIGNED" && c.contractMethod === "PAPER" && records.has(c.staffMemberId));
+  // 신고 정보를 냈다고 확인한 종이 계약 소속이 있을 때만 할 일이 없다 — 냈는지 모르면 지금 안내 그대로(paperTaxProfileConfirmed)
+  const paperOnly = !taxDue && !awaitingSign && paperTaxProfileConfirmed(memberships.items, contracts, today);
   return { taxDue: taxDue ?? null, awaitingSign, paperOnly };
 }

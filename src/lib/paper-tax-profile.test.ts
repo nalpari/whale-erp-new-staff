@@ -1,7 +1,7 @@
 // node --test src/lib/paper-tax-profile.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { allPaper, paperSignedMemberships, taxProfileDueOf, taxProfileNewHref } from "./paper-tax-profile.ts";
+import { allPaper, paperSignedMemberships, paperTaxProfileConfirmed, taxProfileDueMemberships, taxProfileNewHref } from "./paper-tax-profile.ts";
 
 const TODAY = "2026-11-27";
 const member = (staffMemberId: number, retiredDate: string | null = null) => ({ staffMemberId, retiredDate });
@@ -53,13 +53,33 @@ test("함께 온 계약을 모두 찾았고 모두 종이 계약일 때만 allPa
   assert.equal(allPaper([], []), false);
 });
 
-test("신고 정보를 내지 않은 재직 소속만 안내하고 조회 실패는 keepUnknown 을 따른다", () => {
-  assert.equal(taxProfileDueOf({ taxProfile: null, editable: true }, false), true);
-  assert.equal(taxProfileDueOf({ taxProfile: null }, false), true);
-  assert.equal(taxProfileDueOf({ taxProfile: { bankCode: "004" }, editable: true }, true), false);
-  assert.equal(taxProfileDueOf({ taxProfile: null, editable: false }, true), false);
-  assert.equal(taxProfileDueOf(null, true), true);
-  assert.equal(taxProfileDueOf(null, false), false);
+test("신고 정보를 내지 않은 종이 계약 소속만 — 냈거나 냈는지 모르면(옛 api) 안내하지 않는다", () => {
+  const due = { ...member(1), taxProfileSubmitted: false };
+  const submitted = { ...member(2), taxProfileSubmitted: true };
+  const unknown = member(3);
+  const electronic = { ...member(4), taxProfileSubmitted: false };
+  const contracts = [contract(1, "PAPER"), contract(2, "PAPER"), contract(3, "PAPER"), contract(4, "ELECTRONIC")];
+  assert.deepEqual(taxProfileDueMemberships([due, submitted, unknown, electronic], contracts, TODAY), [due]);
+});
+
+test("신고 정보를 낼 소속이 여럿이면 소속 목록 순서 그대로", () => {
+  const [a, b] = [{ ...member(7), taxProfileSubmitted: false }, { ...member(3), taxProfileSubmitted: false }];
+  assert.deepEqual(taxProfileDueMemberships([a, b], [contract(3, "PAPER"), contract(7, "PAPER")], TODAY), [a, b]);
+});
+
+test("낸 것을 확인한 종이 계약 소속이 있을 때만 할 일 없음 — 냈는지 모르거나 짝을 못 맞추면 아니다", () => {
+  const contracts = [contract(1, "PAPER")];
+  assert.equal(paperTaxProfileConfirmed([{ ...member(1), taxProfileSubmitted: true }], contracts, TODAY), true);
+  assert.equal(paperTaxProfileConfirmed([{ ...member(1), taxProfileSubmitted: false }], contracts, TODAY), false);
+  assert.equal(paperTaxProfileConfirmed([member(1)], contracts, TODAY), false);
+  assert.equal(paperTaxProfileConfirmed([{ ...member(2), taxProfileSubmitted: true }], contracts, TODAY), false);
+  // 한 곳은 냈고 한 곳은 냈는지 모르면 확정하지 않는다
+  const two = [contract(1, "PAPER"), contract(2, "PAPER")];
+  assert.equal(paperTaxProfileConfirmed([{ ...member(1), taxProfileSubmitted: true }, member(2)], two, TODAY), false);
+  assert.equal(
+    paperTaxProfileConfirmed([{ ...member(1), taxProfileSubmitted: true }, { ...member(2), taxProfileSubmitted: true }], two, TODAY),
+    true,
+  );
 });
 
 test("처음 넣기 화면 주소", () => {
