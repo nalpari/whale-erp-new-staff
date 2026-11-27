@@ -96,7 +96,8 @@ export function shownTermsVersionsOf(items: readonly LoadedTerms[]): ShownTermsV
  * 버튼만 다시 눌러 보지 않은 약관에 동의한 것으로 남지 않게 한다.
  */
 export const termsVersionKey = (items: readonly LoadedTerms[]) =>
-  items.map((item) => `${item.key}:${item.current.status === "ok" ? item.current.terms.version : "-"}`).join("|");
+  // 상태와 버전을 따로 실어 「약관 없음」과 버전 문자열 「-」 같은 값이 겹치지 않게 한다(PR-Agent)
+  JSON.stringify(items.map((item) => [item.key, item.current.status, item.current.status === "ok" ? item.current.terms.version : null]));
 
 /**
  * 가입 화면이 받은 약관 셋의 상태 — missing 은 필수 약관이 등록 · 시행되지 않음(설정 문제, 새로 고쳐도 같다), unavailable 은 필수나

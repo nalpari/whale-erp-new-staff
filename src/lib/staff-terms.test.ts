@@ -130,7 +130,15 @@ test("termsVersionKey — 보인 버전이 하나라도 바뀌면 키가 바뀐�
     { key: "privacy", current: ok("v1.0") },
     { key: "marketing", current: { status: "missing" } },
   ]);
-  assert.equal(before, "termsService:v1.0|privacy:v1.0|marketing:-");
+  // 약관 없음과 버전 「-」 는 다른 키다
+  assert.notEqual(
+    termsVersionKey([
+      { key: "termsService", current: ok("v1.0") },
+      { key: "privacy", current: ok("v1.0") },
+      { key: "marketing", current: ok("-") },
+    ]),
+    before,
+  );
   assert.notEqual(
     termsVersionKey([
       { key: "termsService", current: ok("v1.0") },
