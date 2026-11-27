@@ -23,7 +23,7 @@ export const metadata: Metadata = { title: "가입 완료 · Whale ERP" };
 export default async function JoinDonePage({ searchParams }: PageProps<"/join/done">) {
   const session = await getSession();
   if (!session) redirect("/login");
-  const [storeName, profile, hqNotRecorded, { taxDue, awaitingSign }] = await Promise.all([
+  const [storeName, profile, hqNotRecorded, { taxDue, awaitingSign, paperOnly }] = await Promise.all([
     readJoinedStore(),
     getMyProfileForExtra("profile-join-done"),
     searchParams.then((p) => isHqNotRecorded(p[HQ_NOT_RECORDED.key])),
@@ -76,35 +76,41 @@ export default async function JoinDonePage({ searchParams }: PageProps<"/join/do
       {/* 생년월일 줄을 못 읽어 뺐으면 안내도 뺀다 */}
       {profile && <p className="text-[12px] text-staff-text-muted">생년월일은 가입한 뒤 앱에서 변경할 수 없습니다.</p>}
       {hqNotRecorded && <Alert tone="warning">{HQ_NOT_RECORDED_NOTICE}</Alert>}
-      <Notice>
-        {taxDue ? (
-          <>
-            근로계약은 종이로 맺었습니다. 급여 신고에 쓸 정보를 입력해 주세요.
-            {awaitingSign && (
-              <>
-                <br />
-                서명을 기다리는 근로계약서는 홈에서 확인하고 서명해 주세요.
-              </>
-            )}
-          </>
-        ) : (
-          "근무지에서 보낸 근로계약서는 홈에서 내용을 확인하고 서명해 주세요."
-        )}
-      </Notice>
+      {/* 종이 계약만 있고 신고 정보도 냈으면 할 일이 없어 안내를 두지 않는다 */}
+      {!paperOnly && (
+        <Notice>
+          {taxDue ? (
+            <>
+              근로계약은 종이로 맺었습니다. 급여 신고에 쓸 정보를 입력해 주세요.
+              {awaitingSign && (
+                <>
+                  <br />
+                  서명을 기다리는 근로계약서는 홈에서 확인하고 서명해 주세요.
+                </>
+              )}
+            </>
+          ) : (
+            "근무지에서 보낸 근로계약서는 홈에서 내용을 확인하고 서명해 주세요."
+          )}
+        </Notice>
+      )}
     </AuthScreen>
   );
 }
 
 /**
- * 신고 정보를 넣어야 하는 종이 계약 소속(소속 목록 순서의 첫째, 없거나 소속 · 계약 목록을 못 받았으면 null)과 지금 서명할 계약이 있는지.
- * 곁들임이라 두 목록의 실패(401 밖)는 화면을 깨지 않는다.
+ * 신고 정보를 넣어야 하는 종이 계약 소속(소속 목록 순서의 첫째, 없거나 소속 · 계약 목록을 못 받았으면 null), 지금 서명할 계약이 있는지,
+ * 할 일이 없음을 확인했는지(paperOnly — 서명 완료 종이 계약만 있고 서명할 계약도 넣을 신고 정보도 없음). 곁들임이라 두 목록의
+ * 실패(401 밖)는 화면을 깨지 않고, 실패면 할 일을 확인하지 못한 것으로 보고 지금 안내 그대로다.
  */
 async function paperTaxDue() {
   const [memberships, contracts] = await Promise.all([
     getMyMembershipsForExtra("join-done:memberships"),
     getContractsOrNull("join-done:contracts"),
   ]);
-  if (!memberships || !contracts) return { taxDue: null, awaitingSign: false };
+  if (!memberships || !contracts) return { taxDue: null, awaitingSign: false, paperOnly: false };
   const [taxDue] = await paperTaxProfileDue(memberships.items, contracts, true, "join-done:tax-profile");
-  return { taxDue: taxDue ?? null, awaitingSign: contracts.some((c) => c.awaitingSignature) };
+  const awaitingSign = contracts.some((c) => c.awaitingSignature);
+  const paperOnly = !taxDue && !awaitingSign && contracts.some((c) => c.status === "SIGNED" && c.contractMethod === "PAPER");
+  return { taxDue: taxDue ?? null, awaitingSign, paperOnly };
 }
