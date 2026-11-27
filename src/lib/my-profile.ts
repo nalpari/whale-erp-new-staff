@@ -2,6 +2,9 @@ import { connection } from "next/server";
 
 import { requestsLoadFailure } from "./affiliation-requests";
 import { ApiError, NetworkError, failureOf, logFailure, logUnexpected, request, type Schemas } from "./api";
+import type { ContractListItem } from "./contracts";
+import { kstToday } from "./join";
+import { paperSignedMemberships } from "./paper-tax-profile";
 import { authedRequest } from "./session";
 
 /** 내 정보(`GET /me/profile`). 이 화면의 뼈대라 실패하면 그대로 던져 error.tsx 가 받는다. */
@@ -68,6 +71,32 @@ export async function getMyAffiliationRequests(): Promise<Schemas["AffiliationRe
  */
 export const getMyTaxProfile = (staffMemberId: number) =>
   orNull(() => authedRequest<Schemas["MyTaxProfileResponseDto"]>(`/me/memberships/${staffMemberId}/tax-profile`));
+
+/**
+ * 서명 완료 종이 계약이 있는 지금 소속 중 신고 정보를 아직 내지 않은 것(WHALEERP-775, paperSignedMemberships). 소속마다 신고 정보를
+ * 나란히 조회한다. 조회하지 못한 소속(5xx · 연결 실패 · 404 등)은 keepUnknown 이면 넣는다 — 완료 화면은 버튼을 그대로 두고 입력 화면이
+ * 이미 낸 소속을 보기 화면으로 보낸다(전자계약 서명 완료 화면과 같다). 홈 카드는 빼서 이미 낸 직원에게 잘못 띄우지 않는다.
+ * 퇴직한 근무지(`editable: false`)는 넣을 수 없어 뺀다. 401 의 만료 안내 redirect 와 결함은 그대로 던진다.
+ */
+export async function paperTaxProfileDue<M extends Schemas["MyMembershipDto"]>(
+  memberships: readonly M[],
+  contracts: readonly Pick<ContractListItem, "storeId" | "status" | "contractMethod">[],
+  keepUnknown: boolean,
+): Promise<M[]> {
+  const candidates = paperSignedMemberships(memberships, contracts, kstToday());
+  const due = await Promise.all(
+    candidates.map(async (m) => {
+      try {
+        const tax = await getMyTaxProfile(m.staffMemberId);
+        return tax === null ? keepUnknown : tax.editable !== false && !tax.taxProfile;
+      } catch (error) {
+        if (error instanceof ApiError) return keepUnknown;
+        throw error;
+      }
+    }),
+  );
+  return candidates.filter((_, i) => due[i]);
+}
 
 export type CurrentTerms =
   | { status: "ok"; terms: Schemas["TermsVersionDetailResponseDto"] }
