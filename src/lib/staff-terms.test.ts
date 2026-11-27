@@ -79,6 +79,9 @@ test("termsAgreementBody — 보인 버전 셋 · 마케팅. 버전이 비었거
   assert.equal(termsAgreementBody({ ...versions, privacyVersion: "" }, false), null);
   assert.equal(termsAgreementBody({ ...versions, marketingVersion: "v".repeat(65) }, false), null);
   assert.equal(termsAgreementBody({ ...versions, termsServiceVersion: 3 as unknown as string }, false), null);
+  // 서버 액션은 누구나 아무 값으로 부를 수 있다 — 객체가 아니면 던지지 않고 null
+  assert.equal(termsAgreementBody(null as unknown as typeof versions, false), null);
+  assert.equal(termsAgreementBody("v1.0" as unknown as typeof versions, false), null);
 });
 
 test("termsAgreementFailure — 약관이 바뀐 409 는 사유와 다시 받기, 이미 동의한 409 는 다시 받기만", () => {

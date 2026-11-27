@@ -48,6 +48,8 @@ const isVersion = (value: unknown): value is string => typeof value === "string"
  * 버전 모양을 다시 본다(맞지 않으면 null). 마케팅은 시행 중인 것이 없을 수 있어 보인 것이 없으면 null 이다.
  */
 export function termsAgreementBody(versions: ShownTermsVersions, marketingAgreed: boolean) {
+  // 서버 액션 인자는 타입과 다르게 올 수 있다(null · 문자열) — 구조 분해 전에 객체인지 본다(PR-Agent)
+  if (typeof versions !== "object" || versions === null) return null;
   const { termsServiceVersion, privacyVersion, marketingVersion } = versions;
   if (!isVersion(termsServiceVersion) || !isVersion(privacyVersion)) return null;
   if (marketingVersion !== null && !isVersion(marketingVersion)) return null;
