@@ -62,6 +62,7 @@ export default async function NewTaxProfilePage({ params, searchParams }: PagePr
         <TaxProfileCreateForm
           action={createTaxProfileAction.bind(null, String(staffMemberId))}
           viewHref={viewHref}
+          storeName={storeName}
           realName={forForm[0].realName}
           birthDate={forForm[0].birthDate}
           birthDateLabel={dateLabel(forForm[0].birthDate)}
