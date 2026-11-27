@@ -226,7 +226,7 @@ components:
 
 화면을 옮길 때는 방향 있는 슬라이드를 쓴다(React `<ViewTransition>`). (app) · (auth) 레이아웃의 `PageSlide`(`components/common/page-slide.tsx`)가 건다.
 더 깊은 화면으로 가는 링크에는 `transitionTypes={["nav-forward"]}`, 돌아가는 링크에는 `["nav-back"]` 을 붙인다(`PageHeader` 의 뒤로 가기는 이미 붙어 있다).
-나가는 화면은 150ms 로 흐려지며 60px 비키고, 들어오는 화면은 같이 시작해 320ms 동안 60px 를 미끄러진다. 방향이 없는 이동(뒤로 가기 · router.push)은 160ms 겹침 흐림(page-fade)이고, 움직임 줄이기 설정에서는 움직이지 않는다.
+나가는 화면은 곧바로 감추고, 들어오는 화면만 280ms 동안 60px 를 미끄러진다(두 화면이 겹쳐 비치지 않게, Safari 실기기 피드백). 방향이 없는 이동(뒤로 가기 · router.push)은 새 화면이 160ms 동안 나타나고(page-fade), 움직임 줄이기 설정에서는 움직이지 않는다.
 하단 메뉴(`BottomNav`)로 칸을 옮길 때도 같은 슬라이드를 쓴다 — 오른쪽 칸은 nav-forward, 왼쪽 칸은 nav-back. 메뉴 자신은 `view-transition-name: bottom-nav` 로 떼어 제자리에 둔다.
 
 ## Elevation & Depth
@@ -358,7 +358,7 @@ KB · 우리은행 앱처럼 정돈된 느낌으로 직원 화면을 다듬었�
 - **Do** 직원앱 화면은 `StaffRoot` 안에 둔다. 밝은 테마·글꼴·포커스색·자동완성 바탕은 `StaffRoot` 가 걸고, 루트 `globals.css` 는 토큰과 바탕색·화면 이동 슬라이드·토스트 애니메이션(`staff-toast`)만 둔다.
 - **Do** 색은 `--color-staff-*` 토큰에서 가져온다. 배지 색처럼 한 곳에만 나오는 색은 쓰는 자리에 직접 적고 주석을 단다.
 - **Do** 누를 것은 44px 이상으로 둔다. 주 동작은 52px.
-- **Do** 색·누름 전환은 150~200ms, `cubic-bezier(0.23,1,0.32,1)` 하나로 맞춘다. 자리를 옮기는 움직임(바텀시트 260ms, 화면 슬라이드 320ms)은 더 길게 둔다.
+- **Do** 색·누름 전환은 150~200ms, `cubic-bezier(0.23,1,0.32,1)` 하나로 맞춘다. 자리를 옮기는 움직임(바텀시트 260ms, 화면 슬라이드 280ms)은 더 길게 둔다.
 - **Do** 상태 배지에는 늘 글자를 함께 둔다.
 
 ### Don't:

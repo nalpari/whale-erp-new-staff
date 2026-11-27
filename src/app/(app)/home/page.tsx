@@ -65,7 +65,7 @@ export default async function HomePage() {
       </div>
       {/* 로그아웃이 내 정보로 옮겨 가 홈에서도 하단 메뉴로 내 정보에 간다. */}
       <div className="sticky bottom-0 mt-auto">
-        <BottomNav current="/" />
+        <BottomNav current="/home" />
       </div>
       {/* 서명 요청(WHALEERP-148) · 소속 추가 요청(WHALEERP-144) · 사업자 제공 다시 동의(ATT-30 v252)는 팝업으로만 알린다. 따로 받아 api 가 느려도 홈을 먼저 보인다. */}
       <Suspense>

@@ -1,13 +1,18 @@
-// 로그인 화면의 「아이디 저장하기」 · 「자동로그인」 체크 기억. 로그인하기 전에 새로 고쳐도 고른 값이 남게 한다(2026-11-26 실기기 피드백).
-// 처음에는 둘 다 끔이다(2026-10-20 노영주). 저장소를 못 쓰면(사생활 보호 모드 등) 기억하지 않는다.
-// - 아이디 저장하기: 이 기기(localStorage)에 둔다 — 저장한 이메일(saved_email 쿠키)과 같이 다음 로그인에도 남는다.
-// - 자동로그인: 이 탭(sessionStorage)에만 두고 로그인을 보낼 때 지운다(실패해도 다시 두지 않고 화면 상태로만 남긴다). 공용 기기에서 앞 사람이 켠 자동로그인이
-//   다음 사람의 로그인 화면에 켜진 채 넘어가지 않게(PR #101 pr-agent 리뷰).
+// 로그인 화면의 「아이디 저장하기」 체크 기억. 로그인하기 전에 새로 고쳐도 고른 값이 남게 한다(2026-11-26 실기기 피드백).
+// 처음에는 끔이다(2026-10-20 노영주) — 저장한 이메일(saved_email 쿠키)이 있으면 켜진 채 시작하고, 이 탭에 기억한 값이 있으면 그 값이 앞선다. 저장소를 못 쓰면(사생활 보호 모드 등) 기억하지 않는다.
+// - 이 탭(sessionStorage)에만 두고 로그인을 보낼 때 지운다. 기기 전체(localStorage)에 두면 공용 기기에서 앞 사람이 켜기만 하고 떠났을 때
+//   다음 사람의 화면이 이메일 칸은 빈 채 체크만 켜져, 그대로 로그인하면 그 사람의 이메일이 1년짜리 쿠키에 남았다(PR #101 재영 리뷰 1).
+//   탭으로 좁혔을 뿐이라, 같은 탭(복제한 탭 · 브라우저가 되살린 탭 포함, 설치형 앱은 앱이 켜져 있는 동안)에서 켜기만 하고 보내지 않은 채 떠나면 다음 사람에게
+//   남고, 그 사람이 그대로 로그인하면 이메일이 saved_email 쿠키에 남는다 —
+//   재영님이 제안한 두 방법 중 이쪽을 골랐다.
+// - 자동로그인은 기억하지 않는다 — 새로 고치면 꺼진 채다. 켜기만 하고 보내지 않은 채 떠나면 같은 탭에서 새로 고친 다음 사람에게 켜진 채
+//   보였다(PR #101 재영 리뷰 3). 새로 고쳐도 남기는 것은 아이디 저장뿐이다.
 
 const SAVE_EMAIL_KEY = "staff:login-choices";
-const AUTO_LOGIN_KEY = "staff:login-auto";
+/** 전에 자동로그인을 이 탭에 기억하던 키 — 이제 쓰지 않고 지우기만 한다. */
+const LEGACY_AUTO_LOGIN_KEY = "staff:login-auto";
 
-/** 저장된 「아이디 저장하기」 기억을 읽는다. 모양이 다르면(손상 · 옛 형식) 없는 것으로 본다. 옛 형식에 함께 있던 autoLogin 은 읽지 않는다. */
+/** 저장된 「아이디 저장하기」 기억을 읽는다. 모양이 다르면(손상) 없는 것으로 본다. saveEmail 말고 다른 값은 보지 않는다. */
 export function parseSaveEmailChoice(raw: string | null): boolean | null {
   if (!raw) return null;
   try {
@@ -22,7 +27,7 @@ export function parseSaveEmailChoice(raw: string | null): boolean | null {
 
 export function readSaveEmailChoice(): boolean | null {
   try {
-    return parseSaveEmailChoice(window.localStorage.getItem(SAVE_EMAIL_KEY));
+    return parseSaveEmailChoice(window.sessionStorage.getItem(SAVE_EMAIL_KEY));
   } catch {
     return null;
   }
@@ -30,37 +35,23 @@ export function readSaveEmailChoice(): boolean | null {
 
 export function rememberSaveEmailChoice(saveEmail: boolean): void {
   try {
-    window.localStorage.setItem(SAVE_EMAIL_KEY, JSON.stringify({ saveEmail }));
+    window.sessionStorage.setItem(SAVE_EMAIL_KEY, JSON.stringify({ saveEmail }));
   } catch {
     // 저장소를 못 쓰면 기억하지 않는다 — 이번 화면에서는 고른 값이 그대로 남는다.
   }
 }
 
-/** 이 탭에서 로그인을 보내기 전에 켜 둔 자동로그인인지. */
-export function readAutoLoginChoice(): boolean {
-  try {
-    return window.sessionStorage.getItem(AUTO_LOGIN_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-/** 켜면 이 탭에 기억하고, 끄면 지운다. */
-export function rememberAutoLoginChoice(autoLogin: boolean): void {
-  try {
-    if (autoLogin) window.sessionStorage.setItem(AUTO_LOGIN_KEY, "1");
-    else window.sessionStorage.removeItem(AUTO_LOGIN_KEY);
-  } catch {
-    // 위와 같다.
-  }
-}
-
-/** 탈퇴한 뒤에는 고른 값을 모두 잊는다(저장한 이메일과 함께). */
+/** 로그인을 보낼 때 · 탈퇴한 뒤에 고른 값을 잊는다. 옛 형식(기기 전체 · 자동로그인 탭 기억)도 함께 지운다. */
 export function forgetLoginChoices(): void {
-  try {
-    window.localStorage.removeItem(SAVE_EMAIL_KEY);
-  } catch {
-    // 위와 같다.
+  for (const remove of [
+    () => window.sessionStorage.removeItem(SAVE_EMAIL_KEY),
+    () => window.localStorage.removeItem(SAVE_EMAIL_KEY),
+    () => window.sessionStorage.removeItem(LEGACY_AUTO_LOGIN_KEY),
+  ]) {
+    try {
+      remove();
+    } catch {
+      // 저장소를 못 쓰면 지울 것도 없다.
+    }
   }
-  rememberAutoLoginChoice(false);
 }

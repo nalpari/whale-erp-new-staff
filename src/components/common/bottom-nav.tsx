@@ -8,7 +8,8 @@ export type BottomNavItem = { href: string; label: string; icon: string; activeI
 // 직원앱 하단 메뉴 다섯 칸. Figma 는 네 칸(홈·근무·급여·내 정보)이지만 2026-10-08 재영 결정으로 목업처럼 출퇴근을 더했다.
 // 출퇴근 아이콘은 Figma 에 없어 DESIGN.md 규칙(23px · 선 1.45)으로 그렸다. 경로는 화면이 생기면 실제 라우트에 맞춘다.
 export const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
-  { href: "/", label: "홈", icon: "/icons/nav-home.svg", activeIcon: "/icons/nav-home-on.svg" },
+  // 홈은 /home 으로 바로 간다 — / 는 (app) 틀 밖에서 /home 으로 보내기만 하는 페이지라, 거쳐 가면 틀이 통째로 다시 그려져 깜빡이고 화면 이동 움직임이 빠졌다(2026-11-27)
+  { href: "/home", label: "홈", icon: "/icons/nav-home.svg", activeIcon: "/icons/nav-home-on.svg" },
   { href: "/work", label: "근무", icon: "/icons/nav-work.svg", activeIcon: "/icons/nav-work-on.svg" },
   { href: "/check-in", label: "출퇴근", icon: "/icons/nav-attendance.svg" },
   { href: "/pay", label: "급여", icon: "/icons/nav-pay.svg" },
@@ -74,9 +75,15 @@ export function BottomNav({ current, items = BOTTOM_NAV_ITEMS, fixed = true }: {
   if (!fixed) return nav;
   return (
     <>
-      {/* 메뉴 자리 빈칸 — 메뉴와 같은 위 선 · 안쪽 여백에 칸 높이 55(아이콘 23 + 사이 3.5 + 글자 16.5 + 위아래 6씩 12) */}
-      <div aria-hidden className="border-t border-transparent pt-[9px] pb-[max(9px,env(safe-area-inset-bottom))]">
-        <div className="h-[55px]" />
+      {/* 메뉴 자리 빈칸 — 높이를 숫자로 박지 않고 메뉴 칸과 같은 틀(위 선 · 안쪽 여백 · 칸마다 아이콘 23 · 11px 글자)을 칸 수만큼 보이지 않게 그려 잡는다(글자는 모두 굵게 — 가장 넓은 경우로 잡는다).
+          휴대전화 글자 크기를 키워 메뉴가 높아지면(칸 글자가 두 줄로 접혀도) 빈칸도 같이 높아져 화면 맨 아래 줄이 가리지 않는다(PR #101 재영 리뷰 2 — 전엔 55px 고정). */}
+      <div aria-hidden className="invisible flex border-t border-transparent px-[12px] pt-[9px] pb-[max(9px,env(safe-area-inset-bottom))]">
+        {items.map((item) => (
+          <span key={item.label} className="flex min-h-[54px] flex-1 flex-col items-center gap-[3.5px] py-[6px] text-[11px] leading-[1.5] font-bold">
+            <span className="size-[23px]" />
+            {item.label}
+          </span>
+        ))}
       </div>
       {nav}
     </>
