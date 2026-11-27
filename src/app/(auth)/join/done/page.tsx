@@ -112,6 +112,9 @@ async function paperTaxDue() {
   if (!memberships || !contracts) return { taxDue: null, awaitingSign: false, paperOnly: false };
   const [taxDue] = await paperTaxProfileDue(memberships.items, contracts, true, "join-done:tax-profile");
   const awaitingSign = contracts.some((c) => c.awaitingSignature);
-  const paperOnly = !taxDue && !awaitingSign && contracts.some((c) => c.status === "SIGNED" && c.contractMethod === "PAPER");
+  // 지금 소속(직원 레코드)과 짝을 맞춘 종이 계약이 있을 때만 할 일이 없다고 본다 — staffMemberId 가 없는 옛 api 응답이면 짝을 맞추지 못해 지금 안내 그대로
+  const records = new Set(memberships.items.map((m) => m.staffMemberId));
+  const paperOnly =
+    !taxDue && !awaitingSign && contracts.some((c) => c.status === "SIGNED" && c.contractMethod === "PAPER" && records.has(c.staffMemberId));
   return { taxDue: taxDue ?? null, awaitingSign, paperOnly };
 }
