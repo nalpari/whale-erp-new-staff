@@ -8507,8 +8507,8 @@ export interface components {
             processedAt: string | null;
             contractId: number;
             /**
-             * @description 이 계약의 직원 레코드(소속) — `GET /me/memberships` 의 staffMemberId 와 같다. 퇴직 뒤 다시 입사하면 레코드가 새로 생겨 같은
-             *     근무지라도 값이 다르다(직원 앱이 이 소속의 계약인지 가른다, WHALEERP-775)
+             * @description 이 계약의 직원 레코드(소속) — `GET /me/memberships` 의 staffMemberId 와 같다(퇴직한 레코드는 `includeRetired=true` 일 때만
+             *     그 목록에 있다). 퇴직 뒤 다시 입사하면 레코드가 새로 생겨 같은 근무지라도 값이 다르다(직원 앱이 이 소속의 계약인지 가른다, WHALEERP-775)
              */
             staffMemberId: number;
             /** @description 근무지(소속) — 점포가 지워졌어도 이름은 보인다 */
@@ -8651,6 +8651,8 @@ export interface components {
             /** @description 계약서 조항 열 가지 — 보낸 원본 · 처리 완료본 PDF 와 같은 템플릿(WHALEERP-131). 화면은 이 순서대로 그린다 */
             articles: components["schemas"]["ContractArticleDto"][];
             contractId: number;
+            /** @description 목록과 같다 — 이 계약의 직원 레코드(소속), `GET /me/memberships` 의 staffMemberId(퇴직한 레코드는 `includeRetired=true` 일 때) */
+            staffMemberId: number;
             storeId: number;
             /** @description 목록과 같다 — 서명 대기 · 기한 안 · 재직 중 */
             awaitingSignature: boolean;
@@ -11045,6 +11047,11 @@ export interface components {
              *     레코드가 지금 소속 쪽에 섞일 수 있다
              */
             retiredDate: string | null;
+            /**
+             * @description 이 소속에 신고 정보를 냈는지 — 신고 정보 조회(`GET /me/memberships/:staffMemberId/tax-profile`)의 `taxProfile` 이 null 이
+             *     아닌 것과 같다(보존 기간이 지났으면 false). 직원 앱이 소속마다 신고 정보를 풀어 보지 않고 입력 안내를 가른다(WHALEERP-775)
+             */
+            taxProfileSubmitted: boolean;
         };
         MyMembershipListResponseDto: {
             /**
