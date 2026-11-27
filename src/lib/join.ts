@@ -66,7 +66,7 @@ export function parseInvitationLookup(raw: string | undefined): InvitationLookup
 export type InvitationProblem =
   | { kind: "not-found" | "ended" | "joined" | "has-account" | "rate-limited" }
   | { kind: "locked"; attemptLock: AttemptLock }
-  | { kind: "under-age" | "birth-date-in-future" | "email-taken" }
+  | { kind: "under-age" | "birth-date-in-future" | "email-taken" | "terms-changed" }
   | { kind: "unknown" };
 
 export function invitationProblemOf(error: { status: number; body: unknown }, serverNow = Date.now()): InvitationProblem {
@@ -77,6 +77,7 @@ export function invitationProblemOf(error: { status: number; body: unknown }, se
   if (error.status === 409 && code === "INVITATION_ALREADY_JOINED") return { kind: "joined" };
   if (error.status === 409 && code === "ACCOUNT_EXISTS") return { kind: "has-account" };
   if (error.status === 409 && code === "ACCOUNT_EMAIL_TAKEN") return { kind: "email-taken" };
+  if (error.status === 409 && code === "TERMS_CHANGED") return { kind: "terms-changed" };
   if (error.status === 400 && code === "SIGNUP_UNDER_AGE") return { kind: "under-age" };
   if (error.status === 400 && code === "BIRTH_DATE_IN_FUTURE") return { kind: "birth-date-in-future" };
   if (error.status === 429) {
@@ -94,7 +95,7 @@ export const isGender = (value: string): value is (typeof GENDERS)[number] => (G
 /** api StaffSignupDto 의 이름 최대 길이. api 는 NFC 로 바꾼 뒤 센다. */
 export const SIGNUP_NAME_MAX = 50;
 
-export type SignupField = "name" | "birthDate" | "gender" | "email" | "newPassword" | "newPasswordConfirmation" | "address" | "form";
+export type SignupField = "name" | "birthDate" | "gender" | "email" | "newPassword" | "newPasswordConfirmation" | "address" | "terms" | "form";
 
 /**
  * 가입 400 의 한글 사유를 붙일 칸. api 의 사유는 비밀번호 규칙(validateNewPassword) · 이메일 형식 · 생년월일 형식이 한글이다.
@@ -104,6 +105,7 @@ export function signupFieldOf(message: string): SignupField {
   if (message.includes("비밀번호")) return "newPassword";
   if (message.includes("생년월일")) return "birthDate";
   if (message.includes("이메일")) return "email";
+  if (message.includes("약관")) return "terms";
   return "form";
 }
 

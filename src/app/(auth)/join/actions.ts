@@ -1,5 +1,6 @@
 "use server";
 
+import { refresh } from "next/cache";
 import { headers } from "next/headers";
 import { RedirectType, redirect } from "next/navigation";
 import { RATE_LIMITED, isHangulReason } from "@/lib/action-errors";
@@ -9,6 +10,7 @@ import { checkInvitation, signup } from "@/lib/auth";
 import { clientIpFrom } from "@/lib/client-ip";
 import { normalizeBirthDate, normalizePhone } from "@/lib/email-find";
 import { hqNotRecordedParams, hqSharingConsentBody } from "@/lib/hq-sharing-terms";
+import { REQUIRED_TERMS_MISSING, signupTermsBody } from "@/lib/staff-terms";
 import { clearInvitation, readInvitation, saveInvitation, saveJoinedStore } from "@/lib/invitation-cookie";
 import {
   BAD_BIRTH_DATE,
@@ -106,6 +108,9 @@ export type SignupState =
   | { step: InvitationEnd | "expired" | "under-age" }
   | ({ step: "locked" } & AttemptLock);
 
+/** 필수 약관 본문을 받지 못한 가입 화면 — 보인 버전이 없어 동의를 보낼 수 없다. */
+const TERMS_NOT_LOADED = "약관을 불러오지 못했습니다. 화면을 새로 고친 뒤 다시 시도해 주세요";
+
 /** 가입 요청의 결과를 모른다(5xx · 연결 실패 · 시간 초과). 다시 누르면 api 가 지금 상태로 답한다. */
 const SIGNUP_UNKNOWN = "가입 결과를 확인하지 못했습니다. 잠시 뒤 「가입하기」를 다시 누르면 결과를 알려 드립니다";
 
@@ -141,6 +146,11 @@ export async function signupAction(_previous: SignupState, formData: FormData): 
   if (invalid) return input(invalid.field, invalid.error);
   // 위에서 걸렀다 — 타입만 좁힌다.
   if (!isGender(gender)) return input("gender", "성별을 골라 주세요");
+  // 약관 동의(ACC-23, WHALEERP-774) — 필수 둘을 켜야 보낸다. api 도 다시 본다(필수가 true 가 아니면 400).
+  const terms = signupTermsBody(formData);
+  if (!terms.termsServiceAgreed || !terms.privacyAgreed) return input("terms", REQUIRED_TERMS_MISSING);
+  // 필수 약관을 받지 못한 화면(설정 · 잠시 실패)에서는 보인 버전이 없다 — api 에 보내지 않고 다시 열게 한다
+  if (!terms.termsServiceVersion || !terms.privacyVersion) return input("terms", TERMS_NOT_LOADED);
 
   let result;
   try {
@@ -159,6 +169,7 @@ export async function signupAction(_previous: SignupState, formData: FormData): 
         // 체크 칸은 api 가 물을 때(asksHqSharingConsent)만 그려진다. 묻지 않는 초대에 보내도 api 는 저장하지 않는다. 동의하면 본 문구
         // 버전을 함께 싣는다(ATT-30 v252) — 다르면 api 는 가입은 마치고 동의만 남기지 않는다(v253).
         ...hqSharingConsentBody(formData),
+        ...terms,
         deviceIdentifier,
       },
       clientIpFrom(await headers()),
@@ -173,6 +184,11 @@ export async function signupAction(_previous: SignupState, formData: FormData): 
       if (problem.kind === "rate-limited") return input("form", RATE_LIMITED);
       if (problem.kind === "birth-date-in-future") return input("birthDate", "생년월일을 다시 확인해 주세요");
       if (problem.kind === "email-taken") return input("email", "이미 가입한 이메일입니다. 다른 이메일을 쓰거나 로그인해 주세요");
+      // 가입 화면을 연 사이 약관이 바뀌었다 — 화면을 다시 받아 새 약관을 보이고, 다시 확인한 뒤 가입하게 한다(api 의 한글 사유)
+      if (problem.kind === "terms-changed") {
+        refresh();
+        return input("terms", error.message);
+      }
       // 400 의 한글 사유(비밀번호 규칙 · 이메일 · 생년월일 형식)는 그 칸에 그대로 보인다. 영어 원문은 화면과 api 의 계약이 어긋난 신호다.
       if (error.status === 400 && isHangulReason(error.message)) {
         const field = signupFieldOf(error.message);

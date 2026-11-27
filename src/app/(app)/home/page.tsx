@@ -7,7 +7,8 @@ import { ApiError, failureOf, logFailure, logUnexpected } from "@/lib/api";
 import { getContracts } from "@/lib/contracts";
 import { getCurrentMembership } from "@/lib/current-membership";
 import { getEnumOrEmpty, labelOf } from "@/lib/enums";
-import { getMyAffiliationRequests, getMyProfile } from "@/lib/my-profile";
+import { getMyAffiliationRequests, getMyProfile, getStaffTerms } from "@/lib/my-profile";
+import { shownTermsVersionsOf } from "@/lib/staff-terms";
 import { hqReconsentOf } from "@/lib/profile";
 import { requireSession } from "@/lib/session";
 import { signRequestOf } from "@/lib/sign-request";
@@ -91,17 +92,25 @@ async function HomeRequests() {
   const employmentTypes = contracts.then((items) =>
     items && signRequestOf(items, now)?.contract.employmentType ? employmentTypesOrEmpty() : [],
   );
-  const [items, affiliationRequests, types, hqSharing, membership] = await Promise.all([
+  // 내 정보 — 사업자 제공 다시 동의와 약관 동의 필요(ACC-23, WHALEERP-774)를 함께 본다. 약관이 필요할 때만 약관 셋을 받는다
+  const profile = popupLoad("profile-home", getMyProfile);
+  const staffTerms = profile.then((me) => (me?.needsTermsAgreement ? getStaffTerms() : null));
+  const [items, affiliationRequests, types, me, terms, membership] = await Promise.all([
     contracts,
     getMyAffiliationRequests(),
     employmentTypes,
-    popupLoad("hq-reconsent-home", async () => (await getMyProfile()).hqSharingConsent),
+    profile,
+    staffTerms,
     // 다시 동의의 가맹 소속 — 홈 머리줄이 받은 목록(퇴직 근무지 제외)을 같이 쓴다(cache, 한 요청에 한 번). 못 받았으면 null
     getCurrentMembership(),
   ]);
   const sign = items && signRequestOf(items, now);
+  const hqSharing = me?.hqSharingConsent ?? null;
+  // 필수 약관을 받지 못했으면(설정 · 잠시 실패) 이번에는 띄우지 않는다 — 다음에 홈을 열 때 다시 묻는다
+  const versions = terms && shownTermsVersionsOf(terms);
   return (
     <HomePopups
+      terms={terms && versions ? { items: terms, versions } : null}
       sign={
         sign && {
           key: sign.key,

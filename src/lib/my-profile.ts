@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 
 import { requestsLoadFailure } from "./affiliation-requests";
+import { STAFF_TERMS } from "./staff-terms";
 import { ApiError, NetworkError, failureOf, logFailure, logUnexpected, request, type Schemas } from "./api";
 import { authedRequest } from "./session";
 
@@ -95,3 +96,13 @@ export async function getCurrentTerms(termsTypeCode: string): Promise<CurrentTer
     throw error;
   }
 }
+
+/** 직원 앱 약관 한 가지와 지금 시행 중인 본문(ACC-23). */
+export type StaffTermsItem = (typeof STAFF_TERMS)[number] & { current: CurrentTerms };
+
+/**
+ * 직원 앱 약관 셋(서비스 이용약관 · 개인정보 수집·이용 · 마케팅 정보 수신)의 지금 시행본 — 가입 화면의 체크 칸과 홈 약관 동의 팝업이
+ * 「보기」로 보이고, 팝업은 보인 버전을 api 에 싣는다(WHALEERP-774). 캐시하지 않는 것은 getCurrentTerms 와 같다.
+ */
+export const getStaffTerms = (): Promise<StaffTermsItem[]> =>
+  Promise.all(STAFF_TERMS.map(async (terms) => ({ ...terms, current: await getCurrentTerms(terms.code) })));

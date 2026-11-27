@@ -14,16 +14,20 @@ import {
   subscribeSignRequestSeen,
   takeSignRequestReopen,
 } from "@/lib/sign-request-popup-memory";
+import type { StaffTermsItem } from "@/lib/my-profile";
 import { isSignRequestDismissed } from "@/lib/sign-request-seen";
+import type { ShownTermsVersions } from "@/lib/staff-terms";
 import { AffiliationPopup } from "./affiliation-popup";
 import { HqReconsentPopup } from "./hq-reconsent-popup";
+import { TermsAgreementPopup } from "./terms-agreement-popup";
 
 type Rows = { label: string; value: string; sub?: string }[];
-type Sheet = "sign" | "affiliation" | "reconsent";
+type Sheet = "terms" | "sign" | "affiliation" | "reconsent";
 
 /**
- * 홈 위 팝업 셋 — 서명 요청(WHALEERP-148), 근무지 추가 요청(144), 사업자 제공 다시 동의(ATT-30 v252). 한 번에 하나만, 서명 요청 →
- * 근무지 추가 요청 → 다시 동의 순이다(순서의 근거는 home/page.tsx 의 HomeRequests). 규칙은 셋이다.
+ * 홈 위 팝업 넷 — 약관 동의(ACC-23, WHALEERP-774), 서명 요청(WHALEERP-148), 근무지 추가 요청(144), 사업자 제공 다시 동의(ATT-30 v252).
+ * 한 번에 하나만, 약관 동의 → 서명 요청 → 근무지 추가 요청 → 다시 동의 순이다(순서의 근거는 home/page.tsx 의 HomeRequests). 약관 동의는
+ * 닫을 수 없어 동의할 때까지 다른 팝업이 뜨지 않는다. 규칙은 셋이다.
  * - 보고 있는 시트는 그대로 둔다 — 그사이 다른 쪽 기억이 지워지거나 홈을 다시 받아도, 닫을(「나중에 하기」 · 가기) 때까지.
  * - 한 시트를 닫으면 다 내려간 뒤(SHEET_CLOSE_MS) 다음 시트를 연다 — 겹쳐 보이지 않게.
  * - 백그라운드에서 오래 있다 다시 보이면(HOME-4 「앱을 다시 엶」, 홈에 없을 때 돌아왔으면 홈을 그릴 때) 홈을 먼저 다시 받고 서명 요청
@@ -32,10 +36,13 @@ type Sheet = "sign" | "affiliation" | "reconsent";
  * 서버 그림에서는 모두 닫아 두고(저장소를 모른다) 브라우저에서 읽어 연다.
  */
 export function HomePopups({
+  terms,
   sign,
   affiliation,
   reconsent,
 }: {
+  /** 약관 동의가 필요하면 약관 셋과 팝업이 보인 버전 */
+  terms: { items: StaffTermsItem[]; versions: ShownTermsVersions } | null;
   sign: { key: string; href: string; rows: Rows } | null;
   affiliation: PopupSummary | null;
   /** 다시 동의가 필요하면 팝업이 보이는 문구 버전(닫을 때 기억) */
@@ -45,6 +52,9 @@ export function HomePopups({
   // 다시 동의는 마지막 값을 붙잡아 둔다 — 동의하면 홈을 다시 받아 null 이 되는데, 바로 빼면 시트가 내려가지 않고 사라지고 성공 토스트도 잃는다
   const [keptReconsent, setKeptReconsent] = useState(reconsent);
   if (reconsent && reconsent.key !== keptReconsent?.key) setKeptReconsent(reconsent);
+  // 약관 동의도 같다 — 동의하면 홈을 다시 받아 null 이 되는데, 그동안 시트가 내려가며 그대로 그려지게 붙잡아 둔다
+  const [keptTerms, setKeptTerms] = useState(terms);
+  if (terms && terms !== keptTerms) setKeptTerms(terms);
   const [refreshing, startRefresh] = useTransition();
   useEffect(() => {
     const reopen = () => {
@@ -58,6 +68,7 @@ export function HomePopups({
   }, [router]);
 
   const waiting: Record<Sheet, boolean> = {
+    terms: terms !== null,
     sign: useSyncExternalStore(
       subscribeSignRequestSeen,
       () => sign !== null && !isSignRequestDismissed(sign.key, readSignRequestSeen()),
@@ -77,7 +88,7 @@ export function HomePopups({
   // 보고 있는 시트(잠금). 그것이 닫히면 내려가는 동안(closing) 비워 둔다.
   const [shown, setShown] = useState<Sheet | null>(null);
   const [closing, setClosing] = useState(false);
-  const pick: Sheet | null = waiting.sign ? "sign" : waiting.affiliation ? "affiliation" : waiting.reconsent ? "reconsent" : null;
+  const pick: Sheet | null = waiting.terms ? "terms" : waiting.sign ? "sign" : waiting.affiliation ? "affiliation" : waiting.reconsent ? "reconsent" : null;
   const next = shown && waiting[shown] ? shown : shown || closing || refreshing ? null : pick;
   // 렌더 중 상태 맞추기 — 바뀔 때만. 보던 시트가 닫혔으면 내려가는 시간을 둔다.
   if (next !== shown) {
@@ -92,6 +103,7 @@ export function HomePopups({
 
   return (
     <>
+      {keptTerms && <TermsAgreementPopup open={next === "terms"} terms={keptTerms.items} versions={keptTerms.versions} />}
       {sign && <SignRequestSheet open={next === "sign"} requestKey={sign.key} href={sign.href} rows={sign.rows} />}
       {affiliation && <AffiliationPopup open={next === "affiliation"} summary={affiliation} />}
       {keptReconsent && <HqReconsentPopup open={next === "reconsent"} reconsentKey={keptReconsent.key} />}
