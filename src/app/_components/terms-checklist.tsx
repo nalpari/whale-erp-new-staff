@@ -25,11 +25,14 @@ export function TermsChecklist({
   error?: string;
 }) {
   const [viewing, setViewing] = useState<StaffTermsKey>();
+  // 마케팅은 선택 약관이라 시행 중인 것을 받았을 때만 줄을 둔다. 잠시 받지 못했을 때(unavailable)도 빼는데, 그러면 보인 버전이
+  // null 로 가 api 가 409 TERMS_CHANGED 로 거절할 수 있다 — 화면을 다시 받아 그때 받은 약관으로 다시 그린다
   const shown = terms.filter((item) => item.required || item.current.status === "ok");
   const opened = shown.find((item) => item.key === viewing);
+  const hidesMarketing = !shown.some((item) => item.key === "marketing");
   // 보이지 않는 마케팅 줄은 「모두 동의」에서도 뺀다
-  const visibleChecks = { ...checks, ...(shown.some((item) => item.key === "marketing") ? {} : { marketing: true }) };
-  const toggleAll = (on: boolean) => onChange({ ...checkAllTerms(on), ...(shown.some((item) => item.key === "marketing") ? {} : { marketing: false }) });
+  const visibleChecks = hidesMarketing ? { ...checks, marketing: true } : checks;
+  const toggleAll = (on: boolean) => onChange(hidesMarketing ? { ...checkAllTerms(on), marketing: false } : checkAllTerms(on));
   return (
     <div className="flex flex-col gap-[4px]" data-field-anchor="terms">
       <input type="hidden" name="terms" value="" />

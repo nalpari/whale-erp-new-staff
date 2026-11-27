@@ -88,3 +88,10 @@ export function shownTermsVersionsOf(items: readonly LoadedTerms[]): ShownTermsV
     marketingVersion: marketing.status === "ok" ? marketing.terms.version : null,
   };
 }
+
+/**
+ * 보인 약관 버전 셋의 키 — 바뀌면(409 TERMS_CHANGED 뒤 새 약관을 받음) 체크를 처음으로 돌린다. 새 약관을 다시 보고 체크하게 해,
+ * 버튼만 다시 눌러 보지 않은 약관에 동의한 것으로 남지 않게 한다.
+ */
+export const termsVersionKey = (items: readonly LoadedTerms[]) =>
+  items.map((item) => `${item.key}:${item.current.status === "ok" ? item.current.terms.version : "-"}`).join("|");

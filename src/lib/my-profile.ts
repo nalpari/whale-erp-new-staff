@@ -135,7 +135,8 @@ export async function getCurrentTerms(termsTypeCode: string): Promise<CurrentTer
     return { status: "ok", terms };
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
-      logUnexpected(`terms:${termsTypeCode}`, error);
+      // 선택 약관(마케팅)은 운영자가 꺼 두는 것이 정상 설정이라 남기지 않는다 — 가입 · 홈 약관 동의가 그 줄을 빼고 그린다
+      if (termsTypeCode !== "MARKETING") logUnexpected(`terms:${termsTypeCode}`, error);
       return { status: "missing" };
     }
     if (error instanceof NetworkError || (error instanceof ApiError && error.status >= 500)) return { status: "unavailable" };

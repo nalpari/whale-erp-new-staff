@@ -11,6 +11,7 @@ import {
   requiredTermsAgreed,
   shownTermsVersionsOf,
   signupTermsBody,
+  termsVersionKey,
   termsAgreementBody,
   termsAgreementFailure,
 } from "./staff-terms.ts";
@@ -116,4 +117,22 @@ test("shownTermsVersionsOf — 필수 둘을 받아야 팝업을 띄운다, 마�
   assert.deepEqual(shownTermsVersionsOf(items({ status: "missing" })), { termsServiceVersion: "v1.0", privacyVersion: "v1.1", marketingVersion: null });
   assert.equal(shownTermsVersionsOf(items({ status: "unavailable" })), null);
   assert.equal(shownTermsVersionsOf([{ key: "termsService", current: { status: "missing" } }, ...items(ok("v2.0")).slice(1)]), null);
+});
+
+test("termsVersionKey — 보인 버전이 하나라도 바뀌면 키가 바뀐다(체크를 처음으로)", () => {
+  const ok = (version: string) => ({ status: "ok" as const, terms: { version } });
+  const before = termsVersionKey([
+    { key: "termsService", current: ok("v1.0") },
+    { key: "privacy", current: ok("v1.0") },
+    { key: "marketing", current: { status: "missing" } },
+  ]);
+  assert.equal(before, "termsService:v1.0|privacy:v1.0|marketing:-");
+  assert.notEqual(
+    termsVersionKey([
+      { key: "termsService", current: ok("v1.0") },
+      { key: "privacy", current: ok("v1.1") },
+      { key: "marketing", current: { status: "missing" } },
+    ]),
+    before,
+  );
 });

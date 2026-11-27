@@ -13,7 +13,7 @@ import { SIGNUP_NAME_MAX, formatPhone, kstToday, needsBirthDateCheck, type Signu
 import { ADDRESS_DETAIL_MAX, dateLabel } from "@/lib/profile";
 import { TermsChecklist } from "@/app/_components/terms-checklist";
 import type { StaffTermsItem } from "@/lib/my-profile";
-import { NO_TERMS_CHECKED, REQUIRED_TERMS_MISSING, requiredTermsAgreed } from "@/lib/staff-terms";
+import { NO_TERMS_CHECKED, REQUIRED_TERMS_MISSING, requiredTermsAgreed, termsVersionKey } from "@/lib/staff-terms";
 import { AuthScreen } from "../../_components/auth-screen";
 import { signupAction, type SignupState } from "../actions";
 import {
@@ -65,6 +65,13 @@ export function SignupForm({
   const [detail, setDetail] = useState("");
   const [hqSharing, setHqSharing] = useState(false);
   const [termsChecks, setTermsChecks] = useState(NO_TERMS_CHECKED);
+  // 그사이 약관이 바뀌어(409 TERMS_CHANGED) 새 약관을 받으면 체크를 처음으로 — 새 약관을 다시 보고 체크하게 한다
+  const termsKey = termsVersionKey(terms);
+  const [checkedTermsKey, setCheckedTermsKey] = useState(termsKey);
+  if (termsKey !== checkedTermsKey) {
+    setCheckedTermsKey(termsKey);
+    setTermsChecks(NO_TERMS_CHECKED);
+  }
   const [searching, setSearching] = useState(false);
   // 만 19세 미만으로 보이는 생년월일은 보내기 전에 한 번 더 확인받는다(needsBirthDateCheck). 확인한 값은 다시 묻지 않는다.
   const formRef = useRef<HTMLFormElement>(null);
