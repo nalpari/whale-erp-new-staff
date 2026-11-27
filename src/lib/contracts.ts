@@ -1,4 +1,4 @@
-import { ApiError, type Schemas } from "./api";
+import { ApiError, failureOf, logFailure, type Schemas } from "./api";
 import { authedRequest } from "./session";
 
 // 직원 근무 앱 근로계약서(api GET /me/contracts · /me/contracts/:contractId, WHALEERP-146). api 가 서명 대기 이후의 내 계약만
@@ -15,6 +15,21 @@ export type ContractStatus = Schemas["ContractStatus"];
 /** 내 근로계약 목록. 날인을 기다리는 계약(기한이 급한 순)이 먼저, 그다음 최근 것부터(api 순서). 점포로 거르는 칸은 api 에 없다. */
 export async function getContracts(): Promise<ContractListItem[]> {
   return (await authedRequest<Schemas["MyContractListResponseDto"]>("/me/contracts")).items;
+}
+
+/**
+ * 곁들임으로 받는 내 근로계약 목록 — 못 받으면 null 이고 부른 화면은 그대로 선다. 예상 밖 4xx 는 scope 로 남긴다(5xx · 연결 실패는
+ * request() 가 남겼다). 401 의 만료 안내 redirect 와 결함은 그대로 던진다.
+ */
+export async function getContractsOrNull(scope: string): Promise<ContractListItem[] | null> {
+  try {
+    return await getContracts();
+  } catch (error) {
+    const failure = failureOf(error);
+    if (!failure) throw error;
+    if (failure !== "network" && failure.status < 500) logFailure(scope, failure);
+    return null;
+  }
 }
 
 /** 계약 한 장. 없거나 남의 계약이면(api 404) null. */
