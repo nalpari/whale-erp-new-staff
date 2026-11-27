@@ -73,6 +73,13 @@ test("낸 것을 확인한 종이 계약 소속이 있을 때만 할 일 없음 
   assert.equal(paperTaxProfileConfirmed([{ ...member(1), taxProfileSubmitted: false }], contracts, TODAY), false);
   assert.equal(paperTaxProfileConfirmed([member(1)], contracts, TODAY), false);
   assert.equal(paperTaxProfileConfirmed([{ ...member(2), taxProfileSubmitted: true }], contracts, TODAY), false);
+  // 한 곳은 냈고 한 곳은 냈는지 모르면 확정하지 않는다
+  const two = [contract(1, "PAPER"), contract(2, "PAPER")];
+  assert.equal(paperTaxProfileConfirmed([{ ...member(1), taxProfileSubmitted: true }, member(2)], two, TODAY), false);
+  assert.equal(
+    paperTaxProfileConfirmed([{ ...member(1), taxProfileSubmitted: true }, { ...member(2), taxProfileSubmitted: true }], two, TODAY),
+    true,
+  );
 });
 
 test("처음 넣기 화면 주소", () => {

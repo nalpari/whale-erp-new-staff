@@ -37,15 +37,17 @@ export function taxProfileDueMemberships<M extends Membership & { taxProfileSubm
 }
 
 /**
- * 종이 계약 소속의 신고 정보를 냈다고 확인했는지 — 가입 완료가 「할 일 없음」을 확정할 때 쓴다. 냈다는 값(true)이 있어야만 참이고,
- * 짝을 맞추지 못했거나(staffMemberId 없음) 냈는지 모르면(칸이 없는 옛 api) 거짓이라 지금 안내를 그대로 둔다.
+ * 종이 계약 소속의 신고 정보를 모두 냈다고 확인했는지 — 가입 완료가 「할 일 없음」을 확정할 때 쓴다. 종이 계약 소속이 하나 이상이고
+ * 모두 냈다는 값(true)이어야만 참이다. 짝을 맞추지 못했거나(staffMemberId 없음) 한 곳이라도 냈는지 모르면(칸이 없는 옛 api) 거짓이라
+ * 지금 안내를 그대로 둔다.
  */
 export function paperTaxProfileConfirmed<M extends Membership & { taxProfileSubmitted?: boolean }>(
   memberships: readonly M[],
   contracts: readonly Contract[],
   today: string,
 ): boolean {
-  return paperSignedMemberships(memberships, contracts, today).some((m) => m.taxProfileSubmitted === true);
+  const paper = paperSignedMemberships(memberships, contracts, today);
+  return paper.length > 0 && paper.every((m) => m.taxProfileSubmitted === true);
 }
 
 /**
