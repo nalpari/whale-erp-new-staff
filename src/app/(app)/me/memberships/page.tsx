@@ -149,11 +149,14 @@ const EMPTY_TEXT: Record<Exclude<StatusFilter, "all">, string> = {
   retiring: "퇴직 예정인 근무지가 없습니다.",
   retired: "퇴직한 근무지가 없습니다.",
 };
-// 처음 열면 「근무 중」 — 지금 다니는 근무지를 먼저 본다(2026-11-25 사용자 지정). 전체는 ?status=all
+// 처음 열면 「전체」 — 퇴직 예정은 퇴직일까지 재직이고(CTR-24), 퇴직한 근무지도 근무 중인 곳 아래에 흐리게 보인다(TAX-07).
+// 지금 다니는 근무지를 먼저 보는 것(2026-11-25 사용자 지정)은 줄 순서(STATUS_ORDER)로 지킨다(2026-11-27 사용자 지정)
 const statusFilterOf = (raw: string | string[] | undefined): StatusFilter => {
   const v = Array.isArray(raw) ? raw[0] : raw;
-  return v === "all" || v === "retiring" || v === "retired" ? v : "working";
+  return v === "working" || v === "retiring" || v === "retired" ? v : "all";
 };
+/** 줄 순서 — 근무 중 → 퇴직 예정 → 퇴직. 같은 상태끼리는 api 순서 그대로(정렬이 안정적이라서) */
+const STATUS_ORDER: Record<Exclude<StatusFilter, "all">, number> = { working: 0, retiring: 1, retired: 2 };
 
 /**
  * 맨 위 상태 칩 — [전체 N] [근무 중 N] [퇴직 예정 N] [퇴직 N](0건도 보인다). 누르면 그 상태의 근무지만 보이고 주소(?status=)에 남아 뒤로 갔다 와도
@@ -189,10 +192,8 @@ export default async function MembershipsPage({ searchParams }: PageProps<"/me/m
   const storeContacts = getStoreContacts();
   const [memberships, employmentTypes] = await Promise.all([getMyMemberships(true), getEnumOrEmpty("EmploymentType")]);
   const today = kstToday();
-  // 처음 열면 「근무 중」. 다만 근무 중인 근무지가 없으면(퇴직 예정 · 퇴직만) 빈 목록 대신 「전체」로 연다 — 퇴직 예정 근무지도 아직
-  // 출근하는 곳이라 「근무 중인 근무지가 없습니다」만 보이면 안 된다(2026-11-25 리뷰). 칩을 눌러 고른 값(?status=)은 그대로 따른다
-  const noneWorking = memberships !== null && !memberships.items.some((m) => membershipStatusOf(m.retiredDate, today) === "working");
-  const filter = requested === undefined && noneWorking ? "all" : statusFilterOf(requested);
+  // 칩을 눌러 고른 값(?status=)을 따르고, 없거나 모르는 값이면 「전체」
+  const filter = statusFilterOf(requested);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -225,6 +226,7 @@ export default async function MembershipsPage({ searchParams }: PageProps<"/me/m
           <ul className="flex flex-col gap-[12px]">
             {memberships.items
               .filter((m) => filter === "all" || membershipStatusOf(m.retiredDate, today) === filter)
+              .toSorted((a, b) => STATUS_ORDER[membershipStatusOf(a.retiredDate, today)] - STATUS_ORDER[membershipStatusOf(b.retiredDate, today)])
               .map((m) => {
                 const status = membershipStatusOf(m.retiredDate, today);
                 const retired = status === "retired";
