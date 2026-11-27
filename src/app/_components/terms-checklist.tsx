@@ -79,7 +79,7 @@ export function TermsChecklist({
             <p>
               {opened?.current.status === "missing"
                 ? "지금은 약관을 볼 수 없습니다. 근무지 관리자에게 문의해 주세요."
-                : "약관을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요."}
+                : "약관을 불러오지 못했습니다. 화면을 새로 고친 뒤 다시 열어 주세요."}
             </p>
           </Alert>
         )}

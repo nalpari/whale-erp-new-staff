@@ -89,7 +89,19 @@ export function HomePopups({
   const [shown, setShown] = useState<Sheet | null>(null);
   const [closing, setClosing] = useState(false);
   const pick: Sheet | null = waiting.terms ? "terms" : waiting.sign ? "sign" : waiting.affiliation ? "affiliation" : waiting.reconsent ? "reconsent" : null;
-  const next = shown && waiting[shown] ? shown : shown || closing || refreshing ? null : pick;
+  // 약관 동의는 보고 있는 다른 시트보다도 먼저다 — 첫 조회가 잠시 실패해 다른 시트가 먼저 열렸다가 약관 동의가 필요해지면, 그 시트를
+  // 내리고(내려가는 시간을 둔 뒤) 약관 동의를 연다(PR-Agent). 동의 전에는 서명 화면 등으로 가지 않게
+  const next: Sheet | null = waiting.terms
+    ? shown === "terms"
+      ? "terms"
+      : shown || closing
+        ? null
+        : "terms"
+    : shown && waiting[shown]
+      ? shown
+      : shown || closing || refreshing
+        ? null
+        : pick;
   // 렌더 중 상태 맞추기 — 바뀔 때만. 보던 시트가 닫혔으면 내려가는 시간을 둔다.
   if (next !== shown) {
     setShown(next);
