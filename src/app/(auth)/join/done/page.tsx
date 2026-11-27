@@ -100,7 +100,8 @@ export default async function JoinDonePage({ searchParams }: PageProps<"/join/do
 
 /**
  * 신고 정보를 넣어야 하는 종이 계약 소속(소속 목록 순서의 첫째, 없거나 소속 · 계약 목록을 못 받았으면 null), 지금 서명할 계약이 있는지,
- * 할 일이 없음을 확인했는지(paperOnly — 서명 완료 종이 계약만 있고 서명할 계약도 넣을 신고 정보도 없음). 곁들임이라 두 목록의
+ * 할 일이 없음을 확인했는지(paperOnly — 서명 완료 종이 계약만 있고 서명할 계약도 넣을 신고 정보도 없음). 가입 초대는 계정이 없는
+ * 번호에만 가서(api decideInvitation) 가입 직후 계정의 계약은 이번 근무지 것뿐이라 계정 전체로 본다. 곁들임이라 두 목록의
  * 실패(401 밖)는 화면을 깨지 않고, 실패면 할 일을 확인하지 못한 것으로 보고 지금 안내 그대로다.
  */
 async function paperTaxDue() {

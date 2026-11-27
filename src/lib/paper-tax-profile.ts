@@ -13,6 +13,8 @@ type Contract = Pick<ContractListItem, "storeId" | "status" | "contractMethod" |
  * 소속 목록(GET /me/memberships)은 퇴직한 소속을 빼지만 퇴직 배치가 늦은 날 섞일 수 있어 다시 본다. today 는 한국 날짜 YYYY-MM-DD.
  * 그 근무지에 서명을 기다리는 계약이 있으면 뺀다 — 퇴직 처리는 체결 완료 계약을 닫지 않아(api contract-duplicates) 복귀한 직원의 옛 종이
  * 계약이 남아 있을 수 있고, 계약 목록에 직원 레코드 id 가 없어 근무지로만 맞춘다. 서명이 먼저다(서명 대기 카드 · 팝업이 안내한다).
+ * 복귀는 새 직원 레코드를 만들고(api decideInvitation) 소속 목록에는 서명 완료 계약이 있는 레코드만 나와, 새 계약을 맺기 전에는 그
+ * 근무지 소속이 목록에 없다 — 옛 종이 계약이 아직 맺지 않은 복귀 소속을 대상으로 만들지 않는다.
  */
 export function paperSignedMemberships<M extends Membership>(memberships: readonly M[], contracts: readonly Contract[], today: string): M[] {
   const paper = new Set(contracts.filter((c) => c.status === "SIGNED" && c.contractMethod === "PAPER").map((c) => c.storeId));
