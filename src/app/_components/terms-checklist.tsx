@@ -24,7 +24,9 @@ export function TermsChecklist({
   onChange: (checks: TermsChecks) => void;
   error?: string;
 }) {
+  // 마지막으로 연 약관은 닫을 때도 남긴다 — 시트가 내려가는 동안 제목 · 본문이 바뀌지 않게(PR-Agent)
   const [viewing, setViewing] = useState<StaffTermsKey>();
+  const [sheetOpen, setSheetOpen] = useState(false);
   // 마케팅은 선택 약관이라 시행 중인 것을 받았을 때만 줄을 둔다. 잠시 받지 못했을 때(unavailable)도 빼는데, 그러면 보인 버전이
   // null 로 가 api 가 409 TERMS_CHANGED 로 거절할 수 있다 — 화면을 다시 받아 그때 받은 약관으로 다시 그린다
   const shown = terms.filter((item) => item.required || item.current.status === "ok");
@@ -54,7 +56,10 @@ export function TermsChecklist({
           </CheckBox>
           <button
             type="button"
-            onClick={() => setViewing(item.key)}
+            onClick={() => {
+              setViewing(item.key);
+              setSheetOpen(true);
+            }}
             aria-haspopup="dialog"
             aria-label={`${item.label} 보기`}
             className="flex min-h-[44px] shrink-0 items-center px-[4px] text-[12px] font-semibold text-staff-text-sub underline underline-offset-2"
@@ -64,7 +69,7 @@ export function TermsChecklist({
         </div>
       ))}
       {error && <p className="text-[12px] text-staff-error">{error}</p>}
-      <BottomSheet open={opened !== undefined} onClose={() => setViewing(undefined)} title={opened?.label ?? "약관"}>
+      <BottomSheet open={sheetOpen && opened !== undefined} onClose={() => setSheetOpen(false)} title={opened?.label ?? "약관"}>
         {opened?.current.status === "ok" ? (
           <>
             <p className="-mt-[12px] text-[12px] text-staff-text-muted">
