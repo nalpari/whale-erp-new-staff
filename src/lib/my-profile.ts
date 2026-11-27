@@ -94,7 +94,7 @@ export const getMyTaxProfile = (staffMemberId: number) =>
  */
 export async function paperTaxProfileDue<M extends Schemas["MyMembershipDto"]>(
   memberships: readonly M[],
-  contracts: readonly Pick<ContractListItem, "storeId" | "status" | "contractMethod" | "awaitingSignature">[],
+  contracts: readonly Pick<ContractListItem, "staffMemberId" | "status" | "contractMethod" | "awaitingSignature">[],
   keepUnknown: boolean,
   scope: string,
 ): Promise<M[]> {

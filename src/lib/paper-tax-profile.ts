@@ -5,22 +5,21 @@
 import type { ContractListItem } from "./contracts";
 import { membershipStatusOf } from "./profile.ts";
 
-type Membership = { staffMemberId: number; store: { storeId: number }; retiredDate: string | null };
-type Contract = Pick<ContractListItem, "storeId" | "status" | "contractMethod" | "awaitingSignature">;
+type Membership = { staffMemberId: number; retiredDate: string | null };
+type Contract = Pick<ContractListItem, "staffMemberId" | "status" | "contractMethod" | "awaitingSignature">;
 
 /**
  * 서명 완료(종이 계약은 관리자 등록)된 종이 계약이 있는 지금 소속 — 소속 목록 순서 그대로. 퇴직한 소속(퇴직일이 오늘 앞)은 뺀다.
  * 소속 목록(GET /me/memberships)은 퇴직한 소속을 빼지만 퇴직 배치가 늦은 날 섞일 수 있어 다시 본다. today 는 한국 날짜 YYYY-MM-DD.
- * 그 근무지에 서명을 기다리는 계약이 있으면 뺀다 — 퇴직 처리는 체결 완료 계약을 닫지 않아(api contract-duplicates) 복귀한 직원의 옛 종이
- * 계약이 남아 있을 수 있고, 계약 목록에 직원 레코드 id 가 없어 근무지로만 맞춘다. 서명이 먼저다(서명 대기 카드 · 팝업이 안내한다).
- * 복귀는 새 직원 레코드를 만들고(api decideInvitation) 소속 목록에는 서명 완료 계약이 있는 레코드만 나와, 새 계약을 맺기 전에는 그
- * 근무지 소속이 목록에 없다 — 옛 종이 계약이 아직 맺지 않은 복귀 소속을 대상으로 만들지 않는다.
+ * 계약과 소속은 직원 레코드 id(staffMemberId)로 맞춘다 — 근무지로 맞추면 퇴직 뒤 재입사한 직원의 옛 레코드 종이 계약이(퇴직 처리는 체결
+ * 완료 계약을 닫지 않는다, api contract-duplicates) 지금 소속을 대상으로 만든다(재입사는 새 레코드, api #65). 같은 소속에 서명을 기다리는
+ * 계약이 있으면 서명이 먼저라 뺀다(서명 대기 카드 · 팝업이 안내한다). staffMemberId 가 없는 옛 api 응답이면 아무 소속도 대상이 아니다.
  */
 export function paperSignedMemberships<M extends Membership>(memberships: readonly M[], contracts: readonly Contract[], today: string): M[] {
-  const paper = new Set(contracts.filter((c) => c.status === "SIGNED" && c.contractMethod === "PAPER").map((c) => c.storeId));
-  const signing = new Set(contracts.filter((c) => c.awaitingSignature).map((c) => c.storeId));
+  const paper = new Set(contracts.filter((c) => c.status === "SIGNED" && c.contractMethod === "PAPER").map((c) => c.staffMemberId));
+  const signing = new Set(contracts.filter((c) => c.awaitingSignature).map((c) => c.staffMemberId));
   return memberships.filter(
-    (m) => paper.has(m.store.storeId) && !signing.has(m.store.storeId) && membershipStatusOf(m.retiredDate, today) !== "retired",
+    (m) => paper.has(m.staffMemberId) && !signing.has(m.staffMemberId) && membershipStatusOf(m.retiredDate, today) !== "retired",
   );
 }
 

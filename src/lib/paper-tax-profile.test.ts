@@ -4,41 +4,43 @@ import { test } from "node:test";
 import { allPaper, paperSignedMemberships, taxProfileDueOf, taxProfileNewHref } from "./paper-tax-profile.ts";
 
 const TODAY = "2026-11-27";
-const member = (staffMemberId: number, storeId: number, retiredDate: string | null = null) => ({ staffMemberId, store: { storeId }, retiredDate });
-const contract = (storeId: number, contractMethod: "PAPER" | "ELECTRONIC" | null, status: "SIGNED" | "PENDING_SIGNATURE" | "ENDED" = "SIGNED") => ({
-  storeId,
-  contractMethod,
-  status,
-  awaitingSignature: status === "PENDING_SIGNATURE",
-});
+const member = (staffMemberId: number, retiredDate: string | null = null) => ({ staffMemberId, retiredDate });
+const contract = (
+  staffMemberId: number,
+  contractMethod: "PAPER" | "ELECTRONIC" | null,
+  status: "SIGNED" | "PENDING_SIGNATURE" | "ENDED" = "SIGNED",
+) => ({ staffMemberId, contractMethod, status, awaitingSignature: status === "PENDING_SIGNATURE" });
 
 test("서명 완료된 종이 계약이 있는 소속은 대상이다", () => {
-  assert.deepEqual(paperSignedMemberships([member(1, 10)], [contract(10, "PAPER")], TODAY), [member(1, 10)]);
+  assert.deepEqual(paperSignedMemberships([member(1)], [contract(1, "PAPER")], TODAY), [member(1)]);
 });
 
 test("전자계약만 있는 소속은 대상이 아니다", () => {
-  assert.deepEqual(paperSignedMemberships([member(1, 10)], [contract(10, "ELECTRONIC")], TODAY), []);
+  assert.deepEqual(paperSignedMemberships([member(1)], [contract(1, "ELECTRONIC")], TODAY), []);
 });
 
 test("서명 완료가 아닌 종이 계약 · 계약 방식이 없는 계약은 대상이 아니다", () => {
-  assert.deepEqual(paperSignedMemberships([member(1, 10)], [contract(10, "PAPER", "ENDED"), contract(10, null)], TODAY), []);
+  assert.deepEqual(paperSignedMemberships([member(1)], [contract(1, "PAPER", "ENDED"), contract(1, null)], TODAY), []);
 });
 
 test("퇴직한 소속은 대상이 아니고 퇴직 예정 소속은 대상이다", () => {
-  const retired = member(1, 10, "2026-11-26");
-  const retiring = member(2, 20, TODAY);
-  assert.deepEqual(paperSignedMemberships([retired, retiring], [contract(10, "PAPER"), contract(20, "PAPER")], TODAY), [retiring]);
+  const retired = member(1, "2026-11-26");
+  const retiring = member(2, TODAY);
+  assert.deepEqual(paperSignedMemberships([retired, retiring], [contract(1, "PAPER"), contract(2, "PAPER")], TODAY), [retiring]);
 });
 
-test("다른 근무지의 종이 계약은 그 소속을 대상으로 만들지 않는다 · 소속 순서를 지킨다", () => {
-  const a = member(1, 10);
-  const b = member(2, 20);
-  const c = member(3, 30);
-  assert.deepEqual(paperSignedMemberships([a, b, c], [contract(30, "PAPER"), contract(10, "PAPER"), contract(20, "ELECTRONIC")], TODAY), [a, c]);
+test("다른 소속의 종이 계약은 그 소속을 대상으로 만들지 않는다 · 소속 순서를 지킨다", () => {
+  const [a, b, c] = [member(1), member(2), member(3)];
+  assert.deepEqual(paperSignedMemberships([a, b, c], [contract(3, "PAPER"), contract(1, "PAPER"), contract(2, "ELECTRONIC")], TODAY), [a, c]);
 });
 
-test("그 근무지에 서명을 기다리는 계약이 있으면 옛 종이 계약이 남아 있어도 대상이 아니다", () => {
-  assert.deepEqual(paperSignedMemberships([member(1, 10)], [contract(10, "PAPER"), contract(10, "ELECTRONIC", "PENDING_SIGNATURE")], TODAY), []);
+test("같은 근무지라도 옛 레코드(퇴직 뒤 재입사)의 종이 계약은 지금 소속을 대상으로 만들지 않는다", () => {
+  // 옛 레코드 1 은 퇴직해 소속 목록에 없고, 지금 소속 2 는 전자계약을 맺었다
+  assert.deepEqual(paperSignedMemberships([member(2)], [contract(1, "PAPER"), contract(2, "ELECTRONIC")], TODAY), []);
+});
+
+test("그 소속에 서명을 기다리는 계약이 있으면 대상이 아니다", () => {
+  assert.deepEqual(paperSignedMemberships([member(1)], [contract(1, "PAPER"), contract(1, "ELECTRONIC", "PENDING_SIGNATURE")], TODAY), []);
 });
 
 test("함께 온 계약을 모두 찾았고 모두 종이 계약일 때만 allPaper", () => {

@@ -26,6 +26,7 @@ import type { ContractArticle, ContractBlock, ContractDocument, ContractListItem
 
 const item = (over: Partial<ContractListItem> = {}): ContractListItem => ({
   contractId: 1,
+  staffMemberId: 5,
   storeId: 10,
   storeName: "웨일카페 강남역점",
   status: "PENDING_SIGNATURE",
