@@ -3,6 +3,9 @@ import { connection } from "next/server";
 import { requestsLoadFailure } from "./affiliation-requests";
 import { STAFF_TERMS } from "./staff-terms";
 import { ApiError, NetworkError, failureOf, logFailure, logUnexpected, request, type Schemas } from "./api";
+import type { ContractListItem } from "./contracts";
+import { kstToday } from "./join";
+import { paperSignedMemberships, taxProfileDueOf } from "./paper-tax-profile";
 import { authedRequest } from "./session";
 
 /** 내 정보(`GET /me/profile`). 이 화면의 뼈대라 실패하면 그대로 던져 error.tsx 가 받는다. */
@@ -47,6 +50,19 @@ export const getMyMemberships = (includeRetired = false) =>
     authedRequest<Schemas["MyMembershipListResponseDto"]>(`/me/memberships${includeRetired ? "?includeRetired=true" : ""}`),
   );
 
+/** 소속 목록을 곁들임으로 받을 때(가입 완료 · 근무지 추가 완료의 신고 정보 안내) — 401(만료 안내) 밖의 실패는 모두 null(getMyProfileForExtra 와 같은 규칙). */
+export async function getMyMembershipsForExtra(scope: string): Promise<Schemas["MyMembershipListResponseDto"] | null> {
+  try {
+    return await authedRequest<Schemas["MyMembershipListResponseDto"]>("/me/memberships");
+  } catch (error) {
+    const failure = failureOf(error);
+    const handling = requestsLoadFailure(failure);
+    if (handling === "throw") throw error;
+    if (handling === "log" && failure) logFailure(scope, failure);
+    return null;
+  }
+}
+
 /**
  * 살아 있는 소속 추가 확인 요청(`GET /me/affiliation-requests`, WHALEERP-144). 없으면 빈 배열. 401(만료 안내로 보냄) 밖의 실패는
  * 모두 null 이다(requestsLoadFailure) — 다른 조회와 달리 4xx 도 화면을 깨지 않는다.
@@ -69,6 +85,36 @@ export async function getMyAffiliationRequests(): Promise<Schemas["AffiliationRe
  */
 export const getMyTaxProfile = (staffMemberId: number) =>
   orNull(() => authedRequest<Schemas["MyTaxProfileResponseDto"]>(`/me/memberships/${staffMemberId}/tax-profile`));
+
+/**
+ * 서명 완료 종이 계약이 있는 지금 소속 중 신고 정보를 아직 내지 않은 것(WHALEERP-775, paperSignedMemberships). 소속마다 신고 정보를
+ * 나란히 조회한다(판정은 taxProfileDueOf). 잠시 조회하지 못한 소속(5xx · 연결 실패)은 keepUnknown 이면 넣는다 — 완료 화면은 버튼을 그대로
+ * 두고 입력 화면이 이미 낸 소속을 보기 화면으로 보낸다(전자계약 서명 완료 화면과 같다). 홈 카드는 빼서 이미 낸 직원에게 잘못 띄우지 않는다.
+ * 4xx(그사이 퇴직해 404 등)는 남기고 뺀다 — 입력 화면도 같은 응답에 404 라 버튼이 없는 화면으로 간다.
+ * 401 의 만료 안내 redirect 와 결함은 그대로 던진다. scope 는 남길 때 어느 화면인지다.
+ */
+export async function paperTaxProfileDue<M extends Schemas["MyMembershipDto"]>(
+  memberships: readonly M[],
+  contracts: readonly Pick<ContractListItem, "staffMemberId" | "status" | "contractMethod" | "awaitingSignature">[],
+  keepUnknown: boolean,
+  scope: string,
+): Promise<M[]> {
+  const candidates = paperSignedMemberships(memberships, contracts, kstToday());
+  const due = await Promise.all(
+    candidates.map(async (m) => {
+      try {
+        return taxProfileDueOf(await getMyTaxProfile(m.staffMemberId), keepUnknown);
+      } catch (error) {
+        const failure = failureOf(error);
+        if (!failure) throw error;
+        // 5xx · 연결 실패는 getMyTaxProfile 이 null 로 바꿔 여기 오지 않는다 — 남는 것은 4xx 다
+        logFailure(scope, failure);
+        return false;
+      }
+    }),
+  );
+  return candidates.filter((_, i) => due[i]);
+}
 
 export type CurrentTerms =
   | { status: "ok"; terms: Schemas["TermsVersionDetailResponseDto"] }

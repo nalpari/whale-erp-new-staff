@@ -8,6 +8,7 @@ const NOW = new Date("2026-10-28T03:00:00Z"); // 한국 2026-10-28 12:00
 
 const item = (contractId: number, over: Partial<ContractListItem> = {}): ContractListItem => ({
   contractId,
+  staffMemberId: 5,
   storeId: 10,
   storeName: "웨일카페 강남역점",
   status: "PENDING_SIGNATURE",

@@ -1,0 +1,67 @@
+// node --test src/lib/paper-tax-profile.test.ts
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { allPaper, paperSignedMemberships, taxProfileDueOf, taxProfileNewHref } from "./paper-tax-profile.ts";
+
+const TODAY = "2026-11-27";
+const member = (staffMemberId: number, retiredDate: string | null = null) => ({ staffMemberId, retiredDate });
+const contract = (
+  staffMemberId: number,
+  contractMethod: "PAPER" | "ELECTRONIC" | null,
+  status: "SIGNED" | "PENDING_SIGNATURE" | "ENDED" = "SIGNED",
+) => ({ staffMemberId, contractMethod, status, awaitingSignature: status === "PENDING_SIGNATURE" });
+
+test("서명 완료된 종이 계약이 있는 소속은 대상이다", () => {
+  assert.deepEqual(paperSignedMemberships([member(1)], [contract(1, "PAPER")], TODAY), [member(1)]);
+});
+
+test("전자계약만 있는 소속은 대상이 아니다", () => {
+  assert.deepEqual(paperSignedMemberships([member(1)], [contract(1, "ELECTRONIC")], TODAY), []);
+});
+
+test("서명 완료가 아닌 종이 계약 · 계약 방식이 없는 계약은 대상이 아니다", () => {
+  assert.deepEqual(paperSignedMemberships([member(1)], [contract(1, "PAPER", "ENDED"), contract(1, null)], TODAY), []);
+});
+
+test("퇴직한 소속은 대상이 아니고 퇴직 예정 소속은 대상이다", () => {
+  const retired = member(1, "2026-11-26");
+  const retiring = member(2, TODAY);
+  assert.deepEqual(paperSignedMemberships([retired, retiring], [contract(1, "PAPER"), contract(2, "PAPER")], TODAY), [retiring]);
+});
+
+test("다른 소속의 종이 계약은 그 소속을 대상으로 만들지 않는다 · 소속 순서를 지킨다", () => {
+  const [a, b, c] = [member(1), member(2), member(3)];
+  assert.deepEqual(paperSignedMemberships([a, b, c], [contract(3, "PAPER"), contract(1, "PAPER"), contract(2, "ELECTRONIC")], TODAY), [a, c]);
+});
+
+test("같은 근무지라도 옛 레코드(퇴직 뒤 재입사)의 종이 계약은 지금 소속을 대상으로 만들지 않는다", () => {
+  // 옛 레코드 1 은 퇴직해 소속 목록에 없고, 지금 소속 2 는 전자계약을 맺었다
+  assert.deepEqual(paperSignedMemberships([member(2)], [contract(1, "PAPER"), contract(2, "ELECTRONIC")], TODAY), []);
+});
+
+test("그 소속에 서명을 기다리는 계약이 있으면 대상이 아니다", () => {
+  assert.deepEqual(paperSignedMemberships([member(1)], [contract(1, "PAPER"), contract(1, "ELECTRONIC", "PENDING_SIGNATURE")], TODAY), []);
+});
+
+test("함께 온 계약을 모두 찾았고 모두 종이 계약일 때만 allPaper", () => {
+  const paper = (contractId: number) => ({ contractId, contractMethod: "PAPER" as const });
+  const electronic = (contractId: number) => ({ contractId, contractMethod: "ELECTRONIC" as const });
+  assert.equal(allPaper([1, 2], [paper(1), paper(2)]), true);
+  assert.equal(allPaper([1, 1], [paper(1)]), true);
+  assert.equal(allPaper([1, 2], [paper(1), electronic(2)]), false);
+  assert.equal(allPaper([1, 2], [paper(1)]), false);
+  assert.equal(allPaper([], []), false);
+});
+
+test("신고 정보를 내지 않은 재직 소속만 안내하고 조회 실패는 keepUnknown 을 따른다", () => {
+  assert.equal(taxProfileDueOf({ taxProfile: null, editable: true }, false), true);
+  assert.equal(taxProfileDueOf({ taxProfile: null }, false), true);
+  assert.equal(taxProfileDueOf({ taxProfile: { bankCode: "004" }, editable: true }, true), false);
+  assert.equal(taxProfileDueOf({ taxProfile: null, editable: false }, true), false);
+  assert.equal(taxProfileDueOf(null, true), true);
+  assert.equal(taxProfileDueOf(null, false), false);
+});
+
+test("처음 넣기 화면 주소", () => {
+  assert.equal(taxProfileNewHref(7), "/me/memberships/7/tax-profile/new");
+});

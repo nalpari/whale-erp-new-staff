@@ -16,6 +16,7 @@ import { HomePopups } from "./home-popups";
 import { MyWorkInfo } from "./my-work-info";
 import { ScheduleCards, ScheduleCardsSkeleton } from "./schedule-cards";
 import { SignWaitingCards } from "./sign-waiting-cards";
+import { TaxDueCards } from "./tax-due-cards";
 import { StoreHeader } from "../store-header";
 import { TodoCard, TodoCardSkeleton } from "./todo-card";
 
@@ -52,6 +53,10 @@ export default async function HomePage() {
             서명할 계약이 없는 때가 대부분이라 받는 동안 자리를 잡아 두지 않는다(늦게 오면 아래 카드가 내려간다). */}
         <SoftSuspense>
           <SignWaitingCards contracts={contractsOrNull()} noSite={current === null} />
+        </SoftSuspense>
+        {/* 종이 계약 소속에 신고 정보가 없으면 입력하라는 카드(WHALEERP-775). 서명 대기 카드처럼 대개 없어 자리를 잡아 두지 않는다. */}
+        <SoftSuspense>
+          <TaxDueCards contracts={contractsOrNull()} memberships={memberships?.items ?? null} />
         </SoftSuspense>
         {/* 고른 근무지의 TO-DO 만. 소속 목록을 못 받았으면 모든 근무지, 근무지가 없으면 카드를 두지 않는다. */}
         {current !== null && (
