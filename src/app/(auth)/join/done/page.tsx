@@ -105,6 +105,6 @@ async function paperTaxDue() {
     getContractsOrNull("join-done:contracts"),
   ]);
   if (!memberships || !contracts) return { taxDue: null, awaitingSign: false };
-  const [taxDue] = await paperTaxProfileDue(memberships.items, contracts, true);
+  const [taxDue] = await paperTaxProfileDue(memberships.items, contracts, true, "join-done:tax-profile");
   return { taxDue: taxDue ?? null, awaitingSign: contracts.some((c) => c.awaitingSignature) };
 }

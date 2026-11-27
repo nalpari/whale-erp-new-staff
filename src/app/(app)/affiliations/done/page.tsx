@@ -47,25 +47,32 @@ export async function generateMetadata({ searchParams }: PageProps<"/affiliation
   return { title: `${content?.title ?? "근무지 추가 확인"} · Whale ERP` };
 }
 
-/** 수락으로 온 계약을 내 계약 목록에서 찾는다. 목록을 못 읽으면 빈 배열이고 거르지 않는다 — 완료 화면은 그대로 보인다. 401 의 만료 안내 등은 그대로 던진다 */
-async function contractsOf(contractIds: number[]): Promise<ContractListItem[]> {
-  if (contractIds.length === 0) return [];
-  return (await getContractsOrNull("affiliation-done:contracts"))?.filter((c) => contractIds.includes(c.contractId)) ?? [];
+/**
+ * 내 계약 목록(all)과 그 가운데 수락으로 온 계약(found). 목록을 못 읽으면 둘 다 빈 배열이고 거르지 않는다 — 완료 화면은 그대로 보인다.
+ * 401 의 만료 안내 등은 그대로 던진다.
+ */
+async function contractsOf(contractIds: number[]): Promise<{ all: ContractListItem[]; found: ContractListItem[] }> {
+  if (contractIds.length === 0) return { all: [], found: [] };
+  const all = (await getContractsOrNull("affiliation-done:contracts")) ?? [];
+  return { all, found: all.filter((c) => contractIds.includes(c.contractId)) };
 }
 
 /**
- * 수락 완료의 다음 할 일. 함께 온 계약을 모두 찾았고 모두 종이 계약이면(paper) 신고 정보 입력 — 내지 않은 소속이 있을 때만이고 조회
- * 실패면 둔다. 아니면 그 계약서. 목록을 못 읽어 계약을 다 찾지 못하면 계약서로 보낸다(전과 같다 — 근무지 없이 그 계약서 · 목록).
+ * 수락 완료의 다음 할 일. 함께 온 계약을 모두 찾았고 모두 종이 계약이면(paper) 그 근무지 소속의 신고 정보 입력 — 내지 않은 소속이
+ * 있을 때만이고 조회 실패면 둔다. 그 근무지에 따로 서명을 기다리는 계약이 있으면 서명이 먼저라 두지 않는다(판정에 내 계약 전체를 넘긴다).
+ * 아니면 그 계약서. 목록을 못 읽어 계약을 다 찾지 못하면 계약서로 보낸다(전과 같다 — 근무지 없이 그 계약서 · 목록).
  */
 async function nextOf(contractIds: number[]): Promise<{ paper: boolean; next: { kind: "contract" | "tax"; href: string } | null }> {
-  const contracts = await contractsOf(contractIds);
-  const paper = allPaper(contractIds, contracts);
+  const { all, found } = await contractsOf(contractIds);
+  const paper = allPaper(contractIds, found);
   if (paper) {
     const memberships = await getMyMembershipsForExtra("affiliation-done:memberships");
-    const due = memberships && (await paperTaxProfileDue(memberships.items, contracts, true))[0];
+    const stores = new Set(found.map((c) => c.storeId));
+    const mine = memberships?.items.filter((m) => stores.has(m.store.storeId)) ?? [];
+    const [due] = await paperTaxProfileDue(mine, all, true, "affiliation-done:tax-profile");
     return { paper, next: due ? { kind: "tax", href: taxProfileNewHref(due.staffMemberId) } : null };
   }
-  const href = contractHrefOf(contractIds, contracts[0]?.storeId ?? null);
+  const href = contractHrefOf(contractIds, found[0]?.storeId ?? null);
   return { paper, next: href ? { kind: "contract", href } : null };
 }
 

@@ -19,7 +19,7 @@ export async function TaxDueCards({
 }) {
   const items = await contracts;
   if (!items || !memberships) return null;
-  const due = await paperTaxProfileDue(memberships, items, false);
+  const due = await paperTaxProfileDue(memberships, items, false, "home:tax-profile");
   if (due.length === 0) return null;
   return (
     <div className="flex flex-col gap-[8px]">
