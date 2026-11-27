@@ -16,7 +16,7 @@ import {
 } from "@/lib/sign-request-popup-memory";
 import type { StaffTermsItem } from "@/lib/my-profile";
 import { isSignRequestDismissed } from "@/lib/sign-request-seen";
-import { termsVersionKey, type ShownTermsVersions } from "@/lib/staff-terms";
+import type { ShownTermsVersions } from "@/lib/staff-terms";
 import { AffiliationPopup } from "./affiliation-popup";
 import { HqReconsentPopup } from "./hq-reconsent-popup";
 import { TermsAgreementPopup } from "./terms-agreement-popup";
@@ -103,15 +103,7 @@ export function HomePopups({
 
   return (
     <>
-      {/* 보인 약관 버전이 바뀌면(409 TERMS_CHANGED 뒤 새 약관) 새로 그려 체크를 처음으로 — 새 약관을 다시 보고 체크하게 */}
-      {keptTerms && (
-        <TermsAgreementPopup
-          key={termsVersionKey(keptTerms.items)}
-          open={next === "terms"}
-          terms={keptTerms.items}
-          versions={keptTerms.versions}
-        />
-      )}
+      {keptTerms && <TermsAgreementPopup open={next === "terms"} terms={keptTerms.items} versions={keptTerms.versions} />}
       {sign && <SignRequestSheet open={next === "sign"} requestKey={sign.key} href={sign.href} rows={sign.rows} />}
       {affiliation && <AffiliationPopup open={next === "affiliation"} summary={affiliation} />}
       {keptReconsent && <HqReconsentPopup open={next === "reconsent"} reconsentKey={keptReconsent.key} />}
